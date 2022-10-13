@@ -5,7 +5,7 @@ namespace App\Repository\Transport;
 use App\Entity\FiltreSup;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
@@ -25,7 +25,7 @@ class TransportRoundRepository extends EntityRepository {
     public function findByParamAndFilters(InputBag $params, $filters): array {
         $qb = $this->createQueryBuilder("transport_round");
 
-        $total = QueryCounter::count($qb, "transport_round");
+        $total = QueryBuilderHelper::count($qb, "transport_round");
 
         if($params->get("dateMin")) {
             $date = DateTime::createFromFormat("d/m/Y", $params->get("dateMin"));
@@ -74,7 +74,7 @@ class TransportRoundRepository extends EntityRepository {
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, "transport_round");
+        $countFiltered = QueryBuilderHelper::count($qb, "transport_round");
 
         if ($params->getInt('start')) {
             $qb->setFirstResult($params->getInt('start'));

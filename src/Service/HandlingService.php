@@ -8,10 +8,12 @@ use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Handling;
+use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -80,7 +82,13 @@ class HandlingService {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $user);
         }
 
-        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $selectedDate);
+        $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $selectedDate, [
+            'defaultLanguage' => $defaultLanguage,
+            'language' => $language
+        ]);
 
         $handlingArray = $queryResult['data'];
 

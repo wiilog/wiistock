@@ -16,7 +16,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -625,7 +625,7 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         // compte éléments filtrés
-        $countQuery = QueryCounter::count($queryBuilder, "ra");
+        $countQuery = QueryBuilderHelper::count($queryBuilder, "ra");
 
         if (!empty($params) && !empty($params->all('order'))) {
             $order = $params->all('order')[0]['dir'];
@@ -1211,7 +1211,7 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
 
-        $countTotal = QueryCounter::count($qb, "reference_article");
+        $countTotal = QueryBuilderHelper::count($qb, "reference_article");
 
         return [
             "data" => $qb->getQuery()->getResult(),

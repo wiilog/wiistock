@@ -33,7 +33,7 @@ use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
 use App\Helper\FormatHelper;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -1027,7 +1027,7 @@ class DashboardService {
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER:
-                    $count = QueryCounter::countByStatusesAndTypes($entityManager, $entityToClass[$config['entity']], $entityTypes, $entityStatuses);
+                    $count = QueryBuilderHelper::countByStatusesAndTypes($entityManager, $entityToClass[$config['entity']], $entityTypes, $entityStatuses);
                     break;
                 case Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY:

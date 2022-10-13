@@ -5,7 +5,7 @@ namespace App\Repository\Transport;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -23,7 +23,7 @@ class VehicleRepository extends EntityRepository
     {
 
         $queryBuilder = $this->createQueryBuilder('vehicle');
-        $total = QueryCounter::count($queryBuilder, 'vehicle');
+        $total = QueryBuilderHelper::count($queryBuilder, 'vehicle');
 
         if (!empty($params)) {
             if (!empty($params->all('search'))) {
@@ -63,7 +63,7 @@ class VehicleRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($queryBuilder, 'vehicle');
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, 'vehicle');
 
         if ($params->getInt('start')) {
             $queryBuilder->setFirstResult($params->getInt('start'));

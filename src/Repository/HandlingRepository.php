@@ -6,6 +6,7 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Handling;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\QueryBuilderHelper;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -168,7 +169,7 @@ class HandlingRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function findByParamAndFilters(InputBag $params, $filters, $selectedDate = null)
+    public function findByParamAndFilters(InputBag $params, $filters, $selectedDate = null, array $options = [])
     {
         $qb = $this->createQueryBuilder('handling');
 
@@ -307,17 +308,13 @@ class HandlingRepository extends EntityRepository
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
                     if ($column === 'type') {
-                        $qb
-                            ->leftJoin('handling.type', 'order_type')
-                            ->orderBy('order_type.label', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', $order);
                     } else if ($column === 'requester') {
                         $qb
                             ->leftJoin('handling.requester', 'order_requester')
                             ->orderBy('order_requester.username', $order);
                     } else if ($column === 'status') {
-                        $qb
-                            ->leftJoin('handling.status', 'order_status')
-                            ->orderBy('order_status.nom', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'status', $order);
                     } else if ($column === 'treatedBy') {
                         $qb
                             ->leftJoin('handling.treatedByHandling', 'order_treatedByHandling')

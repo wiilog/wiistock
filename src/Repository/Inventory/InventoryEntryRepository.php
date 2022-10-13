@@ -7,7 +7,7 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Livraison;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -292,7 +292,7 @@ class InventoryEntryRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb, 'ie');
+		$countFiltered = QueryBuilderHelper::count($qb, 'ie');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

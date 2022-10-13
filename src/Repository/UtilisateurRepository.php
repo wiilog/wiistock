@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Action;
 use App\Entity\Dispute;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -142,7 +142,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             }
         }
 
-        $filtered = QueryCounter::count($qb, 'user');
+        $filtered = QueryBuilderHelper::count($qb, 'user');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
