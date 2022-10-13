@@ -169,7 +169,7 @@ $button-box-shadow: 0 2px 6px -3px $black;
 
 .btn {
     span:not([title]) {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 600 !important;
         padding-right: 5px;
         padding-left: 5px;
@@ -198,4 +198,8 @@ $button-box-shadow: 0 2px 6px -3px $black;
     border: none;
     background: none;
     padding: 0;
+}
+
+.btn-primary {
+    font-weight: 600;
 }

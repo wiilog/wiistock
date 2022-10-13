@@ -15,11 +15,15 @@
              ondragleave="dragLeaveDiv(event, $(this))"
              ondrop="saveDroppedFiles(event, $(this))">
             {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
-            <p class="drop-file-hint">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;<span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open mr-2"></i>
-                {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}</span>
+            <div class="drop-file-hint d-flex flex-column justify-content-center">
+                <span class="mb-2">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;</span>
+                <button onclick="openFileExplorer($(this))" class="btn btn-primary">
+                    <i class="fa fa-folder-open mr-2"></i>
+                    {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}
+                </button>
                 <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
                        onchange="saveInputFiles($(this))">
-            </p>
+            </div>
         </div>
     {% endif %}
     <div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
