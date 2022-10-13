@@ -977,8 +977,8 @@ class ArrivageController extends AbstractController {
         foreach ($disputes as $dispute) {
             $rows[] = [
                 'firstDate' => $dispute->getCreationDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y H:i'),
-                'status' => $dispute->getStatus() ? $dispute->getStatus()->getNom() : '',
-                'type' => $dispute->getType() ? $dispute->getType()->getLabel() : '',
+                'status' => $this->getFormatter()->status($dispute->getStatus()),
+                'type' => $this->getFormatter()->type($dispute->getType()),
                 'updateDate' => $dispute->getUpdateDate() ? $dispute->getUpdateDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y H:i') : '',
                 'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
                     'arrivageId' => $arrivage->getId(),
