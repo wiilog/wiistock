@@ -62,7 +62,9 @@ class QueryBuilderHelper
             ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default");
 
         if($order){
-            $qb->orderBy("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, join_$entity.$entityToString))", $order);
+            $qb
+                ->orderBy("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, join_$entity.$entityToString))", $order)
+                ->addGroupBy("join_translation.translation");
         } else {
             $qb->andWhere("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, join_$entity.$entityToString)) LIKE :term");
         }
