@@ -423,23 +423,15 @@ class HandlingController extends AbstractController {
             $settingRepository = $entityManager->getRepository(Setting::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager,
-                [CategorieCL::DEMANDE_HANDLING]);
-            $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
 
             $handlingParameters = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
             $receiversParameters = $handlingParameters[FieldsParam::FIELD_CODE_RECEIVERS_HANDLING];
 
             $handlings = $handlingsRepository->iterateByDates($dateTimeMin, $dateTimeMax);
-            $receivers = $handlingsRepository->getReceiversByDates($dateTimeMin, $dateTimeMax);
-            $currentDate = new DateTime('now');
 
             $csvHeaderBase = [
-                $translation->translate('Demande',
-                    'Services',
-                    'Zone liste - Nom de colonnes',
-                    'Numéro de demande',
-                    false),
+                $translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Numéro de demande', false),
                 $translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date demande', false),
                 $translation->translate('Demande', 'Général', 'Demandeur', false),
                 $translation->translate('Demande', 'Général', 'Type', false),
@@ -447,19 +439,11 @@ class HandlingController extends AbstractController {
                 $translation->translate('Demande', 'Services', 'Modale et détails', 'Chargement', false),
                 $translation->translate('Demande', 'Services', 'Modale et détails', 'Déchargement', false),
                 $translation->translate('Demande', 'Services', 'Modale et détails', 'Date attendue', false),
-                $translation->translate('Demande',
-                    'Services',
-                    'Zone liste - Nom de colonnes',
-                    'Date de réalisation',
-                    false),
+                $translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation', false),
                 $translation->translate('Demande', 'Général', 'Statut', false),
                 $translation->translate('Général', null, 'Modale', 'Commentaire', false),
                 $translation->translate('Demande', 'Général', 'Urgent', false),
-                $translation->translate('Demande',
-                    'Services',
-                    'Modale et détails',
-                    "Nombre d'opération(s) réalisée(s)",
-                    false),
+                $translation->translate('Demande', 'Services', 'Modale et détails', "Nombre d'opération(s) réalisée(s)", false),
                 $translation->translate('Général', null, 'Zone liste', 'Traité par', false),
             ];
 
@@ -477,6 +461,8 @@ class HandlingController extends AbstractController {
             $globalTitle = 'export-services-' . $today . '.csv';
 
             return $CSVExportService->streamResponse(function($output) use (
+                $handlings,
+                $handlingsRepository,
                 $entityManager,
                 $dateTimeMin,
                 $dateTimeMax,
@@ -484,10 +470,8 @@ class HandlingController extends AbstractController {
                 $handlingService,
                 $formatService
             ) {
-                $handlingsRepository = $entityManager->getRepository(Handling::class);
-                $handlingsIterator = $handlingsRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
-                foreach ($handlingsIterator as $handling) {
+                foreach ($handlings as $handling) {
                     $handlingService->putHandlingLine($entityManager, $CSVExportService, $output, $handling, $formatService);
                 }
             },
