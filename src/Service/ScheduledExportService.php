@@ -218,7 +218,7 @@ class ScheduledExportService
 
     public function calculateFromHourlyRule(ExportScheduleRule $rule, DateTime $now): ?DateTime {
         $intervalPeriod = $rule->getIntervalPeriod();
-        if ($intervalPeriod) {
+        if (!$intervalPeriod) {
             return null;
         }
 
