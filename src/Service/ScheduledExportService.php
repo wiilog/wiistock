@@ -222,8 +222,12 @@ class ScheduledExportService
             return null;
         }
 
-        $hoursBetweenDates = $now->diff($rule->getBegin(), true)->format("%a");
-        $hoursToAdd = $intervalPeriod - ($hoursBetweenDates % $intervalPeriod);
+        $hoursBetweenDates = $now->diff($rule->getBegin(), true)->format("%h");
+        if($hoursBetweenDates % $intervalPeriod === 0) {
+            $hoursToAdd = $intervalPeriod - ($hoursBetweenDates % $intervalPeriod);
+        } else {
+            $hoursToAdd = 0;
+        }
 
         $nextOccurrence = clone $now;
         $nextOccurrence->setTime((int)$now->format("H") + $hoursToAdd, $rule->getBegin()->format("i"));
