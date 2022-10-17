@@ -70,6 +70,7 @@
                                title="Date attendue"
                                class="form-control data {{ setting_value('REMOVE_HOURS_DATETIME') ? 'date-field' : 'datetime-field' }} needed pointer"
                                placeholder="{{ app.user.displayedDateFormat ~ (not setting_value('REMOVE_HOURS_DATETIME') ? ' hh:mm') }}"
+                               data-init="{{ setting_value('PREFILL_SERVICE_DATE_TODAY') ? (setting_value('REMOVE_HOURS_DATETIME') ? "now"|date('Y-m-d') : "now"|date('Y-m-d H:i')) }}"
                                autocomplete="off"/>
                     </div>
 
