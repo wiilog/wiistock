@@ -8,6 +8,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Chauffeur;
 use App\Entity\Pack;
@@ -23,6 +24,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\DataExportService;
+use App\Service\FilterSupService;
 use App\Service\KeptFieldService;
 use App\Service\LanguageService;
 use App\Service\VisibleColumnService;
@@ -74,7 +76,11 @@ class ArrivageController extends AbstractController {
      * @Route("/", name="arrivage_index")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      */
-    public function index(EntityManagerInterface $entityManager, KeptFieldService $keptFieldService, ArrivageService $arrivageDataService)
+    public function index(Request $request,
+                          EntityManagerInterface $entityManager,
+                          KeptFieldService $keptFieldService,
+                          ArrivageService $arrivageService,
+                          FilterSupService $filterSupService)
     {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -86,7 +92,7 @@ class ArrivageController extends AbstractController {
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        $fields = $arrivageDataService->getColumnVisibleConfig($entityManager, $user);
+        $fields = $arrivageService->getColumnVisibleConfig($entityManager, $user);
 
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
@@ -102,7 +108,10 @@ class ArrivageController extends AbstractController {
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
             "fields" => $fields,
+            "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
             "initial_form" => $this->createApi($entityManager, $keptFieldService)->getContent(),
+            "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
+            "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_ARRIVAGE)),
         ]);
     }
 
