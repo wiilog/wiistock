@@ -223,9 +223,7 @@ class ScheduledExportService
         }
 
         $nowMinuteless = clone $now;
-        $nowMinuteless->setTime($nowMinuteless->format("H"), 0);
         $beginMinuteless = clone $rule->getBegin();
-        $beginMinuteless->setTime($beginMinuteless->format("H"), 0);
 
         $hoursBetweenDates = $nowMinuteless->diff($beginMinuteless, true)->format("%a");
         $hoursToAdd = $intervalPeriod - ($hoursBetweenDates % $intervalPeriod);
