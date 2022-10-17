@@ -1,44 +1,52 @@
 <div class="d-flex">
     <div class="dropdown dropright">
         <div class="d-flex">
-            {% include 'datatable/dotsRow.html.twig' %}
+            {% include "utils/action-button.html.twig" with {
+                noButton: true,
+                actions: [
+                    {
+                        title: trans('Général', '', 'Modale', 'Détails', false),
+                        icon: "fas fa-eye",
+                        attributes: {
+                            "data-id": mvt.id,
+                            "data-target": "#modalShowMvtTraca",
+                            "data-toggle": "modal",
+                            "onclick": "showRow($(this), Routing.generate('mvt_traca_show', true), $('#modalShowMvtTraca'))",
+                        },
+                    },
+                    {
+                        hasRight: hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')),
+                        title: trans('Général', '', 'Modale', 'Modifier', false),
+                        icon: "fas fa-pencil-alt",
+                        class: "d-none action-on-click",
+                        attributes: {
+                            "data-id": mvt.id,
+                            "data-target": "#modalEditMvtTraca",
+                            "data-toggle": "modal",
+                            "onclick": "editRow($(this), Routing.generate('tracking_movement_api_edit', true), $('#modalEditMvtTraca'), $('#submitEditMvtTraca'), false, initDatePickers)",
+                        },
+                    },
+                    {
+                        hasRight: hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')),
+                        title : trans('Général', '', 'Modale', 'Supprimer', false),
+                        icon : "wii-icon wii-icon-trash-black",
+                        attributes: {
+                            "data-id": "{{ mvt.id }}",
+                            "data-target": "#modalDeleteMvtTraca",
+                            "data-toggle": "modal",
+                            "onclick": "deleteRow($(this), $('#modalDeleteMvtTraca'), $('#submitDeleteMvtTraca'))",
+                        },
+                    }
+                ]
+            } %}
+
             {% if attachmentsLength > 0 %}
                 {% include 'datatable/paperclip.html.twig' with {
                     mvt: mvt.id,
                     attachmentsLength: attachmentsLength
                 } %}
             {% endif %}
-            <div class="dropdown-menu dropdown-follow-gt pointer">
-                <div class="dropdown-item"
-                     data-id='{{ mvt.id }}'
-                     data-target='#modalShowMvtTraca'
-                     data-toggle='modal'
-                     onclick="showRow($(this), Routing.generate('mvt_traca_show', true), $('#modalShowMvtTraca'))">
-                    <i class='fas fa-eye mr-2'></i>{{ trans('Général', '', 'Modale', 'Détails', false) }} <!-- voir -->
-                </div>
 
-                {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
-                    <div data-id='{{ mvt.id }}'
-                         data-target='#modalEditMvtTraca'
-                         data-toggle='modal'
-                         class="d-none action-on-click"
-                         onclick="editRow($(this), Routing.generate('tracking_movement_api_edit', true), $('#modalEditMvtTraca'), $('#submitEditMvtTraca'), false, initDatePickers)">
-                        <i class='fas fa-pencil-alt mr-2'></i>{{ trans('Général', '', 'Modale', 'Modifier', false) }}
-                    </div>
-                {% endif %}
-
-                {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) %}
-                    <div class="dropdown-item">
-                        <div class="d-flex align-items-center"
-                             data-id='{{ mvt.id }}'
-                             data-target='#modalDeleteMvtTraca'
-                             data-toggle='modal'
-                             onclick="deleteRow($(this), $('#modalDeleteMvtTraca'), $('#submitDeleteMvtTraca'))">
-                            <span class="wii-icon wii-icon-trash-black mr-2"></span>{{ trans('Général', '', 'Modale', 'Supprimer', false) }}
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
         </div>
     </div>
 </div>

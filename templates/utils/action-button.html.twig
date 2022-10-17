@@ -1,0 +1,115 @@
+{#
+{% include "utils/action-button.html.twig" with {
+    noButton: boolean,
+    icon : "icon",
+    actions: {
+        {
+            hasRight: boolean ,
+            title: "title",
+            class: "class-name",
+            id : "id-name",
+            attributes: { attribute : "value" , attribute2 : "value2" },
+            disable : boolean ,
+        },
+        ...
+    }
+} %}
+#}
+
+{#keep only action where user have the right#}
+{% set actionsFiltered = [] %}
+{% for action in actions|filter(action => action.hasRight is not defined or action.hasRight) %}
+    {% set actionsFiltered = actionsFiltered|merge([action]) %}
+{% endfor %}
+
+
+{% if noButton is defined and noButton %}
+    {% if actionsFiltered|length >= 1%}
+        <a href="#" class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px"/>
+            <span class="{{ icon is defined ? icon : 'wii-icon wii-icon-dots' }}"></span>
+        </a>
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            {% for action in actionsFiltered %}
+            <div
+                class="dropdown-item d-flex align-items-center {{ action.class is defined ? action.class}}"
+                {{ action.id is defined ? 'id="' ~ action.id ~ '"' }}
+                {% if action.attributes is defined %}
+                    {% for attribute, value in action.attributes %}
+                        {{ attribute }}="{{ value }}"
+                    {% endfor %}
+                {% endif %}>
+                {% if action.icon is defined %}
+                    <i class="{{ action.icon }} mr-2"></i>
+                {% endif %}
+                {{ action.title }}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% elseif actionsFiltered|length == 1 %}
+    {% set action = actionsFiltered[0] %}
+    <button
+        type="button"
+        class="btn btn-primary d-flex align-items-center {{ action.class is defined ? action.class}}"
+        {{ action.id is defined ? 'id="' ~ action.id ~ '"' }}
+        {{ action.disable is defined and action.disable ? 'disabled' }}
+        {% if action.attributes is defined%}
+            {% for attribute, value in action.attributes %}
+                {{ attribute }}="{{ value }}"
+            {% endfor %}
+        {% endif %}>
+        {% if action.icon is defined %}
+            <i class="{{ action.icon }} mr-2"></i>
+        {% endif %}
+        {{ action.title }}
+    </button>
+{% elseif actionsFiltered|length > 1 %}
+    <div class="btn-group">
+        {% for action in actionsFiltered %}
+            {% if loop.first %}
+                <button
+                    type="button"
+                    class="btn btn-primary d-flex align-items-center {{ action.class is defined ? action.class}}"
+                    {{ action.id is defined ? 'id="' ~ action.id ~ '"' }}
+                    {{ action.disable is defined and action.disable ? 'disabled' }}
+                    {% if action.attributes is defined%}
+                        {% for attribute, value in action.attributes %}
+                            {{ attribute }}="{{ value }}"
+                        {% endfor %}
+                    {% endif %}>
+                    {% if action.icon is defined %}
+                        <i class="{{ action.icon }} mr-2"></i>
+                    {% endif %}
+                    {{ action.title }}
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                    <span class="{{ icon is defined ? icon : 'fa fa-angle-down' }}"></span>
+                </button>
+                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+            {% else %}
+                <a
+                    class="dropdown-item pointer {{ action.class is defined ? action.class}}"
+                    {{ action.id is defined ? 'id="' ~ action.id ~ '"' }}
+                    {{ action.disable is defined and action.disable ? 'disabled' }}
+                    {% if action.attributes is defined%}
+                        {% for attribute, value in action.attributes %}
+                            {{ attribute }}="{{ value }}"
+                        {% endfor %}
+                    {% endif %}>
+                    {% if action.icon is defined %}
+                        <i class="{{ action.icon }} mr-2"></i>
+                    {% endif %}
+                    {{ action.title }}
+                </a>
+                {{ loop.last ? '</div>' }}
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+
