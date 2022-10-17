@@ -262,6 +262,7 @@ class DispatchService {
 
         foreach ($receivers as $receiver) {
             $receiverLine = "<div>";
+
             $receiverLine .= $receiver ? $receiver->getUsername() : "";
             if ($receiver && $receiver->getAddress()) {
                 $receiverLine .= '
