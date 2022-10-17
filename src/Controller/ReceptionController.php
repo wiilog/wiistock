@@ -16,7 +16,6 @@ use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
-use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
@@ -52,20 +51,20 @@ use App\Service\SettingsService;
 use App\Service\TrackingMovementService;
 use App\Service\TransferOrderService;
 use App\Service\TransferRequestService;
+use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -86,7 +85,7 @@ class ReceptionController extends AbstractController {
                         ReceptionService $receptionService,
                         AttachmentService $attachmentService,
                         Request $request,
-                        TranslatorInterface $translator): Response {
+                        TranslationService $translation): Response {
 
         if ($data = $request->request->all()) {
             /** @var Utilisateur $currentUser */
@@ -100,7 +99,7 @@ class ReceptionController extends AbstractController {
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => $translator->trans('réception.Une autre réception est en cours de création, veuillez réessayer').'.'
+                    'msg' => $translation->translate('Ordre', 'Réceptions', 'Une autre réception est en cours de création, veuillez réessayer.', false),
                 ]);
             }
 
@@ -949,7 +948,6 @@ class ReceptionController extends AbstractController {
         $typeBeforeName = $dispute->getType()->getLabel();
         $typeAfter = (int)$post->get('disputeType');
         $statutBeforeId = $dispute->getStatus()->getId();
-        $statutBeforeName = $dispute->getStatus()->getNom();
         $statutAfterId = (int)$post->get('disputeStatus');
         $statutAfter = $statutRepository->find($statutAfterId);
 
@@ -958,7 +956,7 @@ class ReceptionController extends AbstractController {
             ->filter(function(Article $article) {
                 // articles non disponibles
                 return in_array(
-                    $article->getStatut()->getNom(),
+                    $article->getStatut()?->getCode(),
                     [
                         Article::STATUT_EN_TRANSIT,
                         Article::STATUT_INACTIF
@@ -1059,7 +1057,7 @@ class ReceptionController extends AbstractController {
                               ArticleDataService     $articleDataService,
                               Request                $request,
                               UniqueNumberService    $uniqueNumberService,
-                              TranslatorInterface    $translator): Response
+                              TranslationService    $translation): Response
     {
         $post = $request->request;
 
@@ -1121,7 +1119,7 @@ class ReceptionController extends AbstractController {
         catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translator->trans('réception.Un autre litige de réception est en cours de création, veuillez réessayer').'.'
+                'msg' => $translation->translate('Ordre', 'Réception', 'Un autre litige de réception est en cours de création, veuillez réessayer.', false),
             ]);
         }
 
@@ -1178,7 +1176,7 @@ class ReceptionController extends AbstractController {
      * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function deleteDispute(Request $request,
-                                 EntityManagerInterface $entityManager): Response {
+                                 EntityManagerInterface $entityManager, TranslationService $translation): Response {
         if($data = json_decode($request->getContent(), true)) {
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -1207,7 +1205,7 @@ class ReceptionController extends AbstractController {
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le litige <strong>' . $disputeNumber . '</strong> a bien été supprimé.'
+                'msg' => $translation->translate('Qualité', 'Litiges', 'Le litige {1} a bien été supprimé', [1 => $disputeNumber])
             ]);
         }
         throw new BadRequestHttpException();
@@ -1237,7 +1235,7 @@ class ReceptionController extends AbstractController {
             }
             $rows[] = [
                 'type' => $dispute->getType()->getLabel(),
-                'status' => $dispute->getStatus()->getNom(),
+                'status' => $this->getFormatter()->status($dispute->getStatus()),
                 'lastHistoryRecord' => $dispute->getLastHistoryRecord() ? $dispute->getLastHistoryRecord()->getComment() : null,
                 'date' => $dispute->getCreationDate()->format('d/m/Y H:i'),
                 'actions' => $this->renderView('reception/datatableLitigesRow.html.twig', [
@@ -1453,7 +1451,7 @@ class ReceptionController extends AbstractController {
      * @Route("/csv", name="get_receptions_csv", options={"expose"=true}, methods={"GET"})
      */
     public function getReceptionCSV(EntityManagerInterface $entityManager,
-                                    TranslatorInterface $translator,
+                                    TranslationService $translation,
                                     CSVExportService $CSVExportService,
                                     Request $request): Response {
         $dateMin = $request->query->get('dateMin');
@@ -1473,7 +1471,7 @@ class ReceptionController extends AbstractController {
             $requesters = $deliveryRequestRepository->getRequestersForReceptionExport();
 
             $csvHeader = [
-                $translator->trans('réception.n° de réception'),
+                $translation->translate('Ordre', 'Réceptions', 'n° de réception', false),
                 'n° de commande',
                 'fournisseur',
                 'utilisateur',
@@ -1494,11 +1492,11 @@ class ReceptionController extends AbstractController {
                 'code-barre reference',
                 'code-barre article',
             ];
-            $nowStr = date("d-m-Y_H:i");
+            $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");
             $addedRefs = [];
 
             return $CSVExportService->createBinaryResponseFromData(
-                "export-" . str_replace(["/", "\\"], "-", $translator->trans('réception.réception')) . "-" . $nowStr  . ".csv",
+                "export-" . str_replace(["/", "\\"], "-", $translation->translate('Ordre', 'Réception', 'réception', false)) . "-$nowStr.csv",
                 $receptions,
                 $csvHeader,
                 function($reception) use (&$addedRefs, $requesters) {
@@ -1574,7 +1572,7 @@ class ReceptionController extends AbstractController {
                                    TransferRequestService  $transferRequestService,
                                    TransferOrderService    $transferOrderService,
                                    DemandeLivraisonService $demandeLivraisonService,
-                                   TranslatorInterface     $translator,
+                                   TranslationService      $translation,
                                    EntityManagerInterface  $entityManager,
                                    Reception               $reception,
                                    ArticleDataService      $articleDataService,
@@ -1887,7 +1885,7 @@ class ReceptionController extends AbstractController {
                         'fournisseur' => $reception->getFournisseur(),
                         'isReception' => true,
                         'reception' => $reception,
-                        'title' => 'Une ' . $translator->trans('réception.réception')
+                        'title' => 'Une ' . $translation->translate('Ordre', 'Réception', 'réception', false)
                             . ' '
                             . $reception->getNumber()
                             . ' de type «'

@@ -5,8 +5,12 @@
     {% set s = disputes|length > 1 ? 's' : '' %}
     {% set nt = disputes|length > 1 ? 'nt' : '' %}
     <h3 class="margin-bottom:30px;">
-        {{ disputes|length }} litige{{ s }} vous concerne{{ nt }} :
+        {{ disputes|length == 1
+            ? translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email litige', '1 litige vous concerne :', false)
+            : translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email litige', '{1} litiges vous concernent :', false, {1 : disputes|length,})
+        }}
     </h3>
+
 
     <table class="table"
            style="border: 1px solid black;border-collapse: collapse;">
@@ -14,19 +18,19 @@
         <tr>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Type de litige
+                {{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email litige', 'Type de litige', false) }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Statut de litige
+                {{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email litige', 'Statut du litige', false) }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                N° commande / BL
+                {{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false) }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Colis
+                {{ translateIn(language, 'Traçabilité', 'Général', 'Unités logistiques', false) }}
             </th>
         </tr>
         </thead>
@@ -41,7 +45,7 @@
                 <td class="td"
                     rowspan="{{ dispute.packs|length }}"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ dispute.status.nom }}
+                    {{ dispute.status.labelIn(defaultLanguageSlug,defaultLanguageSlug) }}
                 </td>
 
                 {% set firstColis = dispute.packs|first %}

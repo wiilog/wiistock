@@ -28,8 +28,8 @@
                         <div class="btn-group">
                             <button type="button" data-toggle="modal" data-target="#modalNewArticle"
                                     onclick="clearModal('#modalNewArticle'); Select2Old.articleReference($('#reference'))"
-                                    class="btn btn-primary split-button">
-                                <span class="fa fa-plus mr-2"></span>Ajouter article
+                                    class="btn btn-primary split-button d-flex align-items-center">
+                                <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter article
                             </button>
                             <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
                                     data-toggle="dropdown"
@@ -42,7 +42,7 @@
                                    class="dropdown-item"
                                    title="Chercher une référence">
                                     <i class="fa fa-search mr-2"></i>
-                                    Chercher une {{ 'reference.référence'|trans }}
+                                    Chercher une {{ trans('Stock', 'Références', 'référence', false) }}
                                 </a>
                             </div>
                         </div>

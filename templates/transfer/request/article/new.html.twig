@@ -10,7 +10,7 @@
                 <form class="row">
                     <div class="form-group col-12 mb-3 w-100">
                         <label class="wii-field-name" for="add-article-reference" title="référence">
-                            {{ 'reference.référence'|trans }}*
+                            {{ trans('Stock', 'Réceptions', 'référence', false) }}*
                         </label>
                         <select class="ajax-autocomplete form-control data needed" name="reference"
                             onchange="onReferenceChange($(this))" id="add-article-reference">

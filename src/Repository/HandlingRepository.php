@@ -6,6 +6,8 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Handling;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\QueryBuilderHelper;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -115,49 +117,21 @@ class HandlingRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return Handling[]
+     * @return iterable|mixed[] $queryBuilder
      */
-    public function getByDates($dateMin, $dateMax)
-    {
+    public function iterateByDates($dateMin, $dateMax) {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $queryBuilder = $this->createQueryBuilder('handling')
-            ->select('handling.id AS id')
-            ->addSelect('handling.number AS number')
-            ->addSelect('triggeringSensorWrapper.name AS sensorName')
-            ->addSelect('handling.creationDate AS creationDate')
-            ->addSelect('join_requester.username AS requester')
-            ->addSelect('join_type.label AS type')
-            ->addSelect('handling.subject AS subject')
-            ->addSelect('handling.source AS loadingZone')
-            ->addSelect('handling.destination AS unloadingZone')
-            ->addSelect('handling.desiredDate AS desiredDate')
-            ->addSelect('handling.validationDate AS validationDate')
-            ->addSelect('join_status.nom AS status')
-            ->addSelect('handling.comment AS comment')
-            ->addSelect('handling.emergency AS emergency')
-            ->addSelect('join_treatedByHandling.username AS treatedBy')
-            ->addSelect('handling.treatmentDelay AS treatmentDelay')
-            ->addSelect('handling.freeFields')
-            ->addSelect('handling.carriedOutOperationCount AS carriedOutOperationCount')
-
-            ->leftJoin('handling.requester', 'join_requester')
-            ->leftJoin('handling.triggeringSensorWrapper', 'triggeringSensorWrapper')
-            ->leftJoin('handling.type', 'join_type')
-            ->leftJoin('handling.status', 'join_status')
-            ->leftJoin('handling.treatedByHandling', 'join_treatedByHandling')
-
-            ->where('handling.creationDate BETWEEN :dateMin AND :dateMax')
-
+        return $queryBuilder = $this->createQueryBuilder('handling')
+            ->select('handling')
+            ->andWhere('handling.creationDate BETWEEN :dateMin AND :dateMax')
             ->setParameters([
                 'dateMin' => $dateMin,
-                'dateMax' => $dateMax
-            ]);
-
-        return $queryBuilder
+                'dateMax' => $dateMax,
+            ])
             ->getQuery()
-            ->getResult();
+            ->toIterable();
     }
 
 
@@ -168,7 +142,7 @@ class HandlingRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function findByParamAndFilters(InputBag $params, $filters, $selectedDate = null)
+    public function findByParamAndFilters(InputBag $params, $filters, $selectedDate = null, array $options = [])
     {
         $qb = $this->createQueryBuilder('handling');
 
@@ -307,17 +281,13 @@ class HandlingRepository extends EntityRepository
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
                     if ($column === 'type') {
-                        $qb
-                            ->leftJoin('handling.type', 'order_type')
-                            ->orderBy('order_type.label', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', $order);
                     } else if ($column === 'requester') {
                         $qb
                             ->leftJoin('handling.requester', 'order_requester')
                             ->orderBy('order_requester.username', $order);
                     } else if ($column === 'status') {
-                        $qb
-                            ->leftJoin('handling.status', 'order_status')
-                            ->orderBy('order_status.nom', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'status', $order);
                     } else if ($column === 'treatedBy') {
                         $qb
                             ->leftJoin('handling.treatedByHandling', 'order_treatedByHandling')

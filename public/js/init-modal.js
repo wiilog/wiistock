@@ -46,12 +46,14 @@ function InitModal($modal, submit, path, options = {}) {
 
     const onclick = function () {
         const $button = $(this);
-
         if ($button.hasClass(LOADING_CLASS)) {
-            showBSAlert('L\'opération est en cours de traitement', 'info');
+            showBSAlert( Translation.of('Général', '', 'Modale', 'L\'opération est en cours de traitement'), 'info');
         } else {
             SubmitAction($modal, $button, path, options)
-                .catch(() => {});
+                .catch((err) => {
+                    // do not remove for debug
+                    console.error(err);
+                });
         }
     };
 
@@ -426,13 +428,16 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 || val === ''
                 || val === null
                 || (Array.isArray(val) && val.length === 0)
-                || ($qlEditor && $qlEditor.length > 0 && !$qlEditor.text())
-            )) {
+                || ($qlEditor && $qlEditor.length > 0 && !$qlEditor.text()))) {
+
             if($input.data(`label`)) {
                 missingInputNames.push($input.data(`label`));
-            } else if (missingInputNames.indexOf(label) === -1) {
+            } else if ($input.prev('label').text()){
+                missingInputNames.push($input.prev('label').text().replace('*', ''));
+            } else if (label && missingInputNames.indexOf(label) === -1) {
                 missingInputNames.push(label);
             }
+
             $isInvalidElements.push($input, $input.next().find('.select2-selection'));
             if ($editorContainer.length > 0) {
                 $isInvalidElements.push($editorContainer);
@@ -512,8 +517,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 if (maxLength) {
                     const $commentStrWithoutTag = $qlEditor.text();
                     if ($commentStrWithoutTag.length > maxLength) {
-                        errorMessages.push(`Le commentaire excède les ${maxLength} caractères maximum.`);
-                        $isInvalidElements.push($editorContainer);
+                        errorMessages.push(Translation.of('Général', '', 'Modale', 'Le commentaire excède les {1} caractères maximum.',{1: maxLength}, false));
                     }
                     else {
                         saveData($input, data, name, val, isAttachmentForm);
@@ -546,13 +550,18 @@ function processInputsForm($modal, data, isAttachmentForm) {
 
     if (missingInputNames.length > 0) {
         errorMessages.push(missingInputNames.length === 1
-            ? `Veuillez renseigner le champ ${missingInputNames[0]}.`
-            : `Veuillez renseigner les champs : ${missingInputNames.join(', ')}.`
+            ? Translation.of('Général', '', 'Modale', 'Veuillez renseigner le champ : {1}', {1 : missingInputNames[0]}, false)
+            : Translation.of('Général', '', 'Modale', 'Veuillez renseigner les champs : {1}', {1 : missingInputNames.join(', ')}, false)
         );
     }
 
+    const success = $isInvalidElements.length === 0;
+    if (!success && errorMessages.length === 0) {
+        errorMessages.push('Une erreur est présente dans le formulaire');
+    }
+
     return {
-        success: $isInvalidElements.length === 0,
+        success,
         errorMessages,
         $isInvalidElements,
         data
@@ -677,7 +686,7 @@ function processFilesForm($modal, data) {
 
     return {
         success: !isInvalidRequired,
-        errorMessages: isInvalidRequired ? ['Vous devez ajouter au moins une pièce jointe.'] : [],
+        errorMessages: isInvalidRequired ? [Translation.of('Général', '', 'Modale', 'Vous devez ajouter au moins une pièce jointe.')] : [],
         $isInvalidElements: isInvalidRequired ? [$modal.find('.dropFrame')] : []
     };
 }
@@ -698,6 +707,7 @@ function processDataArrayForm($modal, data) {
     const $isInvalidElements = [];
 
     const errorMessages = [];
+    const customNeededPositiveErrors = {};
 
     $inputsArray.each(function () {
         const $input = $(this);
@@ -726,16 +736,19 @@ function processDataArrayForm($modal, data) {
             }
         }
         if (type === 'number' && $input.hasClass('needed-positiv')) {
-            if (!dataArrayNeedPositive[name]) {
-                dataArrayNeedPositive[name] = 0;
+            const customName = $input.data("custom-label") || name
+            if (!dataArrayNeedPositive[customName]) {
+                dataArrayNeedPositive[customName] = 0;
             }
-            dataArrayNeedPositive[name] += val;
+            dataArrayNeedPositive[customName] += val;
+            if ($input.data("custom-needed-positiv-error")) {
+                customNeededPositiveErrors[customName] = $input.data("custom-needed-positiv-error");
+            }
         } else if ($input.hasClass('phone-number') && !$input.data('iti').isValidNumber()) {
             if (!dataPhonesInvalid[name]) {
                 dataPhonesInvalid[name] = true;
             }
         }
-
     });
 
     const dataArrayNeedPositiveNames = Object.keys(dataArrayNeedPositive).reduce(
@@ -758,8 +771,11 @@ function processDataArrayForm($modal, data) {
         []
     );
     if (dataArrayNeedPositiveNames.length > 0) {
-        errorMessages.push(...dataArrayNeedPositiveNames.map((name) => `Veuillez renseigner au moins un ${name}.`));
-        $isInvalidElements.push(...dataArrayNeedPositiveNames.map((name) => $(`.data-array.needed-positiv[name="${name}"]`)));
+        errorMessages.push(...dataArrayNeedPositiveNames.map((name) => (
+            customNeededPositiveErrors[name]
+            || Translation.of('Général', '', 'Modale', 'Veuillez renseigner au moins un {1}', {1: name})
+        )));
+        $isInvalidElements.push(...dataArrayNeedPositiveNames.map((name) => ($(`.data-array.needed-positiv[data-custom-label="${name}"]`) || $(`.data-array.needed-positiv[name="${name}"]`))));
     }
     if (dataArrayPhonesInvalid.length > 0) {
         errorMessages.push('Un ou plusieurs numéros de téléphones fournis sont invalides.');
@@ -839,9 +855,9 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
         let sizeValid = checkSizeFormat(file, $dropFrame);
 
         if (!formatValid) {
-            errorMessages.push('"' + file.name + '" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.');
+            errorMessages.push(Translation.of('Général', '', 'Modale', '"{1}" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.',{1: file.name}));
         } else if (!sizeValid) {
-            errorMessages.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 10 Mo.');
+            errorMessages.push(Translation.of('Général', '', 'Modale', '"{1}" : La taille du fichier ne doit pas dépasser 10 Mo.',{1: file.name}));
         } else {
             let fileName = file.name;
 

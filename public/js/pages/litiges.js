@@ -11,18 +11,21 @@ let tableHistoLitige;
 let tableArticleLitige;
 
 $(function () {
-    initDateTimePicker();
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
+
     Select2Old.init($('#carriers'), 'Transporteurs');
-    Select2Old.init($('#litigeOrigin'), 'Origines');
-    Select2Old.user($('.ajax-autocomplete-user:eq(0)'), 'Acheteurs');
-    Select2Old.user($('.ajax-autocomplete-user:eq(1)'), 'Déclarant');
-    Select2Old.dispute($('.ajax-autocomplete-dispute'),'Numéro de litige');
+    Select2Old.init($('#litigeOrigin'), Translation.of(`Qualité`, `Litiges`, `Origines`, false));
+    Select2Old.user($('.ajax-autocomplete-user:eq(0)'), Translation.of(`Qualité`, `Litiges`, `Acheteurs`, false));
+    Select2Old.user($('.ajax-autocomplete-user:eq(1)'), Translation.of(`Qualité`, `Litiges`, `Déclarant`, false));
+    Select2Old.dispute($('.ajax-autocomplete-dispute'), Translation.of(`Qualité`, `Litiges`, `Numéro de litige`, false));
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_LITIGE_ARR);
     $.post(path, params, function (data) {
-        displayFiltersSup(data);
+        displayFiltersSup(data, true);
     }, 'json');
 
     initDatatableLitiges();
@@ -46,22 +49,22 @@ function initDatatableLitiges() {
             needsColumnShow: true
         },
         columns: [
-            {"data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},
-            {"data": 'type', 'name': 'type', 'title': 'Type'},
-            {"data": 'disputeNumber', 'name': 'disputeNumber', 'title': 'Numéro du litige'},
-            {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': 'arrivage.n° d\'arrivage', translated: true, className: 'noVis'},
-            {"data": 'receptionNumber', 'name': "receptionNumber", 'title': 'réception.n° de réception', translated: true, className: 'noVis'},
-            {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur', 'orderable': false},
-            {"data": 'reporter', 'name': 'reporter', 'title': 'Déclarant'},
-            {"data": 'numCommandeBl', 'name': 'numCommandeBl', 'title': 'N° commande / BL'},
-            {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},
-            {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
-            {"data": 'references', 'name': 'references', 'title': 'Référence', 'orderable': false},
-            {"data": 'lastHistoryRecord', 'name': 'lastHistoryRecord', 'title': 'Dernier historique', 'orderable': false},
-            {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
-            {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
-            {"data": 'status', 'name': 'status', 'title': 'Statut'},
-            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', 'visible': false, 'class': 'noVis'},
+            {data: 'actions', title: '', orderable: false, className: 'noVis'},
+            {data: 'type', title: Translation.of(`Qualité`, `Litiges`, 'Type')},
+            {data: 'disputeNumber', title: Translation.of(`Qualité`, `Litiges`, `Numéro de litige`)},
+            {data: "arrivalNumber", title: Translation.of(`Traçabilité`, `Flux - Arrivages`, `Divers`, `N° d'arrivage`)},
+            {data: 'receptionNumber', title: Translation.of(`Traçabilité`, `Association BR`, `N° de réception`)},
+            {data: 'buyers', title: Translation.of(`Qualité`, `Litiges`, `Acheteur`), orderable: false},
+            {data: 'reporter', title: Translation.of(`Qualité`, `Litiges`, `Déclarant`)},
+            {data: 'numCommandeBl', title: Translation.of(`Qualité`, `Litiges`, `N° commande / BL`)},
+            {data: 'command', title: 'N° ligne', orderable: false},
+            {data: 'provider', title: Translation.of(`Qualité`, `Litiges`, `Fournisseur`)},
+            {data: 'references', title: Translation.of(`Traçabilité`, `Mouvements`, `Référence`), orderable: false},
+            {data: 'lastHistoryRecord', title: Translation.of(`Qualité`, `Litiges`, `Dernier historique`), orderable: false},
+            {data: 'creationDate', title: Translation.of(`Qualité`, `Litiges`, `Créé le`)},
+            {data: 'updateDate', title: Translation.of(`Qualité`, `Litiges`, `Modifié le`)},
+            {data: 'status', title: Translation.of(`Qualité`, `Litiges`, 'Statut')},
+            {data: 'urgence', title: 'urgence', visible: false, class: 'noVis'},
         ],
         domConfig: {
             needsFullDomOverride: true
@@ -141,11 +144,11 @@ function openTableHisto() {
             "type": "POST"
         },
         columns: [
-            {data: 'user', name: 'Utilisateur', title: 'Utilisateur'},
-            {data: 'date', name: 'date', title: 'Date'},
-            {data: 'commentaire', name: 'commentaire', title: 'Commentaire'},
-            {data: 'status', name: 'status', title: 'Statut'},
-            {data: 'type', name: 'type', title: 'Type'},
+            {data: 'user', name: 'Utilisateur', title: Translation.of('Traçabilité', 'Général', 'Utilisateur')},
+            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
+            {data: 'commentaire', name: 'commentaire', title: Translation.of('Général', '', 'Modale', 'Commentaire')},
+            {data: 'status', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
+            {data: 'type', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
         ],
         domConfig: {
             needsPartialDomOverride: true,

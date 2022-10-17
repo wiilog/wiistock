@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class LivraisonService
@@ -29,6 +30,9 @@ class LivraisonService
     private $security;
 
     private $entityManager;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function __construct(RouterInterface $router,
                                 EntityManagerInterface $entityManager,
@@ -86,9 +90,9 @@ class LivraisonService
             'id' => $livraison->getId() ?? '',
             'Numéro' => $livraison->getNumero() ?? '',
             'Date' => $livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : '',
-            'Statut' => $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
+            'Statut' => $livraison->getStatut() ? $this->formatService->status($livraison->getStatut()) : '',
             'Opérateur' => $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
-            'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
+            'Type' => $demande ? $this->formatService->type($demande->getType()) : '',
             'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url,
                 'titleLogo' => !$livraison->getPreparation()->getPairings()->isEmpty() ? 'pairing' : null
             ]),

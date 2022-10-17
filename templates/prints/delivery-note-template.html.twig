@@ -104,82 +104,82 @@
             <div style="float:right;margin-right:1cm">{{ dn.consignor | nl2br }}</div>
         </div>
         <div class="header">
-            Delivery note - original
+            {{ trans('Demande', 'Acheminements', 'Bon de livraison', "Bon de livraison - Original") }}
         </div>
     </div>
 
     <table class="full-width">
         <tr>
             <td colspan="6" rowspan="4">
-                <label>Ship to</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Adresse de livraison") }}</label><br>
                 {{ dn.deliveryAddress | nl2br }}
             </td>
             <td colspan="3">
-                <label>Delivery</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Numéro de livraison") }}</label><br>
                 {{ dn.deliveryNumber }}
             </td>
             <td colspan="3">
-                <label>Delivery date</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Date de livraison") }}</label><br>
                 {{ dn.deliveryDate }}
             </td>
         </tr>
         <tr>
             <td colspan="3">
-                <label>Sales order No:</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Numéro de commande de vente") }}:</label><br>
                 {{ dn.salesOrderNumber }}
             </td>
             <td colspan="3">
-                <label>Waybill</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Lettre de voiture") }}</label><br>
                 {{ dn.wayBill }}
             </td>
         </tr>
         <tr>
             <td colspan="3">
-                <label>Customer PO number</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Bon de commande client") }}</label><br>
                 {{ dn.customerPONumber }}
             </td>
             <td colspan="3">
-                <label>Customer PO date</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Date commande client") }}</label><br>
                 {{ dn.customerPODate }}
             </td>
         </tr>
         <tr>
             <td colspan="3">
-                <label>Rep order No</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Réponse numéro commande") }}</label><br>
                 {{ dn.respOrderNb }}
             </td>
             <td colspan="3">
-                <label>Project No</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Numéro de projet") }}</label><br>
                 {{ dn.projectNumber }}
             </td>
         </tr>
         <tr>
             <td colspan="6">
-                <label>Handled by</label> : {{ dn.username }}<br>
-                <label>Tel</label> : {{ dn.userPhone }}<br>
-                <label>Fax</label> : {{ dn.userFax }}<br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Contact") }}</label> : {{ dn.username }}<br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Téléphone") }}</label> : {{ dn.userPhone }}<br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Fax") }}</label> : {{ dn.userFax }}<br>
             </td>
             <td colspan="6">
-                <label>Customer/buyer</label> : {{ dn.buyer }}<br>
-                <label>Tel</label> : {{ dn.buyerPhone }}<br>
-                <label>Fax</label> : {{ dn.buyerFax }}<br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Client acheteur") }}</label> : {{ dn.buyer }}<br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Téléphone") }}</label> : {{ dn.buyerPhone }}<br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Fax") }}</label> : {{ dn.buyerFax }}<br>
             </td>
         </tr>
         <tr>
             <td colspan="3">
-                <label>Invoice to :</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Facturé à") }} :</label><br>
                 {{ dn.invoiceTo }}
             </td>
             <td colspan="3">
-                <label>Sold to :</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Vendu à") }} :</label><br>
                 {{ dn.soldTo }}
             </td>
             <td colspan="3">
-                <label>End user :</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Dernier utilisateur") }} :</label><br>
                 {{ dn.endUser }}
             </td>
             <td colspan="3">
-                <label>Deliver to :</label><br>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Livrer à") }} :</label><br>
                 {{ dn.deliverTo }}
             </td>
         </tr>
@@ -187,9 +187,9 @@
 
     <table class="full-width">
         <tr>
-            <th>Code</th>
-            <th>Description</th>
-            <th>Quantity</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Général', "Code") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Description") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Quantité") }}</th>
         </tr>
         {% for pack in dn.packs %}
             <tr>
@@ -203,45 +203,45 @@
     <table class="invisible full-width">
         <tr>
             <td>
-                <label>Consignor :</label> {{ dn.consignor2 }}
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Expéditeur') }} :</label> {{ dn.consignor2 }}
             </td>
             <td class="text-right" nowrap>
-                <label>Consignee :</label> ______________________
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Destinataire') }} :</label> ______________________
             </td>
         </tr>
         <tr>
             <td>
-                <label>Date :</label> {{ dn.date }}
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Date') }} :</label> {{ dn.date }}
             </td>
         </tr>
         <tr>
             <td></td>
             <td class="text-right" style="padding-top:1cm;padding-bottom:1cm">
-                <label>Company stamp & signature</label>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Cachet et signature de l'entreprise") }}</label>
             </td>
         </tr>
         <tr>
             <td></td>
             <td class="text-right" nowrap>
-                <label>Date :</label> ______________________
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Date") }} :</label> ______________________
             </td>
         </tr>
         <tr>
             <td></td>
             <td class="text-right" nowrap>
-                <label>Authorized signatory :</label> ______________________
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Signataire autorisé") }} :</label> ______________________
             </td>
         </tr>
         <tr>
             <td></td>
             <td class="text-right" nowrap>
-                <label>Page 1/1</label>
+                <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Page") }} 1/1</label>
             </td>
         </tr>
     </table>
 
     <footer>
-        <label>Note</label><br>
+        <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Note(s)') }}</label><br>
         {{ dn.notes | nl2br }}
     </footer>
 </div>

@@ -56,7 +56,7 @@ class ReceiptAssociationService
     {
         return [
             'id' => $receiptAssocation->getId(),
-            'creationDate' => FormatHelper::datetime($receiptAssocation->getCreationDate()),
+            'creationDate' => FormatHelper::datetime($receiptAssocation->getCreationDate(), "", false, $this->security->getUser()),
             'packCode' => $receiptAssocation->getPackCode() ?? '',
             'receptionNumber' => $receiptAssocation->getReceptionNumber() ?? '',
             'user' => FormatHelper::user($receiptAssocation->getUser()),

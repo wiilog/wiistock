@@ -166,7 +166,7 @@ class Livraison {
     public function isCompleted(): bool {
         return (
             isset($this->statut)
-            && in_array($this->statut->getNom(), [Livraison::STATUT_LIVRE, Livraison::STATUT_INCOMPLETE])
+            && in_array($this->statut->getCode(), [Livraison::STATUT_LIVRE, Livraison::STATUT_INCOMPLETE])
         );
     }
 

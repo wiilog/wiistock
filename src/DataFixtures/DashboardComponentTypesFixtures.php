@@ -88,7 +88,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
-        'Colis en retard' => [
+        'UL en retard' => [
             'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
             'inSplitCell' => false,
             'exampleValues' => [
@@ -115,8 +115,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::LATE_PACKS,
         ],
-        'Nombre d\'arrivages et de colis quotidiens' => [
-            'hint' => 'Nombre d\'arrivages et de colis créés par jour',
+        'Nombre d\'arrivages et d\'UL quotidiens' => [
+            'hint' => 'Nombre d\'arrivages et d\'UL créés par jour',
             'exampleValues' => [
                 'stack' => true,
                 'label' => 'Arrivages',
@@ -126,7 +126,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ],
                 'chartColorsLabels' => [
                     'Arrivages',
-                    'Colis'
+                    'Unité logistique'
                 ],
                 'chartData' => [
                     '04/01' => 5,
@@ -214,8 +214,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::RECEIPT_ASSOCIATION,
         ],
-        'Nombre d\'arrivages et de colis hebdomadaires' => [
-            'hint' => 'Nombre d\'arrivage et de colis créés par semaine',
+        'Nombre d\'arrivages et d\'UL hebdomadaires' => [
+            'hint' => 'Nombre d\'arrivage et d\'UL créés par semaine',
             'exampleValues' => [
                 'stack' => true,
                 'label' => 'Arrivages',
@@ -225,7 +225,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ],
                 'chartColorsLabels' => [
                     'Arrivages',
-                    'Colis'
+                    'Unité logistique'
                 ],
                 'chartData' => [
                     'S01' => 102,

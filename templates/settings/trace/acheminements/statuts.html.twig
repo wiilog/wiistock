@@ -20,9 +20,16 @@
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
                     {% if can_edit %}
-                        <button class="btn btn-primary d-none add-row-button">
-                            <span class="fa fa-plus mr-2"></span>Ajouter des statuts
-                        </button>
+                        <div class="add-row">
+                            <button class="btn btn-primary d-none add-row-button d-flex align-items-center">
+                                <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter des statuts
+                            </button>
+                        </div>
+                        <div class="translate-labels d-none">
+                            <button class="translate-labels-button btn btn-primary d-flex align-items-center">
+                                <span class="wii-icon wii-icon-translate-white mr-2 wh-18px"></span>Traduction des libellés
+                            </button>
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -36,5 +43,6 @@
         </div>
     </div>
 </div>
+{% include 'settings/modal_edit_translations.html.twig' %}
 
 

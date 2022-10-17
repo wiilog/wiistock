@@ -37,7 +37,7 @@ export default class Form {
 
                     if (result) {
                         form.submitListeners.forEach((submitListener) => {
-                            submitListener(result);
+                            submitListener(result, form);
                         });
                     }
 
@@ -116,6 +116,16 @@ export default class Form {
     on(event, selector, callback) {
         this.element.on(event, selector, callback);
         return this;
+    }
+
+    /**
+     * Launch loading on submit button of the form and wait for the given promise
+     * @param {function} action Function returning a promise to wait
+     * @param {boolean} endLoading default to true
+     */
+    loading(action, endLoading = true) {
+        const $submit = this.element.find('[type=submit]');
+        wrapLoadingOnActionButton($submit, action, endLoading);
     }
 
     static getFieldNames(form, config = {}) {
@@ -473,5 +483,15 @@ function clearFormError(form) {
     const $form = getFormElement(form);
     $form.find(`.is-invalid`).removeClass(`is-invalid`);
     $form.find(`.invalid-feedback`).remove();
+}
+
+export function formatIconSelector(state) {
+    const $option = $(state.element);
+    return $(`
+        <span class="d-flex align-items-center">
+            <img src="${$option.data('icon')??''}" width="20px" height="20px" class="round mr-2"/>
+            ${state.text}
+        </span>
+    `);
 }
 

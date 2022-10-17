@@ -2,14 +2,15 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="Ajouter un colis">' ~ ('colis.Ajouter un colis'|trans) ~ '</span>'
+                title: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Ajouter des unités logistiques')
+
             } %}
 
             <div class="modal-body modal-input container-fluid">
                 {% if natures != null %}
                     <div class="row mt-4">
                         <div class='col-12 mb-2'>
-                            <h3 class="label">Nombre <span title="de colis">{{ 'arrivage.de colis'|trans }}</span> à ajouter :</h3>
+                            <h3 class="label">{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', "Nombre d'UL à ajouter :") }}</h3>
                         </div>
                         <div class="form-group col-12 blocVisible d-block">
                             <div class="d-block">
@@ -51,8 +52,8 @@
             <input hidden value="{{ arrivage.id }}" name="arrivageId" class="data">
             {% include 'utils/modal/footer.html.twig' with {
                 elements: natures is not empty ? [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {id: 'submitAddColis', classes: 'btn btn-success', text: 'Valider'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {id: 'submitAddColis', classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer')}
                 ] : [],
             } %}
         </div>

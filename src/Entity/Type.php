@@ -6,10 +6,12 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
 use App\Entity\Transport\TransportRequest;
+use App\Helper\LanguageHelper;
 use App\Repository\TypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JetBrains\PhpStorm\Deprecated;
 
 #[ORM\Entity(repositoryClass: TypeRepository::class)]
 class Type {
@@ -40,6 +42,9 @@ class Type {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
+    /**
+     * Attribute used for data warehouse, do not delete it
+     */
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $label = null;
 
@@ -124,6 +129,9 @@ class Type {
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $logo = null;
 
+    #[ORM\OneToOne(mappedBy: "type", targetEntity: TranslationSource::class)]
+    private ?TranslationSource $labelTranslation = null;
+
     public function __construct() {
         $this->champsLibres = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
@@ -146,6 +154,20 @@ class Type {
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    public function getLabelIn(Language|string $in, Language|string|null $default): ?string {
+        if($default instanceof Language) {
+            $default = $default->getSlug();
+        }
+
+        $in = LanguageHelper::clearLanguage($in);
+        $default = LanguageHelper::clearLanguage($default);
+
+        $translation = $this->getLabelTranslation();
+        return $translation?->getTranslationIn($in, $default)?->getTranslation()
+            ?: $translation?->getTranslationIn(Language::FRENCH_SLUG)?->getTranslation()
+            ?: '';
     }
 
     public function getLabel(): ?string {
@@ -777,6 +799,24 @@ class Type {
 
     public function setLogo(?Attachment $logo): self {
         $this->logo = $logo;
+
+        return $this;
+    }
+
+    public function getLabelTranslation(): ?TranslationSource {
+        return $this->labelTranslation;
+    }
+
+    public function setLabelTranslation(?TranslationSource $labelTranslation): self {
+        if($this->labelTranslation && $this->labelTranslation->getType() !== $this) {
+            $oldLabelTranslation = $this->labelTranslation;
+            $this->labelTranslation = null;
+            $oldLabelTranslation->setType(null);
+        }
+        $this->labelTranslation = $labelTranslation;
+        if($this->labelTranslation && $this->labelTranslation->getType() !== $this) {
+            $this->labelTranslation->setType($this);
+        }
 
         return $this;
     }

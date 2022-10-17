@@ -2,7 +2,7 @@
     <div class="select2-overflow">
         <div class="input-group w-100 cursor-default">
             <select class="form-control data select2 filter-select2" name="multipleTypes" multiple="multiple" {{ disabled }}>
-                {% for type in types |sort((a, b) => a.label <=> b.label) %}
+                {% for type in types|sort((a, b) => a.label <=> b.label) %}
                     <option class="d-none" value="{{ type.id }}">{{ type.label }}</option>
                 {% endfor %}
             </select>

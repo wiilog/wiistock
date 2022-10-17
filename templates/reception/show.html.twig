@@ -1,6 +1,6 @@
 {% extends "layout.html.twig" %}
 
-{% block title %}Ordre | {{ 'réception.réception'|trans }} | Détails{% endblock %}
+{% block title %}Ordre | {{ trans('Ordre','Réceptions', 'Réception', false) }} | Détails{% endblock %}
 {% block title_tooltip %}Ordre | Réception | Détails{% endblock %}
 {% block titleLink path('reception_index') %}
 
@@ -35,36 +35,36 @@
                                                     class="btn btn-primary split-button d-flex align-items-center"
                                                     onclick="initNewArticleEditor('#modalAddLigneArticle'),
                                                 Select2Old.provider($('.ajax-autocomplete-fournisseur'))">
-                                                <span class="wii-icon wii-icon-new-article mr-2"></span>
-                                                Ajouter une référence
-                                            </button>
-                                        {% endif %}
+                                            <span class="wii-icon wii-icon-new-article mr-2"></span>
+                                            Ajouter une référence
+                                        </button>
                                     {% endif %}
-                                    <button type="button"
-                                            class="btn btn-outline-primary d-none print dropdown-toggle dropdown-toggle-split"
-                                            data-toggle="dropdown"
-                                            aria-haspopup="true"
-                                            aria-expanded="false">
-                                        <span class="fa fa-angle-down"></span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                        <a href="{{ path('reception_bar_codes_print', {reception: reception.id}) }}"
-                                           id="buttonPrintMultipleBarcodes"
-                                           class="dropdown-item d-none print">
-                                            <span class="fa fa-print mr-2"></span>Générer les étiquettes
-                                        </a>
-                                    </div>
+                                {% endif %}
+                                <button type="button"
+                                        class="btn btn-outline-primary d-none print dropdown-toggle dropdown-toggle-split"
+                                        data-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        aria-expanded="false">
+                                    <span class="fa fa-angle-down"></span>
+                                </button>
+                                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                    <a href="{{ path('reception_bar_codes_print', {reception: reception.id}) }}"
+                                       id="buttonPrintMultipleBarcodes"
+                                       class="dropdown-item d-none print  d-flex align-items-center">
+                                        <span class="wii-icon wii-icon-printer-black mr-2"></span>Générer les étiquettes
+                                    </a>
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-12">
-                                <table id="tableArticle_id" class="table"></table>
-                            </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <table id="tableArticle_id" class="table"></table>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
             {% if displayLitiges %}
                 <div class="col-6 pl-2">
                     <div class="wii-box mt-0">
@@ -77,9 +77,9 @@
                                                 data-id='{{ reception.id }}'
                                                 data-target='#modalNewLitige'
                                                 data-toggle='modal'
-                                                class="btn btn-primary"
+                                                class="btn btn-primary d-flex align-items-center"
                                                 onclick="openNewLitigeModal($(this))">
-                                            <i class="fa fa-plus mr-2"></i>
+                                            <span class="wii-icon wii-icon-plus mr-2"></span>
                                             Nouveau litige
                                         </button>
                                     </div>

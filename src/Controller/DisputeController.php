@@ -21,10 +21,12 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DisputeService;
+use App\Service\LanguageService;
+use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -43,7 +45,8 @@ class DisputeController extends AbstractController
      * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI})
      */
     public function index(DisputeService         $disputeService,
-                          EntityManagerInterface $entityManager)
+                          EntityManagerInterface $entityManager,
+                          LanguageService $languageService)
     {
 
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -116,8 +119,7 @@ class DisputeController extends AbstractController
             'Commentaire'
         ];
 
-        $nowStr = date("d-m-Y_H-i");
-
+        $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         return $CSVExportService->streamResponse(function ($output) use ($disputeService, $entityManager, $dateTimeMin, $dateTimeMax) {
 
             $disputeRepository = $entityManager->getRepository(Dispute::class);
@@ -141,8 +143,7 @@ class DisputeController extends AbstractController
                 $articles = $articleRepository->getArticlesByDisputeId($dispute["id"]);
                 $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $disputeRepository, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
             }
-
-        }, "Export-Litiges" . $nowStr . ".csv", $headers);
+        }, "Export-Litiges_$today.csv", $headers);
     }
 
     /**
@@ -186,7 +187,7 @@ class DisputeController extends AbstractController
         {
             $rows[] = [
                 'user' => FormatHelper::user($record->getUser()),
-                'date' => FormatHelper::datetime($record->getDate()),
+                'date' => FormatHelper::datetime($record->getDate(), "", false, $this->getUser()),
                 'commentaire' => nl2br($record->getComment()),
                 'status' => $record->getStatusLabel(),
                 'type' => $record->getTypeLabel()
@@ -265,7 +266,8 @@ class DisputeController extends AbstractController
      */
     public function saveColumnVisible(Request $request,
                                       EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response
+                                      VisibleColumnService $visibleColumnService,
+                                      TranslationService $translation): Response
     {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
@@ -278,7 +280,7 @@ class DisputeController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
         ]);
     }
 

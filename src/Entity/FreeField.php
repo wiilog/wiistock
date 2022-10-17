@@ -3,10 +3,14 @@
 namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
+use App\Helper\LanguageHelper;
 use App\Repository\FreeFieldRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\OneToMany;
+use JetBrains\PhpStorm\Deprecated;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: FreeFieldRepository::class)]
 class FreeField implements Serializable {
@@ -65,6 +69,9 @@ class FreeField implements Serializable {
     #[ORM\Column(type: 'integer')]
     private $id;
 
+    /**
+     * Attribute used for data warehouse, do not delete it
+     */
     #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
     private $label;
 
@@ -80,6 +87,9 @@ class FreeField implements Serializable {
     #[ORM\OneToMany(targetEntity: FiltreRef::class, mappedBy: 'champLibre')]
     private $filters;
 
+    /**
+     * Attribute used for data warehouse, do not delete it
+     */
     #[ORM\Column(type: 'json', nullable: true)]
     private $elements = [];
 
@@ -95,8 +105,18 @@ class FreeField implements Serializable {
     #[ORM\ManyToOne(targetEntity: CategorieCL::class, inversedBy: 'champsLibres')]
     private ?CategorieCL $categorieCL = null;
 
+    #[ORM\OneToOne(mappedBy: "freeField", targetEntity: TranslationSource::class)]
+    private ?TranslationSource $labelTranslation = null;
+
+    #[ORM\OneToOne(mappedBy: "freeFieldDefaultValue", targetEntity: TranslationSource::class)]
+    private ?TranslationSource $defaultValueTranslation = null;
+
+    #[ORM\OneToMany(mappedBy: "elementOfFreeField", targetEntity: TranslationSource::class)]
+    private Collection $elementsTranslations;
+
     public function __construct() {
         $this->filters = new ArrayCollection();
+        $this->elementsTranslations = new ArrayCollection();
     }
 
     public function __toString(): string {
@@ -105,6 +125,16 @@ class FreeField implements Serializable {
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    public function getLabelIn(Language|string $in, Language|string|null $default = null): ?string {
+        $in = LanguageHelper::clearLanguage($in);
+        $default = LanguageHelper::clearLanguage($default);
+
+        return $this->getLabelTranslation()
+            ?->getTranslationIn($in, $default)
+            ?->getTranslation()
+            ?: $this->getLabel();
     }
 
     public function getLabel(): ?string {
@@ -135,6 +165,14 @@ class FreeField implements Serializable {
         $this->typage = $typage;
 
         return $this;
+    }
+
+    public function getDefaultValueIn(Language|string $in, Language|string|null $default = null): ?string {
+        $in = LanguageHelper::clearLanguage($in);
+        $default = LanguageHelper::clearLanguage($default);
+        return $this->getDefaultValueTranslation()
+            ?->getTranslationIn($in, $default)
+            ?->getTranslation();
     }
 
     public function getDefaultValue(): ?string {
@@ -175,7 +213,16 @@ class FreeField implements Serializable {
         return $this;
     }
 
-    public function getElements(): ?array {
+    public function getElementsIn(Language|string $in, Language|string|null $default = null): array {
+        $in = LanguageHelper::clearLanguage($in);
+        $default = LanguageHelper::clearLanguage($default);
+
+        return Stream::from($this->getElementsTranslations())
+            ->map(fn(TranslationSource $source) => $source->getTranslationIn($in, $default)?->getTranslation())
+            ->toArray();
+    }
+
+    public function getElements(): array {
         return $this->elements ?: [];
     }
 
@@ -220,6 +267,87 @@ class FreeField implements Serializable {
 
     public function setCategorieCL(?CategorieCL $categorieCL): self {
         $this->categorieCL = $categorieCL;
+
+        return $this;
+    }
+
+    public function getLabelTranslation(): ?TranslationSource {
+        return $this->labelTranslation;
+    }
+
+    public function setLabelTranslation(?TranslationSource $labelTranslation): self {
+        if($this->labelTranslation && $this->labelTranslation->getFreeField() !== $this) {
+            $oldLabelTranslation = $this->labelTranslation;
+            $this->labelTranslation = null;
+            $oldLabelTranslation->setFreeField(null);
+        }
+        $this->labelTranslation = $labelTranslation;
+        if($this->labelTranslation && $this->labelTranslation->getFreeField() !== $this) {
+            $this->labelTranslation->setFreeField($this);
+        }
+
+        return $this;
+    }
+
+    public function getDefaultValueTranslation(): ?TranslationSource {
+        return $this->defaultValueTranslation;
+    }
+
+    public function setDefaultValueTranslation(?TranslationSource $defaultValueTranslation): self {
+        if($this->defaultValueTranslation && $this->defaultValueTranslation->getFreeFieldDefaultValue() !== $this) {
+            $oldDefaultValueTranslation = $this->defaultValueTranslation;
+            $this->defaultValueTranslation = null;
+            $oldDefaultValueTranslation->setFreeFieldDefaultValue(null);
+        }
+        $this->defaultValueTranslation = $defaultValueTranslation;
+        if($this->defaultValueTranslation && $this->defaultValueTranslation->getFreeFieldDefaultValue() !== $this) {
+            $this->defaultValueTranslation->setFreeFieldDefaultValue($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TranslationSource>
+     */
+    public function getElementsTranslations(): Collection {
+        return $this->elementsTranslations;
+    }
+
+    public function getElementTranslation(string $element): ?TranslationSource {
+        return $this->getElementsTranslations()
+                ->filter(fn(TranslationSource $source) => $source->getTranslationIn(Language::FRENCH_SLUG)->getTranslation() === $element)
+                ->first() ?: null;
+    }
+
+    public function addElementTranslation(TranslationSource $elementTranslation): self {
+        if(!$this->elementsTranslations->contains($elementTranslation)) {
+            $this->elementsTranslations[] = $elementTranslation;
+            $elementTranslation->setElementOfFreeField($this);
+        }
+
+        return $this;
+    }
+
+    public function removeElementTranslation(TranslationSource $elementTranslation): self {
+        if($this->elementsTranslations->removeElement($elementTranslation)) {
+            if($elementTranslation->getElementOfFreeField() === $this) {
+                $elementTranslation->setElementOfFreeField(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setElementTranslations(?array $elementTranslations): self {
+        foreach($this->getElementsTranslations()->toArray() as $elementTranslation) {
+            $this->removeElementTranslation($elementTranslation);
+        }
+
+        $this->elementsTranslations = new ArrayCollection();
+        foreach($elementTranslations as $elementTranslation) {
+            $this->addElementTranslation($elementTranslation);
+        }
 
         return $this;
     }

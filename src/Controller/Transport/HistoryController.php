@@ -20,7 +20,7 @@ use App\Service\StringService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Exception\RuntimeException;
@@ -162,14 +162,20 @@ class HistoryController extends AbstractController
         $transportDeliveryRequestLines = $transportDelivery
             ? Stream::from($transportDelivery->getLines())
                 ->filter(fn(TransportRequestLine $line) => $line instanceof TransportDeliveryRequestLine)
-                ->sort(fn(TransportDeliveryRequestLine $a, TransportDeliveryRequestLine $b) => StringService::mbstrcmp($a->getNature()->getLabel(), $b->getNature()->getLabel()))
+                ->sort(fn(TransportDeliveryRequestLine $a, TransportDeliveryRequestLine $b) => StringService::mbstrcmp(
+                    $this->getFormatter()->nature($a->getNature()) ?? '',
+                    $this->getFormatter()->nature($b->getNature()) ?? ''
+                ))
                 ->toArray()
             : [];
 
         $transportCollectRequestLines = $transportCollect
             ? Stream::from($transportCollect->getLines())
                 ->filter(fn(TransportRequestLine$line) => $line instanceof TransportCollectRequestLine)
-                ->sort(fn(TransportCollectRequestLine $a, TransportCollectRequestLine $b) => StringService::mbstrcmp($a->getNature()->getLabel(), $b->getNature()->getLabel()))
+                ->sort(fn(TransportCollectRequestLine $a, TransportCollectRequestLine $b) => StringService::mbstrcmp(
+                    $this->getFormatter()->nature($a->getNature()) ?? '',
+                    $this->getFormatter()->nature($b->getNature()) ?? ''
+                ))
                 ->toArray()
             : [];
 

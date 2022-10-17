@@ -1,11 +1,14 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | Colis{% endblock %}
+{% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Général', 'Unités logistiques') }}{% endblock %}
+{% block title_tooltip %}Traçabilité | Unités logistiques{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersPack.html.twig' with {
         page: 'PAGE_PACK',
-        tableSelector: '#packsTable, #groupsTable'
+        tableSelector: '#packsTable, #groupsTable',
+        callback: 'null',
+        needsDateFormatting: true
     } %}
 {% endblock %}
 
@@ -15,10 +18,10 @@
     <div class="m-4 wii-page-card">
         <ul class="nav nav-pills pack-tabs">
             <li class="nav-item">
-                <a href="#colis" class="nav-link active">Colis</a>
+                <a href="#colis" class="nav-link active">{{ trans('Traçabilité', 'Général', 'Unités logistiques') }}</a>
             </li>
             <li class="nav-item">
-                <a href="#groupes" class="nav-link">Groupes</a>
+                <a href="#groupes" class="nav-link">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Groupes') }}</a>
             </li>
         </ul>
 
@@ -30,7 +33,7 @@
                     <div class="btn-group">
                         <button type="button" class="btn btn-primary" onclick="toExport()">
                             <i class="fa fa-file-csv mr-2"></i>
-                            Exporter au format CSV
+                            {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                         </button>
                     </div>
                 </div>

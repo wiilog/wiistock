@@ -173,14 +173,14 @@ class TrackingMovement {
     public function isDrop(): bool {
         return (
             $this->type
-            && $this->type->getNom() === self::TYPE_DEPOSE
+            && $this->type->getCode() === self::TYPE_DEPOSE
         );
     }
 
     public function isTaking(): bool {
         return (
             $this->type
-            && $this->type->getNom() === self::TYPE_PRISE
+            &&  $this->type->getCode() === self::TYPE_PRISE
         );
     }
 

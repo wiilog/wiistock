@@ -145,6 +145,27 @@
                         </textarea>
                     </div>
                 </div>
+                <div class="form-group row">
+                    <div class="col-6">
+                        {{ form.select('language', "Langue", true, {
+                            items: languages,
+                            search: false,
+                            label: 'Langue',
+                            placeholder: true,
+                            value: user.language ? user.language.id : newUserLanguage.id,
+                            inputClass : 'w-100 utilisateur-language',
+                        }) }}
+                    </div>
+                    <div class="col-6">
+                        {{ form.select('dateFormat', "Format de date", true, {
+                            items: dateFormats,
+                            type: null,
+                            search: false,
+                            label: 'Format de date',
+                            value: user.dateFormat,
+                        }) }}
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-12 col-md-6">
@@ -181,14 +202,14 @@
                 <div class="form-group row">
                     <label class="col-12 wii-field-name"
                            title="Types de service">
-                        {{ 'services.Types de service'|trans }}
+                        {{ trans('Paramétrage', 'Utilisateurs', 'Types de service', false) }}
                     </label>
                     <div class="col-12">
                         <select name="handlingTypes"
                                 class="form-control data w-100"
                                 multiple="multiple"
                                 data-s2="handlingType"
-                                title="{{ 'services.Types de service'|trans }}">
+                                title="{{ trans('Paramétrage', 'Utilisateurs', 'Types de service', false) }}">
                             {% for type in user.handlingTypes %}
                                 <option value="{{ type.id }}" selected>{{ type.label }}</option>
                             {% endfor %}

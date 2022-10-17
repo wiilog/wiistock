@@ -6,7 +6,7 @@
         <div>Numéro(s) de commande : {{ orderNumber }}</div>
     {% endif %}
     <div>Colis : {{ colis }}</div>
-    <div>Date de dépose : {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</div>
+    <div>Date de dépose : {{ date|date(app.user.dateFormat ? app.user.dateFormat : "d/m/Y") }} à {{ date|date("H:i:s") }}</div>
     <div>Emplacement : {{ emplacement.label }}</div>
     {% if operateur is defined %}
         <div>Opérateur : {{ operateur }}</div>

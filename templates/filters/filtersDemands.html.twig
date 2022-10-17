@@ -10,7 +10,8 @@
 
     {% if page == 'PAGE_HAND' %}
         {% include 'filters/filter_item/filterType.html.twig' with {
-            onchange: 'onFilterTypeChange($(this))'
+            onchange: 'onFilterTypeChange($(this))',
+            placeholder: trans('Demande', 'Général', 'Type', false)
         } %}
         {% include 'filters/filter_item/filterMultipleStatuses.html.twig' %}
     {% else %}
@@ -23,7 +24,9 @@
     {% endif %}
 
     {% include 'filters/filter_item/filterUser.html.twig' with {
-        'placeholder': (page == 'PAGE_HAND' ? 'Demandeurs' : 'Utilisateurs')
+        placeholder: (page == 'PAGE_HAND'
+            ? trans('Demande', 'Général', 'Demandeurs', false)
+            : trans('Général', null, 'Zone filtre', 'Utilisateurs', false))
     } %}
 
     {% if page == 'PAGE_HAND' %}
@@ -32,7 +35,7 @@
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
             {% include 'filters/filter_item/filterUser.html.twig' with {
                 name: 'receivers',
-                'placeholder': 'Destinataires'
+                'placeholder': trans('Demande', 'Général', 'Destinataire(s)', false)
             } %}
         {% endif %}
     {% endif %}

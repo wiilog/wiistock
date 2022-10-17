@@ -39,6 +39,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -81,13 +82,13 @@ class RefArticleDataService {
 
     private $filtreRefRepository;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public CSVExportService $CSVExportService;
 
     /**
@@ -95,32 +96,38 @@ class RefArticleDataService {
      */
     private $user;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
 
-    /** @Required */
+    #[Required]
     public ArticleFournisseurService $articleFournisseurService;
 
-    /** @Required */
+    #[Required]
     public AlertService $alertService;
 
-    /** @Required */
+    #[Required]
     public VisibleColumnService $visibleColumnService;
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /** @Required */
+    #[Required]
     public MouvementStockService $mouvementStockService;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -182,8 +189,8 @@ class RefArticleDataService {
                         'label' => $articleFournisseur->getLabel(),
                         'fournisseurCode' => $articleFournisseur->getFournisseur()->getCodeReference(),
                         'quantity' => array_reduce($articles, function(int $carry, Article $article) {
-                            return ($article->getStatut() && $article->getStatut()->getNom() === Article::STATUT_ACTIF)
-                                ? $carry + $article->getQuantite()
+                            return $article->getStatut()?->getCode() === Article::STATUT_ACTIF
+                                ? ($carry + $article->getQuantite())
                                 : $carry;
                         }, 0)
                     ];
@@ -552,7 +559,7 @@ class RefArticleDataService {
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
-                "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
+                "active" => $refArticle->getStatut() ? $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
             "colorClass" => (
                 $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
@@ -722,7 +729,7 @@ class RefArticleDataService {
             ?? $alert->getArticle()->getArticleFournisseur()->getReferenceArticle();
         $referenceArticleId = isset($referenceArticle) ? $referenceArticle->getId() : null;
         $referenceArticleStatus = isset($referenceArticle) ? $referenceArticle->getStatut() : null;
-        $referenceArticleActive = $referenceArticleStatus ? ($referenceArticleStatus->getNom() == ReferenceArticle::STATUT_ACTIF) : 0;
+        $referenceArticleActive = $referenceArticleStatus ? ($referenceArticleStatus?->getCode() == ReferenceArticle::STATUT_ACTIF) : 0;
 
         return [
             'actions' => $this->templating->render('alerte_reference/datatableAlertRow.html.twig', [
@@ -813,12 +820,12 @@ class RefArticleDataService {
                 ->filter(function(PreparationOrderReferenceLine $ligneArticlePreparation) use ($fromCommand) {
                     $preparation = $ligneArticlePreparation->getPreparation();
                     $livraison = $preparation->getLivraison();
-                    return $preparation->getStatut()->getNom() === Preparation::STATUT_EN_COURS_DE_PREPARATION
-                        || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER
+                    return $preparation->getStatut()?->getCode() === Preparation::STATUT_EN_COURS_DE_PREPARATION
+                        || $preparation->getStatut()?->getCode() === Preparation::STATUT_A_TRAITER
                         || (
                             $fromCommand &&
                             $livraison &&
-                            $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER
+                            $livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER
                         );
                 });
             /**
@@ -832,7 +839,7 @@ class RefArticleDataService {
     }
 
     public function treatAlert(EntityManagerInterface $entityManager, ReferenceArticle $reference): void {
-        if($reference->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF) {
+        if($reference->getStatut()?->getCode() === ReferenceArticle::STATUT_INACTIF) {
             foreach($reference->getAlerts() as $alert) {
                 $entityManager->remove($alert);
             }
@@ -886,10 +893,9 @@ class RefArticleDataService {
                                            Utilisateur $currentUser): array {
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
-        $freeFields = $freeFieldRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
+        $columnVisible = $currentUser->getVisibleColumns()['reference'];
+        $freeFields = $freeFieldRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, CategorieCL::REFERENCE_ARTICLE);
 
         $fields = self::REF_ARTICLE_FIELDS;
         if(!$currentUser->getVisibilityGroups()->isEmpty()) {
@@ -905,7 +911,7 @@ class RefArticleDataService {
                 array_splice($fields, $visibilityGroupsIndex, 1);
             }
         }
-        return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $currentUser->getVisibleColumns()['reference']);
+        return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $columnVisible);
     }
 
     public function getFieldTitle(string $fieldName): ?string {
@@ -1089,11 +1095,8 @@ class RefArticleDataService {
     }
 
     public function putReferenceLine($handle,
-                                     array $managersByReference,
                                      array $reference,
-                                     array $suppliersByReference,
-                                     array $freeFieldsConfig) {
-        $id = (int)$reference["id"];
+                                     array $freeFieldsConfig): void {
         $line = [
             $reference["reference"],
             $reference["libelle"],
@@ -1112,9 +1115,9 @@ class RefArticleDataService {
             $reference["dateLastInventory"] ? $reference["dateLastInventory"]->format("d/m/Y H:i:s") : "",
             $reference["needsMobileSync"],
             $reference["stockManagement"],
-            $managersByReference[$id] ?? "",
-            $suppliersByReference[$id]["supplierLabels"] ?? "",
-            $suppliersByReference[$id]["supplierCodes"] ?? "",
+            $reference["managers"] ?? "",
+            $reference["supplierLabels"] ?? "",
+            $reference["supplierCodes"] ?? "",
             $reference["visibilityGroup"],
             $reference["createdAt"] ? $reference["createdAt"]->format("d/m/Y H:i:s") : "",
             $reference["createdBy"] ?? "-",

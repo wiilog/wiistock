@@ -8,8 +8,7 @@
     <input hidden value="{{ printArrivage is defined ? printArrivage : false }}" id="printArrivage">
 {% endblock %}
 
-{% block showTitleTooltip 'arrivage' %}
-{% block showTitle ('arrivage.arrivage'|trans) %}
+{% block showTitle (trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages')) %}
 {% block showSubtitle (arrivage.numeroArrivage) %}
 
 {% block showActions %}
@@ -20,10 +19,9 @@
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_ARRI')) %}
             <button type="button"
                     data-id='{{ arrivage.id }}'
-                    data-target='#modalEditArrivage'
                     onclick="editRowArrivage($(this))"
-                    data-toggle='modal' class="btn btn-primary ml-auto split-button">
-                Modifier
+                    class="btn btn-primary ml-auto split-button">
+                {{ trans('Général', null, 'Modale', 'Modifier') }}
             </button>
         {% endif %}
         <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
@@ -33,25 +31,25 @@
             <span class="fa fa-angle-down"></span>
         </button>
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            <a class="dropdown-item"
+            <a class="dropdown-item d-flex align-items-center"
                id="printArrivageBtn"
                href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
-                <i class='fas fa-print pointer mr-2'></i>
-                Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
+                <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer arrivage') }}
             </a>
             {% if not allPacksAlreadyInDispatch and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
                 <button class="dropdown-item dispatch-button" data-id="{{ arrivage.id }}">
                     <i class="fas fa-exchange-alt mr-2"></i>
-                    {{ 'arrivage.Acheminer'|trans }}
+                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Entête', 'Acheminer') }}
                 </button>
             {% endif %}
             {% if canBeDeleted %}
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_ARRI')) %}
                     <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
-                       class="dropdown-item"
+                       class="dropdown-item d-flex align-items-center"
                        onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
-                        <i class="fa fa-trash mr-2"></i>
-                        Supprimer
+                        <span class="wii-icon wii-icon-trash-black mr-2"></span>
+                        {{ trans('Général', null, 'Modale', 'Supprimer') }}
                     </a>
                 {% endif %}
             {% endif %}
@@ -62,6 +60,6 @@
 {% block showUrgence %}
     {% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
-        <span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans }}</span> est à traiter en URGENCE.
+        {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Entête', 'Cet arrivage est à traiter en URGENCE') }}
     {% endif %}
 {% endblock %}

@@ -1,6 +1,6 @@
 <html lang="fr">
 <head>
-    <title>Bon de surconsommation</title>
+    <title>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "Bon de surconsommation", false) }}</title>
     <meta charset="UTF-8"/>
     <style>
         html, body {
@@ -77,7 +77,7 @@
             padding: 3mm;
         }
 
-        table.packs tbody td{
+        table.packs tbody td {
             height: 25mm !important;
         }
 
@@ -134,22 +134,22 @@
 <body>
 <div class="content">
     <div class="header bordered">
-        <h2>Caractéristiques de la demande</h2>
+        <h2>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "Caractéristiques de la demande") }}</h2>
         <table class="half">
             <tr>
-                <td><b>N° de demande</b></td>
+                <td><b>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "N° de demande") }}</b></td>
                 <td>{{ dispatch.number }}</td>
             </tr>
             <tr>
-                <td><b>Ligne de dépose</b></td>
+                <td><b>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "Ligne de dépose") }}</b></td>
                 <td>{{ dispatch.locationTo ? dispatch.locationTo.label }}</td>
             </tr>
             <tr>
-                <td><b>Date de validation</b></td>
+                <td><b>{{ trans('Demande', 'Acheminements', 'Général', 'Date de validation') }}</b></td>
                 <td>{{ dispatch.validationDate ? dispatch.validationDate | date('d/m/Y H:i:s') }}</td>
             </tr>
             <tr>
-                <td><b>Faite par</b></td>
+                <td><b>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "Faite par") }}</b></td>
                 <td>{{ dispatch.requester ? dispatch.requester.username }}</td>
             </tr>
         </table>
@@ -173,7 +173,7 @@
                         width: 200
                     }) | raw }}
                 </div>
-                <span class="label">N° de demande</span>
+                <span class="label">{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "N° de demande") }}</span>
             </div>
             {% if dispatch.locationTo %}
                 <div class="qr">
@@ -186,7 +186,7 @@
                             width: 200
                         }) | raw }}
                     </div>
-                    <span class="label">Ligne dépose</span>
+                    <span class="label">{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "Ligne de dépose") }}</span>
                 </div>
             {% endif %}
         </div>
@@ -196,15 +196,15 @@
 
     <table class="packs">
         <thead>
-            <tr>
-                <th>PN</th>
-                <th>Code barre</th>
-                <th>Qté demandée</th>
-                <th>Nature</th>
-                <th>Qté livrée</th>
-                <th>Emplacement</th>
-                <th>N° lot / Cure date / N°EASA si besoin / Commentaire</th>
-            </tr>
+        <tr>
+            <th>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "PN") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "Code barre") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "Qte demandée") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Général', "Nature") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "Qté livrée") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "Emplacement") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Bon de surconsommation', "N° lot / Cure date / N°EASA si besoin / Commentaire") }}</th>
+        </tr>
         </thead>
         {% for pack in dispatch.dispatchPacks %}
             <tr>
@@ -219,7 +219,7 @@
                     }) | raw }}
                 </td>
                 <td>{{ pack.quantity }}</td>
-                <td>{{ pack.pack.nature.label }}</td>
+                <td>{{ pack.pack.nature.labelIn(app.user.language.slug, language_service.defaultSlug) }}</td>
                 <td></td>
                 <td></td>
                 <td></td>

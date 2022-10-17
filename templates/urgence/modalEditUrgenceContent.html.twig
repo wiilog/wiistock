@@ -1,20 +1,25 @@
 <div class="row">
     <div class="col-6">
         <div class="form-group">
-            <label class="wii-field-name" for="dateStart" title="date de début">{{ 'urgences.date de début'|trans }}*</label>
-            <input type="datetime-local" class="form-control cursor-default data needed date first-date"
-                   value="{{ urgence.dateStart|date('Y-m-d\\TH:i') }}"
-                   placeholder="jj/mm/aaaa"
-                   id="dateStart" name="dateStart">
+            <label class="wii-field-name" for="dateStart" title="date de début">{{ trans('Traçabilité', 'Urgences', 'Date de début', false) }}*</label>
+            <input type="text"
+                   id="dateStart" name="dateStart"
+                   class="form-control data needed date first-date datetime-field pointer"
+                   data-init="{{ urgence.dateStart|date('Y-m-d\\TH:i') }}"
+                   placeholder="{{ app.user.displayedDateFormat ~ ' hh:mm' }}"
+                   autocomplete="off"/>
         </div>
     </div>
 
     <div class="col-6">
         <div class="form-group">
-            <label class="wii-field-name" for="dateEnd" title="date de fin">{{ 'urgences.date de fin'|trans }}*</label>
-            <input type="datetime-local" class="form-control cursor-default data needed date last-date" id="dateEnd" name="dateEnd"
-                   value="{{ urgence.dateEnd|date('Y-m-d\\TH:i') }}"
-                   placeholder="jj/mm/aaaa">
+            <label class="wii-field-name" for="dateEnd" title="date de fin">{{ trans('Traçabilité', 'Urgences', 'Date de fin', false) }}*</label>
+            <input type="text"
+                   id="dateEnd" name="dateEnd"
+                   class="form-control data needed date last-date datetime-field pointer"
+                   data-init="{{ urgence.dateEnd|date('Y-m-d\\TH:i') }}"
+                   placeholder="{{ app.user.displayedDateFormat ~ ' hh:mm' }}"
+                   autocomplete="off"/>
         </div>
     </div>
 </div>
@@ -22,7 +27,7 @@
 <div class="row">
     <div class="col-6">
         <div class="form-group needed">
-            <label class="wii-field-name" for="source" title="numéro de commande">{{ 'urgences.numéro de commande'|trans }}*</label>
+            <label class="wii-field-name" for="source" title="numéro de commande">{{ trans('Traçabilité', 'Urgences', 'N° de commande', false) }}*</label>
             <input class="form-control data needed" name="commande" value="{{ urgence.commande }}">
         </div>
     </div>
@@ -33,7 +38,7 @@
             or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
         %}
         <div class="form-group">
-            <label class="wii-field-name" for="postNb">Numéro de poste{{ postNbIsRequired ? '*' }}</label>
+            <label class="wii-field-name" for="postNb">{{ trans('Traçabilité', 'Urgences', 'N° poste', false) }}{{ postNbIsRequired ? '*' }}</label>
             <input type="text" class="form-control data {{ postNbIsRequired ? 'needed' }}" name="postNb" value="{{ urgence.postNb }}">
         </div>
     </div>
@@ -42,7 +47,7 @@
 <div class="row">
     <div class="col-6">
         <div class="form-group">
-            <label class="wii-field-name" for="acheteur" title="acheteur">{{ 'urgences.acheteur'|trans }}*</label>
+            <label class="wii-field-name" for="acheteur" title="acheteur">{{ trans('Traçabilité', 'Urgences', 'Acheteur', false) }}*</label>
             <select name="acheteur"
                     class="form-control input-sm ajax-autocomplete-user data needed ajax-autocomplete w-100">
                 <option value="{{ urgence.buyer ? urgence.buyer.id }}">{{ urgence.buyer ? urgence.buyer.username }}</option>
@@ -52,7 +57,7 @@
 
     <div class="col-6">
         <div class="form-group">
-            <label class="wii-field-name">Fournisseur*</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Urgences', 'Fournisseur', false) }}*</label>
             <select name="provider"
                     class="form-control input-sm ajax-autocomplete-fournisseur data needed ajax-autocomplete w-100">
                 <option value="{{ urgence.provider ? urgence.provider.id }}">{{ urgence.provider ? urgence.provider.nom }}</option>
@@ -64,7 +69,7 @@
 <div class="row">
     <div class="col-6">
         <div class="form-group">
-            <label class="wii-field-name">Transporteur*</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Urgences', 'Transporteur', false) }}*</label>
             <select name="carrier"
                     class="form-control input-sm ajax-autocomplete-transporteur data needed ajax-autocomplete w-100">
                 <option value="{{ urgence.carrier ? urgence.carrier.id }}">{{ urgence.carrier ? urgence.carrier.label }}</option>
@@ -74,7 +79,7 @@
 
     <div class="col-6">
         <div class="form-group">
-            <label class="wii-field-name" for="provider">Numéro tracking transporteur</label>
+            <label class="wii-field-name" for="provider">{{ trans('Traçabilité', 'Urgences', 'N° tracking transporteur', false) }}</label>
             <input type="text" class="form-control data" name="trackingNb" value="{{ urgence.trackingNb }}">
         </div>
     </div>

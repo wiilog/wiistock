@@ -9,21 +9,19 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 
 use App\Entity\Pack;
-use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\GroupService;
 use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Throwable;
 
 /**
@@ -136,11 +134,11 @@ class GroupController extends AbstractController {
      * @Route("/csv", name="export_groups", options={"expose"=true}, methods={"GET"})
      * @HasPermission({Menu::TRACA, Action::EXPORT})
      */
-    public function exportGroups(Request $request,
-                                 CSVExportService $CSVExportService,
+    public function exportGroups(Request                 $request,
+                                 CSVExportService        $CSVExportService,
                                  TrackingMovementService $trackingMovementService,
-                                 TranslatorInterface $translator,
-                                 EntityManagerInterface $entityManager): Response {
+                                 TranslationService      $translationService,
+                                 EntityManagerInterface  $entityManager): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -152,19 +150,19 @@ class GroupController extends AbstractController {
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $csvHeader = [
-                'Numéro groupe',
-                $translator->trans('natures.Nature de colis'),
-                'Date du dernier mouvement',
-                'Nombre de colis',
-                'Poids',
-                'Volume',
-                'Issu de',
-                'Issu de (numéro)',
-                'Emplacement',
+                $translationService->translate( 'Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Numéro groupe', false),
+                $translationService->translate('Traçabilité', 'Général', 'Nature', false),
+                $translationService->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
+                $translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL", false),
+                $translationService->translate('Traçabilité', 'Unités logistiques', 'Général', "Poids (kg)", false),
+                $translationService->translate('Traçabilité', 'Unités logistiques', 'Général', "Volume (m3)", false),
+                $translationService->translate( 'Traçabilité', 'Général', 'Issu de', false),
+                $translationService->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
+                $translationService->translate( 'Traçabilité', 'Général', 'Emplacement', false),
             ];
 
             return $CSVExportService->streamResponse(
-                function($output) use ($CSVExportService, $translator, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
+                function($output) use ($CSVExportService, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
                     $groups = $packRepository->getGroupsByDates($dateTimeMin, $dateTimeMax);
 
@@ -177,14 +175,14 @@ class GroupController extends AbstractController {
 
                         $CSVExportService->putLine($output, [
                             $group->getCode(),
-                            FormatHelper::nature($group->getNature()),
-                            FormatHelper::datetime($trackingDate),
+                            $this->getFormatter()->nature($group->getNature()),
+                            $this->getFormatter()->datetime($trackingDate),
                             $groupData['packCounter'],
                             $group->getWeight(),
                             $group->getVolume(),
-                            $translator->trans($trackingData['fromLabel']),
+                            $trackingData['fromLabel'],
                             $trackingData["from"],
-                            FormatHelper::location($trackingLocation)
+                            $this->getFormatter()->location($trackingLocation),
                         ]);
                     }
                 }, 'export_groupes.csv',

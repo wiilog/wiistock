@@ -1,3 +1,5 @@
+{% set defaultLanguageSlug = defaultLanguageSlug ?? constant('App\\Entity\\Language::DEFAULT_LANGUAGE_SLUG') %}
+{% set language = language ?? getDefaultLanguage() %}
 <html lang="fr">
 <head>
     <style>
@@ -114,11 +116,11 @@
     </div>
     <br/>
     <div>
-        Bonne journée,
+        {{ translateIn(language, 'Général', null, 'Emails', 'Bonne journée,', false) }}
     </div>
     <br>
     <div>
-        L'équipe GT Logistics.
+        {{ translateIn(language, 'Général', null, 'Emails', 'L\'équipe GT Logistics.', false) }}
     </div>
     <div>
         {% block postScriptum %}{% endblock %}
@@ -133,7 +135,7 @@
                             {% if buttonText is defined %}
                                 {{ buttonText }}
                             {% else %}
-                                Cliquez ici pour accéder à Follow GT
+                                {{ translateIn(language, 'Général', null, 'Emails', 'Cliquez ici pour accéder à Follow GT', false) }}
                             {% endif %}
                         </a>
                     </td>

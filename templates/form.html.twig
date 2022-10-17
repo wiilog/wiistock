@@ -142,14 +142,18 @@
         {% for item in items %}
             {% set id = random(100000, 10000000) %}
 
-            <div class="wii-radio mt-1">
-                <input type="radio" id="radio-{{ id }}" class="data mr-2 {{ item.class ?? '' }}" value="{{ item.value ?? '' }}"
+            <div class="wii-radio mt-1 {{ options.inputClass ?? '' }}">
+                <input type="radio" id="radio-{{ id }}-{{ item.id ?? '' }}" class="data mr-2 {{ item.class ?? '' }}" value="{{ item.value ?? '' }}"
                     {{ required ? 'required' }}
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}
                     {{ (item.disabled ?? false) ? 'disabled' }}
                     {{ (item.checked ?? false) ? 'checked' }} />
-                <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}">
+
+                <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}-{{ item.id ?? '' }}">
+                    {% if item.iconUrl ?? false %}
+                        <img src="{{ item.iconUrl }}" alt="" width="20px" class="mr-2 {{ options.iconClass }}">
+                    {% endif %}
                     {{ item.label }}
                 </label>
                 {{ _self.tooltip(item.tooltip ?? null) }}
@@ -183,6 +187,7 @@
                                 {% if options.hiddenDropdown ?? false %}data-hidden-dropdown{% endif %}
                                 {% if options.disabledDropdownOptions ?? false %}data-disabled-dropdown-options{% endif %}
                                 {% if options.editable ?? false %}data-editable{% endif %}
+                                {% if options.label ?? false %}data-label="{{ options.label }}"{% endif %}
                                 {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
                                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
                                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
@@ -195,9 +200,9 @@
                             {{ _self.common_attributes(name, options) }}
                             {{ _self.multiple_key(options) }}>
                         {% if options.emptyOption is defined and options.emptyOption is not empty %}
-                            <option {{ options.emptyOption.selected ? "selected" }}
-                                     value="{{ options.emptyOption.value }}">
-                                {{ options.emptyOption.text }}
+                            <option {{ options.emptyOption.selected ?? false ? "selected" }}
+                                     value="{{ options.emptyOption.value ?? null }}">
+                                {{ options.emptyOption.text ?? null }}
                             </option>
                         {% elseif options.type is not defined and options.placeholder ?? false %}
                             <option disabled selected>{{ options.placeholder }}</option>
@@ -206,12 +211,13 @@
                         {% set definedItems = options.items ?? [] %}
                         {% set items = (definedItems is iterable) ? definedItems : [definedItems] %}
 
-                        {% for value, text in items %}
+                        {% for value, text in items|filter((item) => item) %}
                             {% if text.value is defined and text.label is defined %}
                                 <option value="{{ text.value }}"
                                         {{ (text.selected ?? false) or text.value in values ? 'selected' }}
                                         {{ text.disabled ?? false ? 'disabled' }}
                                         {% if text.class is defined and text.class %}class="{{ text.class }}"{% endif %}
+                                        {% if text.icon is defined %}data-icon="{{ text.icon }}"{% endif %}
                                         {% for dataKey, dataValue in text %}
                                             data-{{ dataKey }}="{{ dataValue }}"
                                         {% endfor %}>
@@ -376,5 +382,26 @@
                    name="keep-{{ name }}"
                    value="1">
         </div>
+    </label>
+{% endmacro %}
+
+{% macro lang(name, label, required, options = {}) %}
+    <label class="w-100 {{ options.labelClass ?? '' }}">
+        {{ _self.label(label, required, false, options.labelOptions ?? {}) }}
+        {{ _self.tooltip(options.tooltip ?? null, false) }}
+
+        {% for language in options.languages ?? [] %}
+            <div class="input-group lang-input-group mb-1" data-multiple-key="labels" data-multiple-object-index="{{ language.value }}">
+                <div class="input-group-prepend">
+                    <img alt="Icône de la langue {{ language.label }}" src="{{ language.iconUrl }}">
+                </div>
+
+                {% set entity = options.entity ?? null %}
+                {% set translation = entity ? entity.labelTranslation.translationIn(language.slug) %}
+                <input type="hidden" class="data" name="language-id" value="{{ language.value }}">
+                <input type="text" class="data form-control {{ required and loop.first ? 'needed' }} data-array"
+                       name="label" value="{{ translation ? translation.translation }}">
+            </div>
+        {% endfor %}
     </label>
 {% endmacro %}

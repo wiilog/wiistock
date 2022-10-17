@@ -11,8 +11,10 @@ use App\Entity\Setting;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use DateTime;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -23,6 +25,9 @@ class UrgenceService
     private $entityManager;
 
     private $security;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
@@ -57,17 +62,19 @@ class UrgenceService
 
     public function dataRowUrgence(Urgence $urgence)
     {
+        $user = $this->security->getUser();
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
         return [
-            'start' => $urgence->getDateStart()->format('d/m/Y H:i'),
-            'end' => $urgence->getDateEnd()->format('d/m/Y H:i'),
+            'start' => $urgence->getDateStart()->format($format),
+            'end' => $urgence->getDateEnd()->format($format),
             'commande' => $urgence->getCommande(),
-            'arrivalDate' => $urgence->getLastArrival() && $urgence->getLastArrival()->getDate() ? $urgence->getLastArrival()->getDate()->format('d/m/Y H:i') : '',
+            'arrivalDate' => $urgence->getLastArrival() && $urgence->getLastArrival()->getDate() ? $urgence->getLastArrival()->getDate()->format($format) : '',
             'buyer' => $urgence->getBuyer() ? $urgence->getBuyer()->getUsername() : '',
             'provider' => $urgence->getProvider() ? $urgence->getProvider()->getNom() : '',
             'carrier' => $urgence->getCarrier() ? $urgence->getCarrier()->getLabel() : '',
             'trackingNb' => $urgence->getTrackingNb() ?? '',
             'arrivalNb' => $urgence->getLastArrival() ? $urgence->getLastArrival()->getNumeroArrivage() : '',
-            'createdAt' =>$urgence->getCreatedAt() ? $urgence->getCreatedAt()->format('d/m/Y H:i') : '' ,
+            'createdAt' =>$urgence->getCreatedAt() ? $urgence->getCreatedAt()->format($format) : '' ,
             'postNb' => $urgence->getPostNb() ?? '',
             'actions' => $this->templating->render('urgence/datatableUrgenceRow.html.twig', [
                 'urgence' => $urgence
@@ -76,8 +83,10 @@ class UrgenceService
     }
 
     public function updateUrgence(Urgence $urgence, $data): Urgence {
-        $dateStart = DateTime::createFromFormat('Y-m-d\TH:i', $data['dateStart']);
-        $dateEnd = DateTime::createFromFormat('Y-m-d\TH:i', $data['dateEnd']);
+        $user = $this->security->getUser();
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'Y-m-d\TH:i';
+        $dateStart = DateTime::createFromFormat($format, $data['dateStart']);
+        $dateEnd = DateTime::createFromFormat($format, $data['dateEnd']);
 
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
@@ -128,6 +137,25 @@ class UrgenceService
             $post,
             $excludeTriggered,
         );
+    }
+
+
+
+    public function serializeEmergency(Urgence     $emergency,
+                                       Utilisateur $user): array {
+        return [
+            'dateStart' => $this->formatService->datetime($emergency->getDateStart(), "", false, $user),
+            'dateEnd' => $this->formatService->datetime($emergency->getDateEnd(), "", false, $user),
+            'commande' => $emergency->getCommande() ?: '',
+            'numposte' => $emergency->getPostNb() ?: '',
+            'buyer' => $this->formatService->user($emergency->getBuyer()),
+            'provider' => $this->formatService->supplier($emergency->getProvider()),
+            'carrier' => $emergency->getCarrier() ? $emergency->getCarrier()->getLabel() : '',
+            'trackingnum' => $emergency->getTrackingNb() ?: '',
+            'datearrival' => $emergency->getLastArrival() ? $this->formatService->datetime($emergency->getLastArrival()->getDate(), "", false, $user) : '',
+            'arrivageNumber' => $emergency->getLastArrival() ? $emergency->getLastArrival()->getNumeroArrivage() : '',
+            'creationDate' => $this->formatService->datetime($emergency->getCreatedAt(), "", false, $user),
+        ];
     }
 
 }

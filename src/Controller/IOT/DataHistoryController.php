@@ -19,14 +19,14 @@ use App\Service\GeoService;
 use App\Service\IOT\DataMonitoringService;
 use App\Service\IOT\PairingService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use WiiCommon\Helper\Stream;
 use DateTime;
 
@@ -42,7 +42,7 @@ class DataHistoryController extends AbstractController {
     public function show(Request $request,
                          EntityManagerInterface $entityManager,
                          DataMonitoringService $dataMonitoringService,
-                         TranslatorInterface $trans): Response {
+                         TranslationService $trans): Response {
         $query = $request->query;
 
         $type = $query->get('type');
@@ -133,10 +133,10 @@ class DataHistoryController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    public function getBreadcrumb(TranslatorInterface $trans, $entity) {
+    public function getBreadcrumb(TranslationService $trans, $entity) {
 
         $suffix = ' | Historique des données';
-        $title = $trans->trans("IoT.IoT") . ' | Associations';
+        $title = $trans->translate('IoT', '', 'IoT', false) . ' | Associations';
         $path = null;
         if($entity instanceof Emplacement) {
             $title = 'Référentiel | Emplacements';

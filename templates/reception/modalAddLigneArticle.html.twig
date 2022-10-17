@@ -14,7 +14,7 @@
                         <div class="row no-gutters align-items-end">
                             <div class="col">
                                 <label for="reception-add-ligne"
-                                       title="référence" class="wii-field-name">{{ 'reference.référence'|trans }}*</label>
+                                       title="référence" class="wii-field-name">{{ trans('Stock', 'Références', 'référence', false) }}*</label>
                                 <select class="ajax-autocomplete w-100 data form-control needed wii-field-text"
                                         onchange="articleChanged($(this))"
                                         id="reception-add-ligne"
@@ -25,8 +25,8 @@
                             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE_REF_FROM_RECEP')) %}
                                 <div class="col-auto pl-2">
                                     <a href="{{ path('reference_article_new_page', {from: 'reception_add_line', reception: reception.id}) }}"
-                                       class="btn btn-primary m-0">
-                                        <i class="fa fa-plus mr-1"></i>
+                                       class="btn btn-primary m-0 d-flex align-items-center">
+                                        <span class="wii-icon wii-icon-plus mr-1"></span>
                                         <span >Créer</span>
                                     </a>
                                 </div>
@@ -87,8 +87,12 @@
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler', event: "clearModal($(this).parents('#modalAddLigneArticle'))"},
                     {classes: 'btn btn-success', text: 'Enregistrer', id: 'addArticleLigneSubmit'},
-                    {classes: 'btn btn-success d-none', text: 'Enregistrer et ' ~ ('réception.réception' | trans), id: 'addArticleLigneSubmitAndRedirect',
-                        event: 'openModalLigneReception($(this))', title: 'Enregistrer et réception'},
+                    {
+                        classes: 'btn btn-success d-none',
+                        text: 'Enregistrer et ' ~ trans('Ordre', 'Réceptions', 'réception', true),
+                        id: 'addArticleLigneSubmitAndRedirect',
+                        event: 'openModalLigneReception($(this))'
+                    },
                 ],
             } %}
 

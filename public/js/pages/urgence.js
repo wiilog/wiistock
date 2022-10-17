@@ -3,13 +3,16 @@ $(function() {
     Select2Old.provider($('.ajax-autocomplete-fournisseur'));
     Select2Old.carrier($('.ajax-autocomplete-transporteur'));
     initPage();
-    initDateTimePicker('#dateMin, #dateMax');
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+    initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_URGENCES);
     $.post(path, params, function(data) {
-        displayFiltersSup(data);
+        displayFiltersSup(data, true);
     }, 'json');
 });
 
@@ -25,17 +28,17 @@ function initPage() {
         order: [['start', "desc"]],
         columns:[
             { "data": 'actions', 'title': '', 'orderable': false, className: 'noVis'},
-            { "data": 'start', 'name' : 'start', 'title' : 'urgences.date de début', translated: true },
-            { "data": 'end', 'name' : 'end', 'title' : 'urgences.date de fin', translated: true },
-            { "data": 'commande', 'name' : 'commande', 'title' : 'urgences.numéro de commande', translated: true },
-            { "data": 'postNb', 'name' : 'postNb', 'title' : 'N° poste' },
-            { "data": 'buyer', 'name' : 'buyer', 'title' : 'urgences.acheteur', translated: true },
-            { "data": 'provider', 'name' : 'provider', 'title' : 'Fournisseur' },
-            { "data": 'carrier', 'name' : 'carrier', 'title' : 'Transporteur' },
-            { "data": 'trackingNb', 'name' : 'trackingNb', 'title' : 'N° tracking transporteur' },
-            { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : 'urgences.Date arrivage', translated: true },
-            {"data": 'arrivalNb', 'name' : 'arrivalNb', 'title' : "Numero d'arrivage"},
-            {"data": 'createdAt', 'name': 'createdAt', 'title': 'Date de création'},
+            { "data": 'start', 'name' : 'start', 'title' : Translation.of('Traçabilité', 'Urgences', 'Date de début', false) },
+            { "data": 'end', 'name' : 'end', 'title' : Translation.of('Traçabilité', 'Urgences', 'Date de fin', false) },
+            { "data": 'commande', 'name' : 'commande', 'title' : Translation.of('Traçabilité', 'Urgences', 'N° de commande', false) },
+            { "data": 'postNb', 'name' : 'postNb', 'title' : Translation.of('Traçabilité', 'Urgences', 'N° poste', false) },
+            { "data": 'buyer', 'name' : 'buyer', 'title' : Translation.of('Traçabilité', 'Urgences', 'Acheteur', false) },
+            { "data": 'provider', 'name' : 'provider', 'title' : Translation.of('Traçabilité', 'Urgences', 'Fournisseur', false) },
+            { "data": 'carrier', 'name' : 'carrier', 'title' : Translation.of('Traçabilité', 'Urgences', 'Transporteur', false) },
+            { "data": 'trackingNb', 'name' : 'trackingNb', 'title' : Translation.of('Traçabilité', 'Urgences', 'N° tracking transporteur', false) },
+            { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : Translation.of('Traçabilité', 'Urgences', 'Date arrivage', false) },
+            {"data": 'arrivalNb', 'name' : 'arrivalNb', 'title' : Translation.of('Traçabilité', 'Urgences', 'Numéro d\'arrivage', false)},
+            {"data": 'createdAt', 'name': 'createdAt', 'title': Translation.of('Général', null, 'Zone liste', 'Date de création', false)},
         ],
         drawConfig: {
             needsSearchOverride: true,
@@ -72,6 +75,10 @@ function initPage() {
         tables: [tableUrgence],
         success : (data) => callbackUrgenceAction(data, modalModifyUrgence, true)
     });
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    initDateTimePicker('.datetime-field', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+    fillDatePickers('.datetime-field', 'YYYY-MM-DD', true);
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {
@@ -84,6 +91,10 @@ function callbackEditFormLoading($modal, buyerId, buyerName) {
         const $selectBuyer = $modal.find('.ajax-autocomplete-user[name="acheteur"]');
         $selectBuyer.append(option).trigger('change');
     }
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    initDateTimePicker('.datetime-field', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+    fillDatePickers('.datetime-field', 'YYYY-MM-DD', true);
 }
 
 function callbackUrgenceAction({success, message}, $modal = undefined, resetDate = false) {

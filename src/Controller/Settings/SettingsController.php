@@ -18,6 +18,7 @@ use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
+use App\Entity\Language;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -25,6 +26,8 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
+use App\Entity\TranslationCategory;
+use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
@@ -37,8 +40,10 @@ use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\SettingRepository;
 use App\Repository\TypeRepository;
+use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\InventoryService;
+use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
@@ -47,8 +52,10 @@ use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use JetBrains\PhpStorm\ArrayShape;
+use PHPUnit\Util\Json;
 use RuntimeException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -56,6 +63,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -65,23 +73,26 @@ use WiiCommon\Helper\Stream;
  */
 class SettingsController extends AbstractController {
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /** @Required */
+    #[Required]
     public SpecificService $specificService;
 
-    /** @Required */
+    #[Required]
     public Environment $twig;
 
-    /** @Required */
+    #[Required]
     public KernelInterface $kernel;
 
-    /** @Required */
+    #[Required]
     public StatusService $statusService;
 
-    /** @Required */
+    #[Required]
     public SettingsService $settingsService;
+
+    #[Required]
+    public LanguageService $languageService;
 
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
@@ -401,9 +412,9 @@ class SettingsController extends AbstractController {
             "icon" => "user",
             "menus" => [
                 self::MENU_LANGUAGES => [
-                    "label" => "Personnalisation des libellés",
+                    "label" => "Langues",
                     "right" => Action::SETTINGS_DISPLAY_LABELS_PERSO,
-                    "save" => false,
+                    'route' => "settings_language_index"
                 ],
                 self::MENU_ROLES => [
                     "label" => "Rôles",
@@ -550,14 +561,269 @@ class SettingsController extends AbstractController {
 
         return $this->render("settings/utilisateurs/langues.html.twig", [
             'translations' => $translationRepository->findAll(),
-            'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
+            'menusTranslations' => array_column([], '1'),
         ]);
     }
 
     /**
+     * @Route("/langues", name="settings_language_index")
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
+     */
+    public function languageIndex(EntityManagerInterface $entityManager,
+                                  LanguageService        $languageService): Response {
+        $languageRepository = $entityManager->getRepository(Language::class);
+        $translationCategoryRepository = $entityManager->getRepository(TranslationCategory::class);
+
+        $defaultLanguages = Stream::from($languageRepository->findBy(['selectable' => true]))
+        ->map(fn(Language $language) => [
+            'label' => $language->getLabel(),
+            'value' => $language->getId(),
+            'iconUrl' => $language->getFlag(),
+            'checked' => $language->getSelected()
+        ])
+        ->toArray();
+
+        $languages = $languageService->getLanguages();
+
+        $languages[] = [
+            'label' => 'Ajouter une langue',
+            'value' => 'NEW',
+            'iconUrl' => '/svg/flags/Plus-flag.svg',
+        ];
+
+        $sidebar = [];
+        $categories = $translationCategoryRepository->findBy(['type' => 'category']);
+        foreach ($categories as $category) {
+            $categoryLabel = $category->getLabel();
+            $sidebar[$categoryLabel] = [];
+            $menus = $translationCategoryRepository->findBy(['parent' => $category, 'type' => 'menu']);
+            foreach ($menus as $menu) {
+                $menuLabel = $menu->getLabel();
+                $sidebar[$categoryLabel][] = $menuLabel;
+            }
+        }
+        return $this->render("settings/utilisateurs/language/langues_index.html.twig", [
+            'defaultLanguages' => $defaultLanguages,
+            'languages' => $languages,
+            'categories' => $sidebar,
+        ]);
+    }
+
+    /**
+     * @Route("/langues/api", name="settings_language_api" , methods={"GET"}, options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
+     */
+    public function languageApi( Request $request, EntityManagerInterface $manager): Response {
+        $data = $request->query;
+        $languageRepository = $manager->getRepository(Language::class);
+        $translationCategoryRepository = $manager->getRepository(TranslationCategory::class);
+
+        $language = $data->get('language');
+        if ($language === 'NEW') {
+            $language = new Language();
+            $language
+                ->setFlag("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E")
+                ->setSelectable(true)
+                ->setSlug(Language::NEW_SLUG);
+        } else {
+            $language = $languageRepository->findOneBy(['id' => $data->get('language')]);
+        }
+
+        $languageSlug = $language->getSlug();
+        $defaultLanguage = array_key_exists($languageSlug, Language::DEFAULT_LANGUAGE_TRANSLATIONS )
+            ? $languageRepository->findOneBy(['slug' => Language::DEFAULT_LANGUAGE_TRANSLATIONS[$languageSlug]])
+            : $languageRepository->findOneBy(['selected' => true]) ;
+
+        $translations = [];
+        $categories = $translationCategoryRepository->findBy(['type' => 'category']);
+        foreach ($categories as $category) {
+            $categoryLabel = $category->getLabel();
+            $translations[$categoryLabel] = ['subtitle'=> $category->getSubtitle()];
+            $translations[$categoryLabel]["translations"] = $category->getTranslations($defaultLanguage->getSlug(), $language->getSlug());
+            $menus = $translationCategoryRepository->findBy(['parent' => $category, 'type' => 'menu']);
+            foreach ($menus as $menu) {
+                $menuLabel = $menu->getLabel();
+                $translations[$categoryLabel]['menus'][$menuLabel] = ['subtitle'=> $menu->getSubtitle()];
+                $translations[$categoryLabel]['menus'][$menuLabel]["translations"] = $menu->getTranslations($defaultLanguage->getSlug(), $language->getSlug());
+                $submenus = $translationCategoryRepository->findBy(['parent' => $menu, 'type' => 'submenu']);
+                foreach ($submenus as $submenu){
+                    $submenuLabel = $submenu->getLabel();
+                    $translations[$categoryLabel]['menus'][$menuLabel]['submenus'][$submenuLabel] =['subtitle'=> $submenu->getSubtitle()];
+                    $translations[$categoryLabel]['menus'][$menuLabel]['submenus'][$submenuLabel]["translations"] = $submenu->getTranslations($defaultLanguage->getSlug(), $language->getSlug());
+                }
+            }
+        }
+
+        return $this->json([
+            'template' => $this->renderView("settings/utilisateurs/language/langues_settings.html.twig", [
+                'defaultLanguage' => [
+                    'label' => $defaultLanguage->getLabel(),
+                    'flag' => $defaultLanguage->getFlag(),
+                ],
+                'language' => $language,
+                'translations' => $translations,
+            ])
+        ]);
+    }
+
+    /**
+     * @Route("/langues/api/default", name="settings_default_language_api" , methods={"POST"}, options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
+     */
+    public function defaultLanguageApi(Request $request, EntityManagerInterface $manager, CacheService $cacheService): Response {
+        $data = $request->request;
+
+        $languageRepository = $manager->getRepository(Language::class);
+        $defaultLanguage = $languageRepository->find($data->get('language'));
+
+        if($defaultLanguage->getSelectable()){
+            foreach($languageRepository->findBy(['selected' => true]) as $language) {
+                $language->setSelected(false);
+            }
+
+            $defaultLanguage->setSelected(true);
+            $manager->flush();
+
+            $cacheService->delete(CacheService::LANGUAGES);
+            $cacheService->delete(CacheService::TRANSLATIONS);
+
+            return $this->json([
+                "success" => true,
+            ]);
+        }
+        else {
+            return $this->json([
+                "success" => false,
+                "message" => "La langue n'est pas sélectionnable",
+            ]);
+        }
+    }
+
+    /**
+     * @Route("/langues/api/delete", name="settings_language_delete" , methods={"POST"}, options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
+     */
+    public function deleteLanguageApi(EntityManagerInterface $manager,
+                                      Request $request,
+                                      CacheService $cacheService ): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $languageRepository = $manager->getRepository(Language::class);
+        $userRepository = $manager->getRepository(Utilisateur::class);
+        $translationRepository = $manager->getRepository(Translation::class);
+        $language = $languageRepository->find($data['language']);
+
+        if (in_array($language->getSlug(),Language::NOT_DELETABLE_LANGUAGES)) {
+            return $this->json([
+                "success" => false,
+                "message" => "Cette langue ne peut pas être supprimée"
+            ]);
+        }
+        else {
+            $translations = $translationRepository->findBy(['language' => $language]);
+            foreach ($translations as $translation) {
+                $manager->remove($translation);
+            }
+
+            $defaultLanguage = $languageRepository->findOneBy(['selected' => true]);
+            foreach ($userRepository->findBy(['language' => $language]) as $user) {
+                $user->setLanguage($defaultLanguage);
+            }
+
+            $manager->remove($language);
+            $manager->flush();
+
+            $cacheService->delete(CacheService::LANGUAGES);
+            $cacheService->delete(CacheService::TRANSLATIONS);
+
+            return $this->json([
+                "success" => true,
+                "msg" => "La langue <strong>{$language->getLabel()}</strong> a bien été supprimée."
+            ]);
+        }
+    }
+
+    /**
+     * @Route("/langues/api/save", name="settings_language_save_api" , methods={"POST"}, options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
+     */
+    public function saveTranslationApi(EntityManagerInterface $manager,
+                                       Request $request,
+                                       AttachmentService $attachmentService,
+                                       CacheService $cacheService ): Response {
+        $data = $request->request;
+        $file = $request->files;
+        $languageRepository = $manager->getRepository(Language::class);
+        $translationRepository = $manager->getRepository(Translation::class);
+        $translationSourceRepository = $manager->getRepository(TranslationSource::class);
+
+        $language = $data->get('language');
+        if ($language === 'NEW') {
+            $language = new Language;
+            $flagCustom = $file->get('flagCustom');
+            if ($flagCustom) {
+                $flagFile = $attachmentService->createAttachements($file);
+                $languageFile = $flagFile[0]->getFullPath();
+            }
+            else {
+                $languageFile = $data->get('flagDefault');
+            }
+
+            $languageName = $data->get('languageName');
+            $language
+                ->setLabel($languageName)
+                ->setFlag($languageFile)
+                ->setSelectable(false)
+                ->setSlug(strtolower(str_replace(' ', '_', $languageName)))
+                ->setSelected(false);
+            $manager->persist($language);
+        } else {
+            $language = $languageRepository->findOneBy(['id' => $data->get('language')]);
+        }
+
+        $translations = json_decode($data->get('translations'));
+
+        foreach ($translations as $translation) {
+           $id = $translation->id;
+           $value = $translation->value;
+           $source = $translationSourceRepository->find($translation->source);
+           if ($id != null or $id != '') {
+               $translation= $translationRepository->find($id);
+               if($value != null or $value != '') {
+                   $translation->setTranslation($value);
+               }
+               else {
+                   $manager->remove($translation);
+               }
+           }
+           elseif ($value != null or $value != '') {
+               $translation = new Translation();
+               $translation
+                   ->setTranslation($value)
+                   ->setSource($source)
+                   ->setLanguage($language);
+                $manager->persist($translation);
+           }
+        }
+
+        $manager->flush();
+
+        $cacheService->delete(CacheService::LANGUAGES);
+        $cacheService->delete(CacheService::TRANSLATIONS);
+
+        return $this->json([
+            "success" => true,
+        ]);
+    }
+
+
+    /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
      */
-    public function item(string $category, ?string $menu = null, ?string $submenu = null): Response {
+    public function item(EntityManagerInterface $entityManager,
+                         string $category,
+                         ?string $menu = null,
+                         ?string $submenu = null): Response {
         if ($submenu) {
             $parent = self::SETTINGS[$category]["menus"][$menu] ?? null;
             $path = "settings/$category/$menu/";
@@ -589,7 +855,7 @@ class SettingsController extends AbstractController {
             "parent" => $parent,
             "selected" => $submenu ?? $menu,
             "path" => $path,
-            "values" => $this->customValues(),
+            "values" => $this->customValues($entityManager),
         ]);
     }
 
@@ -626,22 +892,28 @@ class SettingsController extends AbstractController {
         return $types;
     }
 
-    public function customValues(): array {
-        $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
-        $temperatureRepository = $this->manager->getRepository(TemperatureRange::class);
-        $natureRepository = $this->manager->getRepository(Nature::class);
-        $locationsRepository = $this->manager->getRepository(Emplacement::class);
-        $settingRepository = $this->manager->getRepository(Setting::class);
-        $typeRepository = $this->manager->getRepository(Type::class);
-        $statusRepository = $this->manager->getRepository(Statut::class);
-        $freeFieldRepository = $this->manager->getRepository(FreeField::class);
-        $frequencyRepository = $this->manager->getRepository(InventoryFrequency::class);
-        $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
-        $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
-        $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
-        $translationRepository = $this->manager->getRepository(Translation::class);
-        $settingRepository = $this->manager->getRepository(Setting::class);
-        $userRepository = $this->manager->getRepository(Utilisateur::class);
+    #[ArrayShape([
+        self::CATEGORY_GLOBAL => "\Closure[]", self::CATEGORY_STOCK => "\Closure[][]",
+        self::CATEGORY_TRACING => "\Closure[][]", self::CATEGORY_TRACKING => "array",
+        self::CATEGORY_IOT => "\Closure[]", self::CATEGORY_DATA => "\Closure[]",
+        self::CATEGORY_NOTIFICATIONS => "\Closure[]", self::CATEGORY_USERS => "\Closure[]"
+
+    ])]
+    public function customValues(EntityManagerInterface $entityManager): array {
+        $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
+        $temperatureRepository = $entityManager->getRepository(TemperatureRange::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $locationsRepository = $entityManager->getRepository(Emplacement::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $frequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
+        $fixedFieldRepository = $entityManager->getRepository(FieldsParam::class);
+        $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
+        $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $languageRepository = $entityManager->getRepository(Language::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -659,7 +931,7 @@ class SettingsController extends AbstractController {
                             ->keymap(fn(FreeField $field) => [$field->getLabel(), $field->getLabel()])
                             ->toArray(),
                     ],
-                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
+                    self::MENU_TYPES_FREE_FIELDS => function() use ($entityManager, $typeRepository) {
                         $categoryType = CategoryType::ARTICLE;
                         $types = Stream::from($typeRepository->findByCategoryLabels([$categoryType]))
                             ->map(fn(Type $type) => [
@@ -670,7 +942,7 @@ class SettingsController extends AbstractController {
 
                         $types[0]["checked"] = true;
 
-                        $categorieCLRepository = $this->manager->getRepository(CategorieCL::class);
+                        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
                         $categories = Stream::from($categorieCLRepository->findByLabel([
                             CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
                         ]))
@@ -714,9 +986,9 @@ class SettingsController extends AbstractController {
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [
                         "frequencyOptions" => Stream::from($frequencyRepository->findAll())
-                            ->map(fn(InventoryFrequency $n) => [
-                                "id" => $n->getId(),
-                                "label" => $n->getLabel(),
+                            ->map(fn(InventoryFrequency $freq) => [
+                                "id" => $freq->getId(),
+                                "label" => $freq->getLabel(),
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                             ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
@@ -748,8 +1020,9 @@ class SettingsController extends AbstractController {
                             ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
                             ->map(fn(Statut $status) => [
                                 "value" => $status->getId(),
-                                "label" => $status->getNom(),
-                            ])->toArray(),
+                                "label" => $this->getFormatter()->status($status),
+                            ])
+                            ->toArray(),
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
                         $emergencyField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
@@ -782,11 +1055,16 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
                         'category' => CategoryType::DEMANDE_DISPATCH,
                     ],
-                    self::MENU_STATUSES => fn() => [
-                        'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false),
-                        'categoryType' => CategoryType::DEMANDE_DISPATCH,
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
-                    ],
+                    self::MENU_STATUSES => function() {
+                        $types = $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false);
+                        $types[0]["checked"] = true;
+
+                        return [
+                            'types' => $types,
+                            'categoryType' => CategoryType::DEMANDE_DISPATCH,
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
+                        ];
+                    },
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -812,11 +1090,16 @@ class SettingsController extends AbstractController {
                     self::MENU_DISPUTE_STATUSES => fn() => [
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL_DISPUTE),
                     ],
-                    self::MENU_STATUSES => fn() => [
-                        'types' => $this->typeGenerator(CategoryType::ARRIVAGE, false),
-                        'categoryType' => CategoryType::ARRIVAGE,
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL),
-                    ],
+                    self::MENU_STATUSES => function() {
+                        $types = $this->typeGenerator(CategoryType::ARRIVAGE, false);
+                        $types[0]["checked"] = true;
+
+                        return [
+                            'types' => $types,
+                            'categoryType' => CategoryType::ARRIVAGE,
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL),
+                        ];
+                    },
                 ],
                 self::MENU_HANDLINGS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -842,11 +1125,16 @@ class SettingsController extends AbstractController {
                     self::MENU_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_HANDLING);
                     },
-                    self::MENU_STATUSES => fn() => [
-                        'types' => $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false),
-                        'categoryType' => CategoryType::DEMANDE_HANDLING,
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_HANDLING),
-                    ],
+                    self::MENU_STATUSES => function() {
+                        $types = $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false);
+                        $types[0]["checked"] = true;
+
+                        return [
+                            'types' => $types,
+                            'categoryType' => CategoryType::DEMANDE_HANDLING,
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_HANDLING),
+                        ];
+                    },
                 ],
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [
@@ -929,7 +1217,7 @@ class SettingsController extends AbstractController {
                             ->keymap(fn(string $value) => [
                                 $value, [
                                     "value" => $value,
-                                    "label" => $natureRepository->find($value)->getLabel(),
+                                    "label" => $this->getFormatter()->nature($natureRepository->find($value)),
                                     "selected" => true,
                                 ],
                             ])
@@ -1017,10 +1305,20 @@ class SettingsController extends AbstractController {
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
                     "newUser" => new Utilisateur(),
-                ],
-                self::MENU_LANGUAGES => fn() => [
-                    'translations' => $translationRepository->findAll(),
-                    'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
+                    "newUserLanguage" => $this->languageService->getNewUserLanguage($entityManager),
+                    "languages" => Stream::from($languageRepository->findby(['hidden' => false]))
+                        ->map(fn(Language $language) => [
+                            "value" => $language->getId(),
+                            "label" => $language->getLabel(),
+                            "icon" => $language->getFlag(),
+                        ])
+                        ->toArray(),
+                    "dateFormats" => Stream::from(Language::DATE_FORMATS)
+                        ->map(fn($format, $key) => [
+                            "label" => $key,
+                            "value" => $format,
+                        ])
+                        ->toArray(),
                 ],
             ],
         ];
@@ -1523,32 +1821,20 @@ class SettingsController extends AbstractController {
         foreach ($freeFields as $freeField) {
             if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
                 $typageCLFr = "Oui/Non";
+            } else if ($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                $typageCLFr = "Nombre";
+            } else if ($freeField->getTypage() === FreeField::TYPE_TEXT) {
+                $typageCLFr = "Texte";
+            } else if ($freeField->getTypage() === FreeField::TYPE_LIST) {
+                $typageCLFr = "Liste";
+            } else if ($freeField->getTypage() === FreeField::TYPE_DATE) {
+                $typageCLFr = "Date";
+            } else if ($freeField->getTypage() === FreeField::TYPE_DATETIME) {
+                $typageCLFr = "Date et heure";
+            } else if ($freeField->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
+                $typageCLFr = "Liste multiple";
             } else {
-                if ($freeField->getTypage() === FreeField::TYPE_NUMBER) {
-                    $typageCLFr = "Nombre";
-                } else {
-                    if ($freeField->getTypage() === FreeField::TYPE_TEXT) {
-                        $typageCLFr = "Texte";
-                    } else {
-                        if ($freeField->getTypage() === FreeField::TYPE_LIST) {
-                            $typageCLFr = "Liste";
-                        } else {
-                            if ($freeField->getTypage() === FreeField::TYPE_DATE) {
-                                $typageCLFr = "Date";
-                            } else {
-                                if ($freeField->getTypage() === FreeField::TYPE_DATETIME) {
-                                    $typageCLFr = "Date et heure";
-                                } else {
-                                    if ($freeField->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
-                                        $typageCLFr = "Liste multiple";
-                                    } else {
-                                        $typageCLFr = "";
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                $typageCLFr = "";
             }
 
             $defaultValue = null;
@@ -1684,6 +1970,31 @@ class SettingsController extends AbstractController {
             $filter = $manager->getRepository(FiltreRef::class)->findOneBy(['champLibre' => $entity]);
             $manager->remove($filter);
         }
+
+        if (($entity->getTypage() === FreeField::TYPE_LIST || $entity->getTypage() === FreeField::TYPE_LIST_MULTIPLE) && $entity->getElementsTranslations()){
+            foreach($entity->getElementsTranslations() as $elementTranslationSource){
+                foreach ($elementTranslationSource->getTranslations() as $elementTranslation){
+                    $manager->remove($elementTranslation);
+                }
+                $manager->remove($elementTranslationSource);
+            }
+        }
+
+        if($entity->getDefaultValueTranslation()){
+            foreach($entity->getDefaultValueTranslation()->getTranslations() as $defaultValueTranslation){
+                $manager->remove($defaultValueTranslation);
+            }
+            $manager->remove($entity->getDefaultValueTranslation());
+        }
+
+        if($entity->getLabelTranslation()){
+            foreach($entity->getLabelTranslation()->getTranslations() as $freeFieldTranslation){
+                $manager->remove($freeFieldTranslation);
+            }
+            $manager->remove($entity->getLabelTranslation());
+        }
+
+
 
         $manager->remove($entity);
         $manager->flush();
@@ -2282,5 +2593,4 @@ class SettingsController extends AbstractController {
             ]);
         }
     }
-
 }

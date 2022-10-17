@@ -8,6 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\QueryBuilderHelper;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -25,7 +26,7 @@ use Doctrine\ORM\Query\Expr\Join;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService) {
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService, array $options = []) {
         $qb = $this->createQueryBuilder('dispatch');
 
         $countTotal = $qb
@@ -140,17 +141,13 @@ class DispatchRepository extends EntityRepository
                 if (!empty($order)) {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     if ($column === 'status') {
-                        $qb
-                            ->leftJoin('dispatch.statut', 'sort_status')
-                            ->orderBy('sort_status.nom', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'statut', $order);
                     } else if ($column === 'requester') {
                         $qb
                             ->leftJoin('dispatch.requester', 'sort_requester')
                             ->orderBy('sort_requester.username', $order);
                     } else if ($column === 'type') {
-                        $qb
-                            ->leftJoin('dispatch.type', 'sort_type')
-                            ->orderBy('sort_type.label', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', $order);
                     } else if ($column === 'locationFrom') {
                         $qb
                             ->leftJoin('dispatch.locationFrom', 'sort_locationFrom')
@@ -286,57 +283,12 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
-    /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return Dispatch[]
-     */
-    public function getByDates(DateTime $dateMin,
-                               DateTime $dateMax)
-    {
+    public function iterateByDates(DateTime $dateMin,
+                                   DateTime $dateMax): iterable {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
         $queryBuilder = $this->createQueryBuilder('dispatch')
-            ->select('dispatch.id')
-            ->addSelect('dispatch.number AS number')
-            ->addSelect('dispatch.commandNumber AS commandNumber')
-            ->addSelect('dispatch.creationDate AS creationDate')
-            ->addSelect('dispatch.validationDate AS validationDate')
-            ->addSelect('dispatch.treatmentDate AS treatmentDate')
-            ->addSelect('dispatch.endDate AS endDate')
-            ->addSelect('join_type.label AS type')
-            ->addSelect('join_requester.username AS requester')
-            ->addSelect('join_locationFrom.label AS locationFrom')
-            ->addSelect('join_locationTo.label AS locationTo')
-            ->addSelect('dispatch.destination AS destination')
-            ->addSelect('join_dispatchPack.quantity AS dispatchQuantity')
-            ->addSelect('join_dispatchPack_pack.code AS packCode')
-            ->addSelect('join_dispatchPack_nature.label AS packNatureLabel')
-            ->addSelect('join_dispatchPack_pack.quantity AS packQuantity')
-            ->addSelect('join_dispatchPack_pack.weight AS weight')
-            ->addSelect('join_dispatchPack_lastTracking.datetime AS lastMovement')
-            ->addSelect('join_dispatchPack_lastTracking_location.label AS lastLocation')
-            ->addSelect('join_dispatchPack_lastTracking_operator.username AS operator')
-            ->addSelect('join_status.nom AS status')
-            ->addSelect('dispatch.emergency AS emergency')
-            ->addSelect('join_treatedBy.username AS treatedBy')
-            ->addSelect('dispatch.freeFields')
-
-            ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPack')
-            ->leftJoin('join_dispatchPack.pack', 'join_dispatchPack_pack')
-            ->leftJoin('join_dispatchPack_pack.nature', 'join_dispatchPack_nature')
-            ->leftJoin('join_dispatchPack_pack.lastTracking', 'join_dispatchPack_lastTracking')
-            ->leftJoin('join_dispatchPack_lastTracking.emplacement', 'join_dispatchPack_lastTracking_location')
-            ->leftJoin('join_dispatchPack_lastTracking.operateur', 'join_dispatchPack_lastTracking_operator')
-
-            ->leftJoin('dispatch.type', 'join_type')
-            ->leftJoin('dispatch.requester', 'join_requester')
-            ->leftJoin('dispatch.treatedBy', 'join_treatedBy')
-            ->leftJoin('dispatch.locationFrom', 'join_locationFrom')
-            ->leftJoin('dispatch.locationTo', 'join_locationTo')
-            ->leftJoin('dispatch.statut', 'join_status')
-
             ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
 
             ->setParameters([
@@ -346,7 +298,7 @@ class DispatchRepository extends EntityRepository
 
         return $queryBuilder
             ->getQuery()
-            ->getResult();
+            ->toIterable();
     }
 
     /**

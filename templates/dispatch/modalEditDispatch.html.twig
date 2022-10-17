@@ -2,15 +2,15 @@
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="Modifier un acheminement">' ~ ('acheminement.Modifier un acheminement' | trans) ~ '</span>'
+                title: trans('Demande', 'Acheminements', 'Général', 'Modifier un acheminement')
             } %}
 
             <div class="modal-body modal-input container-fluid"></div>
 
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success data', text: 'Enregistrer', name: 'id', id: 'submitEditDispatch'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), name: 'id', id: 'submitEditDispatch'}
                 ],
             } %}
 

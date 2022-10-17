@@ -21,6 +21,7 @@ Encore
     .addEntry('settings-data-exports', './assets/js/pages/settings/data/exports.js')
     .addEntry('settings-data-inventories-imports', './assets/js/pages/settings/data/inventories-imports.js')
     .addEntry('settings-users-roles-form', './assets/js/pages/settings/users/roles/form.js')
+    .addEntry('settings-languages', './assets/js/pages/settings/users/languages.js')
     .addEntry('vehicle', './assets/js/pages/vehicle.js')
     .addEntry('transport-request-index', './assets/js/pages/transport/request/index.js')
     .addEntry('transport-request-show', './assets/js/pages/transport/request/show.js')
@@ -35,6 +36,7 @@ Encore
     .addEntry('reception-show', './assets/js/pages/reception/show.js')
     .addEntry('handling-show', './assets/js/pages/handling/show.js')
     .addEntry('handling-edit', './assets/js/pages/handling/edit.js')
+    .addEntry('register', './assets/js/pages/register/register.js')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.

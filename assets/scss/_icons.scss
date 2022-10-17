@@ -78,7 +78,8 @@ $icons: (
     'cart-collect': "../../public/svg/cart-collect.svg",
     'cart-purchase': "../../public/svg/cart-purchase.svg",
     'plus': "../../public/svg/plus.svg",
-    'check': "../../public/svg/check.svg",
+    'check-white': "../../public/svg/check-white.svg",
+    'check-black': "../../public/svg/check-black.svg",
     'wysiwyg-edit': "../../public/svg/wysiwyg-edit.svg",
     'visibility-group': "../../public/svg/visibility-group.svg",
     'menu-terminal-mobile': "../../public/svg/menu-terminal-mobile.svg",
@@ -101,10 +102,11 @@ $icons: (
     'plus-black': "../../public/svg/plus-black.svg",
     'printer-black': "../../public/svg/printer-black.svg",
     'transfer-black': "../../public/svg/transfer-black.svg",
+    'translate-white': "../../public/svg/translate-white.svg",
     'trash-black': "../../public/svg/trash-black.svg",
     'new-article': "../../public/svg/new-article.svg",
-    'white-tick': "../../public/svg/tick-blanc.svg",
     'calendar-preparation-black': "../../public/svg/calendar-preparation-black.svg",
+    'documentation': "../../public/svg/documentation.svg",
 );
 
 @each $iconName, $iconPath in $icons {

@@ -5,8 +5,9 @@
     {% if containerClass %}<div class="{{ containerClass }}">{% endif %}
     {% include 'utils/data-show.html.twig' with {
         data: freeFields|map((freeField) => {
-            label: freeField.label,
-            value: (values[freeField.id] ?? (freeField.defaultValue ?? '')) | format_helper('freeField', freeField)
+            label: freeField.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) ?: freeField.label,
+            value: (values[freeField.id] ?? (freeField.defaultValue ?? ''))
+                | format_helper('freeField', freeField, needsDateFormatting is defined and needsDateFormatting ? app.user : null)
         }),
         wrapperClass: wrapperClass
     } %}

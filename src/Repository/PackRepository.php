@@ -7,6 +7,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
+use App\Helper\QueryBuilderHelper;
 use DateTimeInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -143,7 +144,7 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, string $mode)
+    public function findByParamsAndFilters(InputBag $params, $filters, string $mode, array $options = [])
     {
         $queryBuilder = $this->createQueryBuilder('pack');
 
@@ -239,9 +240,7 @@ class PackRepository extends EntityRepository
                             ->leftJoin('m3.emplacement', 'e3')
                             ->orderBy('e3.label', $order);
                     } else if ($column === 'packNature') {
-                        $queryBuilder
-                            ->leftJoin('pack.nature', 'n3')
-                            ->orderBy('n3.label', $order);
+                        $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $options['language'], $options['defaultLanguage'], 'nature', $order);
                     } else if ($column === 'packLastDate') {
                         $queryBuilder
                             ->leftJoin('pack.lastTracking', 'm3')
@@ -357,40 +356,6 @@ class PackRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->execute();
-    }
-
-    public function countColisByArrivageAndNature($from, $to) {
-        $queryBuilder = $this->createQueryBuilder('colis');
-        $queryBuilderExpr = $queryBuilder->expr();
-        $queryBuilder
-            ->select('count(colis.id) as nbColis')
-            ->addSelect('nature.label AS natureLabel')
-            ->addSelect('arrivage.id AS arrivageId')
-            ->join('colis.nature', 'nature')
-            ->join('colis.arrivage', 'arrivage')
-            ->where($queryBuilderExpr->between('arrivage.date', ':dateFrom', ':dateTo'))
-            ->andWhere('colis.groupIteration IS NULL')
-            ->groupBy('nature.id')
-            ->addGroupBy('arrivage.id')
-            ->setParameter('dateFrom', $from)
-            ->setParameter('dateTo', $to);
-
-        $result = $queryBuilder->getQuery()->execute();
-
-        return array_reduce(
-            $result,
-            function (array $carry, $counter) {
-                $arrivageId = $counter['arrivageId'];
-                $natureLabel = $counter['natureLabel'];
-                $nbColis = $counter['nbColis'];
-                if (!isset($carry[$arrivageId])) {
-                    $carry[$arrivageId] = [];
-                }
-                $carry[$arrivageId][$natureLabel] = intval($nbColis);
-                return $carry;
-            },
-            []
-        );
     }
 
     public function countPacksByArrival(DateTime $from, DateTime $to) {

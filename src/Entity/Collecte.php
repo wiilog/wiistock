@@ -18,7 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: CollecteRepository::class)]
-class Collecte implements Serializable, PairedEntity {
+class Collecte implements PairedEntity {
 
     const CATEGORIE = 'collecte';
     const STATUT_COLLECTE = 'collecté';
@@ -27,6 +27,7 @@ class Collecte implements Serializable, PairedEntity {
     const STATUT_BROUILLON = 'brouillon';
     const DESTRUCT_STATE = 0;
     const STOCKPILLING_STATE = 1;
+
     use CommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
@@ -329,28 +330,6 @@ class Collecte implements Serializable, PairedEntity {
             }
         }
         return $activePairing;
-    }
-
-    public function serialize(): array {
-        $freeFieldData = [];
-
-        foreach($this->getFreeFields() as $freeFieldId => $freeFieldValue) {
-            $freeFieldData[$freeFieldId] = $freeFieldValue;
-        }
-
-        return [
-            'numero' => $this->getNumero(),
-            'creationDate' => $this->getDate() ? $this->getDate()->format('d/m/Y h:i') : '',
-            'validationDate' => $this->getValidationDate() ? $this->getValidationDate()->format('d/m/Y h:i') : '',
-            'type' => $this->getType() ? $this->getType()->getLabel() : '',
-            'statut' => $this->getStatut() ? $this->getStatut()->getNom() : '',
-            'subject' => $this->getObjet(),
-            'destination' => $this->isStock() ? "Mise en stock" : "Destruction",
-            'requester' => FormatHelper::collectRequester($this),
-            'gatheringPoint' => $this->getPointCollecte() ? $this->getPointCollecte()->getLabel() : '',
-            'comment' => $this->getCommentaire() ? strip_tags($this->getCommentaire()) : '',
-            'freeFields' => $freeFieldData,
-        ];
     }
 
 }

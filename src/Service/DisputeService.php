@@ -5,16 +5,18 @@ namespace App\Service;
 use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
 use App\Entity\Dispute;
+use App\Entity\Pack;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Repository\DisputeRepository;
 use DateTime;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -25,11 +27,17 @@ class DisputeService {
     public const PUT_LINE_ARRIVAL = 'arrival';
     public const PUT_LINE_RECEPTION = 'reception';
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public LanguageService $languageService;
 
     /**
      * @var Twig_Environment
@@ -39,21 +47,21 @@ class DisputeService {
     private $security;
 
     private $entityManager;
-    private $translator;
+    private $translation;
     private $mailerService;
     private $visibleColumnService;
     private $CSVExportService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                TranslatorInterface $translator,
+                                TranslationService $translation,
                                 MailerService $mailerService,
                                 CSVExportService $CSVExportService,
                                 VisibleColumnService $visibleColumnService,
                                 Security $security) {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
-        $this->translator = $translator;
+        $this->translation = $translation;
         $this->security = $security;
         $this->mailerService = $mailerService;
         $this->visibleColumnService = $visibleColumnService;
@@ -92,9 +100,11 @@ class DisputeService {
 
         $lastHistoryRecordDate = $dispute['lastHistoryRecord_date'];
         $lastHistoryRecordComment = $dispute['lastHistoryRecord_comment'];
+        $user = $this->security->getUser();
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
 
         $lastHistoryRecordStr = ($lastHistoryRecordDate && $lastHistoryRecordComment)
-            ? (FormatHelper::datetime($lastHistoryRecordDate) . ' : ' . nl2br($lastHistoryRecordComment))
+            ? (FormatHelper::datetime($lastHistoryRecordDate, "", false, $this->security->getUser()) . ' : ' . nl2br($lastHistoryRecordComment))
             : '';
 
         $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? '';
@@ -134,8 +144,8 @@ class DisputeService {
                 ->join(", "),
             'provider' => $dispute['provider'] ?? '',
             'lastHistoryRecord' => $lastHistoryRecordStr,
-            'creationDate' => $dispute['creationDate'] ? $dispute['creationDate']->format('d/m/Y H:i') : '',
-            'updateDate' => $dispute['updateDate'] ? $dispute['updateDate']->format('d/m/Y H:i') : '',
+            'creationDate' => $dispute['creationDate'] ? $dispute['creationDate']->format($format) : '',
+            'updateDate' => $dispute['updateDate'] ? $dispute['updateDate']->format($format) : '',
             'status' => $dispute['status'] ?? '',
             'urgence' => $dispute['emergencyTriggered']
         ];
@@ -143,8 +153,8 @@ class DisputeService {
 
     public function getLitigeOrigin(): array {
         return [
-            Dispute::ORIGIN_ARRIVAGE => $this->translator->trans('arrivage.arrivage'),
-            Dispute::ORIGIN_RECEPTION => $this->translator->trans('réception.réception')
+            Dispute::ORIGIN_ARRIVAGE => $this->translation->translate("Traçabilité", "Flux - Arrivages", "Divers", "Arrivage", false),
+            Dispute::ORIGIN_RECEPTION => $this->translation->translate("Ordre", "Réceptions", "Réception", false)
         ];
     }
 
@@ -154,39 +164,51 @@ class DisputeService {
         $recipients = [];
         $isArrival = ($category === self::CATEGORY_ARRIVAGE);
         if ($wantSendToBuyersMailStatusChange) {
-            $disputeRepository = $this->entityManager->getRepository(Dispute::class);
+            $userRepository = $this->entityManager->getRepository(Utilisateur::class);
             $recipients = $isArrival
-                ? $disputeRepository->getAcheteursArrivageByDisputeId($dispute->getId())
-                : array_reduce($dispute->getBuyers()->toArray(), function(array $carry, Utilisateur $buyer) {
-                    return array_merge(
-                        $carry,
-                        $buyer->getMainAndSecondaryEmails()
-                    );
-                }, []);
+                ? $userRepository->getDisputeBuyers($dispute)
+                : $dispute->getBuyers()->toArray();
         }
 
         if ($wantSendToDeclarantMailStatusChange && $dispute->getReporter()) {
-            $recipients = array_merge($recipients, $dispute->getReporter()->getMainAndSecondaryEmails());
+            $recipients[] = $dispute->getReporter();
         }
 
         if (!empty($recipients)) {
-            $translatedCategory = $isArrival ? $category : $this->translator->trans('réception.une réception');
-            $title = !$isUpdate
-                ? ('Un litige a été déclaré sur ' . $translatedCategory . ' vous concernant :')
-                : ('Changement de statut d\'un litige sur ' . $translatedCategory . ' vous concernant :');
-            $subject = !$isUpdate
-                ? ('FOLLOW GT // Litige sur ' . $translatedCategory)
-                : 'FOLLOW GT // Changement de statut d\'un litige sur ' . $translatedCategory;
+            $translatedCategory = $isArrival
+                ? ["Traçabilité", "Flux - Arrivages", "Email litige", "un arrivage", false]
+                : ["Ordre", "Réceptions", "une réception", false];
+            $title = fn(string $slug) => (
+                !$isUpdate
+                    ? ["Traçabilité", "Flux - Arrivages", "Email litige", "Un litige a été déclaré sur {1} vous concernant :", false, [
+                        1 => $this->translation->translateIn($slug, ...$translatedCategory)
+                    ]]
+                    : ["Traçabilité", "Flux - Arrivages", "Email litige", "Changement de statut d'un litige sur {1} vous concernant :", false, [
+                        1 => $this->translation->translateIn($slug, ...$translatedCategory)
+                    ]]
+            );
+            $subject = fn(string $slug) => (
+                !$isUpdate
+                    ? ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Litige sur {1}", false, [
+                        1 => $this->translation->translateIn($slug, ...$translatedCategory)
+                    ]]
+                    : ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, [
+                        1 => $this->translation->translateIn($slug, ...$translatedCategory)
+                    ]]
+            );
 
             $this->mailerService->sendMail(
                 $subject,
-                $this->templating->render('mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
-                    'disputes' => [$dispute],
-                    'title' => $title,
-                    'urlSuffix' => $isArrival
-                        ? $this->router->generate('arrivage_index')
-                        : $this->router->generate('reception_index')
-                ]),
+                [
+                    "name" => 'mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig',
+                    "context" => [
+                        'disputes' => [$dispute],
+                        'title' => $title,
+                        'urlSuffix' => $isArrival
+                            ? $this->router->generate('arrivage_index')
+                            : $this->router->generate('reception_index'),
+                    ]
+                ],
                 $recipients
             );
         }
@@ -197,20 +219,20 @@ class DisputeService {
         $columnsVisible = $currentUser->getVisibleColumns()['dispute'];
         return $this->visibleColumnService->getArrayConfig(
             [
-                ["name" => 'disputeNumber', 'title' => 'Numéro du litige'],
-                ["name" => 'type', 'title' => 'Type'],
-                ["name" => 'arrivalNumber', 'title' => 'arrivage.n° d\'arrivage', "translated" => true],
-                ["name" => 'receptionNumber', 'title' => 'réception.n° de réception', "translated" => true],
-                ["name" => 'buyers', 'title' => 'Acheteur'],
-                ["name" => 'numCommandeBl', 'title' => 'N° commande / BL'],
-                ["name" => 'reporter', 'title' => 'Déclarant'],
+                ["name" => 'disputeNumber', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Numéro de litige')],
+                ["name" => 'type', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Type')],
+                ["name" => 'arrivalNumber', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage')],
+                ["name" => 'receptionNumber', 'title' => $this->translation->translate('Traçabilité', 'Association BR', 'N° de réception')],
+                ["name" => 'buyers', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)')],
+                ["name" => 'numCommandeBl', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL')],
+                ["name" => 'reporter', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Déclarant')],
                 ["name" => 'command', 'title' => 'N° ligne'],
-                ["name" => 'provider', 'title' => 'Fournisseur'],
+                ["name" => 'provider', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur')],
                 ["name" => 'references', 'title' => 'Référence'],
-                ["name" => 'lastHistoryRecord', 'title' => 'Dernier historique'],
-                ["name" => 'creationDate', 'title' => 'Créé le'],
-                ["name" => 'updateDate', 'title' => 'Modifié le'],
-                ["name" => 'status', 'title' => 'Statut'],
+                ["name" => 'lastHistoryRecord', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Dernier historique')],
+                ["name" => 'creationDate', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Créé le')],
+                ["name" => 'updateDate', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Modifié le')],
+                ["name" => 'status', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Statut')],
             ],
             [],
             $columnsVisible
@@ -229,12 +251,15 @@ class DisputeService {
             throw new \InvalidArgumentException('Invalid mode');
         }
 
+        $userRepository = $manager->getRepository(Utilisateur::class);
+        $buyers = join(" / ", $userRepository->getBuyers($dispute["id"]));
+
         $row = [
             $dispute["number"],
             $dispute["type"],
             $dispute["status"],
-            FormatHelper::date($dispute["creationDate"]),
-            FormatHelper::date($dispute["updateDate"]),
+            FormatHelper::date($dispute["creationDate"], null, $this->security->getUser()),
+            FormatHelper::date($dispute["updateDate"], null, $this->security->getUser()),
         ];
 
         if ($mode === self::PUT_LINE_ARRIVAL) {
@@ -260,7 +285,7 @@ class DisputeService {
                     $supplier,
                     '',
                     $buyers,
-                    FormatHelper::date($dispute["lastHistoryDate"]),
+                    FormatHelper::date($dispute["lastHistoryDate"], null, $this->security->getUser()),
                     $dispute["lastHistoryUser"],
                     $dispute["lastHistoryComment"],
                 ]);
@@ -290,7 +315,7 @@ class DisputeService {
                     $receptionSupplier,
                     $orderNumbers,
                     $buyers,
-                    FormatHelper::date($dispute["lastHistoryDate"]),
+                    FormatHelper::date($dispute["lastHistoryDate"], null, $this->security->getUser()),
                     $dispute["lastHistoryUser"],
                     $dispute["lastHistoryComment"],
                 ]);
@@ -328,7 +353,7 @@ class DisputeService {
             ->setUser($user);
 
         if ($dispute->getStatus()) {
-            $historyRecord->setStatusLabel($dispute->getStatus()->getNom());
+            $historyRecord->setStatusLabel($this->formatService->status($dispute->getStatus()));
         }
 
         if ($dispute->getType()) {

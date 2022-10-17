@@ -8,14 +8,16 @@ use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Handling;
+use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -39,7 +41,7 @@ class HandlingService {
     public MailerService $mailerService;
 
     #[Required]
-    public TranslatorInterface $translator;
+    public TranslationService $translation;
 
     #[Required]
     public TokenStorageInterface $tokenStorage;
@@ -50,6 +52,15 @@ class HandlingService {
     #[Required]
     public FreeFieldService $freeFieldService;
 
+    #[Required]
+    public Security $security;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public LanguageService $languageService;
+
     public function getDataForDatatable($params = null, $statusFilter = null, $selectedDate = null): array
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -58,24 +69,33 @@ class HandlingService {
 
         $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
 
+        $user = $this->userService->getUser();
+
         if ($statusFilter) {
             $filters = [
                 [
                     'field' => 'statut',
-                    'value' => $statusFilter
-                ]
+                    'value' => $statusFilter,
+                ],
             ];
-        } else {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $this->tokenStorage->getToken()->getUser());
+        }
+        else {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $user);
         }
 
-        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $selectedDate);
+        $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $selectedDate, [
+            'defaultLanguage' => $defaultLanguage,
+            'language' => $language
+        ]);
 
         $handlingArray = $queryResult['data'];
 
         $rows = [];
         foreach ($handlingArray as $handling) {
-            $rows[] = $this->dataRowHandling($handling, $includeDesiredTime);
+            $rows[] = $this->dataRowHandling($handling, $includeDesiredTime, $user);
         }
 
         return [
@@ -85,23 +105,29 @@ class HandlingService {
         ];
     }
 
-    public function dataRowHandling(Handling $handling, bool $includeDesiredTime = true): array {
+    public function dataRowHandling(Handling $handling,
+                                    bool $includeDesiredTime,
+                                    Utilisateur $user): array {
+
+        $userLanguage = $user->getLanguage();
+        $defaultSlug = $this->languageService->getDefaultSlug();
+
         $row = [
             'id' => $handling->getId() ?: 'Non défini',
             'number' => $handling->getNumber() ?: '',
             'comment' => $handling->getComment() ?: '',
-            'creationDate' => FormatHelper::datetime($handling->getCreationDate()),
-            'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
-            'requester' => FormatHelper::handlingRequester($handling),
+            'creationDate' => $this->formatService->datetime($handling->getCreationDate(), "", false, $this->security->getUser()),
+            'type' => $this->formatService->type($handling->getType()),
+            'requester' => $this->formatService->handlingRequester($handling),
             'subject' => $handling->getSubject() ?: '',
-            "receivers" => FormatHelper::users($handling->getReceivers()->toArray()),
+            "receivers" => $this->formatService->users($handling->getReceivers()->toArray()),
             'desiredDate' => $includeDesiredTime
-                ? FormatHelper::datetime($handling->getDesiredDate())
-                : FormatHelper::date($handling->getDesiredDate()),
-            'validationDate' => FormatHelper::datetime($handling->getValidationDate()),
-            'status' => FormatHelper::status($handling->getStatus()),
+                ? $this->formatService->datetime($handling->getDesiredDate(), "", false, $user)
+                : $this->formatService->date($handling->getDesiredDate(), "", $user),
+            'validationDate' => $this->formatService->datetime($handling->getValidationDate(), "", false, $user),
+            'status' => $this->formatService->status($handling->getStatus()),
             'emergency' => $handling->getEmergency() ?? '',
-            'treatedBy' => $handling->getTreatedByHandling() ? FormatHelper::user($handling->getTreatedByHandling()) : '',
+            'treatedBy' => $handling->getTreatedByHandling() ? $this->formatService->user($handling->getTreatedByHandling()) : '',
             //'treatmentDelay' => $treatmentDelayStr,
             'carriedOutOperationCount' => is_int($handling->getCarriedOutOperationCount()) ? $handling->getCarriedOutOperationCount() : '',
             'actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
@@ -116,7 +142,7 @@ class HandlingService {
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $handling->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $user);
         }
 
         return $row;
@@ -137,35 +163,38 @@ class HandlingService {
         if (!empty($emailReceivers)) {
             $statusTreated = $status->isTreated();
             if ($isNewHandlingAndNotTreated) {
-                $subject = $this->translator->trans('services.Création d\'une demande de service');
-                $title = $this->translator->trans('services.Votre demande de service a été créée') . '.';
+                $subject = ['Demande', 'Services', 'Email', 'FOLLOW GT // Création d\'une demande de service', false];
+                $title = ['Demande', 'Services', 'Email', 'Votre demande de service a été créée', false];
             } else {
                 $subject = $statusTreated
-                    ? $this->translator->trans('services.Demande de service effectuée')
-                    : $this->translator->trans('services.Changement de statut d\'une demande de service');
+                    ? ['Demande', 'Services', 'Email', 'FOLLOW GT // Demande de service effectuée', false]
+                    : ['Demande', 'Services', 'Email', 'FOLLOW GT // Changement de statut d\'une demande de service', false];
                 $title = $statusTreated
-                    ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
-                    : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
+                    ? ['Demande', 'Services', 'Email', 'Votre demande de service a bien été effectuée', false]
+                    : ['Demande', 'Services', 'Email', 'Une demande de service vous concernant a changé de statut', false];
             }
 
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
             $this->mailerService->sendMail(
-                'FOLLOW GT // ' . $subject,
-                $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
-                    'handling' => $handling,
-                    'title' => $title,
-                    'fieldsParam' => $fieldsParam,
-                    'viewHoursOnExpectedDate' => $viewHoursOnExpectedDate
-                ]),
+                $subject,
+                [
+                    'name' => 'mails/contents/mailHandlingTreated.html.twig',
+                    'context' => [
+                        'handling' => $handling,
+                        'title' => $title,
+                        'fieldsParam' => $fieldsParam,
+                        'viewHoursOnExpectedDate' => $viewHoursOnExpectedDate,
+                    ],
+                ],
                 $emailReceivers
             );
         }
     }
 
     public function parseRequestForCard(Handling $handling, DateService $dateService, array $averageRequestTimesByType): array {
-        $requestStatus = $handling->getStatus() ? $handling->getStatus()->getNom() : '';
+        $requestStatus = $handling->getStatus()?->getCode();
         $requestBodyTitle = !empty($handling->getSubject())
             ? $handling->getSubject() . (!empty($handling->getType())
                 ? ' - ' . $handling->getType()->getLabel()
@@ -174,7 +203,7 @@ class HandlingService {
         $state = $handling->getStatus()?->getState();
 
         $href = $this->router->generate('handling_show', [
-            "id" => $handling->getId()
+            "id" => $handling->getId(),
         ]);
 
         $typeId = $handling->getType()?->getId();
@@ -211,7 +240,7 @@ class HandlingService {
         $statusesToProgress = [
             Statut::DRAFT => 0,
             Statut::NOT_TREATED => 50,
-            Statut::TREATED => 100
+            Statut::TREATED => 100,
         ];
 
         return [
@@ -229,7 +258,7 @@ class HandlingService {
             'bodyColor' => 'light-grey',
             'topRightIcon' => $handling->getEmergency() ? '' : 'livreur.svg',
             'emergencyText' => $handling->getEmergency() ?? '',
-            'progress' =>  $statusesToProgress[$state] ?? 0,
+            'progress' => $statusesToProgress[$state] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => 'light-grey',
         ];
@@ -237,28 +266,70 @@ class HandlingService {
 
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getVisibleColumns()['handling'];
-        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::DEMANDE_HANDLING]);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING, $categorieCL);
+        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING,
+            CategorieCL::DEMANDE_HANDLING);
 
         $columns = [
-            ['title' => 'Numéro de demande',  'name' => 'number'],
-            ['title' => 'Date demande', 'name' => 'creationDate'],
-            ['title' => 'Type', 'name' => 'type'],
-            ['title' => 'Demandeur', 'name' => 'requester'],
-            ['title' => 'services.Objet', 'name' => 'subject', 'translated' => true],
-            ['title' => 'Date attendue', 'name' => 'desiredDate'],
-            ['title' => 'Date de réalisation', 'name' => 'validationDate'],
-            ['title' => 'Statut', 'name' => 'status'],
-            ['title' => 'Urgent', 'name' => 'emergency'],
-            ['title' => 'services.Nombre d\'opération(s) réalisée(s)', 'name' => 'carriedOutOperationCount', 'translated' => true],
-            ['title' => 'Traité par', 'name' => 'treatedBy'],
-            ['title' => 'Commentaire', 'name' => 'comment'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Numéro de demande'), 'name' => 'number',],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date demande'), 'name' => 'creationDate',],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Type'), 'name' => 'type'],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Demandeur'), 'name' => 'requester'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet'), 'name' => 'subject',],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Date attendue'), 'name' => 'desiredDate',],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation'), 'name' => 'validationDate',],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Statut'), 'name' => 'status'],
+            ['title' => $this->translation->translate('Demande', 'Général', 'Urgent'), 'name' => 'emergency'],
+            ['title' => $this->translation->translate('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)'), 'name' => 'carriedOutOperationCount',],
+            ['title' => $this->translation->translate('Général', null, 'Zone liste', 'Traité par'), 'name' => 'treatedBy',],
+            ['title' => $this->translation->translate('Général', null, 'Modale', 'Commentaire'), 'name' => 'comment'],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+    }
+
+    public function putHandlingLine(EntityManagerInterface $entityManager,
+                                    CSVExportService       $CSVExportService,
+                                                           $output,
+                                    Handling               $handling,
+                                    FormatService          $formatService) {
+        $statusR =
+            //                    $treatmentDelay = $handling['treatmentDelay'];
+            //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
+            //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
+        $user = $this->userService->getUser();
+        $receiversStr = Stream::from($handling->getReceivers())
+            ->map(fn(Utilisateur $receiver) => $formatService->user($receiver))
+            ->join(", ");
+        $row = [];
+        $row[] = $handling->getNumber() ?? "";
+        $row[] = $handling->getCreationDate() ? $formatService->datetime($handling->getCreationDate()) : "";
+        $row[] = $formatService->handlingRequester($handling);
+        $row[] = $formatService->type($handling->getType());
+        $row[] = $handling->getSubject() ??"";
+        $row[] = $handling->getSource() ?? "";
+        $row[] = $handling->getDestination() ?? "";
+        $row[] = $includeDesiredTime
+            ? $formatService->datetime($handling->getDesiredDate())
+            : $formatService->date($handling->getDesiredDate());
+        $row[] = $handling->getValidationDate() ? $formatService->datetime($handling->getValidationDate()) : "";
+        $row[] = $handling->getStatus() ? $formatService->status($handling->getStatus()) : "";
+        $row[] = $handling->getComment() ? $formatService->html($handling->getComment()) : "";
+        $row[] = $handling->getEmergency() ?? "";
+        $row[] = $handling->getCarriedOutOperationCount() ?? "";
+        $row[] = $handling->getTreatedByHandling() ? $formatService->user($handling->getTreatedByHandling()) : "";
+        $row[] = $receiversStr ?? "";
+        //                    $row[] = $treatmentDelayStr;
+
+        foreach ($handling->getFreeFields() as $freeFieldId => $value) {
+            $field = $freeFieldRepository->find($freeFieldId);
+            $row[] = $formatService->freeField($handling->getFreeFields()[$freeFieldId] ?? "", $field, $user);
+        }
+        $CSVExportService->putLine($output, $row);
     }
 
 }

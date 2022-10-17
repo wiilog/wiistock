@@ -11,24 +11,28 @@ use App\Repository\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class GroupService {
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /** @Required */
+    #[Required]
     public PackService $packService;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $template;
 
-    /** @Required */
+    #[Required]
     public Security $security;
 
-    /** @Required */
+    #[Required]
     public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function createParentPack(array $options = []): Pack {
         $group = $this->packService->createPackWithCode($options['parent']);
@@ -70,6 +74,7 @@ class GroupService {
             "details" => $this->template->render("group/table/details.html.twig", [
                 "group" => $pack,
                 "last_movement" => $pack->getLastTracking(),
+                "formatter" => $this->formatService
             ]),
         ];
     }

@@ -8,7 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
@@ -70,7 +70,7 @@ class AlertRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
-        $total = QueryCounter::count($queryBuilder, "a");
+        $total = QueryBuilderHelper::count($queryBuilder, "a");
 
         foreach($filters as $filter) {
             switch ($filter['field']) {
@@ -181,7 +181,7 @@ class AlertRepository extends EntityRepository {
         $queryBuilder->groupBy('a.id')
             ->addSelect('COALESCE(reference.quantiteDisponible, article.quantite) AS quantity');
 
-        $countFiltered = QueryCounter::count($queryBuilder, "a");
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, "a");
 
         if(!empty($params)) {
             if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));

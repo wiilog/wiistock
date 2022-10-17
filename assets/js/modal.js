@@ -22,9 +22,12 @@ const $CONFIRMATION_MODAL = $(`
                 <div class="modal-body">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary discard" data-dismiss="modal">Annuler</button>
-                    <button name='request' type="button"
-                            class="btn data confirm">Supprimer</button>
+                    <button type="button" class="btn btn-outline-secondary discard" data-dismiss="modal">
+                        <span>Annuler</span>
+                    </button>
+                    <button name='request' type="button" class="btn data confirm">
+                        <span>Supprimer</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -59,7 +62,7 @@ export default class Modal {
 
         $validateButton
             .addClass(`btn-${validateColor || 'success'}`)
-            .text(validateLabel || 'Confirmer');
+            .html(validateLabel ? `<span>${validateLabel}</span>` : '<span>Confirmer</span>');
 
         $cancelButton.text(cancelLabel || 'Annuler');
 

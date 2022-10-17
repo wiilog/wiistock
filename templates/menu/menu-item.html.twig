@@ -24,8 +24,11 @@
         </span>
     {% endif %}
 
-    {% set isTranslation = isTranslation is defined and isTranslation %}
-    <span class="label user-select-none" title="{{ isTranslation ? title }}">{{ isTranslation ? label|trans : label }}</span>
+    {% if label is iterable %}
+        <span class="label user-select-none" title="{{ label | last }}">{{ trans(label[0] ?? null,label[1] ?? null, label[2] ?? null, label[3] ?? null) }}</span>
+    {% else %}
+        <span class="label user-select-none">{{ label }}</span>
+    {% endif %}
 
 {% if isLink %}
     </a>

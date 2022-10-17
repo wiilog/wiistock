@@ -2,16 +2,16 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="Nouvelle demande de service">' ~ ('services.Nouvelle demande de service' | trans) ~ '</span>'
+                title: trans('Demande', 'Services', null, 'Nouvelle demande de service')
             } %}
-
+            <input type="hidden" id="REMOVE_HOURS_DATETIME" value="setting_value('REMOVE_HOURS_DATETIME')">
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-md-6 col-12">
-                        <label class="wii-field-name" for="type">Type*</label>
+                        <label class="wii-field-name" for="type">{{ trans( 'Demande', 'Général', 'Type') }}*</label>
                         <select name="type" class="form-control data d-block type needed"
                                 onchange="onTypeChange($(this))">
-                            <option value="">Type à choisir...</option>
+                            <option value="">{{ trans('Demande', 'Services', 'Modale et détails', 'Type à choisir', false) }} ...</option>
                             {% set typeIsUnique = freeFieldsTypes | length == 1 %}
                             {% for type in freeFieldsTypes |sort((a, b) => a.typeLabel <=> b.typeLabel) %}
                                 <option value="{{ type.typeId }}" {{ typeIsUnique ? 'selected' }}>{{ type.typeLabel }}</option>
@@ -20,16 +20,16 @@
                     </div>
 
                     <div class="form-group col-md-6 col-12">
-                        <label class="wii-field-name" for="type">Statut*</label>
+                        <label class="wii-field-name" for="type">{{ trans('Demande', 'Général', 'Statut') }}*</label>
                         <select name="status" class="form-control data w-100 needed">
-                            <option value="">Choisir un statut...</option>
+                            <option value="">{{ trans('Demande', 'Services', 'Modale et détails', 'Choisir un statut...', false) }}</option>
                             {% for status in handlingStatus %}
                                 {% if
                                     (
                                     status.state == constant('App\\Entity\\Statut::TREATED')
                                     and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING'))
                                     ) or status.state != constant('App\\Entity\\Statut::TREATED') %}
-                                    <option class="d-none" data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.nom }}</option>
+                                    <option class="d-none" data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.labelIn(userLanguage, defaultLanguage)}}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>
@@ -54,34 +54,34 @@
                     </div>
 
                     <div class="form-group needed col-md-6 col-12">
-                        <label class="wii-field-name" for="subject">{{ 'services.Objet'|trans }}*</label>
+                        <label class="wii-field-name" for="subject">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Objet') }}*</label>
                         <input class="form-control data needed" name="subject">
                     </div>
 
                     <div class="form-group d-flex flex-column col-md-6 col-12">
-                        <label class="wii-field-name">Demandeur</label>
+                        <label class="wii-field-name">{{ trans('Demande', 'Général', 'Demandeur') }}</label>
                         <label class="data wii-body-text" value="{{ app.user.id }}">{{ app.user.username }}</label>
                     </div>
 
                     <div class="form-group col-md-6 col-12">
-                        <label class="wii-field-name" for="desired-date">Date attendue*</label>
-                        <input type="{{ setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime-local' }}"
-                               class="form-control data needed"
+                        <label class="wii-field-name" for="desired-date">{{ trans('Demande', 'Services', 'Modale et détails', 'Date attendue') }}*</label>
+                        <input type="text"
                                name="desired-date"
                                title="Date attendue"
-                               placeholder="jj/mm/aaaa"
-                               min="{{ 'now' | date(setting_value('REMOVE_HOURS_DATETIME') ? 'Y-m-d' : 'Y-m-d\\TH:i') }}"/>
+                               class="form-control data {{ setting_value('REMOVE_HOURS_DATETIME') ? 'date-field' : 'datetime-field' }} needed pointer"
+                               placeholder="{{ app.user.displayedDateFormat ~ (not setting_value('REMOVE_HOURS_DATETIME') ? ' hh:mm') }}"
+                               autocomplete="off"/>
                     </div>
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name">Urgence</label>
+                            <label class="wii-field-name">{{ trans( 'Demande', 'Général', 'Urgences') }}</label>
                             <div class="w-100">
                                 <select
                                     class="form-control input-sm data"
                                     name="emergency">
-                                    <option value="">Non urgent</option>
+                                    <option value="">{{ trans( 'Demande', 'Général', 'Non urgent') }}</option>
                                     {% for emergency in emergencies %}
                                         <option value="{{ emergency }}">{{ emergency }}</option>
                                     {% endfor %}
@@ -93,7 +93,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name" for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name" for="source">{{ trans('Demande', 'Services', 'Modale et détails', 'Chargement') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}" name="source">
                         </div>
                     {% endif %}
@@ -101,7 +101,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name" for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
+                            <label class="wii-field-name" for="destination">{{ trans('Demande', 'Services', 'Modale et détails', 'Déchargement') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}" name="destination">
                         </div>
                     {% endif %}
@@ -109,7 +109,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label for="carriedOutOperationCount" class="wii-field-name">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
+                            <label for="carriedOutOperationCount" class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
                             <input type="number"
                                    min="0"
                                    class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' }}"
@@ -119,7 +119,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name">Destinataires{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
+                            <label class="wii-field-name">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Destinataires') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
                             <select name="receivers"
                                     class="form-control data ajax-autocomplete-user receivers w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' }}"
                                     multiple>
@@ -129,7 +129,7 @@
 
                     <!-- CHAMPS LIBRES -->
                     <div class="col-12">
-                        <span class="toggle-collapsible expanded">Champs libres</span>
+                        <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
                         <div class="collapsible expanded free-fields-container mb-2">
                             {% for type in freeFieldsTypes %}
                                 <div class="d-none"
@@ -140,6 +140,7 @@
                                         colType: 'col-md-6 col-12',
                                         requiredType: 'requiredCreate',
                                         actionType: 'new',
+                                        needsDateFormatting: true
                                     } %}
                                 </div>
                             {% endfor %}
@@ -147,7 +148,7 @@
                     </div>
 
                     <div class="form-group col-12">
-                        <label for="comment"><span class="wii-field-name wii-field-name-sub">Commentaire</span></label>
+                        <label for="comment"><span class="wii-field-name wii-field-name-sub">{{ trans('Général', null, 'Modale', 'Commentaire') }}</span></label>
                         <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
                         <div class="editor-container-new" data-wysiwyg>
                         </div>
@@ -162,8 +163,8 @@
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewHandling'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), id: 'submitNewHandling'}
                 ],
             } %}
 

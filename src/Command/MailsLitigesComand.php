@@ -7,86 +7,99 @@ namespace App\Command;
 
 use App\Entity\Dispute;
 
+use App\Entity\Utilisateur;
+use App\Service\LanguageService;
 use App\Service\MailerService;
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class MailsLitigesComand extends Command
 {
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /**
-     * @var MailerService
-     */
-    private $mailerService;
+    #[Required]
+    public MailerService $mailerService;
 
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+    #[Required]
+    public LoggerInterface $logger;
 
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
-    private $entityManager;
+    #[Required]
+    public LanguageService $languageService;
 
-    public function __construct(LoggerInterface $logger,
-                                EntityManagerInterface $entityManager,
-                                MailerService $mailerService,
-                                Twig_Environment $templating)
-    {
+    #[Required]
+    public TranslationService $translationService;
+
+    public function __construct() {
         parent::__construct();
-        $this->entityManager = $entityManager;
-        $this->mailerService = $mailerService;
-        $this->templating = $templating;
-        $this->logger = $logger;
     }
 
-    protected function configure()
-    {
-        $this->setName('app:mails-litiges');
-
-        $this->setDescription('envoi de mails aux acheteurs pour les litiges non soldés');
+    protected function configure() {
+        $this->setName("app:mails-litiges");
+        $this->setDescription("envoi de mails aux acheteurs pour les litiges non soldés");
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $disputeRepository = $this->entityManager->getRepository(Dispute::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
         /** @var Dispute[] $disputes */
         $disputes = $disputeRepository->findByStatutSendNotifToBuyer();
 
         $disputesByBuyer = [];
         foreach ($disputes as $dispute) {
-            /** @var  $acheteursEmail */
-            $acheteursEmail = $disputeRepository->getAcheteursArrivageByDisputeId($dispute->getId());
-            foreach ($acheteursEmail as $email) {
-                $disputesByBuyer[$email][] = $dispute;
+            /** @var  $buyers */
+            $buyers = $userRepository->getDisputeBuyers($dispute);
+            foreach ($buyers as $buyer) {
+                $buyerId = $buyer->getId();
+                $disputeId = $dispute->getId();
+                if (!isset($disputesByBuyer[$buyerId])) {
+                    $disputesByBuyer[$buyerId] = [
+                        'disputes' => [$dispute],
+                        'disputeIds' => [$disputeId],
+                        'buyer' => $buyer
+                    ];
+                }
+                else if (!in_array($disputeId, $disputesByBuyer[$buyerId]['disputeIds'])) {
+                    $disputesByBuyer[$buyerId]['disputeIds'][] = $disputeId;
+                    $disputesByBuyer[$buyerId]['disputes'][] = $dispute;
+                }
             }
         }
 
         $listEmails = '';
 
-        foreach ($disputesByBuyer as $email => $disputes) {
+        $subject = ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Récapitulatif de vos litiges", false];
+        $title = ["Traçabilité", "Flux - Arrivages", "Email litige", "Récapitulatif de vos litiges", false];
+
+        foreach ($disputesByBuyer as $res) {
+            $disputes = $res['disputes'];
+            $buyer = $res['buyer'];
             $this->mailerService->sendMail(
-                'FOLLOW GT // Récapitulatif de vos litiges',
-                $this->templating->render('mails/contents/mailLitigesArrivage.html.twig', [
-                    'disputes' => $disputes,
-                    'title' => 'Récapitulatif de vos litiges',
-                    'urlSuffix' => $this->router->generate('arrivage_index')
-                ]),
-                $email
+                $subject,
+                [
+                    'name' => 'mails/contents/mailLitigesArrivage.html.twig',
+                    'context' => [
+                        'disputes' => $disputes,
+                        'title' => $title,
+                        'urlSuffix' => $this->router->generate('arrivage_index')
+                    ]
+                ],
+                $buyer
             );
-            $listEmails .= $email . ', ';
+            $listEmails .= $buyer->getEmail() . ', ';
         }
 
         $nbMails = count($disputesByBuyer);

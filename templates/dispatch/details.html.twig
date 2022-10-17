@@ -1,106 +1,106 @@
 <div class="col-4 d-flex flex-column">
-    <span class="wii-field-name">Type</span>
+    <span class="wii-field-name">{{ trans('Demande', 'Général', 'Type') }}</span>
     <span class="wii-field-text">{{ selectedDispatch.type | format_helper('type') }}</span>
 </div>
 
 <div class="col-4 d-flex flex-column">
-    <span class="wii-field-name">Statut</span>
+    <span class="wii-field-name">{{ trans('Demande', 'Général', 'Statut') }}</span>
     <span class="wii-field-text">{{ selectedDispatch.statut | format_helper('status') }}</span>
 </div>
 
 <div class="col-4 d-flex flex-column">
-    <span class="wii-field-name">Date de création</span>
-    <span class="wii-field-text">{{ selectedDispatch.creationDate | format_helper('datetime') }}</span>
+    <span class="wii-field-name">{{ trans('Général', null, 'Zone liste', 'Date de création') }}</span>
+    <span class="wii-field-text">{{ selectedDispatch.creationDate | format_helper('datetime', "", app.user) }}</span>
 </div>
 
 {% if selectedDispatch.startDate or selectedDispatch.endDate %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name">Dates d'échéance</span>
+        <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', "Dates d'échéance") }}</span>
         <span class="wii-field-text">
-            Du {{ selectedDispatch.startDate ? (selectedDispatch.startDate | format_helper('datetime')) : '-' }} au {{ selectedDispatch.endDate ? (selectedDispatch.endDate | format_helper('datetime')) : '-' }}
+            Du {{ selectedDispatch.startDate ? (selectedDispatch.startDate | format_helper('datetime', "", false, app.user)) : '-' }} au {{ selectedDispatch.endDate ? (selectedDispatch.endDate | format_helper('datetime')) : '-' }}
         </span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.requester %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name">Demandeur</span>
+        <span class="wii-field-name">{{ trans('Demande', 'Général', "Demandeur") }}</span>
         <span class="wii-field-text">{{ selectedDispatch.requester | format_helper('user') }}</span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.locationFrom %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name" title="Emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}</span>
+        <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise') }}</span>
         <span class="wii-field-text">{{ selectedDispatch.locationFrom | format_helper('location') }}</span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.locationTo %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name" title="Emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}</span>
+        <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose') }}</span>
         <span class="wii-field-text">{{ selectedDispatch.locationTo | format_helper('location') }}</span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.receivers is not empty %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name">Destinataire(s)</span>
+        <span class="wii-field-name">{{ trans('Demande', 'Général', 'Destinataire(s)') }}</span>
         <span class="wii-field-text">{{  selectedDispatch.receivers | format_helper('users') }}</span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.carrier %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name">Transporteur</span>
+        <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Transporteur') }}</span>
         <span class="wii-field-text">{{ selectedDispatch.carrier.label }}</span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.carrierTrackingNumber %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name" title="Numéro de tracking transporteur">{{ 'acheminement.Numéro de tracking transporteur'|trans }}</span>
+        <span class="wii-field-name" title="Numéro de tracking transporteur">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° tracking transporteur') }}</span>
         <span class="wii-field-text">{{ selectedDispatch.carrierTrackingNumber }}</span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.projectNumber %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name" title="Numéro de projet">{{ 'acheminement.Numéro de projet'|trans }}</span>
+        <span class="wii-field-name" title="Numéro de projet">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° projet') }}</span>
         <span class="wii-field-text">{{ selectedDispatch.projectNumber }}</span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.businessUnit %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name" title="Business unit">{{ 'acheminement.Business unit'|trans }}</span>
+        <span class="wii-field-name" title="Business unit">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Business unit') }}</span>
         <span class="wii-field-text">{{ selectedDispatch.businessUnit }}</span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.commandNumber %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name" title="Numéro de commande">{{ 'acheminement.Numéro de commande'|trans }}</span>
+        <span class="wii-field-name" title="Numéro de commande">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande') }}</span>
         <span class="wii-field-text">{{ selectedDispatch.commandNumber }}</span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.destination %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name">Destination</span>
+        <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Destination') }}</span>
         <span class="wii-field-text">{{ selectedDispatch.destination }}</span>
     </div>
 {% endif %}
 
 {% if selectedDispatch.commentaire != '<p><br></p>' %}
     <div class="col-4 d-flex flex-column mt-3">
-        <span class="wii-field-name">Commentaire</span>
+        <span class="wii-field-name">{{ trans('Général', null, 'Modale', 'Commentaire') }}</span>
         <div class="wii-field-text">{{ selectedDispatch.commentaire | raw }}</div>
     </div>
 {% endif %}
 
 <div class="col-4 d-flex flex-column mt-3">
-    <span class="wii-field-name" title="Nb colis">{{ 'acheminement.Nb colis'|trans }}</span>
+    <span class="wii-field-name" title="Nb colis">{{ trans('Demande', 'Acheminements', 'Zone liste - noms de colonnes', "Nombre d'UL") }}</span>
     <div class="wii-field-text">{{ selectedDispatch.dispatchPacks.count }}</div>
 </div>
 

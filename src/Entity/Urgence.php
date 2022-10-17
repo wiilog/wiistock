@@ -157,20 +157,4 @@ class Urgence {
         return $this;
     }
 
-    public function serialize() {
-        return [
-            'dateStart' => FormatHelper::datetime($this->getDateStart()),
-            'dateEnd' => FormatHelper::datetime($this->getDateEnd()),
-            'commande' => $this->getCommande() ?: '',
-            'numposte' => $this->getPostNb() ?: '',
-            'buyer' => FormatHelper::user($this->getBuyer()),
-            'provider' => FormatHelper::supplier($this->getProvider()),
-            'carrier' => $this->getCarrier() ? $this->getCarrier()->getLabel() : '',
-            'trackingnum' => $this->getTrackingNb() ?: '',
-            'datearrival' => $this->getLastArrival() ? FormatHelper::datetime($this->getLastArrival()->getDate()) : '',
-            'arrivageNumber' => $this->getLastArrival() ? $this->getLastArrival()->getNumeroArrivage() : '',
-            'creationDate' => FormatHelper::datetime($this->getCreatedAt()),
-        ];
-    }
-
 }

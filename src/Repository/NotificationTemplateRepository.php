@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\NotificationTemplate;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -26,7 +26,7 @@ class NotificationTemplateRepository extends EntityRepository
 
     public function findByParams(InputBag $params) {
         $qb = $this->createQueryBuilder("notification_template");
-        $total = QueryCounter::count($qb, "notification_template");
+        $total = QueryBuilderHelper::count($qb, "notification_template");
 
         if (!empty($params)) {
             if (!empty($params->all('search'))) {
@@ -40,7 +40,7 @@ class NotificationTemplateRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($qb, "notification_template");
+        $countFiltered = QueryBuilderHelper::count($qb, "notification_template");
 
         $qb->setFirstResult(0);
         $qb->setMaxResults(10);

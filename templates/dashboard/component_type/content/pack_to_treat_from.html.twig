@@ -57,24 +57,3 @@
         </div>
     </div>
 {% endblock %}
-
-{% block content_right %}
-    <div class="row">
-        <div class="form-group col-12">
-            <label class="wii-field-name">Légende 1</label>
-            <input class="data form-control w-100"
-                   name="originCaption"
-                   type="text"
-                   title="Légende 1"
-                   value="{{ values.originCaption ?? '' }}"/>
-        </div>
-        <div class="form-group col-12">
-            <label class="wii-field-name">Légende 2</label>
-            <input class="data form-control w-100"
-                   name="destinationCaption"
-                   type="text"
-                   title="Légende 2"
-                   value="{{ values.destinationCaption ?? '' }}"/>
-        </div>
-    </div>
-{% endblock %}

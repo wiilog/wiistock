@@ -544,7 +544,7 @@ class Article implements PairedEntity {
             ? self::USED_ASSOC_LITIGE
             : ((!$this->getInventoryEntries()->isEmpty())
                 ? self::USED_ASSOC_INVENTORY
-                : ($this->getStatut()->getNom() === self::STATUT_INACTIF
+                : ($this->getStatut()->getCode() === self::STATUT_INACTIF
                     ? self::USED_ASSOC_STATUT_NOT_AVAILABLE
                     : ((!$this->getPreparationOrderLines()->isEmpty())
                         ? self::USED_ASSOC_PREPA_IN_PROGRESS

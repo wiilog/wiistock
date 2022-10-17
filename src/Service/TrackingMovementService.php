@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Controller\AbstractController;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
@@ -9,6 +10,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
+use App\Entity\Language;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
@@ -22,9 +24,11 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
+use App\Service\TranslationService;
 use Google\Service\AndroidPublisher\Track;
 use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
@@ -34,7 +38,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use DateTimeInterface;
 
-class TrackingMovementService
+class TrackingMovementService extends AbstractController
 {
     public const INVALID_LOCATION_TO = 'invalid-location-to';
 
@@ -43,18 +47,24 @@ class TrackingMovementService
     private $entityManager;
     private $attachmentService;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
 
     private $locationClusterService;
     private $visibleColumnService;
     private $groupService;
 
-    /** @Required */
+    #[Required]
     public MouvementStockService $stockMovementService;
 
-    /** @Required */
-    public TranslatorInterface $translator;
+    #[Required]
+    public TranslationService $translation;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public array $stockStatuses = [];
 
@@ -85,6 +95,7 @@ class TrackingMovementService
         /** @var Utilisateur $user */
         $user = $this->security->getUser();
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $user);
+
         $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
 
         $mouvements = $queryResult['data'];
@@ -113,17 +124,17 @@ class TrackingMovementService
         if (isset($movement)) {
             if ($movement->getDispatch()) {
                 $data ['entityPath'] = 'dispatch_show';
-                $data ['fromLabel'] = 'acheminement.Acheminement';
+                $data ['fromLabel'] = $this->translation->translate('Demande', 'Acheminements', 'Général', 'Acheminement', false);
                 $data ['entityId'] = $movement->getDispatch()->getId();
                 $data ['from'] = $movement->getDispatch()->getNumber();
             } else if ($movement->getArrivage()) {
                 $data ['entityPath'] = 'arrivage_show';
-                $data ['fromLabel'] = 'arrivage.arrivage';
+                $data ['fromLabel'] = $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Arrivage', false);
                 $data ['entityId'] = $movement->getArrivage()->getId();
                 $data ['from'] = $movement->getArrivage()->getNumeroArrivage();
             } else if ($movement->getReception()) {
                 $data ['entityPath'] = 'reception_show';
-                $data ['fromLabel'] = 'réception.réception';
+                $data ['fromLabel'] = $this->translation->translate('Ordre', 'Réceptions', 'Réception', false);
                 $data ['entityId'] = $movement->getReception()->getId();
                 $data ['from'] = $movement->getReception()->getNumber();
             } else if ($movement->getMouvementStock() && $movement->getMouvementStock()->getTransferOrder()) {
@@ -142,18 +153,22 @@ class TrackingMovementService
         $trackingPack = $movement->getPack();
 
         if (!isset($this->freeFieldsConfig)) {
-            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
+                $this->entityManager,
+                CategorieCL::MVT_TRACA,
+                CategoryType::MOUVEMENT_TRACA
+            );
         }
 
         $row = [
             'id' => $movement->getId(),
-            'date' => FormatHelper::datetime($movement->getDatetime()),
-            'code' => FormatHelper::pack($trackingPack),
+            'date' => $this->formatService->datetime($movement->getDatetime()),
+            'code' => $this->formatService->pack($trackingPack),
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
                 : '',
-            'location' => FormatHelper::location($movement->getEmplacement()),
+            'location' => $this->formatService->location($movement->getEmplacement()),
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
@@ -169,8 +184,8 @@ class TrackingMovementService
                         ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()?->getLabel()
                         : '')),
             "quantity" => $movement->getQuantity() ?: '',
-            "type" => FormatHelper::status($movement->getType()),
-            "operator" => FormatHelper::user($movement->getOperateur()),
+            "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
+            "operator" => $this->formatService->user($movement->getOperateur()),
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
                 'attachmentsLength' => $movement->getAttachments()->count(),
@@ -180,7 +195,7 @@ class TrackingMovementService
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $movement->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
 
         return $row;
@@ -344,7 +359,7 @@ class TrackingMovementService
 
         if (!$disableUngrouping
              && $pack->getParent()
-             && in_array($type->getNom(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
+             && in_array($type?->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
 
             $trackingUngroup = new TrackingMovement();
@@ -594,24 +609,22 @@ class TrackingMovementService
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getVisibleColumns()['trackingMovement'];
-        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::MVT_TRACA]);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
+        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, CategorieCL::MVT_TRACA);
 
         $columns = [
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
-            ['title' => 'Date', 'name' => 'date'],
-            ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
-            ['title' => 'Référence', 'name' => 'reference'],
-            ['title' => 'Libellé',  'name' => 'label'],
-            ['title' => 'Groupe',  'name' => 'group'],
-            ['title' => 'Quantité', 'name' => 'quantity'],
-            ['title' => 'Emplacement', 'name' => 'location'],
-            ['title' => 'Type', 'name' => 'type'],
-            ['title' => 'Opérateur', 'name' => 'operator']
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Issu de', false), 'name' => 'origin', 'orderable' => false],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Date', false), 'name' => 'date'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'code'],
+            ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Référence', false), 'name' => 'reference'],
+            ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Libellé', false),  'name' => 'label'],
+            ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Groupe', false),  'name' => 'group'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Quantité', false), 'name' => 'quantity'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Emplacement', false), 'name' => 'location'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false), 'name' => 'type'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur', false), 'name' => 'operator']
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
@@ -661,7 +674,7 @@ class TrackingMovementService
         }
 
         $data = [
-            FormatHelper::datetime($movement['datetime']),
+            FormatHelper::datetime($movement['datetime'], "", false, $this->security->getUser()),
             $movement['code'],
             $movement['locationLabel'],
             $movement['quantity'],
@@ -678,7 +691,7 @@ class TrackingMovementService
         ];
 
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField);
+            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField, $this->security->getUser());
         }
         $CSVExportService->putLine($handle, $data);
     }
@@ -712,7 +725,7 @@ class TrackingMovementService
     public function finishTrackingMovement(?TrackingMovement $trackingMovement): ?string {
         if ($trackingMovement) {
             $type = $trackingMovement->getType();
-            if ($type->getNom() === TrackingMovement::TYPE_PRISE) {
+            if ($type?->getCode() === TrackingMovement::TYPE_PRISE) {
                 $trackingMovement->setFinished(true);
                 return $trackingMovement->getPack()->getCode();
             }
@@ -846,7 +859,7 @@ class TrackingMovementService
                 $trackingPack = $mouvementTracaPriseToFinish->getPack();
                 if ($trackingPack) {
                     $packCode = $trackingPack->getCode();
-                    if (($mouvementTracaPriseToFinish->getType()->getNom() === TrackingMovement::TYPE_PRISE) &&
+                    if (($mouvementTracaPriseToFinish->getType()?->getCode() === TrackingMovement::TYPE_PRISE) &&
                         in_array($packCode, $finishMouvementTraca) &&
                         !$mouvementTracaPriseToFinish->isFinished()) {
                         $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
@@ -908,12 +921,11 @@ class TrackingMovementService
         }
 
         $movementType = $movement->getType();
-        $movementTypeName = $movementType ? $movementType->getNom() : null;
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
-        if ($movementTypeName === TrackingMovement::TYPE_DEPOSE && !$location->ableToBeDropOff($movement->getPack())) {
-            $packTranslation = $this->translator->trans('arrivage.colis');
-            $natureTranslation = $this->translator->trans('natures.natures requises');
+        if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && !$location->ableToBeDropOff($movement->getPack())) {
+            $packTranslation = $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false);
+            $natureTranslation = $this->translation->translate('Traçabilité', 'Mouvements', 'natures requises', false);
             $packCode = $movement->getPack()->getCode();
             $bold = '<span class="font-weight-bold"> ';
             return [

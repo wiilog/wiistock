@@ -2,14 +2,14 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Liste des colis générés"
+                title: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Liste des UL générées'),
             } %}
 
             <div class="modal-body container-fluid">
             </div>
             {%  include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Fermer')}
                 ],
                 hideErrorContainer: true
             } %}

@@ -6,15 +6,14 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
-use App\Entity\FieldsParam;
 use App\Entity\ExportScheduleRule;
-use App\Entity\Fournisseur;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Helper\FormatHelper;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -113,10 +112,10 @@ class DataExportService
     public function createArrivalsHeader(EntityManagerInterface $entityManager,
                                          array $columnToExport): array
     {
-        $exportableColumns = $this->arrivalService->getArrivalExportableColumns($entityManager);
+        $exportableColumns = Stream::from($this->arrivalService->getArrivalExportableColumns($entityManager));
         return Stream::from($columnToExport)
             ->filterMap(function(string $code) use ($exportableColumns) {
-                $column = Stream::from($exportableColumns)
+                $column = $exportableColumns
                     ->find(fn(array $config) => $config['code'] === $code);
                 return $column['label'] ?? null;
             })
@@ -127,18 +126,9 @@ class DataExportService
                                      array $freeFieldsConfig,
                                      iterable $data,
                                      mixed $output) {
-        $start = new DateTime();
-
-        $managersByReference = $this->entityManager
-            ->getRepository(Utilisateur::class)
-            ->getUsernameManagersGroupByReference();
-
-        $suppliersByReference = $this->entityManager
-            ->getRepository(Fournisseur::class)
-            ->getCodesAndLabelsGroupedByReference();
 
         foreach($data as $reference) {
-            $refArticleDataService->putReferenceLine($output, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
+            $refArticleDataService->putReferenceLine($output, $reference, $freeFieldsConfig);
         }
     }
 
@@ -198,7 +188,7 @@ class DataExportService
     {
         /** @var Arrivage $arrival */
         foreach ($data as $arrival) {
-            $this->arrivalService->putArrivalLineInUniqueExport($output, $arrival, $columnToExport);
+            $this->arrivalService->putArrivalLine($output, $arrival, $columnToExport);
         }
     }
 
@@ -287,8 +277,14 @@ class DataExportService
             $export->setExportScheduleRule(new ExportScheduleRule());
         }
 
+        $begin = FormatHelper::parseDatetime($data["startDate"]);
+
+        if (in_array($data["frequency"], [ExportScheduleRule::DAILY, ExportScheduleRule::WEEKLY, ExportScheduleRule::MONTHLY])) {
+            $begin->setTime(0, 0);
+        }
+
         $export->getExportScheduleRule()
-            ->setBegin(DateTime::createFromFormat("Y-m-d\TH:i", $data["startDate"]))
+            ->setBegin($begin)
             ->setFrequency($data["frequency"] ?? null)
             ->setPeriod($data["repeatPeriod"] ?? null)
             ->setIntervalTime($data["intervalTime"] ?? null)

@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\FieldsParam;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Handling;
 use App\Entity\Attachment;
@@ -20,6 +21,8 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
+use App\Service\FormatService;
+use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
@@ -37,14 +40,13 @@ use App\Service\HandlingService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
 use Throwable;
 
 /**
@@ -54,8 +56,12 @@ class HandlingController extends AbstractController {
 
     #[Route("/", name: "handling_index", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_HAND])]
-    public function index(EntityManagerInterface $entityManager, Request $request,
-                          StatusService $statusService, HandlingService $handlingService): Response {
+    public function index(EntityManagerInterface $entityManager,
+                          Request $request,
+                          StatusService $statusService,
+                          HandlingService $handlingService,
+                          TranslationService $translationService,
+                          LanguageService $languageService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
@@ -72,15 +78,15 @@ class HandlingController extends AbstractController {
         $dateChoice = [
             [
                 'name' => 'creationDate',
-                'label' => 'Date de création',
+                'label' => $translationService->translate('Général', null, 'Zone liste', 'Date de création'),
             ],
             [
                 'name' => 'expectedDate',
-                'label' => 'Date attendue',
+                'label' => $translationService->translate('Demande', 'Services', 'Date attendue'),
             ],
             [
                 'name' => 'treatmentDate',
-                'label' => 'Date de réalisation',
+                'label' => $translationService->translate('Demande', 'Services', 'Date de réalisation'),
             ],
         ];
         foreach ($dateChoice as &$choice) {
@@ -93,6 +99,8 @@ class HandlingController extends AbstractController {
         $filterDate = $request->query->get('date');
 
         return $this->render('handling/index.html.twig', [
+            'userLanguage' => $user->getLanguage(),
+            'defaultLanguage' => $languageService->getDefaultLanguage(),
             'selectedDate' => $filterDate ? DateTime::createFromFormat("Y-m-d", $filterDate) : null,
             'dateChoices' => $dateChoice,
             'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
@@ -111,7 +119,7 @@ class HandlingController extends AbstractController {
                 'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository) {
                     $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
                     return [
-                        'typeLabel' => $type->getLabel(),
+                        'typeLabel' => $this->getFormatter()->type($type),
                         'typeId' => $type->getId(),
                         'freeFields' => $freeFields,
                     ];
@@ -152,7 +160,7 @@ class HandlingController extends AbstractController {
                         HandlingService $handlingService,
                         FreeFieldService $freeFieldService,
                         AttachmentService $attachmentService,
-                        TranslatorInterface $translator,
+                        TranslationService $translation,
                         UniqueNumberService $uniqueNumberService,
                         NotificationService $notificationService,
                         StatusHistoryService $statusHistoryService): Response
@@ -169,7 +177,12 @@ class HandlingController extends AbstractController {
 
         $status = $statutRepository->find($post->get('status'));
         $type = $typeRepository->find($post->get('type'));
-        $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
+
+        $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
+
+        $user = $this->getUser();
+        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ($containsHours ? ' H:i' : '');
+        $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
@@ -214,7 +227,7 @@ class HandlingController extends AbstractController {
             }
         }
 
-        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
+        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $user);
 
         if (isset($fileBag)) {
             $fileNames = [];
@@ -242,11 +255,10 @@ class HandlingController extends AbstractController {
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
         catch (UniqueConstraintViolationException | ConnectException $e) {
-
             if ($e instanceof UniqueConstraintViolationException) {
-                $message = $translator->trans('services.Une autre demande de service est en cours de création, veuillez réessayer') . '.';
+                $message = $translation->translate('Demande', 'Services', null, 'Une autre demande de service est en cours de création, veuillez réessayer.', false);
             } else if ($e instanceof ConnectException) {
-                $message = "Une erreur s'est produite lors de l'envoi de la notifiation de cette demande de service. Veuillez réessayer.";
+                $message = $translation->translate('Demande', 'Services', null, 'Une erreur s\'est produite lors de l`\'envoi de la notifiation de cette demande de service. Veuillez réessayer.');
             }
             if (!empty($message)) {
                 return new JsonResponse([
@@ -258,11 +270,10 @@ class HandlingController extends AbstractController {
         $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
         $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
 
+        $number = '<strong>' . $handling->getNumber() . '</strong>';
         return new JsonResponse([
             'success' => true,
-            'msg' => $translator->trans("services.La demande de service {numéro} a bien été créée", [
-                    "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
-                ]) . '.'
+            'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été créée.', [1 => $number], false),
         ]);
     }
 
@@ -272,15 +283,19 @@ class HandlingController extends AbstractController {
                          Request $request,
                          Handling $handling,
                          FreeFieldService $freeFieldService,
-                         TranslatorInterface $translator,
+                         TranslationService $translation,
                          AttachmentService $attachmentService): Response
     {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $post = $request->request;
+        $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
 
-        $desiredDateStr = $post->get('desired-date');
-        $desiredDate = $desiredDateStr ? FormatHelper::parseDatetime($desiredDateStr) : null;
+        $user = $this->getUser();
+        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ($containsHours ? ' H:i' : '');
+        $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
 
+
+        /** @var Utilisateur $currentUser */
         $receivers = $post->get('receivers')
             ? explode(",", $post->get('receivers') ?? '')
             : [];
@@ -315,7 +330,7 @@ class HandlingController extends AbstractController {
             ));
 
 
-        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
+        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $user);
 
         $listAttachmentIdToKeep = $post->all('files') ?? [];
 
@@ -331,11 +346,10 @@ class HandlingController extends AbstractController {
 
         $entityManager->flush();
 
+        $number = '<strong>' . $handling->getNumber() . '</strong>';
         return new JsonResponse([
             'success' => true,
-            'msg' => $translator->trans("services.La demande de service {numéro} a bien été modifiée", [
-                    "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
-                ]) . '.'
+            'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été modifiée.', [1 => $number], false),
         ]);
 
     }
@@ -355,7 +369,7 @@ class HandlingController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
-                           TranslatorInterface $translator): Response
+                           TranslationService $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $handlingRepository = $entityManager->getRepository(Handling::class);
@@ -374,11 +388,10 @@ class HandlingController extends AbstractController {
             $entityManager->remove($handling);
             $entityManager->flush();
 
+            $number = '<strong>' . $handlingNumber . '</strong>';
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translator->trans('services.La demande de service {numéro} a bien été supprimée', [
-                        "{numéro}" => '<strong>' . $handlingNumber . '</strong>'
-                    ]).'.',
+                'msg' => $translation->translate('Demande', 'Services', null, 'La demande de service {1} a bien été supprimée.', [1 => $number], false),
                 'redirect'=> $this->generateUrl('handling_index')
             ]);
         }
@@ -388,13 +401,14 @@ class HandlingController extends AbstractController {
 
     #[Route("/csv", name: "get_handlings_csv", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::EXPORT])]
-    public function getHandlingsCSV(Request $request,
-                                    TranslatorInterface $translator,
-                                    CSVExportService $CSVExportService,
-                                    FreeFieldService $freeFieldService,
-                                    DateService $dateService,
-                                    EntityManagerInterface $entityManager): Response
-    {
+    public function getHandlingsCSV(Request                $request,
+                                    TranslationService     $translation,
+                                    CSVExportService       $CSVExportService,
+                                    FreeFieldService       $freeFieldService,
+                                    DateService            $dateService,
+                                    HandlingService        $handlingService,
+                                    EntityManagerInterface $entityManager,
+                                    FormatService          $formatService): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -410,81 +424,62 @@ class HandlingController extends AbstractController {
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
-            $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
 
             $handlingParameters = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
             $receiversParameters = $handlingParameters[FieldsParam::FIELD_CODE_RECEIVERS_HANDLING];
 
-            $handlings = $handlingsRepository->getByDates($dateTimeMin, $dateTimeMax);
-            $receivers = $handlingsRepository->getReceiversByDates($dateTimeMin, $dateTimeMax);
-            $currentDate = new DateTime('now');
+            $handlings = $handlingsRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
             $csvHeaderBase = [
-                'numéro de demande',
-                'date création',
-                'demandeur',
-                'type',
-                $translator->trans('services.Objet'),
-                'chargement',
-                'déchargement',
-                'date attendue',
-                'date de réalisation',
-                'statut',
-                'commentaire',
-                'urgence',
-                $translator->trans('services.Nombre d\'opération(s) réalisée(s)'),
-                'traité par',
+                $translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Numéro de demande', false),
+                $translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date demande', false),
+                $translation->translate('Demande', 'Général', 'Demandeur', false),
+                $translation->translate('Demande', 'Général', 'Type', false),
+                $translation->translate('Demande', 'Services', 'Objet', false),
+                $translation->translate('Demande', 'Services', 'Modale et détails', 'Chargement', false),
+                $translation->translate('Demande', 'Services', 'Modale et détails', 'Déchargement', false),
+                $translation->translate('Demande', 'Services', 'Modale et détails', 'Date attendue', false),
+                $translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation', false),
+                $translation->translate('Demande', 'Général', 'Statut', false),
+                $translation->translate('Général', null, 'Modale', 'Commentaire', false),
+                $translation->translate('Demande', 'Général', 'Urgent', false),
+                $translation->translate('Demande', 'Services', 'Modale et détails', "Nombre d'opération(s) réalisée(s)", false),
+                $translation->translate('Général', null, 'Zone liste', 'Traité par', false),
             ];
 
             $csvHeader = array_merge(
                 $csvHeaderBase,
                 ($receiversParameters['displayedCreate'] ?? false
                     || $receiversParameters['displayedEdit'] ?? false
-                    ||  $receiversParameters['displayedFilters'] ?? false)
+                    || $receiversParameters['displayedFilters'] ?? false)
                     ? ['destinataire(s)']
                     : [],
                 $freeFieldsConfig['freeFieldsHeader']
             );
+            $today = new DateTime();
+            $today = $today->format("d-m-Y-H:i:s");
+            $globalTitle = 'export-services-' . $today . '.csv';
 
-            $globalTitle = 'export-services-' . $currentDate->format('d-m-Y') . '.csv';
-            return $CSVExportService->createBinaryResponseFromData(
-                $globalTitle,
+            return $CSVExportService->streamResponse(function($output) use (
                 $handlings,
-                $csvHeader,
-                function ($handling) use ($freeFieldsConfig, $dateService, $includeDesiredTime, $receivers) {
-//                    $treatmentDelay = $handling['treatmentDelay'];
-//                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
-//                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
-                    $id = $handling['id'];
-                    $receiversStr = Stream::from($receivers[$id] ?? [])
-                        ->join(", ");
-                    $row = [];
-                    $row[] = $handling['number'] ?? '';
-                    $row[] = FormatHelper::datetime($handling['creationDate']);
-                    $row[] = $handling['sensorName'] ?? ($handling['requester'] ?? '');
-                    $row[] = $handling['type'] ?? '';
-                    $row[] = $handling['subject'] ?? '';
-                    $row[] = $handling['loadingZone'] ?? '';
-                    $row[] = $handling['unloadingZone'] ?? '';
-                    $row[] = $includeDesiredTime
-                        ? FormatHelper::datetime($handling['desiredDate'])
-                        : FormatHelper::date($handling['desiredDate']);
-                    $row[] = FormatHelper::datetime($handling['validationDate']);
-                    $row[] = $handling['status'] ?? '';
-                    $row[] = strip_tags($handling['comment']) ?? '';
-                    $row[] = $handling['emergency'] ?? '';
-                    $row[] = $handling['carriedOutOperationCount'] ?? '';
-                    $row[] = $handling['treatedBy'] ?? '';
-                    $row[] = $receiversStr ?? '';
-//                    $row[] = $treatmentDelayStr;
+                $handlingsRepository,
+                $entityManager,
+                $dateTimeMin,
+                $dateTimeMax,
+                $CSVExportService,
+                $handlingService,
+                $formatService
+            ) {
 
-                    foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-                        $row[] = FormatHelper::freeField($handling['freeFields'][$freeFieldId] ?? '', $freeField);
-                    }
-
-                    return [$row];
-                });
-        } else {
+                foreach ($handlings as $handling) {
+                    $handlingService->putHandlingLine($entityManager, $CSVExportService, $output, $handling, $formatService);
+                }
+            },
+                $globalTitle,
+                $csvHeader
+            );
+        }
+        else {
             throw new BadRequestHttpException();
         }
     }
@@ -493,7 +488,8 @@ class HandlingController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
     public function saveColumnVisible(Request $request,
                                       EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response
+                                      VisibleColumnService $visibleColumnService,
+                                      TranslationService $translationService): Response
     {
         $data = json_decode($request->getContent(), true);
 
@@ -506,7 +502,7 @@ class HandlingController extends AbstractController {
 
         return $this->json([
             "success" => true,
-            "msg" => "Vos préférences de colonnes à afficher ont bien été sauvegardées"
+            "msg" => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
         ]);
     }
 
@@ -523,12 +519,13 @@ class HandlingController extends AbstractController {
         $hasRightToTreadHandling = $userService->hasRightFunction(Menu::DEM, Action::TREAT_HANDLING);
         $currentStatus = $handling->getStatus();
         $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType()))
-            ->filterMap(fn(Statut $status) => ($hasRightToTreadHandling || $status->isNotTreated()
-                ? [
-                    "label" => $status->getNom(),
-                    "value" => $status->getId(),
-                ]
-                : null
+            ->filterMap(fn(Statut $status) => (
+                $hasRightToTreadHandling || $status->isNotTreated()
+                    ? [
+                        "label" => $this->getFormatter()->status($status),
+                        "value" => $status->getId(),
+                    ]
+                    : null
             ))
             ->toArray();
 
@@ -543,17 +540,22 @@ class HandlingController extends AbstractController {
 
     #[Route("/{id}/status-history-api", name: "handling_status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(int $id,
-                                     EntityManagerInterface $entityManager): JsonResponse {
+                                     EntityManagerInterface $entityManager,
+                                     LanguageService $languageService): JsonResponse {
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $handling = $handlingRepository->find($id);
-
+        $user = $this->getUser();
         return $this->json([
             "success" => true,
             "template" => $this->renderView('handling/status-history.html.twig', [
+                "userLanguage" => $user->getLanguage(),
+                "defaultLanguage" => $languageService->getDefaultLanguage(),
                 "statusesHistory" => Stream::from($handling->getStatusHistory())
                     ->map(fn(StatusHistory $statusHistory) => [
-                        "status" => FormatHelper::status($statusHistory->getStatus()),
-                        "date" => FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                        "status" => $this->getFormatter()->status($statusHistory->getStatus()),
+                        "date" => $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG
+                                    ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                                    : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user),
                     ])
                     ->toArray(),
                 "handling" => $handling,

@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\FreeField;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -402,7 +402,7 @@ class TrackingMovementRepository extends EntityRepository
                 'ungroupType' => TrackingMovement::TYPE_UNGROUP
             ]);
 
-        $countTotal = QueryCounter::count($qb, "tracking_movement");
+        $countTotal = QueryBuilderHelper::count($qb, "tracking_movement");
 
         //Filter search
         if (!empty($params)) {
@@ -427,7 +427,7 @@ class TrackingMovementRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($qb, "tracking_movement");
+        $countFiltered = QueryBuilderHelper::count($qb, "tracking_movement");
 
         return [
             'data' => $qb->getQuery()->getResult(),

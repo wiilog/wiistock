@@ -15,39 +15,39 @@
     {% set hideTreatmentDateParam = hideTreatmentDate is defined and hideTreatmentDate %}
     {% set hideTreatedBy = hideTreatedBy is defined and hideTreatedBy %}
 
-    <p>Bonjour,</p>
+    <p>{{ translateIn(language, 'Général', null, 'Emails', 'Bonjour,', false) }}</p>
     {% if dispatch.statut.treated %}
-        <p>Votre {{ 'acheminement.acheminement'|trans }}/expédition est traité(e) avec les informations suivantes :</p>
+        <p>{{ translateIn(language, "Demande", "Acheminements", "Emails", "Votre acheminement/expédition est traité(e) avec les informations suivantes :", false) }}</p>
     {% else %}
-        <p>Votre {{ 'acheminement.acheminement'|trans }}/expédition est en cours de traitement avec les informations suivantes :</p>
+        <p>{{ translateIn(language, "Demande", "Acheminements", "Emails", "Votre acheminement/expédition est en cours de traitement avec les informations suivantes :", false) }}</p>
     {% endif %}
     <ul>
         {% if not hideNumberParam %}
-            <li>Numéro de demande : <strong>{{ dispatch.number }}</strong></li>
+            <li>{{ translateIn(language, "Demande", "Acheminements", "Général", "N° demande") }} : <strong>{{ dispatch.number }}</strong></li>
         {% endif %}
-        <li>Date de création : <strong>{{ dispatch.creationDate|date('d/m/Y à H:i:s') }}</strong></li>
+        <li>{{ translateIn(language, 'Général', null, 'Zone liste', 'Date de création') }} : <strong>{{ dispatch.creationDate|date('d/m/Y à H:i:s') }}</strong></li>
         {% if not hideTreatmentDateParam %}
-            <li>Date de validation : <strong>{{ validationDate }}</strong></li>
+            <li>{{ translateIn(language, "Demande", "Acheminements", "Général", "Date de validation") }} : <strong>{{ validationDate }}</strong></li>
         {% else %}
-            <li>Date de traitement : <strong>{{ treatmentDate }}</strong></li>
+            <li>{{ translateIn(language, "Demande", "Acheminements", "Général", "Date de traitement") }}: <strong>{{ treatmentDate }}</strong></li>
         {% endif %}
         {% if hideTreatedBy %}
-            <li>Traité par : <strong>{{ dispatch.treatedBy.username }}</strong></li>
+            <li>{{ translateIn(language, 'Général', null, 'Zone liste', 'Traité par') }} : <strong>{{ dispatch.treatedBy.username }}</strong></li>
         {% endif %}
-        <li>Demandeur : <strong>{{ dispatch.requester.username }}</strong></li>
-        <li>Destinataire(s) : <strong>{{ receivers }}</strong></li>
-        <li>Type : <strong>{{ dispatch.type.label }}</strong></li>
-        <li>Statut : <strong>{{ dispatch.statut.nom }}</strong></li>
-        <li>Dates d'échéance : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
-        <li>Transporteur : <strong>{{ dispatch.carrier.label ?? '' }}</strong></li>
-        <li>Numéro de tracking transporteur : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
-        <li>Numéro projet : <strong>{{ dispatch.projectNumber  ?? '' }}</strong></li>
-        <li>Business Unit : <strong>{{ dispatch.businessUnit ?? '' }}</strong></li>
-        <li>Urgence : <strong>{{ emergency }}</strong></li>
-        <li>Commentaire : {{ comment|striptags }}</li>
+        <li>{{ translateIn(language, "Demande", "Général", "Demandeur") }} : <strong>{{ dispatch.requester.username }}</strong></li>
+        <li>{{ translateIn(language, "Demande", "Général", "Destinataire(s)") }} : <strong>{{ receivers }}</strong></li>
+        <li>{{ translateIn(language, "Demande", "Général", "Type") }} : <strong>{{ dispatch.type.labelIn(language, getDefaultLanguage()) }}</strong></li>
+        <li>{{ translateIn(language, "Demande", "Général", "Statut") }} : <strong>{{ dispatch.statut.labelIn(language, getDefaultLanguage()) }}</strong></li>
+        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Dates d\'échéance') }} : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
+        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Transporteur') }} : <strong>{{ dispatch.carrier.label ?? '' }}</strong></li>
+        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° tracking transporteur') }} : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
+        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° projet') }} : <strong>{{ dispatch.projectNumber ?? '' }}</strong></li>
+        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Business unit') }} : <strong>{{ dispatch.businessUnit ?? '' }}</strong></li>
+        <li>{{ translateIn(language, "Demande", "Général", "Urgence") }} : <strong>{{ emergency }}</strong></li>
+        <li>{{ translateIn(language, "Général", null, "Modale", "Commentaire") }} : {{ comment|striptags }}</li>
         {% if dispatch.attachments|length > 0 %}
             <li>
-                Pièces jointes :
+                {{ translateIn(language, "Général", null, "Modale", "Pièces jointes") }} :
                 <ul>
                     {% for attachment in dispatch.attachments %}
                         <li>{{ attachment.originalName }}</li>
@@ -66,39 +66,39 @@
         <tr>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ 'natures.nature'|trans }}
+                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Nature') }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Code
+                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Code') }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ 'acheminement.Quantité à acheminer'|trans }}
+                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Quantité à acheminer') }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Date dernier mouvement
+                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Date dernier mouvement') }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Dernier emplacement
+                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Dernier emplacement') }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Opérateur
+                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Opérateur') }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Poids (kg)
+                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Poids (kg)') }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Volume (m3)
+                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Volume (m3)') }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Statut
+                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Statut') }}
             </th>
         </tr>
         </thead>
@@ -108,12 +108,12 @@
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;"
                     colspan="6">
-                    Aucune donnée à afficher.
+                    {{ translateIn(language, 'Général', null, 'Zone liste', 'Aucune donnée disponible') }}
                 </td>
             </tr>
         {% endif %}
         {% for dispatchPack in dispatch.dispatchPacks %}
-            {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.label : '' %}
+            {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.labelIn(language, getDefaultLanguage()) : '' %}
             {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
             {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
             <tr>
@@ -151,7 +151,10 @@
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ dispatchPack.treated ? 'Traité' : 'A traiter' }}
+                    {{ dispatchPack.treated
+                        ? translateIn(language, 'Demande', 'Acheminements', 'Général', 'Traité')
+                        : translateIn(language, 'Demande', 'Acheminements', 'Général', 'À traiter')
+                    }}
                 </td>
             </tr>
         {% endfor %}

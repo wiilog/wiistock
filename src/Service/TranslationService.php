@@ -2,131 +2,372 @@
 
 namespace App\Service;
 
+use App\Entity\FreeField;
+use App\Entity\Language;
 use App\Entity\Translation;
+use App\Entity\TranslationSource;
+use App\Entity\Utilisateur;
+use App\Helper\LanguageHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
+use Doctrine\ORM\QueryBuilder;
+use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class TranslationService {
 
-    private $kernel;
-    private $entityManager;
-    private $appLocale;
+    #[Required]
+    public KernelInterface $kernel;
 
-    public function __construct(KernelInterface $kernel,
-                                EntityManagerInterface $entityManager,
-                                string $appLocale) {
-        $this->kernel = $kernel;
-        $this->entityManager = $entityManager;
-        $this->appLocale = $appLocale;
-    }
+    #[Required]
+    public CacheService $cacheService;
+
+    #[Required]
+    public EntityManagerInterface $manager;
+
+    #[Required]
+    public TokenStorageInterface $tokenStorage;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public UserService $userService;
+
+    private array $translations = [];
 
     /**
-     * @throws Exception
+     * Translates the given input
+     * The function expects from 1 to 4 strings, then an array of
+     * strings to replace or a user or both in any order.
+     *
+     * Example usage with more or less string inputs and with and without custom user and params array :
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Groupes")
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Groupes", $customUser)
+     *
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Mouvementé la dernière fois le {1}", [1 => "DATE"])
+     * translate("Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Mouvementé la dernière fois le {1}", [1 => "DATE"], $customUser)
+     *
+     * translate("Référentiel", "Natures", "Sélectionner une nature")
+     * translate("Référentiel", "Natures", "Sélectionner une nature", $customUser)
+     *
+     * translate("Référentiel", "Natures", "La nature {1} a bien été créée", [1 => "NOMNATURE"])
+     * translate("Référentiel", "Natures", "La nature {1} a bien été créée", [1 => "NOMNATURE"], $customUser)
+     *
+     * @param mixed ...$args Arguments
+     * @return string Translated input
      */
-    public function generateTranslationsFile() {
-        $projectDir = $this->kernel->getProjectDir();
-        $translationYAML = $projectDir . '/translations/messages.' . $this->appLocale . '.yaml';
-        $translationJS = $projectDir . '/public/generated/translations.js';
-
-        $translationRepository = $this->entityManager->getRepository(Translation::class);
-
-        if($translationRepository->countUpdatedRows() > 0
-            || !file_exists($translationYAML)
-            || !file_exists($translationJS)) {
-            $translations = $translationRepository->findAll();
-
-            $this->generateYamlTranslations($translationYAML, $translations);
-            $this->generateJavascriptTranslations($translationJS, $translations);
-
-            $translationRepository->clearUpdate();
-
-            $this->chmod($translationYAML, 'w');
-            $this->chmod($translationJS, 'w');
+    public function translate(mixed ...$args): string {
+        $user = null;
+        foreach($args as $arg) {
+            if ($arg instanceof Utilisateur) {
+                $user = $arg;
+            }
         }
-    }
 
-    private function generateYamlTranslations(string $directory, array $translations) {
-        $menus = [];
-        foreach($translations as $translation) {
-            $menus[$translation->getMenu()][$translation->getLabel()] = $translation->getTranslation() ?: $translation->getLabel();
+        if(!isset($user)) {
+            $user = $this->tokenStorage->getToken()?->getUser();
         }
 
-        file_put_contents($directory, Yaml::dump($menus));
-    }
+        $args = Stream::from($args)
+            ->filter(fn($arg) => !$arg instanceof Utilisateur)
+            ->toArray();
 
-    private function generateJavascriptTranslations(string $directory, array $translations) {
-        $translationsArray = array_reduce(
-            $translations,
-            function(array $carry, Translation $translation) {
-                $key = $translation->getMenu() . "." . $translation->getLabel();
-                $carry[$key] = [
-                    'original' => $translation->getLabel(),
-                    'translated' => $translation->getTranslation() ?: $translation->getLabel()
-                ];
-                return $carry;
-            },
-            []
-        );
+        $slug = $user?->getLanguage()?->getSlug() ?: $this->formatService->defaultLanguage();
 
-        file_put_contents($directory, "const TRANSLATIONS = " . json_encode($translationsArray) . ";");
+        return $this->translateIn($slug, ...$args);
     }
 
     /**
-     * @throws Exception
+     * Translates the given input with the given slug (1st parameter) ; Same usage of TranslateService::translate
+     * The function expects from 1 to 4 strings, then an array of strings to replace or a user or both in any order.
+     *
+     *
+     * Example usage with more or less string inputs and with and without custom user and params array :
+     * translateIn($slug, "Traçabilité", "Unités logistiques", "Onglet \"Groupes\"", "Groupes")
+     *
+     * @param mixed ...$args Arguments
+     * @return string Translated input
      */
-    public function cacheClearWarmUp() {
-        $env = $this->kernel->getEnvironment();
-        $application = new Application($this->kernel);
-        $application->setAutoExit(false);
-        $projectDir = $this->kernel->getProjectDir();
+    public function translateIn(string $slug, mixed ...$args): string {
+        $defaultSlug = Language::DEFAULT_LANGUAGE_TRANSLATIONS[$slug] ?? $this->languageService->getDefaultSlug();
 
-        // Delete the translations folder
-        $this->rrmdir($projectDir . "/var/cache/$env/translations");
-
-        $input = new ArrayInput(array(
-            'command' => 'cache:warmup',
-            '--env' => $env
-        ));
-
-        $output = new BufferedOutput();
-        $application->run($input, $output);
+        return $this->getTranslation($slug, $defaultSlug, false, ...$args)
+            ?: $this->getTranslation($defaultSlug, $defaultSlug, true, ...$args);
     }
 
     /**
-     * @param string $file
-     * @param string $right
+     * @param string $slug Target slug language
+     * @param string $defaultSlug Fallback slug if translation does not exist
+     * @param bool $lastResort if false and translation was not found then we return null, else if true then we return the original label to translate
+     * @param mixed ...$args
+     * @return string|null
      */
-    public function chmod($file, $right) {
-        if(PHP_OS_FAMILY != "Windows") {
-            $process = Process::fromShellCommandline('chmod a+' . $right . ' ' . $file);
-            $process->run();
+    private function getTranslation(string $slug, string $defaultSlug, bool $lastResort, mixed ...$args): ?string {
+        $variables = ["category", "menu", "submenu", "input"];
+        foreach($variables as $variable) {
+            $$variable = null;
         }
+
+        $enableTooltip = true;
+        foreach($args as $arg) {
+            if(is_array($arg)) {
+                $params = $arg;
+            }else if(is_bool($arg)) {
+                $enableTooltip = $arg;
+            } else if(!($arg instanceof Utilisateur)) {
+                if(empty($variables)) {
+                    throw new RuntimeException("Too many arguments, expected at most 4 strings, 1 array, 1 boolean and 1 user");
+                }
+
+                ${array_shift($variables)} = $arg;
+            }
+        }
+
+        if(!isset($this->translations[$slug])) {
+            $this->generateCache($slug);
+            $this->generateJavascripts();
+        }
+
+        $transCategory = $this->translations[$slug][$category ?: null] ?? null;
+        if(!is_array($transCategory)) {
+            $output = $transCategory ?? ($lastResort ? ($input ?? $submenu ?? $menu ?? $category): null);
+        }
+
+        if(!isset($output)) {
+            $transMenu = $transCategory[$menu ?: null] ?? null;
+            if (!is_array($transMenu)) {
+                $output = $transMenu ?? ($lastResort ? ($input ?? $submenu ?? $menu) : null);
+            }
+        }
+
+        if(!isset($output)) {
+            $transSubmenu = $transMenu[$submenu ?: null] ?? null;
+            if (!is_array($transSubmenu)) {
+                $output = $transSubmenu ?? ($lastResort ? ($input ?? $submenu) : null);
+            }
+        }
+
+        if(!isset($output)) {
+            $output = $transSubmenu[$input] ?? ($lastResort ? $input : null);
+        }
+
+        if($output === null) {
+            return null;
+        }
+
+        if(isset($params)) {
+            foreach($params as $key => $value) {
+                $output = str_replace( '{' . $key . '}', $value, $output);
+            }
+        }
+
+        if($slug === $defaultSlug) {
+            $tooltip = htmlspecialchars($output);
+        } else {
+            $tooltip = htmlspecialchars($this->getTranslation($defaultSlug, $defaultSlug, true, false, ...$args));
+        }
+
+        return $enableTooltip ? "<span title='$tooltip'>$output</span>" : $output;
     }
 
-    /**
-     * Recursively delete all sub-folders and files from a folder passed as parameter.
-     * @param $dir
-     */
-    private function rrmdir(string $dir) {
-        if(is_dir($dir)) {
-            $objects = scandir($dir);
-            foreach($objects as $object) {
-                if($object != "." && $object != "..") {
-                    if(is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . "/" . $object)) {
-                        $this->rrmdir($dir . DIRECTORY_SEPARATOR . $object);
-                    } else {
-                        unlink($dir . DIRECTORY_SEPARATOR . $object);
+    private function createCategoryStack(Translation $translation): array {
+        $stack = [];
+
+        $category = $translation->getSource()->getCategory();
+        while($category) {
+            $stack[] = $category;
+            $category = $category->getParent();
+        }
+
+        return array_reverse($stack);
+    }
+
+    public function generateCache(?string $slug = null) {
+        $languageRepository = $this->manager->getRepository(Language::class);
+        $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
+
+        $languages = $slug ? $languageRepository->findBy(["slug" => $slug]) : $languageRepository->findAll();
+        $sources = $translationSourceRepository->findAll();
+
+        /** @var Language $language */
+        foreach($languages as $language) {
+            $slug = $language->getSlug();
+            $this->translations[$slug] = [];
+
+            /** @var Translation $translation */
+            foreach($sources as $source) {
+                //no category means it's a translation for natures, types, etc
+                if($source->getCategory() === null) {
+                    continue;
+                }
+
+                $original = $source->getTranslationIn(Language::FRENCH_DEFAULT_SLUG);
+                $translation = $source->getTranslationIn($slug) ?? null;
+
+                $zoomedTranslations = &$this->translations[$slug];
+                $stack = $translation ? $this->createCategoryStack($translation) : [];
+                foreach($stack as $category) {
+                    if(!isset($zoomedTranslations[$category->getLabel()])) {
+                        $zoomedTranslations[$category->getLabel()] = [];
+                    }
+
+                    $zoomedTranslations = &$zoomedTranslations[$category->getLabel()];
+                }
+
+                if($translation) {
+                    try {
+                        $zoomedTranslations[$original->getTranslation()] = $translation?->getTranslation();
+                    }
+                    catch (\Throwable $e) {
+                        throw $e;
                     }
                 }
             }
-            rmdir($dir);
+
+            $this->cacheService->set(CacheService::TRANSLATIONS, $slug, $this->translations[$slug]);
+            if ($language->getSelected()) {
+                $this->cacheService->set(CacheService::TRANSLATIONS, "default", $this->translations[$slug]);
+            }
         }
+    }
+
+    public function generateJavascripts() {
+        $languageRepository = $this->manager->getRepository(Language::class);
+        $outputDirectory = "{$this->kernel->getProjectDir()}/public/generated";
+
+        $languages = $languageRepository->findAll();
+
+        /** @var Language $language */
+        foreach($languages as $language) {
+            $slug = $language->getSlug();
+            if(!isset($this->translations[$slug])) {
+                $this->generateCache($slug);
+            }
+        }
+
+        $content = "//generated file for translations\n";
+        $content .= "const DEFAULT_SLUG = `{$this->languageService->getDefaultSlug()}`;\n";
+        $content .= "const TRANSLATIONS = " . json_encode($this->translations) . ";\n";
+
+        file_put_contents("$outputDirectory/translations.js", $content);
+    }
+
+    public function editEntityTranslations(EntityManagerInterface $entityManager,
+                                           TranslationSource      $source,
+                                           array                  $labels,
+                                           string                 $key = "label") {
+        foreach ($labels as $label) {
+            $labelLanguage = $entityManager->find(Language::class, $label["language-id"]);
+            $currentTranslation = $source->getTranslationIn($labelLanguage);
+
+            if(!($label[$key] ?? null)) {
+                if($currentTranslation) {
+                    $source->removeTranslation($currentTranslation);
+                    $entityManager->remove($currentTranslation);
+                }
+
+                continue;
+            }
+
+            if (!$currentTranslation) {
+                $newTranslation = new Translation();
+                $newTranslation
+                    ->setTranslation($label[$key] ?? '')
+                    ->setSource($source)
+                    ->setLanguage($labelLanguage);
+
+                $source->addTranslation($newTranslation);
+                $entityManager->persist($newTranslation);
+            } else {
+                $currentTranslation->setTranslation($label[$key]);
+            }
+        }
+    }
+
+    public function setFirstTranslation(EntityManagerInterface $entityManager,
+                                        mixed                  $entity,
+                                        string                 $firstLabel,
+                                        string                 $setter = null) {
+        $languageRepository = $entityManager->getRepository(Language::class);
+        $language = $languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG]);
+
+        $labelTranslation = new TranslationSource();
+        $entityManager->persist($labelTranslation);
+        $frenchTranslation = new Translation();
+        $entityManager->persist($frenchTranslation);
+
+        $frenchTranslation
+            ->setLanguage($language)
+            ->setSource($labelTranslation)
+            ->setTranslation($firstLabel);
+
+        $entity->{$setter ?? "setLabelTranslation"}($labelTranslation);
+    }
+
+    /**
+     * @param Language|string|(Language|string)[] $sources
+     * @param bool $clearSources Clear given sources array to remove duplicates, only for an internal use for now
+     */
+    public function translateFreeFieldListValues(Language|string|array $sources,
+                                                 Language|string       $target,
+                                                 FreeField             $freeField,
+                                                 array|string          $values,
+                                                 bool                  $keepDefault = false,
+                                                 bool                  $clearSources = true): array|string|null {
+
+        $sources = !is_array($sources) ? [$sources] : $sources;
+        if ($clearSources) {
+            $sources = Stream::from($sources)
+                ->map(fn(Language|string $lang) => LanguageHelper::clearLanguage($lang))
+                ->unique()
+                ->toArray();
+        }
+
+        $multipleTryMode = count($sources) > 1;
+        $source = $sources[0];
+
+        if (empty($values)) {
+            $res = null;
+        }
+        else {
+            $sourceElements = $freeField->getElementsIn($source);
+            $targetElements = $freeField->getElementsIn($target, $this->languageService->getDefaultSlug());
+            if (empty($sourceElements) || empty($targetElements)) {
+                $res = null;
+            }
+            else {
+                $sourceElementsStream = Stream::from($sourceElements);
+
+                $getValue = function(Stream $sourceElementsStream, array $targetElements, string $value) use ($keepDefault) {
+                    $fallbackValue = $keepDefault ? $value : null;
+                    $key = $sourceElementsStream->findKey(fn($v) => trim($v) === trim($value));
+                    return isset($key)
+                        ? ($targetElements[$key] ?? $fallbackValue) // value is known in source language
+                        : null;
+                };
+
+                // multiple list values
+                if (is_array($values)) {
+                    $res = Stream::from($values)
+                        ->filterMap(fn(string $value) => $getValue($sourceElementsStream, $targetElements, $value))
+                        ->toArray();
+                }
+                else {
+                    // list values
+                    $res = $getValue($sourceElementsStream, $targetElements, $values);
+                }
+            }
+        }
+
+        return empty($res) && $multipleTryMode
+            ? $this->translateFreeFieldListValues(array_slice($sources, 1), $target, $freeField, $values, $keepDefault, false)
+            : $res;
     }
 
 }

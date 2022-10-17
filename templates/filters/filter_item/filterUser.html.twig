@@ -1,13 +1,17 @@
 {% set name = name is defined ? name : 'utilisateurs' %}
 {% set managersFilter = managersFilter is defined ? managersFilter : '' %}
 {% set delivererOnly = delivererOnly ?? false %}
+{% set placeholder = placeholder is defined
+    ? placeholder
+    : trans('Général', null, 'Zone filtre', 'Utilisateurs', false)
+%}
 
 <div class="col-auto m-1 select-filter pr-0">
     <div class="select2-overflow">
         <div class="input-group w-100 cursor-default max-w-px-150">
             <select class="form-control data ajax-autocomplete-user filter-select2"
                     data-s2="user"
-                    data-placeholder="{{ placeholder is defined ? placeholder : 'Utilisateurs' }}"
+                    data-placeholder="{{ placeholder }}"
                     {% if delivererOnly %}
                         data-other-params
                         data-other-params-deliverer-only="1"

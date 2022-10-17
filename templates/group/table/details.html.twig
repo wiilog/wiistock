@@ -4,19 +4,25 @@
             <div class="col-md-10 col-12">
                 <div class="row">
                     <div class="col-4">
-                        Groupe <strong>{{ group.code }}</strong>
+                        {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Groupe') }} <strong>{{ group.code }}</strong>
                     </div>
                     <div class="col-4">
-                        Nature <strong>{{ group.nature ? group.nature.label : 'Non défini' }}</strong>
+                        {{ trans('Traçabilité', 'Général', 'Nature', false) }}
+                        <strong>{{ group.nature ? formatter.nature(group.nature) : 'Non défini' }}</strong>
                     </div>
                     <div class="col-4">
-                        Nombre colis <strong>{{ group.children | length }}</strong>
+                        {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL") }} <strong>{{ group.children | length }}</strong>
                     </div>
                     {% if last_movement is not null %}
                         <div class="col-12 mt-2">
-                            Mouvementé la dernière fois le <strong>{{ last_movement.datetime | date('d/m/Y H:i:s') }}</strong>
-                            sur l'emplacement <strong>{{ last_movement.emplacement ? last_movement.emplacement.label : '-' }}</strong> par
-                            <strong>{{ last_movement.operateur.username }}</strong>
+                            {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Mouvementé la dernière fois le {1}", {
+                                '1': "<strong>" ~ (last_movement.datetime | date(app.user.dateFormat ? (app.user.dateFormat ~ ' H:i:s') : 'd/m/Y H:i:s'))  ~ "</strong>"
+                            }) }}
+                            {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "sur l'emplacement {1} par {2}", {
+                                '1': "<strong>" ~  (last_movement.emplacement ? last_movement.emplacement.label : '-')  ~ "</strong>",
+                                '2': "<strong>" ~  (last_movement.operateur.username)  ~ "</strong>"
+                            }) }}
+
                         </div>
                     {% endif %}
                 </div>
@@ -27,9 +33,9 @@
                 <div class="group-pack">
                     <div class="pack-header row">
                         <div class="col-auto mr-auto">
-                            Colis <strong>{{ pack.code }}</strong><br>
-                            Quantité <strong>{{ pack.quantity }}</strong><br>
-                            Nature <strong>{{ pack.nature ? pack.nature.label : 'Non défini' }}</strong>
+                            {{ trans('Traçabilité', 'Général', 'Unité logistique', false) }} <strong>{{ pack.code }}</strong><br>
+                            {{ trans('Traçabilité', 'Général', 'Quantité') }} <strong>{{ pack.quantity }}</strong><br>
+                            {{ trans('Traçabilité', 'Général', 'Nature') }} <strong>{{ pack.nature ? formatter.nature(pack.nature) : 'Non défini' }}</strong>
                         </div>
                     </div>
                 </div>

@@ -5,47 +5,62 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
+use App\Entity\Language;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class PackService {
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public Security $security;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public TrackingMovementService $trackingMovementService;
 
-    /** @Required */
+    #[Required]
     public ArrivageService $arrivageDataService;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
-        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::PACKS_MODE);
+        $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::PACKS_MODE, [
+            'defaultLanguage' => $defaultLanguage,
+            'language' => $language
+        ]);
 
         $packs = $queryResult["data"];
 
@@ -84,7 +99,8 @@ class PackService {
     {
         $firstMovement = $pack->getTrackingMovements('ASC')->first();
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
-
+        $user = $this->security->getUser();
+        $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
         $lastMessage = $pack->getLastMessage();
         $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper())
@@ -103,11 +119,11 @@ class PackService {
                 'hasPairing' => $hasPairing
             ]),
             'packNum' => $pack->getCode(),
-            'packNature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
+            'packNature' => $this->formatService->nature($pack->getNature()),
             'quantity' => $pack->getQuantity() ?: 1,
             'packLastDate' => $lastPackMovement
                 ? ($lastPackMovement->getDatetime()
-                    ? $lastPackMovement->getDatetime()->format('d/m/Y \à H:i:s')
+                    ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
                     : '')
                 : '',
             'packOrigin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
@@ -122,7 +138,7 @@ class PackService {
     public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
         return [
             'group' => $trackingMovement->getPackParent() ? (FormatHelper::pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
-            'date' => FormatHelper::datetime($trackingMovement->getDatetime()),
+            'date' => FormatHelper::datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
             'type' => FormatHelper::status($trackingMovement->getType())
         ];
     }

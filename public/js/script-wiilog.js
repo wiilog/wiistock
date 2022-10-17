@@ -47,6 +47,12 @@ const TEAM_SIZE = 11;
 
 const SELECT2_TRIGGER_CHANGE = 'change.select2';
 
+const DATE_FORMATS_TO_DISPLAY = {
+    'd/m/Y': 'DD/MM/YYYY',
+    'Y-m-d': 'YYYY-MM-DD',
+    'm-d-Y': 'MM-DD-YYYY',
+}
+
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
@@ -77,7 +83,25 @@ $(function () {
 
     registerNotificationChannel();
     registerEasterEgg();
+
+    $("div[data-name='user_language']").on('change', function() {
+        changeUserLanguageDateFormat();
+    });
+
+    $("select[name='user_dateFormat']").on('change', function() {
+        changeUserLanguageDateFormat();
+    });
 });
+
+function changeUserLanguageDateFormat() {
+    const params = {
+        language: $("div[data-name='user_language']").find(':checked').val(),
+        dateFormat: $("select[name='user_dateFormat']").find(':selected').val(),
+    };
+
+    $.post(Routing.generate(`header_language_dateFormat_api`), params)
+        .then(() => window.location.reload());
+}
 
 function registerNotificationChannel() {
     if(typeof FCM !== `undefined`) {
@@ -486,15 +510,19 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
             })
         }, {}))
     };
-
+    let format = 'd/m/Y';
+    if (needsDateFormatting) {
+        const $userFormat = $('#userDateFormat');
+        format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    }
     if ($filterDateMinPicker) {
-        $filterDateMinPicker.format('DD/MM/YYYY');
+        $filterDateMinPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
     }
     if ($filterDateMaxPicker) {
-        $filterDateMaxPicker.format('DD/MM/YYYY');
+        $filterDateMaxPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
     }
     if ($filterDateExpectedPicker) {
-        $filterDateExpectedPicker.format('DD/MM/YYYY');
+        $filterDateExpectedPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
     }
 
     $.post(path, JSON.stringify(params), function (response) {
@@ -514,6 +542,19 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
             showBSAlert('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', 'danger');
         }
     }, 'json');
+}
+
+function initDatePickers() {
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
+    initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+    initDateTimePicker('.datetime-field', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+    initDateTimePicker('.date-field', DATE_FORMATS_TO_DISPLAY[format]);
+    fillDatePickers('.free-field-date');
+    fillDatePickers('.datetime-field', 'YYYY-MM-DD', true);
+    fillDatePickers('.date-field', 'YYYY-MM-DD', false);
+    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
 }
 
 function checkAndDeleteRow(icon, modalName, route, submit, getParams = null) {
@@ -687,7 +728,8 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
         showTodayButton: true,
         showClear: true,
         icons: {
-            clear: 'fas fa-trash',
+            clear: 'fas wii-icon wii-icon-trash-black date-picker-icon pointer',
+            today: 'fa fa-crosshairs date-picker-icon pointer',
         },
         tooltips: {
             today: 'Aujourd\'hui',
@@ -713,6 +755,24 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
     $dateInput.datetimepicker(config);
 }
 
+function fillDatePickers(selector, sourceFormat = 'YYYY-MM-DD', appendTime = false) {
+    const $userFormat = $('#userDateFormat');
+    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+    const time = appendTime ? ' HH:mm' : '';
+    const destinationFormat = DATE_FORMATS_TO_DISPLAY[format] + time;
+    $(selector).each(function () {
+        if ($(this).data('init')) {
+            const dateValue = moment($(this).data('init'), sourceFormat + time).format(destinationFormat);
+            $(this)
+                .data("DateTimePicker")
+                .format(destinationFormat)
+                .date(dateValue);
+        }
+    })
+}
+
+
 
 function warningEmptyDatesForCsv(errorMsg) {
     showBSAlert(errorMsg, 'danger');
@@ -731,7 +791,13 @@ function warningEmptyTypeTransportForCsv() {
     });
 }
 
-function displayFiltersSup(data) {
+function displayFiltersSup(data, needsDateFormatting = false) {
+    let format = 'd/m/Y';
+    if (needsDateFormatting) {
+        const $userFormat = $('#userDateFormat');
+        format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    }
+
     data.forEach(function (element) {
         const $element = $(`.filters [name="${element.field}"]`);
 
@@ -817,9 +883,12 @@ function displayFiltersSup(data) {
                         ? 'DD/MM/YYYY'
                         : 'YYYY-MM-DD';
                     const $fieldDate = $(`.filter-input[name="${element.field}"]`);
-                    const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
+                    const dateValue = moment(element.value, sourceFormat).format(DATE_FORMATS_TO_DISPLAY[format]);
                     if ($fieldDate.data("DateTimePicker")) {
-                        $fieldDate.data("DateTimePicker").date(dateValue);
+                        $fieldDate
+                            .data("DateTimePicker")
+                            .format(DATE_FORMATS_TO_DISPLAY[format])
+                            .date(dateValue);
                     } else {
                         $fieldDate.val(dateValue);
                     }
@@ -967,15 +1036,19 @@ function saveExportFile(routeName,
                         needsDateFilters = true,
                         routeParam = {},
                         needsAdditionalFilters = false,
-                        errorMsgDates = 'Veuillez saisir des dates dans le filtre en haut de page.') {
+                        errorMsgDates = Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'),
+                        needsDateFormatting = false) {
 
     const buttonTypeTransport = $("input[name='category']:checked")
-
     const $spinner = $('#spinner');
     loadSpinner($spinner);
 
     const path = Routing.generate(routeName, routeParam, true);
-
+    let format = 'd/m/Y';
+    if (needsDateFormatting) {
+        const $userFormat = $('#userDateFormat');
+        format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    }
     const data = {};
     $('.filterService input, .dateFilters input').each(function () {
         const $input = $(this);
@@ -987,10 +1060,9 @@ function saveExportFile(routeName,
             }
         }
     });
-
     if (data.dateMin && data.dateMax) {
-        data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
-        data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        data.dateMin = moment(data.dateMin, DATE_FORMATS_TO_DISPLAY[format]).format('YYYY-MM-DD');
+        data.dateMax = moment(data.dateMax, DATE_FORMATS_TO_DISPLAY[format]).format('YYYY-MM-DD');
     }
     const dataKeys = Object.keys(data);
     const joinedData = dataKeys
@@ -1151,4 +1223,8 @@ function registerEasterEgg() {
     $modalEasterEgg.on('hidden.bs.modal', () => {
         count = 0;
     })
+}
+
+function isObject(object){
+    return object !== null && typeof object === 'object';
 }

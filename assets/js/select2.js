@@ -126,9 +126,9 @@ export default class Select2 {
                     allowClear,
                     dropdownParent,
                     language: {
-                        inputTooShort: () => 'Veuillez entrer au moins 1 caractère.',
-                        noResults: () => `Aucun résultat`,
-                        searching: () => null,
+                        inputTooShort: () => Translation.of(`Général`, '', 'Zone filtre', 'Veuillez entrer au moins {1} caractère{2}.', {1: '1', 2: ''}, false),
+                        noResults: () => Translation.of(`Général`, '', 'Zone filtre', 'Aucun résultat.', false),
+                        searching: () => Translation.of(`Général`, '', 'Zone filtre', 'Recherche en cours...', false),
                     },
                     escapeMarkup: markup => markup,
                     templateResult: (data, container) => {

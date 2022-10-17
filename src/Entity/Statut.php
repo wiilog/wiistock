@@ -5,10 +5,12 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\PreparationOrder\Preparation;
+use App\Helper\LanguageHelper;
 use App\Repository\StatutRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JetBrains\PhpStorm\Deprecated;
 
 #[ORM\Entity(repositoryClass: StatutRepository::class)]
 class Statut {
@@ -28,6 +30,9 @@ class Statut {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $code = null;
 
+    /**
+     * Attribute used for data warehouse, do not delete it
+     */
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $nom = null;
 
@@ -112,6 +117,9 @@ class Statut {
     #[ORM\OneToMany(mappedBy: 'requestStatus', targetEntity: HandlingRequestTemplate::class)]
     private Collection $handlingRequestStatusTemplates;
 
+    #[ORM\OneToOne(mappedBy: "status", targetEntity: TranslationSource::class)]
+    private ?TranslationSource $labelTranslation = null;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -133,6 +141,17 @@ class Statut {
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    public function getLabelIn(Language|string $in, Language|string|null $default = null): ?string {
+        $in = LanguageHelper::clearLanguage($in);
+        $default = LanguageHelper::clearLanguage($default);
+
+        $translation = $this->getLabelTranslation();
+
+        return $translation?->getTranslationIn($in, $default)?->getTranslation()
+            ?: $translation?->getTranslationIn( Language::FRENCH_SLUG)?->getTranslation()
+            ?: '';
     }
 
     public function getNom(): ?string {
@@ -576,7 +595,15 @@ class Statut {
     }
 
     public function getCode(): ?string {
-        return $this->code;
+        return $this->code ?? $this->getSlug();
+    }
+
+    public function getSlug(): ?string {
+        $name = $this->getNom();
+        $search  = ['À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Ç', 'È', 'É', 'Ê', 'Ë', 'Ì', 'Í', 'Î', 'Ï', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ù', 'Ú', 'Û', 'Ü', 'Ý', 'à', 'á', 'â', 'ã', 'ä', 'å', 'ç', 'è', 'é', 'ê', 'ë', 'ì', 'í', 'î', 'ï', 'ð', 'ò', 'ó', 'ô', 'õ', 'ö', 'ù', 'ú', 'û', 'ü', 'ý', 'ÿ'];
+        $replace = ['A', 'A', 'A', 'A', 'A', 'A', 'C', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'Y', 'a', 'a', 'a', 'a', 'a', 'a', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'o', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'y', 'y'];
+        $name = str_replace($search, $replace, $name);
+        return strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
     }
 
     public function setCode(?string $code): self {
@@ -734,4 +761,21 @@ class Statut {
         return $this;
     }
 
+    public function getLabelTranslation(): ?TranslationSource {
+        return $this->labelTranslation;
+    }
+
+    public function setLabelTranslation(?TranslationSource $labelTranslation): self {
+        if($this->labelTranslation && $this->labelTranslation->getStatus() !== $this) {
+            $oldLabelTranslation = $this->labelTranslation;
+            $this->labelTranslation = null;
+            $oldLabelTranslation->setStatus(null);
+        }
+        $this->labelTranslation = $labelTranslation;
+        if($this->labelTranslation && $this->labelTranslation->getType() !== $this) {
+            $this->labelTranslation->setStatus($this);
+        }
+
+        return $this;
+    }
 }

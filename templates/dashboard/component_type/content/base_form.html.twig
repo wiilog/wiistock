@@ -8,22 +8,42 @@
         <div class="row">
             <div class="form-group col-12">
                  <label class="wii-field-name">Titre*</label>
-                <input class="data form-control w-100 needed"
-                       name="title"
-                       type="text"
-                       title="Titre du composant"
-                       value="{{ title }}"/>
+                {% for language in values.languages %}
+                    <div>
+                        <div class="input-group pb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <img class="flag d-block" src="{{ language.flag }}" alt="{{ language.slug }}_flag">
+                                </span>
+                            </div>
+                            <input class="form-control cursor-default tooltip-input data {{ loop.index == 1 ? 'needed' }}"
+                                   name="title_{{ language.slug }}"
+                                   type="text"
+                                   value="{{ title is iterable ? title[language.slug] : title }}"/>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
 
         <div class="row">
             <div class="form-group col-12">
                 <label class="wii-field-name">Infobulle</label>
-                <input class="data form-control w-100"
-                       name="tooltip"
-                       type="text"
-                       title="Infobulle"
-                       value="{{ tooltip }}"/>
+                {% for language in values.languages %}
+                    <div>
+                        <div class="input-group pb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <img class="flag d-block" src="{{ language.flag }}" alt="{{ language.slug }}_flag">
+                                </span>
+                            </div>
+                            <input class="form-control cursor-default tooltip-input data"
+                                   name="tooltip_{{ language.slug }}"
+                                   type="text"
+                                   value="{{ tooltip is iterable ? tooltip[language.slug] : tooltip }}"/>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
         {% block content %}{% endblock %}
@@ -31,7 +51,10 @@
     <div class="col-6">
         {% block content_right %}{% endblock %}
 
-        {% include 'dashboard/component_type/content/customization_tools.html.twig' %}
+        {% include 'dashboard/component_type/content/customization_tools.html.twig' with {
+            legendsTranslations: values.legends ?? [],
+            languages: values.languages
+        } %}
     </div>
 </div>
 

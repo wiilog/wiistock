@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
+use App\Controller\Api\AbstractApiController;
 use App\Entity\Article;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
@@ -75,26 +76,14 @@ use Throwable;
 use WiiCommon\Helper\Stream;
 
 
-class MobileController extends AbstractFOSRestController
+class MobileController extends AbstractApiController
 {
-
-    /** @var Utilisateur|null */
-    private $user;
 
     /** @Required */
     public NotificationService $notificationService;
 
     /** @Required */
     public MobileApiService $mobileApiService;
-
-    public function getUser(): Utilisateur {
-        return $this->user;
-    }
-
-    public function setUser(Utilisateur $user)
-    {
-        $this->user = $user;
-    }
 
     /**
      * @Rest\Post("/api/api-key", condition="request.isXmlHttpRequest()")
@@ -483,7 +472,7 @@ class MobileController extends AbstractFOSRestController
 
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
 
-                        $options += $trackingMovementService->treatStockMovement($entityManager, $type->getNom(), $mvt, $nomadUser, $location, $date);
+                        $options += $trackingMovementService->treatStockMovement($entityManager, $type?->getCode(), $mvt, $nomadUser, $location, $date);
                         if ($options['invalidLocationTo'] ?? null) {
                             $invalidLocationTo = $options['invalidLocationTo'];
                             throw new Exception(TrackingMovementService::INVALID_LOCATION_TO);
@@ -518,7 +507,7 @@ class MobileController extends AbstractFOSRestController
                         $entityManager->persist($createdMvt);
                         $numberOfRowsInserted++;
 
-                        if ($type->getNom() === TrackingMovement::TYPE_DEPOSE) {
+                        if ($type?->getCode() === TrackingMovement::TYPE_DEPOSE) {
                             $finishMouvementTraca[] = $mvt['ref_article'];
                         }
                     }
@@ -581,7 +570,7 @@ class MobileController extends AbstractFOSRestController
         $preparation = $preparationRepository->find($id);
         $data = [];
 
-        if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER ||
+        if ($preparation->getStatut()?->getCode() == Preparation::STATUT_A_TRAITER ||
             $preparation->getUtilisateur() === $nomadUser) {
             $data['success'] = true;
         } else {
@@ -774,7 +763,7 @@ class MobileController extends AbstractFOSRestController
 
         $data = [];
 
-        if ($livraison->getStatut()->getNom() == Livraison::STATUT_A_TRAITER &&
+        if ($livraison->getStatut()?->getCode() == Livraison::STATUT_A_TRAITER &&
             (empty($livraison->getUtilisateur()) || $livraison->getUtilisateur() === $nomadUser)) {
             // modif de la livraison
             $livraison->setUtilisateur($nomadUser);
@@ -808,7 +797,7 @@ class MobileController extends AbstractFOSRestController
 
         $data = [];
 
-        if ($ordreCollecte->getStatut()->getNom() == OrdreCollecte::STATUT_A_TRAITER &&
+        if ($ordreCollecte->getStatut()?->getCode() == OrdreCollecte::STATUT_A_TRAITER &&
             (empty($ordreCollecte->getUtilisateur()) || $ordreCollecte->getUtilisateur() === $nomadUser)) {
             // modif de la collecte
             $ordreCollecte->setUtilisateur($nomadUser);
@@ -861,7 +850,10 @@ class MobileController extends AbstractFOSRestController
             $commentaire = $request->request->get('comment');
             $treatmentDelay = $request->request->get('treatmentDelay');
             if (!empty($commentaire)) {
-                $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
+                $previousComments = $handling->getComment() !== '<p><br></p>' ? "{$handling->getComment()}\n" : "";
+                $dateStr = (new DateTime())->format('d/m/y H:i:s');
+                $dateAndUser = "<strong>$dateStr - {$nomadUser->getUsername()} :</strong>";
+                $handling->setComment("$previousComments $dateAndUser $commentaire");
             }
 
             if (!empty($treatmentDelay)) {
@@ -1746,7 +1738,7 @@ class MobileController extends AbstractFOSRestController
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
-            ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager);
+            ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager, $this->getUser());
             [
                 'dispatches' => $dispatches,
                 'dispatchPacks' => $dispatchPacks,
@@ -1762,7 +1754,7 @@ class MobileController extends AbstractFOSRestController
                 ->toArray();
         }
 
-        ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager);
+        ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],

@@ -1,13 +1,13 @@
-{% set entityStatusName = handling.status.nom %}
+{% set entityStatusName = handling.status.labelIn(userLanguage, defaultLanguage) %}
 <div class="timeline d-flex justify-content-center bg-green-light p-1 mb-2">
     <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
-    <span> Demande <strong>{{ entityStatusName }}</strong></span>
+    <span> {{ trans('Demande', 'Général', 'Demande') }} <strong>{{ entityStatusName }}</strong></span>
 </div>
 {% if statusesHistory is empty%}
     {% if handling.status.treated == 1 %}
         <div class="history-line">
             <div class="history-date">
-                <div class="title-left last current">{{  handling.status }}</div>
+                <div class="title-left last current">{{  handling.status.labelIn(userLanguage, defaultLanguage) }}</div>
             </div>
             <div class="history-status last-status-history last state current">
                 <div class="title-right current text-left">
@@ -17,7 +17,7 @@
         </div>
     {% else %}
         <div class="content text-center wii-small-text">
-            Timeline à venir
+            {{ trans('Demande', 'Services', 'Modale et détails', 'Timeline à venir') }}
         </div>
     {% endif %}
 {% else %}

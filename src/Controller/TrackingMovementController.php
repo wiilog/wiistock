@@ -17,21 +17,22 @@ use App\Entity\Setting;
 use App\Entity\Attachment;
 
 use App\Entity\Statut;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
 use App\Service\TrackingMovementService;
 use App\Service\SpecificService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -160,8 +161,9 @@ class TrackingMovementController extends AbstractController
                 'msg' => 'La quantité doit être supérieure à 0.'
             ]);
         }
-
-        $date = new DateTime($post->get('datetime') ?: 'now');
+        $user = $this->getUser();
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
+        $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now');
 
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -303,7 +305,7 @@ class TrackingMovementController extends AbstractController
         }
 
         foreach ($createdMouvements as $mouvement) {
-            $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager);
+            $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager, $this->getUser());
         }
         $countCreatedMouvements = count($createdMouvements);
         $entityManager->flush();
@@ -371,11 +373,9 @@ class TrackingMovementController extends AbstractController
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $operator = $utilisateurRepository->find($post->get('operator'));
-        $location = $locationRepository->find($post->get('location'));
-        $action = $statutRepository->find($post->get('type'));
+        $newLocation = $locationRepository->find($post->get('location'));
 
         $quantity = $post->getInt('quantity') ?: 1;
 
@@ -387,20 +387,27 @@ class TrackingMovementController extends AbstractController
         }
         $mvt = $trackingMovementRepository->find($post->get('id'));
         $pack = $mvt->getPack();
-        $hasChanged = ($mvt->getEmplacement()->getLabel() !== $location->getLabel()) ||
-                            ($mvt->getType()->getCode() !== $action->getCode()) ||
-                                ($post->get('pack') !== $pack->getCode());
+
+        $newDate = $this->formatService->parseDatetime($post->get('date'));
+        $newCode = $post->get('pack');
+
+        $hasChanged = (
+            $mvt->getEmplacement()->getLabel() !== $newLocation->getLabel()
+            || $mvt->getDatetime() != $newDate // required != comparison
+            || $pack->getCode() !== $newCode
+        );
+
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
             /** @var TrackingMovement $new */
 
             $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
                 $post->get('pack'),
-                $location,
+                $newLocation,
                 $operator,
-                new DateTime($post->get('date')),
+                $newDate,
                 true,
-                $action,
+                $mvt->getType(),
                 false,
             );
             if ($response['success']) {
@@ -583,15 +590,11 @@ class TrackingMovementController extends AbstractController
                     );
             } else {
                 $appropriateType = $statutRepository->find($typeId);
-                if ($appropriateType && $appropriateType->getNom() === TrackingMovement::TYPE_PRISE_DEPOSE) {
-                    $fileToRender = "$templateDirectory/newMassMvtTraca.html.twig";
-                }
-                else if ($appropriateType && $appropriateType->getNom() === TrackingMovement::TYPE_GROUP) {
-                    $fileToRender = "$templateDirectory/newGroupMvtTraca.html.twig";
-                }
-                else {
-                    $fileToRender = "$templateDirectory/newSingleMvtTraca.html.twig";
-                }
+                $fileToRender = match($appropriateType?->getCode()) {
+                    TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassMvtTraca.html.twig",
+                    TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroupMvtTraca.html.twig",
+                    default => "$templateDirectory/newSingleMvtTraca.html.twig"
+                };
             }
             return new JsonResponse([
                 'modalBody' => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, []),

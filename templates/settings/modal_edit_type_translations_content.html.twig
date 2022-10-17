@@ -1,0 +1,109 @@
+<input type="hidden" class="data" name="type" value="{{ type.id }}">
+
+{% if not hideType %}
+    <div class="row p-2 px-3">
+        <div class="col-12 col-md-6">
+            <div class="status-translation">
+                <label class="wii-field-name mb-1">Libellé du type*</label>
+                {% for language in language_service.getLanguages %}
+                    {% set slug = language.slug %}
+                    {% set isNeeded = language.slug == constant('App\\Entity\\Language::FRENCH_SLUG') or language.slug == constant('App\\Entity\\Language::ENGLISH_SLUG') %}
+                    {% set translation = type.labelTranslation.translationIn(language.slug) %}
+                    {% set value = translation ? translation.translation : '' %}
+
+                    <div class="input-group lang-input-group mb-1"
+                         data-multiple-key="label"
+                         data-multiple-object-index="{{ language.value }}">
+                        <div class="input-group-prepend langue-img-prepend">
+                            <span class="langue-img" style="background-image: url({{ language.iconUrl }})"></span>
+                        </div>
+                        <input type="hidden" class="data" name="language-id" value="{{ language.value }}">
+                        <input type="hidden" class="data" name="language-slug" value="{{ slug }}">
+                        <input type="text" class="data form-control {{ isNeeded ? 'needed' }}" name="label" value="{{ value }}">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="wii-section-title mx-0">Champs libres</div>
+
+{% for freeField in type.champsLibres %}
+    <div class="row p-2 px-3">
+        <div class="col-12 col-md-6">
+            <div class="status-translation">
+                <label class="wii-field-name mb-1">Libellé*</label>
+                {% for language in language_service.getLanguages %}
+                    {% set slug = language.slug %}
+                    {% set isNeeded = language.slug == constant('App\\Entity\\Language::FRENCH_SLUG') or language.slug == constant('App\\Entity\\Language::ENGLISH_SLUG') %}
+                    {% set translation = freeField.labelTranslation.translationIn(language.slug) %}
+                    {% set value = translation ? translation.translation : '' %}
+
+                    <div class="input-group lang-input-group mb-1"
+                         data-multiple-key="label-{{ freeField.id }}"
+                         data-multiple-object-index="{{ language.value }}">
+                        <div class="input-group-prepend langue-img-prepend">
+                            <span class="langue-img" style="background-image: url({{ language.iconUrl }})"></span>
+                        </div>
+                        <input type="hidden" class="data" name="language-id" value="{{ language.value }}">
+                        <input type="hidden" class="data" name="language-slug" value="{{ slug }}">
+                        <input type="text" class="data form-control {{ isNeeded ? 'needed' }}" name="label" value="{{ value }}">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% if freeField.typage in [constant('App\\Entity\\Freefield::TYPE_LIST'), constant('App\\Entity\\Freefield::TYPE_LIST_MULTIPLE')] %}
+            <div class="col-12 col-md-6">
+                <div class="status-translation">
+                    <label class="wii-field-name mb-1">
+                        Éléments
+                        <span class="wii-small-text">(séparés par des ';')</span>
+                    </label>
+
+                    {% for language in language_service.getLanguages %}
+                        {% set slug = language.slug %}
+                        {% set isNeeded = language.slug == constant('App\\Entity\\Language::FRENCH_SLUG') or language.slug == constant('App\\Entity\\Language::ENGLISH_SLUG') %}
+                        {% set translation = freeField.elementsIn(language.slug) %}
+                        {% set value = translation | filter(elem => elem) ? translation | join(';') : '' %}
+
+                        <div class="input-group lang-input-group mb-1"
+                             data-multiple-key="elements-{{ freeField.id }}"
+                             data-multiple-object-index="{{ language.value }}">
+                            <div class="input-group-prepend langue-img-prepend">
+                                <span class="langue-img" style="background-image: url({{ language.iconUrl }})"></span>
+                            </div>
+                            <input type="hidden" class="data" name="language-id" value="{{ language.value }}">
+                            <input type="hidden" class="data" name="language-slug" value="{{ slug }}">
+                            <input type="text" class="data form-control {{ isNeeded ? 'needed' }}" name="elements" value="{{ value }}">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% elseif freeField.typage in [constant('App\\Entity\\FreeField::TYPE_TEXT')] %}
+            <div class="col-12 col-md-6">
+                <div class="status-translation">
+                    <label class="wii-field-name mb-1">Valeur par défaut</label>
+                    {% for language in language_service.getLanguages %}
+                        {% set slug = language.slug %}
+                        {% set isNeeded = freeField.defaultValueTranslation and (language.slug == constant('App\\Entity\\Language::FRENCH_SLUG') or language.slug == constant('App\\Entity\\Language::ENGLISH_SLUG')) %}
+                        {% set translation = freeField.defaultValueTranslation ? freeField.defaultValueTranslation.translationIn(language.slug) : null %}
+                        {% set value = translation ? translation.translation : '' %}
+
+                        <div class="input-group lang-input-group mb-1"
+                             data-multiple-key="defaultValue-{{ freeField.id }}"
+                             data-multiple-object-index="{{ language.value }}">
+                            <div class="input-group-prepend langue-img-prepend">
+                                <span class="langue-img" style="background-image: url({{ language.iconUrl }})"></span>
+                            </div>
+                            <input type="hidden" class="data" name="language-id" value="{{ language.value }}">
+                            <input type="hidden" class="data" name="language-slug" value="{{ slug }}">
+                            <input type="text" class="data form-control {{ isNeeded ? 'needed' }}" name="defaultValue" value="{{ value }}">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% if not loop.last %}<div class="w-100 border-bottom"></div>{% endif %}
+{% endfor %}

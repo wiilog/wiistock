@@ -319,10 +319,7 @@ class Demande implements PairedEntity {
         $demandeStatus = $this->getStatut();
         return (
             $demandeStatus
-            && (
-                $demandeStatus->getNom() === Demande::STATUT_A_TRAITER
-                || $demandeStatus->getNom() === Demande::STATUT_PREPARE
-            )
+            && in_array($demandeStatus->getCode(), [Demande::STATUT_A_TRAITER, Demande::STATUT_PREPARE])
         );
     }
 

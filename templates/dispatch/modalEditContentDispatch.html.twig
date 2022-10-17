@@ -1,35 +1,35 @@
 <div class="row">
     <div class="col-md-4 col-12">
         <div class="form-group">
-            <label class="wii-field-name">Type*</label>
+            <label class="wii-field-name">{{ trans('Demande', 'Général', 'Type') }}*</label>
             <select name="type"
                     class="form-control d-block type needed"
                     disabled
                     title="Type">
-                <option selected value={{ dispatch.type.id }}>{{ dispatch.type.label }}</option>
+                <option selected value={{ dispatch.type.id }}>{{ dispatch.type|format_helper('type') }}</option>
             </select>
         </div>
     </div>
     <div class="col-md-4 col-12">
         <div class="form-group">
-            <label class="wii-field-name">Statut*</label>
+            <label class="wii-field-name">{{ trans('Demande', 'Général', 'Statut') }}*</label>
             <select name="statut"
                     disabled
                     class="form-control data d-block needed"
                     title="Statut">
                 {# outside the for if status is treated #}
-                <option value="{{ dispatch.statut.id }}" selected>{{ dispatch.statut.nom }}</option>
+                <option value="{{ dispatch.statut.id }}" selected>{{ dispatch.statut|format_helper('status')  }}</option>
 
                 {% for status in statuses %}
                     {% if not dispatch.statut or dispatch.statut.id != status.id %}
-                        <option value="{{ status.id }}">{{ status.nom }}</option>
+                        <option value="{{ status.id }}">{{ status|format_helper('status') }}</option>
                     {% endif %}
                 {% endfor %}
             </select>
         </div>
     </div>
     <div class="form-group col-md-4 col-12">
-        <label class="wii-field-name" for="demandeur">Demandeur*</label>
+        <label class="wii-field-name" for="demandeur">{{ trans('Demande', 'Général', 'Demandeur') }}*</label>
         <select class="demandeur form-control data needed w-100" name="requester" data-s2="user">
             {% if dispatch.requester is defined and dispatch.requester is not null %}
                 <option selected value="{{ dispatch.requester.id }}">{{ dispatch.requester.username }}</option>
@@ -42,7 +42,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="prise" title="Emplacement de prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="prise">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise') }}{{ required ? '*' }}</label>
             <select name="prise" class="form-control data d-block {{ required ? 'needed' }} location-prise" data-s2="location"
                     id="prise">
                 {% if dispatch.locationFrom %}
@@ -56,7 +56,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="depose" title="Emplacement de dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="depose">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose') }}{{ required ? '*' }}</label>
             <select name="depose" class="form-control data {{ required ? 'needed' }} location-depose" data-s2="location"
                     id="depose">
                 {% if dispatch.locationTo %}
@@ -70,7 +70,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="destination" title="Destination">{{ 'acheminement.Destination'|trans }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="destination">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Destination') }}{{ required ? '*' }}</label>
             <input name="destination" class="form-control data {{ required ? 'needed' }}" value="{{ dispatch.destination }}" maxlength="50"/>
         </div>
     {% endif %}
@@ -79,12 +79,12 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name">Urgence{{ required ? '*' }}</label>
+            <label class="wii-field-name">{{ trans('Demande', 'Général', 'Urgence') }}{{ required ? '*' }}</label>
             <div class="w-100">
                 <select
                     class="form-control input-sm data {{ required ? 'needed' : '' }}"
                     name="emergency">
-                    <option value="">Non urgent</option>
+                    <option value="">{{ trans('Demande', 'Acheminements', 'Modale', 'Non urgent') }}</option>
 
                     {% if dispatch.emergency and dispatch.emergency not in emergencies %}
                         <option value="{{ dispatch.emergency }}" selected>{{ dispatch.emergency }}</option>
@@ -104,7 +104,7 @@
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
             <div class="form-group col-md-4 col-12">
-                <label class="wii-field-name" title="Transporteur">{{ 'acheminement.Transporteur'|trans }}{{ required ? '*' }}</label>
+                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Transporteur') }}{{ required ? '*' }}</label>
                 <select class="form-control data w-100 {{ required ? 'needed' }}" data-s2="carrier"
                         title="Transporteur"
                         name="carrier">
@@ -120,7 +120,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" title="Numéro de tracking transporteur">{{ 'acheminement.Numéro de tracking transporteur'|trans }}{{ required ? '*' }}</label>
+            <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° tracking transporteur') }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
                    title="Numéro de tracking transporteur"
                    name="transporterTrackingNumber"
@@ -132,7 +132,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="destinataire">Destinataire(s){{ required ? '*' }}</label>
+            <label class="wii-field-name" for="destinataire">{{ trans('Demande', 'Général', 'Destinataire(s)') }}{{ required ? '*' }}</label>
             <select class="destinataire form-control data w-100 {{ required ? 'needed' }}" data-s2="user"
                     name="receivers"
                     multiple>
@@ -147,7 +147,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" title="Numéro de commande">{{ 'acheminement.Numéro de commande'|trans }}{{ required ? '*' }}</label>
+            <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande') }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
                    title="Numéro de commande"
                    name="commandNumber"
@@ -159,7 +159,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" for="project" title="Numéro de projet">{{ 'acheminement.Numéro de projet'|trans }}{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="project">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° projet') }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
                    title="Numéro de projet"
                    name="projectNumber"
@@ -171,7 +171,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
-            <label class="wii-field-name" title="Business unit">{{ 'acheminement.Business unit'|trans }}{{ required ? '*' }}</label>
+            <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Business unit') }}{{ required ? '*' }}</label>
             <select name="businessUnit"
                     class="form-control data {{ required ? 'needed' }}"
                     title="Business Unit">
@@ -192,40 +192,41 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-8 col-12">
-            <label class="wii-field-name">Echéance{{ required ? '*' }}</label>
+            <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Modale', 'Echéance') }}{{ required ? '*' }}</label>
             <div class="input-group w-100">
                 <div class="input-group-prepend">
                     <span class="input-group-text w-50px">Du</span>
                 </div>
-                <input type="date"
-                       class="form-control data {{ required ? 'needed' }}"
+                <input type="text"
+                       class="form-control pointer date-field data {{ required ? 'needed' }}"
                        name="startDate"
-                       value="{{ dispatch.startDate ? dispatch.startDate|date('Y-m-d') }}"
+                       data-init="{{ dispatch.startDate ? dispatch.startDate|date('Y-m-d') }}"
                        title="Date d'échéance min"
-                       placeholder="jj/mm/aaaa"/>
-                <div class="input-group-prepend">
+                       autocomplete="off"/>
+                <div class="input-group-prepend input-group-append">
                     <span class="input-group-text w-50px">Au</span>
                 </div>
-                <input type="date"
-                       class="form-control data {{ required ? 'needed' }}"
+                <input type="text"
+                       class="form-control pointer date-field data {{ required ? 'needed' }}"
                        name="endDate"
-                       value="{{ dispatch.endDate ? dispatch.endDate|date('Y-m-d') }}"
+                       data-init="{{ dispatch.endDate ? dispatch.endDate|date('Y-m-d') }}"
                        title="Date d'échéance max"
-                       placeholder="jj/mm/aaaa"/>
+                       autocomplete="off"/>
             </div>
         </div>
     {% endif %}
 
     <!-- CHAMPS LIBRES -->
     <div class="col-12">
-        <span class="toggle-collapsible expanded">Champs libres</span>
+        <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
         <div class="collapsible expanded free-fields-container mb-2">
             {% include 'free_field/freeFieldsEdit.html.twig' with {
                 freeFields: dispatch.type.champsLibres,
                 freeFieldValues: dispatch.freeFields,
                 colType: 'col-md-4 col-12',
                 requiredType: 'requiredEdit',
-                actionType: 'edit'
+                actionType: 'edit',
+                needsDateFormatting: true
             } %}
         </div>
     </div>
@@ -234,7 +235,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col">
-            <label class="wii-field-name" for="commentaire">Commentaire{{ required ? '*' }}</label>
+            <label class="wii-field-name" for="commentaire">{{ trans('Général', null, 'Modale', 'Commentaire') }}{{ required ? '*' }}</label>
             <input id='commentaire'
                    class="commentaire form-control data {{ required ? 'needed' }}"
                    name="commentaire"

@@ -8,6 +8,7 @@ global.ALLOWED_IMAGE_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS;
 
 global.updateImagePreview = updateImagePreview;
 global.resetImage = resetImage;
+global.onSettingsItemSelected = onSettingsItemSelected;
 
 function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
@@ -83,4 +84,31 @@ function resetImage($button) {
         .attr('src', defaultValue)
         .removeClass('d-none');
     $keepImage.val(0);
+}
+
+function onSettingsItemSelected($selected, $settingsItems, $settingsContents, options = {}) {
+    const $buttons = $('main .save');
+    const selectedKey = $selected.data('menu');
+
+    $settingsItems.removeClass('selected');
+    $settingsContents.addClass('d-none');
+
+    $selected.addClass('selected');
+    const $menu = $settingsContents.filter(`[data-menu="${selectedKey}"]`);
+    $menu.removeClass('d-none');
+
+    const $firstMenu = $menu.find('.menu').first();
+    if ($firstMenu.length) {
+        onSettingsItemSelected($firstMenu, $('.menu'), $('.menu-content'));
+    }
+    if (options.hideClass && options.hiddenElement){
+        if ($selected.hasClass(options.hideClass)) {
+            options.hiddenElement.addClass('d-none');
+        }
+        else {
+            options.hiddenElement.removeClass('d-none');
+        }
+    }
+
+    $buttons.removeClass('d-none');
 }

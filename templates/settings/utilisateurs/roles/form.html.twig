@@ -22,7 +22,7 @@
                 {% for menu in menus %}
                     <div class="settings-item text-capitalize"
                          title="{{ menu.translation ? menu.label }}"
-                         onclick="onSettingsItemSelected($(this))"
+                         onclick="onSettingsItemSelected($(this), $('aside .settings-item'), $('main .settings-content'))"
                          data-menu="{{ menu.id }}">
                         {{ menu.translation
                             ? (menu.translation | trans)
@@ -96,7 +96,7 @@
                     {% endif %}
 
                     {% for subMenu in menu.subMenus %}
-                        <div class="wii-section-title toggle-collapsible">{{ subMenu.label | capitalize }}</div>
+                        <div class="wii-section-title mb-1 toggle-collapsible">{{ subMenu.label | capitalize }}</div>
                         <div class="wii-section collapsible">
                             <div class="row">
                                 {% for action in subMenu.actions | sort((a, b) => a.displayOrder <=> b.displayOrder) %}

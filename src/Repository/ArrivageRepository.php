@@ -6,10 +6,11 @@ use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -88,40 +89,6 @@ class ArrivageRepository extends EntityRepository
             ->execute();
     }
 
-    public function iterateBetween($from, $to) {
-        return $this->createQueryBuilderByDates($from, $to)
-            ->select('arrivage.id')
-            ->addSelect('arrivage.numeroArrivage')
-            ->addSelect('recipient.username AS recipientUsername')
-            ->addSelect('user.username AS userUsername')
-            ->addSelect('fournisseur.nom AS fournisseurName')
-            ->addSelect('transporteur.label AS transporteurLabel')
-            ->addSelect('chauffeur.nom AS chauffeurSurname')
-            ->addSelect('chauffeur.prenom AS chauffeurFirstname')
-            ->addSelect('arrivalType.label AS type')
-            ->addSelect('arrivage.noTracking')
-            ->addSelect('arrivage.numeroCommandeList')
-            ->addSelect('arrivage.customs')
-            ->addSelect('arrivage.frozen')
-            ->addSelect('status.nom AS statusName')
-            ->addSelect('arrivage.commentaire')
-            ->addSelect('arrivage.date')
-            ->addSelect('arrivage.projectNumber AS projectNumber')
-            ->addSelect('arrivage.businessUnit AS businessUnit')
-            ->addSelect('arrivage.freeFields AS freeFields')
-            ->addSelect('join_dropLocation.label AS dropLocation')
-            ->leftJoin('arrivage.destinataire', 'recipient')
-            ->leftJoin('arrivage.fournisseur', 'fournisseur')
-            ->leftJoin('arrivage.transporteur', 'transporteur')
-            ->leftJoin('arrivage.chauffeur', 'chauffeur')
-            ->leftJoin('arrivage.statut', 'status')
-            ->leftJoin('arrivage.utilisateur', 'user')
-            ->leftJoin('arrivage.type', 'arrivalType')
-            ->leftJoin('arrivage.dropLocation', 'join_dropLocation')
-            ->getQuery()
-            ->toIterable();
-    }
-
     public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder
     {
         return $this->createQueryBuilder('arrivage')
@@ -196,7 +163,7 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('userId', $options['user']->getId());
         }
 
-        $total = QueryCounter::count($qb, 'arrival');
+        $total = QueryBuilderHelper::count($qb, 'arrival');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -323,7 +290,7 @@ class ArrivageRepository extends EntityRepository
                 }
             }
 
-            $filtered = QueryCounter::count($qb, 'arrival');
+            $filtered = QueryBuilderHelper::count($qb, 'arrival');
 
             if (!empty($params->all('order'))) {
                 $order = $params->all('order')[0]['dir'];
@@ -340,9 +307,7 @@ class ArrivageRepository extends EntityRepository
                             ->leftJoin('arrival.chauffeur', 'c2')
                             ->orderBy('c2.nom', $order);
                     } else if ($column === 'type') {
-                        $qb
-                            ->leftJoin('arrival.type', 'order_type')
-                            ->orderBy('order_type.label', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', $order);
                     } else if ($column === 'provider') {
                         $qb
                             ->leftJoin('arrival.fournisseur', 'order_fournisseur')
@@ -365,9 +330,7 @@ class ArrivageRepository extends EntityRepository
                     } else if ($column === 'totalWeight') {
                         $qb->orderBy('totalWeight', $order);
                     } else if ($column === 'status') {
-                        $qb
-                            ->leftJoin('arrival.statut', 'order_status')
-                            ->orderBy('order_status.nom', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'statut', $order);
                     } else if ($column === 'dropLocation') {
                         $qb
                             ->leftJoin('arrival.dropLocation', 'order_dropLocation')
@@ -465,5 +428,20 @@ class ArrivageRepository extends EntityRepository
         return $qb
             ->getQuery()
             ->toIterable();
+    }
+
+    public function getForSelect(?string $term, Language $language, Language $default): array {
+        return $this->createQueryBuilder('nature')
+            ->select("nature.id AS id")
+            ->addSelect("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, nature.label)) AS text")
+            ->leftJoin("nature.labelTranslation", "join_labelTranslation")
+            ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
+            ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
+            ->andWhere("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, nature.label)) LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->setParameter("language", $language)
+            ->setParameter("default", $default)
+            ->getQuery()
+            ->getResult();
     }
 }

@@ -309,25 +309,27 @@ function initializePacksTable(dispatchId, isEdit) {
         ],
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: 'code', name: 'code', title: 'Code'},
-            {data: 'quantity', name: 'quantity', title: Trans.translated('acheminement.Quantité à acheminer') + (isEdit ? '*' : ''), tooltip: 'Quantité à acheminer'},
-            {data: 'nature', name: 'nature', title: Trans.translated('natures.nature') + (isEdit ? '*' : ''), tooltip: 'nature'},
-            {data: 'weight', name: 'weight', title: 'Poids (kg)'},
-            {data: 'volume', name: 'volume', title: 'Volume (m3)'},
-            {data: 'comment', name: 'comment', title: 'Commentaire'},
-            {data: 'lastMvtDate', name: 'lastMvtDate', title: 'Date dernier mouvement', render: function(data, type) {
+            {data: 'code', name: 'code', title: Translation.of('Demande', 'Acheminements', 'Général', 'Code')},
+            {data: 'quantity', name: 'quantity', title: Translation.of('Demande', 'Acheminements', 'Général', 'Quantité à acheminer') + (isEdit ? '*' : '')},
+            {data: 'nature', name: 'nature', title: Translation.of('Demande','Acheminements', 'Général', 'Nature') + (isEdit ? '*' : '')},
+            {data: 'weight', name: 'weight', title: Translation.of('Demande', 'Acheminements', 'Général', 'Poids (kg)')},
+            {data: 'volume', name: 'volume', title: Translation.of('Demande', `Acheminements`, `Général`, 'Volume (m3)')},
+            {data: 'comment', name: 'comment', title: Translation.of('Général', null, 'Modale', 'Commentaire')},
+            {data: 'lastMvtDate', name: 'lastMvtDate', title: Translation.of('Demande', 'Acheminements', 'Général', 'Date dernier mouvement'), render: function(data, type) {
                 if(type !== `sort`) {
                     const date = moment(data, 'YYYY/MM/DD HH:mm');
                     if(date.isValid()) {
-                        return date.format('DD/MM/YYYY HH:mm');
+                        const $userFormat = $('#userDateFormat');
+                        const format = ($userFormat.val() ? DATE_FORMATS_TO_DISPLAY[$userFormat.val()] : 'DD/MM/YYYY') + ' HH:mm';
+                        return date.format(format);
                     }
                 }
 
                 return data;
             }},
-            {data: 'lastLocation', name: 'lastLocation', title: 'Dernier emplacement'},
-            {data: 'operator', name: 'operator', title: 'Opérateur'},
-            {data: 'status', name: 'status', title: 'Statut'},
+            {data: 'lastLocation', name: 'lastLocation', title: Translation.of('Demande', `Acheminements`, `Général`, `Dernier emplacement`)},
+            {data: 'operator', name: 'operator', title: Translation.of('Demande', `Acheminements`, `Général`, `Opérateur`)},
+            {data: 'status', name: 'status', title: Translation.of('Demande', `Général`, `Statut`)},
         ],
     });
 
@@ -367,7 +369,6 @@ function initializePacksTable(dispatchId, isEdit) {
             $select.closest(`td, th`)
                 .empty()
                 .append(`<span title="${code}">${code}</span> <input type="hidden" name="pack" class="data" value="${code}"/>`);
-
             $row.find(`.d-none`).removeClass(`d-none`);
             $row.find(`[name=weight]`).val(value.weight);
             $row.find(`[name=volume]`).val(value.volume);

@@ -1,8 +1,18 @@
 import {createManagementPage} from './utils';
-import EditableDatatable, {MODE_CLICK_EDIT, MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
+import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "@app/editatable";
+
+import Form from '@app/form';
+import AJAX, {POST} from "@app/ajax";
+
+const MODE_ARRIVAL = `arrival`;
+const MODE_TRACKING = `tracking`;
+const MODE_DISPATCH = `dispatch`;
+const MODE_HANDLING = `handling`;
 
 const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);
+const $managementButtons = $(`.save-settings, .discard-settings`);
+let canTranslate = true;
 
 function generateFreeFieldForm() {
     return {
@@ -102,9 +112,21 @@ function onElementsChange() {
     $defaultValue.trigger('change');
 }
 
-export function createFreeFieldsPage($container, canEdit) {
+export function createArrivalsFreeFieldsPage($container, canEdit) {
+    createFreeFieldsPage($container, canEdit, MODE_ARRIVAL)
+}
+
+export function createDispatchFreeFieldsPage($container, canEdit) {
+    createFreeFieldsPage($container, canEdit, MODE_DISPATCH)
+}
+
+export function createHandlingFreeFieldsPage($container, canEdit) {
+    createFreeFieldsPage($container, canEdit, MODE_HANDLING)
+}
+
+export function createFreeFieldsPage($container, canEdit, mode) {
     const category = $container.find('.management-body').data('category');
-    createManagementPage($container, {
+    const table = createManagementPage($container, {
         name: `freeFields`,
         mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
         newTitle: 'Ajouter un type et des champs libres',
@@ -123,10 +145,10 @@ export function createFreeFieldsPage($container, canEdit) {
             columns: generateFreeFieldColumns(canEdit),
             form: generateFreeFieldForm(),
         },
-        onEditStop: () => {
-            updateCheckedType($container);
-        }
+        ...createFreeFieldsListeners($container, canEdit, mode),
     });
+
+    setupTranslationsModal($container, table);
 
     $container.on(`change`, `[name=type]`, defaultValueTypeChange);
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
@@ -137,6 +159,85 @@ export function createFreeFieldsPage($container, canEdit) {
             .closest(`.main-entity-content-item`)
             .toggleClass(`d-none`, val !== 2);
     });
+}
+
+function setupTranslationsModal($container, table) {
+    Form.create($container.find(".edit-translation-modal"))
+        .onSubmit((data, form) => {
+            form.loading(
+                () => AJAX.route(POST, `settings_edit_type_translations`)
+                    .json(data)
+                    .then(response => {
+                        if(response.success) {
+                            $container.find(`.edit-translation-modal`).modal(`hide`);
+                            table.table.ajax.reload();
+                        }
+                    })
+            )
+        });
+}
+
+function createFreeFieldsListeners($container, canEdit, mode) {
+    const $addButton = $container.find(`.add-row-button`);
+    const $translateButton = $container.find(`.translate-labels-button`);
+    const $filtersContainer = $container.find('.filters-container');
+    const $pageBody = $container.find('.page-body');
+    const $addRow = $container.find(`.add-row`);
+    const $translateLabels = $container.find('.translate-labels');
+    const tableSelector = `#${mode}-statuses-table`;
+    const $modalEditTranslations = $container.find(".edit-translation-modal");
+
+    if(mode) {
+        return {
+            onInit: () => {
+                $addButton.removeClass(`d-none`);
+            },
+            onEditStart: () => {
+                $managementButtons.removeClass('d-none');
+                if(mode) {
+                    $addRow.addClass('d-none');
+                    if (canTranslate) {
+                        $translateLabels.removeClass('d-none');
+                    }
+
+                    $translateButton
+                        .off('click')
+                        .on(`click`, function () {
+                            const params = {
+                                type: $container.find('[name=entity]:checked').val(),
+                            };
+
+                            AJAX.route(`POST`, `settings_edit_type_translations_api`, params)
+                                .json()
+                                .then(response => {
+                                    $modalEditTranslations.find(`.modal-body`).html(response.html);
+                                    $modalEditTranslations.modal('show');
+                                })
+                        });
+                }
+            },
+            onEditStop: () => {
+                if(mode !== MODE_TRACKING) {
+                    updateCheckedType($container);
+                }
+
+                $managementButtons.addClass('d-none');
+                $addRow.removeClass('d-none');
+                $filtersContainer.removeClass('d-none');
+                if (canTranslate) {
+                    $translateLabels.addClass('d-none');
+                }
+                canTranslate = true;
+                $pageBody.find('.wii-title').remove();
+            },
+        };
+    } else {
+        return {
+            onEditStop: () => {
+                updateCheckedType($container);
+            },
+        }
+    }
 }
 
 export function initializeStockArticlesTypesFreeFields($container, canEdit) {
@@ -184,17 +285,12 @@ export function initializeTraceMovementsFreeFields($container, canEdit) {
         save: SAVE_MANUALLY,
         search: true,
         paging: true,
-        onEditStart: () => {
-            $saveButton.removeClass('d-none');
-            $discardButton.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $saveButton.removeClass('d-none');
-            $discardButton.removeClass('d-none');
-        },
         columns: generateFreeFieldColumns(canEdit),
         form: generateFreeFieldForm(),
+        ...createFreeFieldsListeners($container, canEdit, MODE_TRACKING),
     });
+
+    setupTranslationsModal($container, table);
 
     $container.on(`change`, `[name=type]`, defaultValueTypeChange);
     $container.on(`keyup`, `[name=elements]`, onElementsChange);

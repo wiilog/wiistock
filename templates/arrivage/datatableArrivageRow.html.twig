@@ -5,12 +5,12 @@
             <a href='{{ url }}' class="d-none action-on-click">
                 Voir
             </a>
-            <a class="dropdown-item pointer"
+            <a class="dropdown-item pointer  d-flex align-items-center"
                data-id='{{ arrivage.id }}'
                data-target='#modalListColis'
                data-toggle='modal'
                onclick="listColis($(this))">
-                <i class=' mr-2 fas fa-print'></i>Imprimer
+                <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Impression') }}
             </a>
         </div>
     </div>

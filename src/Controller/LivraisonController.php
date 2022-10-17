@@ -23,7 +23,7 @@ use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -70,7 +70,7 @@ class LivraisonController extends AbstractController
                            LivraisonsManagerService $livraisonsManager,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
+        if ($livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER) {
             try {
                 $dateEnd = new DateTime('now');
                 /** @var Utilisateur $user */
@@ -181,7 +181,7 @@ class LivraisonController extends AbstractController
             'finished' => $livraison->isCompleted(),
             'headerConfig' => [
                 [ 'label' => 'Numéro', 'value' => $livraison->getNumero() ],
-                [ 'label' => 'Statut', 'value' => $livraison->getStatut() ? ucfirst($livraison->getStatut()->getNom()) : '' ],
+                [ 'label' => 'Statut', 'value' => $livraison->getStatut() ? ucfirst($this->getFormatter()->status($livraison->getStatut())) : '' ],
                 [ 'label' => 'Opérateur', 'value' => $utilisateurPreparation ? $utilisateurPreparation->getUsername() : '' ],
                 [ 'label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande) ],
                 [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],

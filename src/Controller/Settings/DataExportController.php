@@ -31,7 +31,9 @@ use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use DoctrineExtensions\Query\Mysql\Exp;
+use RuntimeException;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -191,8 +193,7 @@ class DataExportController extends AbstractController {
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::REFERENCE_ARTICLE], [CategoryType::ARTICLE]);
         $header = $dataExportService->createReferencesHeader($freeFieldsConfig);
 
-        $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
+        $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         $user = $userService->getUser();
 
         return $csvService->streamResponse(function($output) use ($manager, $dataExportService, $user, $freeFieldsConfig, $refArticleDataService) {
@@ -216,8 +217,7 @@ class DataExportController extends AbstractController {
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
         $header = $dataExportService->createArticlesHeader($freeFieldsConfig);
 
-        $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
+        $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         $user = $userService->getUser();
 
         return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $dataExportService, $user, $articleDataService) {
@@ -247,7 +247,7 @@ class DataExportController extends AbstractController {
 
         $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
         $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
+        $today = $today->format("d-m-Y-H-i-s");
         $header = $dataExportService->createDeliveryRoundHeader();
 
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);

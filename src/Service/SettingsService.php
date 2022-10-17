@@ -19,10 +19,13 @@ use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
+use App\Entity\Language;
 use App\Entity\MailerServer;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Translation;
+use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
@@ -45,6 +48,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class SettingsService {
@@ -68,6 +72,12 @@ class SettingsService {
 
     /** @Required */
     public StatusService $statusService;
+
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public UserService $userService;
 
     private array $settingsConstants;
 
@@ -618,7 +628,8 @@ class SettingsService {
                     throw new RuntimeException("Vous devez saisir un libellé pour le type");
                 }
 
-                $type->setLabel($data["label"] ?? $type->getLabel())
+                $type
+                    ->setLabel($data["label"] ?? $type->getLabel())
                     ->setDescription($data["description"] ?? null)
                     ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
                     ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
@@ -662,7 +673,8 @@ class SettingsService {
                         ->toArray();
                 }
 
-                $freeField->setLabel($item["label"])
+                $freeField
+                    ->setLabel($item["label"])
                     ->setType($type ?? null)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
                     ->setCategorieCL(isset($item["category"])
@@ -674,6 +686,36 @@ class SettingsService {
                     ->setDisplayedCreate($item["displayedCreate"])
                     ->setRequiredCreate($item["requiredCreate"])
                     ->setRequiredEdit($item["requiredEdit"]);
+
+                if(!$freeField->getLabelTranslation()) {
+                    $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getLabel());
+                } else {
+                    $freeField->getLabelTranslation()
+                        ->getTranslationIn(Language::FRENCH_SLUG)
+                        ->setTranslation($freeField->getLabel());
+                }
+
+                if($freeField->getDefaultValue() && !$freeField->getDefaultValueTranslation()) {
+                    $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
+                } else if($freeField->getDefaultValueTranslation()) {
+                    $freeField->getDefaultValueTranslation()
+                        ->getTranslationIn(Language::FRENCH_SLUG)
+                        ->setTranslation($freeField->getDefaultValue());
+                }
+
+                foreach($freeField->getElementsTranslations() as $source) {
+                    if(!in_array($source->getTranslationIn(Language::FRENCH_SLUG)->getTranslation(), $freeField->getElements())) {
+                        $freeField->removeElementTranslation($source);
+                        $this->manager->remove($source);
+                    }
+                }
+
+                foreach($freeField->getElements() as $element) {
+                    $source = $freeField->getElementTranslation($element);
+                    if(!$source) {
+                        $this->translationService->setFirstTranslation($this->manager, $freeField, $element, "addElementTranslation");
+                    }
+                }
 
                 $this->manager->persist($freeField);
             }
@@ -745,6 +787,7 @@ class SettingsService {
                 $statusRepository = $this->manager->getRepository(Statut::class);
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
                 $typeRepository = $this->manager->getRepository(Type::class);
+                $languageRepository = $this->manager->getRepository(Language::class);
 
                 $categoryName = match ($statusesData[0]['mode']) {
                     StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
@@ -789,18 +832,40 @@ class SettingsService {
                         $persistedStatuses[] = $status;
                     }
 
-                    $status->setNom($statusData['label']);
-                    $status->setState($statusData['state']);
-                    $status->setComment($statusData['comment'] ?? null);
-                    $status->setDefaultForCategory($statusData['defaultStatut'] ?? false);
-                    $status->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false);
-                    $status->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false);
-                    $status->setSendNotifToRecipient($statusData['sendMailDest'] ?? false);
-                    $status->setNeedsMobileSync($statusData['needsMobileSync'] ?? false);
-                    $status->setCommentNeeded($statusData['commentNeeded'] ?? false);
-                    $status->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false);
-                    $status->setDisplayOrder($statusData['order'] ?? 0);
+                    $status
+                        ->setNom($statusData['label'])
+                        ->setState($statusData['state'])
+                        ->setComment($statusData['comment'] ?? null)
+                        ->setDefaultForCategory($statusData['defaultStatut'] ?? false)
+                        ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
+                        ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)
+                        ->setSendNotifToRecipient($statusData['sendMailDest'] ?? false)
+                        ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
+                        ->setCommentNeeded($statusData['commentNeeded'] ?? false)
+                        ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
+                        ->setDisplayOrder($statusData['order'] ?? 0);
 
+                    // label given on creation or edit is the French one
+                    $labelTranslation = $status->getLabelTranslation();
+                    if(!$labelTranslation) {
+                        $labelTranslation = new TranslationSource();
+                        $this->manager->persist($labelTranslation);
+
+                        $status->setLabelTranslation($labelTranslation);
+                    }
+
+                    $translation = $labelTranslation->getTranslationIn(Language::FRENCH_SLUG);
+
+                    if (!$translation) {
+                        $language = $languageRepository->findOneBy(['slug' => Language::FRENCH_SLUG]);
+                        $translation = new Translation();
+                        $translation
+                            ->setSource($labelTranslation)
+                            ->setLanguage($language);
+                        $this->manager->persist($translation);
+                    }
+
+                    $translation->setTranslation($statusData['label']);
                     $this->manager->persist($status);
                 }
                 $validation = $this->statusService->validateStatusesData($persistedStatuses);

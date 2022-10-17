@@ -19,6 +19,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 
@@ -32,8 +33,11 @@ class LivraisonsManagerService
     public const MOUVEMENT_DOES_NOT_EXIST_EXCEPTION = 'mouvement-does-not-exist';
     public const LIVRAISON_ALREADY_BEGAN = 'livraison-already-began';
 
-    /** @Required */
+    #[Required]
     public NotificationService $notificationService;
+
+    #[Required]
+    public FormatService $formatService;
 
     private $entityManager;
     private $mailerService;
@@ -105,8 +109,8 @@ class LivraisonsManagerService
             }
         }
 
-        if (($livraison->getStatut() && $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER) ||
-            $livraison->getUtilisateur() && ($livraison->getUtilisateur()->getId() === $user->getId())) {
+        if ($livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER
+            || $livraison->getUtilisateur()?->getId() === $user->getId()) {
 
             // repositories
             $statutRepository = $this->entityManager->getRepository(Statut::class);
@@ -114,7 +118,7 @@ class LivraisonsManagerService
 
             $statutForLivraison = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::ORDRE_LIVRAISON,
-                $livraison->getPreparation()->getStatut()->getNom() === Preparation::STATUT_INCOMPLETE ? Livraison::STATUT_INCOMPLETE : Livraison::STATUT_LIVRE);
+                $livraison->getPreparation()->getStatut()?->getCode() === Preparation::STATUT_INCOMPLETE ? Livraison::STATUT_INCOMPLETE : Livraison::STATUT_LIVRE);
 
             $livraison
                 ->setStatut($statutForLivraison)
@@ -126,8 +130,8 @@ class LivraisonsManagerService
                 $demande
                     ->getPreparations()
                     ->filter(function (Preparation $preparation) {
-                        return $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER ||
-                            ($preparation->getLivraison() && $preparation->getLivraison()->getStatut()->getNom() === Livraison::STATUT_A_TRAITER);
+                        return $preparation->getStatut()?->getCode() === Preparation::STATUT_A_TRAITER ||
+                            $preparation->getLivraison()?->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER;
                     })
                     ->count()
                 > 0
@@ -228,7 +232,10 @@ class LivraisonsManagerService
         $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $preparation = $livraison->getpreparation();
         $livraisonStatus = $livraison->getStatut();
-        $livraisonStatusName = $livraisonStatus->getNom();
+        $livraisonStatusCode = $livraisonStatus?->getCode();
+        $movementType = ($livraisonStatusCode === Livraison::STATUT_A_TRAITER)
+            ? MouvementStock::TYPE_TRANSFER
+            : MouvementStock::TYPE_ENTREE;
 
         $articleLines = $preparation->getArticleLines();
 
@@ -245,11 +252,7 @@ class LivraisonsManagerService
                     $pickedQuantity,
                     $now,
                     $entityManager,
-                    (
-                    ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
-                        ? MouvementStock::TYPE_TRANSFER
-                        : MouvementStock::TYPE_ENTREE
-                    )
+                    $movementType
                 );
                 $article
                     ->setStatut($statutTransit)
@@ -282,11 +285,7 @@ class LivraisonsManagerService
                         $pickedQuantity,
                         $now,
                         $entityManager,
-                        (
-                        ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
-                            ? MouvementStock::TYPE_TRANSFER
-                            : MouvementStock::TYPE_ENTREE
-                        )
+                        $movementType
                     );
                 }
             }

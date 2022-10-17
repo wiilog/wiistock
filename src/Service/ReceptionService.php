@@ -20,7 +20,8 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use InvalidArgumentException;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\TranslationService;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -35,36 +36,38 @@ class ReceptionService
     public const INVALID_PROVIDER = 'invalid-provider';
 
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public FieldsParamService $fieldsParamService;
 
-    /** @Required */
+    #[Required]
     public StringService $stringService;
 
-    /** @Required */
-    public TranslatorInterface $translator;
+    #[Required]
+    public TranslationService $translation;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
 
-    /** @Required */
+    #[Required]
     public UniqueNumberService $uniqueNumberService;
 
-    /** @Required */
+    #[Required]
     public FormService $formService;
 
-    /** @Required  */
+    #[Required]
     public SettingsService $settingsService;
 
-    /** @Required  */
+    #[Required]
     public VisibleColumnService $visibleColumnService;
 
+    #[Required]
+    public FormatService $formatService;
 
     public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null)
     {
@@ -284,7 +287,7 @@ class ReceptionService
         $columns = [
             ['name' => "Actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
             ["title" => "Date création", "name" => "Date", 'searchable' => true],
-            ["title" => "réception.n° de réception", "name" => "number", 'searchable' => true, 'translated' => true],
+            ["title" => $this->translation->translate("Ordre", "Réceptions", "n° de réception", false), "name" => "number", 'searchable' => true, 'translated' => true],
             ["title" => "Date attendue", "name" => "dateAttendue", 'searchable' => true],
             ["title" => "Date fin", "name" => "DateFin", 'searchable' => true],
             ["title" => "Numéro commande", "name" => "orderNumber", 'searchable' => true],
@@ -336,10 +339,10 @@ class ReceptionService
         $config = [
             [
                 'label' => 'Statut',
-                'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : ''
+                'value' => $status ? $this->stringService->mbUcfirst($this->formatService->status($status)) : ''
             ],
             [
-                'label' => $this->translator->trans('réception.n° de réception'),
+                'label' => $this->translation->translate("Ordre", "Réceptions", "n° de réception", false),
                 'title' => 'n° de réception',
                 'value' => $reception->getNumber(),
                 'show' => [ 'fieldName' => 'number' ]

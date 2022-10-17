@@ -2,8 +2,12 @@
 
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
-    {% include 'filters/filter_item/filterStatus.html.twig' %}
-    {% include 'filters/filter_item/filterNumArrivage.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' with {
+        placeholder : trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Statuts', false)
+    } %}
+    {% include 'filters/filter_item/filterNumArrivage.html.twig' with {
+        title: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage', false)
+    } %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCustoms.html.twig' %}
@@ -22,7 +26,7 @@
         {% include 'filters/filter_item/filterCarrier.html.twig' %}
     {% endif %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder: 'Destinataires'
+        placeholder: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Destinataires', false)
     } %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}

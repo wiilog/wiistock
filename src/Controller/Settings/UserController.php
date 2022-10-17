@@ -4,16 +4,19 @@ namespace App\Controller\Settings;
 
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Service\CacheService;
 use App\Service\CSVExportService;
+use App\Service\LanguageService;
 use App\Service\PasswordService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,6 +43,7 @@ class UserController extends AbstractController {
     {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $languageRepository = $entityManager->getRepository(Language::class);
 
             $user = $utilisateurRepository->find($data['id']);
 
@@ -49,6 +53,21 @@ class UserController extends AbstractController {
                 'userHandlingTypes' => $user->getHandlingTypeIds(),
                 'html' => $this->renderView('settings/utilisateurs/utilisateurs/form.html.twig', [
                     'user' => $user,
+                    "languages" => Stream::from($languageRepository->findBy(["hidden" => false]))
+                        ->map(fn(Language $language) => [
+                            "value" => $language->getId(),
+                            "label" => $language->getLabel(),
+                            "icon" => $language->getFlag(),
+                            "selected" => $user->getLanguage() && $user->getLanguage() == $language
+                        ])
+                        ->toArray(),
+                    "dateFormats" => Stream::from(Language::DATE_FORMATS)
+                        ->map(fn($format, $key) => [
+                            "label" => $key,
+                            "value" => $format,
+                            "selected" => $key == $user->getDateFormat()
+                        ])
+                        ->toArray(),
                 ])
             ]);
         }
@@ -151,7 +170,8 @@ class UserController extends AbstractController {
                          UserPasswordHasherInterface $encoder,
                          PasswordService $passwordService,
                          UserService $userService,
-                         EntityManagerInterface $entityManager): Response
+                         EntityManagerInterface $entityManager,
+                         CacheService $cacheService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $loggedUser */
@@ -161,9 +181,11 @@ class UserController extends AbstractController {
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
+            $languageRepository = $entityManager->getRepository(Language::class);
 
             $user = $utilisateurRepository->find($data['user']);
             $role = $roleRepository->find($data['role']);
+            $language = $languageRepository->find($data['language']);
 
             $result = $passwordService->checkPassword($data['password'],$data['password2']);
             if ($result['response'] == false){
@@ -230,7 +252,6 @@ class UserController extends AbstractController {
             } elseif($dropzone[0] === 'locationGroup') {
                 $dropzone = $entityManager->find(LocationGroup::class, $dropzone[1]);
             }
-
             $user
                 ->setSecondaryEmails($secondaryEmails)
                 ->setRole($role)
@@ -240,7 +261,9 @@ class UserController extends AbstractController {
                 ->setDropzone($dropzone)
                 ->setEmail($data['email'])
                 ->setPhone($data['phoneNumber'] ?? '')
-                ->setDeliverer($data['deliverer'] ?? false);
+                ->setDeliverer($data['deliverer'] ?? false)
+                ->setLanguage($language)
+                ->setDateFormat($data['dateFormat']);
 
             $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
             if ($visibilityGroupsIds) {
@@ -323,6 +346,7 @@ class UserController extends AbstractController {
 
             $entityManager->persist($user);
             $entityManager->flush();
+            $cacheService->delete(CacheService::LANGUAGES, 'languagesSelector'.$user->getId());
 
             $dataResponse = ['success' => true];
 
@@ -387,12 +411,14 @@ class UserController extends AbstractController {
                         UserPasswordHasherInterface $encoder,
                         PasswordService $passwordService,
                         UserService $userService,
+                        LanguageService $languageService,
                         EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $roleRepository = $entityManager->getRepository(Role::class);
+            $languageRepository = $entityManager->getRepository(Language::class);
 
             $password = $data['password'];
             $password2 = $data['password2'];
@@ -456,7 +482,11 @@ class UserController extends AbstractController {
 
             $utilisateur = new Utilisateur();
             $uniqueMobileKey = $userService->createUniqueMobileLoginKey($entityManager);
+            $language = !empty($data['language'])
+                ? $languageRepository->find($data['language'])
+                : $languageService->getNewUserLanguage($entityManager);
             $role = $roleRepository->find($data['role']);
+
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
@@ -466,6 +496,8 @@ class UserController extends AbstractController {
                 ->setStatus(true)
                 ->setDropzone($dropzone)
                 ->setAddress($data['address'])
+                ->setLanguage($language)
+                ->setDateFormat($data['dateFormat'] ?? Utilisateur::DEFAULT_DATE_FORMAT)
                 ->setMobileLoginKey($uniqueMobileKey)
                 ->setDeliverer($data['deliverer'] ?? false);
 
@@ -570,6 +602,28 @@ class UserController extends AbstractController {
         return new JsonResponse();
     }
 
+    /**
+     * @Route("/langues/api", name="header_language_dateFormat_api" , methods={"POST"}, options={"expose"=true})
+     */
+    public function userLanguageApi(EntityManagerInterface $manager,
+                                       Request $request, CacheService $cacheService ): Response {
+        $data = $request->request;
+        $user = $this->getUser();
+
+        $languageRepository = $manager->getRepository(Language::class);
+        $newLanguage = $languageRepository->find($data->get('language'));
+
+        $user
+            ->setDateFormat($data->get('dateFormat'))
+            ->setLanguage($newLanguage);
+
+        $manager->flush();
+        $cacheService->delete(CacheService::LANGUAGES, 'languagesSelector'.$user->getId());
+
+        return $this->json([
+            "success" => true,
+        ]);
+    }
 
     /**
      * @Route("/set-columns-order", name="set_columns_order", methods="POST", options={"expose"=true}, condition="request.isXmlHttpRequest()")

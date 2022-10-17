@@ -26,22 +26,26 @@ function showColumns(table, data) {
     })
 }
 
-function extendsDateSort(name) {
+function extendsDateSort(name, format = '') {
     $.extend($.fn.dataTableExt.oSort, {
         [name + "-pre"]: function (date) {
-            const dateSplitted = date.split(' ');
-            const dateDaysParts = dateSplitted[0].split('/');
-            const year = parseInt(dateDaysParts[2]);
-            const month = parseInt(dateDaysParts[1]);
-            const day = parseInt(dateDaysParts[0]);
+            if (format) {
+                return moment(date, format).unix();
+            } else {
+                const dateSplitted = date.split(' ');
+                const dateDaysParts = dateSplitted[0].split('/');
+                const year = parseInt(dateDaysParts[2]);
+                const month = parseInt(dateDaysParts[1]);
+                const day = parseInt(dateDaysParts[0]);
 
-            const dateHoursParts = dateSplitted.length > 1 ? dateSplitted[1].split(':') : [];
-            const hours = dateHoursParts.length > 0 ? parseInt(dateHoursParts[0]) : 0;
-            const minutes = dateHoursParts.length > 1 ? parseInt(dateHoursParts[1]) : 0;
-            const seconds = dateHoursParts.length > 2 ? parseInt(dateHoursParts[2]) : 0;
+                const dateHoursParts = dateSplitted.length > 1 ? dateSplitted[1].split(':') : [];
+                const hours = dateHoursParts.length > 0 ? parseInt(dateHoursParts[0]) : 0;
+                const minutes = dateHoursParts.length > 1 ? parseInt(dateHoursParts[1]) : 0;
+                const seconds = dateHoursParts.length > 2 ? parseInt(dateHoursParts[2]) : 0;
 
-            const madeDate = new Date(year, month - 1, day, hours, minutes, seconds);
-            return madeDate.getTime() || 0;
+                const madeDate = new Date(year, month - 1, day, hours, minutes, seconds);
+                return madeDate.getTime() || 0;
+            }
         },
         [name + "-asc"]: function (a, b) {
             return ((a < b) ? -1 : ((a > b) ? 1 : 0));
@@ -137,6 +141,7 @@ function createDatatableDomFooter({information, length, pagination}) {
 }
 
 function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo}) {
+
     const domFooter = createDatatableDomFooter({
         information: !removeInfo,
         length: true,
@@ -276,18 +281,17 @@ function initDataTable($table, options) {
     const initCompleteCallback = options.initCompleteCallback;
     const hideColumnConfig = options.hideColumnConfig;
     const config = Object.assign({}, options);
-    delete options.domConfig;
-    delete options.rowConfig;
-    delete options.drawConfig;
-    delete options.initCompleteCallback;
-    delete options.hideColumnConfig;
+    delete config.domConfig;
+    delete config.rowConfig;
+    delete config.drawConfig;
+    delete config.initCompleteCallback;
+    delete config.hideColumnConfig;
+    delete config.drawCallback;
+    delete config.initComplete;
 
     let tooltips = [];
     (config.columns || []).forEach((column, id) => {
-        if (column.translated) {
-            tooltips.push({id, text: Trans.original(column.title)});
-            column.title = Trans.translated(column.title);
-        } else if (column.tooltip) {
+        if (column.tooltip) {
             tooltips.push({id, text: column.tooltip});
         }
 
@@ -335,7 +339,34 @@ function initDataTable($table, options) {
                 realtime: false,
             }
         }
-        : {}
+        : {};
+
+    const drawCallback = options.drawCallback
+        ? options.drawCallback
+        : (response) => {
+            datatableDrawCallback(Object.assign({
+                table: datatableToReturn,
+                response,
+                $table
+            }, drawConfig || {}));
+        };
+
+    const initComplete = options.initComplete
+        ? options.initComplete
+        : () => {
+            let $searchInputContainer = $table.parents('.dataTables_wrapper').find('.dataTables_filter');
+            moveSearchInputToHeader($searchInputContainer);
+            tableCallback(hideColumnConfig || {}, datatableToReturn);
+            if (initCompleteCallback) {
+                initCompleteCallback();
+            }
+            attachDropdownToBodyOnDropdownOpening($table);
+            if (config.page && config.page !== '') {
+                getAndApplyOrder(config, datatableToReturn);
+            } else {
+                datatableToReturn.off('column-reorder');
+            }
+        };
 
     datatableToReturn = $table
         .on('error.dt', function (e, settings, techNote, message) {
@@ -348,32 +379,40 @@ function initDataTable($table, options) {
             autoWidth: true,
             scrollX: true,
             language: {
-                url: "/js/i18n/dataTableLanguage.json",
+                "sProcessing": Translation.of(`Général`, ``, `Zone liste`, `Traitement en cours`, false),
+                "searchPlaceholder": "",
+                "sSearch": Translation.of(`Général`, ``, `Zone liste`, `Rechercher : `, false),
+                "sLengthMenu": Translation.of(`Général`, ``, `Zone liste`, `Afficher {1} éléments`, {1: '_MENU_'}, false),
+                "sInfo": Translation.of(`Général`, ``, `Zone liste`, `{1} à {2} sur {3}`, {1: '_START_', 2: '_END_', 3: '_TOTAL_'}, false),
+                "sInfoEmpty": Translation.of(`Général`, ``, `Zone liste`, `Aucun élément à afficher`, false),
+                "sInfoFiltered": Translation.of(`Général`, ``, `Zone liste`, `(filtré de {1} éléments au total)`, {1: '_MAX_'}, false),
+                "sInfoPostFix": "",
+                "sLoadingRecords": Translation.of(`Général`, ``, `Zone liste`, `Chargement en cours`, false),
+                "sZeroRecords": Translation.of(`Général`, ``, `Zone liste`, `Aucun élément à afficher`, false),
+                "sEmptyTable": Translation.of(`Général`, ``, `Zone liste`, `Aucune donnée disponible`, false),
+                "oPaginate": {
+                    "sFirst": "Premier",
+                    "sPrevious": Translation.of(`Général`, ``, `Zone liste`, `Précédent`, false),
+                    "sNext": Translation.of(`Général`, ``, `Zone liste`, `Suivant`, false),
+                    "sLast": "Dernier"
+                },
+                "oAria": {
+                    "sSortAscending": ": activer pour trier la colonne par ordre croissant",
+                    "sSortDescending": ": activer pour trier la colonne par ordre d&eacute;croissant"
+                }
             },
             dom: getAppropriateDom(domConfig || {}),
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: (response) => {
-                datatableDrawCallback(Object.assign({
-                    table: datatableToReturn,
-                    response,
-                    $table
-                }, drawConfig || {}));
+                setTimeout(() => {
+                    drawCallback(response);
+                });
             },
             initComplete: () => {
-                let $searchInputContainer = $table.parents('.dataTables_wrapper').find('.dataTables_filter');
-                moveSearchInputToHeader($searchInputContainer);
-                tableCallback(hideColumnConfig || {}, datatableToReturn);
-                if (initCompleteCallback) {
-                    initCompleteCallback();
-                }
-                attachDropdownToBodyOnDropdownOpening($table);
-                if(config.page && config.page !== '') {
-                    getAndApplyOrder(config, datatableToReturn);
-                }
-                else {
-                    datatableToReturn.off('column-reorder');
-                }
-            }
+                setTimeout(() => {
+                    initComplete();
+                });
+            },
         }, colReorderActivated, config));
 
     return datatableToReturn;
@@ -533,9 +572,8 @@ function getAndApplyOrder(config, datatable) {
                 datatable
                     .on('column-reorder', function () {
                         params.order = datatable.colReorder.order();
-
                         $.post(Routing.generate('set_columns_order'), params).then(() => {
-                            showBSAlert(`Vos préférences d'ordre de colonnes ont bien été enregistrées`, `success`);
+                            showBSAlert( Translation.of(`Général`, '', 'Zone liste', 'Vos préférences d\'ordre de colonnes ont bien été enregistrées'), `success`);
                         });
                     });
             }

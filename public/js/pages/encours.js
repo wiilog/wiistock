@@ -2,8 +2,8 @@ fromDashboard = $('input[name=fromDashboard]').val();
 
 $(function () {
     $('.filters-container').find('.submit-button').prop('disabled', fromDashboard);
-    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 1);
-    Select2Old.init($('.filter-select2[name="natures"]'), 'Natures');
+    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of('Traçabilité', 'Encours', 'Emplacements', false), 1);
+    Select2Old.init($('.filter-select2[name="natures"]'), Translation.of('Traçabilité', 'Encours', 'Natures', false));
 
     const isPreFilledFilter = $('.filters-container [name="isPreFilledFilter"]').val() === '1';
 
@@ -19,7 +19,7 @@ $(function () {
             if (!isPreFilledFilter) {
                 displayFiltersSup(data);
             }
-            extendsDateSort('date');
+            extendsDateSort('date', 'YYYY-MM-DDTHH:mm:ss');
             loadPage();
         }, 'json');
     });
@@ -32,7 +32,7 @@ function loadPage() {
 
     if (locationFiltersCounter < min ) {
         $('.block-encours').addClass('d-none');
-        showBSAlert('Vous devez sélectionner au moins un emplacement dans les filtres', 'danger')
+        showBSAlert(Translation.of('Traçabilité', 'Encours', 'Vous devez sélectionner au moins un emplacement dans les filtres'), 'danger')
     }
     else {
         $('.block-encours').each(function () {
@@ -49,6 +49,12 @@ function loadPage() {
             }
         });
     }
+
+    $.post(Routing.generate('check_location_delay', {locationIds: idLocationsToDisplay}, true), (response) => {
+        if(!response.hasDelayError){
+            showBSAlert(Translation.of('Traçabilité', 'Encours', 'Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.'), 'danger')
+        }
+    });
 }
 
 function loadEncoursDatatable($table) {
@@ -68,11 +74,11 @@ function loadEncoursDatatable($table) {
                 "data": {id: tableId}
             },
             columns: [
-                {"data": 'linkedArrival', 'name': 'linkedArrival', 'className': 'noVis', orderable : false},
-                {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
-                {"data": 'date', 'name': 'date', 'title': 'Date de dépose'},
-                {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
-                {"data": 'late', 'name': 'late', 'title': 'late', 'visible': false, 'searchable': false},
+                {data: 'linkedArrival', name: 'linkedArrival', className: 'noVis', orderable : false},
+                {data: 'colis', name: 'colis', title: Translation.of('Traçabilité', 'Général', 'Unités logistiques')},
+                {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Encours', 'Date de dépose') },
+                {data: 'delay', name: 'delay', title: Translation.of('Traçabilité', 'Encours', 'Délai') , render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
+                {data: 'late', name: 'late', title: 'late', 'visible': false, 'searchable': false},
             ],
             rowConfig: {
                 needsColor: true,

@@ -56,14 +56,15 @@ class FreeFieldRepository extends EntityRepository {
     /**
      * @return FreeField[]
      */
-    public function findByCategoryTypeAndCategoryCL(string $typeCategory, CategorieCL $ffCategory): array {
-        return $this->createQueryBuilder("f")
-            ->join("f.type", "t")
-            ->join("t.category", "c")
-            ->where("c.label = :type")
-            ->andWhere("f.categorieCL = :category")
+    public function findByCategoryTypeAndCategoryCL(string $typeCategory, string $freeFieldCategory): array {
+        return $this->createQueryBuilder("free_field")
+            ->join("free_field.type", "join_type")
+            ->join("join_type.category", "join_type_category")
+            ->join("free_field.categorieCL", "join_free_field_category")
+            ->andWhere("join_type_category.label = :type")
+            ->andWhere("join_free_field_category.label = :category")
             ->setParameter("type", $typeCategory)
-            ->setParameter("category", $ffCategory)
+            ->setParameter("category", $freeFieldCategory)
             ->getQuery()
             ->getResult();
     }

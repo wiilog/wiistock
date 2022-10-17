@@ -1,15 +1,18 @@
+{% import 'form.html.twig' as form %}
+
 <form class="modal fade" id="modalNewNature" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: 'Créer <span title="une nature">' ~ ('natures.une nature' | trans) ~ '</span>'
+                title: 'Création de nature',
             } %}
 
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-md-6 col-12">
-                        <label class="wii-field-name">Label*</label>
-                        <input type="text" class="data form-control needed" name="label">
+                        {{ form.lang('label', 'Libellé', true, {
+                            languages: language_service.languages
+                        }) }}
                     </div>
                     <div class="form-group col-md-6 col-12">
                         <label class="wii-field-name">Code*</label>

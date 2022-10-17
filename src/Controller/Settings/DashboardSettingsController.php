@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dashboard;
 use App\Entity\Emplacement;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Statut;
@@ -15,10 +16,11 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\DashboardSettingsService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -31,6 +33,9 @@ class DashboardSettingsController extends AbstractController {
 
     /** @Required */
     public UserService $userService;
+
+    /** @Required */
+    public TranslationService $translationService;
 
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
@@ -142,6 +147,7 @@ class DashboardSettingsController extends AbstractController {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $languageRepository = $entityManager->getRepository(Language::class);
 
         $values = json_decode($request->request->get('values'), true);
         $values += [ //default values should be initialized here
@@ -294,6 +300,65 @@ class DashboardSettingsController extends AbstractController {
             $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
         }
 
+        $values['languages'] = $languageRepository->findBy(['hidden' => false]);
+
+        $tooltip = $values['tooltip'] ?? $componentType->getHint();
+        $title = $values['title'] ?? $componentType->getName();
+        $values['tooltip'] = [];
+        $values['title'] = [];
+        foreach ($values['languages'] as $language) {
+            $values['tooltip'][$language->getSlug()] = $language->getSlug() === 'french' ? $tooltip : '';
+            $values['title'][$language->getSlug()] = $language->getSlug() === 'french' ? $title : '';
+        }
+
+        Stream::from($values)
+            ->each(function($conf, $key) use (&$values) {
+                if (str_starts_with($key, 'tooltip_')) {
+                    $values['tooltip'][str_replace('tooltip_', '', $key)] = $conf;
+                    unset($values[$key]);
+                }
+            });
+
+        Stream::from($values)
+            ->each(function($conf, $key) use (&$values) {
+                if (str_starts_with($key, 'title_')) {
+                    $values['title'][str_replace('title_', '', $key)] = $conf;
+                    unset($values[$key]);
+                }
+            });
+
+        $displayLegend = $componentType->getMeterKey() === Dashboard\ComponentType::HANDLING_TRACKING || $componentType->getMeterKey() === Dashboard\ComponentType::PACK_TO_TREAT_FROM;
+        $values['legends'] = [];
+        if(!empty($values['chartColorsLabels'])){
+            $countLegend = 1;
+            foreach($values['chartColorsLabels'] as $legend){
+                $values['legends'][$legend] = [];
+                Stream::from($values)
+                    ->each(function ($conf, $arrayKey) use ($displayLegend, $legend, $countLegend, &$values) {
+                        if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                            $explode = explode('_', $arrayKey);
+                            $values['legends'][$legend][$explode[1]] = $displayLegend ? $conf : $this->translationService->translate('Dashboard', $conf);
+                            unset($values[$arrayKey]);
+                        }
+                    });
+                $countLegend++;
+            }
+        } else if(!empty($values['chartColors'])){
+            $countLegend = 1;
+            foreach($values['chartColors'] as $key => $legend){
+                $values['legends'][$key] = [];
+
+                Stream::from($values)
+                    ->each(function ($conf, $arrayKey) use ($displayLegend, $countLegend, $key, &$values) {
+                        if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                            $explode = explode('_', $arrayKey);
+                            $values['legends'][$key][$explode[1]] = $displayLegend ? $conf : $this->translationService->translate('Dashboard', $conf);
+                            unset($values[$arrayKey]);
+                        }
+                    });
+                $countLegend++;
+            }
+        }
 
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);

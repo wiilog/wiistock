@@ -11,8 +11,8 @@
             {% if hasRightEdit %}
                 <button type="button"
                         onclick="validateCollecte({{ collecte.id }}, $(this))"
-                        class="btn btn-primary split-button">
-                    <i class="fa fa-check mr-2"></i>
+                        class="btn btn-primary split-button d-flex align-items-center">
+                    <span class="wii-icon wii-icon-check-white mr-2"></span>
                     Valider
                 </button>
             {% endif %}
@@ -76,13 +76,13 @@
                             Historique des données
                         </a>
                     {% endif %}
-                    {% if collecte.ordresCollecte|length > 1 %}
+                    {% if collecte.ordresCollecte.count > 1 %}
                         <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
                            class="dropdown-item">
                             <i class="mr-2 fas fa-external-link-alt"></i>Aller vers les ordres de collecte
                         </a>
-                    {% else %}
-                        <a href="{{ path('ordre_collecte_show', {'id': collecte.ordresCollecte[0].id }) }}"
+                    {% elseif collecte.ordresCollecte.count == 1 %}
+                        <a href="{{ path('ordre_collecte_show', {'id': collecte.ordresCollecte.first.id }) }}"
                            class="dropdown-item">
                             <i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de collecte
                         </a>

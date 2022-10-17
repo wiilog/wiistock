@@ -12,3 +12,4 @@ twig:
         app_locale: '%env(APP_LOCALE)%'
         app_url: '%env(APP_URL)%'
         app_forbidden_phones: '%env(APP_FORBIDDEN_PHONES)%'
+        language_service: '@App\Service\LanguageService'

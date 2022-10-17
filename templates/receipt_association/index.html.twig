@@ -1,11 +1,13 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | Association BR{% endblock %}
+{% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Association BR', 'Association BR') }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersReceiptAssociation.html.twig' with {
         page : 'PAGE_RECEIPT_ASSOCIATION',
-        tableSelector : '#receiptAssociationTable'
+        tableSelector : '#receiptAssociationTable',
+        callback: 'null',
+        needsDateFormatting: true
     } %}
 {% endblock %}
 {% block page_content %}
@@ -18,11 +20,11 @@
                     <div class="btn-group">
                         {% if hasRightCreate %}
                             <button type="button"
-                                    class="btn btn-primary {{ hasRightExport ? 'split-button' }}"
+                                    class="btn btn-primary d-flex align-items-center {{ hasRightExport ? 'split-button' }}"
                                     data-target='#modalNewReceiptAssociation'
                                     data-toggle='modal'>
-                                <i class="fa fa-plus mr-1"></i>
-                                Association / BR
+                                <span class="wii-icon wii-icon-plus mr-2"></span>
+                                {{ trans('Traçabilité', 'Association BR', 'Association BR') }}
                             </button>
                         {% endif %}
                         {% if hasRightExport %}
@@ -36,8 +38,9 @@
 
                             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                                 <div class="dropdown-item pointer"
-                                     onclick="saveExportFile('get_receipt_associations_csv')">
-                                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                                     onclick="saveExportFile('get_receipt_associations_csv', true, {}, false, Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'), true)">
+                                    <i class="fa fa-file-csv mr-2"></i>
+                                    {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                                 </div>
                             </div>
                         {% endif %}

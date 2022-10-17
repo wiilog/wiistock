@@ -9,7 +9,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="form-group w-100">
-                            <label class="wii-field-name" for="reference" title="Référence">{{ 'reference.référence' | trans }}*</label>
+                            <label class="wii-field-name" for="reference" title="Référence">{{ trans('Stock', 'Références', 'Référence', false) }}*</label>
                             <select class="ajax-autocomplete data form-control needed"
                                 onchange="ajaxGetFournisseurByRefArticle($(this))" id="referenceCEA" name="refArticle">
                             </select>

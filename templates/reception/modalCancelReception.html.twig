@@ -2,12 +2,12 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: 'Annuler <span title="la réception">' ~ ('réception.la réception' | trans) ~ '</span>'
+                title: trans('Ordre', 'Réception', 'Annuler la réception', false)
             } %}
 
             <div class="modal-body">
                 <p>
-                    Voulez-vous réellement annuler <span title="cette réception">{{ 'réception.cette réception'|trans }}</span> ?
+                    Voulez-vous réellement annuler <span title="cette réception">{{ trans('Ordre', 'Réception', 'cette réception', false) }}</span> ?
                 </p>
             </div>
             {% include 'utils/modal/footer.html.twig' with {

@@ -4,14 +4,28 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
+use App\Entity\Language;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Helper\FormatHelper;
 use RuntimeException;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class FreeFieldService {
+
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public UserService $userService;
 
     public function createExportArrayConfig(EntityManagerInterface $entityManager,
                                             array $freeFieldCategoryLabels,
@@ -20,13 +34,19 @@ class FreeFieldService {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels($freeFieldCategoryLabels, $typeCategories);
 
+        $user = $this->userService->getUser();
+
+        $defaultLanguage = $this->languageService->getDefaultSlug();
+        $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultSlug();
+
         $config = [
             'freeFields' => [],
             'freeFieldsHeader' => []
         ];
 
         foreach ($freeFields as $freeField) {
-            $config['freeFieldsHeader'][] = $freeField->getLabel();
+            $config['freeFieldsHeader'][] = $freeField->getLabelIn($userLanguage, $defaultLanguage)
+                ?: $freeField->getLabel();
             $config['freeFields'][$freeField->getId()] = $freeField;
         }
 
@@ -35,10 +55,8 @@ class FreeFieldService {
 
     public function getListFreeFieldConfig(EntityManagerInterface $entityManager, string $freeFieldCategoryLabel, string $typeCategoryLabel): array {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-        $freeFieldCategoryRepository = $entityManager->getRepository(CategorieCL::class);
 
-        $freeFieldCategory = $freeFieldCategoryRepository->findOneBy(['label' => $freeFieldCategoryLabel]);
-        return Stream::from($freeFieldsRepository->findByCategoryTypeAndCategoryCL($typeCategoryLabel, $freeFieldCategory))
+        return Stream::from($freeFieldsRepository->findByCategoryTypeAndCategoryCL($typeCategoryLabel, $freeFieldCategoryLabel))
             ->keymap(fn(FreeField $freeField) => [$freeField->getId(), $freeField])
             ->toArray();
     }
@@ -46,7 +64,8 @@ class FreeFieldService {
 
     public function manageFreeFields($entity,
                                      array $data,
-                                     EntityManagerInterface $entityManager) {
+                                     EntityManagerInterface $entityManager,
+                                     Utilisateur $user = null) {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $freeFields = [];
         $champsLibresKey = array_keys($data);
@@ -54,7 +73,7 @@ class FreeFieldService {
             if (gettype($field) === 'integer') {
                 $champLibre = $champLibreRepository->find($field);
                 if ($champLibre) {
-                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$field]);
+                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$field], $user);
                 }
 
             }
@@ -63,8 +82,13 @@ class FreeFieldService {
         $entity->setFreeFields($freeFields);
     }
 
-    public function manageJSONFreeField(FreeField $champLibre, $value): string {
-        switch ($champLibre->getTypage()) {
+    public function manageJSONFreeField(FreeField   $freeField,
+                                                    $value,
+                                        Utilisateur $user = null): string {
+        $userLanguage = $this->getUser($user)?->getLanguage()
+            ?: $this->languageService->getDefaultSlug();
+
+        switch ($freeField->getTypage()) {
             case FreeField::TYPE_BOOL:
                 $value = empty($value) || $value === "false" ? "0" : "1";
                 break;
@@ -81,18 +105,42 @@ class FreeFieldService {
                             ? implode(';', $decoded)
                             : $decoded);
                 }
+
+                $values = Stream::explode(';', $value)
+                    ->filter()
+                    ->toArray();
+
+                $translatedValues = $this->translationService->translateFreeFieldListValues(
+                    [$userLanguage, $this->languageService->getDefaultSlug()],
+                    Language::FRENCH_SLUG,
+                    $freeField,
+                    $values
+                );
+
+                $value = Stream::from($translatedValues ?: [])->join(';')
+                    ?: null;
+                break;
+
+            case FreeField::TYPE_LIST:
+                $value = $this->translationService->translateFreeFieldListValues(
+                    [$userLanguage, $this->languageService->getDefaultSlug()],
+                    Language::FRENCH_SLUG,
+                    $freeField,
+                    $value === "null" ? "" : $value
+                );
+
                 break;
 
             case FreeField::TYPE_DATETIME:
                 //save the date in d/m/Y H:i
                 if(preg_match("/(\d{2})\/(\d{2})\/(\d{4})T(\d{2}):(\d{2})/", $value)) {
                     $date = DateTime::createFromFormat("d/m/Y H:i", $value);
-                    $value = $date->format("Y-m-dTH:i");
+                    $value = $value ? $date->format("Y-m-dTH:i") : null;
+                } else if ($user && $user->getDateFormat()) {
+                    $format = $user->getDateFormat() . ' H:i';
+                    $date = DateTime::createFromFormat($format, $value);
+                    $value = $value ? $date->format($format) : null;
                 }
-                break;
-
-            case FreeField::TYPE_LIST:
-                $value = $value === "null" ? "" : $value;
                 break;
 
             default:
@@ -104,10 +152,13 @@ class FreeFieldService {
 
     public function getFilledFreeFieldArray(EntityManagerInterface $entityManager,
                                                                    $entity,
-                                            array                  $displayedOptions) {
+                                            array                  $displayedOptions,
+                                            Utilisateur            $user = null) {
+        $defaultLanguage = $this->languageService->getDefaultSlug();
+        $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultSlug();
+
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $freeFieldCategoryRepository = $entityManager->getRepository(CategorieCL::class);
-
 
         /** @var Type $type */
         $type = $displayedOptions['type'] ?? null;
@@ -135,9 +186,15 @@ class FreeFieldService {
         $freeFieldValues = $entity->getFreeFields();
         return Stream::from($freeFields ?? [])
             ->map(fn (FreeField $freeField) => [
-                'label' => $freeField->getLabel(),
-                'value' => FormatHelper::freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField)
+                'label' => $freeField->getLabelIn($userLanguage, $defaultLanguage)
+                    ?: $freeField->getLabel(),
+                'isRaw' => true,
+                'value' => $this->formatService->freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField, $user)
             ])
             ->toArray();
+    }
+
+    private function getUser(?Utilisateur $user = null): ?Utilisateur {
+        return $user ?? $this->userService->getUser();
     }
 }

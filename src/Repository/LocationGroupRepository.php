@@ -6,7 +6,7 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\StringHelper;
@@ -24,7 +24,7 @@ class LocationGroupRepository extends EntityRepository
     {
         $queryBuilder = $this->createQueryBuilder("location_group");
 
-        $countTotal = QueryCounter::count($queryBuilder, "location_group");
+        $countTotal = QueryBuilderHelper::count($queryBuilder, "location_group");
 
         //Filter search
         if (!empty($params)) {
@@ -49,7 +49,7 @@ class LocationGroupRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($queryBuilder, "location_group");
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, "location_group");
 
         if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));

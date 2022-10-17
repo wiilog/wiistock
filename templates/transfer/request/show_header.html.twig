@@ -11,8 +11,8 @@
         {% if hasRightEdit and transfer.order is null %}
             <button type="button"
                     onclick="validateTransfer({{ transfer.id }}, $(this))"
-                    class="btn btn-primary split-button">
-                <i class="fa fa-check mr-2"></i>
+                    class="btn btn-primary split-button d-flex align-items-center">
+                <span class="wii-icon wii-icon-check-white mr-2"></span>
                 Valider
             </button>
         {% endif %}
@@ -48,9 +48,9 @@
             {% endif %}
             {% if hasRightDelete and transfer.order is null %}
                 <a href="" onclick="deleteRow($(this), $('#modalDeleteTransfer'), $('#submitDeleteTransfer'))"
-                   data-id='{{ transfer.id }}' data-target='#modalDeleteTransfer' data-toggle='modal'
-                   class="dropdown-item">
-                    <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                    data-id='{{ transfer.id }}' data-target='#modalDeleteTransfer' data-toggle='modal'
+                    class="dropdown-item d-flex align-items-center">
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer</a>
             {% endif %}
         </div>
     </div>

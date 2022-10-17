@@ -15,10 +15,10 @@
                 </div>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DELETE')) %}
-                <div class="dropdown-item"
+                <div class="dropdown-item d-flex align-items-center"
                      data-id="{{ alert_template.id }}"
                      onclick="deleteAlertTemplate($(this))">
-                    <i class="fas fa-trash mr-2"></i>Supprimer
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
                 </div>
             {% endif %}
         </div>

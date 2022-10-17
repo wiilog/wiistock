@@ -27,6 +27,7 @@ use Exception;
 use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 
@@ -61,8 +62,11 @@ class PreparationsManagerService
     private $security;
     private $CSVExportService;
 
-    /** @Required */
+    #[Required]
     public NotificationService $notificationService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function __construct(Security $security,
                                 CSVExportService $CSVExportService,
@@ -153,7 +157,7 @@ class PreparationsManagerService
         $statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, $prepaStatusLabel);
         $demandeStatusLabel = $isPreparationComplete ? Demande::STATUT_PREPARE : Demande::STATUT_INCOMPLETE;
         $statutPrepareDemande = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $demandeStatusLabel);
-        if ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER) {
+        if ($demande->getStatut()?->getCode() === Demande::STATUT_A_TRAITER) {
             $demande->setStatut($statutPrepareDemande);
         }
 
@@ -626,7 +630,7 @@ class PreparationsManagerService
             'Numéro' => $preparation->getNumero() ?? '',
             'Date' => $preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : '',
             'Opérateur' => $preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : '',
-            'Statut' => $preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
+            'Statut' => $preparation->getStatut() ? $this->formatService->status($preparation->getStatut()) : '',
             'Type' => $request && $request->getType() ? $request->getType()->getLabel() : '',
             'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', [
                 "url" => $this->router->generate('preparation_show', ["id" => $preparation->getId()]),

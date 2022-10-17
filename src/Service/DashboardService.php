@@ -33,7 +33,8 @@ use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
 use App\Helper\FormatHelper;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -51,19 +52,25 @@ class DashboardService {
     public const DAILY_PERIOD_NEXT_DAYS = 'nextDays';
     public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
 
-    private $enCoursService;
-    private $entityManager;
-    private $wiilockService;
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public EnCoursService $enCoursService;
+
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public WiilockService $wiilockService;
+
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public LanguageService $languageService;
 
     private $cacheDaysWorked;
-
-    public function __construct(EnCoursService $enCoursService,
-                                WiilockService $wiilockService,
-                                EntityManagerInterface $entityManager) {
-        $this->entityManager = $entityManager;
-        $this->enCoursService = $enCoursService;
-        $this->wiilockService = $wiilockService;
-    }
 
     public function refreshDate(EntityManagerInterface $entityManager): string {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
@@ -257,9 +264,11 @@ class DashboardService {
 
         foreach ($timeSpans as $timeBegin => $timeEnd) {
             $key = $timeBegin === -1
-                ? "Retard"
+                ? $this->translationService->translate("Dashboard", "Retard", false)
                 : ($timeEnd === 1
-                    ? "Moins d'1h"
+                    ? $this->translationService->translate("Dashboard", "Moins d'{1}", [
+                        1 => "1h"
+                    ], false)
                     : ($timeBegin . "h-" . $timeEnd . 'h'));
             $timeSpanToObject[$key] = $getObject($timeBegin, $timeEnd);
         }
@@ -354,11 +363,10 @@ class DashboardService {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
         $secondCount = '<span>'
             . ($numberOfOperations ?? '0')
-            . '</span><span class="text-wii-black"> lignes</span>';
-        $thirdCount = '<span class="text-wii-black">Dont</span>'
-            .' <span>'
-            . $numberOfEmergenciesHandlings
-            . '</span> <span class="text-wii-black"> urgences</span>';
+            . '</span><span class="text-wii-black"> '.$this->translationService->translate('Dashboard', 'lignes').'</span>';
+        $thirdCount = '<span class="text-wii-black">'.$this->translationService->translate('Dashboard', 'Dont {1} urgences', [
+                1 => '<span class="text-wii-danger">'.$numberOfEmergenciesHandlings.'</span>'
+            ]).'</span>';
 
         $meter
             ->setCount($numberOfHandlings)
@@ -480,8 +488,23 @@ class DashboardService {
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
         $config = $component->getConfig();
-        $legend1 = $config['originCaption'] ?: 'Legende1';
-        $legend2 = $config['destinationCaption'] ?: 'Legende2';
+        $config['legends'] = [];
+        $countLegend = 1;
+        foreach($config['chartColors'] as $key => $legend){
+            $config['legends'][$key] = [];
+            Stream::from($config)
+                ->each(function($conf, $arrayKey) use ($countLegend, $key, &$config) {
+                    if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                        $explode = explode('_', $arrayKey);
+                        $config['legends'][$key][$explode[1]] = $conf;
+                        unset($config[$arrayKey]);
+                    }
+                });
+            $countLegend++;
+        }
+
+        $legend1 = 'Legende1';
+        $legend2 = 'Legende2';
         $clusterKeys = ['firstOriginLocation', 'secondOriginLocation', 'firstDestinationLocation', 'secondDestinationLocation'];
         foreach ($clusterKeys as $key) {
             $this->updateComponentLocationCluster($entityManager, $component, $key);
@@ -608,7 +631,7 @@ class DashboardService {
             }, []);
             $countByNatureBase = [];
             foreach ($naturesFilter as $wantedNature) {
-                $countByNatureBase[$wantedNature->getLabel()] = 0;
+                $countByNatureBase[$this->formatService->nature($wantedNature)] = 0;
             }
             $segments = $config['segments'];
             $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
@@ -704,7 +727,7 @@ class DashboardService {
                     function (array $carry, Nature $nature) {
                         $color = $nature->getColor();
                         if (!empty($color)) {
-                            $carry[$nature->getLabel()] = $color;
+                            $carry[$this->formatService->nature($nature)] = $color;
                         }
                         return $carry;
                     },
@@ -1004,7 +1027,7 @@ class DashboardService {
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER:
-                    $count = QueryCounter::countByStatusesAndTypes($entityManager, $entityToClass[$config['entity']], $entityTypes, $entityStatuses);
+                    $count = QueryBuilderHelper::countByStatusesAndTypes($entityManager, $entityToClass[$config['entity']], $entityTypes, $entityStatuses);
                     break;
                 case Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY:
@@ -1159,7 +1182,7 @@ class DashboardService {
             $dates[] = 'validationDate';
         }
 
-        $hint = $config['tooltip'];
+        $hint = $config['tooltip'] ?? '';
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
 
@@ -1275,7 +1298,7 @@ class DashboardService {
                 $natureId = $nature->getId();
                 if (!isset($naturesStack[$natureId])) {
                     $naturesStack[$natureId] = [
-                        'label' => $nature->getLabel(),
+                        'label' => $this->formatService->nature($nature),
                         'backgroundColor' => $nature->getColor(),
                         'stack' => 'stack',
                         'data' => []
@@ -1309,7 +1332,7 @@ class DashboardService {
             }
         } else {
             $naturesStack[] = [
-                'label' => 'Colis',
+                'label' => 'Unité logistique',
                 'backgroundColor' => '#E5E1E1',
                 'stack' => 'stack',
                 'data' => []

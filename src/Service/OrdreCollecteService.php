@@ -24,6 +24,7 @@ use Exception;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class OrdreCollecteService
@@ -59,11 +60,14 @@ class OrdreCollecteService
 	private $stringService;
 	private $tokenStorage;
 
-	/** @Required */
+    #[Required]
 	public NotificationService $notificationService;
 
-    /** @Required */
+    #[Required]
     public DemandeCollecteService $demandeCollecteService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function __construct(RouterInterface $router,
                                 TokenStorageInterface $tokenStorage,
@@ -117,7 +121,7 @@ class OrdreCollecteService
 
 		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
 
-		if ($ordreCollecte->getStatut()->getNom() !== OrdreCollecte::STATUT_A_TRAITER) {
+		if ($ordreCollecte->getStatut()?->getCode() !== OrdreCollecte::STATUT_A_TRAITER) {
             throw new Exception(self::COLLECTE_ALREADY_BEGUN);
         }
 
@@ -343,7 +347,7 @@ class OrdreCollecteService
             'id' => $collecte->getId() ?? '',
             'Numéro' => $collecte->getNumero() ?? '',
             'Date' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
-            'Statut' => $collecte->getStatut() ? $collecte->getStatut()->getNom() : '',
+            'Statut' => $collecte->getStatut() ? $this->formatService->status($collecte->getStatut()) : '',
             'Opérateur' => $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '',
             'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
             'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
@@ -426,7 +430,7 @@ class OrdreCollecteService
 
         return [
             [ 'label' => 'Numéro', 'value' => $ordreCollecte->getNumero() ],
-            [ 'label' => 'Statut', 'value' => $ordreCollecte->getStatut() ? $this->stringService->mbUcfirst($ordreCollecte->getStatut()->getNom()) : '' ],
+            [ 'label' => 'Statut', 'value' => $ordreCollecte->getStatut() ? $this->stringService->mbUcfirst($this->formatService->status($ordreCollecte->getStatut())) : '' ],
             [ 'label' => 'Opérateur', 'value' => $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '' ],
             [ 'label' => 'Demandeur', 'value' => $requester],
             [ 'label' => 'Destination', 'value' => $demande->isStock() ? 'Mise en stock' : 'Destruction' ],
@@ -504,7 +508,7 @@ class OrdreCollecteService
         $dataCollecte =
             [
                 $ordreCollecte->getNumero() ?? '',
-                $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
+                $ordreCollecte->getStatut() ? $this->formatService->status($ordreCollecte->getStatut()) : '',
                 $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y') : '',
                 $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
                 $collecte->getType() ? $collecte->getType()->getLabel() : ''

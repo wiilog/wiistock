@@ -33,32 +33,32 @@
                                                 onclick="redirectToArticlesList()"
                                                 class="btn btn-primary split-button"
                                                 title="Chercher une référence">
-                                                <i class="fa fa-search mr-2"></i>
-                                                Chercher une {{ 'reference.référence'|trans }}
-                                            </button>
-                                            <button type="button"
-                                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                                    data-toggle="dropdown"
-                                                    aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                <span class="fa fa-angle-down"></span>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                                <a data-toggle="modal"
-                                                   data-target="#modalNewArticle"
-                                                   class="dropdown-item pointer"
-                                                   onclick="clearModal('#modalNewArticle')"
-                                                   title="référence">
-                                                    <i class="fa fa-plus mr-2"></i>
-                                                    Ajouter article
-                                                </a>
-                                            </div>
+                                            <i class="fa fa-search mr-2"></i>
+                                            Chercher une {{ trans('Stock', 'Références', 'référence', false) }}
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                                data-toggle="dropdown"
+                                                aria-haspopup="true"
+                                                aria-expanded="false">
+                                            <span class="fa fa-angle-down"></span>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                            <a data-toggle="modal"
+                                               data-target="#modalNewArticle"
+                                               class="dropdown-item pointer d-flex align-items-center"
+                                               onclick="clearModal('#modalNewArticle')"
+                                               title="référence">
+                                                <span class="wii-icon wii-icon-plus-black mr-2"></span>
+                                                Ajouter article
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
-                            {% endif %}
+                            </div>
                         {% endif %}
-                        <input id="demande-id" type="hidden" value="{{ demande.id }}"/>
+                    {% endif %}
+                    <input id="demande-id" type="hidden" value="{{ demande.id }}"/>
 
                         <div class="row">
                             <div class="col-12">

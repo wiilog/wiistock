@@ -10,6 +10,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\Handling;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\TransferRequest;
@@ -17,6 +18,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
@@ -33,32 +35,41 @@ class DashboardSettingsService {
     const UNKNOWN_COMPONENT = 'unknown_component';
     const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
 
-    /** @Required */
+    #[Required]
     public DashboardService $dashboardService;
 
-    /** @Required */
+    #[Required]
     public DateService $dateService;
 
-    /** @Required */
+    #[Required]
     public DemandeLivraisonService $demandeLivraisonService;
 
-    /** @Required */
+    #[Required]
     public DemandeCollecteService $demandeCollecteService;
 
-    /** @Required */
+    #[Required]
     public HandlingService $handlingService;
 
-    /** @Required */
+    #[Required]
     public DispatchService $dispatchService;
 
-    /** @Required */
+    #[Required]
     public TransferRequestService $transferRequestService;
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public LanguageService $languageService;
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
@@ -140,10 +151,26 @@ class DashboardSettingsService {
                 }
             });
 
-        $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
+        if (!empty($config['title'])){
+            $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
+        } else {
+            Stream::from($config)
+                ->each(function($conf, $key) use (&$values) {
+                    if (str_starts_with($key, 'title_')) {
+                        $values['title'][str_replace('title_', '', $key)] = $conf;
+                    }
+                });
+        }
 
         if (!empty($config['tooltip'])) {
-            $values['tooltip'] = $config['tooltip'];
+            $values['tooltip'] = !empty($config['tooltip']) ? $config['tooltip'] : $componentType->getHint();
+        } else {
+            Stream::from($config)
+                ->each(function($conf, $key) use (&$values) {
+                    if (str_starts_with($key, 'tooltip_')) {
+                        $values['tooltip'][str_replace('tooltip_', '', $key)] = $conf;
+                    }
+                });
         }
 
         if (!empty($config['backgroundColor']) && ($componentType->getMeterKey() !== Dashboard\ComponentType::EXTERNAL_IMAGE)) {
@@ -221,9 +248,73 @@ class DashboardSettingsService {
             $values['chartColors'] = $config['chartColors'];
         }
 
+        if (isset($values['chartColors']) && !empty($config['legends'])){
+            $values['legends'] = $config['legends'];
+        } else if(isset($values['chartColorsLabels'])){
+            $values['legends'] = [];
+            $countLegend = 1;
+            foreach($values['chartColorsLabels'] as $legend){
+                $values['legends'][$legend] = [];
+                Stream::from($config)
+                    ->each(function($conf, $arrayKey) use ($legend, $countLegend, &$values) {
+                        if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                            $explode = explode('_', $arrayKey);
+                            $values['legends'][$legend][$explode[1]] = $conf;
+                            unset($values[$arrayKey]);
+                        }
+                    });
+                $countLegend++;
+            }
+        } else if(isset($values['chartColors'])){
+            $values['legends'] = [];
+            $countLegend = 1;
+            foreach($values['chartColors'] as $key => $legend){
+                $values['legends'][$key] = [];
+                Stream::from($config)
+                    ->each(function($conf, $arrayKey) use ($countLegend, $key, &$values) {
+                        if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
+                            $explode = explode('_', $arrayKey);
+                            $values['legends'][$key][$explode[1]] = $conf;
+                            unset($values[$arrayKey]);
+                        }
+                    });
+                $countLegend++;
+            }
+        }
+
         if (!isset($values['chartColorsLabels']) && !empty($config['chartColorsLabels'])) {
             $values['chartColorsLabels'] = $config['chartColorsLabels'];
         }
+
+        if (isset($config['creationDate']) && $config['creationDate'] !== false){
+            $values['creationDate'] = true;
+        }
+
+        if (isset($config['desiredDate']) && $config['desiredDate'] !== false){
+            $values['desiredDate'] = true;
+        }
+
+        if (isset($config['validationDate']) && $config['validationDate'] !== false){
+            $values['validationDate'] = true;
+        }
+
+        if(!isset($values['languages'])){
+            $languageRepository = $entityManager->getRepository(Language::class);
+            $languages = Stream::from($languageRepository->findBy(['hidden' => false]))
+                ->map(fn(Language $language) => [
+                    'selected' => $language->getSelected(),
+                    'slug' => $language->getSlug(),
+                    'flag' => $language->getFlag(),
+                ])->toArray();
+            $values['languages'] = json_encode($languages, true);
+        }
+
+        if(isset($values['chartColorsLabels'])){
+            $values['chartColorsLabels'] = Stream::from($values['chartColorsLabels'])
+                                            ->map(fn($trad) => $this->translationService->translate('Dashboard', $trad, false))
+                                            ->toArray();
+        }
+
         return $values;
     }
 
@@ -337,8 +428,9 @@ class DashboardSettingsService {
                 $natures = $natureRepository->findBy(['id' => $config['natures']]);
                 $generated = Stream::from($natures)
                     ->reduce(function(array $carry, Nature $nature) {
-                        $carry['chartColors'][$nature->getLabel()] = $nature->getColor();
-                        $carry['defaultCounters'][$nature->getLabel()] = random_int(0, 30);
+                        $label = $this->formatService->nature($nature);
+                        $carry['chartColors'][$label] = $nature->getColor();
+                        $carry['defaultCounters'][$label] = random_int(0, 30);
                         return $carry;
                     }, ['chartColors' => [], 'defaultCounters' => []]);
                 $values['chartColors'] = $generated['chartColors'];
@@ -354,8 +446,10 @@ class DashboardSettingsService {
             $segments = $config['segments'] ?? [];
             if (!empty($segments)) {
                 $segmentsLabels = [
-                    'Retard',
-                    'Moins d\'1h'
+                    $this->translationService->translate("Dashboard", "Retard", false),
+                    $this->translationService->translate("Dashboard", "Moins d'{1}", [
+                        1 => "1h"
+                    ], false)
                 ];
                 $lastKey = "1";
                 foreach ($segments as $segment) {
@@ -444,8 +538,10 @@ class DashboardSettingsService {
                 $values = [
                     'subtitle' => '-',
                     'subCounts' => [
-                        '<span class="text-wii-success">-</span> <span class="text-wii-black">lignes</span>',
-                        '<span class="text-wii-black">Dont</span> <span class="text-wii-danger">-</span> <span class="text-wii-black">urgences</span>'
+                        '<span class="text-wii-success">-</span> <span class="text-wii-black">'.$this->translationService->translate('Dashboard', 'lignes').'</span>',
+                        '<span class="text-wii-black">'.$this->translationService->translate('Dashboard', 'Dont {1} urgences', [
+                            1 => '<span class="text-wii-danger">-</span>'
+                        ]).'</span>'
                     ],
                     'count' => '-',
                 ];
@@ -615,7 +711,7 @@ class DashboardSettingsService {
                     if (!$displayPackNatures) {
                         $chartData['stack'] = array_slice($chartData['stack'], 0, 1);
                         $chartData['stack'][0] = [
-                            'label' => 'Colis',
+                            'label' => 'Unité logistique',
                             'backgroundColor' => '#E5E1E1',
                             'stack' => 'stack',
                             'data' => $chartData['stack'][0]['data']
@@ -979,7 +1075,10 @@ class DashboardSettingsService {
     private function validateComponentConfig(Dashboard\ComponentType $componentType,
                                              array $config) {
         if ($componentType->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
-            $errorMessage = self::INVALID_SEGMENTS_ENTRY . '-' . $config['title'];
+            $defaultLanguage = $this->languageService->getDefaultLanguage();
+            $slug = $this->userService->getUser()?->getLanguage()?->getSlug()
+                ?: $this->languageService->getReverseDefaultLanguage($defaultLanguage);
+            $errorMessage = self::INVALID_SEGMENTS_ENTRY . '-' . $config['title_' . $slug];
             if (empty($config['segments']) || count($config['segments']) < 1) {
                 throw new InvalidArgumentException($errorMessage);
             } else {

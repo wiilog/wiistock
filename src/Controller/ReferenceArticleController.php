@@ -38,7 +38,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -501,27 +501,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/removeFournisseur", name="ajax_render_remove_fournisseur", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON))
-     */
-    public function removeFournisseur(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $entityManager->remove($articleFournisseurRepository->find($data['articleF']));
-            $entityManager->flush();
-            $json =  $this->renderView('reference_article/fournisseurArticleContent.html.twig', [
-                'articles' => $articleFournisseurRepository->findByRefArticle($data['articleRef']),
-                'articleRef' => $referenceArticleRepository->find($data['articleRef'])
-            ]);
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/quantite", name="get_quantity_ref_article", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON))
      */
@@ -662,9 +641,14 @@ class ReferenceArticleController extends AbstractController
                     'reference' => $providerArticle->getReference(),
                     'label' => $providerArticle->getLabel(),
                     'quantity' => Stream::from($articles)
-                        ->reduce(fn(int $carry, Article $article) => ($article->getStatut() && $article->getStatut()->getNom() === Article::STATUT_ACTIF)
-                            ? $carry + $article->getQuantite()
-                            : $carry, 0)
+                        ->reduce(
+                            fn(int $carry, Article $article) => (
+                                ($article->getStatut() && $article->getStatut()?->getCode() === Article::STATUT_ACTIF)
+                                    ? $carry + $article->getQuantite()
+                                    : $carry
+                            ),
+                            0
+                        )
                 ];
                 return $carry;
                 }, []);

@@ -34,7 +34,7 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -147,7 +147,7 @@ class PreparationController extends AbstractController
     public function apiLignePreparation(Preparation $preparation): Response
     {
         $demande = $preparation->getDemande();
-        $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+        $preparationStatut = $preparation->getStatut()?->getCode();
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
             || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
@@ -231,13 +231,14 @@ class PreparationController extends AbstractController
                     ->every(fn (Pairing $pairing) => !$pairing->isActive())
             ));
 
-        $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+        $preparationStatusCode = $preparation->getStatut()?->getCode();
 
         $demande = $preparation->getDemande();
         $destination = $demande?->getDestination();
         $operator = $preparation?->getUtilisateur();
         $comment = $preparation->getCommentaire();
 
+        // TODO WIIS-8178 pas bon avec les tractions
         $status = $preparation->isPlanned()
             ? (
                 $preparation->getStatut()->getCode() === Preparation::STATUT_A_TRAITER
@@ -256,9 +257,9 @@ class PreparationController extends AbstractController
             'showTargetLocationPicking' => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
-            'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER
-                || $preparationStatus === Preparation::STATUT_VALIDATED
-                || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
+            'isPrepaEditable' => $preparationStatusCode === Preparation::STATUT_A_TRAITER
+                || $preparationStatusCode === Preparation::STATUT_VALIDATED
+                || ($preparationStatusCode == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
                 ['label' => 'Statut', 'value' => ucfirst($status)],
@@ -589,7 +590,7 @@ class PreparationController extends AbstractController
                 'quantité à préparer',
                 'code-barre'
             ];
-            $nowStr = new DateTime('now');
+            $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");;
 
             return $CSVExportService->streamResponse(
                 function ($output) use ($preparationIterator, $CSVExportService, $preparationsManager) {
@@ -597,7 +598,7 @@ class PreparationController extends AbstractController
                         $preparationsManager->putPreparationLines($output, $preparation);
                     }
                 },
-                "Export-Ordre-Preparation-" . $nowStr->format('d_m_Y') . ".csv",
+                "Export-Ordre-Preparation-$nowStr.csv",
                 $csvHeader
             );
         } else {

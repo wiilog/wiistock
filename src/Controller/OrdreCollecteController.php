@@ -33,7 +33,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -93,7 +93,7 @@ class OrdreCollecteController extends AbstractController
     {
         return $this->render('ordre_collecte/show.html.twig', [
             'collecte' => $ordreCollecte,
-            'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
+            'finished' => $ordreCollecte->getStatut()?->getCode() === OrdreCollecte::STATUT_TRAITE,
             'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte),
         ]);
     }
@@ -107,7 +107,7 @@ class OrdreCollecteController extends AbstractController
                            OrdreCollecteService $ordreCollecteService): Response
     {
         $rows = $request->request->all('rows');
-        if (!empty($rows) && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
+        if (!empty($rows) && $ordreCollecte->getStatut()?->getCode() === OrdreCollecte::STATUT_A_TRAITER) {
 
             $date = new DateTime('now');
 
@@ -121,7 +121,7 @@ class OrdreCollecteController extends AbstractController
                     'success' => true,
                     'entete' => $this->renderView('ordre_collecte/ordre-collecte-show-header.html.twig', [
                         'collecte' => $ordreCollecte,
-                        'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
+                        'finished' => $ordreCollecte->getStatut()?->getCode() === OrdreCollecte::STATUT_TRAITE,
                         'showDetails' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
                     ])
                 ];
@@ -158,9 +158,7 @@ class OrdreCollecteController extends AbstractController
                     'refArticleId' => $referenceArticle->getId(),
                     'barCode' => $referenceArticle ? $referenceArticle->getBarCode() : '',
                     'quantity' => $ligneArticle->getQuantite(),
-                    'modifiable' => $ordreCollecte->getStatut()
-                        ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
-                        : false,
+                    'modifiable' => $ordreCollecte->getStatut()?->getCode() === OrdreCollecte::STATUT_A_TRAITER,
                     'location' => $location,
                     'byArticle' => $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                     'isDestruct' => $isDestruct
@@ -181,9 +179,7 @@ class OrdreCollecteController extends AbstractController
                     'id' => $article->getId(),
                     'barCode' => $article->getBarCode(),
                     'quantity' => $article->getQuantite(),
-                    'modifiable' => $ordreCollecte->getStatut()
-                        ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
-                        : false,
+                    'modifiable' => $ordreCollecte->getStatut()?->getCode() === OrdreCollecte::STATUT_A_TRAITER,
                     'articleId' =>$article->getId(),
                     "location" => $location,
                     'byArticle' => false,
@@ -339,7 +335,7 @@ class OrdreCollecteController extends AbstractController
      */
     public function delete(OrdreCollecte $ordreCollecte, EntityManagerInterface $entityManager): Response
     {
-        if ($ordreCollecte->getStatut() && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
+        if ($ordreCollecte->getStatut()?->getCode() === OrdreCollecte::STATUT_A_TRAITER) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
             $collecte = $ordreCollecte->getDemandeCollecte();

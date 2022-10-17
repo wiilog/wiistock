@@ -16,7 +16,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -109,7 +109,8 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('join_buyer.username as buyer')
             ->addSelect('referenceArticle.typeQuantite')
             ->addSelect('statutRef.nom as statut')
-            ->addSelect('referenceArticle.commentaire')
+            // if there are large images in the comment then we ignore it
+            ->addSelect('IF(LENGTH(referenceArticle.commentaire) < 512, referenceArticle.commentaire, NULL) AS commentaire')
             ->addSelect('emplacementRef.label as emplacement')
             ->addSelect('referenceArticle.limitSecurity')
             ->addSelect('referenceArticle.limitWarning')
@@ -127,6 +128,9 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('referenceArticle.freeFields')
             ->addSelect('referenceArticle.stockManagement')
             ->addSelect('join_visibilityGroup.label AS visibilityGroup')
+            ->addSelect("GROUP_CONCAT(DISTINCT join_manager.username SEPARATOR ',') AS managers")
+            ->addSelect("GROUP_CONCAT(DISTINCT join_supplier.codeReference SEPARATOR ',') AS supplierCodes")
+            ->addSelect("GROUP_CONCAT(DISTINCT join_supplier.nom SEPARATOR ',') AS supplierLabels")
             ->leftJoin('referenceArticle.statut', 'statutRef')
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
@@ -135,10 +139,11 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
             ->leftJoin('referenceArticle.createdBy', 'join_createdBy')
             ->leftJoin('referenceArticle.editedBy', 'join_editedBy')
-            ->andWhere('statutRef.code = :active')
+            ->leftJoin('referenceArticle.managers', 'join_manager')
+            ->leftJoin('referenceArticle.articlesFournisseur', 'join_supplierArticle')
+            ->leftJoin('join_supplierArticle.fournisseur', 'join_supplier')
             ->groupBy('referenceArticle.id')
             ->orderBy('referenceArticle.id', 'ASC')
-            ->setParameter('active', ReferenceArticle::STATUT_ACTIF)
             ->getQuery()
             ->toIterable();
     }
@@ -620,7 +625,7 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         // compte éléments filtrés
-        $countQuery = QueryCounter::count($queryBuilder, "ra");
+        $countQuery = QueryBuilderHelper::count($queryBuilder, "ra");
 
         if (!empty($params) && !empty($params->all('order'))) {
             $order = $params->all('order')[0]['dir'];
@@ -1206,7 +1211,7 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
 
-        $countTotal = QueryCounter::count($qb, "reference_article");
+        $countTotal = QueryBuilderHelper::count($qb, "reference_article");
 
         return [
             "data" => $qb->getQuery()->getResult(),

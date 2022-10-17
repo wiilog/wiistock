@@ -3,9 +3,9 @@
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if pack.arrivage %}
-            <a class="dropdown-item"
+            <a class="dropdown-item  d-flex align-items-center"
                href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: pack.arrivage.id, colis: pack.id}) }}">
-                <i class='fas fa-print mr-2'></i>Imprimer
+                <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Général', null, 'Zone liste', 'Imprimer') }}
             </a>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
@@ -14,16 +14,16 @@
                      data-target='#modalEditPack'
                      data-id="{{ pack.id }}"
                      onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), false, () => initializeGroupHistoryTable({{ pack.id }}));">
-                    <i class='fas fa-edit mr-2'></i>Modifier
+                    <i class='fas fa-edit mr-2'></i>{{ trans('Général', null, 'Modale', 'Modifier') }}
                 </div>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) %}
-                <div class="dropdown-item"
+                <div class="dropdown-item d-flex align-items-center"
                      data-target="#modalDeletePack"
                      data-toggle="modal"
                      data-id="{{ pack.id }}"
                      onclick="deleteRow($(this), $('#modalDeletePack'), $('#submitDeletePack'))">
-                    <i class="fas fa-trash mr-2"></i>Supprimer
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>{{ trans('Général', null, 'Modale', 'Supprimer') }}
                 </div>
             {% endif %}
             {% if hasPairing
@@ -31,7 +31,7 @@
                 <a class="dropdown-item"
                    href="{{ path('show_data_history', {id: pack.id, type: constant('App\\Entity\\IOT\\Sensor::PACK')}) }}">
                     <span class="wii-icon wii-icon-pairing"></span>
-                    Historique des données
+                    {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des données') }}
                 </a>
             {% endif %}
         </div>

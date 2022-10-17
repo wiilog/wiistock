@@ -6,7 +6,7 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\LocationGroup;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use http\Exception\RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -28,7 +28,7 @@ class SensorMessageRepository extends EntityRepository
             ->where('sensor = :sensor')
             ->setParameter('sensor', $sensor);
 
-        $total = QueryCounter::count($qb, "sensor_message");
+        $total = QueryBuilderHelper::count($qb, "sensor_message");
 
         //Filter search
         if (!empty($params)) {
@@ -60,7 +60,7 @@ class SensorMessageRepository extends EntityRepository
         }
 
         // counts filtered items
-        $countFiltered = QueryCounter::count($qb, 'sensor_message');
+        $countFiltered = QueryBuilderHelper::count($qb, 'sensor_message');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

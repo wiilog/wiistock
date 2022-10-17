@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Nature;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -17,7 +17,7 @@ class NatureRepository extends EntityRepository
 {
     public function findByParams(InputBag $params): array {
         $qb = $this->createQueryBuilder('nature');
-        $total = QueryCounter::count($qb, 'nature');
+        $total = QueryBuilderHelper::count($qb, 'nature');
 
         if (!empty($params)) {
             if (!empty($params->all('search'))) {
@@ -47,7 +47,7 @@ class NatureRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($qb, 'nature');
+        $countFiltered = QueryBuilderHelper::count($qb, 'nature');
 
         if ($params->getInt('start')) {
             $qb->setFirstResult($params->getInt('start'));
@@ -110,19 +110,6 @@ class NatureRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findAllLabels() {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT n.label as label
-            FROM App\Entity\Nature n
-           "
-        );
-        return array_map(function(array $nature) {
-            return $nature['label'];
-        }, $query->getResult());
-    }
-
     /**
      * @param string[] $forms
      * @return Nature[]
@@ -135,5 +122,20 @@ class NatureRepository extends EntityRepository
         }
 
         return $qb->getQuery()->getResult();
+    }
+
+    public function findDuplicates(string $label, string $language, array $except = []) {
+        return $this->createQueryBuilder("nature")
+            ->join("nature.labelTranslation", "join_source")
+            ->leftJoin("join_source.translations", "join_translations")
+            ->leftJoin("join_translations.language", "join_language")
+            ->andWhere("nature NOT IN (:except)")
+            ->andWhere("join_language.slug = :language")
+            ->andWhere("join_translations.translation = :label")
+            ->setParameter("except", $except)
+            ->setParameter("language", $language)
+            ->setParameter("label", $label)
+            ->getQuery()
+            ->getResult();
     }
 }

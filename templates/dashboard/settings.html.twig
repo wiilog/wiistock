@@ -7,13 +7,15 @@
 {% block page_content %}
     <div class="dashboard dashboard-settings"></div>
     <div class="dashboard-bottom-bar">
-        <button class="btn btn-primary" data-toggle="modal" data-target="#add-row-modal">
-            <i class="fas fa-plus mr-2"></i> Ajouter une ligne<br>
-            <small style="display:block;font-size:0.8rem;margin-top:-5px;">(6 lignes max)</small>
+        <button class="btn btn-primary d-flex align-items-center" data-toggle="modal" data-target="#add-row-modal">
+            <span class="wii-icon wii-icon-plus mr-2"></span>
+            <span>
+                 Ajouter une ligne<br><small style="display:block;font-size:0.8rem;margin-top:-5px;">(6 lignes max)</small>
+            </span>
         </button>
         <div class="dashboard-pagination"></div>
-        <button class="btn btn-success save-dashboards" style="margin-right: 22px">
-            <span class="fa fa-check mr-2"></span> Enregistrer
+        <button class="btn btn-success save-dashboards  d-flex align-items-center" style="margin-right: 22px">
+            <span class="wii-icon wii-icon-check-white mr-2"></span>Enregistrer
         </button>
     </div>
 

@@ -20,6 +20,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -49,6 +50,9 @@ class DemandeCollecteService
     private $articleFournisseurService;
     private $articleDataService;
     private $tokenStorage;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
@@ -137,7 +141,7 @@ class DemandeCollecteService
             'Demandeur' => FormatHelper::collectRequester($collecte),
             'Objet' => $collecte->getObjet() ?? '',
             'Numéro' => $collecte->getNumero() ?? '',
-            'Statut' => $collecte->getStatut()->getNom() ?? '',
+            'Statut' => $this->formatService->status($collecte->getStatut()) ?? '',
             'Type' => $collecte->getType() ? $collecte->getType()->getLabel() : '',
             'Actions' => $this->templating->render('collecte/datatableCollecteRow.html.twig', [
                 'url' => $url,
@@ -173,7 +177,7 @@ class DemandeCollecteService
 
         return array_merge(
             [
-                [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
+                [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($this->formatService->status($status)) : '' ],
                 ['label' => 'Demandeur', 'value' => FormatHelper::collectRequester($collecte)],
                 [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : '' ],
                 [ 'label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : '' ],
@@ -267,7 +271,7 @@ class DemandeCollecteService
     public function serialiseExportRow(Collecte $collect,
                                        array $freeFieldsConfig,
                                        callable $getSpecificColumn) {
-        $collecteData = $collect->serialize();
+        $collecteData = $this->serializeCollect($collect);
 
         $freeFieldsData = [];
 
@@ -296,7 +300,7 @@ class DemandeCollecteService
                                         array $averageRequestTimesByType,
                                         string $backgroundColor) {
 
-        $requestStatus = $request->getStatut() ? $request->getStatut()->getNom() : '';
+        $requestStatus = $request->getStatut() ? $this->formatService->status($request->getStatut()) : '';
         $requestType = $request->getType() ? $request->getType()->getLabel() : '';
         $typeId = $request->getType() ? $request->getType()->getId() : null;
 
@@ -399,6 +403,29 @@ class DemandeCollecteService
             'libelle' => $referenceArticle->getReferenceArticle()->getLibelle(),
             'quantity' => $referenceArticle->getQuantite(),
 
+        ];
+    }
+
+    public function serializeCollect(Collecte $collect): array {
+
+        $freeFieldData = [];
+
+        foreach($collect->getFreeFields() as $freeFieldId => $freeFieldValue) {
+            $freeFieldData[$freeFieldId] = $freeFieldValue;
+        }
+
+        return [
+            'numero' => $collect->getNumero(),
+            'creationDate' => $collect->getDate() ? $collect->getDate()->format('d/m/Y h:i') : '',
+            'validationDate' => $collect->getValidationDate() ? $collect->getValidationDate()->format('d/m/Y h:i') : '',
+            'type' => $collect->getType() ? $collect->getType()->getLabel() : '',
+            'statut' => $collect->getStatut() ? $this->formatService->status($collect->getStatut()) : '',
+            'subject' => $collect->getObjet(),
+            'destination' => $collect->isStock() ? "Mise en stock" : "Destruction",
+            'requester' => FormatHelper::collectRequester($collect),
+            'gatheringPoint' => $collect->getPointCollecte() ? $collect->getPointCollecte()->getLabel() : '',
+            'comment' => $collect->getCommentaire() ? strip_tags($collect->getCommentaire()) : '',
+            'freeFields' => $freeFieldData,
         ];
     }
 }

@@ -5,14 +5,19 @@ namespace App\Controller\Settings;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Statut;
+use App\Entity\Translation;
+use App\Entity\TranslationSource;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\StatusService;
+use App\Service\TranslationService;
 use App\Service\UserService;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,6 +46,7 @@ class StatusController extends AbstractController
                                 StatusService          $statusService,
                                 EntityManagerInterface $entityManager): JsonResponse {
         $edit = $request->query->getBoolean("edit");
+        $translate = $request->query->getBoolean("translate");
         $mode = $request->query->get("mode");
         $typeId = $request->query->get("type");
 
@@ -111,12 +117,13 @@ class StatusController extends AbstractController
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
                 $showAutomaticReceptionCreation = $status->getState() === Statut::TREATED ? "" : "d-none";
 
+                $statusLabel = $this->getFormatter()->status($status);
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => "<input type='text' name='label' value='{$status->getNom()}' class='form-control data needed'/>",
+                    "label" => "<input type='text' name='label' value='$statusLabel' class='form-control data needed'/>",
                     "state" => "<select name='state' class='data form-control needed select-size'>{$stateOptions}</select>",
                     "comment" => "<input type='text' name='comment' value='{$status->getComment()}' class='form-control data'/>",
-                    "type" => FormatHelper::type($status->getType()),
+                    "type" => $this->formatService->type($status->getType()),
                     "defaultStatut" => "<div class='checkbox-container'><input type='checkbox' name='defaultStatut' class='form-control data' {$defaultStatut}/></div>",
                     "sendMailBuyers" => "<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data' {$sendMailBuyers}/></div>",
                     "sendMailRequesters" => "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
@@ -129,17 +136,17 @@ class StatusController extends AbstractController
             } else {
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => $status->getNom(),
-                    "type" => FormatHelper::type($status->getType()),
+                    "label" => $this->formatService->status($status),
+                    "type" => $this->formatService->type($status->getType()),
                     "state" => $statusService->getStatusStateLabel($status->getState()),
                     "comment" => $status->getComment(),
-                    "defaultStatut" => FormatHelper::bool($status->isDefaultForCategory()),
-                    "sendMailBuyers" => FormatHelper::bool($status->getSendNotifToBuyer()),
-                    "sendMailRequesters" => FormatHelper::bool($status->getSendNotifToDeclarant()),
-                    "sendMailDest" => FormatHelper::bool($status->getSendNotifToRecipient()),
-                    "needsMobileSync" => FormatHelper::bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
-                    "commentNeeded" => FormatHelper::bool($status->getCommentNeeded()),
-                    "automaticReceptionCreation" => FormatHelper::bool($status->getAutomaticReceptionCreation()),
+                    "defaultStatut" => $this->formatService->bool($status->isDefaultForCategory()),
+                    "sendMailBuyers" => $this->formatService->bool($status->getSendNotifToBuyer()),
+                    "sendMailRequesters" => $this->formatService->bool($status->getSendNotifToDeclarant()),
+                    "sendMailDest" => $this->formatService->bool($status->getSendNotifToRecipient()),
+                    "needsMobileSync" => $this->formatService->bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
+                    "commentNeeded" => $this->formatService->bool($status->getCommentNeeded()),
+                    "automaticReceptionCreation" => $this->formatService->bool($status->getAutomaticReceptionCreation()),
                     "order" => $status->getDisplayOrder(),
                 ];
             }
@@ -188,6 +195,9 @@ class StatusController extends AbstractController
                 ->join(", ");
 
             if (!$constraints) {
+                $manager->remove($entity->getLabelTranslation());
+                $manager->flush();
+
                 $manager->remove($entity);
                 $manager->flush();
             } else {
@@ -202,5 +212,93 @@ class StatusController extends AbstractController
                 "msg" => "Le statut a été supprimé",
             ]);
         }
+    }
+
+    /**
+     * @Route("/status-api/edit/translate", name="settings_edit_status_translations_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT})
+     */
+    public function apiEditTranslations(Request $request,
+                                        EntityManagerInterface $manager,
+                                        TranslationService $translationService): JsonResponse
+    {
+        $data = $request->request;
+
+        $mode = $data->get("mode");
+        $typeId = $data->get("type");
+
+        $statusRepository = $manager->getRepository(Statut::class);
+        $typeRepository = $manager->getRepository(Type::class);
+
+        $category = match ($mode) {
+            self::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
+            self::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
+            self::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
+            self::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+            self::MODE_DISPATCH => CategorieStatut::DISPATCH,
+            self::MODE_HANDLING => CategorieStatut::HANDLING
+        };
+
+        $type = $typeId ? $typeRepository->find($typeId) : null;
+        $statuses = $statusRepository->findStatusByType($category, $type);
+
+        foreach ($statuses as $status) {
+            if ($status->getLabelTranslation() === null) {
+                $translationService->setFirstTranslation($manager, $status, $this->getFormatter()->status($status));
+            }
+        }
+        $manager->flush();
+
+        $html = $this->renderView('settings/modal_edit_translations_content.html.twig', [
+            'statuses' => $statuses,
+            'last_status' => end($statuses)
+        ]);
+
+        return new JsonResponse([
+            'success' => true,
+            'html' => $html
+            ]);
+    }
+
+    /**
+     * @Route("/status/edit/translate", name="settings_edit_status_translations", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
+     */
+    public function editTranslations(Request                $request,
+                                     StatusService          $statusService,
+                                     EntityManagerInterface $manager,
+                                     TranslationService     $translationService): JsonResponse {
+        if ($data = json_decode($request->getContent(), true)) {
+            $statusRepository = $manager->getRepository(Statut::class);
+            $statuses = json_decode($data['status'], true);
+
+            $persistedStatuses = [];
+            foreach ($statuses as $statusId) {
+                $status = $statusRepository->find($statusId);
+                $persistedStatuses[] = $status;
+
+                $name = 'labels-'.$status->getId();
+                $labels = $data[$name];
+                $labelTranslationSource = $status->getLabelTranslation();
+
+                $translationService->editEntityTranslations($manager, $labelTranslationSource, $labels);
+            }
+
+            $duplicateLabels = $statusService->countDuplicateStatusLabels($persistedStatuses);
+            if($duplicateLabels > 0) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Il n'est pas possible d'avoir deux libellés de statut identiques pour le même type et la même langue",
+                ]);
+            }
+
+            $manager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'msg' => "Les traductions ont bien été modifiées."
+            ]);
+        }
+        throw new BadRequestHttpException();
     }
 }

@@ -2,10 +2,16 @@
 
 namespace App\Twig;
 
+use App\Entity\FreeField;
+use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Transport\TransportHistory;
+use App\Entity\Utilisateur;
 use App\Service\FieldsParamService;
+use App\Service\FormatService;
+use App\Service\LanguageService;
 use App\Service\SpecificService;
+use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UserService;
 use App\Helper\FormatHelper;
@@ -13,6 +19,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Markup;
 use Twig\TwigFilter;
@@ -23,33 +30,32 @@ use WiiCommon\Helper\Stream;
 
 class AppExtension extends AbstractExtension {
 
-    /**
-     * @Required
-     */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /**
-     * @Required
-     */
+    #[Required]
     public UserService $userService;
 
-    /**
-     * @Required
-     */
+    #[Required]
     public SpecificService $specificService;
 
-    /**
-     * @Required
-     */
+    #[Required]
     public FieldsParamService $fieldsParamService;
 
-    /**
-     * @Required
-     */
+    #[Required]
     public KernelInterface $kernel;
 
-    /** @Required */
+    #[Required]
     public TransportHistoryService $transportHistoryService;
+
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
+    public FormatService $formatService;
 
     private array $settingsCache = [];
 
@@ -69,6 +75,14 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('formatHistory', [$this, 'formatHistory']),
             new TwigFunction('isImage', [$this, 'isImage']),
             new TwigFunction('merge', "array_merge"),
+            new TwigFunction('getLanguage', [$this, "getLanguage"]),
+            new TwigFunction('getDefaultLanguage', [$this, "getDefaultLanguage"]),
+            new TwigFunction('trans', [$this, "translate"], [
+                "is_safe" => ["html"]
+            ]),
+            new TwigFunction('translateIn', [$this, "translateIn"], [
+                "is_safe" => ["html"]
+            ])
         ];
     }
 
@@ -82,6 +96,7 @@ class AppExtension extends AbstractExtension {
             new TwigFilter("json_decode", "json_decode"),
             new TwigFilter("flip", [$this, "flip"]),
             new TwigFilter("some", [$this, "some"]),
+            new TwigFilter("transFreeFieldElements", [$this, "transFreeFieldElements"]),
         ];
     }
 
@@ -178,8 +193,8 @@ class AppExtension extends AbstractExtension {
         }
     }
 
-    public function formatHelper($input, string $formatter, ...$options): string {
-        return FormatHelper::{$formatter}($input, ...$options);
+    public function formatHelper($input, string $formatter, ...$options): ?string {
+        return $this->formatService->{$formatter}($input, ...$options);
     }
 
     public function call($function) {
@@ -251,5 +266,42 @@ class AppExtension extends AbstractExtension {
         catch (Throwable) {
             return false;
         }
+    }
+
+    public function getLanguage(){
+        return $this->userService->getUser()?->getLanguage()
+            ?? $this->manager->getRepository(Language::class)->findOneBy(['selected' => true]);
+    }
+
+    public function translate(mixed... $args): string {
+        return $this->translationService->translate(...$args);
+    }
+
+    public function translateIn(mixed... $args): string {
+        return $this->translationService->translateIn(...$args);
+    }
+
+    public function getDefaultLanguage(): string {
+        $defaultSlugLanguage = $this->languageService->getDefaultSlug();
+        return $this->languageService->getReverseDefaultLanguage($defaultSlugLanguage);
+    }
+
+    /**
+     * Get values of a free field list (multiple or not) (in French) and translate it in user language
+     */
+    public function transFreeFieldElements($values, FreeField $freeField, ?Utilisateur $user = null): string|array|null {
+        if ($values) {
+            $user = $user ?: $this->userService->getUser();
+            $userLanguage = $user?->getLanguage();
+            $defaultLanguage = $this->languageService->getDefaultSlug();
+            $isFill = !empty($values);
+            $translation = $this->translationService->translateFreeFieldListValues(Language::FRENCH_SLUG, $userLanguage, $freeField, $values);
+            return $translation
+                // if free field is not translated in userLanguage ?
+                ?: ($isFill && $userLanguage !== $defaultLanguage
+                    ? $this->translationService->translateFreeFieldListValues(Language::FRENCH_SLUG, $defaultLanguage, $freeField, $values)
+                    : null);
+        }
+        return null;
     }
 }

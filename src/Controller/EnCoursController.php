@@ -12,12 +12,14 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Service\CSVExportService;
 use App\Service\EnCoursService;
+use App\Service\LanguageService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -30,7 +32,8 @@ class EnCoursController extends AbstractController
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ENCO})
      */
     public function index(Request $request,
-                          EntityManagerInterface $entityManager): Response
+                          EntityManagerInterface $entityManager,
+                          LanguageService $languageService): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -50,6 +53,8 @@ class EnCoursController extends AbstractController
         }
 
         return $this->render('en_cours/index.html.twig', [
+            'userLanguage' => $this->getUser()->getLanguage(),
+            'defaultLanguage' => $languageService->getDefaultLanguage(),
             'emplacements' => $emplacementRepository->findWhereArticleIs(),
             'locationsFilter' => $locationsFilter,
             'natures' => $natureRepository->findAll(),
@@ -87,7 +92,7 @@ class EnCoursController extends AbstractController
             },
             $filtersParam ? explode(',', $filtersParam) : []
         );
-        $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds);
+        $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds, false, 100, $this->getUser());
         return new JsonResponse([
             'data' => $response
         ]);
@@ -130,11 +135,29 @@ class EnCoursController extends AbstractController
                                     $encoursService,
                                     $headers)
             {
-                $data = $encoursService->getEnCours([$emplacement->getId()]);
+                $data = $encoursService->getEnCours([$emplacement->getId()], [], false, 100, $this->getUser());
                 foreach ($data as $line) {
                     $encoursService->putOngoingPackLine($output, $CSVExportService, $line);
                 }
             }, "Export_encours_" . $emplacement->getLabel() . ".csv", $headers);
     }
 
+
+    /**
+     * @Route ("/check-location-delay", name="check_location_delay",options={"expose"=true}, methods={"POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     */
+    public function checkLocationMaxDelay(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $emplacements = $emplacementRepository->findBy(['id' => $request->query->all('locationIds')]);
+
+        $delayError = Stream::from($emplacements)
+            ->every(fn(Emplacement $emplacement) => $emplacement->getDateMaxTime() !== null);
+        return new JsonResponse([
+            'hasDelayError' => $delayError
+        ]);
+    }
 }

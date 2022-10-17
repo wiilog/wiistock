@@ -49,6 +49,12 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'deliveryRequest' => self::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS,
         'handling' => self::DEFAULT_HANDLING_VISIBLE_COLUMNS,
     ];
+    const DEFAULT_DATE_FORMAT = 'd/m/Y';
+    const DATE_FORMATS_TO_DISPLAY = [
+        self::DEFAULT_DATE_FORMAT => 'jj/mm/aaaa',
+        'Y-m-d' => 'yyyy-mm-dd',
+        'm-d-Y' => 'mm-dd-yyyy',
+    ];
     const SEARCH_DEFAULT = ["label", "reference"];
 
     #[ORM\Id]
@@ -252,6 +258,12 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     #[ORM\OneToOne(mappedBy: 'deliverer', targetEntity: Vehicle::class)]
     private ?Vehicle $vehicle = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $dateFormat = null;
+
+    #[ORM\ManyToOne(targetEntity: Language::class)]
+    private ?Language $language = null;
 
     #[ORM\Column(type: "boolean", nullable: false, options: ["default" => false])]
     private ?bool $deliverer = false;
@@ -1833,6 +1845,28 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function getUserIdentifier(): string {
         return $this->getEmail();
+    }
+
+    public function getLanguage(): ?Language {
+        return $this->language;
+    }
+
+    public function setLanguage(?Language $language): self {
+        $this->language = $language;
+        return $this;
+    }
+
+    public function getDateFormat(): ?string {
+        return $this->dateFormat;
+    }
+
+    public function getDisplayedDateFormat(): ?string {
+        return self::DATE_FORMATS_TO_DISPLAY[$this->getDateFormat() ?: 'd/m/Y'];
+    }
+
+    public function setDateFormat(?string $dateFormat): self {
+        $this->dateFormat = $dateFormat;
+        return $this;
     }
 
     public function getKeptFieldValues(): Collection

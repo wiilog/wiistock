@@ -5,9 +5,13 @@ namespace App\Service;
 use App\Controller\Settings\StatusController;
 use App\Entity\Statut;
 use JetBrains\PhpStorm\ArrayShape;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class StatusService {
+
+    #[Required]
+    public FormatService $formatService;
 
     #[ArrayShape([
         'success' => "bool",
@@ -63,30 +67,46 @@ class StatusService {
             ->sum();
     }
 
-    private function countDuplicateStatusLabels(array $statuses): int {
+    public function countDuplicateStatusLabels(array $statuses): int {
         $result = Stream::from($statuses)
             ->reduce(function(array $carry, Statut $status): array {
+                $translations = $status->getLabelTranslation()?->getTranslations() ?: [];
+
                 $categoryId = $status->getCategorie()?->getId() ?: 0;
                 $typeId = $status->getType()?->getId() ?: 0;
-                $statusLabel = $status->getNom();
-
                 if (!isset($carry[$categoryId])) {
                     $carry[$categoryId] = [];
                 }
                 if (!isset($carry[$categoryId][$typeId])) {
                     $carry[$categoryId][$typeId] = [];
                 }
-                if (!isset($carry[$categoryId][$typeId][$statusLabel])) {
-                    $carry[$categoryId][$typeId][$statusLabel] = -1;
+
+                foreach ($translations as $translation) {
+                    $slug = $translation->getLanguage()?->getSlug() ?: 0;
+                    if (!isset($carry[$categoryId][$typeId][$slug])) {
+                        $carry[$categoryId][$typeId][$slug] = [];
+                    }
+
+                    $label = $translation->getTranslation();
+                    if ($label) {
+                        if (!isset($carry[$categoryId][$typeId][$slug][$label])) {
+                            $carry[$categoryId][$typeId][$slug][$label] = -1;
+                        }
+                        $carry[$categoryId][$typeId][$slug][$label]++;
+                    }
                 }
-                $carry[$categoryId][$typeId][$statusLabel]++;
+
                 return $carry;
             }, []);
 
         return Stream::from($result)
             ->map(function (array $typeResults) {
                 return Stream::from($typeResults)
-                    ->map(fn(array $labelCount) => Stream::from($labelCount)->sum())
+                    ->map(function (array $languageResults) {
+                        return Stream::from($languageResults)
+                            ->map(fn(array $labelCount) => Stream::from($labelCount)->sum())
+                            ->sum();
+                    })
                     ->sum();
             })
             ->sum();

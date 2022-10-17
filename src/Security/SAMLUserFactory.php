@@ -4,28 +4,31 @@ namespace App\Security;
 
 use App\Entity\Role;
 use App\Entity\Utilisateur;
+use App\Service\LanguageService;
 use App\Service\MailerService;
 use App\Service\UserService;
-use Doctrine\Common\Annotations\Annotation\Required;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Nbgrp\OneloginSamlBundle\Security\User\SamlUserFactoryInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Twig\Environment;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class SAMLUserFactory implements SamlUserFactoryInterface
 {
-    /** @Required  */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required  */
+    #[Required]
     public MailerService $mailerService;
 
-    /** @Required  */
+    #[Required]
     public Environment $templating;
 
-    /** @Required  */
+    #[Required]
     public UserService $userService;
+
+    #[Required]
+    public LanguageService $languageService;
 
     public function createUser(string $identifier, array $attributes): UserInterface
     {
@@ -36,12 +39,16 @@ class SAMLUserFactory implements SamlUserFactoryInterface
 
         $user = $userRepository->findOneByEmail($email);
         if (!$user) {
+            $language = $this->languageService->getNewUserLanguage();
+
             $user = new Utilisateur();
             $user
                 ->setStatus(true)
                 ->setPassword('notused')
                 ->setEmail($email)
                 ->setUsername($email)
+                ->setLanguage($language)
+                ->setDateFormat(Utilisateur::DEFAULT_DATE_FORMAT)
                 ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
                 ->setMobileLoginKey($this->userService->createUniqueMobileLoginKey($this->entityManager));
 

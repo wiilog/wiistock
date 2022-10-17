@@ -2,16 +2,15 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: 'Supprimer <span title="l\'urgence">' ~ ("urgences.l'urgence" | trans) ~ '</span>'
+                title: trans('Traçabilité', 'Urgences', "Supprimer l'urgence")
             } %}
 
             <div class="modal-body">
-                Voulez-vous réellement supprimer <span title="cette urgence">{{ 'urgences.cette urgence'|trans }}</span> ?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'urgence', id: 'submitDeleteUrgence'}
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-danger data', text: trans('Général', null, 'Modale', 'Supprimer'), dismiss: true, name: 'urgence', id: 'submitDeleteUrgence'}
                 ],
                 renderErrorContainer: false
             } %}

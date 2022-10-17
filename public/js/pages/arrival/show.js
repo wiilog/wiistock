@@ -7,8 +7,8 @@ $(function () {
         $('#btnModalAddColis').click();
     }
 
-    let printColis = Number(Boolean($('#printColis').val()));
-    let printArrivage = Number(Boolean($('#printArrivage').val()));
+    let printColis = Number(Boolean(Number($('#printColis').val())));
+    let printArrivage = Number(Boolean(Number($('#printArrivage').val())));
 
     if (printColis || printArrivage) {
         let params = {
@@ -16,7 +16,7 @@ $(function () {
             printColis: printColis,
             printArrivage: printArrivage
         };
-
+        SetRequestQuery({});
         Wiistock.download(Routing.generate('print_arrivage_bar_codes', params, true));
     }
 
@@ -52,12 +52,12 @@ $(function () {
             needsRowClickAction: true
         },
         columns: [
-            {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: true},
-            {"data": 'nature', 'name': 'nature', 'title': 'natures.nature', translated: true},
-            {"data": 'code', 'name': 'code', 'title': 'Code'},
-            {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
-            {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
-            {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
+            {data: 'actions', name: 'actions',  title: '', className: 'noVis', orderable: true},
+            {data: 'nature', name: 'nature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
+            {data: 'code', name: 'code', title: Translation.of('Traçabilité', 'Général', 'Unités logistiques')},
+            {data: 'lastMvtDate', name: 'lastMvtDate', title:  Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
+            {data: 'lastLocation', name: 'lastLocation', title:  Translation.of('Traçabilité', 'Général', 'Dernier emplacement')},
+            {data: 'operator', name: 'operator', title: Translation.of('Traçabilité', 'Général', 'Opérateur')},
         ],
         order: [['code', 'asc']]
     };
@@ -93,12 +93,12 @@ $(function () {
             "type": "POST"
         },
         columns: [
-            {"data": 'Actions', 'name': 'actions', 'title': '', orderable: false, className: 'noVis'},
-            {"data": 'firstDate', 'name': 'firstDate', 'title': 'Date de création'},
-            {"data": 'status', 'name': 'status', 'title': 'Statut'},
-            {"data": 'type', 'name': 'type', 'title': 'Type'},
-            {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
-            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
+            {data: 'Actions', name: 'actions', title: '', orderable: false, className: 'noVis'},
+            {data: 'firstDate', name: 'firstDate', title: Translation.of('Général', null, 'Zone liste', 'Date de création')},
+            {data: 'status', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
+            {data: 'type', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
+            {data: 'updateDate', name: 'updateDate', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Date de modification')},
+            {data: 'urgence', name: 'urgence', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence'), visible: false},
         ],
         rowConfig: {
             needsColor: true,
@@ -175,11 +175,11 @@ function openTableHisto() {
         },
         order: [['date', 'asc']],
         columns: [
-            {data: 'user', name: 'Utilisateur', title: 'Utilisateur'},
-            {data: 'date', name: 'date', title: 'Date', "type": "customDate"},
-            {data: 'commentaire', name: 'commentaire', title: 'Commentaire'},
-            {data: 'status', name: 'status', title: 'Statut'},
-            {data: 'type', name: 'type', title: 'Type'},
+            {data: 'user', name: 'Utilisateur', title: Translation.of('Traçabilité', 'Général', 'Utilisateur')},
+            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
+            {data: 'commentaire', name: 'commentaire', title: Translation.of('Général', '', 'Modale', 'Commentaire')},
+            {data: 'status', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
+            {data: 'type', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
         ],
         domConfig: {
             needsPartialDomOverride: true,
@@ -195,17 +195,32 @@ function editRowArrivage($button) {
     let id = $button.data('id');
     let params = {id: id};
 
-    $.post(path, JSON.stringify(params), function (data) {
-        modal.find('.error-msg').html('');
-        modal.find('.modal-body').html(data.html);
+    wrapLoadingOnActionButton(
+        $button,
+        () => {
+            return $.post(path, JSON.stringify(params), function (data) {
+                modal.find('.error-msg').html('');
+                modal.find('.modal-body').html(data.html);
 
-        modal.find('#acheteursEdit').val(data.acheteurs).select2();
-        modal.find('.select2').select2();
-        initDateTimePicker('.date-cl');
-        Select2Old.initFree($('.select2-free'));
-        Select2Old.location(modal.find('.ajax-autocomplete-location'));
-        Select2Old.user(modal.find('.ajax-autocomplete-user'));
-    }, 'json');
+                modal.find('#acheteursEdit').val(data.acheteurs).select2();
+                modal.find('.select2').select2();
+                initDateTimePicker('.date-cl');
+                Select2Old.initFree($('.select2-free'));
+                Select2Old.location(modal.find('.ajax-autocomplete-location'));
+                Select2Old.user(modal.find('.ajax-autocomplete-user'));
+                const $userFormat = $('#userDateFormat');
+                const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+                initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
+                initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+
+                fillDatePickers('.free-field-date');
+                fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+
+                modal.modal('show');
+            }, 'json');
+        }
+    );
 
     modal.find(submit).attr('value', id);
 }
@@ -214,6 +229,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
+    console.log('passe par editRowLitigeArrivage');
 
     let params = {
         disputeId,
@@ -223,6 +239,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
+        console.log(data.html);
         modal.find('#colisEditLitige').val(data.colis).select2();
         fillDemandeurField(modal);
         afterLoadingEditModal()

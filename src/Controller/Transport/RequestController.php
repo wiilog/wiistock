@@ -48,7 +48,7 @@ use DateTime;
 use App\Service\Transport\TransportService;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use RuntimeException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,7 +76,10 @@ class RequestController extends AbstractController {
 
         $natures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE, Nature::TRANSPORT_DELIVERY_CODE]);
         $requestLines = Stream::from($natures)
-            ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp($a->getLabel(), $b->getLabel()))
+            ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp(
+                $this->getFormatter()->nature($a) ?? '',
+                $this->getFormatter()->nature($b) ?? ''
+            ))
             ->map(fn(Nature $nature) => [
                 'nature' => $nature,
             ])
@@ -706,7 +709,10 @@ class RequestController extends AbstractController {
         if ($transportRequest instanceof TransportCollectRequest) {
             $collectNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_COLLECT_CODE]);
             $requestLines = Stream::from($collectNatures)
-                ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp($a->getLabel(), $b->getLabel()))
+                ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp(
+                    $this->getFormatter()->nature($a) ?? '',
+                    $this->getFormatter()->nature($b) ?? ''
+                ))
                 ->map(function(Nature $nature) use ($transportRequest) {
                     /** @var TransportCollectRequestLine $line */
                     $line = $transportRequest->getLine($nature);
@@ -721,7 +727,10 @@ class RequestController extends AbstractController {
         else if ($transportRequest instanceof TransportDeliveryRequest) {
             $deliveryNatures = $natureRepository->findByAllowedForms([Nature::TRANSPORT_DELIVERY_CODE]);
             $requestLines = Stream::from($deliveryNatures)
-                ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp($a->getLabel(), $b->getLabel()))
+                ->sort(fn(Nature $a, Nature $b) => StringService::mbstrcmp(
+                    $this->getFormatter()->nature($a) ?? '',
+                    $this->getFormatter()->nature($b) ?? ''
+                ))
                 ->map(function(Nature $nature) use ($transportRequest) {
                     /** @var TransportDeliveryRequestLine $line */
                     $line = $transportRequest->getLine($nature);

@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | Encours{% endblock %}
+{% block title %}Traçabilité | {{ trans('Traçabilité', 'Encours', 'Encours') }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersEncours.html.twig' with {
@@ -13,12 +13,16 @@
     <div class="m-4">
         <input type="hidden" id="encours-min-location-filter" value="{{ minLocationFilter }}"/>
         <div class="row">
-            <div class="col-auto ml-auto"><h2 class="m-0">Actualisé le {{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</h2></div>
+            <div class="col-auto ml-auto">
+                <h2 class="m-0">
+                    {{ trans('Traçabilité', 'Encours', 'Actualisé le {1} à {2}', {
+                        1: "now"|date(app.user.dateFormat ?? 'd/m/Y'),
+                        2: "now"|date('H:i:s')
+                    }) }}
+                </h2>
+            </div>
         </div>
         <div class="row">
-            {% if emplacements is empty %}
-                <div class="col-12">Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.</div>
-            {% endif %}
             {% for emplacement in emplacements %}
                 <div class="col-6 mb-3 {{ (loop.index0 % 2 == 0) ? 'pr-2' : 'pl-2' }} block-encours d-none">
                     <div class="wii-page-card">
@@ -32,7 +36,7 @@
                                             class="btn btn-primary split-button"
                                             onclick="saveExportFile('ongoing_pack_csv', false, { emplacement: {{ emplacement.id }} })">
                                         <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                                        Exporter au format CSV
+                                        {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                                     </button>
                                 </div>
                             {% endif %}
