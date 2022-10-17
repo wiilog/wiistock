@@ -187,89 +187,95 @@ function listColis(elem) {
     }, 'json');
 }
 
-function openArrivalCreationModal($button) {
-    wrapLoadingOnActionButton($button, () => {
-        return createArrival()
-            .then(() => {
-                const $modal = $(`#modalNewArrivage`);
-                $modal.modal({
-                    backdrop: 'static',
-                    keyboard: false,
-                });
-                $modal.modal(`show`);
-            })
+function openArrivalCreationModal() {
+    const $modal = createArrival();
+    console.log($modal);
+    $modal.modal({
+        backdrop: 'static',
+        keyboard: false,
     });
+
+    $modal.modal(`show`);
 }
 
 function createArrival() {
-    return $.get(Routing.generate('arrivage_new_api', true), function (data) {
-        const $existingModal = $(`#modalNewArrivage`);
-        let $modal;
-        if($existingModal.exists()) {
-            const style = $existingModal.attr(`style`);
-            $existingModal.find('.modal-body').html($(data.html).find('.modal-body').html());
+    const data = JSON.parse($(`#arrivalForm`).val());
+    const $existingModal = $(`#modalNewArrivage`);
+    let $modal;
+    if($existingModal.exists()) {
+        const style = $existingModal.attr(`style`);
+        $existingModal.find('.modal-body').html($(data.html).find('.modal-body').html());
 
-            $modal = $(`#modalNewArrivage`);
-            $modal.attr(`style`, style);
-            $modal.addClass(`show`);
+        $modal = $(`#modalNewArrivage`);
+        $modal.attr(`style`, style);
+        $modal.addClass(`show`);
 
-            $modal.find('[type=submit]').popLoader();
-        } else {
-            $(`body`).append(data.html);
-            $modal = $(`#modalNewArrivage`);
-        }
+        $modal.find('[type=submit]').popLoader();
+    } else {
+        $(`body`).append(data.html);
 
-        setTimeout(() => {
-            onTypeChange($modal.find('[name="type"]'));
-            initDateTimePicker('.date-cl');
+        $modal = $(`#modalNewArrivage`);
+    }
 
-            onFlyFormOpened = {};
-            onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
-            onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
-            onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
+    setTimeout(() => {
+        onTypeChange($modal.find('[name="type"]'));
+        initDateTimePicker('.date-cl');
 
-            Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
-            Select2Old.init($modal.find('.ajax-autocomplete-transporteur'));
-            Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
-            Select2Old.location($modal.find('.ajax-autocomplete-location'));
-            Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
-            Select2Old.initFree($modal.find('.select2-free'));
+        onFlyFormOpened = {};
+        onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
+        onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
+        onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
 
-            const $userFormat = $('#userDateFormat');
-            const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
-            initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
-            initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+        Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
+        Select2Old.init($modal.find('.ajax-autocomplete-transporteur'));
+        Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
+        Select2Old.location($modal.find('.ajax-autocomplete-location'));
+        Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
+        Select2Old.initFree($modal.find('.select2-free'));
 
-            fillDatePickers('.free-field-date');
-            fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+        const $userFormat = $('#userDateFormat');
+        const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+        initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
+        initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
 
-            const $submit = $modal.find(`[type=submit]`);
-            $submit
-                .off('click.new-arrival')
-                .on('click.new-arrival', function() {
-                    SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
-                        keepForm: true,
-                        keepModal: true,
-                        keepLoading: true,
-                        waitForUserAction: () => {
-                            return checkPossibleCustoms($modal);
+        fillDatePickers('.free-field-date');
+        fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+
+        const $submit = $modal.find(`[type=submit]`);
+        $submit
+            .off('click.new-arrival')
+            .on('click.new-arrival', function() {
+            SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
+                keepForm: true,
+                keepModal: true,
+                keepLoading: true,
+                waitForUserAction: () => {
+                    return checkPossibleCustoms($modal);
+                },
+                success: (res) => {
+                    res = res || {};
+                    console.log(res);
+                    $(`#arrivalForm`).val(JSON.stringify(res.new_form));
+                    createArrival();
+                    arrivalCallback(
+                        true,
+                        {
+                            ...(res || {}),
+                            success: () => {
+                            }
                         },
-                        success: (res) => {
-                            res = res || {};
-                            createArrival();
-                            arrivalCallback(
-                                true,
-                                {
-                                    ...(res || {}),
-                                    success: () => {}
-                                },
-                                arrivalsTable
-                            )
-                        },
-                    }).catch(() => {});
-                });
-        }, 1);
-    }, `json`);
+                        arrivalsTable
+                    );
+
+                    $.get(Routing.generate(`arrivage_new_api`, true), function (data) {
+                        $(`#arrivalForm`).val(JSON.stringify(data));
+                    });
+                },
+            }).catch(() => {});
+        })
+    }, 1);
+
+    return $modal;
 }
 
 function updateArrivalPageLength() {
