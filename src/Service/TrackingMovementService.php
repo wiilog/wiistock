@@ -87,8 +87,7 @@ class TrackingMovementService extends AbstractController
         $this->groupService = $groupService;
     }
 
-    public function getDataForDatatable($params = null)
-    {
+    public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 

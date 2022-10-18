@@ -89,7 +89,11 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <table id="tableMvts" class="table w-100"></table>
+                <table id="tableMvts"
+                       class="table w-100"
+                       data-initial-data="{{ initial_tracking_movements }}"
+                       data-initial-visible="{{ initial_visible_columns }}">
+                </table>
             </div>
             <div class="d-none justify-content-center" id="spinner">
                 <div class="spinner-border sizeLoader" role="status">
@@ -103,6 +107,8 @@
             </div>
         </div>
     </div>
+
+    <input id="trackingMovementFilters" value="{{ initial_filters }}" hidden>
 
     {% include "mouvement_traca/modalNewMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
