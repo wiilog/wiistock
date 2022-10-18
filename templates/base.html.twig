@@ -37,7 +37,7 @@
 
     {% block javascripts %}
         <script>
-            const USER_SLUG = $('#language').val();
+            const USER_SLUG = '{{ getLanguage().slug }}';
         </script>
 
         {{ encore_entry_script_tags('app') }}
