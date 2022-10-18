@@ -244,34 +244,39 @@ function createArrival(form = null) {
         $submit
             .off('click.new-arrival')
             .on('click.new-arrival', function() {
-            SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
-                keepForm: true,
-                keepModal: true,
-                keepLoading: true,
-                waitForUserAction: () => {
-                    return checkPossibleCustoms($modal);
-                },
-                success: (res) => {
-                    res = res || {};
-                    let newForm = JSON.parse(res.new_form);
-                    $(`#arrivalForm`).val(res.new_form);
-                    createArrival(newForm);
+                if($submit.hasClass(LOADING_CLASS)) {
+                    Flash.add(`info`, Translation.of('Général', '', 'Modale', 'L\'opération est en cours de traitement'));
+                    return;
+                }
 
-                    arrivalCallback(
-                        true,
-                        {
-                            ...(res || {}),
-                            success: () => {
-                            }
-                        },
-                        arrivalsTable
-                    );
+                SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
+                    keepForm: true,
+                    keepModal: true,
+                    keepLoading: true,
+                    waitForUserAction: () => {
+                        return checkPossibleCustoms($modal);
+                    },
+                    success: (res) => {
+                        res = res || {};
+                        let newForm = JSON.parse(res.new_form);
+                        $(`#arrivalForm`).val(res.new_form);
+                        createArrival(newForm);
 
-                    $.get(Routing.generate(`arrivage_new_api`, true), function (data) {
-                        $(`#arrivalForm`).val(JSON.stringify(data));
-                    });
-                },
-            }).catch(() => {});
+                        arrivalCallback(
+                            true,
+                            {
+                                ...(res || {}),
+                                success: () => {
+                                }
+                            },
+                            arrivalsTable
+                        );
+
+                        $.get(Routing.generate(`arrivage_new_api`, true), function (data) {
+                            $(`#arrivalForm`).val(JSON.stringify(data));
+                        });
+                    },
+                }).catch(() => {});
         })
     }, 1);
 
