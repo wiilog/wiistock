@@ -36,12 +36,11 @@
 
 
     {% block javascripts %}
-        {{ encore_entry_script_tags('app') }}
-
         <script>
-            let USER_SLUG = null;
-            USER_SLUG = $('#language').val();
+            const USER_SLUG = $('#language').val();
         </script>
+
+        {{ encore_entry_script_tags('app') }}
 
         {# datetime picker #}
         <script src={{ asset('js/bootstrap-datetimepicker.min.js') }}></script>

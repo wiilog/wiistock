@@ -18,6 +18,10 @@
 {% endblock %}
 
 {% block javascripts %}
+    <script>
+        let USER_SLUG = $('#language').val();
+    </script>
+
     {{ encore_entry_script_tags('app') }}
     {{ encore_entry_script_tags('dashboard') }}
 
