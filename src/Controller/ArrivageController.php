@@ -80,8 +80,7 @@ class ArrivageController extends AbstractController {
                           EntityManagerInterface $entityManager,
                           KeptFieldService $keptFieldService,
                           ArrivageService $arrivageService,
-                          FilterSupService $filterSupService)
-    {
+                          FilterSupService $filterSupService): Response {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -89,7 +88,6 @@ class ArrivageController extends AbstractController {
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        /** @var Utilisateur $user */
         $user = $this->getUser();
 
         $fields = $arrivageService->getColumnVisibleConfig($entityManager, $user);
@@ -99,6 +97,9 @@ class ArrivageController extends AbstractController {
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
+        $pageLength = $user->getPageLengthForArrivage() ?: 10;
+        $request->request->add(['length' => $pageLength]);
+
         return $this->render('arrivage/index.html.twig', [
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'statuts' => $statuses,
@@ -106,7 +107,7 @@ class ArrivageController extends AbstractController {
             "carriers" => $transporteurRepository->findAllSorted(),
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
-            'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
+            'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
             "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
             "initial_form" => $this->createApi($entityManager, $keptFieldService)->getContent(),

@@ -50,7 +50,7 @@ class TrackingMovementController extends AbstractController
     public function index(Request $request,
                           EntityManagerInterface $entityManager,
                           FilterSupService $filterSupService,
-                          TrackingMovementService $trackingMovementService) {
+                          TrackingMovementService $trackingMovementService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -67,23 +67,22 @@ class TrackingMovementController extends AbstractController
             $entityManager->flush();
         }
 
-        /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-        $redirectAfterTrackingMovementCreation = $settingRepository->findOneBy(['label' => Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT]);
+        $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
+
+        $request->request->add(['length' => 10]);
 
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-            'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true),
+            'redirectAfterTrackingMovementCreation' => $redirectAfterTrackingMovementCreation,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
-            'fields' => $fields
+            'fields' => $fields,
+            "initial_tracking_movements" => $this->api($request, $trackingMovementService)->getContent(),
+            "initial_visible_columns" => $this->apiColumns($entityManager, $trackingMovementService)->getContent(),
+            "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_MVT_TRACA)),
         ]);
-    }
-
-    private function errorWithDropOff($pack, $location, $packTranslation, $natureTranslation) {
-        $bold = '<span class="font-weight-bold"> ';
-        return 'Le ' . $packTranslation . $bold . $pack . '</span> ne dispose pas des ' . $natureTranslation . ' pour être déposé sur l\'emplacement' . $bold . $location . '</span>.';
     }
 
     /**
