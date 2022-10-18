@@ -14,6 +14,7 @@ use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PreparationOrder\Preparation;
@@ -27,6 +28,7 @@ use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use App\Service\TranslationService;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,6 +62,9 @@ class DemandeLivraisonService
     public PreparationsManagerService $preparationsManager;
 
     #[Required]
+    public LivraisonsManagerService $livraisonsManager;
+
+    #[Required]
     public FreeFieldService $freeFieldService;
 
     #[Required]
@@ -76,6 +81,9 @@ class DemandeLivraisonService
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public Security $security;
 
     private ?array $freeFieldsConfig = null;
 
@@ -420,28 +428,48 @@ class DemandeLivraisonService
         $response['success'] = true;
         $response['msg'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        // Creation d'une nouvelle preparation basée sur une selection de demandes
-        $preparation = new Preparation();
         $date = new DateTime('now');
 
-        $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
+        $preparedUponValidationSetting = $settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
+        if($preparedUponValidationSetting) {
+            $locations = [];
+            foreach($demande->getArticleLines() as $article) {
+                $locations[$article->getArticle()->getEmplacement()->getId()] = true;
+            }
 
+            foreach($demande->getReferenceLines() as $reference) {
+                $locations[$reference->getReference()->getEmplacement()->getId()] = true;
+            }
+
+            $preparedUponValidation = count($locations) === 1;
+        } else {
+            $preparedUponValidation = false;
+        }
+
+        $preparation = new Preparation();
         $preparation
             ->setExpectedAt($demande->getExpectedAt())
-            ->setNumero($preparationNumber)
+            ->setNumero($this->preparationsManager->generateNumber($date, $entityManager))
             ->setDate($date);
+
 
         if(!$demande->getValidatedAt()) {
             $demande->setValidatedAt($date);
         }
 
-        $statutP = $needsQuantitiesCheck
-            ? $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER)
-            : $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_VALIDATED);
-        $preparation->setStatut($statutP);
-        $entityManager->persist($preparation);
+        $preparationStatus = $statutRepository->findOneByCategorieNameAndStatutCode(
+            Preparation::CATEGORIE,
+            $needsQuantitiesCheck ? Preparation::STATUT_A_TRAITER : Preparation::STATUT_VALIDATED,
+        );
+
+        $preparation->setStatut($preparationStatus);
+
         $demande->addPreparation($preparation);
+        $entityManager->persist($preparation);
+
+
         $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $demande->setStatut($statutD);
 
@@ -531,6 +559,43 @@ class DemandeLivraisonService
             $response['msg'] = 'Votre demande de livraison a bien été validée';
             $response['demande'] = $demande;
         }
+
+        if($preparedUponValidation) {
+            foreach($preparation->getArticleLines() as $articleLine) {
+                $articleLine->setPickedQuantity($articleLine->getQuantityToPick());
+            }
+
+            foreach($preparation->getReferenceLines() as $referenceLine) {
+                $referenceLine->setPickedQuantity($referenceLine->getQuantityToPick());
+            }
+
+            $dateEnd = new DateTime('now');
+            $user = $this->security->getUser();
+            if($demande->getArticleLines()->count()) {
+                $locationEndPrepa = $demande->getArticleLines()->first()->getArticle()->getEmplacement();
+            } else if($demande->getReferenceLines()->count()) {
+                $locationEndPrepa = $demande->getReferenceLines()->first()->getReference()->getEmplacement();
+            } else {
+                throw new \RuntimeException("Invalid state");
+            }
+
+            $livraison = $this->livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
+
+            $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa, []);
+            $this->preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
+
+            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+
+            $entityManager->flush();
+            $this->preparationsManager->handlePreparationTreatMovements($mouvementRepository, $preparation, $livraison, $locationEndPrepa, $user);
+            $this->preparationsManager->updateRefArticlesQuantities($preparation);
+
+            $entityManager->flush();
+            if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
+                $this->notificationService->toTreat($livraison);
+            }
+        }
+
         return $response;
     }
 

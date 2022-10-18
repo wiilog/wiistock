@@ -46,6 +46,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => false,
                 SpecificService::CLIENT_SAFRAN_ED => true,
             ],
+            Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION => [
+                'default' => false,
+            ],
             Setting::MANAGE_PREPARATIONS_WITH_PLANNING => [
                 'default' => false,
             ],
