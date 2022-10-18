@@ -1302,8 +1302,8 @@ function displayLegendTranslation(data){
 function applyChartTranslations(data){
     if(data.__meterKey === PACK_TO_TREAT_FROM.toLowerCase()){
         for(const [key, value] of Object.entries(data.chartColors)){
-            Object.defineProperty(data.chartColors, data.legends[key][Translation.slug], {value});
             delete data.chartColors[key];
+            Object.defineProperty(data.chartColors, key, {value});
         }
     }
     if(data.label){
