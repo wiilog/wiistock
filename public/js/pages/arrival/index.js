@@ -189,7 +189,6 @@ function listColis(elem) {
 
 function openArrivalCreationModal() {
     const $modal = createArrival();
-    console.log($modal);
     $modal.modal({
         backdrop: 'static',
         keyboard: false,
@@ -198,8 +197,8 @@ function openArrivalCreationModal() {
     $modal.modal(`show`);
 }
 
-function createArrival() {
-    const data = JSON.parse($(`#arrivalForm`).val());
+function createArrival(form = null) {
+    const data = form || JSON.parse($(`#arrivalForm`).val());
     const $existingModal = $(`#modalNewArrivage`);
     let $modal;
     if($existingModal.exists()) {
@@ -254,9 +253,10 @@ function createArrival() {
                 },
                 success: (res) => {
                     res = res || {};
-                    console.log(res);
-                    $(`#arrivalForm`).val(JSON.stringify(res.new_form));
-                    createArrival();
+                    let newForm = JSON.parse(res.new_form);
+                    $(`#arrivalForm`).val(res.new_form);
+                    createArrival(newForm);
+
                     arrivalCallback(
                         true,
                         {
