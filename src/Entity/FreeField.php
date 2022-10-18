@@ -219,6 +219,7 @@ class FreeField implements Serializable {
 
         return Stream::from($this->getElementsTranslations())
             ->map(fn(TranslationSource $source) => $source->getTranslationIn($in, $default)?->getTranslation())
+            ->filter()
             ->toArray();
     }
 
