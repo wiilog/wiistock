@@ -1258,6 +1258,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Cette unité logistique est référencé dans un ou plusieurs litiges",
                             "en" => "This logistic unit appears in one or more disputes",
                         ],
+                        [
+                            "fr" => "Cette unité logistique est utilisé dans un ordre de livraison",
+                            "en" => "This logistics unit is used in a delivery order",
+                        ],
                     ],
                 ],
                 "Onglet \"Groupes\"" => [
