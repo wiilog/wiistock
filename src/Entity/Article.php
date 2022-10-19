@@ -140,6 +140,9 @@ class Article implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Project::class)]
     private ?Project $project = null;
 
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "childArticles")]
+    private ?Pack $currentLogisticUnit = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
@@ -710,6 +713,20 @@ class Article implements PairedEntity {
     public function setProject(?Project $project): self
     {
         $this->project = $project;
+
+        return $this;
+    }
+
+    public function getCurrentLogisticUnit(): ?Pack {
+        return $this->currentLogisticUnit;
+    }
+
+    public function setCurrentLogisticUnit(?Pack $currentLogisticUnit): self {
+        if($this->currentLogisticUnit && $this->currentLogisticUnit !== $currentLogisticUnit) {
+            $this->currentLogisticUnit->removeChildArticle($this);
+        }
+        $this->currentLogisticUnit = $currentLogisticUnit;
+        $currentLogisticUnit?->addChildArticle($this);
 
         return $this;
     }

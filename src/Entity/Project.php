@@ -6,8 +6,8 @@ use App\Repository\ProjectRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
-class Project
-{
+class Project {
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -78,4 +78,5 @@ class Project
 
         return $this;
     }
+
 }

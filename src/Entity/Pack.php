@@ -107,6 +107,9 @@ class Pack implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Project::class)]
     private ?Project $project = null;
 
+    #[ORM\OneToMany(mappedBy: "currentLogisticUnit", targetEntity: Article::class)]
+    private Collection $childArticles;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -116,6 +119,7 @@ class Pack implements PairedEntity {
         $this->childTrackingMovements = new ArrayCollection();
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
+        $this->childArticles = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -639,6 +643,45 @@ class Pack implements PairedEntity {
     public function setProject(?Project $project): self
     {
         $this->project = $project;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Article>
+     */
+    public function getChildArticles(): Collection {
+        return $this->childArticles;
+    }
+
+    public function addChildArticle(Article $childArticle): self {
+        if (!$this->childArticles->contains($childArticle)) {
+            $this->childArticles[] = $childArticle;
+            $childArticle->setCurrentLogisticUnit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChildArticle(Article $childArticle): self {
+        if ($this->childArticles->removeElement($childArticle)) {
+            if ($childArticle->getCurrentLogisticUnit() === $this) {
+                $childArticle->setCurrentLogisticUnit(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setChildArticles(?iterable $childArticles): self {
+        foreach($this->getChildArticles()->toArray() as $childArticle) {
+            $this->removeChildArticle($childArticle);
+        }
+
+        $this->childArticles = new ArrayCollection();
+        foreach($childArticles ?? [] as $childArticle) {
+            $this->addChildArticle($childArticle);
+        }
 
         return $this;
     }
