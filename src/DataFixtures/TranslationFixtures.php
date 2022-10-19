@@ -2638,6 +2638,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Do you really want to delete this service request",
                             "tooltip" => "Suppression demande de service",
                         ],
+                        [
+                            "fr" => "{1} statut sélectionné",
+                            "en" => "{1} selected status",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "{1} statuts sélectionnés",
+                            "en" => "{1} selected statuses",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "Tout sélectionner",
+                            "en" => "Select all",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "Nouvelle demande de service",
+                            "en" => "New service operation",
+                            "tooltip" => "Modale Nouvelle demande de service",
+                        ],
                     ],
                 ],
                 "Zone liste - Nom de colonnes" => [

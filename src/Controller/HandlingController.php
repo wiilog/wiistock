@@ -21,6 +21,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
@@ -400,13 +401,14 @@ class HandlingController extends AbstractController {
 
     #[Route("/csv", name: "get_handlings_csv", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::EXPORT])]
-    public function getHandlingsCSV(Request $request,
-                                    TranslationService $translation,
-                                    CSVExportService $CSVExportService,
-                                    FreeFieldService $freeFieldService,
-                                    DateService $dateService,
-                                    EntityManagerInterface $entityManager): Response
-    {
+    public function getHandlingsCSV(Request                $request,
+                                    TranslationService     $translation,
+                                    CSVExportService       $CSVExportService,
+                                    FreeFieldService       $freeFieldService,
+                                    DateService            $dateService,
+                                    HandlingService        $handlingService,
+                                    EntityManagerInterface $entityManager,
+                                    FormatService          $formatService): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -422,83 +424,62 @@ class HandlingController extends AbstractController {
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
-            $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
 
             $handlingParameters = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
             $receiversParameters = $handlingParameters[FieldsParam::FIELD_CODE_RECEIVERS_HANDLING];
 
-            $handlings = $handlingsRepository->getByDates($dateTimeMin, $dateTimeMax);
-            $receivers = $handlingsRepository->getReceiversByDates($dateTimeMin, $dateTimeMax);
-            $currentDate = new DateTime('now');
+            $handlings = $handlingsRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
             $csvHeaderBase = [
-                'numéro de demande',
-                'date création',
-                'demandeur',
-                'type',
+                $translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Numéro de demande', false),
+                $translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date demande', false),
+                $translation->translate('Demande', 'Général', 'Demandeur', false),
+                $translation->translate('Demande', 'Général', 'Type', false),
                 $translation->translate('Demande', 'Services', 'Objet', false),
-                'chargement',
-                'déchargement',
-                'date attendue',
-                'date de réalisation',
-                'statut',
-                'commentaire',
-                'urgence',
-                $translation->translate('Demande', 'Services', 'Nombre d\'opération(s) réalisée(s)', false),
-                'traité par',
+                $translation->translate('Demande', 'Services', 'Modale et détails', 'Chargement', false),
+                $translation->translate('Demande', 'Services', 'Modale et détails', 'Déchargement', false),
+                $translation->translate('Demande', 'Services', 'Modale et détails', 'Date attendue', false),
+                $translation->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation', false),
+                $translation->translate('Demande', 'Général', 'Statut', false),
+                $translation->translate('Général', null, 'Modale', 'Commentaire', false),
+                $translation->translate('Demande', 'Général', 'Urgent', false),
+                $translation->translate('Demande', 'Services', 'Modale et détails', "Nombre d'opération(s) réalisée(s)", false),
+                $translation->translate('Général', null, 'Zone liste', 'Traité par', false),
             ];
 
             $csvHeader = array_merge(
                 $csvHeaderBase,
                 ($receiversParameters['displayedCreate'] ?? false
                     || $receiversParameters['displayedEdit'] ?? false
-                    ||  $receiversParameters['displayedFilters'] ?? false)
+                    || $receiversParameters['displayedFilters'] ?? false)
                     ? ['destinataire(s)']
                     : [],
                 $freeFieldsConfig['freeFieldsHeader']
             );
-            $user = $this->getUser();
             $today = new DateTime();
-            $today = $today->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : "d-m-Y H:i:s");
+            $today = $today->format("d-m-Y-H:i:s");
             $globalTitle = 'export-services-' . $today . '.csv';
-            return $CSVExportService->createBinaryResponseFromData(
-                $globalTitle,
+
+            return $CSVExportService->streamResponse(function($output) use (
                 $handlings,
-                $csvHeader,
-                function ($handling) use ($freeFieldsConfig, $dateService, $includeDesiredTime, $receivers, $user) {
-//                    $treatmentDelay = $handling['treatmentDelay'];
-//                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
-//                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
-                    $id = $handling['id'];
-                    $receiversStr = Stream::from($receivers[$id] ?? [])
-                        ->join(", ");
-                    $row = [];
-                    $row[] = $handling['number'] ?? '';
-                    $row[] = FormatHelper::datetime($handling['creationDate'], "", false, $user);
-                    $row[] = $handling['sensorName'] ?? ($handling['requester'] ?? '');
-                    $row[] = $handling['type'] ?? '';
-                    $row[] = $handling['subject'] ?? '';
-                    $row[] = $handling['loadingZone'] ?? '';
-                    $row[] = $handling['unloadingZone'] ?? '';
-                    $row[] = $includeDesiredTime
-                        ? FormatHelper::datetime($handling['desiredDate'], "", false, $user)
-                        : FormatHelper::date($handling['desiredDate'], "", $user);
-                    $row[] = FormatHelper::datetime($handling['validationDate'], "", false, $user);
-                    $row[] = $handling['status'] ?? '';
-                    $row[] = strip_tags($handling['comment']) ?? '';
-                    $row[] = $handling['emergency'] ?? '';
-                    $row[] = $handling['carriedOutOperationCount'] ?? '';
-                    $row[] = $handling['treatedBy'] ?? '';
-                    $row[] = $receiversStr ?? '';
-//                    $row[] = $treatmentDelayStr;
+                $handlingsRepository,
+                $entityManager,
+                $dateTimeMin,
+                $dateTimeMax,
+                $CSVExportService,
+                $handlingService,
+                $formatService
+            ) {
 
-                    foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-                        $row[] = FormatHelper::freeField($handling['freeFields'][$freeFieldId] ?? '', $freeField, $user);
-                    }
-
-                    return [$row];
-                });
-        } else {
+                foreach ($handlings as $handling) {
+                    $handlingService->putHandlingLine($entityManager, $CSVExportService, $output, $handling, $formatService);
+                }
+            },
+                $globalTitle,
+                $csvHeader
+            );
+        }
+        else {
             throw new BadRequestHttpException();
         }
     }

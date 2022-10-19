@@ -27,12 +27,10 @@ use Doctrine\ORM\Query\Expr\Join;
 class DispatchRepository extends EntityRepository
 {
     public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService, array $options = []) {
-        $qb = $this->createQueryBuilder('dispatch');
+        $qb = $this->createQueryBuilder('dispatch')
+            ->groupBy('dispatch.id');
 
-        $countTotal = $qb
-            ->select('COUNT(dispatch.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
+        $countTotal = QueryBuilderHelper::count($qb, 'dispatch');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -175,9 +173,7 @@ class DispatchRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = $qb
-            ->getQuery()
-            ->getSingleScalarResult();
+        $countFiltered = QueryBuilderHelper::count($qb, 'dispatch');
 
         $qb->select('dispatch');
 

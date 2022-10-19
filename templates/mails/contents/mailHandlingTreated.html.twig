@@ -30,18 +30,18 @@
     </div>
 
     {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_COLLINS_SOA')) %}
-        <div>{{ translateIn(language, 'Demande', 'Services', 'Email', 'Chargement', false) }} :
+        <div>{{ translateIn(language, 'Demande', 'Services', 'Emails', 'Chargement', false) }} :
             <strong>{{ handling.source }}</strong>
         </div>
-        <div>{{ translateIn(language, 'Demande', 'Services', 'Email', 'Déchargement', false) }} :
+        <div>{{ translateIn(language, 'Demande', 'Services', 'Emails', 'Déchargement', false) }} :
             <strong>{{ handling.destination }}</strong>
         </div>
     {% endif %}
 
-    <div>{{ translateIn(language, 'Demande', 'Services', 'Modale et détails', 'Date attendue', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Date attendue', false) }} :
         <strong>{{ handling.desiredDate ? handling.desiredDate|date(viewHoursOnExpectedDate ? 'd/m/Y à H:i:s' : 'd/m/Y') }}</strong>
     </div>
-    <div>{{ translateIn(language, 'Demande', 'Services', 'Modale et détails', 'Date de réalisation', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Date de réalisation', false) }} :
         <strong>{{ handling.validationDate ? handling.validationDate|date('d/m/Y à H:i:s') }}</strong>
     </div>
     <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut', false) }} :
@@ -54,15 +54,13 @@
     <div>{{ translateIn(language, 'Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)', false) }} :
         <strong>{{ handling.carriedOutOperationCount }}</strong>
     </div>
-    <div>{{ translateIn(language, 'Demande', 'Services', 'Email', 'Modifié par', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Emails', 'Modifié par', false) }} :
         <strong>{{ treatedBy }}</strong>
     </div>
 
-
-        {% if (handling.comment is not empty and handling.comment != '<p><br></p>') %}
-            <div>{{ translateIn(language, 'Général', null, 'Modale', 'Commentaire', false) }} : {{ handling.comment|raw }}</div>
-        {% endif %}
-
+    {% if (handling.comment is not empty and handling.comment != '<p><br></p>') %}
+        <div>{{ translateIn(language, 'Général', null, 'Modale', 'Commentaire', false) }} : {{ handling.comment|raw }}</div>
+    {% endif %}
 
     <div>
         {{ translateIn(language, 'Général', null, 'Modale', 'Pièces jointes', false) }} :

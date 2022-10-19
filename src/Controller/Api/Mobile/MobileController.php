@@ -2070,7 +2070,7 @@ class MobileController extends AbstractApiController
             if ($includeNature) {
                 $nature = $pack->getNature();
                 $res['nature'] = !empty($nature)
-                    ? $natureService->serializeNature($nature)
+                    ? $natureService->serializeNature($nature, $this->getUser())
                     : null;
             }
         }

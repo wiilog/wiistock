@@ -19,7 +19,7 @@
 <div class="col-auto m-1 select-filter statuses-filter pr-0">
     <div class="btn-group">
         <button class="btn dropdown-filter dropdown-toggle filter-status-multiple" data-toggle="dropdown"  type="button">
-            <span class="status-filter-title">{{ trans('Demande', 'Services', '{1} statut sélectionné', false, {'1':'0'}) }}</span>
+            <span class="status-filter-title">{{ trans('Demande', 'Services', '', '{1} statut sélectionné', false, {'1':'0'}) }}</span>
             <span class="fa fa-angle-down"></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-left allow-focus filter-dropdown-menu filter-status-multiple-dropdown">
@@ -27,7 +27,7 @@
                 <label>
                     <input name="all" class="styled" onclick="checkAllInDropdown($(this))" type="checkbox">
                     <span>
-                        {{ trans('Demande', 'Services', 'Tout sélectionner', false) }}
+                        {{ trans('Demande', 'Services', '', 'Tout sélectionner', false) }}
                     </span>
                 </label>
             </li>
