@@ -1,19 +1,19 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-    <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur', false) }} : {{ fournisseur }}</div>
+    <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur') }} : {{ fournisseur }}</div>
     {% if orderNumber is defined and orderNumber %}
-        <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false) }} : {{ orderNumber }}</div>
+        <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL') }} : {{ orderNumber }}</div>
     {% endif %}
-    <div>{{ translateIn(language, 'Traçabilité', 'Général', 'Unités logistiques', false) }} : {{ colis }}</div>
-    <div>{{ translateIn(language, 'Traçabilité', 'Encours', 'Date de dépose', false) }} :
-        {{ translateIn(language, 'Général', null, 'Zone liste', '{1} à {2}', {
-            1: date|date(app.user.dateFormat ? app.user.dateFormat : "d/m/Y"),
+    <div>{{ translateIn(language, 'Traçabilité', 'Général', 'Unités logistiques') }} : {{ colis }}</div>
+    <div>{{ translateIn(language, 'Traçabilité', 'Encours', 'Date de dépose') }} :
+        {{ translateIn(language, 'Traçabilité', 'Général', '{1} à {2}', {
+            1: date|date(constant('App\\Entity\\Utilisateur::DEFAULT_DATE_FORMAT')),
             2: date|date("H:i:s")
         }) }}</div>
-    <div>{{ translateIn(language, 'Dashboard', 'Emplacement', false) }} : {{ emplacement.label }}</div>
+    <div>{{ translateIn(language, 'Traçabilité', 'Général', 'Emplacement') }} : {{ emplacement.label }}</div>
     {% if operateur is defined %}
-        <div>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Opérateur', false) }} : {{ operateur }}</div>
+        <div>{{ translateIn(language, 'Traçabilité', 'Général', 'Opérateur') }} : {{ operateur }}</div>
     {% endif %}
     {% if pjs is not empty %}
         <div>{{ translateIn(language, 'Général', null, 'Modale', 'Pièces jointes') }} :</div>

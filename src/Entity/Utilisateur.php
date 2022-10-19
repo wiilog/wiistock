@@ -17,7 +17,6 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Nbgrp\OneloginSamlBundle\Security\User\SamlUserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -1861,7 +1860,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     public function getDisplayedDateFormat(): ?string {
-        return self::DATE_FORMATS_TO_DISPLAY[$this->getDateFormat() ?: 'd/m/Y'];
+        return self::DATE_FORMATS_TO_DISPLAY[$this->getDateFormat() ?: Utilisateur::DEFAULT_DATE_FORMAT];
     }
 
     public function setDateFormat(?string $dateFormat): self {
