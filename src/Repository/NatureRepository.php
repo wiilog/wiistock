@@ -4,9 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Language;
 use App\Entity\Nature;
+use App\Helper\QueryBuilderHelper;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
-use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -21,7 +21,7 @@ class NatureRepository extends EntityRepository
 {
     public function findByParams(InputBag $params): array {
         $qb = $this->createQueryBuilder('nature');
-        $total = QueryCounter::count($qb, 'nature');
+        $total = QueryBuilderHelper::count($qb, 'nature');
 
         if (!empty($params)) {
             if (!empty($params->all('search'))) {
@@ -51,7 +51,7 @@ class NatureRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($qb, 'nature');
+        $countFiltered = QueryBuilderHelper::count($qb, 'nature');
 
         if ($params->getInt('start')) {
             $qb->setFirstResult($params->getInt('start'));
@@ -138,7 +138,7 @@ class NatureRepository extends EntityRepository
             ->join("nature.labelTranslation", "join_source")
             ->leftJoin("join_source.translations", "join_translations")
             ->leftJoin("join_translations.language", "join_language")
-            ->andWhere("nature NOT IN :except")
+            ->andWhere("nature NOT IN (:except)")
             ->andWhere("join_language.slug = :language")
             ->andWhere("join_translations.translation = :label")
             ->setParameter("except", $except)

@@ -15,7 +15,7 @@
                                     title="Statut">
                                 <option value=""></option>
                                 {% for status in treatedStatus %}
-                                    <option value="{{ status.id }}">{{ status.nom }}</option>
+                                    <option value="{{ status.id }}">{{ status.getLabelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
                                 {% endfor %}
                             </select>
                         </div>

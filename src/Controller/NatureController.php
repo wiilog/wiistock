@@ -16,9 +16,7 @@ use App\Entity\Type;
 use App\Service\NatureService;
 use App\Service\UserService;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -89,6 +87,10 @@ class NatureController extends AbstractController
                 }
             }
 
+            $frenchLanguage = $entityManager->getRepository(Language::class)->findOneBy(['slug' => Language::FRENCH_SLUG]);
+            $frenchLabel = Stream::from($labels)
+                ->find(fn(array $element) => intval($element['language-id']) === $frenchLanguage->getId());
+
             $nature = new Nature();
             $nature
                 ->setPrefix($data['prefix'] ?? null)
@@ -97,6 +99,7 @@ class NatureController extends AbstractController
                 ->setDefaultQuantity($data['quantity'])
                 ->setDescription($data['description'] ?? null)
                 ->setCode($data['code'])
+                ->setLabel($frenchLabel['label'] ?? $data['code'])
                 ->setLabelTranslation(new TranslationSource());
 
             $labelTranslationSource = $nature->getLabelTranslation();

@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -22,7 +22,7 @@ class TransferOrderRepository extends EntityRepository {
 
     public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter) {
         $qb = $this->createQueryBuilder("transfer_order");
-        $total =  QueryCounter::count($qb, "transfer_order");
+        $total =  QueryBuilderHelper::count($qb, "transfer_order");
 
         if ($receptionFilter) {
             $qb
@@ -144,7 +144,7 @@ class TransferOrderRepository extends EntityRepository {
         }
 
         // compte éléments filtrés
-        $countFiltered =  QueryCounter::count($qb, 'transfer_order');
+        $countFiltered =  QueryBuilderHelper::count($qb, 'transfer_order');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

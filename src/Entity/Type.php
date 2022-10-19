@@ -42,7 +42,9 @@ class Type {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[Deprecated]
+    /**
+     * Attribute used for data warehouse, do not delete it
+     */
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $label = null;
 
@@ -168,12 +170,10 @@ class Type {
             ?: '';
     }
 
-    #[Deprecated]
     public function getLabel(): ?string {
         return $this->label;
     }
 
-    #[Deprecated]
     public function setLabel(?string $label): self {
         $this->label = $label;
 

@@ -12,8 +12,5 @@ use Doctrine\ORM\EntityRepository;
  * @method Translation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class TranslationRepository extends EntityRepository {
-    public function findCategories() {
-        return [];
-    }
 
 }

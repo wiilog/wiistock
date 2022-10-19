@@ -33,17 +33,21 @@
         <div class="row wii-column">
             <div class="col-12 col-md-6">
                 <div class="ra-header d-flex flex-column" style="border-color: {{ referenceArticle.type.color }}">
-                    <div class="wii-type" style="background-color: {{ referenceArticle.type.color }}">{{ referenceArticle.type.label }}</div>
+                    <div class="wii-type" style="background-color: {{ referenceArticle.type.color }}">
+                        <span>{{ referenceArticle.type.label }}</span>
+                    </div>
                     <div class="d-flex header-wrapper">
                         <div class="image-container-show" style="background-image: url('{{ referenceArticle.image
-                        ? (app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ referenceArticle.image.fileName)
+                        ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ referenceArticle.image.fileName)
                         : asset('svg/reference_article/product.svg') }}');
                             background-color: {{ referenceArticle.image ? '#FFFFFF' : "#F5F5F7" }};
                             background-size: {{ referenceArticle.image ? 'cover' : '50%' }}">
                         </div>
                         <div class="specifications">
-                            <div><strong class="ref text-break">Ref : {{ referenceArticle.reference }}</strong></div>
-                            <div><strong class="text-break">{{ referenceArticle.libelle }}</strong></div>
+                            <div>
+                                <div><strong class="ref text-break">Ref : {{ referenceArticle.reference }}</strong></div>
+                                <div><strong class="text-break">{{ referenceArticle.libelle }}</strong></div>
+                            </div>
                             <div class="d-flex align-content-center my-3">
                                 <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
                                 <span class="wii-field-text">Quantité disponible <strong>{{ referenceArticle.quantiteDisponible }}</strong></span>
@@ -323,7 +327,9 @@
                 </div>
                 {% if hasRightEdit %}
                     <div class="d-flex justify-content-end mt-4">
-                        <a href="{{ path('reference_article_edit_page', {'reference': referenceArticle.id, 'from': 'show'}) }}" class="btn btn-success">Modifier</a>
+                        <a href="{{ path('reference_article_edit_page', {'reference': referenceArticle.id, 'from': 'show'}) }}" class="btn btn-success">
+                            <span>Modifier</span>
+                        </a>
                     </div>
                 {% endif %}
             </div>

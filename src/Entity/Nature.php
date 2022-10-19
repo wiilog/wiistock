@@ -32,14 +32,16 @@ class Nature {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[Deprecated]
+    /**
+     * Attribute used for data warehouse, do not delete it
+     */
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $label = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $code = null;
 
-    #[ORM\OneToMany(targetEntity: Pack::class, mappedBy: 'nature')]
+    #[ORM\OneToMany(mappedBy: 'nature', targetEntity: Pack::class)]
     private Collection $packs;
 
     #[ORM\Column(type: 'integer', nullable: true)]
@@ -100,12 +102,10 @@ class Nature {
             ?: '';
     }
 
-    #[Deprecated]
     public function getLabel(): ?string {
         return $this->label;
     }
 
-    #[Deprecated]
     public function setLabel(?string $label): self {
         $this->label = $label;
 

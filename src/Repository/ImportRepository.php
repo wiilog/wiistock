@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Import;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -23,7 +23,7 @@ class ImportRepository extends EntityRepository
             ->setParameter('draft', Import::STATUS_DRAFT)
             ->orderBy('i.createdAt', 'DESC');
 
-		$countTotal = QueryCounter::count($qb, 'i');
+		$countTotal = QueryBuilderHelper::count($qb, 'i');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -96,7 +96,7 @@ class ImportRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb, 'i');
+		$countFiltered = QueryBuilderHelper::count($qb, 'i');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

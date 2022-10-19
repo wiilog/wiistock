@@ -3,7 +3,7 @@
 namespace App\Repository\IOT;
 
 use App\Entity\IOT\RequestTemplate;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -18,7 +18,7 @@ class RequestTemplateRepository extends EntityRepository {
     public function findByParamsAndFilters(InputBag $params) {
         $queryBuilder = $this->createQueryBuilder("request_template");
 
-        $countTotal = QueryCounter::count($queryBuilder, "request_template");
+        $countTotal = QueryBuilderHelper::count($queryBuilder, "request_template");
 
         //Filter search
         if (!empty($params->all('search'))) {
@@ -42,7 +42,7 @@ class RequestTemplateRepository extends EntityRepository {
             }
         }
 
-        $countFiltered = QueryCounter::count($queryBuilder, "request_template");
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, "request_template");
 
         if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));

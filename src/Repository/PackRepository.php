@@ -7,6 +7,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
+use App\Helper\QueryBuilderHelper;
 use DateTimeInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -143,17 +144,18 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, string $mode)
+    public function findByParamsAndFilters(InputBag $params, $filters, string $mode, array $options = []): array
     {
-        $queryBuilder = $this->createQueryBuilder('pack');
+        $queryBuilder = $this->createQueryBuilder('pack')
+            ->groupBy('pack.id');
 
         if ($mode === self::PACKS_MODE) {
             $queryBuilder->where('pack.groupIteration IS NULL');
-            $countTotal = $this->countAllPacks();
+            $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
         }
         else if ($mode === self::GROUPS_MODE) {
             $queryBuilder->where('pack.groupIteration IS NOT NULL');
-            $countTotal = $this->countAllGroups();
+            $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
         }
 
         // filtres sup
@@ -239,9 +241,7 @@ class PackRepository extends EntityRepository
                             ->leftJoin('m3.emplacement', 'e3')
                             ->orderBy('e3.label', $order);
                     } else if ($column === 'packNature') {
-                        $queryBuilder
-                            ->leftJoin('pack.nature', 'n3')
-                            ->orderBy('n3.label', $order);
+                        $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $options['language'], $options['defaultLanguage'], 'nature', $order);
                     } else if ($column === 'packLastDate') {
                         $queryBuilder
                             ->leftJoin('pack.lastTracking', 'm3')
@@ -269,10 +269,8 @@ class PackRepository extends EntityRepository
                 }
             }
         }
-        $queryBuilder
-            ->select('count(pack)');
         // compte éléments filtrés
-        $countFiltered = $queryBuilder->getQuery()->getSingleScalarResult();
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, 'pack');
 
         $queryBuilder
             ->select('pack');

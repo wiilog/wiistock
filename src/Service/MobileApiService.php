@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
+use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Setting;
 use App\Entity\Translation;
@@ -62,12 +63,23 @@ class MobileApiService {
         ];
     }
 
-    public function getTranslationsData(EntityManagerInterface $entityManager): array {
+    public function getTranslationsData(EntityManagerInterface $entityManager, Utilisateur $user): array {
         $translationsRepository = $entityManager->getRepository(Translation::class);
+
+        $userLanguage = $user->getLanguage();
+        $translations = Stream::from($translationsRepository->findBy(['language' => $userLanguage]))
+            ->map(fn(Translation $translation) => [
+                'topMenu' => $translation->getSource()->getCategory()?->getParent()?->getParent()?->getLabel(),
+                'menu' => $translation->getSource()->getCategory()?->getParent()?->getLabel(),
+                'subMenu' => $translation->getSource()->getCategory()?->getLabel(),
+                'translation' => $translation->getSource()->getTranslationIn($userLanguage, Language::FRENCH_DEFAULT_SLUG)?->getTranslation(),
+                'label' => $translation->getSource()->getTranslationIn(Language::DEFAULT_LANGUAGE_SLUG)?->getTranslation()
+            ])
+            ->toArray();
 
         //TODO: récupérer tout en français
         return [
-            'translations' => $translationsRepository->findAllObjects(),
+            'translations' => $translations,
         ];
     }
 

@@ -7,7 +7,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
@@ -30,7 +30,7 @@ class TransportRequestRepository extends EntityRepository {
             ->leftJoin("collect.delivery", "collect_delivery")
             ->andWhere("delivery IS NOT NULL OR collect_delivery IS NULL");
 
-        $total = QueryCounter::count($qb, "transport_request");
+        $total = QueryBuilderHelper::count($qb, "transport_request");
 
         if($params->get("dateMin")) {
             $date = \DateTime::createFromFormat("d/m/Y", $params->get("dateMin"));
@@ -102,7 +102,7 @@ class TransportRequestRepository extends EntityRepository {
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, "transport_request");
+        $countFiltered = QueryBuilderHelper::count($qb, "transport_request");
 
         if ($params->getInt('start')) {
             $qb->setFirstResult($params->getInt('start'));

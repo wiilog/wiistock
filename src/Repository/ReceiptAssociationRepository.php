@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\ReceiptAssociation;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -36,7 +36,7 @@ class ReceiptAssociationRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder("receipt_association");
 
-        $countTotal = QueryCounter::count($qb, 'receipt_association');
+        $countTotal = QueryBuilderHelper::count($qb, 'receipt_association');
 
         foreach ($filters as $filter) {
             switch($filter['field']) {
@@ -123,7 +123,7 @@ class ReceiptAssociationRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, 'receipt_association');
+        $countFiltered = QueryBuilderHelper::count($qb, 'receipt_association');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

@@ -8,7 +8,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
@@ -129,7 +129,7 @@ class DemandeRepository extends EntityRepository
         $qb = $this->createQueryBuilder("delivery_request")
             ->andWhere('delivery_request.manual = false');
 
-        $countTotal = QueryCounter::count($qb, 'delivery_request');
+        $countTotal = QueryBuilderHelper::count($qb, 'delivery_request');
 
         if ($receptionFilter) {
             $qb
@@ -230,7 +230,7 @@ class DemandeRepository extends EntityRepository
         }
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb, 'delivery_request');
+		$countFiltered = QueryBuilderHelper::count($qb, 'delivery_request');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

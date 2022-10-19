@@ -163,7 +163,7 @@ class TrackingMovementController extends AbstractController
         }
         $user = $this->getUser();
         $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
-        $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now');
+        $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now') ?: new DateTime();
 
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 

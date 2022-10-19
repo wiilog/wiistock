@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Entity\Export;
 use App\Entity\Type;
 use Doctrine\ORM\EntityRepository;
@@ -27,7 +27,7 @@ class ExportRepository extends EntityRepository
         $qb = $this->createQueryBuilder("export")
             ->orderBy("export.createdAt", "DESC");
 
-        $countTotal = QueryCounter::count($qb, "export");
+        $countTotal = QueryBuilderHelper::count($qb, "export");
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -114,7 +114,7 @@ class ExportRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, "export");
+        $countFiltered = QueryBuilderHelper::count($qb, "export");
 
         if ($params->getInt("start")) $qb->setFirstResult($params->getInt("start"));
         if ($params->getInt("length")) $qb->setMaxResults($params->getInt("length"));

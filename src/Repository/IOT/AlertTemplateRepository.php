@@ -3,7 +3,7 @@
 namespace App\Repository\IOT;
 
 use App\Entity\IOT\AlertTemplate;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -28,7 +28,7 @@ class AlertTemplateRepository extends EntityRepository
     public function findByParams(InputBag $params) {
 
         $qb = $this->createQueryBuilder("alert_template");
-        $total = QueryCounter::count($qb, "alert_template");
+        $total = QueryBuilderHelper::count($qb, "alert_template");
 
         if (!empty($params->all('search'))) {
             $search = $params->all('search')['value'];
@@ -56,7 +56,7 @@ class AlertTemplateRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($qb, 'alert_template');
+        $countFiltered = QueryBuilderHelper::count($qb, 'alert_template');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

@@ -13,7 +13,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
@@ -261,7 +261,7 @@ class ArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
-        $countQuery = $countTotal = QueryCounter::count($queryBuilder, 'article');
+        $countQuery = $countTotal = QueryBuilderHelper::count($queryBuilder, 'article');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -402,7 +402,7 @@ class ArticleRepository extends EntityRepository {
                     }
                 }
 
-				$countQuery =  QueryCounter::count($queryBuilder, 'article');
+				$countQuery =  QueryBuilderHelper::count($queryBuilder, 'article');
 			}
 
             if (!empty($params->all('order'))) {

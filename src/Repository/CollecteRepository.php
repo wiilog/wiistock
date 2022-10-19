@@ -6,7 +6,7 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -90,7 +90,7 @@ class CollecteRepository extends EntityRepository
     public function findByParamsAndFilters(InputBag $params, $filters) {
         $qb = $this->createQueryBuilder("c");
 
-        $countTotal =  QueryCounter::count($qb, 'c');
+        $countTotal =  QueryBuilderHelper::count($qb, 'c');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -179,7 +179,7 @@ class CollecteRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered =  QueryCounter::count($qb, 'c');
+		$countFiltered =  QueryBuilderHelper::count($qb, 'c');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

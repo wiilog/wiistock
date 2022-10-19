@@ -117,12 +117,13 @@ class StatusController extends AbstractController
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
                 $showAutomaticReceptionCreation = $status->getState() === Statut::TREATED ? "" : "d-none";
 
+                $statusLabel = $this->getFormatter()->status($status);
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => "<input type='text' name='label' value='{$status->getLabelIn("french", $this->getUser()->getLanguage())}' class='form-control data needed'/>",
+                    "label" => "<input type='text' name='label' value='$statusLabel' class='form-control data needed'/>",
                     "state" => "<select name='state' class='data form-control needed select-size'>{$stateOptions}</select>",
                     "comment" => "<input type='text' name='comment' value='{$status->getComment()}' class='form-control data'/>",
-                    "type" => FormatHelper::type($status->getType()),
+                    "type" => $this->formatService->type($status->getType()),
                     "defaultStatut" => "<div class='checkbox-container'><input type='checkbox' name='defaultStatut' class='form-control data' {$defaultStatut}/></div>",
                     "sendMailBuyers" => "<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data' {$sendMailBuyers}/></div>",
                     "sendMailRequesters" => "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
@@ -135,17 +136,17 @@ class StatusController extends AbstractController
             } else {
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => $status->getLabelIn("french", $this->getUser()->getLanguage()),
-                    "type" => FormatHelper::type($status->getType()),
+                    "label" => $this->formatService->status($status),
+                    "type" => $this->formatService->type($status->getType()),
                     "state" => $statusService->getStatusStateLabel($status->getState()),
                     "comment" => $status->getComment(),
-                    "defaultStatut" => FormatHelper::bool($status->isDefaultForCategory()),
-                    "sendMailBuyers" => FormatHelper::bool($status->getSendNotifToBuyer()),
-                    "sendMailRequesters" => FormatHelper::bool($status->getSendNotifToDeclarant()),
-                    "sendMailDest" => FormatHelper::bool($status->getSendNotifToRecipient()),
-                    "needsMobileSync" => FormatHelper::bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
-                    "commentNeeded" => FormatHelper::bool($status->getCommentNeeded()),
-                    "automaticReceptionCreation" => FormatHelper::bool($status->getAutomaticReceptionCreation()),
+                    "defaultStatut" => $this->formatService->bool($status->isDefaultForCategory()),
+                    "sendMailBuyers" => $this->formatService->bool($status->getSendNotifToBuyer()),
+                    "sendMailRequesters" => $this->formatService->bool($status->getSendNotifToDeclarant()),
+                    "sendMailDest" => $this->formatService->bool($status->getSendNotifToRecipient()),
+                    "needsMobileSync" => $this->formatService->bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
+                    "commentNeeded" => $this->formatService->bool($status->getCommentNeeded()),
+                    "automaticReceptionCreation" => $this->formatService->bool($status->getAutomaticReceptionCreation()),
                     "order" => $status->getDisplayOrder(),
                 ];
             }

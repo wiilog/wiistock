@@ -10,6 +10,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
+use App\Entity\Language;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
@@ -23,6 +24,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use App\Service\TranslationService;
 use Google\Service\AndroidPublisher\Track;
 use Symfony\Component\HttpFoundation\FileBag;
@@ -59,6 +61,9 @@ class TrackingMovementService extends AbstractController
     public TranslationService $translation;
 
     #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
     public FormatService $formatService;
 
     public array $stockStatuses = [];
@@ -90,6 +95,7 @@ class TrackingMovementService extends AbstractController
         /** @var Utilisateur $user */
         $user = $this->security->getUser();
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $user);
+
         $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
 
         $mouvements = $queryResult['data'];
@@ -156,13 +162,13 @@ class TrackingMovementService extends AbstractController
 
         $row = [
             'id' => $movement->getId(),
-            'date' => FormatHelper::datetime($movement->getDatetime(), "", false, $this->security->getUser()),
-            'code' => FormatHelper::pack($trackingPack),
+            'date' => $this->formatService->datetime($movement->getDatetime()),
+            'code' => $this->formatService->pack($trackingPack),
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
                 : '',
-            'location' => FormatHelper::location($movement->getEmplacement()),
+            'location' => $this->formatService->location($movement->getEmplacement()),
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
@@ -179,7 +185,7 @@ class TrackingMovementService extends AbstractController
                         : '')),
             "quantity" => $movement->getQuantity() ?: '',
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
-            "operator" => FormatHelper::user($movement->getOperateur()),
+            "operator" => $this->formatService->user($movement->getOperateur()),
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
                 'attachmentsLength' => $movement->getAttachments()->count(),
@@ -189,7 +195,7 @@ class TrackingMovementService extends AbstractController
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $movement->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField, $this->security->getUser());
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
 
         return $row;
@@ -613,7 +619,7 @@ class TrackingMovementService extends AbstractController
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Date', false), 'name' => 'date'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'code'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Référence', false), 'name' => 'reference'],
-            ['title' => $this->translation->translate('Général', '', 'Stock', 'Libellé', false),  'name' => 'label'],
+            ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Libellé', false),  'name' => 'label'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Groupe', false),  'name' => 'group'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Quantité', false), 'name' => 'quantity'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Emplacement', false), 'name' => 'location'],

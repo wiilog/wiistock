@@ -6,7 +6,7 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Statut;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -23,7 +23,7 @@ class TransferRequestRepository extends EntityRepository {
 
     public function findByParamsAndFilters(InputBag $params, $filters) {
         $qb = $this->createQueryBuilder("transfer_request");
-        $total = QueryCounter::count($qb, "transfer_request");
+        $total = QueryBuilderHelper::count($qb, "transfer_request");
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -133,7 +133,7 @@ class TransferRequestRepository extends EntityRepository {
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, 'transfer_request');
+        $countFiltered = QueryBuilderHelper::count($qb, 'transfer_request');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

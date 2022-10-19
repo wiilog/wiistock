@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Notification;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -20,7 +20,7 @@ class NotificationRepository extends EntityRepository {
         $qb = $this->createQueryBuilder("n")
             ->addOrderBy('n.triggered', 'DESC');
 
-        $total = QueryCounter::count($qb, "n");
+        $total = QueryBuilderHelper::count($qb, "n");
         $countFiltered = $total;
         foreach($filters as $filter) {
             switch ($filter['field']) {
@@ -50,7 +50,7 @@ class NotificationRepository extends EntityRepository {
                 }
             }
 
-            $countFiltered = QueryCounter::count($qb, "n");
+            $countFiltered = QueryBuilderHelper::count($qb, "n");
         }
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));

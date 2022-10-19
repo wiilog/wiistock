@@ -5,12 +5,14 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
+use App\Entity\Language;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
 use DateTime;
@@ -42,6 +44,9 @@ class PackService {
     public MailerService $mailerService;
 
     #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
     public FormatService $formatService;
 
     public function getDataForDatatable($params = null) {
@@ -49,7 +54,13 @@ class PackService {
         $packRepository = $this->entityManager->getRepository(Pack::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
-        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::PACKS_MODE);
+        $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::PACKS_MODE, [
+            'defaultLanguage' => $defaultLanguage,
+            'language' => $language
+        ]);
 
         $packs = $queryResult["data"];
 

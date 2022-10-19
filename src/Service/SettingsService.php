@@ -628,7 +628,8 @@ class SettingsService {
                     throw new RuntimeException("Vous devez saisir un libellé pour le type");
                 }
 
-                $type->setLabel($data["label"] ?? $type->getLabel())
+                $type
+                    ->setLabel($data["label"] ?? $type->getLabel())
                     ->setDescription($data["description"] ?? null)
                     ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
                     ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
@@ -672,7 +673,8 @@ class SettingsService {
                         ->toArray();
                 }
 
-                $freeField->setLabel($item["label"])
+                $freeField
+                    ->setLabel($item["label"])
                     ->setType($type ?? null)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
                     ->setCategorieCL(isset($item["category"])

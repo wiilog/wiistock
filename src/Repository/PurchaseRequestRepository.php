@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\PurchaseRequest;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -44,7 +44,7 @@ class PurchaseRequestRepository extends EntityRepository
     public function findByParamsAndFilters(InputBag $params, $filters) {
 
         $qb = $this->createQueryBuilder("purchase_request");
-        $total = QueryCounter::count($qb, "purchase_request");
+        $total = QueryBuilderHelper::count($qb, "purchase_request");
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -140,7 +140,7 @@ class PurchaseRequestRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, 'purchase_request');
+        $countFiltered = QueryBuilderHelper::count($qb, 'purchase_request');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

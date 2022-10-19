@@ -27,3 +27,7 @@ function renderMillisecondsToDelay(milliseconds, type) {
 
     return res;
 }
+
+function isObject(object){
+    return object !== null && typeof object === 'object';
+}

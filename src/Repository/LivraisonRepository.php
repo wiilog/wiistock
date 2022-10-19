@@ -6,7 +6,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\Common\Collections\Criteria;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -113,7 +113,7 @@ class LivraisonRepository extends EntityRepository
             ->join('livraison.preparation', 'preparation')
             ->join('preparation.demande', 'demande');
 
-		$countTotal = QueryCounter::count($qb, 'livraison');
+		$countTotal = QueryBuilderHelper::count($qb, 'livraison');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -203,7 +203,7 @@ class LivraisonRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb, 'livraison');
+		$countFiltered = QueryBuilderHelper::count($qb, 'livraison');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

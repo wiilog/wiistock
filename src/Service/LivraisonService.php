@@ -92,7 +92,7 @@ class LivraisonService
             'Date' => $livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : '',
             'Statut' => $livraison->getStatut() ? $this->formatService->status($livraison->getStatut()) : '',
             'Opérateur' => $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
-            'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
+            'Type' => $demande ? $this->formatService->type($demande->getType()) : '',
             'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url,
                 'titleLogo' => !$livraison->getPreparation()->getPairings()->isEmpty() ? 'pairing' : null
             ]),

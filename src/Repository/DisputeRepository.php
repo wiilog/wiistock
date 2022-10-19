@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Dispute;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -200,25 +200,11 @@ class DisputeRepository extends EntityRepository
 			->leftJoin('rra.reception', 'r')
 			->leftJoin('r.fournisseur', 'rFourn');
 
-        $countTotal = QueryCounter::count($qb, 'dispute');
+        $countTotal = QueryBuilderHelper::count($qb, 'dispute');
 
         // filtres sup
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
-				//TODO à remettre en place en requêtant sur arrivages + réceptions
-//				case 'providers':
-//					$value = explode(',', $filter['value']);
-//					$qb
-//						->join('a.fournisseur', 'f2')
-//						->andWhere("f2.id in (:fournisseurId)")
-//						->setParameter('fournisseurId', $value);
-//					break;
-//				case 'carriers':
-//					$qb
-//						->join('a.transporteur', 't2')
-//						->andWhere('t2.id = :transporteur')
-//						->setParameter('transporteur', $filter['value']);
-//					break;
 				case 'statut':
 					$value = explode(',', $filter['value']);
 					$qb
@@ -332,7 +318,7 @@ class DisputeRepository extends EntityRepository
 		}
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, 'dispute');
+        $countFiltered = QueryBuilderHelper::count($qb, 'dispute');
 
         $disputes = $this->distinctDisputes($qb->getQuery()->getResult());
         $length = $params && !empty($params->get('length'))

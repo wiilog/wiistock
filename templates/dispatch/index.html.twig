@@ -7,7 +7,8 @@
     {% include 'filters/filtersAcheminements.html.twig' with {
         page: 'PAGE_DISPATCHES',
         tableSelector: '#tableDispatches',
-        needsDateFormatting: true
+        needsDateFormatting: true,
+        types: types
     } %}
 {% endblock %}
 

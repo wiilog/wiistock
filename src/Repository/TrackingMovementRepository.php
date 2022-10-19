@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\FreeField;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -37,22 +37,6 @@ class TrackingMovementRepository extends EntityRepository
         'operateur' => 'user',
         'quantity' => 'quantity'
     ];
-
-    /**
-     * @return int|mixed|string
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countAll()
-    {
-        $qb = $this->createQueryBuilder('tracking_movement');
-
-        $qb->select('COUNT(tracking_movement)');
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
 
     public function iterateByDates(DateTime $dateMin,
                                    DateTime $dateMax): iterable
@@ -101,9 +85,10 @@ class TrackingMovementRepository extends EntityRepository
 
     public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
-        $qb = $this->createQueryBuilder('tracking_movement');
+        $qb = $this->createQueryBuilder('tracking_movement')
+            ->groupBy('tracking_movement.id');
 
-        $countTotal = $this->countAll();
+        $countTotal = QueryBuilderHelper::count($qb, 'tracking_movement');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -246,10 +231,7 @@ class TrackingMovementRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $qb
-            ->select('count(tracking_movement)');
-        // compte éléments filtrés
-        $countFiltered = $qb->getQuery()->getSingleScalarResult();
+        $countFiltered = QueryBuilderHelper::count($qb, 'tracking_movement');
         $qb
             ->select('tracking_movement');
 
@@ -402,7 +384,7 @@ class TrackingMovementRepository extends EntityRepository
                 'ungroupType' => TrackingMovement::TYPE_UNGROUP
             ]);
 
-        $countTotal = QueryCounter::count($qb, "tracking_movement");
+        $countTotal = QueryBuilderHelper::count($qb, "tracking_movement");
 
         //Filter search
         if (!empty($params)) {
@@ -427,7 +409,7 @@ class TrackingMovementRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($qb, "tracking_movement");
+        $countFiltered = QueryBuilderHelper::count($qb, "tracking_movement");
 
         return [
             'data' => $qb->getQuery()->getResult(),

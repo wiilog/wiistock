@@ -17,6 +17,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Symfony\Component\HttpFoundation\Request;
@@ -94,6 +95,9 @@ class ArrivageService {
         $dispatchMode = $request->query->getBoolean('dispatchMode');
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $currentUser);
+        $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
         $queryResult = $arrivalRepository->findByParamsAndFilters(
             $request->request,
             $filters,
@@ -101,21 +105,17 @@ class ArrivageService {
             [
                 'userIdArrivalFilter' => $userIdArrivalFilter,
                 'user' => $this->security->getUser(),
-                'dispatchMode' => $dispatchMode
+                'dispatchMode' => $dispatchMode,
+                'defaultLanguage' => $defaultLanguage,
+                'language' => $language
             ]
         );
-
-
-        $userLanguage = $this->userService->getUser()->getLanguage();
-        $defaultLanguage = $this->languageService->getDefaultLanguage();
 
         $arrivals = $queryResult['data'];
 
         $rows = [];
         foreach ($arrivals as $arrival) {
             $rows[] = $this->dataRowArrivage($arrival[0], [
-                'userLanguage' => $userLanguage,
-                'defaultLanguage' => $defaultLanguage,
                 'totalWeight' => $arrival['totalWeight'],
                 'packsCount' => $arrival['packsCount'],
                 'dispatchMode' => $dispatchMode,
@@ -147,9 +147,6 @@ class ArrivageService {
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
-        $userLanguage = $options['userLanguage'];
-        $defaultLanguage = $options['defaultLanguage'];
-
         $row = [
             'id' => $arrivalId,
             'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='Colis acheminé(s)'></i></td>" : '',
@@ -159,7 +156,7 @@ class ArrivageService {
             'driver' => $arrival->getChauffeur() ? $arrival->getChauffeur()->getPrenomNom() : '',
             'trackingCarrierNumber' => $arrival->getNoTracking() ?? '',
             'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
-            'type' => $arrival->getType() ? $arrival->getType()->getLabelIn($userLanguage, $defaultLanguage) : '',
+            'type' => $this->formatService->type($arrival->getType()),
             'nbUm' => $options['packsCount'] ?? '',
             'customs' => $this->formatService->bool($arrival->getCustoms()),
             'frozen' => $this->formatService->bool($arrival->getFrozen()),
@@ -170,6 +167,7 @@ class ArrivageService {
             'creationDate' => $arrival->getDate() ? $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
             'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
             'emergency' => $this->formatService->bool($arrival->getIsUrgent()),
+            'checkEmergency' => $arrival->getIsUrgent(),
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => $this->formatService->location($arrival->getDropLocation()),
@@ -413,15 +411,10 @@ class ArrivageService {
             $this->security->getUser()
         );
 
-        $userLanguage = $this->userService->getUser();
-        $defaultLanguage = $this->languageService->getDefaultSlug();
-
         $config = [
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type'),
-                'value' => $type?->getLabelIn($userLanguage, $defaultLanguage)
-                    ?: $type?->getLabel()
-                    ?: '-',
+                'value' => $this->formatService->type($type, '-'),
                 'isRaw' => true
             ],
             [
@@ -764,8 +757,7 @@ class ArrivageService {
             Stream::from($natures)
                 ->map(fn(Nature $nature) => [
                     'code' => "nature_{$nature->getId()}",
-                    'label' => $nature->getLabelIn($userLanguage, $defaultLanguage)
-                        ?: $nature->getLabel()
+                    'label' => $this->formatService->nature($nature)
                 ]),
             Stream::from($freeFields)
                 ->map(fn(FreeField $field) => [

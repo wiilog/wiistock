@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\VisibilityGroup;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -31,7 +31,7 @@ class VisibilityGroupRepository extends EntityRepository {
     {
         $queryBuilder = $this->createQueryBuilder("visibility_group");
 
-        $countTotal = QueryCounter::count($queryBuilder, "visibility_group");
+        $countTotal = QueryBuilderHelper::count($queryBuilder, "visibility_group");
 
         //Filter search
         if (!empty($params)) {
@@ -61,7 +61,7 @@ class VisibilityGroupRepository extends EntityRepository {
             }
         }
 
-        $countFiltered = QueryCounter::count($queryBuilder, "visibility_group");
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, "visibility_group");
 
         if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));

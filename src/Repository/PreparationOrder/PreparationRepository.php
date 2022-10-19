@@ -10,7 +10,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
@@ -125,7 +125,7 @@ class PreparationRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder("p");
 
-        $countTotal = QueryCounter::count($qb, 'p');
+        $countTotal = QueryBuilderHelper::count($qb, 'p');
         $qb
             ->where('p.planned IS NULL OR p.planned = 0')
             ->join('p.demande', 'request')
@@ -216,7 +216,7 @@ class PreparationRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, 'p');
+        $countFiltered = QueryBuilderHelper::count($qb, 'p');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

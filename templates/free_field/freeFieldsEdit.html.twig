@@ -48,8 +48,10 @@
                                     }]
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST') %}
-                                {% set elements = freeField.elementsIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) %}
-                                {% set selectedValue = entityValue|transFreeFieldElements(freeField) %}
+                                {% set elements = freeField.elementsIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug)
+                                    ?: freeField.elements %}
+                                {% set selectedValue = entityValue|transFreeFieldElements(freeField)
+                                    ?: freeField.defaultValue %}
                                 {{ form.select(freeField.id, displayedLabel, needed, {
                                     items: elements|map((elem) => {value: elem, label: elem}),
                                     value: selectedValue,
@@ -61,7 +63,8 @@
                                     }],
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
-                                {% set elements = freeField.elementsIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) %}
+                                {% set elements = freeField.elementsIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug)
+                                    ?: freeField.elements %}
                                 {% set entityValuesArray = freeFieldValues[freeField.id] is defined
                                     ? freeFieldValues[freeField.id]|split(';')|transFreeFieldElements(freeField)
                                     : [] %}

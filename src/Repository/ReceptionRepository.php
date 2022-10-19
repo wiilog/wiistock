@@ -6,7 +6,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
-use App\Helper\QueryCounter;
+use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -145,7 +145,7 @@ class ReceptionRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder("reception");
 
-        $countTotal = QueryCounter::count($qb, 'reception');
+        $countTotal = QueryBuilderHelper::count($qb, 'reception');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -279,7 +279,7 @@ class ReceptionRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, 'reception');
+        $countFiltered = QueryBuilderHelper::count($qb, 'reception');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

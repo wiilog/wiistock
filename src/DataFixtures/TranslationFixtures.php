@@ -1258,6 +1258,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Cette unité logistique est référencé dans un ou plusieurs litiges",
                             "en" => "This logistic unit appears in one or more disputes",
                         ],
+                        [
+                            "fr" => "Cette unité logistique est utilisé dans un ordre de livraison",
+                            "en" => "This logistics unit is used in a delivery order",
+                        ],
                     ],
                 ],
                 "Onglet \"Groupes\"" => [
@@ -1330,6 +1334,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Référence",
                         "en" => "Item",
+                        "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes",
+                    ],
+                    [
+                        "fr" => "Libellé",
+                        "en" => "Label",
                         "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes",
                     ],
                     [
@@ -1792,6 +1801,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Acheminement",
                             "en" => "Transfer",
                             "tooltip" => "Menu\nFil d'ariane\nMenu \"+\"\nDétails",
+                        ],
+                        [
+                            "fr" => "Acheminements",
+                            "en" => "Transfers",
+                            "tooltip" => "Menu nomade",
                         ],
                         [
                             "fr" => "Nouvelle demande d'acheminement",
@@ -2628,6 +2642,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Do you really want to delete this service request",
                             "tooltip" => "Suppression demande de service",
                         ],
+                        [
+                            "fr" => "{1} statut sélectionné",
+                            "en" => "{1} selected status",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "{1} statuts sélectionnés",
+                            "en" => "{1} selected statuses",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "Tout sélectionner",
+                            "en" => "Select all",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "Nouvelle demande de service",
+                            "en" => "New service operation",
+                            "tooltip" => "Modale Nouvelle demande de service",
+                        ],
                     ],
                 ],
                 "Zone liste - Nom de colonnes" => [
@@ -2918,6 +2952,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
         $this->manager->flush();
 
+        $this->deleteUnusedCategories(null, self::TRANSLATIONS);
+        $this->manager->flush();
+
         $this->updateUsers();
         $this->manager->flush();
     }
@@ -3008,11 +3045,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
         }
     }
 
-    private function deleteUnusedCategories(TranslationCategory $parent, array $categories)
+    private function deleteUnusedCategories(TranslationCategory|null $parent, array $categories)
     {
         $categoryRepository = $this->manager->getRepository(TranslationCategory::class);
 
-        if ($parent->getId()) {
+         if (!$parent || $parent->getId()) {
             $fixtureCategories = array_keys($categories);
             $unusedCategories = $categoryRepository->findUnusedCategories($parent, $fixtureCategories);
             foreach ($unusedCategories as $category) {

@@ -57,8 +57,6 @@ class DisputeController extends AbstractController
         $user = $this->getUser();
 
         return $this->render('litige/index.html.twig',[
-//            'userLanguage' => $this->getUser()->getLanguage(), TODO décommenter un fois WIIS-6569 terminée
-//            'defaultLanguage' => $languageService->getDefaultLanguage(),
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::DISPUTE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $transporteurRepository->findAllSorted(),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
