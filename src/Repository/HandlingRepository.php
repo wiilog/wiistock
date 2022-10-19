@@ -135,16 +135,10 @@ class HandlingRepository extends EntityRepository
     }
 
 
-    /**
-     * @param $params
-     * @param $filters
-     * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function findByParamAndFilters(InputBag $params, $filters, $selectedDate = null, array $options = [])
+    public function findByParamAndFilters(InputBag $params, $filters, $selectedDate = null, array $options = []): array
     {
-        $qb = $this->createQueryBuilder('handling');
+        $qb = $this->createQueryBuilder('handling')
+            ->groupBy('handling.id');
 
         if ($selectedDate) {
             $qb->andWhere('handling.desiredDate >= :filter_dateMin_value')
@@ -153,10 +147,7 @@ class HandlingRepository extends EntityRepository
                 ->setParameter('filter_dateMax_value', "$selectedDate 23:59:59");
         }
 
-        $countTotal = $qb
-            ->select('COUNT(handling)')
-            ->getQuery()
-            ->getSingleScalarResult();
+        $countTotal = QueryBuilderHelper::count($qb, 'handling');
 
         if (!$selectedDate) {
             // filtres sup
@@ -303,10 +294,7 @@ class HandlingRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = $qb
-            ->select('COUNT(handling)')
-            ->getQuery()
-            ->getSingleScalarResult();
+        $countFiltered = QueryBuilderHelper::count($qb, 'handling');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
