@@ -14,9 +14,9 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -82,12 +82,7 @@ class TypeRepository extends EntityRepository {
             ->andWhere("category.label = '$category'");
 
         if(isset($options['language']) && isset($options['defaultLanguage'])) {
-            $qb->addSelect("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, type.label)) AS text")
-                ->leftJoin("type.labelTranslation", "join_labelTranslation")
-                ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
-                ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
-                ->setParameter("language", $options['language'])
-                ->setParameter("default", $options['defaultLanguage']);
+            $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type');
         } else {
             $qb->addSelect("type.label AS text");
         }

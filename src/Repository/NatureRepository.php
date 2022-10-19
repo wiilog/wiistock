@@ -77,18 +77,13 @@ class NatureRepository extends EntityRepository
     }
 
     public function getForSelect(?string $term, Language $language, Language $default): array {
-       return $this->createQueryBuilder('nature')
-            ->select("nature.id AS id")
-            ->addSelect("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, nature.label)) AS text")
-            ->leftJoin("nature.labelTranslation", "join_labelTranslation")
-            ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
-            ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
-            ->andWhere("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, nature.label)) LIKE :term")
-            ->setParameter("term", "%$term%")
-            ->setParameter("language", $language)
-            ->setParameter("default", $default)
-            ->getQuery()
-            ->getResult();
+       $qb = $this->createQueryBuilder('nature')
+            ->select("nature.id AS id");
+
+       return QueryBuilderHelper::joinTranslations($qb, $language, $default, 'nature')
+           ->setParameter("term", "%$term%")
+           ->getQuery()
+           ->getResult();
     }
 
     public function countUsedById($id)
