@@ -112,8 +112,8 @@ function checkAllInDropdown($checkbox) {
 function updateSelectedStatusesCount(length) {
     const plural = length > 1;
     $('.status-filter-title').html( !plural
-        ? Translation.of('Demande', 'Services', '{1} statut sélectionné', false, {'1':length})
-        : Translation.of('Demande', 'Services', '{1} statuts sélectionnés', false, {'1':length}));
+        ? Translation.of('Demande', 'Services', null, '{1} statut sélectionné', false, {'1':length})
+        : Translation.of('Demande', 'Services', null,  '{1} statuts sélectionnés', false, {'1':length}));
 }
 
 function initNewHandlingEditor(modal) {

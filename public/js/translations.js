@@ -1,27 +1,26 @@
-class Trans {
-    static original(key) {
-        return "BUG TICKET : " + key;
+class TranslationClass {
+    /*
+    FRENCH_SLUG;
+    FRENCH_DEFAULT_SLUG;
+    ENGLISH_SLUG;
+    ENGLISH_DEFAULT_SLUG;
+
+    slug;
+    defaultSlug;
+*/
+    constructor() {
+        this.FRENCH_SLUG = `french`;
+        this.FRENCH_DEFAULT_SLUG = `french-default`;
+        this.ENGLISH_SLUG = `english`;
+        this.ENGLISH_DEFAULT_SLUG = `english-default`;
+        this.defaultSlug = DEFAULT_SLUG; // defined in generated/translations.js
     }
-
-    static translated(key) {
-        return "BUG TICKET " + key;
-    }
-}
-
-class Translation {
-    static FRENCH_SLUG = `french`;
-    static FRENCH_DEFAULT_SLUG = `french-default`;
-    static ENGLISH_SLUG = `english`;
-    static ENGLISH_DEFAULT_SLUG = `english-default`;
-
-    static slug;
-    static defaultSlug = DEFAULT_SLUG;
 
     /**
      * @param args Same as php method TranslationService::translate
      * @return {string}
      */
-    static of(...args) {
+    of(...args) {
         Translation.slug = $(`#language`).val();
 
         let defaultSlug;
@@ -39,7 +38,7 @@ class Translation {
         );
     }
 
-    static fetch(slug, defaultSlug, lastResort, ...args) {
+    fetch(slug, defaultSlug, lastResort, ...args) {
         let enableTooltip = true;
         let params = null;
 
@@ -119,7 +118,7 @@ class Translation {
         return enableTooltip ? `<span title="${tooltip}">${output}</span>` : output;
     }
 
-    static escape(unsafe) {
+    escape(unsafe) {
         return unsafe
             .replace(/&/g, `&amp;`)
             .replace(/</g, `&lt;`)
@@ -128,3 +127,7 @@ class Translation {
             .replace(/'/g, `&#039;`);
     }
 }
+
+// for external dashboard
+// we can't use static keywords
+const Translation = new TranslationClass();
