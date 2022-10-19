@@ -375,7 +375,8 @@ class ReceptionController extends AbstractController {
     public function index(EntityManagerInterface $entityManager,
                           ReceptionService       $receptionService,
                           SettingsService        $settingsService,
-                          PurchaseRequest        $purchaseRequest = null): Response {
+                          PurchaseRequest        $purchaseRequest = null,
+                          int $idArrivage = null): Response {
         $purchaseRequestLinesOrderNumbers = [];
         if ($purchaseRequest) {
             $purchaseRequestLinesOrderNumbers = $purchaseRequest->getPurchaseRequestLines()
