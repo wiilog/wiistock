@@ -17,7 +17,7 @@
             {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
             <div class="drop-file-hint d-flex flex-column justify-content-center">
                 <span class="mb-2">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;</span>
-                <button onclick="openFileExplorer($(this))" class="btn btn-primary">
+                <button onclick="openFileExplorer($(this))" class="btn btn-primary" type="button">
                     <i class="fa fa-folder-open mr-2"></i>
                     {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}
                 </button>
