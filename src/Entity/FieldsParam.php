@@ -132,6 +132,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_TRANSPORTEUR,
         FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
         FieldsParam::FIELD_CODE_BUSINESS_UNIT,
+        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
 
         // Acheminements
         FieldsParam::FIELD_CODE_EMERGENCY,
