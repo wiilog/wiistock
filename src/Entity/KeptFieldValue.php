@@ -19,7 +19,7 @@ class KeptFieldValue
     #[ORM\Column(type: "string", length: 255)]
     private ?string $field = null;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: "text")]
     private ?string $value = null;
 
     #[ORM\ManyToOne(inversedBy: 'keptFieldValues')]

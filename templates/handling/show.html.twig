@@ -213,7 +213,7 @@
                             <span class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Date attendue') }}</span>
                             <span class="wii-field-text">
                                 {{ language_service.currentUserLanguageSlug == constant('App\\Entity\\Language::FRENCH_SLUG')
-                                    ? handling.creationDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
+                                    ? handling.desiredDate | format_helper('longDate', {short: true, time: not setting_value('REMOVE_HOURS_DATETIME')})
                                     : handling.desiredDate | format_helper(setting_value('REMOVE_HOURS_DATETIME') ? 'date' : 'datetime', "", false, app.user) }}
                             </span>
                         </div>

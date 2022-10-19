@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
 
-<form class="modal fade" id="modalNewLigneReception" aria-hidden="true">
+<div class="modal fade" id="modalNewLigneReception" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
@@ -142,4 +142,4 @@
 
         </div>
     </div>
-</form>
+</div>

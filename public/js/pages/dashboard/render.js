@@ -1072,20 +1072,19 @@ function updateMultipleChartData(chart, data) {
     chart.data.labels = [];
     chart.data.datasets = [];
 
-
     const dataKeys = Object.keys(chartData);
     for(const key of dataKeys) {
         const dataSubKeys = Object.keys(chartData[key]);
         chart.data.labels.push(key);
         for(const subKey of dataSubKeys) {
             let dataset = chart.data.datasets.find(({label}) => (label ===
-                (data.legends[subKey][$('#language').val()] !== ''
-                ? data.legends[subKey][$('#language').val()]
+                (data.legends[subKey][USER_SLUG]
+                ? data.legends[subKey][USER_SLUG]
                 : data.legends[subKey]['french'] || subKey)));
             if(!dataset) {
                 dataset = {
-                    label: data.legends[subKey][$('#language').val()] !== ''
-                        ? data.legends[subKey][$('#language').val()]
+                    label: data.legends[subKey][USER_SLUG]
+                        ? data.legends[subKey][USER_SLUG]
                         : data.legends[subKey]['french'] || subKey,
                     backgroundColor: (chartColors
                             ? (
@@ -1290,7 +1289,7 @@ function displayLegendTranslation(data){
                             <input class="form-control cursor-default tooltip-input data"
                                    name="legend${legendCounter}_${language.slug}"
                                    type="text"
-                                   value="${legend[language.slug] ?? language.slug === 'french' ? legend : '' }"/>
+                                   value="${legend[language.slug] ? (language.slug === 'french' ? legend : '') : '' }"/>
                         </div>
                     </div>`);
                 });
@@ -1303,8 +1302,8 @@ function displayLegendTranslation(data){
 function applyChartTranslations(data){
     if(data.__meterKey === PACK_TO_TREAT_FROM.toLowerCase()){
         for(const [key, value] of Object.entries(data.chartColors)){
-            Object.defineProperty(data.chartColors, data.legends[key][Translation.slug], {value});
             delete data.chartColors[key];
+            Object.defineProperty(data.chartColors, key, {value});
         }
     }
     if(data.label){
