@@ -29,75 +29,78 @@ class Reception {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'receptions')]
     #[ORM\JoinColumn(nullable: true)]
-    private $fournisseur;
+    private ?Fournisseur $fournisseur = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $commentaire;
+    private ?string $commentaire = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $date;
+    private ?DateTime $date = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
-    private $number;
+    private ?string $number = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'receptions')]
     #[ORM\JoinColumn(nullable: true)]
-    private $utilisateur;
+    private ?Utilisateur $utilisateur = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'receptions')]
-    private $statut;
+    private ?Statut $statut = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private ?DateTime $dateAttendue;
+    private ?DateTime $dateAttendue = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $dateCommande;
+    private ?DateTime $dateCommande = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
-    private $orderNumber;
+    private ?string $orderNumber = null;
 
     #[ORM\OneToMany(targetEntity: ReceptionReferenceArticle::class, mappedBy: 'reception')]
-    private $receptionReferenceArticles;
+    private Collection $receptionReferenceArticles;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'receptions')]
-    private $type;
+    private ?Type $type = null;
 
     #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'reception')]
-    private $transporteur;
+    private ?Transporteur $transporteur = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $dateFinReception;
+    private ?DateTime $dateFinReception = null;
 
     #[ORM\OneToMany(targetEntity: 'App\Entity\DeliveryRequest\Demande', mappedBy: 'reception')]
-    private $demandes;
+    private Collection $demandes;
 
     #[ORM\OneToMany(targetEntity: TransferRequest::class, mappedBy: 'reception')]
-    private $transferRequests;
+    private Collection $transferRequests;
 
     #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'receptionOrder')]
-    private $mouvements;
+    private Collection $mouvements;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    private $location;
+    private ?Emplacement $location = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    private $storageLocation;
+    private ?Emplacement $storageLocation = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $urgentArticles;
+    private ?bool $urgentArticles = null;
 
     #[ORM\OneToMany(targetEntity: TrackingMovement::class, mappedBy: 'reception')]
-    private $trackingMovements;
+    private Collection $trackingMovements;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $manualUrgent;
+    private ?bool $manualUrgent = null;
 
     #[ORM\OneToMany(targetEntity: PurchaseRequestLine::class, mappedBy: 'reception')]
-    private ?Collection $purchaseRequestLines;
+    private Collection $purchaseRequestLines;
+
+    #[ORM\ManyToOne(targetEntity: Arrivage::class, inversedBy: 'receptions')]
+    private ?Arrivage $arrival = null;
 
     public function __construct() {
         $this->receptionReferenceArticles = new ArrayCollection();
