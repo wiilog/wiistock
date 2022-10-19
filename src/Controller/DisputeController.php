@@ -92,6 +92,7 @@ class DisputeController extends AbstractController
 
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
+        $statuses = explode(',', $request->query->get('statut'));
 
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
@@ -120,13 +121,17 @@ class DisputeController extends AbstractController
         ];
 
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
-        return $CSVExportService->streamResponse(function ($output) use ($disputeService, $entityManager, $dateTimeMin, $dateTimeMax) {
+        return $CSVExportService->streamResponse(function ($output) use ($disputeService, $entityManager, $dateTimeMin, $dateTimeMax, $statuses) {
 
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
-            $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDates($dateTimeMin, $dateTimeMax);
+            if (!empty($statuses) && !empty($statuses[0])) {
+                $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDatesAndStatus($dateTimeMin, $dateTimeMax, $statuses);
+            }else {
+                $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDates($dateTimeMin, $dateTimeMax);
+            }
             /** @var Dispute $dispute */
             foreach ($arrivalDisputes as $dispute) {
                 $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_ARRIVAL, $output, $dispute, $disputeRepository);

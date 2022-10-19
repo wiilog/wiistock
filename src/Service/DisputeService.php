@@ -251,8 +251,6 @@ class DisputeService {
             throw new \InvalidArgumentException('Invalid mode');
         }
 
-        $userRepository = $manager->getRepository(Utilisateur::class);
-        $buyers = join(" / ", $userRepository->getBuyers($dispute["id"]));
 
         $row = [
             $dispute["number"],
