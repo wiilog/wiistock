@@ -76,8 +76,8 @@ class DataMonitoringService
         $start = FormatHelper::datetime($pairing->getStart(), null, true);
         $end = FormatHelper::datetime($pairing->getEnd(), null, true);
 
-        $config["start"] = $pairing->getStart();
-        $config["end"] = $pairing->getEnd();
+        $config["start"] = (new DateTime())->modify('-1 day');
+        $config["end"] = new DateTime();
         $config["left_pane"][] = [
             "type" => "sensor",
             "icon" => Sensor::SENSOR_ICONS[$pairing->getSensorWrapper()->getSensor()->getType()->getLabel()],
