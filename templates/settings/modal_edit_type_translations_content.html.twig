@@ -27,7 +27,9 @@
     </div>
 {% endif %}
 
-<div class="wii-section-title mx-0">Champs libres</div>
+{% if type.champsLibres is not empty %}
+    <div class="wii-section-title mx-0">Champs libres</div>
+{% endif %}
 
 {% for freeField in type.champsLibres %}
     <div class="row p-2 px-3">

@@ -376,7 +376,7 @@ function initializePacksTable(dispatchId, isEdit) {
             $row.find(`.lastMvtDate`).text(value.lastMvtDate);
             $row.find(`.lastLocation`).text(value.lastLocation);
             $row.find(`.operator`).text(value.operator);
-            $row.find(`.status`).text(`À traiter`);
+            $row.find(`.status`).text(Translation.of('Demande', 'Acheminements', 'Général', 'À traiter', false));
 
             if(value.nature_id && value.nature_label) {
                 $row.find(`[name=nature]`).val(value.nature_id).trigger(`change`);

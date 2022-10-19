@@ -30,7 +30,6 @@ use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
-use App\Service\FieldsParamService;
 use App\Service\TrackingMovementService;
 use App\Service\PackService;
 use App\Service\CSVExportService;
@@ -75,8 +74,7 @@ class ArrivageController extends AbstractController {
      * @Route("/", name="arrivage_index")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      */
-    public function index(EntityManagerInterface $entityManager,
-                          ArrivageService $arrivageDataService)
+    public function index(EntityManagerInterface $entityManager, KeptFieldService $keptFieldService, ArrivageService $arrivageDataService)
     {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -103,7 +101,8 @@ class ArrivageController extends AbstractController {
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
-            'fields' => $fields,
+            "fields" => $fields,
+            "initial_form" => $this->createApi($entityManager, $keptFieldService)->getContent(),
         ]);
     }
 
@@ -111,9 +110,7 @@ class ArrivageController extends AbstractController {
      * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request,
-                        ArrivageService $arrivageService): Response
-    {
+    public function api(Request $request, ArrivageService $arrivageService): Response {
         if($this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL) || !$this->getUser()) {
             $userId = null;
         } else {
@@ -380,7 +377,8 @@ class ArrivageController extends AbstractController {
             'printArrivage' => isset($data['printArrivage']) && $data['printArrivage'] === 'true',
             'arrivageId' => $arrivage->getId(),
             'numeroArrivage' => $arrivage->getNumeroArrivage(),
-            'alertConfigs' => $alertConfigs
+            'alertConfigs' => $alertConfigs,
+            "new_form" => $this->createApi($entityManager, $keptFieldService)->getContent(),
         ]);
     }
 

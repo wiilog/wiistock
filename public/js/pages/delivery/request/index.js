@@ -43,6 +43,7 @@ function initNewLivraisonEditor(modal) {
     const $locationSelector = $(`#modalNewDemande select[name="destination"]`);
 
     if(!type) {
+        $('.free-fields-container').children().addClass('d-none');
         $locationSelector.prop(`disabled`, true);
     }
 }

@@ -3,6 +3,9 @@ import Flash from "./flash";
 
 export default class Form {
 
+    static FormCounter = 0;
+
+    id;
     element;
     submitListeners;
     openListeners;
@@ -10,11 +13,15 @@ export default class Form {
     processors = [];
     uploads = {};
 
+    constructor(id) {
+        this.id = id;
+    }
+
     static create(selector, {clearOnOpen} = {}) {
         const $form = $(selector);
         let form = $form.data('form');
         if (!form || !(form instanceof Form)) {
-            form = new Form();
+            form = new Form(++Form.FormCounter);
 
             form
                 .clearOpenListeners()
@@ -23,7 +30,10 @@ export default class Form {
                 .clearProcessors();
 
             form.element = $form;
-            $form.data('form', form);
+            $form
+                .data('form', form)
+                .data('form-id', form.id)
+                .attr('data-form-id', form.id);
 
             WysiwygManager.initializeWYSIWYG(form.element);
             form.element
@@ -310,23 +320,40 @@ FormData.fromObject = function(object) {
     return data;
 }
 
-function ignoreInput($input, config) {
-    return $input.is(`:not(.force-data, [type="hidden"]):hidden`) && !$input.closest(`.wii-switch, .wii-expanded-switch`).is(`:visible`)
-    || (
-        config.ignored
-        && ($input.is(config.ignored) || $input.closest(config.ignored).exists())
-    )
-    || !$input.attr(`name`) && !$input.attr(`data-wysiwyg`);
+function ignoreInput($form, $input, config) {
+    const $closestFormParent = $input.closest('[data-form-id]');
+    const closestFormId = $closestFormParent.data('form-id');
+    const formId = $form.data('form-id');
+    return (
+        formId !== closestFormId
+        || ($input.is(`:not(.force-data, [type="hidden"]):hidden`)
+            && !$input.closest(`.wii-switch, .wii-expanded-switch`).is(`:visible`))
+        || (config.ignored
+            && ($input.is(config.ignored) || $input.closest(config.ignored).exists()))
+        || (!$input.attr(`name`)
+            && !$input.attr(`data-wysiwyg`))
+    );
 }
 
 function eachInputs(form, config, callback) {
     const classes = config.classes;
     const $form = getFormElement(form);
-    const $inputs = $form.find(`.fileInput, .wii-switch, .wii-switch-no-style, select.${classes.data}, input.${classes.data}, input.${classes.array}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
+    const $inputs = $form
+        .find(`
+            .fileInput,
+            .wii-switch,
+            .wii-switch-no-style,
+            select.${classes.data},
+            input.${classes.data},
+            input.${classes.array},
+            input[data-repeat],
+            textarea.${classes.data},
+            .data[data-wysiwyg]`
+        );
     for(const input of $inputs) {
         let $input = $(input);
 
-        if (ignoreInput($input, config)) {
+        if (ignoreInput($form, $input, config)) {
             continue;
         }
 
