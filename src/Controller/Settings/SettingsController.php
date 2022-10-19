@@ -2407,7 +2407,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/types_litiges/supprimer/{entity}", name="settings_delete_type_litige", options={"expose"=true})
+     * @Route("/types_litige/supprimer/{entity}", name="settings_delete_type_litige", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP}, mode=HasPermission::IN_JSON)
      */
     public function deleteTypeLitige(EntityManagerInterface $entityManager, Type $entity): Response {
@@ -2424,6 +2424,64 @@ class SettingsController extends AbstractController {
                 "msg" => "Ce type de litige est utilisé, vous ne pouvez pas le supprimer.",
             ]);
         }
+    }
+
+    /**
+     * @Route("/types_litige_api/edit/translate", name="settings_edit_types_litige_translations_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT})
+     */
+    public function apiEditTranslationsTypeLitige(EntityManagerInterface $manager,
+                                        TranslationService $translationService): JsonResponse
+    {
+        $typeRepository = $manager->getRepository(Type::class);
+        $typesLitige = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
+
+        foreach ($typesLitige as $type) {
+            if ($type->getLabelTranslation() === null) {
+                $translationService->setFirstTranslation($manager, $type, $type->getLabel());
+            }
+        }
+        $manager->flush();
+
+        $html = $this->renderView('settings/modal_edit_translations_content.html.twig', [
+            'lines' => $typesLitige
+        ]);
+
+        return new JsonResponse([
+            'success' => true,
+            'html' => $html
+        ]);
+    }
+
+    /**
+     * @Route("/types_litige/edit/translate", name="settings_edit_types_litige_translations", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
+     */
+    public function editTranslations(Request                $request,
+                                     EntityManagerInterface $manager,
+                                     TranslationService     $translationService): JsonResponse {
+        if ($data = json_decode($request->getContent(), true)) {
+            $typeRepository = $manager->getRepository(Type::class);
+            $typesLitige = json_decode($data['lines'], true);
+
+            foreach ($typesLitige as $typeId) {
+                $type = $typeRepository->find($typeId);
+
+                $name = 'labels-'.$typeId;
+                $labels = $data[$name];
+                $labelTranslationSource = $type->getLabelTranslation();
+
+                $translationService->editEntityTranslations($manager, $labelTranslationSource, $labels);
+            }
+
+            $manager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'msg' => "Les traductions ont bien été modifiées."
+            ]);
+        }
+        throw new BadRequestHttpException();
     }
 
     public function getRequestTemplates(TypeRepository $typeRepository, RequestTemplateRepository $requestTemplateRepository, string $templateType) {

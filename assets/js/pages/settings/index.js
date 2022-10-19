@@ -78,8 +78,8 @@ const initializers = {
     trace_services_statuts: initializeHandlingStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
     utilisateurs_roles: initializeRolesPage,
-    stock_receptions_types_litiges: initializeTypesLitige,
-    trace_arrivages_types_litiges: initializeTypesLitige,
+    stock_receptions_types_litiges: initializeReceptionTypesLitige,
+    trace_arrivages_types_litiges: initializeTraceArrivalTypesLitige,
     trace_arrivages_statuts: initializeArrivalStatuses,
     stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
@@ -99,6 +99,7 @@ const slowOperations = [
 const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);
 const $managementButtons = $(`.save-settings, .discard-settings`);
+let canTranslate = true;
 
 $(function() {
     let canEdit = $(`input#edit`).val();
@@ -822,7 +823,7 @@ function initializeInventoryMissionsTable($container){
     });
 }
 
-function initializeTypesLitige(){
+function initializeReceptionTypesLitige(){
     $saveButton.addClass('d-none');
     $discardButton.addClass('d-none');
 
@@ -854,6 +855,80 @@ function initializeTypesLitige(){
             description: `<input type='text' name='description' class='form-control data' data-global-error='Description'/>`,
         },
     });
+}
+
+function initializeTraceArrivalTypesLitige($container){
+    $saveButton.addClass('d-none');
+    $discardButton.addClass('d-none');
+    const $translateLabels = $container.find('.translate-labels');
+    const $translateButton = $container.find(`.translate-labels-button`);
+    const $modalEditTranslations = $container.find(".edit-translation-modal");
+    const $addButton = $container.find(`.add-row-button`);
+    const $addRow = $container.find(`.add-row`);
+
+    const table = EditableDatatable.create(`#table-types-litige`, {
+        route: Routing.generate('types_litige_api', true),
+        deleteRoute: `settings_delete_type_litige`,
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
+
+            if (canTranslate) {
+                $translateLabels.removeClass('d-none');
+            }
+
+            $translateButton
+                .off('click')
+                .on(`click`, function () {
+
+                    $.post(Routing.generate("settings_edit_types_litige_translations_api", true))
+                        .then(response => {
+                            $modalEditTranslations.find(`.modal-body`).html(response.html);
+                            $modalEditTranslations.modal('show');
+                        });
+                });
+        },
+        onEditStop: () => {
+            $saveButton.addClass('d-none');
+            $discardButton.addClass('d-none');
+            if (canTranslate) { $translateLabels.addClass('d-none'); }
+            canTranslate = true;
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `description`, title: `Description`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed' data-global-error='Libellé'/>`,
+            description: `<input type='text' name='description' class='form-control data' data-global-error='Description'/>`,
+        },
+    });
+
+    let submitEditTranslations = $modalEditTranslations.find("[type=submit]");
+    let urlEditTranslations = Routing.generate('settings_edit_types_litige_translations', true);
+    InitModal($modalEditTranslations, submitEditTranslations, urlEditTranslations, {
+        success: () => {
+            table.toggleEdit(STATE_VIEWING, true);
+        }
+    });
+
+    $addRow.on(`click`, function() {
+        const url = Routing.generate(`settings_edit_types_litige_translations_api`);
+        table.setURL(url);
+    });
+
+    $addButton
+        .on('click', function() {
+            canTranslate = false;
+        });
 }
 
 function initializeVisibilityGroup($container, canEdit) {

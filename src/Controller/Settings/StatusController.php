@@ -18,6 +18,7 @@ use App\Service\UserService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
+use stdClass;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -244,17 +245,17 @@ class StatusController extends AbstractController
 
         foreach ($statuses as $status) {
             if ($status->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $status, $this->getFormatter()->status($status));
+                $translationService->setFirstTranslation($manager, $status, $status->getNom());
             }
         }
         $manager->flush();
 
+
         $html = $this->renderView('settings/modal_edit_translations_content.html.twig', [
-            'statuses' => $statuses,
-            'last_status' => end($statuses)
+            'lines' => $statuses
         ]);
 
-        return new JsonResponse([
+        return $this->json([
             'success' => true,
             'html' => $html
             ]);
@@ -270,7 +271,7 @@ class StatusController extends AbstractController
                                      TranslationService     $translationService): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $statusRepository = $manager->getRepository(Statut::class);
-            $statuses = json_decode($data['status'], true);
+            $statuses = json_decode($data['lines'], true);
 
             $persistedStatuses = [];
             foreach ($statuses as $statusId) {

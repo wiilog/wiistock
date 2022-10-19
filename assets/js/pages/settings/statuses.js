@@ -102,7 +102,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         form: getFormColumn(mode, statusStateOptions, categoryType),
     });
 
-    let submitEditTranslations = $modalEditTranslations.find("#submitEditTranslations");
+    let submitEditTranslations = $modalEditTranslations.find("[type=submit]");
     let urlEditTranslations = Routing.generate('settings_edit_status_translations', true);
     InitModal($modalEditTranslations, submitEditTranslations, urlEditTranslations, {
         success: () => {
