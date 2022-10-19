@@ -137,6 +137,9 @@ class Article implements PairedEntity {
     #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'article', cascade: ['remove'])]
     private Collection $pairings;
 
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
@@ -697,6 +700,18 @@ class Article implements PairedEntity {
     public function getReferenceArticle(): ?ReferenceArticle {
         $supplierArticle = $this->getArticleFournisseur();
         return $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
+
+        return $this;
     }
 
 }
