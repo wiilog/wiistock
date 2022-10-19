@@ -58,7 +58,7 @@ class ProjectController extends AbstractController
                 'msg' => 'Un projet avec ce code existe déjà'
             ]);
         } else {
-            $projectManager = $manager->getRepository(Utilisateur::class)->findBy(['id' => $data['projectManager']]);
+            $projectManager = $manager->getRepository(Utilisateur::class)->findOneBy(['id' => $data['projectManager']]);
             $project = (new Project())
                 ->setCode($codeExisting)
                 ->setProjectManager($projectManager)
@@ -99,14 +99,14 @@ class ProjectController extends AbstractController
         $codeExisting = $data['code'];
         $existing = $manager->getRepository(Project::class)->findOneBy(['code' => $codeExisting]);
 
-        if ($existing) {
+        if ($existing && $existing !== $project) {
             return $this->json([
                 'success' => false,
                 'msg' => 'Un projet avec ce code existe déjà'
             ]);
         } else {
-            $projectManager = $manager->getRepository(Utilisateur::class)->findBy(['id' => $data['projectManager']]);
-            $project = (new Project())
+            $projectManager = $manager->getRepository(Utilisateur::class)->findOneBy(['id' => $data['projectManager']]);
+            $project
                 ->setCode($codeExisting)
                 ->setProjectManager($projectManager)
                 ->setDescription($data['description'])
