@@ -1,0 +1,20 @@
+<form class="modal fade" id="modalNewProject" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Nouveau projet"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                {% include 'project/modal/form.html.twig' with {project: newProject} %}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success submit', text: 'Enregistrer'}
+                ],
+            } %}
+
+        </div>
+    </div>
+</form>

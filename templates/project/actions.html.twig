@@ -1,0 +1,7 @@
+<div class="d-flex align-items-center {{ not hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) ? 'd-none' }}"
+     onclick="checkAndDeleteRow($(this), `#modalDeleteProject`, `project_check_delete`, `#submitDeleteProject`)"
+     data-id='{{ id }}'
+     data-target='#modalDeleteProject'
+     data-toggle='modal'>
+    <span class="wii-icon wii-icon-trash-black mr-2"></span>
+</div>
