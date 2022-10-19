@@ -16,7 +16,6 @@ use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
@@ -24,9 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Service\TranslationService;
 use Symfony\Contracts\Service\Attribute\Required;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 

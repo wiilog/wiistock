@@ -6,7 +6,6 @@ namespace App\Service\Transport;
 use App\Entity\CategorieStatut;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
-use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
@@ -23,9 +22,7 @@ use App\Service\GeoService;
 use DateTime;
 use App\Service\StatusHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
-use phpseclib3\Net\SFTP;
 use Symfony\Contracts\Service\Attribute\Required;
-use Throwable;
 use WiiCommon\Helper\Stream;
 
 

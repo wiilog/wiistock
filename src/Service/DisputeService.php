@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
 use App\Entity\Dispute;
-use App\Entity\Pack;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -16,7 +15,6 @@ use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-use App\Service\TranslationService;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 

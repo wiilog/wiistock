@@ -19,7 +19,6 @@ use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,7 +26,6 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
-use App\Service\TranslationService;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 

@@ -2,14 +2,12 @@
 
 namespace App\Entity;
 
-use App\Entity\Interfaces\Serializable;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
-use App\Helper\FormatHelper;
 use App\Repository\CollecteRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
