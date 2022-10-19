@@ -109,6 +109,7 @@ class Action {
     const DISPLAY_TRAN = 'afficher transporteurs';
     const DISPLAY_VEHICLE = 'afficher véhicule';
     const DISPLAY_PACK_NATURE = 'afficher nature de colis';
+    const DISPLAY_CUSTOMER = 'afficher clients';
     // menu IOT
     const DISPLAY_SENSOR = 'afficher capteurs';
     const DISPLAY_TRIGGER = 'afficher actionneurs';
