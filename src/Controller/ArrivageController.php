@@ -94,6 +94,7 @@ class ArrivageController extends AbstractController {
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
         return $this->render('arrivage/index.html.twig', [
+            "types" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'statuts' => $statuses,
             "fieldsParam" => $fieldsParam,

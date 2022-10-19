@@ -120,7 +120,12 @@ class FieldsParam {
     const FIELD_LABEL_EXPECTED_AT = 'date attendue';
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
+        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
         FieldsParam::FIELD_CODE_PJ_ARRIVAGE,
+    ];
+
+    public const FILTER_ONLY_FIELDS = [
+        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
     ];
 
     public const FILTERED_FIELDS = [
@@ -132,6 +137,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_TRANSPORTEUR,
         FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
         FieldsParam::FIELD_CODE_BUSINESS_UNIT,
+        FieldsParam::FIELD_CODE_PROJECT_NUMBER,
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
 
         // Acheminements
