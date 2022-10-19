@@ -101,10 +101,10 @@ class DisputeService {
         $lastHistoryRecordDate = $dispute['lastHistoryRecord_date'];
         $lastHistoryRecordComment = $dispute['lastHistoryRecord_comment'];
         $user = $this->security->getUser();
-        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : (Utilisateur::DEFAULT_DATE_FORMAT . ' H:i');
 
         $lastHistoryRecordStr = ($lastHistoryRecordDate && $lastHistoryRecordComment)
-            ? (FormatHelper::datetime($lastHistoryRecordDate, "", false, $this->security->getUser()) . ' : ' . nl2br($lastHistoryRecordComment))
+            ? ($this->formatService->datetime($lastHistoryRecordDate, "", false, $this->security->getUser()) . ' : ' . nl2br($lastHistoryRecordComment))
             : '';
 
         $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? '';

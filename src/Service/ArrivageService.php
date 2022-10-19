@@ -624,20 +624,20 @@ class ArrivageService {
             $pack->setIsDeliveryDone(true);
             if ($receiver) {
                 $this->mailerService->sendMail(
-                    ['Demande','Acheminements', 'Emails', 'Follow GT // Notification de traitement d\'une demande d\'acheminement', false],
-                    $this->templating->render(
-                        'mails/contents/mail-pack-delivery-done.html.twig',
-                        [
-                            'title' => $this->translation->translate('Demande','Acheminements', 'Emails', 'Votre unité logistique a été livré', false),
+                    ['Traçabilité', 'Général', 'FOLLOW GT // Dépose effectuée', false],
+                    [
+                        "name" => "mails/contents/mail-pack-delivery-done.html.twig",
+                        "context" => [
+                            'title' => ['Traçabilité', 'Général', 'Votre unité logistique a été livrée', false],
                             'orderNumber' => implode(', ', $arrivage->getNumeroCommandeList()),
-                            'colis' => FormatHelper::pack($pack),
+                            'colis' => $this->formatService->pack($pack),
                             'emplacement' => $location,
-                            'fournisseur' => FormatHelper::supplier($arrivage->getFournisseur()),
+                            'fournisseur' => $this->formatService->supplier($arrivage->getFournisseur()),
                             'date' => $date,
-                            'operateur' => FormatHelper::user($user),
+                            'operateur' => $this->formatService->user($user),
                             'pjs' => $arrivage->getAttachments()
                         ]
-                    ),
+                    ],
                     $receiver
                 );
             }

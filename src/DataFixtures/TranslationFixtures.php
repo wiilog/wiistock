@@ -123,10 +123,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "{1} to {2} of {3}",
                         ],
                         [
-                            "fr" => "{1} à {2}",
-                            "en" => "{1} to {2}",
-                        ],
-                        [
                             "fr" => "Précédent",
                             "en" => "Previous",
                         ],
@@ -545,6 +541,21 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "fr" => "Sélectionner une nature",
                         "en" => "Select nature",
                         "tooltip" => "Modale modification groupe",
+                    ],
+                    [
+                        "fr" => "{1} à {2}",
+                        "en" => "{1} at {2}",
+                        "tooltip" => "Email de confirmation de livraison d'unité logistique (pour la date)"
+                    ],
+                    [
+                        "fr" => "FOLLOW GT // Dépose effectuée",
+                        "en" => "FOLLOW GT // Drop done",
+                        "tooltip" => "Email de confirmation de livraison d'unité logistique",
+                    ],
+                    [
+                        "fr" => "Votre unité logistique a été livrée",
+                        "en" => "Your logistics unit has been delivered",
+                        "tooltip" => "Email de confirmation de livraison d'unité logistique",
                     ],
                 ],
             ],
@@ -2567,11 +2578,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email traitement acheminement",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Dépose effectuée",
-                            "en" => "FOLLOW GT // Drop done",
-                            "tooltip" => "Email confirmation Dépose",
-                        ],
-                        [
                             "fr" => "FOLLOW GT // Création d'une demande d'acheminement",
                             "en" => "FOLLOW GT // Transfer operation has been updated",
                             "tooltip" => "Email traitement acheminement",
@@ -2605,11 +2611,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Acheminement {1} traité le {2}",
                             "en" => "transfer {1} processed on {2}",
                             "tooltip" => "Email traitement acheminement",
-                        ],
-                        [
-                            "fr" => "Votre unité logistique a été livré",
-                            "en" => "Your logistics unit has been delivered",
-                            "tooltip" => "Email de Confirmation de livraison d'unité logistique",
                         ],
                     ],
                 ],
