@@ -110,6 +110,9 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'logisticUnitParent', targetEntity: TrackingMovement::class)]
     private Collection $logisticUnitParentMovements;
 
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["remove"])]
+    private Collection $projectHistoryRecords;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -120,6 +123,7 @@ class Pack implements PairedEntity {
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
         $this->logisticUnitParentMovements = new ArrayCollection();
+        $this->projectHistoryRecords = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -673,4 +677,42 @@ class Pack implements PairedEntity {
         return $this;
     }
 
+    /**
+     * @return Collection<int, ProjectHistoryRecord>
+     */
+    public function getProjectHistoryRecords(): Collection {
+        return $this->projectHistoryRecords;
+    }
+
+    public function addProjectHistoryRecord(ProjectHistoryRecord $projectHistoryRecord): self {
+        if (!$this->projectHistoryRecords->contains($projectHistoryRecord)) {
+            $this->projectHistoryRecords[] = $projectHistoryRecord;
+            $projectHistoryRecord->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProjectHistoryRecord(ProjectHistoryRecord $projectHistoryRecord): self {
+        if ($this->projectHistoryRecords->removeElement($projectHistoryRecord)) {
+            if ($projectHistoryRecord->getPack() === $this) {
+                $projectHistoryRecord->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setProjectHistoryRecords(?iterable $projectHistoryRecords): self {
+        foreach($this->getProjectHistoryRecords()->toArray() as $projectHistoryRecord) {
+            $this->removeProjectHistoryRecord($projectHistoryRecord);
+        }
+
+        $this->projectHistoryRecords = new ArrayCollection();
+        foreach($projectHistoryRecords ?? [] as $projectHistoryRecord) {
+            $this->addProjectHistoryRecord($projectHistoryRecord);
+        }
+
+        return $this;
+    }
 }
