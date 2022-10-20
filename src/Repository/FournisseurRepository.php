@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Fournisseur;
 use App\Helper\QueryBuilderHelper;
 use Symfony\Component\HttpFoundation\InputBag;
-use WiiCommon\Helper\Stream;
 use Doctrine\ORM\EntityRepository;
 
 /**

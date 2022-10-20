@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;

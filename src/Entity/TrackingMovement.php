@@ -24,96 +24,72 @@ class TrackingMovement {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
-    /**
-     * @var Pack|null
-     */
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'trackingMovements')]
-    #[ORM\JoinColumn(nullable: false, name: 'pack_id')]
-    private $pack;
+    #[ORM\JoinColumn(name: 'pack_id', nullable: false)]
+    private ?Pack $pack = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $uniqueIdForMobile;
+    private ?string $uniqueIdForMobile = null;
 
-    /**
-     * @var DateTime
-     */
     #[ORM\Column(type: 'datetime', length: 255, nullable: true)]
-    private $datetime;
+    private ?DateTime $datetime = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    private $emplacement;
+    private ?Emplacement $emplacement = null;
 
-    /**
-     * @var Statut|null
-     */
     #[ORM\ManyToOne(targetEntity: Statut::class)]
-    private $type;
+    private ?Statut $type = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
-    private $operateur;
+    private ?Utilisateur $operateur = null;
 
-    /**
-     * @var MouvementStock|null
-     */
     #[ORM\ManyToOne(targetEntity: MouvementStock::class)]
     #[ORM\JoinColumn(name: 'mouvement_stock_id', referencedColumnName: 'id', nullable: true)]
-    private $mouvementStock;
+    private ?MouvementStock $mouvementStock = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $commentaire;
+    private ?string $commentaire = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $finished;
+    private ?bool $finished = null;
 
-    /**
-     * @var int
-     */
     #[ORM\Column(type: 'integer', nullable: false, options: ['default' => 1])]
-    private $quantity;
+    private ?int $quantity = null;
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'trackingMovements')]
-    private $reception;
+    private ?Reception $reception = null;
 
     #[ORM\ManyToOne(targetEntity: Dispatch::class, inversedBy: 'trackingMovements')]
-    private $dispatch;
+    private ?Dispatch $dispatch = null;
 
-    /**
-     * @var Pack|null
-     */
-    #[ORM\OneToOne(targetEntity: Pack::class, mappedBy: 'lastDrop')]
-    private $linkedPackLastDrop;
+    #[ORM\OneToOne(mappedBy: 'lastDrop', targetEntity: Pack::class)]
+    private ?Pack $linkedPackLastDrop = null;
 
-    /**
-     * @var Pack|null
-     */
-    #[ORM\OneToOne(targetEntity: Pack::class, mappedBy: 'lastTracking')]
-    private $linkedPackLastTracking;
+    #[ORM\OneToOne(mappedBy: 'lastTracking', targetEntity: Pack::class)]
+    private ?Pack $linkedPackLastTracking = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $groupIteration;
+    private ?int $groupIteration = null;
 
-    /**
-     * @var ArrayCollection|null
-     */
-    #[ORM\OneToMany(targetEntity: LocationClusterRecord::class, mappedBy: 'firstDrop')]
-    private $firstDropRecords;
+    #[ORM\OneToMany(mappedBy: 'firstDrop', targetEntity: LocationClusterRecord::class)]
+    private Collection $firstDropRecords;
 
-    /**
-     * @var ArrayCollection|null
-     */
-    #[ORM\OneToMany(targetEntity: LocationClusterRecord::class, mappedBy: 'lastTracking')]
-    private $lastTrackingRecords;
+    #[ORM\OneToMany(mappedBy: 'lastTracking', targetEntity: LocationClusterRecord::class)]
+    private Collection $lastTrackingRecords;
 
     #[ORM\ManyToOne(targetEntity: ReceptionReferenceArticle::class, inversedBy: 'trackingMovements')]
-    private $receptionReferenceArticle;
+    private ?ReceptionReferenceArticle $receptionReferenceArticle = null;
 
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'childTrackingMovements')]
     private ?Pack $packParent = null;
 
     #[ORM\ManyToMany(targetEntity: Attachment::class, mappedBy: 'trackingMovements')]
     private Collection $attachments;
+
+    #[ORM\ManyToOne(targetEntity: Pack::class)]
+    private ?Pack $logisticUnitParent = null;
 
     public function __construct() {
         $this->quantity = 1;
@@ -461,6 +437,21 @@ class TrackingMovement {
         if ($this->attachments->removeElement($attachment)) {
             $attachment->removeTrackingMovement($this);
         }
+
+        return $this;
+    }
+
+    public function getLogisticUnitParent(): ?Pack {
+        return $this->logisticUnitParent;
+    }
+
+    public function setLogisticUnitParent(?Pack $logisticUnitParent): self {
+        if($this->logisticUnitParent && $this->logisticUnitParent !== $logisticUnitParent) {
+            $this->logisticUnitParent->removeLogisticUnitParentMovement($this);
+        }
+
+        $this->logisticUnitParent = $logisticUnitParent;
+        $logisticUnitParent?->addLogisticUnitParentMovement($this);
 
         return $this;
     }

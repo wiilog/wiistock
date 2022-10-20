@@ -1,0 +1,19 @@
+{% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EDIT')) %}
+    <div class="d-none">
+        <div class="action-on-click"
+             data-id='{{ id }}'
+             data-target='#modalEditProject'
+             data-toggle='modal'
+             onclick="editRow($(this), Routing.generate('project_edit_api', true), $(`#modalEditProject`), $('#submitEditProject'))">
+            <i class='fas fa-pencil-alt '></i>
+        </div>
+    </div>
+{% endif %}
+
+<div class="d-flex align-items-center {{ not hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) ? 'd-none' }}"
+     onclick="checkAndDeleteRow($(this), `#modalDeleteProject`, `project_check_delete`, `#submitDeleteProject`)"
+     data-id='{{ id }}'
+     data-target='#modalDeleteProject'
+     data-toggle='modal'>
+    <span class="wii-icon wii-icon-trash-black mr-2"></span>
+</div>

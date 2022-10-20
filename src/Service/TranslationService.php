@@ -9,7 +9,6 @@ use App\Entity\TranslationSource;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\QueryBuilder;
 use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -221,12 +220,7 @@ class TranslationService {
                 }
 
                 if($translation) {
-                    try {
-                        $zoomedTranslations[$original->getTranslation()] = $translation?->getTranslation();
-                    }
-                    catch (\Throwable $e) {
-                        throw $e;
-                    }
+                    $zoomedTranslations[$original->getTranslation()] = $translation->getTranslation();
                 }
             }
 

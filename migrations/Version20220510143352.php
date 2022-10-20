@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\DataFixtures\ActionsFixtures;
-use App\Entity\Action;
-use App\Entity\Menu;
-use App\Entity\Role;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 

@@ -14,7 +14,6 @@ use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UserService;
-use App\Helper\FormatHelper;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;

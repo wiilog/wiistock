@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Repository\ExportRepository;
 use App\Repository\ExportScheduleRuleRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;

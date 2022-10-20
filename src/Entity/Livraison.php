@@ -43,7 +43,7 @@ class Livraison {
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'livraisons')]
     private $utilisateur;
 
-    #[ORM\OneToOne(targetEntity: 'App\Entity\PreparationOrder\Preparation', inversedBy: 'livraison')]
+    #[ORM\OneToOne(targetEntity: Preparation::class, inversedBy: 'livraison')]
     private ?Preparation $preparation = null;
 
     #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'livraisonOrder')]

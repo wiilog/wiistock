@@ -191,7 +191,7 @@ class NatureController extends AbstractController
             $nature = $natureRepository->find($data['id']);
 
             if ($nature->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $nature, $this->getFormatter()->nature($nature));
+                $translationService->setFirstTranslation($manager, $nature, $nature->getLabel());
             }
 
             $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
