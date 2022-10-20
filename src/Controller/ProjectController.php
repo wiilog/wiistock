@@ -47,7 +47,7 @@ class ProjectController extends AbstractController
     #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request $request, EntityManagerInterface $manager): Response
     {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request->all();
 
         $codeExisting = $data['code'];
         $existing = $manager->getRepository(Project::class)->findOneBy(['code' => $codeExisting]);
@@ -57,7 +57,7 @@ class ProjectController extends AbstractController
                 'success' => false,
                 'msg' => 'Un projet avec ce code existe déjà'
             ]);
-        } else if (strlen($data['code']) > 15) {
+        } else if (mb_strlen($data['code']) > 15) {
             return $this->json([
                 'success' => false,
                 'msg' => 'La longueur maximale du code est de 15 caractères'
@@ -67,7 +67,7 @@ class ProjectController extends AbstractController
             $project = (new Project())
                 ->setCode($codeExisting)
                 ->setProjectManager($projectManager)
-                ->setDescription($data['description'])
+                ->setDescription($data['description'] ?? null)
                 ->setActive($data['isActive']);
 
             $manager->persist($project);
@@ -98,7 +98,7 @@ class ProjectController extends AbstractController
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request, EntityManagerInterface $manager)
     {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request->all();
         $project = $manager->find(Project::class, $data['id']);
 
         $codeExisting = $data['code'];
@@ -109,7 +109,7 @@ class ProjectController extends AbstractController
                 'success' => false,
                 'msg' => 'Un projet avec ce code existe déjà'
             ]);
-        } else if (strlen($data['code']) > 15) {
+        } else if (mb_strlen($data['code']) > 15) {
             return $this->json([
                 'success' => false,
                 'msg' => 'La longueur maximale du code est de 15 caractères'
@@ -119,7 +119,7 @@ class ProjectController extends AbstractController
             $project
                 ->setCode($codeExisting)
                 ->setProjectManager($projectManager)
-                ->setDescription($data['description'])
+                ->setDescription($data['description'] ?? null)
                 ->setActive($data['isActive']);
 
             $manager->persist($project);
@@ -160,15 +160,14 @@ class ProjectController extends AbstractController
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request, EntityManagerInterface $manager): Response
     {
-        $data = json_decode($request->getContent(), true);
-        $project = $manager->find(Project::class, $data['id']);
+        $project = $manager->find(Project::class, $request->request->get("id"));
 
         $manager->remove($project);
         $manager->flush();
 
         return $this->json([
-            'success' => true,
-            'msg' => 'Le projet a bien été supprimé'
+            "success" => true,
+            "msg" => "Le projet a bien été supprimé"
         ]);
     }
 }

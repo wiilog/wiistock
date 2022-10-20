@@ -10,21 +10,21 @@ class Project
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: "integer")]
     private ?int $id = null;
 
-    #[ORM\Column(length: 15, unique: true)]
+    #[ORM\Column(type: "string", length: 15, unique: true)]
     private ?string $code = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $description = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $projectManager = null;
 
-    #[ORM\Column]
-    private ?bool $active = null;
+    #[ORM\Column(type: "boolean")]
+    private ?bool $active = true;
 
     public function getId(): ?int
     {

@@ -1,21 +1,32 @@
+import Form from "@app/form";
+import AJAX, {POST} from "@app/ajax";
+
 $(function() {
     const projectTable = initProjectTable();
+    initializeNewModal(projectTable);
+    initializeEditModal(projectTable);
+    initializeDeleteModal(projectTable);
 
-    const $modalNewProject = $(`#modalNewProject`);
-    const $submitNewProject = $modalNewProject.find(`button.submit`);
-    const urlNewProject = Routing.generate(`project_new`, true);
-    InitModal($modalNewProject, $submitNewProject, urlNewProject, {tables: [projectTable]});
-
-    const $modalEditProject = $(`#modalEditProject`);
-    const $submitEditProject = $(`#submitEditProject`);
-    const urlEditProject = Routing.generate(`project_edit`, true);
-    InitModal($modalEditProject, $submitEditProject, urlEditProject, {tables: [projectTable]});
-
-    const $modalDeleteProject = $(`#modalDeleteProject`);
-    const $submitDeleteProject = $(`#submitDeleteProject`);
-    const urlDeleteProject = Routing.generate(`project_delete`, true);
-    InitModal($modalDeleteProject, $submitDeleteProject, urlDeleteProject, {tables: [projectTable]});
 });
+
+function initializeNewModal(table) {
+    Form.create(`#modalNewProject`, {clearOnOpen: true})
+        .submitTo(`POST`, `project_new`, {
+            table
+        })
+}
+
+function initializeEditModal(table) {
+    Form.create(`#modalEditProject`).submitTo(`POST`, `project_edit`, {
+        table
+    })
+}
+
+function initializeDeleteModal(table) {
+    Form.create(`#modalDeleteProject`).submitTo(`POST`, `project_delete`, {
+        table
+    })
+}
 
 function initProjectTable() {
     return initDataTable(`projectTable_id`, {

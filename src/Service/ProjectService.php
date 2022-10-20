@@ -43,7 +43,7 @@ class ProjectService {
             'code' => $project->getCode(),
             'description' => $project->getDescription(),
             'projectManager' => $this->formatService->user($project->getProjectManager()),
-            'active' => $project->isActive(),
+            'active' => $this->formatService->bool($project->isActive()),
             'actions' => $this->templating->render('project/actions.html.twig', [
                 'id' => $project->getId(),
             ]),
