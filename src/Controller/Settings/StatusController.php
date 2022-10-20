@@ -239,7 +239,7 @@ class StatusController extends AbstractController
 
         foreach ($statuses as $status) {
             if ($status->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $status, $this->getFormatter()->status($status));
+                $translationService->setFirstTranslation($manager, $status, $status->getNom());
             }
         }
         $manager->flush();

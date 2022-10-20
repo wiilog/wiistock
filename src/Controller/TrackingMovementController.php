@@ -479,6 +479,7 @@ class TrackingMovementController extends AbstractController
                                            CSVExportService $CSVExportService,
                                            TrackingMovementService $trackingMovementService,
                                            FreeFieldService $freeFieldService,
+                                           TranslationService $translationService,
                                            EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -496,18 +497,18 @@ class TrackingMovementController extends AbstractController
 
             if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
                 $csvHeader = array_merge([
-                    'date',
-                    'colis',
-                    'emplacement',
-                    'quantité',
-                    'type',
-                    'opérateur',
-                    'commentaire',
-                    'pieces jointes',
-                    'origine',
-                    'numéro de commande',
-                    'urgence',
-                    'groupe'
+                    $translationService->translate('Traçabilité', 'Général', 'Date', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Unité logistique', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Emplacement', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Quantité', false),
+                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Opérateur', false),
+                    $translationService->translate('Général', null, 'Modale', 'Commentaire', false),
+                    $translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),
+                    $translationService->translate('Qualité', 'Litiges', 'Origines', false),
+                    $translationService->translate('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de commande de vente', false),
+                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence', false),
+                    $translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),
                 ], $freeFieldsConfig['freeFieldsHeader']);
 
                 $trackingMovements = $trackingMovementRepository->iterateByDates($dateTimeMin, $dateTimeMax);
