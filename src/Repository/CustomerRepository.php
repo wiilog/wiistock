@@ -44,7 +44,7 @@ class CustomerRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT c FROM App\Entity\Customer c
-            ORDER BY c.code
+            ORDER BY c.name
             "
         );
 

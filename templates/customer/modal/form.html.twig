@@ -1,0 +1,18 @@
+{% import 'form.html.twig' as form %}
+
+{{ form.input('name', 'Client', true, customer.name, {}) }}
+
+{{ form.textarea('address', 'Adresse', false, customer.address, {}) }}
+
+{{ form.input('phone-number', 'Téléphone', false, customer.phoneNumber, {
+    'type': 'tel'
+}) }}
+
+{{ form.input('email', 'Email', false, customer.email, {
+    'type': 'email'
+}) }}
+
+{{ form.input('fax', 'Fax', false, customer.email, {
+    'type': 'fax'
+}) }}
+
