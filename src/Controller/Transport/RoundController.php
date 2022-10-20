@@ -5,10 +5,8 @@ namespace App\Controller\Transport;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
-use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Sensor;
-use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Setting;
@@ -25,7 +23,6 @@ use App\Exceptions\FormException;
 use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
-use App\Service\ExceptionLoggerService;
 use App\Service\GeoService;
 use App\Service\PDFGeneratorService;
 use App\Service\NotificationService;
@@ -46,7 +43,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Throwable;
 use WiiCommon\Helper\Stream;
 
 

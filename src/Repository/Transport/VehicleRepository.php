@@ -2,7 +2,6 @@
 
 namespace App\Repository\Transport;
 
-use App\Entity\IOT\SensorMessage;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Helper\QueryBuilderHelper;

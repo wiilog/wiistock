@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Controller\Settings\DataExportController;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
@@ -10,7 +9,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
-use App\Entity\FreeField;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
@@ -19,7 +17,6 @@ use App\Helper\FormatHelper;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use phpseclib3\Net\SFTP;
 use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;

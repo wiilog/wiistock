@@ -26,7 +26,6 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use App\Service\TranslationService;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
