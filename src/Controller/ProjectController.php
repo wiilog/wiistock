@@ -6,6 +6,7 @@ use App\Entity\Menu;
 use App\Entity\Action;
 
 use App\Entity\Project;
+use App\Entity\ProjectHistoryRecord;
 use App\Entity\Transport\Vehicle;
 use App\Entity\Utilisateur;
 use App\Service\ProjectService;
@@ -133,19 +134,26 @@ class ProjectController extends AbstractController
     {
         $id = json_decode($request->getContent(), true);
         $projectRepository = $manager->getRepository(Project::class);
+        $projectHistoryRecordRepository = $manager->getRepository(ProjectHistoryRecord::class);
         $project = $projectRepository->find($id);
         $articleCount = $projectRepository->countArticle($project);
         $logisticUnitCount = $projectRepository->countLogisticUnit($project);
+        $projectHistoryRecordCount = $projectHistoryRecordRepository->countProject($project);
 
         $state = $articleCount > 0
             ? 'articleError'
-            : ($logisticUnitCount > 0 ? 'logisticUnitError' : null);
+            : ($logisticUnitCount > 0
+                ? 'logisticUnitError'
+                : ($projectHistoryRecordCount > 0
+                    ? 'projectHistoryRecordError'
+                    : null));
 
         return $this->json([
             'delete' => !$state,
             'html' => match($state) {
                 'articleError' => '<span>Ce projet est lié à un ou plusieurs articles, vous ne pouvez pas le supprimer</span>',
                 'logisticUnitError' => '<span>Ce projet est lié à une ou plusieurs unités logistiques, vous ne pouvez pas le supprimer</span>',
+                'projectHistoryRecordError' => '<span>Ce projet est lié à un ou plusieurs historiques de projet, vous ne pouvez pas le supprimer</span>',
                 default => '<span>Voulez-vous réellement supprimer ce projet ?</span>'
             }
         ]);
