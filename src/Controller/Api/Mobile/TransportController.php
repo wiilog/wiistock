@@ -464,9 +464,7 @@ class TransportController extends AbstractApiController
         $user = $this->getUser();
 
         foreach ($packs as $pack) {
-            $orderPack = $pack->getTransportDeliveryOrderPack();
-            $orderPack
-                ->setState(TransportDeliveryOrderPack::LOADED_STATE);
+            $pack->getTransportDeliveryOrderPack()?->setState(TransportDeliveryOrderPack::LOADED_STATE);
 
             $trackingMovement = $trackingMovementService
                 ->createTrackingMovement($pack, $location, $user, $now, true, true, TrackingMovement::TYPE_DEPOSE);
