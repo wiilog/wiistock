@@ -79,11 +79,11 @@ class DisputeRepository extends EntityRepository
         }, $query->execute());
     }
 
-    public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder {
+    public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax, $statuses = []): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('dispute');
         $exprBuilder = $queryBuilder->expr();
 
-        return $queryBuilder
+        $queryBuilder
             ->distinct()
             ->select("dispute.id AS id")
             ->addSelect("dispute.number AS number")
@@ -105,49 +105,23 @@ class DisputeRepository extends EntityRepository
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
             ]);
+
+        if (!empty($statuses)) {
+            $queryBuilder
+                ->andWhere('join_status in (:statuses)')
+                ->setParameter('statuses', $statuses);
+        }
+
+        return $queryBuilder;
     }
 
-    public function createQueryBuilderByDatesAndStatus(DateTime $dateMin, DateTime $dateMax, $statuses): QueryBuilder {
-        $queryBuilder = $this->createQueryBuilder('dispute');
-        $exprBuilder = $queryBuilder->expr();
-        return $queryBuilder
-            ->distinct()
-            ->select("dispute.id AS id")
-            ->addSelect("dispute.number AS number")
-            ->addSelect("join_type.label AS type")
-            ->addSelect("join_status.nom AS status")
-            ->addSelect("dispute.creationDate AS creationDate")
-            ->addSelect("dispute.updateDate AS updateDate")
-            ->addSelect("join_reporter.username AS reporter")
-            ->addSelect("join_last_history_record_user.username AS lastHistoryUser")
-            ->addSelect("join_last_history_record.date AS lastHistoryDate")
-            ->addSelect("join_last_history_record.comment AS lastHistoryComment")
-            ->leftJoin("dispute.lastHistoryRecord", "join_last_history_record")
-            ->leftJoin("join_last_history_record.user", "join_last_history_record_user")
-            ->leftJoin("dispute.reporter", "join_reporter")
-            ->leftJoin("dispute.type", "join_type")
-            ->leftJoin("dispute.status", "join_status")
-            ->where($exprBuilder->between('dispute.creationDate', ':dateMin', ':dateMax'))
-            ->andWhere('join_status in (:statuses)')
-            ->setParameters([
-                'dateMin' => $dateMin,
-                'dateMax' => $dateMax,
-                'statuses' => $statuses
-            ]);
-    }
+    public function iterateArrivalDisputesByDatesOrAndStatus(DateTime $dateMin, DateTime $dateMax, $statuses = null): iterable {
+        if(!empty($statuses) && !empty($statuses[0])){
+            $this->createQueryBuilderByDates($dateMin, $dateMax);
+        }
 
-    public function iterateArrivalDisputesByDates(DateTime $dateMin, DateTime $dateMax): iterable {
         return $this
-            ->createQueryBuilderByDates($dateMin, $dateMax)
-            ->join('dispute.packs', 'pack')
-            ->join('pack.arrivage', 'arrivage')
-            ->getQuery()
-            ->toIterable();
-    }
-
-    public function iterateArrivalDisputesByDatesAndStatus(DateTime $dateMin, DateTime $dateMax, $statuses): iterable {
-        return $this
-            ->createQueryBuilderByDatesAndStatus($dateMin, $dateMax, $statuses)
+            ->createQueryBuilderByDates($dateMin, $dateMax, $statuses)
             ->join('dispute.packs', 'pack')
             ->join('pack.arrivage', 'arrivage')
             ->getQuery()

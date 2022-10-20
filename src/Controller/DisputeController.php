@@ -92,13 +92,11 @@ class DisputeController extends AbstractController
 
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
-        $statuses = explode(',', $request->query->get('statut'));
+        $status = $request->query->get('statut');
+        $statuses = $status ? explode(',', $status) : [];
 
-        try {
-            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (\Throwable $throwable) {
-        }
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
         $headers = [
             'Numéro de litige',
@@ -127,11 +125,8 @@ class DisputeController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
-            if (!empty($statuses) && !empty($statuses[0])) {
-                $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDatesAndStatus($dateTimeMin, $dateTimeMax, $statuses);
-            }else {
-                $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDates($dateTimeMin, $dateTimeMax);
-            }
+            $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDatesOrAndStatus($dateTimeMin, $dateTimeMax, $statuses);
+
             /** @var Dispute $dispute */
             foreach ($arrivalDisputes as $dispute) {
                 $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_ARRIVAL, $output, $dispute, $disputeRepository);
