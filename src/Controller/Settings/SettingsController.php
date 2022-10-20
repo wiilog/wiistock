@@ -53,7 +53,6 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use JetBrains\PhpStorm\ArrayShape;
-use PHPUnit\Util\Json;
 use RuntimeException;
 use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

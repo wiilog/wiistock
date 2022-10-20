@@ -22,7 +22,6 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use DateTime;
 use DateTimeInterface;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 

@@ -14,7 +14,6 @@ use DatePeriod;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Monolog\Handler\Curl\Util;
 use Twig\Environment;
 
 

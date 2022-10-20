@@ -104,8 +104,8 @@ class Pack implements PairedEntity {
     #[ORM\OneToOne(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
     private ?TransportDeliveryOrderPack $transportDeliveryOrderPack = null;
 
-    #[ORM\OneToMany(mappedBy: 'logisticUnitParent', targetEntity: TrackingMovement::class)]
-    private Collection $logisticUnitParentMovements;
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -116,7 +116,6 @@ class Pack implements PairedEntity {
         $this->childTrackingMovements = new ArrayCollection();
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
-        $this->logisticUnitParentMovements = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -632,28 +631,14 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getLogisticUnitParentMovements(): Collection {
-        return $this->logisticUnitParentMovements;
+    public function getProject(): ?Project
+    {
+        return $this->project;
     }
 
-    public function addLogisticUnitParentMovement(TrackingMovement $trackingMovement): self
+    public function setProject(?Project $project): self
     {
-        if (!$this->logisticUnitParentMovements->contains($trackingMovement)) {
-            $this->logisticUnitParentMovements[] = $trackingMovement;
-            $trackingMovement->setLogisticUnitParent($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLogisticUnitParentMovement(TrackingMovement $trackingMovement): self
-    {
-        if ($this->logisticUnitParentMovements->removeElement($trackingMovement)) {
-            // set the owning side to null (unless already changed)
-            if ($trackingMovement->getLogisticUnitParent() === $this) {
-                $trackingMovement->setLogisticUnitParent(null);
-            }
-        }
+        $this->project = $project;
 
         return $this;
     }

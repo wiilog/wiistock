@@ -5,17 +5,13 @@ namespace App\Entity\Transport;
 use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
-use App\Entity\IOT\Sensor;
-use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\VehicleRepository;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
-use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: VehicleRepository::class)]
 class Vehicle implements PairedEntity

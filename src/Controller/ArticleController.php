@@ -40,7 +40,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use App\Controller\AbstractController;
 use WiiCommon\Helper\Stream;
 
 /**

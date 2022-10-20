@@ -106,7 +106,7 @@ class Dispatch {
     #[ORM\JoinColumn(nullable: false)]
     private ?Statut $statut = null;
 
-    #[ORM\OneToMany(targetEntity: 'Attachment', mappedBy: 'dispatch')]
+    #[ORM\OneToMany(targetEntity: Attachment::class, mappedBy: 'dispatch')]
     private Collection $attachements;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'dispatchesFrom')]

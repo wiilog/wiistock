@@ -1,5 +1,6 @@
 import WysiwygManager from "./wysiwyg-manager";
 import Flash from "./flash";
+import AJAX, {POST} from "@app/ajax";
 
 export default class Form {
 
@@ -41,6 +42,7 @@ export default class Form {
                 .off('shown.bs.modal')
                 .off('hidden.bs.modal')
                 .on(`click.submit-form`, '[type=submit]', function (event) {
+                    console.error('huh');
                     const result = Form.process(form, {
                         button: $(this),
                     });
@@ -92,9 +94,36 @@ export default class Form {
     }
 
     onSubmit(callback = null) {
+        console.log(callback);
         if (callback) {
             this.submitListeners.push(callback);
         }
+        return this;
+    }
+
+    submitTo(method, route, options) {
+        console.log("ok");
+        this.onSubmit((data, form) => {
+            console.log("hddd");
+            form.loading(
+                () => AJAX.route(method,route)
+                    .json(data)
+                    .then(response => {
+                        if(response.success) {
+                            this.element.modal(`hide`);
+
+                            if(options.success) {
+                                options.success(response);
+                            }
+
+                            if(options.table) {
+                                options.table.ajax.reload();
+                            }
+                        }
+                    })
+            )
+        })
+
         return this;
     }
 
@@ -134,7 +163,7 @@ export default class Form {
      * @param {boolean} endLoading default to true
      */
     loading(action, endLoading = true) {
-        const $submit = this.element.find('[type=submit]');
+        const $submit = this.element.find(`[type=submit]`);
         wrapLoadingOnActionButton($submit, action, endLoading);
     }
 
@@ -253,7 +282,7 @@ export default class Form {
                     if($elem.attr(`type`) === `checkbox`) {
                         return $elem.is(`:checked`) ? $elem.val() : null;
                     } else {
-                        return $elem.val()
+                        return $elem.val();
                     }
                 })
                 .filter(val => val !== null));

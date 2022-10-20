@@ -137,6 +137,9 @@ class Article implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Pairing::class, cascade: ['remove'])]
     private Collection $pairings;
 
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
+
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'articles')]
     private ?Collection $carts;
 
@@ -720,6 +723,18 @@ class Article implements PairedEntity {
         if($this->carts->removeElement($cart)) {
             $cart->removeArticle($this);
         }
+
+        return $this;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
 
         return $this;
     }

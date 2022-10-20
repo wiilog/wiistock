@@ -88,7 +88,7 @@ class TrackingMovement {
     #[ORM\ManyToMany(targetEntity: Attachment::class, mappedBy: 'trackingMovements')]
     private Collection $attachments;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'logisticUnitParentMovements')]
+    #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $logisticUnitParent = null;
 
     public function __construct() {
