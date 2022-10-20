@@ -91,8 +91,8 @@ class Arrivage {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'arrivals')]
     private ?Emplacement $dropLocation = null;
 
-    #[ORM\OneToMany(targetEntity: Reception::class, mappedBy: 'arrival')]
-    private Collection $receptions;
+    #[ORM\OneToOne(mappedBy: 'arrival', targetEntity: Reception::class)]
+    private ?Reception $reception = null;
 
     public function __construct() {
         $this->acheteurs = new ArrayCollection();
@@ -100,7 +100,6 @@ class Arrivage {
         $this->attachements = new ArrayCollection();
         $this->urgences = new ArrayCollection();
         $this->numeroCommandeList = [];
-        $this->receptions = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -487,4 +486,21 @@ class Arrivage {
         return $this;
     }
 
+    public function getReception(): ?Reception {
+        return $this->reception;
+    }
+
+    public function setReception(?Reception $reception): self {
+        if($this->reception && $this->reception->getArrival() !== $this) {
+            $oldReception = $this->reception;
+            $this->reception = null;
+            $oldReception->setArrival(null);
+        }
+        $this->reception = $reception;
+        if($this->reception && $this->reception->getArrival() !== $this) {
+            $this->reception->setArrival($this);
+        }
+
+        return $this;
+    }
 }

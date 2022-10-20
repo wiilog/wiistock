@@ -104,6 +104,9 @@ class Pack implements PairedEntity {
     #[ORM\OneToOne(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
     private ?TransportDeliveryOrderPack $transportDeliveryOrderPack = null;
 
+    #[ORM\ManyToOne(targetEntity: ReceptionPackLine::class, inversedBy: 'packs')]
+    private ReceptionPackLine $receptionPackLine;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -624,6 +627,20 @@ class Pack implements PairedEntity {
                 $transportHistory->setPack(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getReceptionPackLine(): ?ReceptionPackLine {
+        return $this->receptionPackLine;
+    }
+
+    public function setReceptionPackLine(?ReceptionPackLine $receptionPackLine): self {
+        if($this->receptionPackLine && $this->receptionPackLine !== $receptionPackLine) {
+            $this->receptionPackLine->removePack($this);
+        }
+        $this->receptionPackLine = $receptionPackLine;
+        $receptionPackLine?->addPack($this);
 
         return $this;
     }
