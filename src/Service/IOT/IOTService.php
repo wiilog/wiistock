@@ -43,7 +43,6 @@ use App\Service\NotificationService;
 use App\Service\UniqueNumberService;
 use DateTimeZone;
 use DateTime;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;

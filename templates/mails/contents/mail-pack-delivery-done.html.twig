@@ -1,18 +1,22 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-    <div>Fournisseur : {{ fournisseur }}</div>
+    <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur') }} : {{ fournisseur }}</div>
     {% if orderNumber is defined and orderNumber %}
-        <div>Numéro(s) de commande : {{ orderNumber }}</div>
+        <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL') }} : {{ orderNumber }}</div>
     {% endif %}
-    <div>Colis : {{ colis }}</div>
-    <div>Date de dépose : {{ date|date(app.user.dateFormat ? app.user.dateFormat : "d/m/Y") }} à {{ date|date("H:i:s") }}</div>
-    <div>Emplacement : {{ emplacement.label }}</div>
+    <div>{{ translateIn(language, 'Traçabilité', 'Général', 'Unités logistiques') }} : {{ colis }}</div>
+    <div>{{ translateIn(language, 'Traçabilité', 'Encours', 'Date de dépose') }} :
+        {{ translateIn(language, 'Traçabilité', 'Général', '{1} à {2}', {
+            1: date|date(constant('App\\Entity\\Utilisateur::DEFAULT_DATE_FORMAT')),
+            2: date|date("H:i:s")
+        }) }}</div>
+    <div>{{ translateIn(language, 'Traçabilité', 'Général', 'Emplacement') }} : {{ emplacement.label }}</div>
     {% if operateur is defined %}
-        <div>Opérateur : {{ operateur }}</div>
+        <div>{{ translateIn(language, 'Traçabilité', 'Général', 'Opérateur') }} : {{ operateur }}</div>
     {% endif %}
     {% if pjs is not empty %}
-        <div>Pièces jointes :</div>
+        <div>{{ translateIn(language, 'Général', null, 'Modale', 'Pièces jointes') }} :</div>
         {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
         {% for pj in pjs %}
             <a href="{{ linkBaseHref ~ asset('uploads/attachements/' ~ pj.fileName) }}">

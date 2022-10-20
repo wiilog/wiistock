@@ -282,7 +282,7 @@ export default class Form {
                     if($elem.attr(`type`) === `checkbox`) {
                         return $elem.is(`:checked`) ? $elem.val() : null;
                     } else {
-                        return $elem.val()
+                        return $elem.val();
                     }
                 })
                 .filter(val => val !== null));

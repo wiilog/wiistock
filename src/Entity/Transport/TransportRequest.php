@@ -3,8 +3,6 @@
 namespace App\Entity\Transport;
 
 use App\Entity\Interfaces\StatusHistoryContainer;
-use App\Entity\IOT\Sensor;
-use App\Entity\IOT\SensorMessage;
 use App\Entity\Nature;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;

@@ -145,11 +145,11 @@ class MailerService
                             $content = $template;
                         }
 
-                        $subject = is_callable($subject)
-                            ? $this->translationService->translateIn($slug, ...($subject($slug)))
-                            : (is_array($subject)
-                                ? $this->translationService->translateIn($slug, ...$subject)
-                                : $subject);
+                        $subject = match(true) {
+                            is_callable($subject) => $this->translationService->translateIn($slug, ...($subject($slug))),
+                            is_array($subject)    => $this->translationService->translateIn($slug, ...$subject),
+                            default               => $subject
+                        };
 
                         $contents[$slug] = [
                             'to' => [$email],

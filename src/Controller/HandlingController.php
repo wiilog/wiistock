@@ -181,7 +181,7 @@ class HandlingController extends AbstractController {
         $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
 
         $user = $this->getUser();
-        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ($containsHours ? ' H:i' : '');
+        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
         $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -291,7 +291,7 @@ class HandlingController extends AbstractController {
         $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
 
         $user = $this->getUser();
-        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ($containsHours ? ' H:i' : '');
+        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
         $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
 
 
