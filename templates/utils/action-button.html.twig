@@ -1,0 +1,97 @@
+{#
+{% include "utils/action-button.html.twig" with {
+    noButton: boolean,
+    icon : "icon",
+    actions: {
+        {
+            hasRight: boolean ,
+            title: "title",
+            class: "class-name",
+            id : "id-name",
+            attributes: { attribute : "value" , attribute2 : "value2" },
+            disable : boolean ,
+        },
+        ...
+    }
+} %}
+#}
+
+{#keep only action where user have the right#}
+{% set actionsFiltered = actions|filter(action => action.hasRight is not defined or action.hasRight) %}
+
+{% macro button(action) %}
+    <button
+        type="button"
+        class="btn btn-primary d-flex align-items-center {{ action.class is defined ? action.class}}"
+        {{ action.id is defined ? 'id="' ~ action.id ~ '"' }}
+        {{ action.disable is defined and action.disable ? 'disabled' }}
+        {% if action.attributes is defined%}
+            {% for attribute, value in action.attributes %}
+                {{ attribute }}="{{ value }}"
+            {% endfor %}
+        {% endif %}>
+        {% if action.icon is defined %}
+            <i class="{{ action.icon }} {{ action.iconClass is defined ? action.iconClass : 'mr-2' }}"></i>
+        {% endif %}
+        {{ action.title }}
+    </button>
+{% endmacro %}
+
+{% macro dropdownButton(action) %}
+    <div
+        class="dropdown-item d-flex align-items-center {{ action.class is defined ? action.class}}"
+        {{ action.id is defined ? 'id="' ~ action.id ~ '"' }}
+        {% if action.attributes is defined %}
+            {% for attribute, value in action.attributes %}
+                {{ attribute }}="{{ value }}"
+            {% endfor %}
+        {% endif %}>
+        {% if action.icon is defined %}
+            <i class="{{ action.icon }} mr-2"></i>
+        {% endif %}
+        {{ action.title }}
+    </div>
+{% endmacro %}
+{% import _self as macros %}
+
+
+{% if noButton is defined and noButton %}
+    {% if actionsFiltered|length >= 1%}
+        <a href="#" class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px"/>
+            <span class="{{ icon is defined ? icon : 'wii-icon wii-icon-dots' }}"></span>
+        </a>
+        <div class="dropdown-menu dropdown-follow-gt pointer {{ dropdownDirection is defined ? dropdownDirection }}">
+            {% for action in actionsFiltered %}
+                {{ macros.dropdownButton(action) }}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% elseif actionsFiltered|length == 1 %}
+    {% set action = actionsFiltered[0] %}
+    {{ macros.button(action) }}
+{% elseif actionsFiltered|length > 1 %}
+    <div class="btn-group">
+        {% for action in actionsFiltered %}
+            {% if loop.first %}
+                {{ macros.button(action) }}
+                {{ macros.button({
+                    title: '',
+                    class: 'btn btn-outline-primary dropdown-toggle dropdown-toggle-split',
+                    attributes: {
+                        'data-toggle': 'dropdown',
+                        'aria-haspopup': 'true',
+                        'aria-expanded': 'false'
+                    },
+                    icon : icon is defined ? icon : 'fa fa-angle-down',
+                    iconClass : 'mr-0'
+                }) }}
+                <div class="dropdown-menu dropdown-follow-gt {{ dropdownDirection is defined ? dropdownDirection : 'dropdown-menu-right' }}">
+            {% else %}
+                {{ macros.dropdownButton(action) }}
+                {{ loop.last ? '</div>' }}
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+
