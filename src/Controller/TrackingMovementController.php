@@ -25,6 +25,7 @@ use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
 use App\Service\TrackingMovementService;
 use App\Service\SpecificService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 
 use App\Service\VisibleColumnService;
@@ -475,13 +476,12 @@ class TrackingMovementController extends AbstractController
     /**
      * @Route("/csv", name="get_mouvements_traca_csv", options={"expose"=true}, methods={"GET"})
      */
-    public function getTrackingMovementCSV(Request $request,
-                                           CSVExportService $CSVExportService,
+    public function getTrackingMovementCSV(Request                 $request,
+                                           CSVExportService        $CSVExportService,
                                            TrackingMovementService $trackingMovementService,
-                                           FreeFieldService $freeFieldService,
-                                           TranslationService $translationService,
-                                           EntityManagerInterface $entityManager): Response
-    {
+                                           FreeFieldService        $freeFieldService,
+                                           TranslationService      $translationService,
+                                           EntityManagerInterface  $entityManager): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -505,8 +505,8 @@ class TrackingMovementController extends AbstractController
                     $translationService->translate('Traçabilité', 'Général', 'Opérateur', false),
                     $translationService->translate('Général', null, 'Modale', 'Commentaire', false),
                     $translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),
-                    $translationService->translate('Qualité', 'Litiges', 'Origines', false),
-                    $translationService->translate('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de commande de vente', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Issu de', false),
+                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false),
                     $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence', false),
                     $translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),
                 ], $freeFieldsConfig['freeFieldsHeader']);

@@ -670,7 +670,7 @@ class TrackingMovementService extends AbstractController
         }
 
         $data = [
-            $this->formatService->datetime($movement['datetime'], "", false, $this->security->getUser()),
+            $this->formatService->datetime($movement['datetime']),
             $movement['code'],
             $movement['locationLabel'],
             $movement['quantity'],
