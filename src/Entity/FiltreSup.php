@@ -94,7 +94,7 @@ class FiltreSup {
     #[ORM\Column(type: 'string', length: 32)]
     private ?string $field = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'text')]
     private ?string $value = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'filtresSup')]

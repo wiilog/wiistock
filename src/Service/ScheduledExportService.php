@@ -217,24 +217,22 @@ class ScheduledExportService
     }
 
     public function calculateFromHourlyRule(ExportScheduleRule $rule, DateTime $now): ?DateTime {
-        $start = clone $rule->getBegin();
-        $start->setTime(0, 0, 0, 0);
         $intervalPeriod = $rule->getIntervalPeriod();
-
-        if ($intervalPeriod) {
-            if ($now >= $start) {
-                $nextOccurrence = clone $now;
-                $hours = (int)$now->format('H');
-                $minutes = (int)$now->format('i');
-                $hours = $hours + ($intervalPeriod - ($hours % $intervalPeriod));
-                $nextOccurrence->setTime($hours, $minutes);
-            } else {
-                $nextOccurrence = $this->calculateOnce($rule, $now);
-            }
-
-            return $nextOccurrence;
+        if (!$intervalPeriod) {
+            return null;
         }
-        return null;
+
+        $hoursBetweenDates = $now->diff($rule->getBegin(), true)->format("%h");
+        if($hoursBetweenDates % $intervalPeriod === 0) {
+            $hoursToAdd = $intervalPeriod - ($hoursBetweenDates % $intervalPeriod);
+        } else {
+            $hoursToAdd = 0;
+        }
+
+        $nextOccurrence = clone $now;
+        $nextOccurrence->setTime((int)$now->format("H") + $hoursToAdd, $rule->getBegin()->format("i"));
+
+        return $nextOccurrence;
     }
 
     public function calculateOnce(ExportScheduleRule $rule, DateTime $now): ?DateTime {

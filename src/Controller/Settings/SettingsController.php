@@ -1971,6 +1971,31 @@ class SettingsController extends AbstractController {
             $manager->remove($filter);
         }
 
+        if (($entity->getTypage() === FreeField::TYPE_LIST || $entity->getTypage() === FreeField::TYPE_LIST_MULTIPLE) && $entity->getElementsTranslations()){
+            foreach($entity->getElementsTranslations() as $elementTranslationSource){
+                foreach ($elementTranslationSource->getTranslations() as $elementTranslation){
+                    $manager->remove($elementTranslation);
+                }
+                $manager->remove($elementTranslationSource);
+            }
+        }
+
+        if($entity->getDefaultValueTranslation()){
+            foreach($entity->getDefaultValueTranslation()->getTranslations() as $defaultValueTranslation){
+                $manager->remove($defaultValueTranslation);
+            }
+            $manager->remove($entity->getDefaultValueTranslation());
+        }
+
+        if($entity->getLabelTranslation()){
+            foreach($entity->getLabelTranslation()->getTranslations() as $freeFieldTranslation){
+                $manager->remove($freeFieldTranslation);
+            }
+            $manager->remove($entity->getLabelTranslation());
+        }
+
+
+
         $manager->remove($entity);
         $manager->flush();
 
