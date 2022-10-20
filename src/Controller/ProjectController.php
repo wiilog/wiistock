@@ -57,6 +57,11 @@ class ProjectController extends AbstractController
                 'success' => false,
                 'msg' => 'Un projet avec ce code existe déjà'
             ]);
+        } else if (strlen($data['code']) > 15) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'La longueur maximale du code est de 15 caractères'
+            ]);
         } else {
             $projectManager = $manager->getRepository(Utilisateur::class)->findOneBy(['id' => $data['projectManager']]);
             $project = (new Project())
