@@ -16,7 +16,6 @@ use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
@@ -24,9 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Service\TranslationService;
 use Symfony\Contracts\Service\Attribute\Required;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
@@ -624,20 +621,20 @@ class ArrivageService {
             $pack->setIsDeliveryDone(true);
             if ($receiver) {
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Dépose effectuée',
-                    $this->templating->render(
-                        'mails/contents/mail-pack-delivery-done.html.twig',
-                        [
-                            'title' => 'Votre colis a été livré.',
+                    ['Traçabilité', 'Général', 'FOLLOW GT // Dépose effectuée', false],
+                    [
+                        "name" => "mails/contents/mail-pack-delivery-done.html.twig",
+                        "context" => [
+                            'title' => ['Traçabilité', 'Général', 'Votre unité logistique a été livrée', false],
                             'orderNumber' => implode(', ', $arrivage->getNumeroCommandeList()),
-                            'colis' => FormatHelper::pack($pack),
+                            'colis' => $this->formatService->pack($pack),
                             'emplacement' => $location,
-                            'fournisseur' => FormatHelper::supplier($arrivage->getFournisseur()),
+                            'fournisseur' => $this->formatService->supplier($arrivage->getFournisseur()),
                             'date' => $date,
-                            'operateur' => FormatHelper::user($user),
+                            'operateur' => $this->formatService->user($user),
                             'pjs' => $arrivage->getAttachments()
                         ]
-                    ),
+                    ],
                     $receiver
                 );
             }

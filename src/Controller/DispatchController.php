@@ -26,7 +26,6 @@ use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
-use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -48,7 +47,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use App\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;

@@ -19,7 +19,6 @@ use App\Service\PackService;
 use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -237,6 +236,9 @@ class PackController extends AbstractController
                     1 => $pack->getArrivage()->getNumeroArrivage()
                 ]);
             }
+            if ($pack->getTransportDeliveryOrderPack() ) {
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans un ordre de livraison');
+            }
 
             if (isset($msg)) {
                 return $this->json([
@@ -251,7 +253,7 @@ class PackController extends AbstractController
             return new JsonResponse([
                 'success' => true,"",
                 'msg' => $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "L'unité logistique {1} a bien été supprimée", [
-                        1 => $pack->getArrivage()->getNumeroArrivage()
+                        1 => $packCode
                     ])
             ]);
         }

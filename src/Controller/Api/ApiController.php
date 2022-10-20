@@ -2,8 +2,6 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\Utilisateur;
-use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use FOS\RestBundle\Controller\Annotations as Rest;
 
