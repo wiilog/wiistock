@@ -206,7 +206,7 @@ class ReceptionService
         }
 
         $reception
-            ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
+            ->setOrderNumber(!empty($data['orderNumber']) ? explode(",", $data['orderNumber']) : null)
             ->setStatut($statut)
             ->setNumber($numero)
             ->setDate($date)
@@ -267,7 +267,7 @@ class ReceptionService
                     ->toArray())
             ),
             "number" => $reception->getNumber() ?: "",
-            "orderNumber" => $reception->getOrderNumber() ?: "",
+            "orderNumber" => $reception->getOrderNumber() ? join(",", $reception->getOrderNumber()) : "",
             "storageLocation" => FormatHelper::location($reception->getStorageLocation()),
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
@@ -289,7 +289,7 @@ class ReceptionService
             ["title" => $this->translation->translate("Ordre", "Réceptions", "n° de réception", false), "name" => "number", 'searchable' => true, 'translated' => true],
             ["title" => "Date attendue", "name" => "dateAttendue", 'searchable' => true],
             ["title" => "Date fin", "name" => "DateFin", 'searchable' => true],
-            ["title" => "Numéro commande", "name" => "orderNumber", 'searchable' => true],
+            ["title" => "Numéro(s) commande", "name" => "orderNumber", "searchable" => true, "orderable" => false],
             ["title" => "Destinataire(s)", "name" => "receiver", 'searchable' => true],
             ["title" => "Fournisseur", "name" => "Fournisseur", 'searchable' => true],
             ["title" => "Statut", "name" => "Statut", 'searchable' => true],
@@ -314,7 +314,7 @@ class ReceptionService
         $dateAttendue = $reception->getDateAttendue();
         $dateEndReception = $reception->getDateFinReception();
         $creationDate = $reception->getDate();
-        $orderNumber = $reception->getOrderNumber();
+        $orderNumber = join(", ", $reception->getOrderNumber());
         $comment = $reception->getCommentaire();
         $storageLocation = $reception->getStorageLocation();
         $attachments = $reception->getAttachments();
@@ -437,7 +437,7 @@ class ReceptionService
         if (!$reception) {
             $receptions = $receptionRepository->findBy(
                 [
-                    'orderNumber' => $orderNumber,
+                    'orderNumber' => "%\"$orderNumber\"%",
                     'dateAttendue' => $expectedDate
                         ? DateTime::createFromFormat('d/m/Y', $expectedDate) ?: null
                         : null

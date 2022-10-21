@@ -110,9 +110,7 @@ class DisputeService {
 
         $isNumeroBLJson = !empty($dispute['arrivageId']);
         $numerosBL = isset($dispute['numCommandeBl'])
-            ? ($isNumeroBLJson
-                ? implode(', ', json_decode($dispute['numCommandeBl'], true))
-                : $dispute['numCommandeBl'])
+            ? (implode(', ', $isNumeroBLJson ? json_decode($dispute['numCommandeBl'], true) : $dispute['numCommandeBl']))
             : '';
 
         return [
@@ -296,7 +294,7 @@ class DisputeService {
 
             $receptionNumber = $firstArticle ? $firstArticle['receptionNumber'] : '';
             $receptionSupplier = $firstArticle ? $firstArticle['supplier'] : '';
-            $receptionOrderNumber = $firstArticle ? $firstArticle['receptionOrderNumber'] : '';
+            $receptionOrderNumber = $firstArticle ? join(", ", $firstArticle['receptionOrderNumber']) : '';
 
             $references = $associatedIdAndReferences[$dispute["id"]];
             $orderNumbers = $associatedIdsAndOrderNumbers[$dispute["id"]];

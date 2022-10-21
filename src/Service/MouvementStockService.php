@@ -190,7 +190,7 @@ class MouvementStockService
         $orderNo = $mouvement['preparationOrder']
             ?? $mouvement['livraisonOrder']
             ?? $mouvement['collecteOrder']
-            ?? $mouvement['receptionOrder']
+            ?? join(", ", $mouvement['receptionOrder'])
             ?? null;
 
         $data = [

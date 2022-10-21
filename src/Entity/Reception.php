@@ -44,7 +44,7 @@ class Reception {
     #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $number = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'receptions')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "receptions")]
     #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $utilisateur = null;
 
@@ -112,7 +112,6 @@ class Reception {
         $this->trackingMovements = new ArrayCollection();
         $this->attachments = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
-        $this->receptionPackLines = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -204,11 +203,11 @@ class Reception {
         return $this;
     }
 
-    public function getOrderNumber(): ?string {
+    public function getOrderNumber(): ?array {
         return $this->orderNumber;
     }
 
-    public function setOrderNumber(?string $orderNumber): self {
+    public function setOrderNumber(?array $orderNumber): self {
         $this->orderNumber = $orderNumber;
 
         return $this;
@@ -454,63 +453,6 @@ class Reception {
         $this->purchaseRequestLines = new ArrayCollection();
         foreach($purchaseRequestLines as $purchaseRequestLine) {
             $this->addPurchaseRequestLine($purchaseRequestLine);
-        }
-
-        return $this;
-    }
-
-    public function getArrival(): ?Arrivage {
-        return $this->arrival;
-    }
-
-    public function setArrival(?Arrivage $arrival): self {
-        if($this->arrival && $this->arrival->getReception() !== $this) {
-            $oldArrival = $this->arrival;
-            $this->arrival = null;
-            $oldArrival->setReception(null);
-        }
-        $this->arrival = $arrival;
-        if($this->arrival && $this->arrival->getReception() !== $this) {
-            $this->arrival->setReception($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ReceptionPackLine>
-     */
-    public function getReceptionPackLines(): Collection {
-        return $this->receptionPackLines;
-    }
-
-    public function addReceptionPackLine(ReceptionPackLine $receptionPackLine): self {
-        if (!$this->receptionPackLines->contains($receptionPackLine)) {
-            $this->receptionPackLines[] = $receptionPackLine;
-            $receptionPackLine->setReception($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReceptionPackLine(ReceptionPackLine $receptionPackLine): self {
-        if ($this->receptionPackLines->removeElement($receptionPackLine)) {
-            if ($receptionPackLine->getReception() === $this) {
-                $receptionPackLine->setReception(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setReceptionPackLines(?iterable $receptionPackLines): self {
-        foreach($this->getReceptionPackLines()->toArray() as $receptionPackLine) {
-            $this->removeReceptionPackLine($receptionPackLine);
-        }
-
-        $this->receptionPackLines = new ArrayCollection();
-        foreach($receptionPackLines ?? [] as $receptionPackLine) {
-            $this->addReceptionPackLine($receptionPackLine);
         }
 
         return $this;

@@ -161,9 +161,10 @@ class ReceptionController extends AbstractController {
                     : $data['emergency']
                 )
                 : null;
+
             $reception->setManualUrgent($emergency);
             $reception
-                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
+                ->setOrderNumber(!empty($data['orderNumber']) ? explode(",", $data['orderNumber']) : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
                         ? new DateTime(str_replace('/', '-', $data['dateAttendue']))
@@ -1546,7 +1547,7 @@ class ReceptionController extends AbstractController {
     private function serializeReception(array $reception): array {
         return [
             $reception['number'] ?: '',
-            $reception['orderNumber'] ?: '',
+            $reception['orderNumber'] ? join(', ', $reception['orderNumber']) : '',
             $reception['providerName'] ?: '',
             $reception['userUsername'] ?: '',
             $reception['statusName'] ?: '',
