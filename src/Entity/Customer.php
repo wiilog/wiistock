@@ -14,7 +14,7 @@ class Customer
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private ?string $code = null;
+    private ?string $name = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $address = null;
@@ -33,14 +33,14 @@ class Customer
         return $this->id;
     }
 
-    public function getCode(): ?string
+    public function getName(): ?string
     {
-        return $this->code;
+        return $this->name;
     }
 
-    public function setCode(string $code): self
+    public function setName(string $name): self
     {
-        $this->code = $code;
+        $this->name = $name;
 
         return $this;
     }

@@ -42,7 +42,6 @@ export default class Form {
                 .off('shown.bs.modal')
                 .off('hidden.bs.modal')
                 .on(`click.submit-form`, '[type=submit]', function (event) {
-                    console.error('huh');
                     const result = Form.process(form, {
                         button: $(this),
                     });
@@ -94,7 +93,6 @@ export default class Form {
     }
 
     onSubmit(callback = null) {
-        console.log(callback);
         if (callback) {
             this.submitListeners.push(callback);
         }
@@ -102,9 +100,7 @@ export default class Form {
     }
 
     submitTo(method, route, options) {
-        console.log("ok");
         this.onSubmit((data, form) => {
-            console.log("hddd");
             form.loading(
                 () => AJAX.route(method,route)
                     .json(data)
