@@ -700,7 +700,7 @@ class ReceptionController extends AbstractController {
 
             $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
             $reception = $receptionReferenceArticle->getReception();
-            $quantite = $data['quantiteAR'];
+            $quantite = $data['quantite'];
             $receivedQuantity = $receptionReferenceArticle->getQuantite();
 
             if(empty($receivedQuantity)) {
