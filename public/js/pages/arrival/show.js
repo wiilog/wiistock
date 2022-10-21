@@ -58,6 +58,7 @@ $(function () {
             {data: 'lastMvtDate', name: 'lastMvtDate', title:  Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
             {data: 'lastLocation', name: 'lastLocation', title:  Translation.of('Traçabilité', 'Général', 'Dernier emplacement')},
             {data: 'operator', name: 'operator', title: Translation.of('Traçabilité', 'Général', 'Opérateur')},
+            {data: 'project', name: 'project', title: 'Projet'},
         ],
         order: [['code', 'asc']]
     };
