@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
@@ -111,6 +112,7 @@ class ReceptionService
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $ransporteurRepository = $entityManager->getRepository(Transporteur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         if(!empty($data['anomalie'])) {
             $anomaly = (
                 isset($data['anomalie'])
@@ -133,6 +135,15 @@ class ReceptionService
         $date = new DateTime('now');
 
         $numero = $this->uniqueNumberService->create($entityManager, Reception::NUMBER_PREFIX, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
+
+        if(!empty($data['arrivage'])) {
+            $arrivageId = $data['arrivage'];
+            $arrivage = $arrivageRepository->find($arrivageId);
+
+            $reception->setArrival($arrivage);
+            $arrivage->setReception($reception);
+            //ajouter colis dans receptionPackLines
+        }
 
         if(!empty($data['fournisseur'])) {
             if($fromImport) {

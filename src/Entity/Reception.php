@@ -57,8 +57,8 @@ class Reception {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $dateCommande = null;
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $orderNumber = null;
+    #[ORM\Column(type: "json", nullable: true)]
+    private ?array $orderNumber;
 
     #[ORM\OneToMany(mappedBy: 'reception', targetEntity: ReceptionReferenceArticle::class)]
     private Collection $receptionReferenceArticles;
@@ -112,6 +112,7 @@ class Reception {
         $this->trackingMovements = new ArrayCollection();
         $this->attachments = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
+        //receptionPackLine
     }
 
     public function getId(): ?int {
@@ -458,4 +459,6 @@ class Reception {
         return $this;
     }
 
+
+    //ajouter set et get arrival
 }

@@ -149,7 +149,9 @@ function openQueryModal(query = null, event) {
         || query["open-modal"] === openModalEdit) {
         if (query["open-modal"] === openModalNew) {
             const $modal = $('[data-modal-type="new"]').first();
-            clearModal($modal)
+            if (query["clear-modal"] === 1) {
+                clearModal($modal)
+            }
             $modal.modal("show");
         } else { // edit
             const $openModal = $(`.open-modal-edit`);

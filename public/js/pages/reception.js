@@ -2,7 +2,6 @@ let onFlyFormOpened = {};
 let receptionsTable;
 
 $(function () {
-
     // RECEPTION
     initTableReception();
     $('.select2').select2();
