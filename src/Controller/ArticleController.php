@@ -136,6 +136,20 @@ class ArticleController extends AbstractController
     }
 
     /**
+     * @Route("/voir/{article}", name="article_show_page")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
+     */
+    public function showPage(Article $article, EntityManagerInterface $manager): Response {
+        $type = $article->getType();
+        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
+
+        return $this->render("article/show/show.html.twig", [
+            'article' => $article,
+            'freeFields' => $freeFields
+        ]);
+    }
+
+    /**
      * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      */
@@ -168,7 +182,7 @@ class ArticleController extends AbstractController
     /**
      * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function editApi(Request $request,
+    public function show(Request $request,
                             ArticleDataService $articleDataService,
                             EntityManagerInterface $entityManager): Response
     {
