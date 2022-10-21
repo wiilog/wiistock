@@ -76,6 +76,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => false,
                 SpecificService::CLIENT_INEO_LAV => true,
             ],
+            setting::INCLUDE_PROJECT_IN_LABEL => [
+                'default' => false,
+            ],
             Setting::INCLUDE_EMERGENCY_IN_LABEL => [
                 'default' => false,
             ],

@@ -82,26 +82,4 @@ class ProjectRepository extends EntityRepository
             'total' => $total
         ];
     }
-
-    public function countArticle(Project $project): int {
-        return $this->getEntityManager()
-            ->createQueryBuilder()
-            ->from(Article::class, 'article')
-            ->select('COUNT(article)')
-            ->andWhere('article.project = :project')
-            ->setParameter('project', $project)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
-    public function countLogisticUnit(Project $project): int {
-        return $this->getEntityManager()
-            ->createQueryBuilder()
-            ->from(Pack::class, 'pack')
-            ->select('COUNT(pack)')
-            ->andWhere('pack.project = :project')
-            ->setParameter('project', $project)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
 }
