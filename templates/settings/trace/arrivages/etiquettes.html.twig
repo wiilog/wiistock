@@ -32,6 +32,9 @@
                 <div class="col-12 my-1">
                     {{ form.checkbox(setting('INCLUDE_BUSINESS_UNIT_IN_LABEL'), "Afficher la business unit", false, setting_value('INCLUDE_BUSINESS_UNIT_IN_LABEL')) }}
                 </div>
+                <div class="col-12 my-1">
+                    {{ form.checkbox(setting('INCLUDE_PROJECT_IN_LABEL'), "Afficher le projet", false, setting_value('INCLUDE_PROJECT_IN_LABEL')) }}
+                </div>
             </div>
         </div>
         <div class="col-12 col-md-6">
