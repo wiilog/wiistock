@@ -143,6 +143,12 @@ class Article implements PairedEntity {
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'articles')]
     private ?Collection $carts;
 
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "childArticles")]
+    private ?Pack $currentLogisticUnit = null;
+
+    #[ORM\OneToMany(mappedBy: 'article', targetEntity: ProjectHistoryRecord::class)]
+    private Collection $projectHistoryRecords;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
@@ -739,4 +745,56 @@ class Article implements PairedEntity {
         return $this;
     }
 
+    public function getCurrentLogisticUnit(): ?Pack {
+        return $this->currentLogisticUnit;
+    }
+
+    public function setCurrentLogisticUnit(?Pack $currentLogisticUnit): self {
+        if($this->currentLogisticUnit && $this->currentLogisticUnit !== $currentLogisticUnit) {
+            $this->currentLogisticUnit->removeChildArticle($this);
+        }
+        $this->currentLogisticUnit = $currentLogisticUnit;
+        $currentLogisticUnit?->addChildArticle($this);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProjectHistoryRecord>
+     */
+    public function getProjectHistoryRecords(): Collection {
+        return $this->projectHistoryRecords;
+    }
+
+    public function addProjectHistoryRecord(ProjectHistoryRecord $projectHistoryRecord): self {
+        if (!$this->projectHistoryRecords->contains($projectHistoryRecord)) {
+            $this->projectHistoryRecords[] = $projectHistoryRecord;
+            $projectHistoryRecord->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProjectHistoryRecord(ProjectHistoryRecord $projectHistoryRecord): self {
+        if ($this->projectHistoryRecords->removeElement($projectHistoryRecord)) {
+            if ($projectHistoryRecord->getArticle() === $this) {
+                $projectHistoryRecord->setArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setProjectHistoryRecords(?iterable $projectHistoryRecords): self {
+        foreach($this->getProjectHistoryRecords()->toArray() as $projectHistoryRecord) {
+            $this->removeProjectHistoryRecord($projectHistoryRecord);
+        }
+
+        $this->projectHistoryRecords = new ArrayCollection();
+        foreach($projectHistoryRecords ?? [] as $projectHistoryRecord) {
+            $this->addProjectHistoryRecord($projectHistoryRecord);
+        }
+
+        return $this;
+    }
 }

@@ -2,23 +2,19 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
 use App\Entity\Menu;
 use App\Entity\Action;
 
+use App\Entity\Pack;
 use App\Entity\Project;
-use App\Entity\Transport\Vehicle;
+use App\Entity\ProjectHistoryRecord;
 use App\Entity\Utilisateur;
 use App\Service\ProjectService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use DateTime;
-use App\Service\TranslationService;
-use Throwable;
 use App\Annotation\HasPermission;
 
 /**
@@ -138,20 +134,22 @@ class ProjectController extends AbstractController
     {
         $id = json_decode($request->getContent(), true);
         $projectRepository = $manager->getRepository(Project::class);
-        $project = $projectRepository->find($id);
-        $articleCount = $projectRepository->countArticle($project);
-        $logisticUnitCount = $projectRepository->countLogisticUnit($project);
+        $articleRepository = $manager->getRepository(Article::class);
+        $packRepository = $manager->getRepository(Pack::class);
+        $projectHistoryRecordRepository = $manager->getRepository(ProjectHistoryRecord::class);
 
-        $state = $articleCount > 0
-            ? 'articleError'
-            : ($logisticUnitCount > 0 ? 'logisticUnitError' : null);
+        $project = $projectRepository->find($id);
+        $articleCount = $articleRepository->count(['project' => $project]);
+        $logisticUnitCount = $packRepository->count(['project' => $project]);
+        $projectHistoryRecordCount = $projectHistoryRecordRepository->count(['project' => $project]);
 
         return $this->json([
-            'delete' => !$state,
-            'html' => match($state) {
-                'articleError' => '<span>Ce projet est lié à un ou plusieurs articles, vous ne pouvez pas le supprimer</span>',
-                'logisticUnitError' => '<span>Ce projet est lié à une ou plusieurs unités logistiques, vous ne pouvez pas le supprimer</span>',
-                default => '<span>Voulez-vous réellement supprimer ce projet ?</span>'
+            'delete' => empty($articleCount) && empty($logisticUnitCount) && empty($projectHistoryRecordCount),
+            'html' => match(true) {
+                $articleCount > 0              => '<span>Ce projet est lié à un ou plusieurs articles, vous ne pouvez pas le supprimer</span>',
+                $logisticUnitCount > 0         => '<span>Ce projet est lié à une ou plusieurs unités logistiques, vous ne pouvez pas le supprimer</span>',
+                $projectHistoryRecordCount > 0 => '<span>Ce projet est lié à un ou plusieurs historiques de projet, vous ne pouvez pas le supprimer</span>',
+                default                        => '<span>Voulez-vous réellement supprimer ce projet ?</span>'
             }
         ]);
     }
