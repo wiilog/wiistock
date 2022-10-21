@@ -752,22 +752,16 @@ class ImportService
                 switch ($exception->getMessage()) {
                     case ReceptionService::INVALID_EXPECTED_DATE:
                         $this->throwError('La date attendue n\'est pas au bon format (dd/mm/yyyy)');
-                        break;
                     case ReceptionService::INVALID_ORDER_DATE:
                         $this->throwError('La date commande n\'est pas au bon format (dd/mm/yyyy)');
-                        break;
                     case ReceptionService::INVALID_LOCATION:
                         $this->throwError('Emplacement renseigné invalide');
-                        break;
                     case ReceptionService::INVALID_STORAGE_LOCATION:
                         $this->throwError('Emplacement de stockage renseigné invalide');
-                        break;
                     case ReceptionService::INVALID_CARRIER:
                         $this->throwError('Transporteur renseigné invalide');
-                        break;
                     case ReceptionService::INVALID_PROVIDER:
                         $this->throwError('Fournisseur renseigné invalide');
-                        break;
                     default:
                         throw $exception;
                 }
@@ -877,7 +871,7 @@ class ImportService
                         ->setReception($reception)
                         ->setReferenceArticle($refArt)
                         ->setQuantiteAR($data['quantité à recevoir'])
-                        ->setCommande($reception->getOrderNumber())
+                        ->setCommande($dataOrderNumber)
                         ->setQuantite(0);
                     $this->entityManager->persist($receptionRefArticle);
                 } else {

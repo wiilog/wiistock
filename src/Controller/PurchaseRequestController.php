@@ -613,7 +613,7 @@ class PurchaseRequestController extends AbstractController
                     ->setReception($reception)
                     ->setReferenceArticle($purchaseRequestLine->getReference())
                     ->setQuantiteAR($purchaseRequestLine->getOrderedQuantity())
-                    ->setCommande($reception->getOrderNumber())
+                    ->setCommande($orderNumber)
                     ->setQuantite(0);
 
                 $entityManager->persist($receptionReferenceArticle);

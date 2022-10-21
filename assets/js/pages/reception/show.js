@@ -499,10 +499,6 @@ function initNewArticleEditor(modal) {
 
     clearModal(modal);
 
-    const $commandField = $(modal).find('[name="commande"]');
-    const $numCommand = $('#numCommandeReception').val();
-    $commandField.val($numCommand);
-
     const $button = $('#addArticleLigneSubmitAndRedirect');
     $button.addClass('d-none');
 

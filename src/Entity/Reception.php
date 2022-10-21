@@ -44,21 +44,21 @@ class Reception {
     #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
     private $number;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'receptions')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "receptions")]
     #[ORM\JoinColumn(nullable: true)]
     private $utilisateur;
 
-    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'receptions')]
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: "receptions")]
     private $statut;
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(type: "date", nullable: true)]
     private ?DateTime $dateAttendue;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: "datetime", nullable: true)]
     private $dateCommande;
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private $orderNumber;
+    #[ORM\Column(type: "json", nullable: true)]
+    private ?array $orderNumber;
 
     #[ORM\OneToMany(targetEntity: ReceptionReferenceArticle::class, mappedBy: 'reception')]
     private $receptionReferenceArticles;
@@ -197,11 +197,11 @@ class Reception {
         return $this;
     }
 
-    public function getOrderNumber(): ?string {
+    public function getOrderNumber(): ?array {
         return $this->orderNumber;
     }
 
-    public function setOrderNumber(?string $orderNumber): self {
+    public function setOrderNumber(?array $orderNumber): self {
         $this->orderNumber = $orderNumber;
 
         return $this;
