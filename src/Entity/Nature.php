@@ -90,14 +90,15 @@ class Nature {
         return $this->id;
     }
 
-    public function getLabelIn(Language|string $in, Language|string|null $default): ?string {
+    public function getLabelIn(Language|string $in,
+                               Language|string|null $default = null): ?string {
         $in = LanguageHelper::clearLanguage($in);
         $default = LanguageHelper::clearLanguage($default);
 
         $translation = $this->getLabelTranslation();
 
         return $translation?->getTranslationIn($in, $default)?->getTranslation()
-            ?: $translation?->getTranslationIn(Language::FRENCH_SLUG)?->getTranslation()
+            ?: $translation?->getTranslationIn( Language::FRENCH_SLUG)?->getTranslation()
             ?: '';
     }
 
