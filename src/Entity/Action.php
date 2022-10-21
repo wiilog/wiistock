@@ -110,6 +110,7 @@ class Action {
     const DISPLAY_VEHICLE = 'afficher véhicule';
     const DISPLAY_PACK_NATURE = 'afficher nature de colis';
     const DISPLAY_PROJECTS = 'afficher projets';
+    const DISPLAY_CUSTOMER = 'afficher clients';
     // menu IOT
     const DISPLAY_SENSOR = 'afficher capteurs';
     const DISPLAY_TRIGGER = 'afficher actionneurs';

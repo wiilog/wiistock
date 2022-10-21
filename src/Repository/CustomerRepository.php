@@ -39,6 +39,18 @@ class CustomerRepository extends ServiceEntityRepository
         }
     }
 
+    public function findAllSorted()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT c FROM App\Entity\Customer c
+            ORDER BY c.code
+            "
+        );
+
+        return $query->execute();
+    }
+
 //    /**
 //     * @return Customer[] Returns an array of Customer objects
 //     */
