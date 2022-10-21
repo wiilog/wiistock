@@ -1337,7 +1337,7 @@ class ArrivageController extends AbstractController {
     private function getBarcodeColisConfig(Pack $colis,
                                            ?Utilisateur $destinataire,
                                            ?string $packIndex = '',
-                                           ?bool $typeArrivalParamIsDefined,
+                                           ?bool $typeArrivalParamIsDefined = false,
                                            ?bool $usernameParamIsDefined = false,
                                            ?bool $dropzoneParamIsDefined = false,
                                            ?bool $packCountParamIsDefined = false,
