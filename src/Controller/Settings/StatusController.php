@@ -13,7 +13,6 @@ use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
-use stdClass;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -211,17 +210,15 @@ class StatusController extends AbstractController
     }
 
     /**
-     * @Route("/status-api/edit/translate", name="settings_edit_status_translations_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/status-api/edit/translate", name="settings_edit_status_translations_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT})
      */
     public function apiEditTranslations(Request $request,
                                         EntityManagerInterface $manager,
                                         TranslationService $translationService): JsonResponse
     {
-        $data = $request->request;
-
-        $mode = $data->get("mode");
-        $typeId = $data->get("type");
+        $mode = $request->query->get("mode");
+        $typeId = $request->query->get("type");
 
         $statusRepository = $manager->getRepository(Statut::class);
         $typeRepository = $manager->getRepository(Type::class);

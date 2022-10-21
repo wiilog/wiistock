@@ -1,4 +1,5 @@
 import EditableDatatable, {MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
+import AJAX, {GET} from "@app/ajax";
 
 const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
 const MODE_RECEPTION_DISPUTE = 'reception-dispute';
@@ -75,18 +76,19 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
                 }
 
                 $translateButton
-                    .off('click')
-                    .on(`click`, function () {
-                        const params = {
-                            type: $('[name=type]:checked').val(),
-                            mode: mode
-                        };
-
-                        $.post(Routing.generate("settings_edit_status_translations_api", true), params)
-                            .then(response => {
-                                $modalEditTranslations.find(`.modal-body`).html(response.html);
-                                $modalEditTranslations.modal('show');
-                            });
+                    .off('click.statusTranslation')
+                    .on('click.statusTranslation', function () {
+                        wrapLoadingOnActionButton($(this), () => (
+                            AJAX.route(GET, "settings_edit_status_translations_api", {
+                                type: $('[name=type]:checked').val(),
+                                mode: mode
+                            })
+                                .json()
+                                .then((response) => {
+                                    $modalEditTranslations.find(`.modal-body`).html(response.html);
+                                    $modalEditTranslations.modal('show');
+                                })
+                        ));
                     });
             }
         },
@@ -108,11 +110,6 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         success: () => {
             table.toggleEdit(STATE_VIEWING, true);
         }
-    });
-
-    $addRow.on(`click`, function() {
-        const url = Routing.generate(`settings_edit_status_translations_api`);
-        table.setURL(url);
     });
 
     $addRow

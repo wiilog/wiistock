@@ -2426,12 +2426,11 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/types_litige_api/edit/translate", name="settings_edit_types_litige_translations_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/types_litige_api/edit/translate", name="settings_edit_types_litige_translations_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT})
      */
     public function apiEditTranslationsTypeLitige(EntityManagerInterface $manager,
-                                        TranslationService $translationService): JsonResponse
-    {
+                                                  TranslationService     $translationService): JsonResponse {
         $typeRepository = $manager->getRepository(Type::class);
         $typesLitige = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
 

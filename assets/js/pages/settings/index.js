@@ -25,6 +25,8 @@ import {
 import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
 import {onHeaderPageEditStop} from "./utils";
 import Form from '../../form';
+import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
+import AJAX, {GET, POST} from "@app/ajax";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -863,8 +865,6 @@ function initializeTraceArrivalTypesLitige($container){
     const $translateLabels = $container.find('.translate-labels');
     const $translateButton = $container.find(`.translate-labels-button`);
     const $modalEditTranslations = $container.find(".edit-translation-modal");
-    const $addButton = $container.find(`.add-row-button`);
-    const $addRow = $container.find(`.add-row`);
 
     const table = EditableDatatable.create(`#table-types-litige`, {
         route: Routing.generate('types_litige_api', true),
@@ -884,20 +884,24 @@ function initializeTraceArrivalTypesLitige($container){
             }
 
             $translateButton
-                .off('click')
-                .on(`click`, function () {
-
-                    $.post(Routing.generate("settings_edit_types_litige_translations_api", true))
-                        .then(response => {
-                            $modalEditTranslations.find(`.modal-body`).html(response.html);
-                            $modalEditTranslations.modal('show');
-                        });
+                .off('click.disputeTypesTranslation')
+                .on('click.disputeTypesTranslation', function () {
+                    wrapLoadingOnActionButton($(this), () => (
+                        AJAX.route(GET, "settings_edit_types_litige_translations_api")
+                            .json()
+                            .then((response) => {
+                                $modalEditTranslations.find(`.modal-body`).html(response.html);
+                                $modalEditTranslations.modal('show');
+                            })
+                    ));
                 });
         },
         onEditStop: () => {
             $saveButton.addClass('d-none');
             $discardButton.addClass('d-none');
-            if (canTranslate) { $translateLabels.addClass('d-none'); }
+            if (canTranslate) {
+                $translateLabels.addClass('d-none');
+            }
             canTranslate = true;
         },
         columns: [
@@ -919,16 +923,6 @@ function initializeTraceArrivalTypesLitige($container){
             table.toggleEdit(STATE_VIEWING, true);
         }
     });
-
-    $addRow.on(`click`, function() {
-        const url = Routing.generate(`settings_edit_types_litige_translations_api`);
-        table.setURL(url);
-    });
-
-    $addButton
-        .on('click', function() {
-            canTranslate = false;
-        });
 }
 
 function initializeVisibilityGroup($container, canEdit) {

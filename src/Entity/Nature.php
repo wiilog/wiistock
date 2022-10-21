@@ -98,7 +98,7 @@ class Nature {
         $translation = $this->getLabelTranslation();
 
         return $translation?->getTranslationIn($in, $default)?->getTranslation()
-            ?: $translation?->getTranslationIn( Language::FRENCH_SLUG)?->getTranslation()
+            ?: $this->getLabel()
             ?: '';
     }
 
