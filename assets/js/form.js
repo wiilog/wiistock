@@ -94,7 +94,6 @@ export default class Form {
     }
 
     onSubmit(callback = null) {
-        console.log(callback);
         if (callback) {
             this.submitListeners.push(callback);
         }
@@ -102,9 +101,7 @@ export default class Form {
     }
 
     submitTo(method, route, options) {
-        console.log("ok");
         this.onSubmit((data, form) => {
-            console.log("hddd");
             form.loading(
                 () => AJAX.route(method,route)
                     .json(data)

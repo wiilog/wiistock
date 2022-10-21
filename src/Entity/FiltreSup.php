@@ -21,6 +21,7 @@ class FiltreSup {
     const FIELD_TYPE = 'type';
     const FIELD_FILE_NUMBER = 'fileNumber';
     const FIELD_CONTACT = 'contact';
+    const FIELD_PROJECT = 'project';
     const FIELD_EMPLACEMENT = 'emplacement';
     const FIELD_COLIS = 'colis';
     const FIELD_REFERENCE = 'reference';
