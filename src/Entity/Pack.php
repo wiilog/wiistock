@@ -110,9 +110,6 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: "currentLogisticUnit", targetEntity: Article::class)]
     private Collection $childArticles;
 
-    #[ORM\OneToMany(mappedBy: 'logisticUnitParent', targetEntity: TrackingMovement::class)]
-    private Collection $logisticUnitParentMovements;
-
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["remove"])]
     private Collection $projectHistoryRecords;
 
@@ -126,7 +123,6 @@ class Pack implements PairedEntity {
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
         $this->childArticles = new ArrayCollection();
-        $this->logisticUnitParentMovements = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
     }
 
@@ -653,10 +649,6 @@ class Pack implements PairedEntity {
         $this->project = $project;
 
         return $this;
-    }
-
-    public function getLogisticUnitParentMovements(): Collection {
-        return $this->logisticUnitParentMovements;
     }
 
     /**

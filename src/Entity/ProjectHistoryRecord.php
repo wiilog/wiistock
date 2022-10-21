@@ -11,28 +11,34 @@ use DateTime;
 #[ORM\Entity(repositoryClass: ProjectHistoryRecordRepository::class)]
 class ProjectHistoryRecord {
 
-    /**
-     * @var int|null
-     */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
     #[ORM\Column(type: 'datetime')]
-    private ?DateTime $date;
-
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'projectHistoryRecords')]
-    private ?Pack $pack = null;
+    private ?DateTime $createdAt = null;
 
     #[ORM\ManyToOne(targetEntity: Project::class)]
     private ?Project $project = null;
 
-    #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'projectHistoryRecords')] //verifier si ça fonctionne en creant des lignes d'historique
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'projectHistoryRecords')]
+    private ?Pack $pack = null;
+
+    #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'projectHistoryRecords')]
     private ?Article $article = null;
 
-    public function __construct() {
-        $this->date = new DateTime();
+    public function getId(): ?int {
+        return $this->id;
+    }
+
+    public function getCreatedAt(): ?DateTime {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?DateTime $createdAt): self {
+        $this->createdAt = $createdAt;
+        return $this;
     }
 
     public function getPack(): ?Pack {

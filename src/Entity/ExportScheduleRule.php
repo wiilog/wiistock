@@ -25,7 +25,7 @@ class ExportScheduleRule {
     #[ORM\Column(type: "integer")]
     private ?int $id = null;
 
-    #[ORM\OneToOne(mappedBy: 'exportScheduleRule', targetEntity: Export::class)]
+    #[ORM\OneToOne(inversedBy: 'exportScheduleRule', targetEntity: Export::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Export $export = null;
 

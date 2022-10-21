@@ -446,13 +446,7 @@ class TrackingMovement {
     }
 
     public function setLogisticUnitParent(?Pack $logisticUnitParent): self {
-        if($this->logisticUnitParent && $this->logisticUnitParent !== $logisticUnitParent) {
-            $this->logisticUnitParent->removeLogisticUnitParentMovement($this);
-        }
-
         $this->logisticUnitParent = $logisticUnitParent;
-        $logisticUnitParent?->addLogisticUnitParentMovement($this);
-
         return $this;
     }
 
