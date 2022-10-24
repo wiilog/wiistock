@@ -194,19 +194,20 @@ class TrackingMovementRepository extends EntityRepository
                             ->addOrderBy('order_pack_article_articleFournisseur_referenceArticle.reference', $order);
                     } else if ($column === 'label') {
                         $qb
-                            ->innerJoin('tracking_movement.pack', 'order_pack')
-                            ->leftJoin('order_pack.referenceArticle', 'order_pack_referenceArticle')
-                            ->leftJoin('order_pack.article', 'order_pack_article')
-                            ->orderBy('order_pack_referenceArticle.libelle', $order)
-                            ->addOrderBy('order_pack_article.label', $order);
+                            ->innerJoin('tracking_movement.pack', 'label_order_pack')
+                            ->leftJoin('label_order_pack.referenceArticle', 'label_order_pack_referenceArticle')
+                            ->leftJoin('label_order_pack.article', 'label_order_pack_article')
+                            ->orderBy('label_order_pack_referenceArticle.libelle', $order)
+                            ->addOrderBy('label_order_pack_article.label', $order);
                     } else if ($column === 'user') {
                         $qb
                             ->leftJoin('tracking_movement.operateur', 'order_operator')
                             ->orderBy('order_operator.username', $order);
-                    }  else if ($column === 'code') {
-                        $qb
-                            ->leftJoin('tracking_movement.pack', 'order_pack')
-                            ->orderBy('order_pack.code', $order);
+                    }  else if ($column === 'packCode') {
+                        $qb->leftJoin('tracking_movement.pack', 'code_order_pack')
+                            ->leftJoin('code_order_pack.article', 'code_order_pack_article')
+                            ->leftJoin('tracking_movement.logisticUnitParent', 'code_order_logistic_unit')
+                            ->orderBy('IF(NOT (code_order_logistic_unit.id IS NOT NULL AND code_order_pack_article.id IS NOT NULL), tracking_movement.pack, NULL)', $order);
                     } else {
                         $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
