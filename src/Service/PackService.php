@@ -118,9 +118,12 @@ class PackService {
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
-            'packNum' => $pack->getCode(),
+            'packNum' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
+                "pack" => $pack,
+            ]),
             'packNature' => $this->formatService->nature($pack->getNature()),
             'quantity' => $pack->getQuantity() ?: 1,
+            'project' => $pack->getProject()?->getCode(),
             'packLastDate' => $lastPackMovement
                 ? ($lastPackMovement->getDatetime()
                     ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')

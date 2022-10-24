@@ -81,11 +81,6 @@ class TrackingMovementController extends AbstractController
         ]);
     }
 
-    private function errorWithDropOff($pack, $location, $packTranslation, $natureTranslation) {
-        $bold = '<span class="font-weight-bold"> ';
-        return 'Le ' . $packTranslation . $bold . $pack . '</span> ne dispose pas des ' . $natureTranslation . ' pour être déposé sur l\'emplacement' . $bold . $location . '</span>.';
-    }
-
     /**
      * @Route("/api-columns", name="tracking_movement_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
