@@ -20,6 +20,8 @@ class TrackingMovement {
     const TYPE_PRISE_DEPOSE = 'prises et deposes';
     const TYPE_UNGROUP = 'dégroupage';
     const TYPE_EMPTY_ROUND = 'passage à vide';
+    const TYPE_DROP_LOGISTIC_UNIT = 'depose dans UL';
+    const TYPE_PICK_LOGISTIC_UNIT = 'prise dans UL';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
