@@ -12,47 +12,43 @@ $(function () {
     initDatePickers();
     Select2Old.init($('#emplacement'), 'Emplacements');
 
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_MVT_TRACA);
-    $.post(path, params, function (data) {
-        displayFiltersSup(data, true);
-    }, 'json');
+    initTrackingMovementTable($(`#tableMvts`).data(`initial-visible`));
+
+    const filters = JSON.parse($(`#trackingMovementFilters`).val())
+    displayFiltersSup(filters, true);
 
     Select2Old.user(Translation.of('Traçabilité', 'Mouvements', 'Opérateurs', false));
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of( 'Traçabilité', 'Général', 'Emplacement', false), 3);
 
     initNewModal($modalNewMvtTraca);
-
-    $.post(Routing.generate('tracking_movement_api_columns'))
-        .then((columns) => {
-            let config = {
-                responsive: true,
-                serverSide: true,
-                processing: true,
-                order: [['date', "desc"]],
-                ajax: {
-                    "url": Routing.generate('tracking_movement_api', true),
-                    "type": "POST",
-                },
-                drawConfig: {
-                    needsSearchOverride: true,
-                },
-                rowConfig: {
-                    needsRowClickAction: true
-                },
-                columns,
-                hideColumnConfig: {
-                    columns,
-                    tableFilter: 'tableMvts'
-                }
-            };
-
-            tableMvt = initDataTable('tableMvts', config);
-            initPageModal(tableMvt);
-        });
 });
 
+function initTrackingMovementTable(columns) {
+    let trackingMovementTableConfig = {
+        responsive: true,
+        serverSide: true,
+        processing: true,
+        order: [['date', "desc"]],
+        ajax: {
+            "url": Routing.generate('tracking_movement_api', true),
+            "type": "POST",
+        },
+        drawConfig: {
+            needsSearchOverride: true,
+        },
+        rowConfig: {
+            needsRowClickAction: true
+        },
+        columns,
+        hideColumnConfig: {
+            columns,
+            tableFilter: 'tableMvts'
+        }
+    };
+
+    tableMvt = initDataTable('tableMvts', trackingMovementTableConfig);
+    initPageModal(tableMvt);
+}
 
 
 $.fn.dataTable.ext.search.push(
