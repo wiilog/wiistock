@@ -10,6 +10,7 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 
+use App\Entity\Project;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
@@ -42,12 +43,14 @@ class PackController extends AbstractController
     {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
         return $this->render('pack/index.html.twig', [
             'userLanguage' => $this->getUser()->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
-            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE])
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
+            'projects' => $projectRepository->findAll(),
         ]);
     }
 

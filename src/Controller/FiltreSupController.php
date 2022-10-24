@@ -59,6 +59,7 @@ class FiltreSupController extends AbstractController
                 'requestNumber' => FiltreSup::FIELD_REQUEST_NUMBER,
                 'category' => FiltreSup::FIELD_CATEGORY,
                 'contact' => FiltreSup::FIELD_CONTACT,
+                'project' => FiltreSup::FIELD_PROJECT,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {
