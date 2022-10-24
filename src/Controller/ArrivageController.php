@@ -755,6 +755,7 @@ class ArrivageController extends AbstractController {
      */
     public function show(EntityManagerInterface $entityManager,
                          ArrivageService        $arrivageDataService,
+                         PackService            $packService,
                          Request                $request,
                          Arrivage               $arrivage): Response
     {
@@ -787,6 +788,8 @@ class ArrivageController extends AbstractController {
             ])
             ->toArray();
 
+        $fields = $packService->getColumnVisibleConfig($this->getUser());
+
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
@@ -800,6 +803,7 @@ class ArrivageController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
+            'fields' => $fields,
         ]);
     }
 
@@ -1553,5 +1557,18 @@ class ArrivageController extends AbstractController {
             $this->defaultLanguageSlug = $this->languageService->getDefaultSlug();
         }
         return $this->defaultLanguageSlug;
+    }
+
+    /**
+     * @Route("/list-pack-api-columns", name="arrival_list_packs_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
+     */
+    public function listPackApiColumns(PackService $packService): Response
+    {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $columns = $packService->getColumnVisibleConfig($currentUser);
+        return new JsonResponse($columns);
     }
 }
