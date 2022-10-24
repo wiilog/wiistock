@@ -117,14 +117,8 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["remove"])]
     private Collection $projectHistoryRecords;
 
-    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: DeliveryRequestReferenceLine::class, cascade: ['remove'])]
-    private Collection $deliveryRequestReferenceLines;
-
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: DeliveryRequestArticleLine::class, cascade: ['remove'])]
     private Collection $deliveryRequestArticleLines;
-
-    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: PreparationOrderReferenceLine::class, cascade: ['remove'])]
-    private Collection $preparationOrderReferenceLines;
 
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: PreparationOrderArticleLine::class, cascade: ['remove'])]
     private Collection $preparationOrderArticleLines;
@@ -140,10 +134,8 @@ class Pack implements PairedEntity {
         $this->sensorMessages = new ArrayCollection();
         $this->childArticles = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
-        $this->deliveryRequestReferenceLines = new ArrayCollection();
         $this->deliveryRequestArticleLines = new ArrayCollection();
         $this->preparationOrderArticleLines = new ArrayCollection();
-        $this->preparationOrderReferenceLines = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -752,45 +744,6 @@ class Pack implements PairedEntity {
     /**
      * @return Collection<int, ProjectHistoryRecord>
      */
-    public function getDeliveryRequestReferenceLines(): Collection {
-        return $this->deliveryRequestReferenceLines;
-    }
-
-    public function addDeliveryRequestReferenceLine(DeliveryRequestReferenceLine $deliveryRequestReferenceLine): self {
-        if (!$this->deliveryRequestReferenceLines->contains($deliveryRequestReferenceLine)) {
-            $this->deliveryRequestReferenceLines[] = $deliveryRequestReferenceLine;
-            $deliveryRequestReferenceLine->setPack($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDeliveryRequestReferenceLine(DeliveryRequestReferenceLine $deliveryRequestReferenceLine): self {
-        if ($this->deliveryRequestReferenceLines->removeElement($deliveryRequestReferenceLine)) {
-            if ($deliveryRequestReferenceLine->getPack() === $this) {
-                $deliveryRequestReferenceLine->setPack(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setDeliveryRequestReferenceLine(?iterable $deliveryRequestReferenceLines): self {
-        foreach($this->getDeliveryRequestReferenceLines()->toArray() as $deliveryRequestReferenceLine) {
-            $this->removeDeliveryRequestReferenceLine($deliveryRequestReferenceLine);
-        }
-
-        $this->deliveryRequestReferenceLines = new ArrayCollection();
-        foreach($deliveryRequestReferenceLines ?? [] as $deliveryRequestReferenceLine) {
-            $this->addDeliveryRequestReferenceLine($deliveryRequestReferenceLine);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ProjectHistoryRecord>
-     */
     public function getDeliveryRequestArticleLines(): Collection {
         return $this->deliveryRequestArticleLines;
     }
@@ -861,45 +814,6 @@ class Pack implements PairedEntity {
         $this->preparationOrderArticleLines = new ArrayCollection();
         foreach($preparationOrderArticleLines ?? [] as $preparationOrderArticleLine) {
             $this->addPreparationOrderArticleLine($preparationOrderArticleLine);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ProjectHistoryRecord>
-     */
-    public function getPreparationOrderReferenceLines(): Collection {
-        return $this->preparationOrderReferenceLines;
-    }
-
-    public function addPreparationOrderReferenceLine(PreparationOrderReferenceLine $preparationOrderReferenceLine): self {
-        if (!$this->preparationOrderReferenceLines->contains($preparationOrderReferenceLine)) {
-            $this->preparationOrderReferenceLines[] = $preparationOrderReferenceLine;
-            $preparationOrderReferenceLine->setPack($this);
-        }
-
-        return $this;
-    }
-
-    public function removePreparationOrderReferenceLine(PreparationOrderReferenceLine $preparationOrderReferenceLine): self {
-        if ($this->preparationOrderReferenceLines->removeElement($preparationOrderReferenceLine)) {
-            if ($preparationOrderReferenceLine->getPack() === $this) {
-                $preparationOrderReferenceLine->setPack(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setPreparationOrderReferenceLine(?iterable $preparationOrderReferenceLines): self {
-        foreach($this->getPreparationOrderReferenceLines()->toArray() as $preparationOrderReferenceLine) {
-            $this->removePreparationOrderReferenceLine($preparationOrderReferenceLine);
-        }
-
-        $this->preparationOrderReferenceLines = new ArrayCollection();
-        foreach($preparationOrderReferenceLines ?? [] as $preparationOrderReferenceLine) {
-            $this->addPreparationOrderReferenceLine($preparationOrderReferenceLine);
         }
 
         return $this;

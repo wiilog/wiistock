@@ -3,7 +3,6 @@
 namespace App\Entity\DeliveryRequest;
 
 use App\Entity\Emplacement;
-use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Repository\DeliveryRequest\DeliveryRequestReferenceLineRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -31,9 +30,6 @@ class DeliveryRequestReferenceLine {
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'deliveryRequestReferenceLines')]
     private ?Emplacement $targetLocationPicking = null;
-
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'deliveryRequestReferenceLines')]
-    private ?Pack $pack = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -109,20 +105,6 @@ class DeliveryRequestReferenceLine {
         if($targetLocationPicking) {
             $targetLocationPicking->addDeliveryRequestReferenceLine($this);
         }
-
-        return $this;
-    }
-
-    public function getPack(): ?Pack {
-        return $this->pack;
-    }
-
-    public function setPack(?Pack $pack): self {
-        if($this->pack && $this->pack !== $pack) {
-            $this->pack->removeDeliveryRequestReferenceLine($this);
-        }
-        $this->pack = $pack;
-        $pack?->addDeliveryRequestReferenceLine($this);
 
         return $this;
     }
