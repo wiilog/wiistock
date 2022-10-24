@@ -425,7 +425,7 @@ function treatInputError($input, errors, form) {
         if ($input.val() && !$input.val().match(regex)) {
             errors.push({
                 elements: [$input],
-                message: `Le numéro de téléphone n'est pas valide`,
+                message: `Le numéro de ${$input.is(`[data-fax]`) ? `fax` : `téléphone`} n'est pas valide`,
             });
         }
     }

@@ -240,11 +240,16 @@
 
 {% macro input(name, label, required, value = '', options = {}) %}
     {% set inline = options.inline ?? false %}
+    {% set type = options.type ?? 'text' %}
+    {% if type == 'fax' %}
+        {% set type = 'tel' %}
+        {% set fax = true %}
+    {% endif %}
 
     <label class="w-100 {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
-        <input type="{{ options.type ?? 'text' }}"
+        <input type="{{ type ?? 'text' }}" {{ fax ?? false ? 'data-fax' }}
                class="form-control w-100 data {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
