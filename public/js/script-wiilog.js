@@ -826,6 +826,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'dispatchNumber':
                 case 'emergencyMultiple':
                 case 'businessUnit':
+                case 'article':
                 case 'managers':
                 case 'deliverers':
                     let valuesElement = element.value.split(',');

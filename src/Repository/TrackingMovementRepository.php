@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
@@ -13,6 +14,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -129,6 +131,13 @@ class TrackingMovementRepository extends EntityRepository
                         ->leftJoin('tracking_movement.pack', 'filter_pack')
                         ->andWhere('filter_pack.code LIKE :filter_code')
                         ->setParameter('filter_code', '%' . $filter['value'] . '%');
+                    break;
+                case FiltreSup::FIELD_ARTICLE:
+                    $value = explode(':', $filter['value'])[0];
+                    $qb
+                        ->leftJoin('tracking_movement.pack', 'filter_article_pack')
+                        ->andWhere(":article MEMBER OF filter_article_pack.childArticles")
+                        ->setParameter('article', $value);
                     break;
            }
         }

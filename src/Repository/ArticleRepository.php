@@ -864,6 +864,17 @@ class ArticleRepository extends EntityRepository {
             return [];
         }
     }
+
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("article")
+            ->select("article.id AS id, article.barCode AS text")
+            ->andWhere("article.barCode LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     public function findWithNoPairing(?string $term) {
         return $this->createQueryBuilder("article")
             ->select("article.id AS id, article.barCode AS text")
