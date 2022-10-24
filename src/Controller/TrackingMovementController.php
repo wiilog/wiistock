@@ -19,7 +19,6 @@ use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
-use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FilterSupService;
@@ -32,7 +31,6 @@ use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -162,7 +160,7 @@ class TrackingMovementController extends AbstractController
         }
         $user = $this->getUser();
         $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
-        $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now');
+        $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now') ?: new DateTime();
 
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -477,12 +475,12 @@ class TrackingMovementController extends AbstractController
     /**
      * @Route("/csv", name="get_mouvements_traca_csv", options={"expose"=true}, methods={"GET"})
      */
-    public function getTrackingMovementCSV(Request $request,
-                                           CSVExportService $CSVExportService,
+    public function getTrackingMovementCSV(Request                 $request,
+                                           CSVExportService        $CSVExportService,
                                            TrackingMovementService $trackingMovementService,
-                                           FreeFieldService $freeFieldService,
-                                           EntityManagerInterface $entityManager): Response
-    {
+                                           FreeFieldService        $freeFieldService,
+                                           TranslationService      $translationService,
+                                           EntityManagerInterface  $entityManager): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -498,18 +496,18 @@ class TrackingMovementController extends AbstractController
 
             if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
                 $csvHeader = array_merge([
-                    'date',
-                    'colis',
-                    'emplacement',
-                    'quantité',
-                    'type',
-                    'opérateur',
-                    'commentaire',
-                    'pieces jointes',
-                    'origine',
-                    'numéro de commande',
-                    'urgence',
-                    'groupe'
+                    $translationService->translate('Traçabilité', 'Général', 'Date', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Unité logistique', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Emplacement', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Quantité', false),
+                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Opérateur', false),
+                    $translationService->translate('Général', null, 'Modale', 'Commentaire', false),
+                    $translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Issu de', false),
+                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false),
+                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence', false),
+                    $translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),
                 ], $freeFieldsConfig['freeFieldsHeader']);
 
                 $trackingMovements = $trackingMovementRepository->iterateByDates($dateTimeMin, $dateTimeMax);

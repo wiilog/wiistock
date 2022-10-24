@@ -10,7 +10,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
-use App\Entity\Language;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
@@ -24,9 +23,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use App\Helper\LanguageHelper;
-use App\Service\TranslationService;
-use Google\Service\AndroidPublisher\Track;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -660,37 +656,37 @@ class TrackingMovementService extends AbstractController
         $attachementName = $attachement[$movement['id']] ?? ' ' ;
 
         if(!empty($movement['numeroArrivage'])) {
-           $origine =  'Arrivage-' . $movement['numeroArrivage'];
+           $origine =  $this->translation->translate("Traçabilité", "Flux - Arrivages", "Divers", "Arrivage", false) . '-' . $movement['numeroArrivage'];
         }
         if(!empty($movement['receptionNumber'])) {
-            $origine = 'Reception-' . $movement['receptionNumber'];
+            $origine = $this->translation->translate("Ordre", "Réceptions", "Reception", false) . '-' . $movement['receptionNumber'];
         }
         if(!empty($movement['dispatchNumber'])) {
-            $origine = 'Acheminement-' . $movement['dispatchNumber'];
+            $origine = $this->translation->translate("Demande", "Acheminements", "Général", "Acheminement", false) . '-' . $movement['dispatchNumber'];
         }
         if(!empty($movement['transferNumber'])) {
             $origine = 'transfert-' . $movement['transferNumber'];
         }
 
         $data = [
-            FormatHelper::datetime($movement['datetime'], "", false, $this->security->getUser()),
+            $this->formatService->datetime($movement['datetime']),
             $movement['code'],
             $movement['locationLabel'],
             $movement['quantity'],
-            $movement['typeName'],
+            $this->translation->translate("Traçabilité", "Mouvements", $movement['typeName'], false),
             $movement['operatorUsername'],
             strip_tags($movement['commentaire']),
             $attachementName,
             $origine ?? ' ',
             $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
-                        ? implode(', ', $movement['numeroCommandeListArrivage'])
-                        : ($movement['orderNumber'] ?: ''),
-            $movement['isUrgent'] ? 'oui' : 'non',
+                        ? join(', ', $movement['numeroCommandeListArrivage'])
+                        : join(', ', $movement['orderNumber']),
+            $this->formatService->bool($movement['isUrgent']),
             $movement['packParent'],
         ];
 
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField, $this->security->getUser());
+            $data[] = $this->formatService->freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField);
         }
         $CSVExportService->putLine($handle, $data);
     }

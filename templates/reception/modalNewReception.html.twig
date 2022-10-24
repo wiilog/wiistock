@@ -1,4 +1,4 @@
-<form method="" class="modal fade" id="modalNewReception" role="dialog"
+<div class="modal fade" id="modalNewReception" role="dialog"
       aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
@@ -15,7 +15,7 @@
                                    class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'requiredCreate') ? 'needed' : '' }}"
                                    name="dateCommande"
                                    id="dateCommande"
-                                   required="true"
+                                   required
                                    value=""
                                    placeholder="jj/mm/aaaa">
                         </div>
@@ -28,7 +28,7 @@
                                    class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateAttendue', 'requiredCreate') ? 'needed' : '' }}"
                                    name="dateAttendue"
                                    id="dateAttendue"
-                                   required="true"
+                                   required
                                    value=""
                                    placeholder="jj/mm/aaaa">
                         </div>
@@ -38,10 +38,9 @@
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('numCommande', 'displayedCreate') %}
                         <div class="form-group col-6">
-                            <label class="wii-field-name">Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? '*' : '' }}</label>
-                            <input type="text"
-                                   class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? 'needed' : '' }}"
-                                   name="orderNumber">
+                            <label class="wii-field-name">Numéro(s) de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? '*' : '' }}</label>
+                            <select name="orderNumber" data-s2 data-editable multiple class="form-control w-100 data {{ fieldsParam|isFieldRequired('numCommande', 'requiredEdit') ? 'needed' : '' }}">
+                            </select>
                         </div>
                     {% endif %}
 
@@ -224,4 +223,4 @@
 
         </div>
     </div>
-</form>
+</div>

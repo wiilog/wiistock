@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
@@ -169,9 +168,14 @@ class ReceptionRepository extends EntityRepository
                     $value = Stream::from(explode(',', $filter['value']))
                         ->map(fn($v) => explode(':', $v)[0])
                         ->toArray();
-                    $qb
-                        ->andWhere('reception.orderNumber in (:commandList)')
-                        ->setParameter('commandList', $value);
+
+                    $ors = $qb->expr()->orX();
+                    foreach($value as $command) {
+                        $ors->add("(:number{$ors->count()}) IN reception.orderNumber");
+                        $qb->setParameter("number{$ors->count()}", $command);
+                    }
+
+                    $qb->andWhere($ors);
                     break;
                 case 'utilisateurs':
                     $values = array_map(function ($value) {

@@ -765,6 +765,7 @@ class ArrivageController extends AbstractController {
      */
     public function show(EntityManagerInterface $entityManager,
                          ArrivageService        $arrivageDataService,
+                         PackService            $packService,
                          Request                $request,
                          Arrivage               $arrivage): Response
     {
@@ -797,6 +798,8 @@ class ArrivageController extends AbstractController {
             ])
             ->toArray();
 
+        $fields = $packService->getColumnVisibleConfig($this->getUser());
+
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
@@ -810,6 +813,7 @@ class ArrivageController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
+            'fields' => $fields,
         ]);
     }
 
@@ -1171,6 +1175,7 @@ class ArrivageController extends AbstractController {
                 'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y H:i') : '') : '',
                 'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
                 'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
+                'project' => $pack->getProject() ? $pack->getProject()->getCode() : '',
                 'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', [
                     'arrivageId' => $arrivage->getId(),
                     'colisId' => $pack->getId()
@@ -1201,6 +1206,7 @@ class ArrivageController extends AbstractController {
         $commandAndProjectNumberIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
         $printTwiceIfCustoms = $settingRepository->getOneParamByLabel(Setting::PRINT_TWICE_CUSTOMS);
         $businessUnitParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BUSINESS_UNIT_IN_LABEL);
+        $projectParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PROJECT_IN_LABEL);
 
 
         $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_CUSTOMS_IN_LABEL);
@@ -1240,7 +1246,8 @@ class ArrivageController extends AbstractController {
                     $firstCustomIconConfig,
                     $secondCustomIconConfig,
                     $packIdsFilter,
-                    $businessUnitParam
+                    $businessUnitParam,
+                    $projectParam,
                 );
             }
 
@@ -1268,7 +1275,8 @@ class ArrivageController extends AbstractController {
                 $commandAndProjectNumberIsDefined,
                 $firstCustomIconConfig,
                 $secondCustomIconConfig,
-                $businessUnitParam
+                $businessUnitParam,
+                $projectParam,
             );
         }
 
@@ -1312,7 +1320,9 @@ class ArrivageController extends AbstractController {
                                                    ?array $firstCustomIconConfig = null,
                                                    ?array $secondCustomIconConfig = null,
                                                    array $packIdsFilter = [],
-                                                   ?bool $businessUnitParam = false ): array {
+                                                   ?bool $businessUnitParam = false,
+                                                   ?bool $projectParam = false,
+    ): array {
         $total = $arrivage->getPacks()->count();
         $packs = [];
 
@@ -1330,7 +1340,8 @@ class ArrivageController extends AbstractController {
                     $commandAndProjectNumberIsDefined,
                     $firstCustomIconConfig,
                     $secondCustomIconConfig,
-                    $businessUnitParam
+                    $businessUnitParam,
+                    $projectParam,
                 );
             }
         }
@@ -1341,20 +1352,25 @@ class ArrivageController extends AbstractController {
     private function getBarcodeColisConfig(Pack $colis,
                                            ?Utilisateur $destinataire,
                                            ?string $packIndex = '',
-                                           ?bool $typeArrivalParamIsDefined,
+                                           ?bool $typeArrivalParamIsDefined = false,
                                            ?bool $usernameParamIsDefined = false,
                                            ?bool $dropzoneParamIsDefined = false,
                                            ?bool $packCountParamIsDefined = false,
                                            ?bool $commandAndProjectNumberIsDefined = false,
                                            ?array $firstCustomIconConfig = null,
                                            ?array $secondCustomIconConfig = null,
-                                           ?bool $businessUnitParam = false)
-    {
+                                           ?bool $businessUnitParam = false,
+                                           ?bool $projectParam = false,
+    ) {
 
         $arrival = $colis->getArrivage();
 
         $businessUnit = $businessUnitParam
             ? $arrival->getBusinessUnit()
+            : '';
+
+        $project = $projectParam
+            ? $arrival->getProjectNumber()
             : '';
 
         $arrivalType = $typeArrivalParamIsDefined
@@ -1418,6 +1434,10 @@ class ArrivageController extends AbstractController {
 
         if($businessUnitParam) {
             $labels[] = $businessUnit;
+        }
+
+        if($projectParam) {
+            $labels[] = $project;
         }
 
         if ($packLabel) {
@@ -1547,5 +1567,18 @@ class ArrivageController extends AbstractController {
             $this->defaultLanguageSlug = $this->languageService->getDefaultSlug();
         }
         return $this->defaultLanguageSlug;
+    }
+
+    /**
+     * @Route("/list-pack-api-columns", name="arrival_list_packs_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
+     */
+    public function listPackApiColumns(PackService $packService): Response
+    {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $columns = $packService->getColumnVisibleConfig($currentUser);
+        return new JsonResponse($columns);
     }
 }

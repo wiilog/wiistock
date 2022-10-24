@@ -194,7 +194,6 @@ function listColis(elem) {
 
 function openArrivalCreationModal() {
     const $modal = createArrival();
-    console.log($modal);
     $modal.modal({
         backdrop: 'static',
         keyboard: false,
@@ -203,8 +202,8 @@ function openArrivalCreationModal() {
     $modal.modal(`show`);
 }
 
-function createArrival() {
-    const data = JSON.parse($(`#arrivalForm`).val());
+function createArrival(form = null) {
+    const data = form || JSON.parse($(`#arrivalForm`).val());
     const $existingModal = $(`#modalNewArrivage`);
     let $modal;
     if($existingModal.exists()) {
@@ -250,33 +249,39 @@ function createArrival() {
         $submit
             .off('click.new-arrival')
             .on('click.new-arrival', function() {
-            SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
-                keepForm: true,
-                keepModal: true,
-                keepLoading: true,
-                waitForUserAction: () => {
-                    return checkPossibleCustoms($modal);
-                },
-                success: (res) => {
-                    res = res || {};
-                    console.log(res);
-                    $(`#arrivalForm`).val(JSON.stringify(res.new_form));
-                    createArrival();
-                    arrivalCallback(
-                        true,
-                        {
-                            ...(res || {}),
-                            success: () => {
-                            }
-                        },
-                        arrivalsTable
-                    );
+                if($submit.hasClass(LOADING_CLASS)) {
+                    Flash.add(`info`, Translation.of('Général', '', 'Modale', 'L\'opération est en cours de traitement'));
+                    return;
+                }
 
-                    $.get(Routing.generate(`arrivage_new_api`, true), function (data) {
-                        $(`#arrivalForm`).val(JSON.stringify(data));
-                    });
-                },
-            }).catch(() => {});
+                SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
+                    keepForm: true,
+                    keepModal: true,
+                    keepLoading: true,
+                    waitForUserAction: () => {
+                        return checkPossibleCustoms($modal);
+                    },
+                    success: (res) => {
+                        res = res || {};
+                        let newForm = JSON.parse(res.new_form);
+                        $(`#arrivalForm`).val(res.new_form);
+                        createArrival(newForm);
+
+                        arrivalCallback(
+                            true,
+                            {
+                                ...(res || {}),
+                                success: () => {
+                                }
+                            },
+                            arrivalsTable
+                        );
+
+                        $.get(Routing.generate(`arrivage_new_api`, true), function (data) {
+                            $(`#arrivalForm`).val(JSON.stringify(data));
+                        });
+                    },
+                }).catch(() => {});
         })
     }, 1);
 

@@ -10,7 +10,6 @@ use App\Entity\Utilisateur;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
@@ -58,6 +57,7 @@ class FiltreSupController extends AbstractController
                 'requestNumber' => FiltreSup::FIELD_REQUEST_NUMBER,
                 'category' => FiltreSup::FIELD_CATEGORY,
                 'contact' => FiltreSup::FIELD_CONTACT,
+                'project' => FiltreSup::FIELD_PROJECT,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {

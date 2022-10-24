@@ -542,6 +542,21 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Select nature",
                         "tooltip" => "Modale modification groupe",
                     ],
+                    [
+                        "fr" => "{1} à {2}",
+                        "en" => "{1} at {2}",
+                        "tooltip" => "Email de confirmation de livraison d'unité logistique (pour la date)"
+                    ],
+                    [
+                        "fr" => "FOLLOW GT // Dépose effectuée",
+                        "en" => "FOLLOW GT // Drop done",
+                        "tooltip" => "Email de confirmation de livraison d'unité logistique",
+                    ],
+                    [
+                        "fr" => "Votre unité logistique a été livrée",
+                        "en" => "Your logistics unit has been delivered",
+                        "tooltip" => "Email de confirmation de livraison d'unité logistique",
+                    ],
                 ],
             ],
             "Flux - Arrivages" => [
@@ -1257,6 +1272,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Cette unité logistique est référencé dans un ou plusieurs litiges",
                             "en" => "This logistic unit appears in one or more disputes",
+                        ],
+                        [
+                            "fr" => "Cette unité logistique est utilisé dans un ordre de livraison",
+                            "en" => "This logistics unit is used in a delivery order",
                         ],
                     ],
                 ],
@@ -2637,6 +2656,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Voulez-vous réellement supprimer cette demande de service",
                             "en" => "Do you really want to delete this service request",
                             "tooltip" => "Suppression demande de service",
+                        ],
+                        [
+                            "fr" => "{1} statut sélectionné",
+                            "en" => "{1} selected status",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "{1} statuts sélectionnés",
+                            "en" => "{1} selected statuses",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "Tout sélectionner",
+                            "en" => "Select all",
+                            "tooltip" => "Filtre",
+                        ],
+                        [
+                            "fr" => "Nouvelle demande de service",
+                            "en" => "New service operation",
+                            "tooltip" => "Modale Nouvelle demande de service",
                         ],
                     ],
                 ],

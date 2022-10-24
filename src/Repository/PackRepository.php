@@ -144,29 +144,30 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, string $mode, array $options = [])
+    public function findByParamsAndFilters(InputBag $params, $filters, string $mode, array $options = []): array
     {
-        $queryBuilder = $this->createQueryBuilder('pack');
+        $queryBuilder = $this->createQueryBuilder('pack')
+            ->groupBy('pack.id');
 
         if ($mode === self::PACKS_MODE) {
             $queryBuilder->where('pack.groupIteration IS NULL');
-            $countTotal = $this->countAllPacks();
+            $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
         }
         else if ($mode === self::GROUPS_MODE) {
             $queryBuilder->where('pack.groupIteration IS NOT NULL');
-            $countTotal = $this->countAllGroups();
+            $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
         }
 
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'emplacement':
-                    $emplacementValue = explode(':', $filter['value']);
+                    $emplacementValue = explode(',', $filter['value']);
                     $queryBuilder
                         ->join('pack.lastTracking', 'mFilter0')
                         ->join('mFilter0.emplacement', 'e')
-                        ->andWhere('e.label = :location')
-                        ->setParameter('location', $emplacementValue[1] ?? $filter['value']);
+                        ->andWhere('e.id IN (:location)')
+                        ->setParameter('location', $emplacementValue, Connection::PARAM_INT_ARRAY);
                     break;
                 case 'dateMin':
                     $queryBuilder
@@ -204,6 +205,12 @@ class PackRepository extends EntityRepository
                         ->join('pack.nature', 'natureFilter')
                         ->andWhere('natureFilter.id IN (:naturesFilter)')
                         ->setParameter('naturesFilter', $natures, Connection::PARAM_INT_ARRAY);
+                    break;
+                case 'project':
+                    $queryBuilder
+                        ->join('pack.project', 'projectFilter')
+                        ->andWhere('projectFilter.id LIKE :projectCode')
+                        ->setParameter('projectCode', $filter['value']);
                     break;
             }
         }
@@ -268,10 +275,8 @@ class PackRepository extends EntityRepository
                 }
             }
         }
-        $queryBuilder
-            ->select('count(pack)');
         // compte éléments filtrés
-        $countFiltered = $queryBuilder->getQuery()->getSingleScalarResult();
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, 'pack');
 
         $queryBuilder
             ->select('pack');

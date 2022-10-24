@@ -63,7 +63,6 @@ use DateTimeInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -2070,7 +2069,7 @@ class MobileController extends AbstractApiController
             if ($includeNature) {
                 $nature = $pack->getNature();
                 $res['nature'] = !empty($nature)
-                    ? $natureService->serializeNature($nature)
+                    ? $natureService->serializeNature($nature, $this->getUser())
                     : null;
             }
         }

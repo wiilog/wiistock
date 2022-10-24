@@ -44,7 +44,7 @@ function initializeEdit() {
                     .json(data)
                     .then(() => window.location.reload());
             });
-        })
+        });
 }
 
 let tableArticleConfig = {

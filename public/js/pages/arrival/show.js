@@ -1,5 +1,6 @@
 $('.select2').select2();
 let tableHistoLitige;
+let tableColis;
 
 $(function () {
     let addColis = $('#addColis').val();
@@ -38,49 +39,48 @@ $(function () {
             });
     });
 
-    let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
-    let tableColisConfig = {
-        ajax: {
-            "url": pathColis,
-            "type": "POST"
-        },
-        domConfig: {
-            removeInfo: true
-        },
-        processing: true,
-        rowConfig: {
-            needsRowClickAction: true
-        },
-        columns: [
-            {data: 'actions', name: 'actions',  title: '', className: 'noVis', orderable: true},
-            {data: 'nature', name: 'nature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
-            {data: 'code', name: 'code', title: Translation.of('Traçabilité', 'Général', 'Unités logistiques')},
-            {data: 'lastMvtDate', name: 'lastMvtDate', title:  Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
-            {data: 'lastLocation', name: 'lastLocation', title:  Translation.of('Traçabilité', 'Général', 'Dernier emplacement')},
-            {data: 'operator', name: 'operator', title: Translation.of('Traçabilité', 'Général', 'Opérateur')},
-        ],
-        order: [['code', 'asc']]
-    };
-    let tableColis = initDataTable('tableColis', tableColisConfig);
+    $.post(Routing.generate('arrival_list_packs_api_columns'), function(columns){
+        let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
+        let tableColisConfig = {
+            ajax: {
+                "url": pathColis,
+                "type": "POST"
+            },
+            domConfig: {
+                removeInfo: true
+            },
+            processing: true,
+            rowConfig: {
+                needsRowClickAction: true
+            },
+            columns: columns,
+            hideColumnConfig: {
+                columns,
+                tableFilter: 'tableColis'
+            },
+            order: [['code', 'asc']]
+        };
+        tableColis = initDataTable('tableColis', tableColisConfig);
 
-    let modalAddColis = $('#modalAddColis');
-    let submitAddColis = $('#submitAddColis');
-    let urlAddColis = Routing.generate('arrivage_add_colis', true);
-    InitModal(modalAddColis, submitAddColis, urlAddColis, {
-        tables: [tableColis],
-        waitDatatable: true,
-        success: (data) => {
-            if (data.packs && data.packs.length > 0) {
-                window.location.href = Routing.generate(
-                    'print_arrivage_bar_codes',
-                    {
-                        packs: data.packs.map(({id}) => id),
-                        arrivage: data.arrivageId,
-                        printColis: 1
-                    },
-                    true);
+        let modalAddColis = $('#modalAddColis');
+        let submitAddColis = $('#submitAddColis');
+        let urlAddColis = Routing.generate('arrivage_add_colis', true);
+        InitModal(modalAddColis, submitAddColis, urlAddColis, {
+            tables: [tableColis],
+            waitDatatable: true,
+            success: (data) => {
+                if (data.packs && data.packs.length > 0) {
+                    window.location.href = Routing.generate(
+                        'print_arrivage_bar_codes',
+                        {
+                            packs: data.packs.map(({id}) => id),
+                            arrivage: data.arrivageId,
+                            printColis: 1
+                        },
+                        true);
+                }
             }
-        }
+        });
     });
 
     let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
