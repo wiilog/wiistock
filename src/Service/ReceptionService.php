@@ -314,7 +314,7 @@ class ReceptionService
         $dateAttendue = $reception->getDateAttendue();
         $dateEndReception = $reception->getDateFinReception();
         $creationDate = $reception->getDate();
-        $orderNumber = join(", ", $reception->getOrderNumber());
+        $orderNumber = $reception->getOrderNumber() ? join(", ", $reception->getOrderNumber()) : null;
         $comment = $reception->getCommentaire();
         $storageLocation = $reception->getStorageLocation();
         $attachments = $reception->getAttachments();
