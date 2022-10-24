@@ -28,6 +28,8 @@ import Form from '../../form';
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
+global.addTypeRow = addTypeRow;
+global.removeTypeRow = removeTypeRow;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -244,6 +246,7 @@ $(function() {
             $modal.modal(`hide`);
         }
     });
+
 });
 
 function getCategoryLabel() {
@@ -594,6 +597,7 @@ function initializeHandlingFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+    initializeType();
 }
 
 function initializeDeliveries() {
@@ -949,5 +953,100 @@ function saveTranslations($button) {
             hideSpinner($spinner);
             showBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
         }
+    });
+}
+
+function initializeType() {
+    let field = $('.zone-type');
+    if ($('.handling-type').length >= JSON.parse(field.find('input[name=types]').val()).length) {
+        $('.add-row-type').attr("disabled", true);
+    }
+    $('.handling-type').select2({
+        tags: true
+    });
+    let template = $('.row-template');
+    //template.contents().find('.handling-type')
+    applyEventForType(template.contents().find('.handling-type'));
+}
+
+function addTypeRow($button) {
+    let field = $('.zone-type');
+    let template = $('.row-template');
+    console.log('on click addTypeRow');
+    let types = JSON.parse(field.find('input[name=types]').val());
+    let clone = template.clone().contents();
+    /*
+    let clone = template;
+    clone.select2();
+    $.each( types, function(key,value) {
+        var data = {
+            id: value.value,
+            text: value.label
+        };
+        var newOption = new Option(data.text, data.id, false, false);
+        clone.append(newOption).trigger('change');
+    });
+    */
+    applyEventForType(clone.find('.handling-type'));
+    field.append(clone);
+    if ($('.handling-type').length >= JSON.parse(field.find('input[name=types]').val()).length) {
+        $button.attr("disabled", true);
+    }
+}
+
+function removeTypeRow($button) {
+    let field = $('.zone-type');
+    let buttonAdd = $button.parents('.modal-body').find('.add-row-type');
+    $button.parents('.row-type').remove();
+    if ($('.handling-type').length < JSON.parse(field.find('input[name=types]').val()).length) {
+        buttonAdd.attr("disabled", false);
+    }
+}
+
+function applyEventForType(select2) {
+    //select2 = select2.select2();
+    let field = $('.zone-type');
+    let types = JSON.parse(field.find('input[name=types]').val());
+
+    select2.on("click", function () {
+        console.log(this);
+        /*
+        $.each( types, function(key,value) {
+            console.log(value.value);
+            select2.val(value.value);
+            select2.trigger('change');
+        });*/
+    });
+    select2.on('select2:open', function (e) {
+        console.log('on click initializeType');
+        let list = [];
+        $('.handling-type').each(function() {
+            $(this).find('option').each(function() {
+                if (!list.includes($(this).val())) {
+                    list.push($(this).val());
+                }
+            });
+        });
+        console.log($(this));
+        $(this).find('option').each(function() {
+            if (list.includes($(this).val())) {
+                $(this).addClass('d-none');
+                console.log($(this).val()+' addClass d-none');
+            }else{
+                $(this).removeClass('d-none');
+                console.log($(this).val()+' removeClass d-none');
+            }
+        });
+        //$(this).select2('close');
+        list = [];
+    });
+    select2.on('select2-loaded', function (e) {
+        items = e.items.results;
+        console.log('items = ' + items);
+        $.each( types, function(key,value) {
+            console.log(value.value);
+            select2.val(value.value);
+            select2.trigger('change');
+        });
     });
 }

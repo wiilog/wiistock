@@ -3,6 +3,7 @@
 {% include 'settings/fixed_field_elements.html.twig' with {
     modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT'),
     field: businessUnit.field,
+    modalType: businessUnit.modalType,
     elements: businessUnit.elements,
 } %}
 

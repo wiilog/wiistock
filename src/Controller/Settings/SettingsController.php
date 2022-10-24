@@ -1031,6 +1031,7 @@ class SettingsController extends AbstractController {
                         return [
                             "emergency" => [
                                 "field" => $emergencyField->getId(),
+                                "modalType" => $emergencyField->getModalType(),
                                 "elements" => Stream::from($emergencyField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1041,6 +1042,7 @@ class SettingsController extends AbstractController {
                             ],
                             "businessUnit" => [
                                 "field" => $businessField->getId(),
+                                "modalType" => $emergencyField->getModalType(),
                                 "elements" => Stream::from($businessField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1073,6 +1075,7 @@ class SettingsController extends AbstractController {
                         return [
                             "businessUnit" => [
                                 "field" => $field->getId(),
+                                "modalType" => $field->getModalType(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1104,11 +1107,25 @@ class SettingsController extends AbstractController {
                 self::MENU_HANDLINGS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
                         $field = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY);
-
+                        $receiversField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_RECEIVERS_HANDLING);
+                        $types = $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false);
                         return [
                             "emergency" => [
                                 "field" => $field->getId(),
+                                "modalType" => $field->getModalType(),
                                 "elements" => Stream::from($field->getElements())
+                                    ->map(fn(string $element) => [
+                                        "label" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                            "receivers" => [
+                                "field" => $receiversField->getId(),
+                                "modalType" => $receiversField->getModalType(),
+                                "types" => $types,
+                                "elements" => Stream::from($receiversField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
                                         "value" => $element,
