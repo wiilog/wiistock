@@ -134,7 +134,6 @@ class TrackingMovementRepository extends EntityRepository
                     break;
                 case FiltreSup::FIELD_ARTICLE:
                     $value = explode(':', $filter['value'])[0];
-                    dump($value);
                     $qb
                         ->leftJoin('tracking_movement.pack', 'filter_article_pack')
                         ->andWhere(":article MEMBER OF filter_article_pack.childArticles")
