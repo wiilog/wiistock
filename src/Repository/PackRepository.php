@@ -150,7 +150,10 @@ class PackRepository extends EntityRepository
             ->groupBy('pack.id');
 
         if ($mode === self::PACKS_MODE) {
-            $queryBuilder->where('pack.groupIteration IS NULL');
+            $queryBuilder
+                ->leftJoin('pack.article', 'article')
+                ->andWhere('article.currentLogisticUnit IS NULL')
+                ->andWhere('pack.groupIteration IS NULL');
             $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
         }
         else if ($mode === self::GROUPS_MODE) {
@@ -226,12 +229,14 @@ class PackRepository extends EntityRepository
                         ->leftJoin('pack.nature', 'n2')
                         ->leftJoin('pack.arrivage', 'arrivage')
                         ->leftJoin('arrivage.type','arrival_type')
+                        ->leftJoin('pack.childArticles', 'child_articles_search')
                         ->andWhere("(
                             pack.code LIKE :value OR
                             e2.label LIKE :value OR
                             n2.label LIKE :value OR
                             arrivage.numeroArrivage LIKE :value OR
-                            arrival_type.label LIKE :value
+                            arrival_type.label LIKE :value OR
+                            child_articles_search.barCode LIKE :value
 						)")
                         ->setParameter('value', '%' . $search . '%');
                 }
