@@ -1,0 +1,50 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Référentiel | Clients {% endblock %}
+{% block title_tooltip %}Référentiel | Clients {% endblock %}
+
+{% block page_filter %}
+{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                {% include "utils/action-button.html.twig" with {
+                    actions: [
+                        {
+                            hasRight: hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')),
+                            title: "Ajouter",
+                            icon: "wii-icon wii-icon-plus",
+                            attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalNewCustomer",
+                            },
+                        },
+                        {
+                            hasRight: hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EXPORT')),
+                            title: "Exporter au format CSV",
+                            icon : "fa fa-file-csv",
+                            attributes: {
+                                "onclick" : "",
+                            },
+                        },
+                    ]
+                } %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="customerTable" class="table w-100"></table>
+            </div>
+        </div>
+
+        {% include "customer/modal/new.html.twig" %}
+        {% include "customer/modal/edit.html.twig" %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('customer-index') }}
+{% endblock %}

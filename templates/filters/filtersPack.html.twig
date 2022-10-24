@@ -4,8 +4,11 @@
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterColis.html.twig' %}
     {% include 'filters/filter_item/filterNatureColis.html.twig' %}
-    {% include 'filters/filter_item/filterLocation.html.twig' %}
+    {% include 'filters/filter_item/filterLocation.html.twig' with {
+        multiple: true
+    } %}
     {% include 'filters/filter_item/filterNumArrivage.html.twig' with {
         title: trans('Traçabilité', 'Unités logistiques', 'Divers', 'N° d\'arrivage', false)
     } %}
+    {% include 'filters/filter_item/filterProject.html.twig' %}
 {% endblock %}

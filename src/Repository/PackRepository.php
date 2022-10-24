@@ -162,12 +162,12 @@ class PackRepository extends EntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'emplacement':
-                    $emplacementValue = explode(':', $filter['value']);
+                    $emplacementValue = explode(',', $filter['value']);
                     $queryBuilder
                         ->join('pack.lastTracking', 'mFilter0')
                         ->join('mFilter0.emplacement', 'e')
-                        ->andWhere('e.label = :location')
-                        ->setParameter('location', $emplacementValue[1] ?? $filter['value']);
+                        ->andWhere('e.id IN (:location)')
+                        ->setParameter('location', $emplacementValue, Connection::PARAM_INT_ARRAY);
                     break;
                 case 'dateMin':
                     $queryBuilder
@@ -205,6 +205,12 @@ class PackRepository extends EntityRepository
                         ->join('pack.nature', 'natureFilter')
                         ->andWhere('natureFilter.id IN (:naturesFilter)')
                         ->setParameter('naturesFilter', $natures, Connection::PARAM_INT_ARRAY);
+                    break;
+                case 'project':
+                    $queryBuilder
+                        ->join('pack.project', 'projectFilter')
+                        ->andWhere('projectFilter.id LIKE :projectCode')
+                        ->setParameter('projectCode', $filter['value']);
                     break;
             }
         }

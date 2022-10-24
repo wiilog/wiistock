@@ -680,8 +680,8 @@ class TrackingMovementService extends AbstractController
             $attachementName,
             $origine ?? ' ',
             $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
-                        ? implode(', ', $movement['numeroCommandeListArrivage'])
-                        : ($movement['orderNumber'] ?: ''),
+                        ? join(', ', $movement['numeroCommandeListArrivage'])
+                        : join(', ', $movement['orderNumber']),
             $this->formatService->bool($movement['isUrgent']),
             $movement['packParent'],
         ];

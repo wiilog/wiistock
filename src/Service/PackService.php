@@ -11,6 +11,7 @@ use App\Entity\Project;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
+use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
@@ -46,6 +47,12 @@ class PackService {
 
     #[Required]
     public LanguageService $languageService;
+
+    #[Required]
+    public TranslationService $translation;
+
+    #[Required]
+    public VisibleColumnService $visibleColumnService;
 
     #[Required]
     public FormatService $formatService;
@@ -346,5 +353,22 @@ class PackService {
         }
 
         return $counter;
+    }
+
+    public function getColumnVisibleConfig(Utilisateur $currentUser): array {
+        $columnsVisible = $currentUser->getVisibleColumns()['arrivalPack'];
+        return $this->visibleColumnService->getArrayConfig(
+            [
+                ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
+                ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature')],
+                ["name" => 'code', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Unités logistiques')],
+                ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
+                ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement')],
+                ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur')],
+                ["name" => 'project', 'title' => 'Projet'],
+            ],
+            [],
+            $columnsVisible
+        );
     }
 }
