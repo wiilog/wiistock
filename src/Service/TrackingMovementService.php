@@ -159,7 +159,7 @@ class TrackingMovementService extends AbstractController
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'code' => $this->formatService->pack($trackingPack),
+            'packCode' => !($movement->getLogisticUnitParent() && $movement->getPack()?->getArticle()) ? $this->formatService->pack($trackingPack) : "",
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
@@ -169,17 +169,14 @@ class TrackingMovementService extends AbstractController
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : ($trackingPack && $trackingPack->getLastTracking() && $trackingPack->getLastTracking()->getMouvementStock()
-                        ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()?->getArticleFournisseur()->getReferenceArticle()->getLibelle()
-                        : '')),
+                    : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getArticleFournisseur()?->getReferenceArticle()?->getLibelle()),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getLabel()
-                    : ($trackingPack && $trackingPack->getLastTracking() && $trackingPack->getLastTracking()->getMouvementStock()
-                        ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()?->getLabel()
-                        : '')),
+                    : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getLabel()),
             "quantity" => $movement->getQuantity() ?: '',
+            "article" => $movement->getLogisticUnitParent() && $movement->getPack()->getArticle() ? $movement->getPack()->getArticle()?->getBarCode() : "",
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => $this->formatService->user($movement->getOperateur()),
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
@@ -613,7 +610,8 @@ class TrackingMovementService extends AbstractController
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Issu de', false), 'name' => 'origin', 'orderable' => false],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Date', false), 'name' => 'date'],
-            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'code'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'packCode'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Article', false), 'name' => 'article'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Référence', false), 'name' => 'reference'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Libellé', false),  'name' => 'label'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Groupe', false),  'name' => 'group'],
