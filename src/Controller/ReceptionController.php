@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
@@ -375,7 +376,21 @@ class ReceptionController extends AbstractController {
     public function index(EntityManagerInterface $entityManager,
                           ReceptionService       $receptionService,
                           SettingsService        $settingsService,
-                          PurchaseRequest        $purchaseRequest = null): Response {
+                          Request                $request,
+                          PurchaseRequest        $purchaseRequest = null): Response
+    {
+        $arrivageData = null;
+        if ($arrivageId = $request->query->get('arrivage')) {
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $arrivage = $arrivageRepository->find($arrivageId);
+
+            $arrivageData = [
+                'id' => $arrivageId,
+                'fournisseur' => $arrivage->getFournisseur(),
+                'transporteur' => $arrivage->getTransporteur(),
+                'numCommande' => $arrivage->getNumeroCommandeList()
+            ];
+        }
         $purchaseRequestLinesOrderNumbers = [];
         if ($purchaseRequest) {
             $purchaseRequestLinesOrderNumbers = $purchaseRequest->getPurchaseRequestLines()
@@ -413,6 +428,7 @@ class ReceptionController extends AbstractController {
             'purchaseRequestFilter' => $purchaseRequest ? implode(',', $purchaseRequestLinesOrderNumbers) : 0,
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
+            'arrivageToReception' => $arrivageData
         ]);
     }
 

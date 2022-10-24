@@ -2,7 +2,6 @@ let onFlyFormOpened = {};
 let receptionsTable;
 
 $(function () {
-
     // RECEPTION
     initTableReception();
     $('.select2').select2();
@@ -11,11 +10,20 @@ $(function () {
     initOnTheFlyCopies($('.copyOnTheFly'));
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataire(s)');
 
-
     let $modalReceptionNew = $("#modalNewReception");
     let $submitNewReception = $("#submitReceptionButton");
     let urlReceptionIndex = Routing.generate('reception_new', true);
+    const query = GetRequestQuery();
+    if (query["open-modal"] === "new") {
+        $modalReceptionNew.on('hidden.bs.modal', function () {
+            $("input[name='arrivage']").remove();
+        });
+    }
     InitModal($modalReceptionNew, $submitNewReception, urlReceptionIndex);
+
+    if (query["open-modal"] === "new") {
+        initNewReceptionEditor($modalReceptionNew);
+    }
 
     // filtres enregistrés en base pour chaque utilisateur
     if ($('#purchaseRequestFilter').val() !== '0') {
