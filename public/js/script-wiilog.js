@@ -160,6 +160,14 @@ function openQueryModal(query = null, event) {
             delete query['modal-edit-id'];
         }
         delete query["open-modal"];
+        if (query["arrivage"]) {
+            delete query["arrivage"]
+        }
+
+        if (query["clear-modal"]) {
+            delete query["clear-modal"];
+        }
+
         SetRequestQuery(query);
     }
 }

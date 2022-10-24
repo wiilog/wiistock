@@ -107,8 +107,8 @@ class Pack implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Project::class)]
     private ?Project $project = null;
 
-    #[ORM\ManyToOne(targetEntity: ReceptionPackLine::class, inversedBy: 'packs')]
-    private ReceptionPackLine $receptionPackLine;
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ReceptionPackLine::class)]
+    private Collection $receptionPackLines;
 
     #[ORM\OneToMany(mappedBy: "currentLogisticUnit", targetEntity: Article::class)]
     private Collection $childArticles;
@@ -127,10 +127,50 @@ class Pack implements PairedEntity {
         $this->sensorMessages = new ArrayCollection();
         $this->childArticles = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
+        $this->receptionPackLines = new ArrayCollection();
     }
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    /**
+     * @return Collection<int, ReceptionPackLine>
+     */
+    public function getReceptionPackLines(): Collection {
+        return $this->receptionPackLines;
+    }
+
+    public function addReceptionPackLine(ReceptionPackLine $receptionPackLine): self {
+        if (!$this->receptionPackLines->contains($receptionPackLine)) {
+            $this->receptionPackLines[] = $receptionPackLine;
+            $receptionPackLine->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceptionPackLine(ReceptionPackLine $receptionPackLine): self {
+        if ($this->receptionPackLines->removeElement($receptionPackLine)) {
+            if ($receptionPackLine->getPack() === $this) {
+                $receptionPackLine->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setReceptionPackLines(?iterable $receptionPackLines): self {
+        foreach($this->getReceptionPackLines()->toArray() as $receptionPackLine) {
+            $this->removeReceptionPackLine($receptionPackLine);
+        }
+
+        $this->receptionPackLines = new ArrayCollection();
+        foreach($receptionPackLines ?? [] as $receptionPackLine) {
+            $this->addReceptionPackLine($receptionPackLine);
+        }
+
+        return $this;
     }
 
     public function getCode(): ?string {
@@ -650,20 +690,6 @@ class Pack implements PairedEntity {
     public function setProject(?Project $project): self
     {
         $this->project = $project;
-
-        return $this;
-    }
-
-    public function getReceptionPackLine(): ?ReceptionPackLine {
-        return $this->receptionPackLine;
-    }
-
-    public function setReceptionPackLine(?ReceptionPackLine $receptionPackLine): self {
-        if($this->receptionPackLine && $this->receptionPackLine !== $receptionPackLine) {
-            $this->receptionPackLine->removePack($this);
-        }
-        $this->receptionPackLine = $receptionPackLine;
-        $receptionPackLine?->addPack($this);
 
         return $this;
     }

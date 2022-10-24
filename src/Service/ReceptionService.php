@@ -12,6 +12,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\ReceptionPackLine;
 use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;
@@ -20,7 +21,9 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;
+use mysql_xdevapi\SchemaObject;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -142,7 +145,13 @@ class ReceptionService
 
             $reception->setArrival($arrivage);
             $arrivage->setReception($reception);
-            //ajouter colis dans receptionPackLines
+            $reception->setReceptionPackLines(new ArrayCollection());
+            foreach($arrivage->getPacks() as $pack) {
+                $receptionPackLine = new ReceptionPackLine();
+                $entityManager->persist($receptionPackLine);
+                $receptionPackLine->setReception($reception);
+                $receptionPackLine->setPack($pack);
+            }
         }
 
         if(!empty($data['fournisseur'])) {

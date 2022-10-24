@@ -112,11 +112,68 @@ class Reception {
         $this->trackingMovements = new ArrayCollection();
         $this->attachments = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
-        //receptionPackLine
+        $this->receptionPackLines = new ArrayCollection();
     }
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    public function getArrival(): ?Arrivage {
+        return $this->arrival;
+    }
+
+    public function setArrival(?Arrivage $arrival): self {
+        if($this->arrival && $this->arrival->getReception() !== $this) {
+            $oldArrival = $this->arrival;
+            $this->arrival = null;
+            $oldArrival->setReception(null);
+        }
+        $this->arrival = $arrival;
+        if($this->arrival && $this->arrival->getReception() !== $this) {
+            $this->arrival->setReception($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ReceptionPackLine>
+     */
+    public function getReceptionPackLines(): Collection {
+        return $this->receptionPackLines;
+    }
+
+    public function addReceptionPackLine(ReceptionPackLine $receptionPackLine): self {
+        if (!$this->receptionPackLines->contains($receptionPackLine)) {
+            $this->receptionPackLines[] = $receptionPackLine;
+            $receptionPackLine->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceptionPackLine(ReceptionPackLine $receptionPackLine): self {
+        if ($this->receptionPackLines->removeElement($receptionPackLine)) {
+            if ($receptionPackLine->getReception() === $this) {
+                $receptionPackLine->setReception(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setReceptionPackLines(?iterable $receptionPackLines): self {
+        foreach($this->getReceptionPackLines()->toArray() as $receptionPackLine) {
+            $this->removeReceptionPackLine($receptionPackLine);
+        }
+
+        $this->receptionPackLines = new ArrayCollection();
+        foreach($receptionPackLines ?? [] as $receptionPackLine) {
+            $this->addReceptionPackLine($receptionPackLine);
+        }
+
+        return $this;
     }
 
     public function getFournisseur(): ?Fournisseur {

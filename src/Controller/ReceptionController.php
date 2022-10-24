@@ -379,10 +379,18 @@ class ReceptionController extends AbstractController {
                           Request                $request,
                           PurchaseRequest        $purchaseRequest = null): Response
     {
-        $arrivageId = $request->query->get('arrivage'); //id
-        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-        $arrivage = $arrivageRepository->find($arrivageId);
-        //TODO: supprimer input hidden quand on sort de la modal new reception ou qu’on la réouvre et le parametre get de arrivage
+        $arrivageData = null;
+        if ($arrivageId = $request->query->get('arrivage')) {
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $arrivage = $arrivageRepository->find($arrivageId);
+
+            $arrivageData = [
+                'id' => $arrivageId,
+                'fournisseur' => $arrivage->getFournisseur(),
+                'transporteur' => $arrivage->getTransporteur(),
+                'numCommande' => $arrivage->getNumeroCommandeList()
+            ];
+        }
         $purchaseRequestLinesOrderNumbers = [];
         if ($purchaseRequest) {
             $purchaseRequestLinesOrderNumbers = $purchaseRequest->getPurchaseRequestLines()
@@ -420,11 +428,7 @@ class ReceptionController extends AbstractController {
             'purchaseRequestFilter' => $purchaseRequest ? implode(',', $purchaseRequestLinesOrderNumbers) : 0,
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
-            'arrivageToReception' => [
-                'fournisseur' => $arrivage->getFournisseur(),
-                'transporteur' => $arrivage->getTransporteur(),
-                'numCommande' => $arrivage->getNumeroCommandeList()
-            ]
+            'arrivageToReception' => $arrivageData
         ]);
     }
 

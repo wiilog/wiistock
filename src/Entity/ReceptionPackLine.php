@@ -20,11 +20,10 @@ class ReceptionPackLine {
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'receptionPackLines')]
     private ?Reception $reception = null;
 
-    #[ORM\OneToMany(mappedBy: 'receptionPackLine', targetEntity: Pack::class)]
-    private Collection $packs;
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'receptionPackLine')]
+    private ?Pack $pack = null;
 
     public function __construct() {
-        $packs = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -45,41 +44,17 @@ class ReceptionPackLine {
         return $this;
     }
 
-    /**
-     * @return Collection<int, Pack>
-     */
-    public function getPacks(): Collection {
-        return $this->packs;
+    public function getPack(): Pack {
+        return $this->pack;
     }
 
-    public function addPack(Pack $pack): self {
-        if (!$this->packs->contains($pack)) {
-            $this->packs[] = $pack;
-            $pack->setReceptionPackLine($this);
+    public function setPack(?Pack $pack): self {
+        if($this->pack && $this->pack !== $pack) {
+            $this->pack->removeReceptionPackLine($this);
         }
+        $this->pack = $pack;
+        $pack?->addReceptionPackLine($this);
 
-        return $this;
-    }
-
-    public function removePack(Pack $pack): self {
-        if ($this->packs->removeElement($pack)) {
-            if ($pack->getReceptionPackLine() === $this) {
-                $pack->setReceptionPackLine(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setPacks(?iterable $packs): self {
-        foreach($this->getPacks()->toArray() as $pack) {
-            $this->removePack($pack);
-        }
-
-        $this->packs = new ArrayCollection();
-        foreach($packs ?? [] as $pack) {
-            $this->addPack($pack);
-        }
 
         return $this;
     }

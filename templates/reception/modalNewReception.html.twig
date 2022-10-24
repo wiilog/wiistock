@@ -8,6 +8,9 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
+                {% if (arrivageToReception) %}
+                    <input type="hidden" class="data" name="arrivage" value="{{ arrivageToReception.id }}">
+                {% endif %}
                 <div class='row'>
                     {% if fieldsParam|isFieldRequired('dateCommande', 'displayedCreate') %}
                         <div class="form-group col-6">
@@ -41,9 +44,11 @@
                         <div class="form-group col-6">
                             <label class="wii-field-name">Numéro(s) de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? '*' : '' }}</label>
                             <select name="orderNumber" data-s2 data-editable multiple class="form-control w-100 data {{ fieldsParam|isFieldRequired('numCommande', 'requiredEdit') ? 'needed' : '' }}">
-                                {% for num in arrivageToReception.numCommande %}
-                                    <option value="{{ num }}" selected>{{ num }}</option>
-                                {% endfor %}
+                                {% if (arrivageToReception) %}
+                                    {% for num in arrivageToReception.numCommande %}
+                                        <option value="{{ num }}" selected>{{ num }}</option>
+                                    {% endfor %}
+                                {% endif %}
                             </select>
                         </div>
                     {% endif %}
@@ -69,8 +74,10 @@
                                     <select
                                         class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
                                         name="fournisseur" id="fournisseur">
-                                        {% if arrivageToReception.fournisseur is not null %}
-                                            <option value="{{ arrivageToReception.fournisseur.id }}" selected>{{ arrivageToReception.fournisseur.nom }}</option>
+                                        {% if (arrivageToReception) %}
+                                            {% if arrivageToReception.fournisseur is not null %}
+                                                <option value="{{ arrivageToReception.fournisseur.id }}" selected>{{ arrivageToReception.fournisseur.nom }}</option>
+                                            {% endif %}
                                         {% endif %}
                                     </select>
                                 </div>
@@ -94,8 +101,10 @@
                                     <select
                                         class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? 'needed' : '' }}"
                                         name="transporteur" id="transporteur">
-                                        {% if arrivageToReception.transporteur is not null %}
-                                            <option value="{{ arrivageToReception.transporteur.id }}" selected>{{ arrivageToReception.transporteur.label }}</option>
+                                        {% if (arrivageToReception) %}
+                                            {% if arrivageToReception.transporteur is not null %}
+                                                <option value="{{ arrivageToReception.transporteur.id }}" selected>{{ arrivageToReception.transporteur.label }}</option>
+                                            {% endif %}
                                         {% endif %}
                                     </select>
                                 </div>
