@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
@@ -11,6 +12,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\ReceptionPackLine;
 use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;
@@ -19,6 +21,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
@@ -111,6 +114,7 @@ class ReceptionService
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $ransporteurRepository = $entityManager->getRepository(Transporteur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         if(!empty($data['anomalie'])) {
             $anomaly = (
                 isset($data['anomalie'])
@@ -133,6 +137,21 @@ class ReceptionService
         $date = new DateTime('now');
 
         $numero = $this->uniqueNumberService->create($entityManager, Reception::NUMBER_PREFIX, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
+
+        if(!empty($data['arrivage'])) {
+            $arrivageId = $data['arrivage'];
+            $arrivage = $arrivageRepository->find($arrivageId);
+            if ($arrivage && !$arrivage->getReception()) {
+                $arrivage->setReception($reception);
+                foreach ($arrivage->getPacks() as $pack) {
+                    $receptionPackLine = new ReceptionPackLine();
+                    $receptionPackLine
+                        ->setReception($reception)
+                        ->setPack($pack);
+                    $entityManager->persist($receptionPackLine);
+                }
+            }
+        }
 
         if(!empty($data['fournisseur'])) {
             if($fromImport) {
