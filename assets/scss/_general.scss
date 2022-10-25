@@ -947,7 +947,7 @@ label.required:after {
     }
 }
 
-.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack, .wii-icon-iot-vehicle {
+.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack, .wii-icon-iot-vehicle, .wii-icon-quantity {
     background-color: $white;
     width: 15px;
     height: 15px;
@@ -1324,5 +1324,84 @@ label.required:after {
 
     .select-all-options {
         height: 36px;
+    }
+}
+
+.ul-detail {
+    display: table;
+    width: 100%;
+    table{
+        height: 1px ; // utile pour remplissage des cellules
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+
+        tr{
+            &.ul td{
+                &:nth-child(1) {
+                    background: var(--reference-color);
+                    color: $white;
+                    font-weight: bold;
+                    font-size: 1rem;
+                    text-align: center;
+                    text-transform: uppercase;
+                    writing-mode: vertical-rl;
+                    transform: rotate(180deg);
+                    border-bottom-right-radius: 0.25rem;
+                    border-top-right-radius: 0.25rem;
+                    padding-top: 5px;
+                    padding-bottom: 5px;
+                    overflow-wrap: break-word;
+                    height: min-content;
+                }
+
+                &:nth-child(2) {
+                    border-left: 1px solid var(--reference-color);
+                    vertical-align: top;
+
+                    div.main-ul-data {
+                        border: 1px solid var(--reference-color);
+                        border-top-right-radius: 0.25rem;
+                        border-bottom-right-radius: 0.25rem;
+                        height: 100%;
+                        width: 100%;
+                        z-index: 2;
+                        background-color: #f2f3f7;
+
+                        div.col {
+                            margin-top: 15px;
+                            margin-bottom: 15px;
+                            padding-left: 5%;
+                            padding-right: 5%;
+                            display: flex;
+                            align-items: center;
+
+                            span.wii-icon {
+                                background-color: $primary;
+                                ;
+                            }
+
+                            &:nth-child(2){
+                                border-left: lightblue solid 1px;
+                                border-right: lightblue solid 1px;
+                            }
+                        }
+                    }
+                }
+            }
+            &.list-article {
+                width: max-content;
+                .data-table-container {
+                    border-left: 1px solid lightblue;
+                    border-right: 1px solid lightblue;
+                    border-bottom: 1px solid lightblue;
+                    border-bottom-left-radius: 0.25rem;
+                    border-bottom-right-radius: 0.25rem;
+                    height: 100%;
+                    margin-top: -0.20rem;
+                    z-index: 1;
+                }
+            }
+        }
     }
 }
