@@ -2,9 +2,13 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportHistory;
 use App\Helper\FormatHelper;
@@ -113,6 +117,12 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["remove"])]
     private Collection $projectHistoryRecords;
 
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: DeliveryRequestArticleLine::class, cascade: ['remove'])]
+    private Collection $deliveryRequestArticleLines;
+
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: PreparationOrderArticleLine::class, cascade: ['remove'])]
+    private Collection $preparationOrderArticleLines;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -124,6 +134,8 @@ class Pack implements PairedEntity {
         $this->sensorMessages = new ArrayCollection();
         $this->childArticles = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
+        $this->deliveryRequestArticleLines = new ArrayCollection();
+        $this->preparationOrderArticleLines = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -724,6 +736,84 @@ class Pack implements PairedEntity {
         $this->projectHistoryRecords = new ArrayCollection();
         foreach($projectHistoryRecords ?? [] as $projectHistoryRecord) {
             $this->addProjectHistoryRecord($projectHistoryRecord);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProjectHistoryRecord>
+     */
+    public function getDeliveryRequestArticleLines(): Collection {
+        return $this->deliveryRequestArticleLines;
+    }
+
+    public function addDeliveryRequestArticleLine(DeliveryRequestArticleLine $deliveryRequestArticleLine): self {
+        if (!$this->deliveryRequestArticleLines->contains($deliveryRequestArticleLine)) {
+            $this->deliveryRequestArticleLines[] = $deliveryRequestArticleLine;
+            $deliveryRequestArticleLine->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeliveryRequestArticleLine(DeliveryRequestArticleLine $deliveryRequestArticleLine): self {
+        if ($this->deliveryRequestArticleLines->removeElement($deliveryRequestArticleLine)) {
+            if ($deliveryRequestArticleLine->getPack() === $this) {
+                $deliveryRequestArticleLine->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setDeliveryRequestArticleLine(?iterable $deliveryRequestArticleLines): self {
+        foreach($this->getDeliveryRequestArticleLines()->toArray() as $deliveryRequestArticleLine) {
+            $this->removeDeliveryRequestArticleLine($deliveryRequestArticleLine);
+        }
+
+        $this->deliveryRequestArticleLines = new ArrayCollection();
+        foreach($deliveryRequestArticleLines ?? [] as $deliveryRequestArticleLine) {
+            $this->addDeliveryRequestArticleLine($deliveryRequestArticleLine);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProjectHistoryRecord>
+     */
+    public function getPreparationOrderArticleLines(): Collection {
+        return $this->preparationOrderArticleLines;
+    }
+
+    public function addPreparationOrderArticleLine(PreparationOrderArticleLine $preparationOrderArticleLine): self {
+        if (!$this->preparationOrderArticleLines->contains($preparationOrderArticleLine)) {
+            $this->preparationOrderArticleLines[] = $preparationOrderArticleLine;
+            $preparationOrderArticleLine->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removePreparationOrderArticleLine(PreparationOrderArticleLine $preparationOrderArticleLine): self {
+        if ($this->preparationOrderArticleLines->removeElement($preparationOrderArticleLine)) {
+            if ($preparationOrderArticleLine->getPack() === $this) {
+                $preparationOrderArticleLine->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setPreparationOrderArticleLine(?iterable $preparationOrderArticleLines): self {
+        foreach($this->getPreparationOrderArticleLines()->toArray() as $preparationOrderArticleLine) {
+            $this->removePreparationOrderArticleLine($preparationOrderArticleLine);
+        }
+
+        $this->preparationOrderArticleLines = new ArrayCollection();
+        foreach($preparationOrderArticleLines ?? [] as $preparationOrderArticleLine) {
+            $this->addPreparationOrderArticleLine($preparationOrderArticleLine);
         }
 
         return $this;
