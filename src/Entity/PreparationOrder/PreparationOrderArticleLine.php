@@ -33,7 +33,7 @@ class PreparationOrderArticleLine {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'preparationOrderArticleLines')]
     private ?Emplacement $targetLocationPicking = null;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'preparationOrderArticleLines')]
+    #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
     public function getId(): ?int {
@@ -117,12 +117,7 @@ class PreparationOrderArticleLine {
     }
 
     public function setPack(?Pack $pack): self {
-        if($this->pack && $this->pack !== $pack) {
-            $this->pack->removePreparationOrderArticleLine($this);
-        }
         $this->pack = $pack;
-        $pack?->addPreparationOrderArticleLine($this);
-
         return $this;
     }
 

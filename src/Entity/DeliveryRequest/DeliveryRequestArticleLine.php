@@ -32,7 +32,7 @@ class DeliveryRequestArticleLine {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'deliveryRequestArticleLines')]
     private ?Emplacement $targetLocationPicking = null;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'deliveryRequestArticleLines')]
+    #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
     public function getId(): ?int {
@@ -118,12 +118,7 @@ class DeliveryRequestArticleLine {
     }
 
     public function setPack(?Pack $pack): self {
-        if($this->pack && $this->pack !== $pack) {
-            $this->pack->removeDeliveryRequestArticleLine($this);
-        }
         $this->pack = $pack;
-        $pack?->addDeliveryRequestArticleLine($this);
-
         return $this;
     }
 
