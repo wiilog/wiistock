@@ -229,7 +229,6 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
-    console.log('passe par editRowLitigeArrivage');
 
     let params = {
         disputeId,
