@@ -8,7 +8,7 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
-                {% if (arrivageToReception) %}
+                {% if arrivageToReception %}
                     <input type="hidden" class="data" name="arrivage" value="{{ arrivageToReception.id }}">
                 {% endif %}
                 <div class='row'>
@@ -74,10 +74,9 @@
                                     <select
                                         class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
                                         name="fournisseur" id="fournisseur">
-                                        {% if (arrivageToReception) %}
-                                            {% if arrivageToReception.fournisseur is not null %}
-                                                <option value="{{ arrivageToReception.fournisseur.id }}" selected>{{ arrivageToReception.fournisseur.nom }}</option>
-                                            {% endif %}
+                                        {% if arrivageToReception
+                                              and arrivageToReception.fournisseur is not null %}
+                                            <option value="{{ arrivageToReception.fournisseur.id }}" selected>{{ arrivageToReception.fournisseur.nom }}</option>
                                         {% endif %}
                                     </select>
                                 </div>
@@ -101,10 +100,9 @@
                                     <select
                                         class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? 'needed' : '' }}"
                                         name="transporteur" id="transporteur">
-                                        {% if (arrivageToReception) %}
-                                            {% if arrivageToReception.transporteur is not null %}
-                                                <option value="{{ arrivageToReception.transporteur.id }}" selected>{{ arrivageToReception.transporteur.label }}</option>
-                                            {% endif %}
+                                        {% if arrivageToReception
+                                              and arrivageToReception.transporteur is not null %}
+                                            <option value="{{ arrivageToReception.transporteur.id }}" selected>{{ arrivageToReception.transporteur.label }}</option>
                                         {% endif %}
                                     </select>
                                 </div>

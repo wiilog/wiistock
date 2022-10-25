@@ -515,7 +515,4 @@ class Reception {
 
         return $this;
     }
-
-
-    //ajouter set et get arrival
 }

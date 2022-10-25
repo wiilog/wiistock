@@ -15,13 +15,12 @@
 
 {% set allPacksAlreadyInDispatch = allPacksAlreadyInDispatch is defined and allPacksAlreadyInDispatch %}
 
-    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) and arrivage.reception is null %}
-        <button class="btn btn-outline-primary">
-            <a
-               href="{{ path('reception_index', {'open-modal': 'new', 'clear-modal': 0, arrivage: arrivage.id}) }}">
-                {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Réceptionner') }}
-            </a>
-        </button>
+    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE'))
+          and arrivage.reception is null %}
+        <a class="btn btn-outline-primary"
+           href="{{ path('reception_index', {'open-modal': 'new', 'clear-modal': 0, arrivage: arrivage.id}) }}">
+            {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Réceptionner') }}
+        </a>
     {% endif %}
     <div class="btn-group">
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_ARRI')) %}

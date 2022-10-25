@@ -383,13 +383,14 @@ class ReceptionController extends AbstractController {
         if ($arrivageId = $request->query->get('arrivage')) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $arrivage = $arrivageRepository->find($arrivageId);
-
-            $arrivageData = [
-                'id' => $arrivageId,
-                'fournisseur' => $arrivage->getFournisseur(),
-                'transporteur' => $arrivage->getTransporteur(),
-                'numCommande' => $arrivage->getNumeroCommandeList()
-            ];
+            if ($arrivage && !$arrivage->getReception()) {
+                $arrivageData = [
+                    'id' => $arrivageId,
+                    'fournisseur' => $arrivage->getFournisseur(),
+                    'transporteur' => $arrivage->getTransporteur(),
+                    'numCommande' => $arrivage->getNumeroCommandeList()
+                ];
+            }
         }
         $purchaseRequestLinesOrderNumbers = [];
         if ($purchaseRequest) {

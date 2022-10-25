@@ -16,12 +16,13 @@ $(function () {
     const query = GetRequestQuery();
     if (query["open-modal"] === "new") {
         $modalReceptionNew.on('hidden.bs.modal', function () {
-            $("input[name='arrivage']").remove();
+            $modalReceptionNew.find("input[name='arrivage']").remove();
         });
     }
     InitModal($modalReceptionNew, $submitNewReception, urlReceptionIndex);
 
     if (query["open-modal"] === "new") {
+        delete query['arrivage'];
         initNewReceptionEditor($modalReceptionNew);
     }
 

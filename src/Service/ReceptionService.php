@@ -23,7 +23,6 @@ use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;
-use mysql_xdevapi\SchemaObject;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -142,15 +141,15 @@ class ReceptionService
         if(!empty($data['arrivage'])) {
             $arrivageId = $data['arrivage'];
             $arrivage = $arrivageRepository->find($arrivageId);
-
-            $reception->setArrival($arrivage);
-            $arrivage->setReception($reception);
-            $reception->setReceptionPackLines(new ArrayCollection());
-            foreach($arrivage->getPacks() as $pack) {
-                $receptionPackLine = new ReceptionPackLine();
-                $entityManager->persist($receptionPackLine);
-                $receptionPackLine->setReception($reception);
-                $receptionPackLine->setPack($pack);
+            if ($arrivage && !$arrivage->getReception()) {
+                $arrivage->setReception($reception);
+                foreach ($arrivage->getPacks() as $pack) {
+                    $receptionPackLine = new ReceptionPackLine();
+                    $receptionPackLine
+                        ->setReception($reception)
+                        ->setPack($pack);
+                    $entityManager->persist($receptionPackLine);
+                }
             }
         }
 

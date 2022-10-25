@@ -112,8 +112,8 @@
                                 {% if hasDeliveryRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'demande_index') %}
                                     <a class="d-flex align-items-center"
-                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new', 'clear-modal': 1}, event)" }}"
-                                       href="{{ path('demande_index', {'open-modal': 'new', 'clear-modal': 1}) }}">
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('demande_index', {'open-modal': 'new'}) }}">
                                         <span class="wii-icon wii-icon-menu-delivery quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Livraison</span>
                                     </a>
@@ -122,8 +122,8 @@
                                 {% if hasCollectRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'collecte_index') %}
                                     <a class="d-flex align-items-center"
-                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new', 'clear-modal': 1}, event)" }}"
-                                       href="{{ path('collecte_index', {'open-modal': 'new', 'clear-modal': 1}) }}">
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
                                         <span class="wii-icon wii-icon-import quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Collecte</span>
                                     </a>
@@ -131,8 +131,8 @@
                                 {% if hasHandlingRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'handling_index') %}
                                     <a class="d-flex align-items-center"
-                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new', 'clear-modal': 1}, event)" }}"
-                                       href="{{ path('handling_index', {'open-modal': 'new', 'clear-modal': 1}) }}">
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('handling_index', {'open-modal': 'new'}) }}">
                                         <span class="wii-icon wii-icon-handling quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">{{ trans('Demande', 'Services', null, 'Service') }}</span>
                                     </a>
@@ -140,8 +140,8 @@
                                 {% if hasDispatchRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'dispatch_index') %}
                                     <a class="d-flex align-items-center"
-                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new', 'clear-modal': 1}, event)" }}"
-                                       href="{{ path('dispatch_index', {'open-modal': 'new', 'clear-modal': 1}) }}">
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('dispatch_index', {'open-modal': 'new'}) }}">
                                         <span class="wii-icon wii-icon-way quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">{{ trans('Demande', 'Acheminements', 'Général', 'Acheminement') }}</span>
                                     </a>
@@ -149,8 +149,8 @@
                                 {% if hasTransferRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'transfer_request_index') %}
                                     <a class="d-flex align-items-center"
-                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new', 'clear-modal': 1}, event)" }}"
-                                       href="{{ path('transfer_request_index', {'open-modal': 'new', 'clear-modal': 1}) }}"
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('transfer_request_index', {'open-modal': 'new'}) }}"
                                        title="Transfert">
                                         <span class="wii-icon wii-icon-transfer quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Transfert</span>
@@ -167,8 +167,8 @@
                                 {% if hasTransportRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'transport_request_index') %}
                                     <a class="d-flex align-items-center"
-                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new', 'clear-modal': 1}, event)" }}"
-                                       href="{{ path('transport_request_index', {'open-modal': 'new', 'clear-modal': 1}) }}"
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('transport_request_index', {'open-modal': 'new'}) }}"
                                        title="Transport">
                                         <span class="wii-icon wii-icon-transport quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Transport</span>

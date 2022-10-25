@@ -20,7 +20,7 @@ class ReceptionPackLine {
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'receptionPackLines')]
     private ?Reception $reception = null;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'receptionPackLine')]
+    #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
     public function __construct() {
@@ -49,13 +49,7 @@ class ReceptionPackLine {
     }
 
     public function setPack(?Pack $pack): self {
-        if($this->pack && $this->pack !== $pack) {
-            $this->pack->removeReceptionPackLine($this);
-        }
         $this->pack = $pack;
-        $pack?->addReceptionPackLine($this);
-
-
         return $this;
     }
 
