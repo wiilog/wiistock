@@ -11,7 +11,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="zone-entete">
-                    {% include "reception/reception-show-header.html.twig" with {
+                    {% include "reception/show/header.html.twig" with {
                         showDetails: detailsHeader,
                         modifiable: modifiable,
                         reception: reception
@@ -103,24 +103,23 @@
     <input type="number" id="ligneSelected" value="-1" hidden></button>
 
 
-    {% include "reception/modalDeleteReception.html.twig" %}
-    {% include "reception/modalEditReception.html.twig" %}
-    {% include "reception/modalEditLigneArticle.html.twig" %}
-    {% include "reception/modalDeleteLigneArticle.html.twig" %}
-    {% include "reception/modalAddLigneArticle.html.twig" %}
-    {% include "reception/modalChooseConditionnement.html.twig" %}
-    {% include "article/modalEditArticle.html.twig" %}
+    {% include "reception/show/modalDeleteReception.html.twig" %}
+    {% include "reception/show/modalEditReception.html.twig" %}
+    {% include "reception/show/modalEditLigneArticle.html.twig" %}
+    {% include "reception/show/modalDeleteLigneArticle.html.twig" %}
+    {% include "reception/show/modalAddLigneArticle.html.twig" %}
+    {% include "reception/show/modalChooseConditionnement.html.twig" %}
     {% include "article/modalDeleteArticle.html.twig" %}
-    {% include 'reception/modalNewLitige.html.twig' %}
-    {% include 'reception/modalEditLitige.html.twig' %}
-    {% include 'reception/modalNewLigneReception.html.twig' with {
+    {% include 'reception/show/modalNewLitige.html.twig' %}
+    {% include 'reception/show/modalEditLitige.html.twig' %}
+    {% include 'reception/show/modalNewLigneReception.html.twig' with {
         precheckedDelivery,
         deliverySwitchLabel,
         restrictedLocations
     } %}
-    {% include 'reception/modalDeleteLitige.html.twig' %}
-    {% include 'reception/modalFinishReception.html.twig' %}
-    {% include 'reception/modalCancelReception.html.twig' %}
+    {% include 'reception/show/modalDeleteLitige.html.twig' %}
+    {% include 'reception/show/modalFinishReception.html.twig' %}
+    {% include 'reception/show/modalCancelReception.html.twig' %}
 
 {% endblock %}
 

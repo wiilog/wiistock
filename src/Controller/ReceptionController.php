@@ -185,7 +185,7 @@ class ReceptionController extends AbstractController {
 
             $entityManager->flush();
             $json = [
-                'entete' => $this->renderView('reception/reception-show-header.html.twig', [
+                'entete' => $this->renderView('reception/show/header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
@@ -242,7 +242,7 @@ class ReceptionController extends AbstractController {
             }
 
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
-            $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
+            $json = $this->renderView('reception/show/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
                 'typeChampsLibres' => $typeChampLibre,
@@ -582,7 +582,7 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
             return new JsonResponse([
                 'success' => true,
-                'entete' => $this->renderView('reception/reception-show-header.html.twig', [
+                'entete' => $this->renderView('reception/show/header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
@@ -659,7 +659,7 @@ class ReceptionController extends AbstractController {
                 $json = [
                     'success' => true,
                     'msg' => 'La référence <strong>' . $refArticle->getReference() . '</strong> a bien été ajoutée.',
-                    'entete' => $this->renderView('reception/reception-show-header.html.twig', [
+                    'entete' => $this->renderView('reception/show/header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,
                         'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
@@ -689,7 +689,7 @@ class ReceptionController extends AbstractController {
             $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
             $json = $this->renderView(
-                'reception/modalEditLigneArticleContent.html.twig',
+                'reception/show/modalEditLigneArticleContent.html.twig',
                 [
                     'ligneArticle' => $ligneArticle,
                     'canUpdateQuantity' => $canUpdateQuantity,
@@ -814,7 +814,7 @@ class ReceptionController extends AbstractController {
             return new JsonResponse([
                 'success' => true,
                 'msg' => 'La référence <strong>' . $referenceLabel . '</strong> a bien été modifiée.',
-                'entete' => $this->renderView('reception/reception-show-header.html.twig', [
+                'entete' => $this->renderView('reception/show/header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
@@ -866,7 +866,7 @@ class ReceptionController extends AbstractController {
             default => 'Livraison',
         };
 
-        return $this->render("reception/show.html.twig", [
+        return $this->render("reception/show/index.html.twig", [
             'reception' => $reception,
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
@@ -1176,7 +1176,7 @@ class ReceptionController extends AbstractController {
                 $acheteursCode[] = $buyer->getId();
             }
 
-            $html = $this->renderView('reception/modalEditLitigeContent.html.twig', [
+            $html = $this->renderView('reception/show/modalEditLitigeContent.html.twig', [
                 'dispute' => $dispute,
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
@@ -1298,7 +1298,10 @@ class ReceptionController extends AbstractController {
                 } else {
                     $partielle = false;
                     foreach($listReceptionReferenceArticle as $receptionRA) {
-                        if($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) $partielle = true;
+                        if($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) {
+                            $partielle = true;
+                            break;
+                        }
                     }
                     if(!$partielle) {
                         $this->validateReception($entityManager, $reception);
@@ -1332,6 +1335,7 @@ class ReceptionController extends AbstractController {
      * @Route("/verif-avant-suppression", name="ligne_recep_check_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      */
     public function checkBeforeLigneDelete(EntityManagerInterface $entityManager,
+                                           TranslationService $translationService,
                                            Request $request) {
         if($id = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
@@ -1342,17 +1346,28 @@ class ReceptionController extends AbstractController {
             $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
             if(intval($nbArticles) === 0 && ($newRefAvailableQuantity >= 0 || $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE)) {
                 $delete = true;
-                $html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
+                $html = "
+                    <p>Voulez-vous réellement supprimer cette ligne ?</p>
+                    <div class='error-msg mt-2'></div>
+                ";
             } else {
                 $delete = false;
                 if(intval($nbArticles) > 0) {
-                    $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
+                    $html = "
+                        <p class='error-msg'>
+                            Vous ne pouvez pas supprimer cette ligne.<br>
+                            En effet, il y a eu réception {$translationService->translate('Ordre', 'Réceptions', 'd\'articles')} sur
+                            {$translationService->translate('Ordre', 'Réceptions', 'cette réception')}.
+                        </p>
+                    ";
                 } else {
-                    $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig', [
-                        'msg' => 'En effet, cela décrémenterait le stock de '
-                            . $ligneArticle->getQuantite() . ' alors que la quantité disponible de la référence est de '
-                            . $reference->getQuantiteDisponible() . '.'
-                    ]);
+                    $html = "
+                        <p class='error-msg'>
+                            Vous ne pouvez pas supprimer cette ligne.<br>
+                            En effet, cela décrémenterait le stock de {$ligneArticle->getQuantite()}
+                            alors que la quantité disponible de la référence est de {$reference->getQuantiteDisponible()}.
+                        </p>
+                    ";
                 }
             }
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
@@ -1448,15 +1463,24 @@ class ReceptionController extends AbstractController {
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
      */
     public function checkReceptionCanBeDeleted(EntityManagerInterface $entityManager,
+                                               TranslationService $translationService,
                                                Request $request): Response {
         if($receptionId = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             if($receptionReferenceArticleRepository->countByReceptionId($receptionId) == 0) {
                 $delete = true;
-                $html = $this->renderView('reception/modalDeleteReceptionRight.html.twig');
+                $html = "
+                    <p>{$translationService->translate('Ordre', 'Réceptions', 'Voulez-vous réellement supprimer cette réception')}</p>
+                    <div class='error-msg mt-2'></div>
+                ";
             } else {
                 $delete = false;
-                $html = $this->renderView('reception/modalDeleteReceptionWrong.html.twig');
+                $html = "
+                    <p class='error-msg'>
+                        {$translationService->translate('Ordre', 'Réceptions', 'Cette réception contient des articles.')}<br>
+                        {$translationService->translate('Ordre', 'Réceptions', 'Vous devez d\'abord les supprimer.')}<br>
+                    </p>
+                ";
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
