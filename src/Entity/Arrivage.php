@@ -32,7 +32,7 @@ class Arrivage {
     private ?string $noTracking = null;
 
     #[ORM\Column(type: 'json')]
-    private ?array $numeroCommandeList;
+    private ?array $numeroCommandeList = [];
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'arrivagesDestinataire')]
     private ?Utilisateur $destinataire = null;

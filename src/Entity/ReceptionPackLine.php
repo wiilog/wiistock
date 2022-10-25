@@ -23,9 +23,6 @@ class ReceptionPackLine {
     #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
-    public function __construct() {
-    }
-
     public function getId(): ?int {
         return $this->id;
     }
