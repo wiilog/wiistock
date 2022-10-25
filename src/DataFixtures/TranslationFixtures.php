@@ -557,6 +557,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Your logistics unit has been delivered",
                         "tooltip" => "Email de confirmation de livraison d'unité logistique",
                     ],
+                    [
+                        "fr" => "Article",
+                        "en" => "Article",
+                        "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes",
+                    ],
                 ],
             ],
             "Flux - Arrivages" => [

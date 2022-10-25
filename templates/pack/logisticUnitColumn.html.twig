@@ -1,0 +1,9 @@
+{% set articles = pack.childArticles | length %}
+{% if articles %}
+    <span class="has-tooltip" title="{{ articles }} articles dans l'unité logistique. Cliquez pour voir le contenu">
+        {{ pack.code }}
+        <span class="wii-icon wii-icon-article-in-lu wii-icon-20px-black primary-on-hover ml-1"></span>
+    </span>
+{% else %}
+    {{ pack.code }}
+{% endif %}
