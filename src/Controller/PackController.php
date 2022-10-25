@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -30,6 +31,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use App\Service\TranslationService;
 use Throwable;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/colis")
@@ -165,10 +167,21 @@ class PackController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $packRepository = $entityManager->getRepository(Pack::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
+            $projectRepository = $entityManager->getRepository(Project::class);
             $pack = $packRepository->find($data['id']);
+            $projects = Stream::from($projectRepository->findAll())
+                ->map(fn(Project $project) => [
+                    "label" => $project->getCode(),
+                    "value" => $project->getId(),
+                    "selected" => $pack->getProject() === $project
+                ]);
+            $articlesQuantity = Stream::from($pack->getChildArticles())->reduce(fn(int $carry, Article $article) => $carry + $article->getQuantite());
             $html = $this->renderView('pack/modalEditPackContent.html.twig', [
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
-                'pack' => $pack
+                'pack' => $pack,
+                'projects' => $projects,
+                'containsArticle' => $pack->getChildArticles()->isEmpty(),
+                'articlesQuantity' => $articlesQuantity
             ]);
 
             return new JsonResponse($html);
@@ -189,12 +202,13 @@ class PackController extends AbstractController
         $response = [];
         $packRepository = $entityManager->getRepository(Pack::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
         $pack = $packRepository->find($data['id']);
         $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
         if (!empty($pack) && $packDataIsValid['success']) {
             $packService
-                ->editPack($data, $natureRepository, $pack);
+                ->editPack($data, $natureRepository, $projectRepository, $pack);
 
             $entityManager->flush();
             $response = [
@@ -285,6 +299,15 @@ class PackController extends AbstractController
     public function groupHistory(Request $request, PackService $packService, $pack): Response {
         if ($request->isXmlHttpRequest()) {
             $data = $packService->getGroupHistoryForDatatable($pack, $request->request);
+            return $this->json($data);
+        }
+        throw new BadRequestHttpException();
+    }
+
+    #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    public function projectHistory(Request $request, PackService $packService, $pack): Response {
+        if ($request->isXmlHttpRequest()) {
+            $data = $packService->getProjectHistoryForDatatable($pack, $request->request);
             return $this->json($data);
         }
         throw new BadRequestHttpException();

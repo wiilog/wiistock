@@ -165,23 +165,3 @@ function toExport() {
         );
     }
 }
-
-function initializeGroupHistoryTable(packId) {
-    initDataTable('groupHistoryTable', {
-        serverSide: true,
-        processing: true,
-        order: [['date', "desc"]],
-        ajax: {
-            "url": Routing.generate('group_history_api', {pack: packId}, true),
-            "type": "POST"
-        },
-        columns: [
-            {data: 'group', name: 'group', title: Translation.of('Traçabilité', 'Mouvements', 'Groupe')},
-            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
-            {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Mouvements', 'Type')},
-        ],
-        domConfig: {
-            needsPartialDomOverride: true,
-        }
-    });
-}
