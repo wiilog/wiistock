@@ -29,9 +29,7 @@
                         Destinataire par défaut par type
                     </div>
                     <div class="zone-type">
-                        {% if types is defined %}
-                            <input type="hidden" name="types" value="{{ types|json_encode }}"/>
-                        {% endif %}
+                        <input type="hidden" name="types" value="{{ types|json_encode() }}"/>
                     {% for element in elements %}
                         {% include 'settings/fixed_field_elements_row.html.twig' with element %}
                     {% endfor %}
@@ -43,6 +41,7 @@
                             <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter un type
                         </button>
                     </div>
+                    <input type="hidden" name="alreadyDefinedTypes"/>
                     <template class="row-template">
                         {% include 'settings/fixed_field_elements_row.html.twig' %}
                     </template>

@@ -957,96 +957,47 @@ function saveTranslations($button) {
 }
 
 function initializeType() {
-    let field = $('.zone-type');
-    if ($('.handling-type').length >= JSON.parse(field.find('input[name=types]').val()).length) {
-        $('.add-row-type').attr("disabled", true);
-    }
-    $('.handling-type').select2({
-        tags: true
-    });
-    let template = $('.row-template');
-    //template.contents().find('.handling-type')
-    applyEventForType(template.contents().find('.handling-type'));
+    applyEventForType($('.handling-type'));
 }
 
 function addTypeRow($button) {
-    let field = $('.zone-type');
-    let template = $('.row-template');
-    console.log('on click addTypeRow');
-    let types = JSON.parse(field.find('input[name=types]').val());
+    let field = $button.closest('.modal').find('.zone-type');
+    let template = $button.closest('.modal').find('.row-template');
     let clone = template.clone().contents();
-    /*
-    let clone = template;
-    clone.select2();
-    $.each( types, function(key,value) {
-        var data = {
-            id: value.value,
-            text: value.label
-        };
-        var newOption = new Option(data.text, data.id, false, false);
-        clone.append(newOption).trigger('change');
-    });
-    */
-    applyEventForType(clone.find('.handling-type'));
     field.append(clone);
-    if ($('.handling-type').length >= JSON.parse(field.find('input[name=types]').val()).length) {
-        $button.attr("disabled", true);
-    }
+    applyEventForType(clone.find('.handling-type'));
+    verifyAlreadyDefineTypes(clone.find('.handling-type'));
 }
 
 function removeTypeRow($button) {
-    let field = $('.zone-type');
-    let buttonAdd = $button.parents('.modal-body').find('.add-row-type');
-    $button.parents('.row-type').remove();
-    if ($('.handling-type').length < JSON.parse(field.find('input[name=types]').val()).length) {
-        buttonAdd.attr("disabled", false);
-    }
+    let rowType = $button.parents('.row-type');
+    rowType.remove();
+    verifyAlreadyDefineTypes(rowType.find('.handling-type'));
 }
 
 function applyEventForType(select2) {
-    //select2 = select2.select2();
-    let field = $('.zone-type');
-    let types = JSON.parse(field.find('input[name=types]').val());
+    select2.on("change", function () {
+        verifyAlreadyDefineTypes(select2);
+    });
+    select2.on("open", function () {
+        verifyAlreadyDefineTypes(select2);
+    });
+}
 
-    select2.on("click", function () {
-        console.log(this);
-        /*
-        $.each( types, function(key,value) {
-            console.log(value.value);
-            select2.val(value.value);
-            select2.trigger('change');
-        });*/
+function verifyAlreadyDefineTypes(select2) {
+    const $alreadyDefinedTypes = select2.closest('.modal').find('input[name=alreadyDefinedTypes]');
+    let values = [];
+    $('.handling-type').each(function() {
+        if ($(this).val() && !values.includes($(this).val())) {
+            values.push($(this).val());
+        }
     });
-    select2.on('select2:open', function (e) {
-        console.log('on click initializeType');
-        let list = [];
-        $('.handling-type').each(function() {
-            $(this).find('option').each(function() {
-                if (!list.includes($(this).val())) {
-                    list.push($(this).val());
-                }
-            });
-        });
-        console.log($(this));
-        $(this).find('option').each(function() {
-            if (list.includes($(this).val())) {
-                $(this).addClass('d-none');
-                console.log($(this).val()+' addClass d-none');
-            }else{
-                $(this).removeClass('d-none');
-                console.log($(this).val()+' removeClass d-none');
-            }
-        });
-        //$(this).select2('close');
-        list = [];
-    });
-    select2.on('select2-loaded', function (e) {
-        items = e.items.results;
-        console.log('items = ' + items);
-        $.each( types, function(key,value) {
-            console.log(value.value);
-            select2.val(value.value);
-            select2.trigger('change');
-        });
-    });
+    $alreadyDefinedTypes.val(values.join(','));
+    const $types = JSON.parse($('.zone-type').closest('.modal').find('input[name=types]').val());
+    if ($('.handling-type').length < $types.length) {
+        $('.add-row-type').attr("disabled", false);
+    }
+    if ($('.handling-type').length >= $types.length) {
+        $('.add-row-type').attr("disabled", true);
+    }
 }
