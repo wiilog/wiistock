@@ -68,8 +68,11 @@ class ReceptionReferenceArticle {
     }
 
     public function setReception(?Reception $reception): self {
+        if($this->reception && $this->reception !== $reception) {
+            $this->reception->removeReceptionReferenceArticle($this);
+        }
         $this->reception = $reception;
-
+        $reception?->addReceptionReferenceArticle($this);
         return $this;
     }
 

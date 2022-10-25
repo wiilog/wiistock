@@ -13,12 +13,14 @@ use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
 
+use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -300,5 +302,27 @@ class PackController extends AbstractController
             return $this->json($data);
         }
         throw new BadRequestHttpException();
+    }
+
+    #[Route("/colonne-visible", name: "save_column_visible_for_pack", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService,
+                                      TranslationService $translation): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $fields = array_keys($data);
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
+        $visibleColumnService->setVisibleColumns('arrivalPack', $fields, $user);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
+        ]);
     }
 }

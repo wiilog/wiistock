@@ -4,6 +4,7 @@ namespace App\Entity\PreparationOrder;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Entity\Pack;
 use App\Repository\PreparationOrder\PreparationOrderArticleLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -31,6 +32,9 @@ class PreparationOrderArticleLine {
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'preparationOrderArticleLines')]
     private ?Emplacement $targetLocationPicking = null;
+
+    #[ORM\ManyToOne(targetEntity: Pack::class)]
+    private ?Pack $pack = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -105,6 +109,15 @@ class PreparationOrderArticleLine {
             $targetLocationPicking->addPreparationOrderArticleLine($this);
         }
 
+        return $this;
+    }
+
+    public function getPack(): ?Pack {
+        return $this->pack;
+    }
+
+    public function setPack(?Pack $pack): self {
+        $this->pack = $pack;
         return $this;
     }
 

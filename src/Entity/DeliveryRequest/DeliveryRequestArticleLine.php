@@ -4,6 +4,7 @@ namespace App\Entity\DeliveryRequest;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Entity\Pack;
 use App\Repository\DeliveryRequest\DeliveryRequestArticleLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -30,6 +31,9 @@ class DeliveryRequestArticleLine {
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'deliveryRequestArticleLines')]
     private ?Emplacement $targetLocationPicking = null;
+
+    #[ORM\ManyToOne(targetEntity: Pack::class)]
+    private ?Pack $pack = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -106,6 +110,15 @@ class DeliveryRequestArticleLine {
             $targetLocationPicking->addDeliveryRequestArticleLine($this);
         }
 
+        return $this;
+    }
+
+    public function getPack(): ?Pack {
+        return $this->pack;
+    }
+
+    public function setPack(?Pack $pack): self {
+        $this->pack = $pack;
         return $this;
     }
 

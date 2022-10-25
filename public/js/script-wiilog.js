@@ -144,12 +144,15 @@ function openQueryModal(query = null, event) {
     query = query || GetRequestQuery();
     const openModalNew = 'new';
     const openModalEdit = 'edit';
+    console.log(Object.assign({}, query));
 
     if (query["open-modal"] === openModalNew
         || query["open-modal"] === openModalEdit) {
         if (query["open-modal"] === openModalNew) {
             const $modal = $('[data-modal-type="new"]').first();
-            clearModal($modal)
+            if (query["clear-modal"] !== '0') {
+                clearModal($modal);
+            }
             $modal.modal("show");
         } else { // edit
             const $openModal = $(`.open-modal-edit`);
@@ -158,6 +161,8 @@ function openQueryModal(query = null, event) {
             delete query['modal-edit-id'];
         }
         delete query["open-modal"];
+        delete query["clear-modal"];
+
         SetRequestQuery(query);
     }
 }
@@ -826,6 +831,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'dispatchNumber':
                 case 'emergencyMultiple':
                 case 'businessUnit':
+                case 'article':
                 case 'managers':
                 case 'deliverers':
                     let valuesElement = element.value.split(',');

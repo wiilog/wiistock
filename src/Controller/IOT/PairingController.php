@@ -232,9 +232,11 @@ class PairingController extends AbstractController
     public function getMapData(Request $request, Pairing $pairing, GeoService $geoService, DataMonitoringService $dataMonitoringService): JsonResponse
     {
         $filters = $request->query->all();
+        $now = new DateTime();
+        $start = (clone $now)->modify('-1 day');
         $associatedMessages = $pairing->getSensorMessagesBetween(
-            $filters["start"],
-            $filters["end"],
+            $start,
+            $now,
             Sensor::GPS
         );
         $data = [];

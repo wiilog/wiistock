@@ -15,8 +15,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
 /**
- * Class FiltreSupController
- * @package App\Controller
  * @Route("/filtre-sup")
  */
 class FiltreSupController extends AbstractController
@@ -114,6 +112,7 @@ class FiltreSupController extends AbstractController
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
                 'businessUnit' => FiltreSup::FIELD_BUSINESS_UNIT,
+                'article' => FiltreSup::FIELD_ARTICLE,
                 'deliverers' => FiltreSup::FIELD_DELIVERERS,
             ];
 
@@ -213,25 +212,10 @@ class FiltreSupController extends AbstractController
      */
     public function getByPage(Request                $request,
                               EntityManagerInterface $entityManager,
-                              DisputeService         $disputeService): Response
+                              FilterSupService       $filterSupService): Response
     {
-        if ($page = json_decode($request->getContent(), true)) {
-            $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser($page, $this->getUser());
-            if ($page === FiltreSup::PAGE_DISPUTE) {
-                $translations = $disputeService->getLitigeOrigin();
-                foreach ($filters as $index => $filter) {
-                    if (isset($translations[$filter['value']])) {
-                        $filters[$index]['value'] = $translations[$filter['value']];
-                        $filters[$index]['value'] = $translations[$filter['value']];
-                    }
-                }
-            }
-
-            return new JsonResponse($filters);
-        } else {
-            throw new BadRequestHttpException();
-        }
+        return $this->json(
+            $filterSupService->getFilters($entityManager, json_decode($request->getContent(), true))
+        );
     }
 }
