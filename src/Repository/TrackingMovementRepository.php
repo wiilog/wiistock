@@ -157,12 +157,14 @@ class TrackingMovementRepository extends EntityRepository
                         "location" => "search_location.label LIKE :search_value",
                         "type" => "search_type.nom LIKE :search_value",
                         "operator" => "search_operator.username LIKE :search_value",
+                        "article" => "IF(search_logistic_unit_parent.id IS NOT NULL, search_pack_article.barCode, NULL) LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'trackingMovement', $qb, $user, $search);
 
                     $qb
                         ->innerJoin('tracking_movement.pack', 'search_pack')
+                        ->leftJoin('tracking_movement.logisticUnitParent', 'search_logistic_unit_parent')
                         ->leftJoin('tracking_movement.emplacement', 'search_location')
                         ->leftJoin('tracking_movement.packParent', 'search_pack_group')
                         ->leftJoin('tracking_movement.operateur', 'search_operator')
@@ -178,7 +180,6 @@ class TrackingMovementRepository extends EntityRepository
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']] ?? $params->all('columns')[$params->all('order')[0]['column']]['data'];
-
                     if ($column === 'emplacement') {
                         $qb
                             ->leftJoin('tracking_movement.emplacement', 'order_location')
@@ -192,6 +193,12 @@ class TrackingMovementRepository extends EntityRepository
                         $qb
                             ->leftJoin('tracking_movement.type', 'order_type')
                             ->orderBy('order_type.nom', $order);
+                    } else if ($column === 'article') {
+                        $qb
+                            ->leftJoin('tracking_movement.pack', 'order_pack')
+                            ->leftJoin('tracking_movement.logisticUnitParent', 'article_order_logistic_unit')
+                            ->leftJoin('order_pack.article', 'order_pack_article')
+                            ->orderBy('IF(article_order_logistic_unit.id IS NOT NULL, order_pack_article.barCode, NULL)', $order);
                     } else if ($column === 'reference') {
                         $qb
                             ->innerJoin('tracking_movement.pack', 'order_pack')
@@ -203,19 +210,20 @@ class TrackingMovementRepository extends EntityRepository
                             ->addOrderBy('order_pack_article_articleFournisseur_referenceArticle.reference', $order);
                     } else if ($column === 'label') {
                         $qb
-                            ->innerJoin('tracking_movement.pack', 'order_pack')
-                            ->leftJoin('order_pack.referenceArticle', 'order_pack_referenceArticle')
-                            ->leftJoin('order_pack.article', 'order_pack_article')
-                            ->orderBy('order_pack_referenceArticle.libelle', $order)
-                            ->addOrderBy('order_pack_article.label', $order);
+                            ->innerJoin('tracking_movement.pack', 'label_order_pack')
+                            ->leftJoin('label_order_pack.referenceArticle', 'label_order_pack_referenceArticle')
+                            ->leftJoin('label_order_pack.article', 'label_order_pack_article')
+                            ->orderBy('label_order_pack_referenceArticle.libelle', $order)
+                            ->addOrderBy('label_order_pack_article.label', $order);
                     } else if ($column === 'user') {
                         $qb
                             ->leftJoin('tracking_movement.operateur', 'order_operator')
                             ->orderBy('order_operator.username', $order);
-                    }  else if ($column === 'code') {
-                        $qb
-                            ->leftJoin('tracking_movement.pack', 'order_pack')
-                            ->orderBy('order_pack.code', $order);
+                    }  else if ($column === 'packCode') {
+                        $qb->leftJoin('tracking_movement.pack', 'code_order_pack')
+                            ->leftJoin('code_order_pack.article', 'code_order_pack_article')
+                            ->leftJoin('tracking_movement.logisticUnitParent', 'code_order_logistic_unit')
+                            ->orderBy('IF(NOT (code_order_logistic_unit.id IS NOT NULL AND code_order_pack_article.id IS NOT NULL), tracking_movement.pack, NULL)', $order);
                     } else {
                         $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
