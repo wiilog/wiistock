@@ -88,6 +88,12 @@
                    onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
                     <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer</a>
             {% endif %}
+            {% if reception.arrival is not null %}
+                <a href="{{ path('arrivage_show', {'id': reception.arrival.id}) }}"
+                   class="dropdown-item">
+                    {{ trans('Flux - Arrivages', 'Divers', 'Arrivage', false) }}
+                </a>
+            {% endif %}
         </div>
         {% endif %}
     </div>
