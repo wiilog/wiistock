@@ -21,12 +21,20 @@ class ReceptionReferenceArticle {
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'receptionReferenceArticles')]
     private ?ReferenceArticle $referenceArticle = null;
 
+    /**
+     * Quantity received
+     * @var int|null
+     */
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $quantite = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $commentaire = null;
 
+    /**
+     * Quantity to receive
+     * @var int|null
+     */
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $quantiteAR = null;
 

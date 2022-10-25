@@ -558,9 +558,9 @@ function articleChanged($select) {
     }
 }
 
-function finishReception(receptionId, confirmed, $button) {
+function finishReception(receptionId, confirmed, $button, fromArrival) {
     wrapLoadingOnActionButton($button, () => (
-        $.post(Routing.generate('reception_finish'), JSON.stringify({
+        $.post(Routing.generate(fromArrival ? 'reception_finish_arrival' : 'reception_finish_reference_article'), JSON.stringify({
             id: receptionId,
             confirmed: confirmed
         }), function (data) {

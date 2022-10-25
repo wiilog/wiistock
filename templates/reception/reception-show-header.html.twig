@@ -27,9 +27,9 @@
             </button>
             <button type="button"
                     class="btn btn-primary {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
-                    onclick="finishReception({{ reception.id }}, false,$(this))"
+                    onclick="finishReception({{ reception.id }}, false, $(this), {{ reception.arrival ? true : false }})"
                     id="finishReceptionButton">
-                Fin <span title="réception">{{ trans('Ordre','Réceptions', 'réception', false) }}</span>
+                Finir la <span title="réception">{{ trans('Ordre','Réceptions', 'réception', false) }}</span>
             </button>
         {% endif %}
         {% if dropdownNeedsToBeDisplayed %}

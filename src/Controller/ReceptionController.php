@@ -23,6 +23,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\Reception;
+use App\Entity\ReceptionPackLine;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
@@ -33,7 +34,6 @@ use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -1273,13 +1273,12 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/finir", name="reception_finish", methods={"GET", "POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @Route("/finir", name="reception_finish_reference_article", methods={"GET", "POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function finish(Request $request,
+    public function finishFromRefArticle(Request $request,
                            EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
-
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
@@ -1299,6 +1298,44 @@ class ReceptionController extends AbstractController {
                     $partielle = false;
                     foreach($listReceptionReferenceArticle as $receptionRA) {
                         if($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) $partielle = true;
+                    }
+                    if(!$partielle) {
+                        $this->validateReception($entityManager, $reception);
+                    }
+                    return new JsonResponse([
+                        'code' => $partielle ? 0 : 1,
+                        'redirect' => $this->generateUrl('reception_index')
+                    ]);
+                }
+            }
+        }
+        throw new BadRequestHttpException();
+    }
+    /**
+     * @Route("/finir/arrivage", name="reception_finish_arrival", methods={"GET", "POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
+     */
+    public function finishFromArrival(Request $request,
+                           EntityManagerInterface $entityManager): Response {
+        if($data = json_decode($request->getContent(), true)) {
+            $receptionRepository = $entityManager->getRepository(Reception::class);
+
+            $reception = $receptionRepository->find($data['id']);
+            $listReceptionPackLine = $reception->getReceptionPackLines();
+
+            if(empty($listReceptionPackLine)) {
+                return new JsonResponse('Vous ne pouvez pas finir une réception sans UL.');
+            } else {
+                if($data['confirmed'] === true) {
+                    $this->validateReception($entityManager, $reception);
+                    return new JsonResponse([
+                        'code' => 1,
+                        'redirect' => $this->generateUrl('reception_index')
+                    ]);
+                } else {
+                    $partielle = false;
+                    foreach($listReceptionPackLine as $receptionPL) {
+                        if($receptionPL->getPack()->getArticle() === null) $partielle = true;
                     }
                     if(!$partielle) {
                         $this->validateReception($entityManager, $reception);
@@ -1567,8 +1604,8 @@ class ReceptionController extends AbstractController {
             $reception['providerName'] ?: '',
             $reception['userUsername'] ?: '',
             $reception['statusName'] ?: '',
-            FormatHelper::datetime($reception['date']),
-            FormatHelper::datetime($reception['dateFinReception']),
+            $this->formatService->datetime($reception['date']),
+            $this->formatService->datetime($reception['dateFinReception']),
             $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
             $reception['receptionRefArticleQuantiteAR'] ?: '',
             (!$reception['referenceArticleId'] && !$reception['articleId']
