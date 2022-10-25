@@ -18,6 +18,7 @@ use App\Entity\Dispute;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Project;
+use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
@@ -901,7 +902,7 @@ class ArrivageController extends AbstractController {
         catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->trans('arrivage.Un autre litige d\'arrivage est en cours de création, veuillez réessayer').'.'
+                'msg' => $translation->translate('Flux - Arrivages', 'Divers', 'Un autre litige d\'arrivage est en cours de création, veuillez réessayer').'.'
             ]);
         }
 
@@ -961,20 +962,41 @@ class ArrivageController extends AbstractController {
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
-            $persistedColis = $colisService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project);
-            $entityManager->flush();
+            $response = [];
+            $persistedColis = [];
+            if ($reception = $arrivage->getReception()) {
+                $statusCode = $reception->getStatut()->getCode();
+                if ($statusCode === Reception::STATUT_EN_ATTENTE) {
+                    $persistedColis = $colisService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project, $reception);
+                    $entityManager->flush();
 
-            return new JsonResponse([
-                'success' => true,
-                'packs' => array_map(function (Pack $pack) {
-                    return [
-                        'id' => $pack->getId(),
-                        'code' => $pack->getCode()
+
+                } elseif ($statusCode === Reception::STATUT_RECEPTION_TOTALE || $statusCode === Reception::STATUT_RECEPTION_PARTIELLE) {
+                    $response = [
+                        'success' => false,
+                        'msg' => "Vous ne pouvez pas ajouter d'unité(s) logistique(s) à un arrivage receptionné."
                     ];
-                }, $persistedColis),
-                'arrivageId' => $arrivage->getId(),
-                'arrivage' => $arrivage->getNumeroArrivage()
-            ]);
+                }
+            } else {
+                $persistedColis = $colisService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project);
+                $entityManager->flush();
+            }
+
+            if ($response === []) {
+                $response = [
+                    'success' => true,
+                    'packs' => array_map(function (Pack $pack) {
+                        return [
+                            'id' => $pack->getId(),
+                            'code' => $pack->getCode()
+                        ];
+                    }, $persistedColis),
+                    'arrivageId' => $arrivage->getId(),
+                    'arrivage' => $arrivage->getNumeroArrivage()
+                ];
+            }
+
+            return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
     }

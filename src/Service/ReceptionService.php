@@ -12,6 +12,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\Pack;
 use App\Entity\ReceptionPackLine;
 use App\Entity\Setting;
 use App\Entity\Reception;
@@ -19,7 +20,6 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;
@@ -144,11 +144,7 @@ class ReceptionService
             if ($arrivage && !$arrivage->getReception()) {
                 $arrivage->setReception($reception);
                 foreach ($arrivage->getPacks() as $pack) {
-                    $receptionPackLine = new ReceptionPackLine();
-                    $receptionPackLine
-                        ->setReception($reception)
-                        ->setPack($pack);
-                    $entityManager->persist($receptionPackLine);
+                    $this->persistReceptionPackLine($entityManager, $reception, $pack);
                 }
             }
         }
@@ -265,15 +261,24 @@ class ReceptionService
         return $reception;
     }
 
+    public function persistReceptionPackLine(EntityManagerInterface $entityManager,
+                                             Reception $reception,
+                                             Pack $pack) {
+        $receptionPackLine = new ReceptionPackLine();
+        $receptionPackLine->setReception($reception);
+        $receptionPackLine->setPack($pack);
+        $entityManager->persist($receptionPackLine);
+    }
+
     public function dataRowReception(Reception $reception)
     {
         return [
             "id" => ($reception->getId()),
-            "Statut" => FormatHelper::status($reception->getStatut()),
-            "Date" => FormatHelper::datetime($reception->getDate()),
-            "dateAttendue" => FormatHelper::date($reception->getDateAttendue()),
-            "DateFin" => FormatHelper::datetime($reception->getDateFinReception()),
-            "Fournisseur" => FormatHelper::supplier($reception->getFournisseur()),
+            "Statut" => $this->formatService->status($reception->getStatut()),
+            "Date" => $this->formatService->datetime($reception->getDate()),
+            "dateAttendue" => $this->formatService->date($reception->getDateAttendue()),
+            "DateFin" => $this->formatService->datetime($reception->getDateFinReception()),
+            "Fournisseur" => $this->formatService->supplier($reception->getFournisseur()),
             "Commentaire" => $reception->getCommentaire() ?: '',
             "receiver" => implode(', ', array_unique(
                 $reception->getDemandes()
@@ -287,7 +292,7 @@ class ReceptionService
             ),
             "number" => $reception->getNumber() ?: "",
             "orderNumber" => $reception->getOrderNumber() ? join(",", $reception->getOrderNumber()) : "",
-            "storageLocation" => FormatHelper::location($reception->getStorageLocation()),
+            "storageLocation" => $this->formatService->location($reception->getStorageLocation()),
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
                 'deliveries' => $reception->getDemandes()

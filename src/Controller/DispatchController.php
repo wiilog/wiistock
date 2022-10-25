@@ -23,8 +23,6 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-
-use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
@@ -774,7 +772,7 @@ class DispatchController extends AbstractController {
         }
 
         if(empty($pack)) {
-            $pack = $packService->createPack(['code' => $packCode]);
+            $pack = $packService->createPack($entityManager, ['code' => $packCode]);
             $entityManager->persist($pack);
         }
 
@@ -1512,7 +1510,7 @@ class DispatchController extends AbstractController {
 
             $additionalField[] = [
                 "label" => "Flux",
-                "value" => $flow ? FormatHelper::freeField($freeFieldValues[$flow->getId()] ?? null, $flow) : null,
+                "value" => $flow ? $this->formatService->freeField($freeFieldValues[$flow->getId()] ?? null, $flow) : null,
             ];
 
             $requestType = current(array_filter($freeFields, function($field) {
@@ -1521,7 +1519,7 @@ class DispatchController extends AbstractController {
 
             $additionalField[] = [
                 "label" => "Type de demande",
-                "value" => $requestType ? FormatHelper::freeField($freeFieldValues[$requestType->getId()] ?? null, $requestType) : null,
+                "value" => $requestType ? $this->formatService->freeField($freeFieldValues[$requestType->getId()] ?? null, $requestType) : null,
             ];
         }
 
