@@ -75,6 +75,36 @@ $(function() {
 
     switchPageBasedOnHash();
     $(window).on("hashchange", switchPageBasedOnHash);
+
+    $(document).arrive(`.logistic-unit-number .wii-icon`, function() {
+        const $icon = $(this);
+        const $number = $icon.closest(`.logistic-unit-number`);
+
+        // register the event directly on the element through arrive
+        // to get the event before action-on-click and be able to
+        // cancel modal openning through event.stopPropagation
+        $icon.on(`mouseup`, event => {
+            console.log('bro')
+            event.stopPropagation();
+
+            const $container = $(`.packsTableContainer`);
+            $container.find(`.logistic-unit-content`).remove();
+
+            if($number.is(`.active`)) {
+                $number.removeClass(`active`);
+                packsTable.columns.adjust().draw();
+            } else {
+                AJAX.route(`GET`, `logistic_unit_content`, {pack: $number.data(`id`)})
+                    .json()
+                    .then(result => {
+                        $(`.logistic-unit-number`).removeClass(`.active`);
+                        $number.addClass(`active`);
+                        $container.append(result.html);
+                        packsTable.columns.adjust();
+                    });
+            }
+        })
+    });
 });
 
 function switchPageBasedOnHash() {
