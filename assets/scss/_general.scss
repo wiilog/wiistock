@@ -1376,8 +1376,26 @@ label.required:after {
     }
 
     .logistic-unit-no-items {
-        margin: 15px 35px;
+        margin: 30px 50px;
         text-align: center;
+        color: lighten($dark-grey, 15%);
+        font-size: 14px;
+
+        .logistic-unit-no-items-icon-circle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 15px;
+            background: white;
+            border-radius: 300px;
+            width: 80px;
+            height: 80px;
+
+            img {
+                width: 35px;
+                opacity: 45%;
+            }
+        }
     }
 }
 

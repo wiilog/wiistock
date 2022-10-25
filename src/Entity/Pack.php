@@ -113,7 +113,7 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["remove"])]
     private Collection $projectHistoryRecords;
 
-    private ?bool $articleContainer = false;
+    private ?bool $articleContainer = true;
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
