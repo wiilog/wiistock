@@ -7,6 +7,7 @@ use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Pack;
+use App\Entity\Project;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -215,6 +216,9 @@ class PackService {
                 /** @var Nature $nature */
                 $nature = $options['nature'];
 
+                /** @var ?Project $project */
+                $project = $options['project'];
+
                 $arrivalNum = $arrival->getNumeroArrivage();
                 $counter = $this->getNextPackCodeForArrival($arrival) + 1;
                 $counterStr = sprintf("%03u", $counter);
@@ -222,7 +226,8 @@ class PackService {
                 $code = (($nature->getPrefix() ?? '') . $arrivalNum . $counterStr ?? '');
                 $pack = $this
                     ->createPackWithCode($code)
-                    ->setNature($nature);
+                    ->setNature($nature)
+                    ->setProject($project);
 
                 $arrival->addPack($pack);
             }
@@ -265,7 +270,8 @@ class PackService {
                                       Arrivage $arrivage,
                                       array $colisByNatures,
                                       $user,
-                                      bool $persistTrackingMovements = true): array
+                                      bool $persistTrackingMovements = true,
+                                      ?Project $project = null): array
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
@@ -283,7 +289,7 @@ class PackService {
         foreach ($colisByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);
             for ($i = 0; $i < $number; $i++) {
-                $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature]);
+                $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature, 'project' => $project ]);
                 if ($persistTrackingMovements && isset($location)) {
                     $this->trackingMovementService->persistTrackingForArrivalPack(
                         $entityManager,

@@ -828,6 +828,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Modale Nouvel arrivage",
                         ],
                         [
+                            "fr" => "Créer",
+                            "en" => "Create",
+                            "tooltip" => "Modale Nouvel arrivage",
+                        ],
+                        [
                             "fr" => "Veuillez renseigner au moins une unité logistique",
                             "en" => "Fill in at least one logistics unit",
                             "tooltip" => "Modale Nouvel arrivage",

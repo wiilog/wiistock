@@ -57,6 +57,7 @@ class FieldsParam {
     const FIELD_CODE_ARRIVAL_STATUS = 'arrivalStatus'; // not in settings table
     const FIELD_CODE_ARRIVAL_DATE = 'arrivalDate'; // not in settings table
     const FIELD_CODE_ARRIVAL_CREATOR = 'arrivalCreator'; // not in settings table
+    const FIELD_CODE_PROJECT = 'project';
 
     const FIELD_LABEL_PROVIDER_ARRIVAGE = 'fournisseur';
     const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';
@@ -79,6 +80,7 @@ class FieldsParam {
     const FIELD_LABEL_ARRIVAL_STATUS = 'Statut'; // not in settings table
     const FIELD_LABEL_ARRIVAL_DATE = 'Date'; // not in settings table
     const FIELD_LABEL_ARRIVAL_CREATOR = 'Utilisateur'; // not in settings table
+    const FIELD_LABEL_PROJECT = 'Projet';
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
@@ -142,6 +144,11 @@ class FieldsParam {
 
         // Services
         FieldsParam::FIELD_CODE_RECEIVERS_HANDLING,
+    ];
+
+    public const NOT_EDITABLE_FIELDS = [
+        // Arrivages
+        FieldsParam::FIELD_CODE_PROJECT
     ];
 
     #[ORM\Id]

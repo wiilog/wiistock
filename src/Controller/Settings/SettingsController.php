@@ -2025,6 +2025,7 @@ class SettingsController extends AbstractController {
             $displayedEdit = $field->isDisplayedEdit() ? "checked" : "";
             $requiredEdit = $field->isRequiredEdit() ? "checked" : "";
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
+            $editDisabled = in_array($field->getFieldCode(), FieldsParam::NOT_EDITABLE_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
 
             if ($edit) {
@@ -2037,9 +2038,9 @@ class SettingsController extends AbstractController {
                 $row = [
                     "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
                     "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
-                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit/>",
+                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit $editDisabled/>",
                     "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
-                    "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
+                    "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit $editDisabled/>",
                     "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",
                 ];
 

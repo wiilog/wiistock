@@ -16,6 +16,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Dispute;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\Project;
 use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
@@ -238,6 +239,7 @@ class ArrivageController extends AbstractController {
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT_NUMBER, $data["noProject"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, $data["noTracking"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE, $data["transporteur"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT, $data["project"] ?? null);
 
         $arrivage = new Arrivage();
         $arrivage
@@ -350,13 +352,15 @@ class ArrivageController extends AbstractController {
             $arrivage->setIsUrgent(true);
         }
 
+        $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
         // persist packs after set arrival urgent
         $colisService->persistMultiPacks(
             $entityManager,
             $arrivage,
             $natures,
             $currentUser,
-            false
+            false,
+            $project
         );
 
         $entityManager->flush();

@@ -82,4 +82,13 @@ class ProjectRepository extends EntityRepository
             'total' => $total
         ];
     }
+
+    public function getForSelect(?string $term): array {
+        return $this->createQueryBuilder("project")
+            ->select("project.id AS id, project.code AS text")
+            ->where("project.code LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
 }
