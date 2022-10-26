@@ -70,8 +70,9 @@ class ReceptionRepository extends EntityRepository
         $end->setTime(23, 59, 59);
         return $this->createQueryBuilder('reception')
             ->join('reception.statut', 'statut')
-            ->join('reception.receptionReferenceArticles', 'referenceLines')
-            ->where('referenceLines.referenceArticle = :reference')
+            ->join('reception.lines', 'line')
+            ->join('line.receptionReferenceArticles', 'referenceLine')
+            ->where('referenceLine.referenceArticle = :reference')
             ->andWhere('reception.dateAttendue BETWEEN :start and :end')
             ->andWhere('statut.code = :validated')
             ->setParameters([
@@ -86,6 +87,7 @@ class ReceptionRepository extends EntityRepository
     }
 
     public function getByDates(DateTime $dateMin, DateTime $dateMax): array {
+        // TODO WIIS-7812
         $queryBuilder = $this->createQueryBuilder('reception')
             ->select('reception.id AS id')
             ->addSelect('article.id AS articleId')
