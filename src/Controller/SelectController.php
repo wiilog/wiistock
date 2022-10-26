@@ -94,9 +94,13 @@ class SelectController extends AbstractController {
      * @Route("/select/types/services", name="ajax_select_handling_type", options={"expose": true})
      */
     public function handlingType(Request $request, EntityManagerInterface $manager): Response {
+        $alreadyDefinedTypes = $request->query->has('alreadyDefinedTypes')
+            ? explode(",", $request->query->get('alreadyDefinedTypes'))
+            : [];
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::DEMANDE_HANDLING,
-            $request->query->get("term")
+            $request->query->get("term"),
+            ['alreadyDefinedTypes' => $alreadyDefinedTypes]
         );
 
         return $this->json([

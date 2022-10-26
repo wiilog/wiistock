@@ -1030,6 +1030,7 @@ class SettingsController extends AbstractController {
                         return [
                             "emergency" => [
                                 "field" => $emergencyField->getId(),
+                                "modalType" => $emergencyField->getModalType(),
                                 "elements" => Stream::from($emergencyField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1040,6 +1041,7 @@ class SettingsController extends AbstractController {
                             ],
                             "businessUnit" => [
                                 "field" => $businessField->getId(),
+                                "modalType" => $emergencyField->getModalType(),
                                 "elements" => Stream::from($businessField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1072,6 +1074,7 @@ class SettingsController extends AbstractController {
                         return [
                             "businessUnit" => [
                                 "field" => $field->getId(),
+                                "modalType" => $field->getModalType(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1101,16 +1104,39 @@ class SettingsController extends AbstractController {
                     },
                 ],
                 self::MENU_HANDLINGS => [
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
+                    self::MENU_FIXED_FIELDS => function() use ($userRepository, $typeRepository, $fixedFieldRepository) {
                         $field = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY);
-
+                        $receiversField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_RECEIVERS_HANDLING);
+                        $types = $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false);
                         return [
                             "emergency" => [
                                 "field" => $field->getId(),
+                                "modalType" => $field->getModalType(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
                                         "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                            "receivers" => [
+                                "field" => $receiversField->getId(),
+                                "modalType" => $receiversField->getModalType(),
+                                "types" => $types,
+                                "elements" => Stream::from($receiversField->getElements() ?? [])
+                                    ->map(fn($users, $type) => [
+                                        "type" => Stream::from([$type])->map(fn($typeId) => [
+                                            "value" => $typeId,
+                                            "label" => $typeRepository->find($typeId)->getLabel(),
+                                            ])
+                                            ->toArray(),
+                                        "users" => Stream::from($users)->map(fn($user) => [
+                                            "value" => $user,
+                                            "label" => $userRepository->find($user)->getUsername(),
+                                            'selected' => true,
+                                            ])
+                                            ->toArray(),
                                         "selected" => true,
                                     ])
                                     ->toArray(),
@@ -1351,7 +1377,16 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function saveFieldParam(Request $request, EntityManagerInterface $manager, FieldsParam $field): Response {
-        $field->setElements(explode(",", $request->request->get("elements")));
+        if ($field->getModalType() == "FREE") {
+            $field->setElements(explode(",", $request->request->get("elements")));
+        } elseif ($field->getModalType() == "USER_BY_TYPE") {
+            $lines = $request->request->has("lines") ? json_decode($request->request->get("lines"), true) : [];
+            $elements = [];
+            foreach ($lines as $line) {
+                $elements[$line['handlingType']] = $line['user'];
+            }
+            $field->setElements($elements);
+        }
         $manager->flush();
 
         return $this->json([

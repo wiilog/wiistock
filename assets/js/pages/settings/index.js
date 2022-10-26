@@ -30,6 +30,8 @@ import AJAX, {GET, POST} from "@app/ajax";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
+global.addTypeRow = addTypeRow;
+global.removeTypeRow = removeTypeRow;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -239,7 +241,6 @@ $(function() {
     $(document).on(`click`, `.submit-field-param`, function() {
         const $button = $(this);
         const $modal = $button.closest(`.modal`);
-
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
         if(data) {
@@ -247,6 +248,7 @@ $(function() {
             $modal.modal(`hide`);
         }
     });
+
 });
 
 function getCategoryLabel() {
@@ -597,6 +599,7 @@ function initializeHandlingFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+    initializeType();
 }
 
 function initializeDeliveries() {
@@ -1019,4 +1022,54 @@ function saveTranslations($button) {
             showBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
         }
     });
+}
+
+function initializeType() {
+    applyEventForType($('.handling-type'));
+}
+
+function addTypeRow($button) {
+    let field = $button.closest('.modal').find('.zone-type');
+    let template = $button.closest('.modal').find('.row-template');
+    let clone = template.clone().contents();
+    let newMultipleKey = Math.floor(Math.random() * 100000000);
+    field.append(clone);
+    field.find($('select[name=user]').last()).data('multiple-object-index', newMultipleKey);
+    field.find($('select[name=handlingType]').last()).data('multiple-object-index', newMultipleKey);
+    applyEventForType(clone.find('.handling-type'));
+    verifyAlreadyDefineTypes(clone.find('.handling-type'));
+}
+
+function removeTypeRow($button) {
+    let rowType = $button.parents('.row-type');
+    rowType.remove();
+    verifyAlreadyDefineTypes(rowType.find('.handling-type'));
+}
+
+function applyEventForType(select2) {
+    select2.on("change", function () {
+        verifyAlreadyDefineTypes(select2);
+    });
+    select2.on("open", function () {
+        verifyAlreadyDefineTypes(select2);
+    });
+}
+
+function verifyAlreadyDefineTypes(select2) {
+    const $alreadyDefinedTypes = select2.closest('.modal').find('input[name=alreadyDefinedTypes]');
+    let values = [];
+    let $handlingTypeContainer = $('.handling-type');
+    $handlingTypeContainer.each(function() {
+        if ($(this).val() && !values.includes($(this).val())) {
+            values.push($(this).val());
+        }
+    });
+    $alreadyDefinedTypes.val(values.join(','));
+    const $types = JSON.parse($('.zone-type').closest('.modal').find('input[name=types]').val());
+    if ($handlingTypeContainer.length < $types.length) {
+        $('.add-row-type').attr("disabled", false);
+    }
+    if ($handlingTypeContainer.length >= $types.length) {
+        $('.add-row-type').attr("disabled", true);
+    }
 }

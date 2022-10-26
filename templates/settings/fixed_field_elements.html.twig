@@ -11,17 +11,45 @@
                 title: "Modifier le paramétrage d'un champ fixe"
             } %}
 
-            <div class="modal-body">
-                <input type="hidden" name="field" value="{{ field }}"/>
+            {% if modalType == "FREE" %}
+                <div class="modal-body">
+                    <input type="hidden" name="field" value="{{ field }}"/>
+                    {{ form.select('elements', 'Valeurs possibles', false, {
+                        type: null,
+                        editable: true,
+                        multiple: true,
+                        items: elements,
+                        placeholder: 'Ajoutez des éléments',
+                    }) }}
+                </div>
+            {% elseif modalType == "USER_BY_TYPE" %}
+                <div class="modal-body pt-0">
+                    <input type="hidden" name="field" value="{{ field }}"/>
+                    <span class="wii-section-title">Destinataire par défaut par type</span>
+                    <div class="zone-type">
+                        <input type="hidden" name="types" value="{{ types|json_encode() }}"/>
+                        {% if elements is empty %}
+                            {% include 'settings/fixed_field_elements_row.html.twig' %}
+                        {% else %}
+                            {% for element in elements %}
+                                {% include 'settings/fixed_field_elements_row.html.twig' with element %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
 
-                {{ form.select('elements', 'Valeurs possibles', false, {
-                    type: null,
-                    editable: true,
-                    multiple: true,
-                    items: elements,
-                    placeholder: 'Ajoutez des éléments',
-                }) }}
-            </div>
+                    <div class="d-flex justify-content-end align-items-end mt-2">
+                        <button class="btn btn-primary mt-1 add-row-type d-flex align-items-center"
+                                onclick="addTypeRow($(this))"
+                                {{ (elements|length is same as types|length) ? 'disabled' : '' }}>
+                            <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter un type
+                        </button>
+                    </div>
+                    <input type="hidden" name="alreadyDefinedTypes"/>
+                    <template class="row-template">
+                        {% include 'settings/fixed_field_elements_row.html.twig' %}
+                    </template>
+                </div>
+            {% endif %}
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
