@@ -1125,7 +1125,7 @@ class SettingsController extends AbstractController {
                                 "field" => $receiversField->getId(),
                                 "modalType" => $receiversField->getModalType(),
                                 "types" => $types,
-                                "elements" => Stream::from($receiversField->getElements())
+                                "elements" => Stream::from($receiversField->getElements() ?? [])
                                     ->map(fn($users, $type) => [
                                         "type" => Stream::from([$type])->map(fn($typeId) => [
                                             "value" => $typeId,

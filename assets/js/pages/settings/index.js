@@ -981,25 +981,23 @@ function applyEventForType(select2) {
     select2.on("change", function () {
         verifyAlreadyDefineTypes(select2);
     });
-    select2.on("open", function () {
-        verifyAlreadyDefineTypes(select2);
-    });
 }
 
 function verifyAlreadyDefineTypes(select2) {
     const $alreadyDefinedTypes = select2.closest('.modal').find('input[name=alreadyDefinedTypes]');
     let values = [];
-    $('.handling-type').each(function() {
+    let $handlingTypeContainer = $('.handling-type');
+    $handlingTypeContainer.each(function() {
         if ($(this).val() && !values.includes($(this).val())) {
             values.push($(this).val());
         }
     });
     $alreadyDefinedTypes.val(values.join(','));
     const $types = JSON.parse($('.zone-type').closest('.modal').find('input[name=types]').val());
-    if ($('.handling-type').length < $types.length) {
+    if ($handlingTypeContainer.length < $types.length) {
         $('.add-row-type').attr("disabled", false);
     }
-    if ($('.handling-type').length >= $types.length) {
+    if ($handlingTypeContainer.length >= $types.length) {
         $('.add-row-type').attr("disabled", true);
     }
 }

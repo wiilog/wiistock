@@ -25,19 +25,22 @@
             {% elseif modalType == "USER_BY_TYPE" %}
                 <div class="modal-body pt-0">
                     <input type="hidden" name="field" value="{{ field }}"/>
-                    <div class="wii-section-title">
-                        Destinataire par défaut par type
-                    </div>
+                    <span class="wii-section-title">Destinataire par défaut par type</span>
                     <div class="zone-type">
                         <input type="hidden" name="types" value="{{ types|json_encode() }}"/>
-                    {% for element in elements %}
-                        {% include 'settings/fixed_field_elements_row.html.twig' with element %}
-                    {% endfor %}
+                        {% if elements is empty %}
+                            {% include 'settings/fixed_field_elements_row.html.twig' %}
+                        {% else %}
+                            {% for element in elements %}
+                                {% include 'settings/fixed_field_elements_row.html.twig' with element %}
+                            {% endfor %}
+                        {% endif %}
                     </div>
 
-                    <div class="d-flex justify-content-end align-items-end">
+                    <div class="d-flex justify-content-end align-items-end mt-2">
                         <button class="btn btn-primary mt-1 add-row-type d-flex align-items-center"
-                                onclick="addTypeRow($(this))">
+                                onclick="addTypeRow($(this))"
+                                {{ (types|length <= 1) ? 'disabled' : '' }}>
                             <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter un type
                         </button>
                     </div>

@@ -21,6 +21,7 @@ final class Version20221019141245 extends AbstractMigration
     {
         $this->addSql("UPDATE fields_param SET modal_type = 'FREE' WHERE elements IS NOT NULL");
         $this->addSql("UPDATE fields_param SET modal_type = 'USER_BY_TYPE' WHERE field_code = 'receivers'");
+        $this->addSql("UPDATE fields_param SET elements = '[]' WHERE modal_type = 'USER_BY_TYPE' AND elements is NULL");
     }
 
     public function down(Schema $schema): void

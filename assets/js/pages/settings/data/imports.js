@@ -56,9 +56,6 @@ export function initializeImports() {
 export function initializeExports() {
     initDateTimePicker('#dateMin, #dateMax');
 }
-export function initializeType() {
-    console.log('initializeType');
-}
 
 function displayFirstModal(importId = null) {
     let $inputImportId = $modalNewImport.find('[name="importId"]');
