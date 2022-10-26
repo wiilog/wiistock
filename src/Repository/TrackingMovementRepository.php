@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -439,4 +440,21 @@ class TrackingMovementRepository extends EntityRepository
             'total' => $countTotal
         ];
     }
+
+    public function findChildArticleMovementsBy(Pack $pack) {
+        return $this->createQueryBuilder("movement")
+            ->join("movement.type", "movement_status")
+            ->join("movement.pack", "movement_pack")
+            ->join("movement_pack.article", "movement_pack_article")
+            ->andWhere("movement_status.code IN (:types)")
+            ->andWhere("movement.logisticUnitParent = :pack")
+            ->setParameter("types", [
+                TrackingMovement::TYPE_PICK_LOGISTIC_UNIT,
+                TrackingMovement::TYPE_DROP_LOGISTIC_UNIT,
+            ])
+            ->setParameter("pack", $pack)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

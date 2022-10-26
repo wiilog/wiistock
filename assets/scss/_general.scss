@@ -1352,6 +1352,7 @@ label.required:after {
             border-bottom: 2px solid $light-grey;
             width: 50%;
             padding-bottom: 5px;
+            cursor: pointer;
 
             &.active {
                 font-weight: bold;
@@ -1365,6 +1366,7 @@ label.required:after {
         border-radius: 4px;
         margin-top: 10px;
         padding: 7px;
+        box-shadow: 2px 0 4px rgba($black, 0.05);
 
         .article-code {
             display: flex;
@@ -1372,6 +1374,29 @@ label.required:after {
             color: $primary;
             font-weight: bold;
             font-size: 16px;
+        }
+    }
+
+    .logistic-unit-history-interstice {
+        display: flex;
+        align-items: center;
+        border-left: 2px solid $medium-grey;
+        margin-left: 20px;
+        padding: 15px 5px 5px;
+
+        .logistic-unit-entry, .logistic-unit-exit {
+            border-radius: 4px;
+            padding: 0 5px;
+            margin-right: 10px;
+            border: 2px solid transparent;
+            font-size: 14px;
+        }
+        .logistic-unit-entry {
+            border-color: $green;
+        }
+
+        .logistic-unit-exit {
+            border-color: $orange;
         }
     }
 

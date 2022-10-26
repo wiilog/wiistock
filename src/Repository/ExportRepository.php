@@ -15,7 +15,7 @@ class ExportRepository extends EntityRepository
         return $this->createQueryBuilder("export")
             ->join("export.type", "type")
             ->join("export.status", "status")
-            ->where("type.label = :type")
+            ->andWhere("type.label = :type")
             ->andWhere("status.code = :status")
             ->setParameter("type", Type::LABEL_SCHEDULED_EXPORT)
             ->setParameter("status", Export::STATUS_SCHEDULED)

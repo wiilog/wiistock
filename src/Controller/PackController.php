@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategoryType;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
@@ -71,12 +72,19 @@ class PackController extends AbstractController
      * @Route("/{pack}/contenu", name="logistic_unit_content", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK}, mode=HasPermission::IN_JSON)
      */
-    public function logisticUnitContent(Pack $pack): Response
+    public function logisticUnitContent(EntityManagerInterface $manager, LanguageService $languageService, Pack $pack): Response
     {
+        $longFormat = $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG;
+
+        $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
+        $movements = $trackingMovementRepository->findChildArticleMovementsBy($pack);
+
         return $this->json([
             "success" => true,
             "html" => $this->renderView("pack/logistic-unit-content.html.twig", [
                 "articles" => $pack->getChildArticles(),
+                "movements" => $movements,
+                "use_long_format" => $longFormat,
             ]),
         ]);
     }
