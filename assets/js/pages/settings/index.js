@@ -238,7 +238,6 @@ $(function() {
     $(document).on(`click`, `.submit-field-param`, function() {
         const $button = $(this);
         const $modal = $button.closest(`.modal`);
-
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
         if(data) {
@@ -964,7 +963,10 @@ function addTypeRow($button) {
     let field = $button.closest('.modal').find('.zone-type');
     let template = $button.closest('.modal').find('.row-template');
     let clone = template.clone().contents();
+    let newMultipleKey = Math.floor(Math.random() * 100000000);
     field.append(clone);
+    field.find($('select[name=user]').last()).data('multiple-object-index', newMultipleKey);
+    field.find($('select[name=handlingType]').last()).data('multiple-object-index', newMultipleKey);
     applyEventForType(clone.find('.handling-type'));
     verifyAlreadyDefineTypes(clone.find('.handling-type'));
 }

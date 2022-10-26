@@ -1,15 +1,19 @@
 {% import 'form.html.twig' as form %}
 
 {% set element = element is defined ? element %}
+{% set multipleKey = {
+    key: 'lines',
+    index: random()
+} %}
 <div class="row row-type">
     <div class="col-5">
         {{ form.select('handlingType', trans('Demande', 'Services', null, 'Type'), true, {
             type: 'handlingType',
             inputClass: 'handling-type',
-            editable: true,
             includeParams: 'input[name=alreadyDefinedTypes]',
-            value: element ? element.label : null,
-            items: element ? {(element.label): element.value} : null,
+            multipleKey: multipleKey,
+            value: element ? element.type : null,
+            items: element ? element.type : null,
         }) }}
     </div>
     <div class="col-5">
@@ -17,8 +21,9 @@
             type: 'user',
             multiple :true,
             inputClass: 'receivers-picker',
-            value: element ? element.value : null,
-            items: element ? element.value : null,
+            multipleKey: multipleKey,
+            value: element ? element.users : null,
+            items: element ? element.users : null,
         }) }}
     </div>
     <div class="d-flex justify-content-end align-items-end">
