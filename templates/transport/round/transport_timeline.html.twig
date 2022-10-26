@@ -8,7 +8,7 @@
     {% set real = line['real'] %}
     {% set state = line['state'] %}
     <div class="history-line">
-        <div class="history-date">
+        <div class="history-line-left-content">
             <div class="title-left {{ state }}">
                 {% if cancelled %}
                     <img alt="" src="{{ asset('svg/cancel.svg') }}" height="20px" class="mr-1" title="Transport annulé"/>
@@ -20,7 +20,7 @@
             </div>
             <div class="wii-small-text transport-list-type">{{ hint }}</div>
         </div>
-        <div class="history-status {{ state }}">
+        <div class="history-line-right-content {{ state }}">
             <div class="title-right">
                 <span class="ml-2">Estimé : {{ estimated | format_helper('time', true, true) | replace({ ':': "h" }) }}</span>
                 <span class="ml-2">Réel : <span class="bold">{{ real }}</span></span>

@@ -1,6 +1,7 @@
 {% set placeholder = placeholder is defined
     ? placeholder
     : trans('Général', null, 'Zone filtre', 'Unité logistique', false) %}
+{% set disabled = disabled is defined ? disabled : '' %}
 <div class="col-auto m-1 pr-0">
     <div class="input-group minw-100px">
         <input type="text"
@@ -8,6 +9,6 @@
                name="colis"
                id="colis"
                placeholder="{{ placeholder }}"
-               title="Unité logistique">
+               title="Unité logistique" {{ disabled }}>
     </div>
 </div>

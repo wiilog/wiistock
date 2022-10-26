@@ -57,6 +57,7 @@ class TrackingMovementController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $packFilter = $request->query->get('colis');
+        $movementsFilter = $request->query->get('movements');
         if (!empty($packFilter)) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
@@ -79,6 +80,7 @@ class TrackingMovementController extends AbstractController
             'redirectAfterTrackingMovementCreation' => $redirectAfterTrackingMovementCreation,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'fields' => $fields,
+            'movementsFilter' => $movementsFilter,
             "initial_tracking_movements" => $this->api($request, $trackingMovementService)->getContent(),
             "initial_visible_columns" => $this->apiColumns($entityManager, $trackingMovementService)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_MVT_TRACA)),

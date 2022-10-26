@@ -29,10 +29,10 @@
         hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) or
         hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
     <input type="hidden" name="reference-id" value="{{ referenceArticle.id }}">
-    <div class="ra-container d-flex justify-content-center align-content-center">
+    <div class="details-page-container d-flex justify-content-center align-content-center">
         <div class="row wii-column">
             <div class="col-12 col-md-6">
-                <div class="ra-header d-flex flex-column" style="border-color: {{ referenceArticle.type.color }}">
+                <div class="details-page-header d-flex flex-column" style="border-color: {{ referenceArticle.type.color }}">
                     <div class="wii-type" style="background-color: {{ referenceArticle.type.color }}">
                         <span>{{ referenceArticle.type.label }}</span>
                     </div>
@@ -50,10 +50,10 @@
                             </div>
                             <div class="d-flex align-content-center my-3">
                                 <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
-                                <span class="wii-field-text">Quantité disponible <strong>{{ referenceArticle.quantiteDisponible }}</strong></span>
+                                <span class="wii-field-name">Quantité disponible <span class="wii-body-text">{{ referenceArticle.quantiteDisponible }}</span></span>
                             </div>
                             <div class="d-flex align-content-center">
-                                <span class="reference-status wii-body-text mr-3"
+                                <span class="current-status wii-body-text mr-3"
                                       style="background-color: {{ statuses[referenceArticle.statut.code]['color'] }};">
                                     Référence {{ statuses[referenceArticle.statut.code]['status'] }}
                                 </span>
@@ -117,12 +117,10 @@
                         </div>
                     </div>
                     <div class="content comment-container">
-                        <div class="ml-3">
-                            <span class="wii-subtitle">Commentaire</span>
-                            <div class="mt-2 wii-body-text text-break">{{ referenceArticle.commentaire and referenceArticle.commentaire != '<p><br></p>'
-                                ? referenceArticle.commentaire | raw
-                                : '-' }}
-                            </div>
+                        <span class="wii-subtitle">Commentaire</span>
+                        <div class="mt-2 wii-body-text text-break">{{ referenceArticle.commentaire and referenceArticle.commentaire != '<p><br></p>'
+                            ? referenceArticle.commentaire | raw
+                            : '-' }}
                         </div>
                     </div>
                 </div>
@@ -226,7 +224,7 @@
                             </div>
                         </div>
                     {% endif %}
-                    <div class="ra-dropdown {{ not referenceArticle.isUrgent ? 'mt-3' : 'border-0' }}">
+                    <div class="details-page-dropdown {{ not referenceArticle.isUrgent ? 'mt-3' : 'border-0' }}">
                         <label for="touch">
                             {% set plural = referenceArticle.articlesFournisseur | length > 1 ? 's' : '' %}
                             <span class="wii-subtitle dropdown-wrapper">Fournisseur{{ plural }}</span>

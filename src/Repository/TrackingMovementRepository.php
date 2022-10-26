@@ -247,6 +247,12 @@ class TrackingMovementRepository extends EntityRepository
             }
         }
 
+        if($params->has('movementsFilter')) {
+            $trackingMovements = explode(',', $params->get('movementsFilter'));
+            $qb->andWhere('tracking_movement IN (:tracking_movements)')
+                ->setParameter('tracking_movements', $trackingMovements);
+        }
+
         // compte éléments filtrés
         $countFiltered = QueryBuilderHelper::count($qb, 'tracking_movement');
         $qb
@@ -437,6 +443,34 @@ class TrackingMovementRepository extends EntityRepository
             'data' => $qb->getQuery()->getResult(),
             'filtered' => $countFiltered,
             'total' => $countTotal
+        ];
+    }
+
+    public function getArticleTrackingMovements(int $article, ?int $start = null): array {
+        $qb = $this->createQueryBuilder('tracking_movement')
+            ->addSelect('tracking_movement.id AS id')
+            ->addSelect('join_status.code AS type')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('tracking_movement.datetime AS date')
+            ->addSelect('join_operator.username AS operator')
+            ->addSelect('join_logisticUnitParent.code AS logisticUnitParent')
+            ->leftJoin('tracking_movement.pack', 'join_pack')
+            ->leftJoin('join_pack.article', 'join_article')
+            ->leftJoin('tracking_movement.type', 'join_status')
+            ->leftJoin('tracking_movement.emplacement', 'join_location')
+            ->leftJoin('tracking_movement.operateur', 'join_operator')
+            ->leftJoin('tracking_movement.logisticUnitParent', 'join_logisticUnitParent')
+            ->andWhere('join_article.id = :article')
+            ->setMaxResults($start)
+            ->orderBy('tracking_movement.datetime', 'DESC')
+            ->setParameter('article', $article);
+
+        $total = QueryBuilderHelper::count($qb, 'tracking_movement');
+
+        return [
+            'data' => $qb->getQuery()->getResult(),
+            'total' => $total,
+            'filtered' => min($start, $total),
         ];
     }
 }
