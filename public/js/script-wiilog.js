@@ -1055,7 +1055,7 @@ function saveExportFile(routeName,
         format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
     }
     const data = {};
-    $('.filterService input, .dateFilters input').each(function () {
+    $('.filterService input, .dateFilters input, select[name="statut"]').each(function () {
         const $input = $(this);
         const name = $input.attr('name');
         const val = $input.val();

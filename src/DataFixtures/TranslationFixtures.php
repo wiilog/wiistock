@@ -2687,6 +2687,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "New service operation",
                             "tooltip" => "Modale Nouvelle demande de service",
                         ],
+                        [
+                            "fr" => "Type",
+                            "en" => "Type",
+                            "tooltip" => "Paramètrage des champs fixes, sélection de destinataires par type de service",
+                        ],
                     ],
                 ],
                 "Zone liste - Nom de colonnes" => [

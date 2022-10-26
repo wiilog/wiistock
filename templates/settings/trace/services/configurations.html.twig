@@ -2,10 +2,13 @@
 
 <div class="wii-section">
     <div class="row">
-        <div class="col-12">
+        <div class="col-6 mb-3">
             {{ form.checkbox(setting('REMOVE_HOURS_DATETIME'), 'Enlever les heures de la date attendue', false, setting_value('REMOVE_HOURS_DATETIME'))}}
         </div>
-        <div class="col-12 mt-2">
+        <div class="col-6 mb-3">
+            {{ form.checkbox(setting('PREFILL_SERVICE_DATE_TODAY'), 'Pré-remplir la date du jour dans le champ date attendue', false, setting_value('PREFILL_SERVICE_DATE_TODAY'))}}
+        </div>
+        <div class="col-6 mb-3">
             {{ form.checkbox(setting('KEEP_HANDLING_MODAL_OPEN'), 'Vider et rester sur la modale de création de service', false, setting_value('KEEP_HANDLING_MODAL_OPEN'))}}
         </div>
     </div>
