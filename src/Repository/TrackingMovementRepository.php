@@ -247,7 +247,7 @@ class TrackingMovementRepository extends EntityRepository
             }
         }
 
-        if($params->has('movementsFilter')) {
+        if($params->get('movementsFilter')) {
             $trackingMovements = explode(',', $params->get('movementsFilter'));
             $qb->andWhere('tracking_movement IN (:tracking_movements)')
                 ->setParameter('tracking_movements', $trackingMovements);
