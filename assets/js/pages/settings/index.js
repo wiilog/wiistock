@@ -981,6 +981,9 @@ function applyEventForType(select2) {
     select2.on("change", function () {
         verifyAlreadyDefineTypes(select2);
     });
+    select2.on("open", function () {
+        verifyAlreadyDefineTypes(select2);
+    });
 }
 
 function verifyAlreadyDefineTypes(select2) {

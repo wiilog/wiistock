@@ -40,7 +40,7 @@
                     <div class="d-flex justify-content-end align-items-end mt-2">
                         <button class="btn btn-primary mt-1 add-row-type d-flex align-items-center"
                                 onclick="addTypeRow($(this))"
-                                {{ (types|length <= 1) ? 'disabled' : '' }}>
+                                {{ (elements|length is same as types|length) ? 'disabled' : '' }}>
                             <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter un type
                         </button>
                     </div>
