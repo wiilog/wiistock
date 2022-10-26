@@ -5,11 +5,13 @@ namespace App\EventListener;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\Reception;
+use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
+use WiiCommon\Helper\Stream;
 
 class RefArticleStateNotifier {
 
@@ -39,7 +41,9 @@ class RefArticleStateNotifier {
 
         if ($entity instanceof Reception) {
             $status = $entity->getStatut() ? $entity->getStatut()->getCode() : null;
-            $receptionReferenceArticles = $entity->getReceptionReferenceArticles();
+            $receptionReferenceArticles = Stream::from($entity->getLines())
+                ->flatMap(fn(ReceptionLine $line) => $line->getReceptionReferenceArticles()->toArray())
+                ->toArray();
 
             if ($status === Reception::STATUT_RECEPTION_PARTIELLE){
                 foreach ($receptionReferenceArticles as $receptionReferenceArticle) {
@@ -57,7 +61,7 @@ class RefArticleStateNotifier {
                     $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                 }
             } else {
-                foreach ($entity->getReceptionReferenceArticles() as $receptionReferenceArticle) {
+                foreach ($receptionReferenceArticles as $receptionReferenceArticle) {
                     $reference = $receptionReferenceArticle->getReferenceArticle();
                     $this->refService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
                 }

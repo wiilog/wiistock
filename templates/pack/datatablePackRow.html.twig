@@ -13,7 +13,7 @@
                      data-toggle='modal'
                      data-target='#modalEditPack'
                      data-id="{{ pack.id }}"
-                     onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), false, () => initializeGroupHistoryTable({{ pack.id }}));">
+                     onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), false, () => initializeHistoryTables({{ pack.id }}));">
                     <i class='fas fa-edit mr-2'></i>{{ trans('Général', null, 'Modale', 'Modifier') }}
                 </div>
             {% endif %}
@@ -37,3 +37,4 @@
         </div>
     </div>
 </div>
+D

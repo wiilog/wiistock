@@ -42,7 +42,7 @@ export function initializeFilters(page) {
 export function getStatusHistory(transportId, transportType) {
     $.get(Routing.generate(`status_history_api`, {id:transportId,type: transportType}, true))
         .then(({template}) => {
-            const $statusHistoryContainer = $(`.status-history-container`);
+            const $statusHistoryContainer = $(`.history-container`);
             $statusHistoryContainer.html(template);
         });
 }

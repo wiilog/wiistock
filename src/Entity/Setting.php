@@ -117,7 +117,7 @@ class Setting {
     // étiquettes
     const INCLUDE_BL_IN_LABEL = "INCLURE_BL_SUR_ETIQUETTE";
     const INCLUDE_QTT_IN_LABEL = "INCLURE_QTT_SUR_ETIQUETTE";
-    const BARCODE_TYPE_IS_128 = 'BARCORE_TYPE';
+    const BARCODE_TYPE_IS_128 = 'BARCODE_TYPE';
     const LABEL_WIDTH = 'LABEL_WIDTH';
     const LABEL_HEIGHT = 'LABEL_HEIGHT';
     const LABEL_LOGO = 'LABEL_LOGO';

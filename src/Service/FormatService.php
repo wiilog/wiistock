@@ -152,6 +152,7 @@ class FormatService
         $short = $options['short'] ?? false;
         $time = $options['time'] ?? false;
         $year = $options['year'] ?? true;
+        $at = ($options['removeAt'] ?? false) ? 'à' : '';
 
         return $date
             ? (($short
@@ -162,7 +163,7 @@ class FormatService
                 . " "
                 . strtolower(self::MONTHS[$date->format("n")])
                 . ($year ? (" " . $date->format("Y")) : '')
-                . ($time ? $date->format(" à H:i") : ""))
+                . ($time ? $date->format(" $at H:i") : ""))
             : $else;
     }
 
