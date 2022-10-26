@@ -15,8 +15,8 @@ class ReceptionReferenceArticle {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'receptionReferenceArticles')]
-    private ?Reception $reception = null;
+    #[ORM\ManyToOne(targetEntity: ReceptionLine::class, inversedBy: 'receptionReferenceArticles')]
+    private ?ReceptionLine $receptionLine = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'receptionReferenceArticles')]
     private ?ReferenceArticle $referenceArticle = null;
@@ -63,16 +63,16 @@ class ReceptionReferenceArticle {
         return $this->id;
     }
 
-    public function getReception(): ?Reception {
-        return $this->reception;
+    public function getReceptionLine(): ?ReceptionLine {
+        return $this->receptionLine;
     }
 
-    public function setReception(?Reception $reception): self {
-        if($this->reception && $this->reception !== $reception) {
-            $this->reception->removeReceptionReferenceArticle($this);
+    public function setReceptionLine(?ReceptionLine $receptionLine): self {
+        if($this->receptionLine && $this->receptionLine !== $receptionLine) {
+            $this->receptionLine->removeReceptionReferenceArticle($this);
         }
-        $this->reception = $reception;
-        $reception?->addReceptionReferenceArticle($this);
+        $this->receptionLine = $receptionLine;
+        $receptionLine?->addReceptionReferenceArticle($this);
         return $this;
     }
 

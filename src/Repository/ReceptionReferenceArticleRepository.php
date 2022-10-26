@@ -48,18 +48,6 @@ class ReceptionReferenceArticleRepository extends EntityRepository
         return $query->getSingleScalarResult();;
     }
 
-	public function countByReceptionId($receptionId)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
-			'SELECT COUNT(rra)
-            FROM App\Entity\ReceptionReferenceArticle rra
-            WHERE rra.reception = :receptionId'
-		)->setParameter('receptionId', $receptionId);;
-		return $query->getSingleScalarResult();
-	}
-
 	/**
 	 * @return ReceptionReferenceArticle[]
 	 */
@@ -78,26 +66,6 @@ class ReceptionReferenceArticleRepository extends EntityRepository
             ])
             ->getQuery()
             ->getResult();
-	}
-
-	/**
-	 * @param int $receptionReferenceArticleId
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-	public function countArticlesByRRA($receptionReferenceArticleId)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/* @lang DQL */
-		'SELECT count(a)
-		FROM App\Entity\Article a
-		JOIN a.receptionReferenceArticle rra
-		WHERE rra.id = :rraId'
-		)->setParameter('rraId', $receptionReferenceArticleId);
-
-		return $query->getSingleScalarResult();
 	}
 
 	public function findByReferenceArticleAndReceptionStatus(ReferenceArticle $referenceArticle, array $statuses, ?Reception $ignored = null) {

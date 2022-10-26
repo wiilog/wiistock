@@ -60,9 +60,6 @@ class Reception {
     #[ORM\Column(type: "json", nullable: true)]
     private ?array $orderNumber;
 
-    #[ORM\OneToMany(mappedBy: 'reception', targetEntity: ReceptionReferenceArticle::class)]
-    private Collection $receptionReferenceArticles;
-
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'receptions')]
     private ?Type $type = null;
 
@@ -102,17 +99,16 @@ class Reception {
     #[ORM\OneToOne(inversedBy: 'reception', targetEntity: Arrivage::class)]
     private ?Arrivage $arrival = null;
 
-    #[ORM\OneToMany(mappedBy: 'reception', targetEntity: ReceptionPackLine::class)]
-    private Collection $receptionPackLines;
+    #[ORM\OneToMany(mappedBy: 'reception', targetEntity: ReceptionLine::class)]
+    private Collection $lines;
 
     public function __construct() {
-        $this->receptionReferenceArticles = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->attachments = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
-        $this->receptionPackLines = new ArrayCollection();
+        $this->lines = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -138,39 +134,26 @@ class Reception {
     }
 
     /**
-     * @return Collection<int, ReceptionPackLine>
+     * @return Collection<int, ReceptionLine>
      */
-    public function getReceptionPackLines(): Collection {
-        return $this->receptionPackLines;
+    public function getLines(): Collection {
+        return $this->lines;
     }
 
-    public function addReceptionPackLine(ReceptionPackLine $receptionPackLine): self {
-        if (!$this->receptionPackLines->contains($receptionPackLine)) {
-            $this->receptionPackLines[] = $receptionPackLine;
-            $receptionPackLine->setReception($this);
+    public function addLine(ReceptionLine $line): self {
+        if (!$this->lines->contains($line)) {
+            $this->lines[] = $line;
+            $line->setReception($this);
         }
 
         return $this;
     }
 
-    public function removeReceptionPackLine(ReceptionPackLine $receptionPackLine): self {
-        if ($this->receptionPackLines->removeElement($receptionPackLine)) {
-            if ($receptionPackLine->getReception() === $this) {
-                $receptionPackLine->setReception(null);
+    public function removeLine(ReceptionLine $line): self {
+        if ($this->lines->removeElement($line)) {
+            if ($line->getReception() === $this) {
+                $line->setReception(null);
             }
-        }
-
-        return $this;
-    }
-
-    public function setReceptionPackLines(?iterable $receptionPackLines): self {
-        foreach($this->getReceptionPackLines()->toArray() as $receptionPackLine) {
-            $this->removeReceptionPackLine($receptionPackLine);
-        }
-
-        $this->receptionPackLines = new ArrayCollection();
-        foreach($receptionPackLines ?? [] as $receptionPackLine) {
-            $this->addReceptionPackLine($receptionPackLine);
         }
 
         return $this;
@@ -267,34 +250,6 @@ class Reception {
 
     public function setOrderNumber(?array $orderNumber): self {
         $this->orderNumber = $orderNumber;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|ReceptionReferenceArticle[]
-     */
-    public function getReceptionReferenceArticles(): Collection {
-        return $this->receptionReferenceArticles;
-    }
-
-    public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self {
-        if(!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
-            $this->receptionReferenceArticles[] = $receptionReferenceArticle;
-            $receptionReferenceArticle->setReception($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self {
-        if($this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
-            $this->receptionReferenceArticles->removeElement($receptionReferenceArticle);
-            // set the owning side to null (unless already changed)
-            if($receptionReferenceArticle->getReception() === $this) {
-                $receptionReferenceArticle->setReception(null);
-            }
-        }
 
         return $this;
     }
