@@ -360,6 +360,7 @@ class ArticleDataService
         $lastMessage = $article->getLastMessage();
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
         $hasPairing = !$article->getSensorMessages()->isEmpty() || !$article->getPairings()->isEmpty();
+        $ul = $article->getCurrentLogisticUnit();
 
         $lastDeliveryRequest = $deliveryRequestRepository->findOneByArticle($article, $reception);
 
@@ -396,6 +397,10 @@ class ArticleDataService
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
+            'ul' => $this->templating->render('ul-icon.html.twig', [
+                'ul' => $ul,
+            ]),
+            'project' => $article->getProject()?->getCode() ?? '',
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
@@ -558,6 +563,7 @@ class ArticleDataService
         $fieldConfig = [
             ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
             ['name' => "pairing", "alwaysVisible" => true],
+            ["title" => "<span class='wii-icon wii-icon-ul'><span>",'name' => "ul", "alwaysVisible" => true],
             ["title" => "Libellé", "name" => "label", 'searchable' => true],
             ["title" => "Référence article", "name" => "articleReference", 'searchable' => true],
             ["title" => "Référence fournisseur", "name" => "supplierReference", 'searchable' => true],
@@ -571,7 +577,8 @@ class ArticleDataService
             ["title" => "Lot", "name" => "batch"],
             ["title" => "Date d'entrée en stock", "name" => "stockEntryDate", 'searchable' => true],
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
-            ["title" => "Commentaire", "name" => "comment", 'searchable' => true]
+            ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
+            ["title" => "Projet", "name" => "project", 'searchable' => true],
         ];
 
         return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getVisibleColumns()['article']);
@@ -594,6 +601,7 @@ class ArticleDataService
             $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
             $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
             $article['visibilityGroup'],
+            $article['projectCode']
         ];
 
         foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
