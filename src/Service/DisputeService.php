@@ -249,7 +249,6 @@ class DisputeService {
             throw new \InvalidArgumentException('Invalid mode');
         }
 
-
         $row = [
             $dispute["number"],
             $dispute["type"],
