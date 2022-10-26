@@ -30,6 +30,8 @@ class FiltreSup {
     const FIELD_EMERGENCY = 'emergency';
     const FIELD_EMERGENCY_MULTIPLE = 'emergencyMultiple';
     const FIELD_BUSINESS_UNIT = 'businessUnit';
+    const FIELD_PROJECT_NUMBER = 'projectNumber';
+    const FIELD_ARTICLE = 'article';
     const FIELD_ANOMALY = 'anomaly';
     const FIELD_RECEPTION_STRING = 'reception_string';
     const FIELD_COMMANDE = 'commande';

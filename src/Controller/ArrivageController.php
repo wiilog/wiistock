@@ -8,6 +8,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Chauffeur;
 use App\Entity\Pack;
@@ -24,6 +25,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\DataExportService;
+use App\Service\FilterSupService;
 use App\Service\KeptFieldService;
 use App\Service\LanguageService;
 use App\Service\VisibleColumnService;
@@ -75,8 +77,11 @@ class ArrivageController extends AbstractController {
      * @Route("/", name="arrivage_index")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      */
-    public function index(EntityManagerInterface $entityManager, KeptFieldService $keptFieldService, ArrivageService $arrivageDataService)
-    {
+    public function index(Request $request,
+                          EntityManagerInterface $entityManager,
+                          KeptFieldService $keptFieldService,
+                          ArrivageService $arrivageService,
+                          FilterSupService $filterSupService): Response {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -84,26 +89,32 @@ class ArrivageController extends AbstractController {
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        $fields = $arrivageDataService->getColumnVisibleConfig($entityManager, $user);
+        $fields = $arrivageService->getColumnVisibleConfig($entityManager, $user);
 
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
+        $pageLength = $user->getPageLengthForArrivage() ?: 10;
+        $request->request->add(['length' => $pageLength]);
+
         return $this->render('arrivage/index.html.twig', [
+            "types" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'statuts' => $statuses,
             "fieldsParam" => $fieldsParam,
             "carriers" => $transporteurRepository->findAllSorted(),
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
-            'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
+            'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
+            "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
             "initial_form" => $this->createApi($entityManager, $keptFieldService)->getContent(),
+            "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
+            "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_ARRIVAGE)),
         ]);
     }
 
@@ -775,6 +786,7 @@ class ArrivageController extends AbstractController {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
@@ -807,6 +819,7 @@ class ArrivageController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
+            "projects" => $projectRepository->findAll(),
             'fields' => $fields,
         ]);
     }
@@ -942,15 +955,17 @@ class ArrivageController extends AbstractController {
     {
         if ($data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $projectRepository = $entityManager->getRepository(Project::class);
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
+            $project = $projectRepository->find($data['project']);
 
             $natures = json_decode($data['colis'], true);
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
-            $persistedColis = $colisService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser);
+            $persistedColis = $colisService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project);
             $entityManager->flush();
 
             return new JsonResponse([

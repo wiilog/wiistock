@@ -108,9 +108,8 @@ class DisputeService {
         $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? '';
         $references = $receptionReferenceArticleRepository->getAssociatedIdAndReferences($disputeId)[$disputeId] ?? '';
 
-        $isNumeroBLJson = !empty($dispute['arrivageId']);
         $numerosBL = isset($dispute['numCommandeBl'])
-            ? (implode(', ', $isNumeroBLJson ? json_decode($dispute['numCommandeBl'], true) : $dispute['numCommandeBl']))
+            ? (implode(', ', json_decode($dispute['numCommandeBl'], true)))
             : '';
 
         return [
@@ -246,9 +245,6 @@ class DisputeService {
         if (!in_array($mode, [self::PUT_LINE_ARRIVAL, self::PUT_LINE_RECEPTION])) {
             throw new \InvalidArgumentException('Invalid mode');
         }
-
-        $userRepository = $manager->getRepository(Utilisateur::class);
-        $buyers = join(" / ", $userRepository->getBuyers($dispute["id"]));
 
         $row = [
             $dispute["number"],

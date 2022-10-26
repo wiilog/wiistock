@@ -126,9 +126,12 @@ class PackService {
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
-            'packNum' => $pack->getCode(),
+            'packNum' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
+                "pack" => $pack,
+            ]),
             'packNature' => $this->formatService->nature($pack->getNature()),
             'quantity' => $pack->getQuantity() ?: 1,
+            'project' => $pack->getProject()?->getCode(),
             'packLastDate' => $lastPackMovement
                 ? ($lastPackMovement->getDatetime()
                     ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
@@ -229,6 +232,9 @@ class PackService {
                     ->setNature($nature)
                     ->setProject($project);
 
+                if(isset($options['project'])){
+                    $pack->setProject($options['project']);
+                }
                 $arrival->addPack($pack);
             }
             else if (isset($options['orderLine'])) {
@@ -250,6 +256,9 @@ class PackService {
                     ->createPackWithCode($code)
                     ->setNature($nature);
 
+                if(isset($options['project'])){
+                    $pack->setProject($options['project']);
+                }
                 $orderLine->setPack($pack);
             }
             else {
@@ -271,7 +280,7 @@ class PackService {
                                       array $colisByNatures,
                                       $user,
                                       bool $persistTrackingMovements = true,
-                                      ?Project $project = null): array
+                                      Project $project = null): array
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
@@ -289,7 +298,7 @@ class PackService {
         foreach ($colisByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);
             for ($i = 0; $i < $number; $i++) {
-                $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature, 'project' => $project ]);
+                $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature, 'project' => $project]);
                 if ($persistTrackingMovements && isset($location)) {
                     $this->trackingMovementService->persistTrackingForArrivalPack(
                         $entityManager,

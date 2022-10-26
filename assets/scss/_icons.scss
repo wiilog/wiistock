@@ -14,6 +14,7 @@
 $icons: (
     "accueil": "../../public/svg/accueil.svg",
     "ask-quantity": "../../public/svg/ask-quantity.svg",
+    "article-in-lu": "../../public/svg/article-in-lu.svg",
     "addlist": "../../public/svg/addlist.svg",
     "addref": "../../public/svg/addref.svg",
     "association": "../../public/svg/association.svg",
@@ -107,6 +108,8 @@ $icons: (
     'new-article': "../../public/svg/new-article.svg",
     'calendar-preparation-black': "../../public/svg/calendar-preparation-black.svg",
     'documentation': "../../public/svg/documentation.svg",
+    'reception-black': "../../public/svg/reception-black.svg",
+    'reception-white': "../../public/svg/reception-white.svg",
     'dots': "../../public/svg/dotsblack.svg",
 );
 
@@ -138,4 +141,8 @@ $icon-colors: (
             background: $val;
         }
     }
+}
+
+.primary-on-hover:hover {
+    background: $primary;
 }
