@@ -12,7 +12,6 @@ use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;

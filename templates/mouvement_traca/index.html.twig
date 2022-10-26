@@ -23,73 +23,47 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {% if hasRightToCreateMovement or hasRightExport %}
-
-                    <div class="btn-group">
-                        {% if hasRightToCreateMovement %}
-                            <button type="button"
-                                    data-toggle="modal"
-                                    data-target="#modalNewMvtTraca"
-                                    class="btn btn-primary d-flex align-items-center {{ hasRightExport ? 'split-button' }}"
-                                    data-backdrop="static"
-                                    data-keyboard="false"
-                                    onclick="clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))">
-                                <span class="wii-icon wii-icon-plus mr-2"></span>
-                                {{ trans('Traçabilité', 'Mouvements', 'Nouveau mouvement', false) }}
-                            </button>
-                        {% elseif hasRightExport %}
-                            <button type="button"
-                                    class="btn btn-primary"
-                                    onclick="saveExportFile('get_mouvements_traca_csv', true, {}, false, Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'), true)">
-                                <i class="fa fa-file-csv mr-2"></i>
-                                {{ trans('Général', '', 'Zone liste', 'Exporter au format CSV', false) }}
-                            </button>
-                        {% else %}
-                            <button type="button"
-                                    class="btn btn-primary"
-                                    data-toggle="modal"
-                                    data-target="#modalColumnVisible">
-                                <i class="fa fa-cog mr-2"></i>
-                                {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
-                            </button>
-                        {% endif %}
-                        <button type="button"
-                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                            {% if hasRightToCreateMovement and hasRightExport %}
-                                <a class="dropdown-item pointer"
-                                   onclick="saveExportFile('get_mouvements_traca_csv', true, {}, false, '{{ trans('Général', '', 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
-                                    <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                                    {{ trans('Général', '', 'Zone liste', 'Exporter au format CSV', false) }}
-                                </a>
-                            {% endif %}
-                            <a class="dropdown-item pointer"
-                               data-toggle="modal"
-                               data-target="#modalColumnVisible">
-                                <i class="fa fa-cog mr-2"></i>
-                                {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
-                            </a>
-                        </div>
-                    </div>
-                {% else %}
-                    <button type="button"
-                            class="btn btn-primary"
-                            data-toggle="modal"
-                            data-target="#modalColumnVisible">
-                        <i class="fa fa-cog mr-2"></i>
-                        {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
-                    </button>
-                {% endif %}
+                {% include "utils/action-button.html.twig" with {
+                    actions: [
+                        {
+                            hasRight: hasRightToCreateMovement,
+                            title: trans('Traçabilité', 'Mouvements', 'Nouveau mouvement', false),
+                            icon: "wii-icon wii-icon-plus",
+                            attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalNewMvtTraca",
+                                "data-backdrop": "static",
+                                "data-keyboard": "false",
+                                "onclick": "clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))"
+                            },
+                        },
+                        {
+                            hasRight: hasRightExport,
+                            title:  trans('Général', '', 'Zone liste', 'Exporter au format CSV', false),
+                            icon : "fa fa-file-csv",
+                            attributes: {
+                                "onclick" : "saveExportFile('get_mouvements_traca_csv', true, {}, false, Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'), true)"
+                            },
+                        },
+                        {
+                            title : trans('Général', '', 'Zone liste', 'Gestion des colonnes', false),
+                            icon : "fa fa-cog",
+                                attributes: {
+                                "data-toggle" : "modal",
+                                "data-target" : "#modalColumnVisible",
+                            },
+                        }
+                    ]
+                } %}
             </div>
         </div>
         <div class="row">
             <div class="col-12">
-                <table id="tableMvts" class="table w-100"></table>
+                <table id="tableMvts"
+                       class="table w-100"
+                       data-initial-data="{{ initial_tracking_movements }}"
+                       data-initial-visible="{{ initial_visible_columns }}">
+                </table>
             </div>
             <div class="d-none justify-content-center" id="spinner">
                 <div class="spinner-border sizeLoader" role="status">
@@ -103,6 +77,8 @@
             </div>
         </div>
     </div>
+
+    <input id="trackingMovementFilters" value="{{ initial_filters }}" hidden>
 
     {% include "mouvement_traca/modalNewMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}

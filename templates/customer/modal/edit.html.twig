@@ -1,0 +1,19 @@
+<div class="modal fade" id="modalEditCustomer" role="dialog" aria-labelledby="dataModalCenterTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Modifier un client"
+            } %}
+
+            <div class="modal-body modal-input"></div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', name: 'id', id: 'submitEditCustomer', type: 'submit', text: 'Enregistrer'}
+                ],
+            } %}
+
+        </div>
+    </div>
+</div>

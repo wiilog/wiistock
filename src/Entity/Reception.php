@@ -29,75 +29,81 @@ class Reception {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'receptions')]
     #[ORM\JoinColumn(nullable: true)]
-    private $fournisseur;
+    private ?Fournisseur $fournisseur = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $commentaire;
+    private ?string $commentaire = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $date;
+    private ?DateTime $date = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
-    private $number;
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
+    private ?string $number = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'receptions')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "receptions")]
     #[ORM\JoinColumn(nullable: true)]
-    private $utilisateur;
+    private ?Utilisateur $utilisateur = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'receptions')]
-    private $statut;
+    private ?Statut $statut = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private ?DateTime $dateAttendue;
+    private ?DateTime $dateAttendue = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $dateCommande;
+    private ?DateTime $dateCommande = null;
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private $orderNumber;
+    #[ORM\Column(type: "json", nullable: true)]
+    private ?array $orderNumber;
 
-    #[ORM\OneToMany(targetEntity: ReceptionReferenceArticle::class, mappedBy: 'reception')]
-    private $receptionReferenceArticles;
+    #[ORM\OneToMany(mappedBy: 'reception', targetEntity: ReceptionReferenceArticle::class)]
+    private Collection $receptionReferenceArticles;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'receptions')]
-    private $type;
+    private ?Type $type = null;
 
     #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'reception')]
-    private $transporteur;
+    private ?Transporteur $transporteur = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $dateFinReception;
+    private ?DateTime $dateFinReception = null;
 
-    #[ORM\OneToMany(targetEntity: 'App\Entity\DeliveryRequest\Demande', mappedBy: 'reception')]
-    private $demandes;
+    #[ORM\OneToMany(mappedBy: 'reception', targetEntity: 'App\Entity\DeliveryRequest\Demande')]
+    private Collection $demandes;
 
-    #[ORM\OneToMany(targetEntity: TransferRequest::class, mappedBy: 'reception')]
-    private $transferRequests;
+    #[ORM\OneToMany(mappedBy: 'reception', targetEntity: TransferRequest::class)]
+    private Collection $transferRequests;
 
-    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'receptionOrder')]
-    private $mouvements;
-
-    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    private $location;
+    #[ORM\OneToMany(mappedBy: 'receptionOrder', targetEntity: MouvementStock::class)]
+    private Collection $mouvements;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    private $storageLocation;
+    private ?Emplacement $location = null;
+
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
+    private ?Emplacement $storageLocation = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $urgentArticles;
+    private ?bool $urgentArticles = null;
 
-    #[ORM\OneToMany(targetEntity: TrackingMovement::class, mappedBy: 'reception')]
-    private $trackingMovements;
+    #[ORM\OneToMany(mappedBy: 'reception', targetEntity: TrackingMovement::class)]
+    private Collection $trackingMovements;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $manualUrgent;
+    private ?bool $manualUrgent = null;
 
-    #[ORM\OneToMany(targetEntity: PurchaseRequestLine::class, mappedBy: 'reception')]
-    private ?Collection $purchaseRequestLines;
+    #[ORM\OneToMany(mappedBy: 'reception', targetEntity: PurchaseRequestLine::class)]
+    private Collection $purchaseRequestLines;
+
+    #[ORM\OneToOne(inversedBy: 'reception', targetEntity: Arrivage::class)]
+    private ?Arrivage $arrival = null;
+
+    #[ORM\OneToMany(mappedBy: 'reception', targetEntity: ReceptionPackLine::class)]
+    private Collection $receptionPackLines;
 
     public function __construct() {
         $this->receptionReferenceArticles = new ArrayCollection();
@@ -106,10 +112,68 @@ class Reception {
         $this->trackingMovements = new ArrayCollection();
         $this->attachments = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
+        $this->receptionPackLines = new ArrayCollection();
     }
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    public function getArrival(): ?Arrivage {
+        return $this->arrival;
+    }
+
+    public function setArrival(?Arrivage $arrival): self {
+        if($this->arrival && $this->arrival->getReception() !== $this) {
+            $oldArrival = $this->arrival;
+            $this->arrival = null;
+            $oldArrival->setReception(null);
+        }
+        $this->arrival = $arrival;
+        if($this->arrival && $this->arrival->getReception() !== $this) {
+            $this->arrival->setReception($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ReceptionPackLine>
+     */
+    public function getReceptionPackLines(): Collection {
+        return $this->receptionPackLines;
+    }
+
+    public function addReceptionPackLine(ReceptionPackLine $receptionPackLine): self {
+        if (!$this->receptionPackLines->contains($receptionPackLine)) {
+            $this->receptionPackLines[] = $receptionPackLine;
+            $receptionPackLine->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceptionPackLine(ReceptionPackLine $receptionPackLine): self {
+        if ($this->receptionPackLines->removeElement($receptionPackLine)) {
+            if ($receptionPackLine->getReception() === $this) {
+                $receptionPackLine->setReception(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setReceptionPackLines(?iterable $receptionPackLines): self {
+        foreach($this->getReceptionPackLines()->toArray() as $receptionPackLine) {
+            $this->removeReceptionPackLine($receptionPackLine);
+        }
+
+        $this->receptionPackLines = new ArrayCollection();
+        foreach($receptionPackLines ?? [] as $receptionPackLine) {
+            $this->addReceptionPackLine($receptionPackLine);
+        }
+
+        return $this;
     }
 
     public function getFournisseur(): ?Fournisseur {
@@ -197,11 +261,11 @@ class Reception {
         return $this;
     }
 
-    public function getOrderNumber(): ?string {
+    public function getOrderNumber(): ?array {
         return $this->orderNumber;
     }
 
-    public function setOrderNumber(?string $orderNumber): self {
+    public function setOrderNumber(?array $orderNumber): self {
         $this->orderNumber = $orderNumber;
 
         return $this;
@@ -451,5 +515,4 @@ class Reception {
 
         return $this;
     }
-
 }

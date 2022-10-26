@@ -17,7 +17,6 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Nbgrp\OneloginSamlBundle\Security\User\SamlUserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -38,6 +37,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_RECEPTION_VISIBLE_COLUMNS = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation"];
     const DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS = ["actions", "pairing", "createdAt", "validatedAt", "requester", "number", "status", "type"];
     const DEFAULT_HANDLING_VISIBLE_COLUMNS = ["actions", "desiredDate", "creationDate", "requester", "validationDate", "number", "status", "type", "subject", "treatedBy", "emergency"];
+    const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
     const DEFAULT_VISIBLE_COLUMNS = [
         'reference' => self::DEFAULT_REFERENCE_VISIBLE_COLUMNS,
         'article' => self::DEFAULT_ARTICLE_VISIBLE_COLUMNS,
@@ -48,6 +48,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'reception' => self::DEFAULT_RECEPTION_VISIBLE_COLUMNS,
         'deliveryRequest' => self::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS,
         'handling' => self::DEFAULT_HANDLING_VISIBLE_COLUMNS,
+        'arrivalPack' => self::DEFAULT_PACK_VISIBLE_COLUMNS,
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
@@ -1861,7 +1862,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     public function getDisplayedDateFormat(): ?string {
-        return self::DATE_FORMATS_TO_DISPLAY[$this->getDateFormat() ?: 'd/m/Y'];
+        return self::DATE_FORMATS_TO_DISPLAY[$this->getDateFormat() ?: Utilisateur::DEFAULT_DATE_FORMAT];
     }
 
     public function setDateFormat(?string $dateFormat): self {

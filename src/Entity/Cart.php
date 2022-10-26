@@ -15,15 +15,19 @@ class Cart {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity: Utilisateur::class, inversedBy: 'cart', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'cart', targetEntity: Utilisateur::class, cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $user = null;
 
     #[ORM\ManyToMany(targetEntity: ReferenceArticle::class, inversedBy: 'carts')]
     private Collection $references;
 
+    #[ORM\ManyToMany(targetEntity: Article::class, inversedBy: 'carts')]
+    private Collection $articles;
+
     public function __construct() {
         $this->references = new ArrayCollection();
+        $this->articles = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -40,9 +44,6 @@ class Cart {
         return $this;
     }
 
-    /**
-     * @return Collection|ReferenceArticle[]
-     */
     public function getReferences(): Collection {
         return $this->references;
     }
@@ -61,4 +62,21 @@ class Cart {
         return $this;
     }
 
+    public function getArticles(): Collection {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self {
+        if(!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self {
+        $this->articles->removeElement($article);
+
+        return $this;
+    }
 }

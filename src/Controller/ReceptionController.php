@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
@@ -58,7 +59,6 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -162,9 +162,10 @@ class ReceptionController extends AbstractController {
                     : $data['emergency']
                 )
                 : null;
+
             $reception->setManualUrgent($emergency);
             $reception
-                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
+                ->setOrderNumber(!empty($data['orderNumber']) ? explode(",", $data['orderNumber']) : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
                         ? new DateTime(str_replace('/', '-', $data['dateAttendue']))
@@ -375,7 +376,22 @@ class ReceptionController extends AbstractController {
     public function index(EntityManagerInterface $entityManager,
                           ReceptionService       $receptionService,
                           SettingsService        $settingsService,
-                          PurchaseRequest        $purchaseRequest = null): Response {
+                          Request                $request,
+                          PurchaseRequest        $purchaseRequest = null): Response
+    {
+        $arrivageData = null;
+        if ($arrivageId = $request->query->get('arrivage')) {
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $arrivage = $arrivageRepository->find($arrivageId);
+            if ($arrivage && !$arrivage->getReception()) {
+                $arrivageData = [
+                    'id' => $arrivageId,
+                    'fournisseur' => $arrivage->getFournisseur(),
+                    'transporteur' => $arrivage->getTransporteur(),
+                    'numCommande' => $arrivage->getNumeroCommandeList()
+                ];
+            }
+        }
         $purchaseRequestLinesOrderNumbers = [];
         if ($purchaseRequest) {
             $purchaseRequestLinesOrderNumbers = $purchaseRequest->getPurchaseRequestLines()
@@ -413,6 +429,7 @@ class ReceptionController extends AbstractController {
             'purchaseRequestFilter' => $purchaseRequest ? implode(',', $purchaseRequestLinesOrderNumbers) : 0,
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
+            'arrivageToReception' => $arrivageData
         ]);
     }
 
@@ -700,7 +717,7 @@ class ReceptionController extends AbstractController {
 
             $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
             $reception = $receptionReferenceArticle->getReception();
-            $quantite = $data['quantiteAR'];
+            $quantite = $data['quantite'];
             $receivedQuantity = $receptionReferenceArticle->getQuantite();
 
             if(empty($receivedQuantity)) {
@@ -1546,7 +1563,7 @@ class ReceptionController extends AbstractController {
     private function serializeReception(array $reception): array {
         return [
             $reception['number'] ?: '',
-            $reception['orderNumber'] ?: '',
+            $reception['orderNumber'] ? join(', ', $reception['orderNumber']) : '',
             $reception['providerName'] ?: '',
             $reception['userUsername'] ?: '',
             $reception['statusName'] ?: '',

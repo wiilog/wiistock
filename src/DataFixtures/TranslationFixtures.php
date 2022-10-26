@@ -542,6 +542,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "Select nature",
                         "tooltip" => "Modale modification groupe",
                     ],
+                    [
+                        "fr" => "{1} à {2}",
+                        "en" => "{1} at {2}",
+                        "tooltip" => "Email de confirmation de livraison d'unité logistique (pour la date)"
+                    ],
+                    [
+                        "fr" => "FOLLOW GT // Dépose effectuée",
+                        "en" => "FOLLOW GT // Drop done",
+                        "tooltip" => "Email de confirmation de livraison d'unité logistique",
+                    ],
+                    [
+                        "fr" => "Votre unité logistique a été livrée",
+                        "en" => "Your logistics unit has been delivered",
+                        "tooltip" => "Email de confirmation de livraison d'unité logistique",
+                    ],
+                    [
+                        "fr" => "Article",
+                        "en" => "Article",
+                        "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes",
+                    ],
                 ],
             ],
             "Flux - Arrivages" => [
@@ -1257,6 +1277,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Cette unité logistique est référencé dans un ou plusieurs litiges",
                             "en" => "This logistic unit appears in one or more disputes",
+                        ],
+                        [
+                            "fr" => "Cette unité logistique est utilisé dans un ordre de livraison",
+                            "en" => "This logistics unit is used in a delivery order",
                         ],
                     ],
                 ],

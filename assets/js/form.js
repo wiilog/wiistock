@@ -1,5 +1,6 @@
 import WysiwygManager from "./wysiwyg-manager";
 import Flash from "./flash";
+import AJAX, {POST} from "@app/ajax";
 
 export default class Form {
 
@@ -98,6 +99,30 @@ export default class Form {
         return this;
     }
 
+    submitTo(method, route, options) {
+        this.onSubmit((data, form) => {
+            form.loading(
+                () => AJAX.route(method,route)
+                    .json(data)
+                    .then(response => {
+                        if(response.success) {
+                            this.element.modal(`hide`);
+
+                            if(options.success) {
+                                options.success(response);
+                            }
+
+                            if(options.table) {
+                                options.table.ajax.reload();
+                            }
+                        }
+                    })
+            )
+        })
+
+        return this;
+    }
+
     clearOpenListeners() {
         this.openListeners = [];
         return this;
@@ -134,7 +159,7 @@ export default class Form {
      * @param {boolean} endLoading default to true
      */
     loading(action, endLoading = true) {
-        const $submit = this.element.find('[type=submit]');
+        const $submit = this.element.find(`[type=submit]`);
         wrapLoadingOnActionButton($submit, action, endLoading);
     }
 
@@ -253,7 +278,7 @@ export default class Form {
                     if($elem.attr(`type`) === `checkbox`) {
                         return $elem.is(`:checked`) ? $elem.val() : null;
                     } else {
-                        return $elem.val()
+                        return $elem.val();
                     }
                 })
                 .filter(val => val !== null));
@@ -400,7 +425,7 @@ function treatInputError($input, errors, form) {
         if ($input.val() && !$input.val().match(regex)) {
             errors.push({
                 elements: [$input],
-                message: `Le numéro de téléphone n'est pas valide`,
+                message: `Le numéro de ${$input.is(`[data-fax]`) ? `fax` : `téléphone`} n'est pas valide`,
             });
         }
     }

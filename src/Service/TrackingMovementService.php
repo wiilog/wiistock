@@ -10,7 +10,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
-use App\Entity\Language;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
@@ -24,9 +23,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use App\Helper\LanguageHelper;
-use App\Service\TranslationService;
-use Google\Service\AndroidPublisher\Track;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -87,8 +83,7 @@ class TrackingMovementService extends AbstractController
         $this->groupService = $groupService;
     }
 
-    public function getDataForDatatable($params = null)
-    {
+    public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
@@ -163,7 +158,7 @@ class TrackingMovementService extends AbstractController
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'code' => $this->formatService->pack($trackingPack),
+            'packCode' => !($movement->getLogisticUnitParent() && $movement->getPack()?->getArticle()) ? $this->formatService->pack($trackingPack) : "",
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
@@ -173,17 +168,14 @@ class TrackingMovementService extends AbstractController
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : ($trackingPack && $trackingPack->getLastTracking() && $trackingPack->getLastTracking()->getMouvementStock()
-                        ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()?->getArticleFournisseur()->getReferenceArticle()->getLibelle()
-                        : '')),
+                    : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getArticleFournisseur()?->getReferenceArticle()?->getLibelle()),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getLabel()
-                    : ($trackingPack && $trackingPack->getLastTracking() && $trackingPack->getLastTracking()->getMouvementStock()
-                        ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()?->getLabel()
-                        : '')),
+                    : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getLabel()),
             "quantity" => $movement->getQuantity() ?: '',
+            "article" => $movement->getLogisticUnitParent() && $movement->getPack()->getArticle() ? $movement->getPack()->getArticle()?->getBarCode() : "",
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => $this->formatService->user($movement->getOperateur()),
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
@@ -617,7 +609,8 @@ class TrackingMovementService extends AbstractController
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Issu de', false), 'name' => 'origin', 'orderable' => false],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Date', false), 'name' => 'date'],
-            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'code'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'packCode'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Article', false), 'name' => 'article'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Référence', false), 'name' => 'reference'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Libellé', false),  'name' => 'label'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Groupe', false),  'name' => 'group'],
@@ -661,37 +654,37 @@ class TrackingMovementService extends AbstractController
         $attachementName = $attachement[$movement['id']] ?? ' ' ;
 
         if(!empty($movement['numeroArrivage'])) {
-           $origine =  'Arrivage-' . $movement['numeroArrivage'];
+           $origine =  $this->translation->translate("Traçabilité", "Flux - Arrivages", "Divers", "Arrivage", false) . '-' . $movement['numeroArrivage'];
         }
         if(!empty($movement['receptionNumber'])) {
-            $origine = 'Reception-' . $movement['receptionNumber'];
+            $origine = $this->translation->translate("Ordre", "Réceptions", "Reception", false) . '-' . $movement['receptionNumber'];
         }
         if(!empty($movement['dispatchNumber'])) {
-            $origine = 'Acheminement-' . $movement['dispatchNumber'];
+            $origine = $this->translation->translate("Demande", "Acheminements", "Général", "Acheminement", false) . '-' . $movement['dispatchNumber'];
         }
         if(!empty($movement['transferNumber'])) {
             $origine = 'transfert-' . $movement['transferNumber'];
         }
 
         $data = [
-            FormatHelper::datetime($movement['datetime'], "", false, $this->security->getUser()),
+            $this->formatService->datetime($movement['datetime']),
             $movement['code'],
             $movement['locationLabel'],
             $movement['quantity'],
-            $movement['typeName'],
+            $this->translation->translate("Traçabilité", "Mouvements", $movement['typeName'], false),
             $movement['operatorUsername'],
             strip_tags($movement['commentaire']),
             $attachementName,
             $origine ?? ' ',
             $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
-                        ? implode(', ', $movement['numeroCommandeListArrivage'])
-                        : ($movement['orderNumber'] ?: ''),
-            $movement['isUrgent'] ? 'oui' : 'non',
+                        ? join(', ', $movement['numeroCommandeListArrivage'])
+                        : join(', ', $movement['orderNumber']),
+            $this->formatService->bool($movement['isUrgent']),
             $movement['packParent'],
         ];
 
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField, $this->security->getUser());
+            $data[] = $this->formatService->freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField);
         }
         $CSVExportService->putLine($handle, $data);
     }

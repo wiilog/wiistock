@@ -28,7 +28,6 @@ use App\Entity\VisibilityGroup;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -572,4 +571,16 @@ class SelectController extends AbstractController {
             "results" => $vehicles
         ]);
     }
+
+    /**
+     * @Route("/select/articles", name="ajax_select_articles", options={"expose"=true})
+     */
+    public function articles(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"));
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
 }

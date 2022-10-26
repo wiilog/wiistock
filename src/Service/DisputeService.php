@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
 use App\Entity\Dispute;
-use App\Entity\Pack;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -16,7 +15,6 @@ use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-use App\Service\TranslationService;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -101,20 +99,17 @@ class DisputeService {
         $lastHistoryRecordDate = $dispute['lastHistoryRecord_date'];
         $lastHistoryRecordComment = $dispute['lastHistoryRecord_comment'];
         $user = $this->security->getUser();
-        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
+        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : (Utilisateur::DEFAULT_DATE_FORMAT . ' H:i');
 
         $lastHistoryRecordStr = ($lastHistoryRecordDate && $lastHistoryRecordComment)
-            ? (FormatHelper::datetime($lastHistoryRecordDate, "", false, $this->security->getUser()) . ' : ' . nl2br($lastHistoryRecordComment))
+            ? ($this->formatService->datetime($lastHistoryRecordDate, "", false, $this->security->getUser()) . ' : ' . nl2br($lastHistoryRecordComment))
             : '';
 
         $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? '';
         $references = $receptionReferenceArticleRepository->getAssociatedIdAndReferences($disputeId)[$disputeId] ?? '';
 
-        $isNumeroBLJson = !empty($dispute['arrivageId']);
         $numerosBL = isset($dispute['numCommandeBl'])
-            ? ($isNumeroBLJson
-                ? implode(', ', json_decode($dispute['numCommandeBl'], true))
-                : $dispute['numCommandeBl'])
+            ? (implode(', ', json_decode($dispute['numCommandeBl'], true)))
             : '';
 
         return [
@@ -251,9 +246,6 @@ class DisputeService {
             throw new \InvalidArgumentException('Invalid mode');
         }
 
-        $userRepository = $manager->getRepository(Utilisateur::class);
-        $buyers = join(" / ", $userRepository->getBuyers($dispute["id"]));
-
         $row = [
             $dispute["number"],
             $dispute["type"],
@@ -298,7 +290,7 @@ class DisputeService {
 
             $receptionNumber = $firstArticle ? $firstArticle['receptionNumber'] : '';
             $receptionSupplier = $firstArticle ? $firstArticle['supplier'] : '';
-            $receptionOrderNumber = $firstArticle ? $firstArticle['receptionOrderNumber'] : '';
+            $receptionOrderNumber = $firstArticle ? join(", ", $firstArticle['receptionOrderNumber']) : '';
 
             $references = $associatedIdAndReferences[$dispute["id"]];
             $orderNumbers = $associatedIdsAndOrderNumbers[$dispute["id"]];

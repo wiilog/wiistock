@@ -244,6 +244,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DISPLAY_TRAN,
                 Action::DISPLAY_VEHICLE,
                 Action::DISPLAY_PACK_NATURE,
+                Action::DISPLAY_PROJECTS,
+                Action::DISPLAY_CUSTOMER,
             ],
         ],
         Menu::IOT => [

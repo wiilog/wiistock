@@ -10,16 +10,18 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 
+use App\Entity\Project;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
 
+use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,12 +45,14 @@ class PackController extends AbstractController
     {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
         return $this->render('pack/index.html.twig', [
             'userLanguage' => $this->getUser()->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
-            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE])
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
+            'projects' => $projectRepository->findAll(),
         ]);
     }
 
@@ -237,6 +241,9 @@ class PackController extends AbstractController
                     1 => $pack->getArrivage()->getNumeroArrivage()
                 ]);
             }
+            if ($pack->getTransportDeliveryOrderPack() ) {
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans un ordre de livraison');
+            }
 
             if (isset($msg)) {
                 return $this->json([
@@ -251,7 +258,7 @@ class PackController extends AbstractController
             return new JsonResponse([
                 'success' => true,"",
                 'msg' => $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "L'unité logistique {1} a bien été supprimée", [
-                        1 => $pack->getArrivage()->getNumeroArrivage()
+                        1 => $packCode
                     ])
             ]);
         }
@@ -281,5 +288,27 @@ class PackController extends AbstractController
             return $this->json($data);
         }
         throw new BadRequestHttpException();
+    }
+
+    #[Route("/colonne-visible", name: "save_column_visible_for_pack", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService,
+                                      TranslationService $translation): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $fields = array_keys($data);
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
+        $visibleColumnService->setVisibleColumns('arrivalPack', $fields, $user);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
+        ]);
     }
 }

@@ -7,9 +7,11 @@ use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Pack;
+use App\Entity\Project;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
+use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
@@ -45,6 +47,12 @@ class PackService {
 
     #[Required]
     public LanguageService $languageService;
+
+    #[Required]
+    public TranslationService $translation;
+
+    #[Required]
+    public VisibleColumnService $visibleColumnService;
 
     #[Required]
     public FormatService $formatService;
@@ -118,9 +126,12 @@ class PackService {
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
-            'packNum' => $pack->getCode(),
+            'packNum' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
+                "pack" => $pack,
+            ]),
             'packNature' => $this->formatService->nature($pack->getNature()),
             'quantity' => $pack->getQuantity() ?: 1,
+            'project' => $pack->getProject()?->getCode(),
             'packLastDate' => $lastPackMovement
                 ? ($lastPackMovement->getDatetime()
                     ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
@@ -217,6 +228,9 @@ class PackService {
                     ->createPackWithCode($code)
                     ->setNature($nature);
 
+                if(isset($options['project'])){
+                    $pack->setProject($options['project']);
+                }
                 $arrival->addPack($pack);
             }
             else if (isset($options['orderLine'])) {
@@ -238,6 +252,9 @@ class PackService {
                     ->createPackWithCode($code)
                     ->setNature($nature);
 
+                if(isset($options['project'])){
+                    $pack->setProject($options['project']);
+                }
                 $orderLine->setPack($pack);
             }
             else {
@@ -258,7 +275,8 @@ class PackService {
                                       Arrivage $arrivage,
                                       array $colisByNatures,
                                       $user,
-                                      bool $persistTrackingMovements = true): array
+                                      bool $persistTrackingMovements = true,
+                                      Project $project = null): array
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
@@ -276,7 +294,7 @@ class PackService {
         foreach ($colisByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);
             for ($i = 0; $i < $number; $i++) {
-                $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature]);
+                $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature, 'project' => $project]);
                 if ($persistTrackingMovements && isset($location)) {
                     $this->trackingMovementService->persistTrackingForArrivalPack(
                         $entityManager,
@@ -338,5 +356,22 @@ class PackService {
         }
 
         return $counter;
+    }
+
+    public function getColumnVisibleConfig(Utilisateur $currentUser): array {
+        $columnsVisible = $currentUser->getVisibleColumns()['arrivalPack'];
+        return $this->visibleColumnService->getArrayConfig(
+            [
+                ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
+                ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature')],
+                ["name" => 'code', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Unités logistiques')],
+                ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
+                ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement')],
+                ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur')],
+                ["name" => 'project', 'title' => 'Projet'],
+            ],
+            [],
+            $columnsVisible
+        );
     }
 }

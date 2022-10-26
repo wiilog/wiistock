@@ -19,7 +19,6 @@ use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
-use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FilterSupService;
@@ -32,7 +31,6 @@ use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -52,7 +50,7 @@ class TrackingMovementController extends AbstractController
     public function index(Request $request,
                           EntityManagerInterface $entityManager,
                           FilterSupService $filterSupService,
-                          TrackingMovementService $trackingMovementService) {
+                          TrackingMovementService $trackingMovementService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -69,23 +67,22 @@ class TrackingMovementController extends AbstractController
             $entityManager->flush();
         }
 
-        /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-        $redirectAfterTrackingMovementCreation = $settingRepository->findOneBy(['label' => Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT]);
+        $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
+
+        $request->request->add(['length' => 10]);
 
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-            'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true),
+            'redirectAfterTrackingMovementCreation' => $redirectAfterTrackingMovementCreation,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
-            'fields' => $fields
+            'fields' => $fields,
+            "initial_tracking_movements" => $this->api($request, $trackingMovementService)->getContent(),
+            "initial_visible_columns" => $this->apiColumns($entityManager, $trackingMovementService)->getContent(),
+            "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_MVT_TRACA)),
         ]);
-    }
-
-    private function errorWithDropOff($pack, $location, $packTranslation, $natureTranslation) {
-        $bold = '<span class="font-weight-bold"> ';
-        return 'Le ' . $packTranslation . $bold . $pack . '</span> ne dispose pas des ' . $natureTranslation . ' pour être déposé sur l\'emplacement' . $bold . $location . '</span>.';
     }
 
     /**
@@ -478,12 +475,12 @@ class TrackingMovementController extends AbstractController
     /**
      * @Route("/csv", name="get_mouvements_traca_csv", options={"expose"=true}, methods={"GET"})
      */
-    public function getTrackingMovementCSV(Request $request,
-                                           CSVExportService $CSVExportService,
+    public function getTrackingMovementCSV(Request                 $request,
+                                           CSVExportService        $CSVExportService,
                                            TrackingMovementService $trackingMovementService,
-                                           FreeFieldService $freeFieldService,
-                                           EntityManagerInterface $entityManager): Response
-    {
+                                           FreeFieldService        $freeFieldService,
+                                           TranslationService      $translationService,
+                                           EntityManagerInterface  $entityManager): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -499,18 +496,18 @@ class TrackingMovementController extends AbstractController
 
             if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
                 $csvHeader = array_merge([
-                    'date',
-                    'colis',
-                    'emplacement',
-                    'quantité',
-                    'type',
-                    'opérateur',
-                    'commentaire',
-                    'pieces jointes',
-                    'origine',
-                    'numéro de commande',
-                    'urgence',
-                    'groupe'
+                    $translationService->translate('Traçabilité', 'Général', 'Date', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Unité logistique', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Emplacement', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Quantité', false),
+                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Opérateur', false),
+                    $translationService->translate('Général', null, 'Modale', 'Commentaire', false),
+                    $translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),
+                    $translationService->translate('Traçabilité', 'Général', 'Issu de', false),
+                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false),
+                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence', false),
+                    $translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),
                 ], $freeFieldsConfig['freeFieldsHeader']);
 
                 $trackingMovements = $trackingMovementRepository->iterateByDates($dateTimeMin, $dateTimeMax);

@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
@@ -11,6 +12,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\ReceptionPackLine;
 use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;
@@ -19,8 +21,8 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;
-use App\Service\TranslationService;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -112,6 +114,7 @@ class ReceptionService
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $ransporteurRepository = $entityManager->getRepository(Transporteur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         if(!empty($data['anomalie'])) {
             $anomaly = (
                 isset($data['anomalie'])
@@ -134,6 +137,21 @@ class ReceptionService
         $date = new DateTime('now');
 
         $numero = $this->uniqueNumberService->create($entityManager, Reception::NUMBER_PREFIX, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
+
+        if(!empty($data['arrivage'])) {
+            $arrivageId = $data['arrivage'];
+            $arrivage = $arrivageRepository->find($arrivageId);
+            if ($arrivage && !$arrivage->getReception()) {
+                $arrivage->setReception($reception);
+                foreach ($arrivage->getPacks() as $pack) {
+                    $receptionPackLine = new ReceptionPackLine();
+                    $receptionPackLine
+                        ->setReception($reception)
+                        ->setPack($pack);
+                    $entityManager->persist($receptionPackLine);
+                }
+            }
+        }
 
         if(!empty($data['fournisseur'])) {
             if($fromImport) {
@@ -207,7 +225,7 @@ class ReceptionService
         }
 
         $reception
-            ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
+            ->setOrderNumber(!empty($data['orderNumber']) ? explode(",", $data['orderNumber']) : null)
             ->setStatut($statut)
             ->setNumber($numero)
             ->setDate($date)
@@ -268,7 +286,7 @@ class ReceptionService
                     ->toArray())
             ),
             "number" => $reception->getNumber() ?: "",
-            "orderNumber" => $reception->getOrderNumber() ?: "",
+            "orderNumber" => $reception->getOrderNumber() ? join(",", $reception->getOrderNumber()) : "",
             "storageLocation" => FormatHelper::location($reception->getStorageLocation()),
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
@@ -290,7 +308,7 @@ class ReceptionService
             ["title" => $this->translation->translate("Ordre", "Réceptions", "n° de réception", false), "name" => "number", 'searchable' => true, 'translated' => true],
             ["title" => "Date attendue", "name" => "dateAttendue", 'searchable' => true],
             ["title" => "Date fin", "name" => "DateFin", 'searchable' => true],
-            ["title" => "Numéro commande", "name" => "orderNumber", 'searchable' => true],
+            ["title" => "Numéro(s) commande", "name" => "orderNumber", "searchable" => true, "orderable" => false],
             ["title" => "Destinataire(s)", "name" => "receiver", 'searchable' => true],
             ["title" => "Fournisseur", "name" => "Fournisseur", 'searchable' => true],
             ["title" => "Statut", "name" => "Statut", 'searchable' => true],
@@ -315,7 +333,7 @@ class ReceptionService
         $dateAttendue = $reception->getDateAttendue();
         $dateEndReception = $reception->getDateFinReception();
         $creationDate = $reception->getDate();
-        $orderNumber = $reception->getOrderNumber();
+        $orderNumber = $reception->getOrderNumber() ? join(", ", $reception->getOrderNumber()) : null;
         $comment = $reception->getCommentaire();
         $storageLocation = $reception->getStorageLocation();
         $attachments = $reception->getAttachments();
@@ -438,7 +456,7 @@ class ReceptionService
         if (!$reception) {
             $receptions = $receptionRepository->findBy(
                 [
-                    'orderNumber' => $orderNumber,
+                    'orderNumber' => "%\"$orderNumber\"%",
                     'dateAttendue' => $expectedDate
                         ? DateTime::createFromFormat('d/m/Y', $expectedDate) ?: null
                         : null

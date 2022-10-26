@@ -5,13 +5,11 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
-use App\Entity\Transport\TransportRequest;
 use App\Helper\LanguageHelper;
 use App\Repository\TypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use JetBrains\PhpStorm\Deprecated;
 
 #[ORM\Entity(repositoryClass: TypeRepository::class)]
 class Type {
