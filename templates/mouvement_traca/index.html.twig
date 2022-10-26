@@ -4,10 +4,11 @@
 
 {% block page_filter %}
     {% include 'filters/filtersTrackingMovements.html.twig' with {
-        'page' : 'PAGE_MVT_TRACA',
-        'tableSelector' : '#tableMvts',
+        page : 'PAGE_MVT_TRACA',
+        tableSelector : '#tableMvts',
         callback: 'clearURL',
-        needsDateFormatting: true
+        needsDateFormatting: true,
+        disabled: movementsFilter != ''
     } %}
 {% endblock %}
 
@@ -108,8 +109,8 @@
     {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalEditMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalDeleteMvtTraca.html.twig" %}
-    <input type="text" hidden id="redirectAfterTrackingMovementCreation"
-           value="{{ redirectAfterTrackingMovementCreation }}">
+    <input type="text" hidden id="redirectAfterTrackingMovementCreation" value="{{ redirectAfterTrackingMovementCreation }}">
+    <input type="hidden" name="movementsFilter" value="{{ movementsFilter }}">
 
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,

@@ -425,6 +425,7 @@ label.required:after {
         display: flex;
         align-items: center;
         justify-content: center;
+        z-index: 4;
     }
 }
 
@@ -779,7 +780,7 @@ label.required:after {
 }
 
 .wii-field-text {
-    color: $black !important;
+    color: $black;
     font-size: 16px;
     font-weight: normal;
 }
@@ -1046,7 +1047,7 @@ label.required:after {
     }
 }
 
-.status-history-container {
+.history-container {
     overflow-x: hidden;
 
     .header {
@@ -1057,6 +1058,22 @@ label.required:after {
 
     .history-line {
         display: flex;
+
+        &:has(.associated-details) {
+            height: 140px;
+
+            &:first-child {
+                margin-top: -10px;
+            }
+        }
+
+        &:not(.has-logistic-unit-parent) {
+            height: 80px !important;
+        }
+
+        &.has-logistic-unit-parent {
+            margin-top: -30px;
+        }
 
         & > * {
             flex: 1;
@@ -1076,6 +1093,7 @@ label.required:after {
                 margin-right: 3px;
                 width: auto;
                 padding: 10px 25px;
+                z-index: 2;
 
                 &.past {
                     background-color: $primary;
@@ -1093,6 +1111,23 @@ label.required:after {
                 &.cancelled {
                     background-color: $danger;
                     font-weight: 600;
+                }
+            }
+
+            .associated-details {
+                position: absolute;
+                top: 34px;
+                right: 10px;
+                text-align: end;
+
+                .outline {
+                    padding: 5px 15px;
+                    border: 2px solid $primary;
+                    border-radius: 20px;
+
+                    &.current {
+                        border-color: $success !important;
+                    }
                 }
             }
 
@@ -1129,23 +1164,45 @@ label.required:after {
             }
         }
 
-        .history-date {
+        .history-line-left-content {
             display: flex;
             justify-content: end;
+
+            .line-event {
+                position: relative;
+                display: flex;
+                justify-content: end;
+                flex: 1;
+                width: 100%;
+            }
+
+            .line-date {
+                margin-left: 35%;
+            }
         }
 
-        &:last-child .history-status {
+        &:last-child .history-line-right-content {
             &:before,
             &:after {
                 background-color: $white;
             }
         }
 
-        .history-status {
+        .history-line-right-content {
             position: relative;
 
-            &.last-status-history::before {
+            &.last-history-line::before {
                 background-color: $medium-grey !important;
+            }
+
+            &.last-history-line.inversed {
+                &::before {
+                    background-color: $primary !important;
+                }
+            }
+
+            &.first-history-line:before {
+                display: none;
             }
 
             &:before {
@@ -1164,6 +1221,7 @@ label.required:after {
                 &:after {
                     border: 3px solid $primary;
                     outline: 2px solid $white;
+                    z-index: 3;
                 }
             }
 
@@ -1202,11 +1260,12 @@ label.required:after {
                 width: 0;
             }
 
-            &.last-status-history:after {
+            &.last-history-line:after {
                 width: 20px;
                 height: 20px;
                 left: -10px;
                 top: calc(50% - 10px);
+                z-index: 3;
             }
 
             &:before {
@@ -1214,6 +1273,11 @@ label.required:after {
                 top: 50%;
                 width: 2px;
                 height: 100%;
+            }
+
+            &.has-logistic-unit-parent:before {
+                height: 140px !important;
+                top: 25% !important;
             }
 
             &:after {

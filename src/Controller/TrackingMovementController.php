@@ -50,13 +50,14 @@ class TrackingMovementController extends AbstractController
     public function index(Request $request,
                           EntityManagerInterface $entityManager,
                           FilterSupService $filterSupService,
-                          TrackingMovementService $trackingMovementService) {
+                          TrackingMovementService $trackingMovementService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $packFilter = $request->query->get('colis');
+        $movementsFilter = $request->query->get('movements');
         if (!empty($packFilter)) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
@@ -77,13 +78,9 @@ class TrackingMovementController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
             'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true),
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
-            'fields' => $fields
+            'fields' => $fields,
+            'movementsFilter' => $movementsFilter
         ]);
-    }
-
-    private function errorWithDropOff($pack, $location, $packTranslation, $natureTranslation) {
-        $bold = '<span class="font-weight-bold"> ';
-        return 'Le ' . $packTranslation . $bold . $pack . '</span> ne dispose pas des ' . $natureTranslation . ' pour être déposé sur l\'emplacement' . $bold . $location . '</span>.';
     }
 
     /**

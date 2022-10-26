@@ -14,6 +14,7 @@ use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\ProjectHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
@@ -142,10 +143,19 @@ class ArticleController extends AbstractController
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
         $type = $article->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
+        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId());
+        $projectHistoryRecords = Stream::from($article->getProjectHistoryRecords())
+            ->filter(fn(ProjectHistoryRecord $record) => $record->getProject() !== $article->getProject())
+            ->sort(fn(ProjectHistoryRecord $r1, ProjectHistoryRecord $r2) => $r2->getCreatedAt() <=> $r1->getCreatedAt())
+            ->toArray();
+        $barcodeType = $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::BARCODE_TYPE_IS_128);
 
-        return $this->render("article/show/show.html.twig", [
+        return $this->render("article/show/index.html.twig", [
             'article' => $article,
-            'freeFields' => $freeFields
+            'freeFields' => $freeFields,
+            'movementIds' => Stream::from($movements['data'])->map(fn(array $movement) => $movement['id'])->join(','),
+            'projectHistoryRecords' => $projectHistoryRecords,
+            'barcodeType' => $barcodeType ? 'c128' : 'qrcode',
         ]);
     }
 
@@ -675,5 +685,24 @@ class ArticleController extends AbstractController
             $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
+    }
+
+    #[Route("/get-article-tracking-movements", name: "get_article_tracking_movements", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    public function getTrackingMovements(EntityManagerInterface $manager, Request $request): Response {
+        $article = $request->query->get('article');
+        $start = $request->query->getInt('start');
+
+        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article, $start);
+        $filtered = $movements['filtered'];
+        $total = $movements['total'];
+
+        return $this->json([
+            'template' => $this->renderView('article/show/timeline.html.twig', [
+                'movements' => $movements['data'],
+                'noDataLeft' => $filtered === $total
+            ]),
+            'filtered' => $filtered,
+            'total' => $total,
+        ]);
     }
 }

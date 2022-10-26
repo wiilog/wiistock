@@ -32,8 +32,11 @@ $(function () {
                 processing: true,
                 order: [['date', "desc"]],
                 ajax: {
-                    "url": Routing.generate('tracking_movement_api', true),
-                    "type": "POST",
+                    url: Routing.generate('tracking_movement_api', true),
+                    type: "POST",
+                    data: {
+                        movementsFilter: $(`input[name=movementsFilter]`).val(),
+                    }
                 },
                 drawConfig: {
                     needsSearchOverride: true,

@@ -40,6 +40,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
+
+            svg {
+                padding: 0 10px;
+            }
         }
     }
 
@@ -112,6 +116,32 @@
 
     #touch:checked + .slide {
         height: auto;
+    }
+}
+
+.wii-box table.table {
+    tr:first-child {
+        th {
+            border-top: none;
+
+            &:first-child {
+                padding-left: 35px;
+            }
+        }
+    }
+
+    tr {
+        td {
+            border-bottom: 2px solid $light-grey;
+
+            &:first-child {
+                padding-left: 35px;
+            }
+        }
+
+        th:first-child {
+            width: 57%;
+        }
     }
 }
 
