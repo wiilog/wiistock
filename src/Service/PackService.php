@@ -8,6 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Pack;
 use App\Entity\Project;
+use App\Entity\ProjectHistoryRecord;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -17,6 +18,8 @@ use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
+use App\Repository\ProjectHistoryRecordRepository;
+use App\Repository\ProjectRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
@@ -103,6 +106,25 @@ class PackService {
         ];
     }
 
+    public function getProjectHistoryForDatatable($pack, $params) {
+        $projectHistoryRecordRepository = $this->entityManager->getRepository(ProjectHistoryRecord::class);
+
+        $queryResult = $projectHistoryRecordRepository->findLineForProjectHistory($pack, $params);
+
+        $lines = $queryResult["data"];
+
+        $rows = [];
+        foreach ($lines as $line) {
+            $rows[] = $this->dataRowProjectHistory($line);
+        }
+
+        return [
+            "data" => $rows,
+            "recordsFiltered" => $queryResult['filtered'],
+            "recordsTotal" => $queryResult['total'],
+        ];
+    }
+
     public function dataRowPack(Pack $pack)
     {
         $firstMovement = $pack->getTrackingMovements('ASC')->first();
@@ -154,6 +176,13 @@ class PackService {
         ];
     }
 
+    public function dataRowProjectHistory(ProjectHistoryRecord $projectHistoryRecord) {
+        return [
+            'project' => $projectHistoryRecord->getProject() ? $projectHistoryRecord->getProject()->getCode() : '',
+            'createdAt' => $projectHistoryRecord->getCreatedAt(),
+        ];
+    }
+
     public function checkPackDataBeforeEdition(array $data): array
     {
         $quantity = $data['quantity'] ?? null;
@@ -187,9 +216,10 @@ class PackService {
         ];
     }
 
-    public function editPack(array $data, NatureRepository $natureRepository, Pack $pack)
+    public function editPack(array $data, NatureRepository $natureRepository, ProjectRepository $projectRepository, Pack $pack)
     {
         $natureId = $data['nature'] ?? null;
+        $projectId = $data['projects'] ?? null;
         $quantity = $data['quantity'] ?? null;
         $comment = $data['comment'] ?? null;
         $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
@@ -198,6 +228,11 @@ class PackService {
         $nature = $natureRepository->find($natureId);
         if (!empty($nature)) {
             $pack->setNature($nature);
+        }
+
+        $project = $projectRepository->find($projectId);
+        if (!empty($project)){
+            $pack->setProject($project);
         }
 
         $pack
