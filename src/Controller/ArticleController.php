@@ -152,7 +152,7 @@ class ArticleController extends AbstractController
         return $this->render("article/show/index.html.twig", [
             'article' => $article,
             'freeFields' => $freeFields,
-            'movementIds' => Stream::from($movements['data'])->map(fn(array $movement) => $movement['id'])->join(','),
+            'movementIds' => Stream::from($movements)->map(fn(array $movement) => $movement['id'])->join(','),
             'projectHistoryRecords' => $projectHistoryRecords,
         ]);
     }
@@ -688,19 +688,13 @@ class ArticleController extends AbstractController
     #[Route("/get-article-tracking-movements", name: "get_article_tracking_movements", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     public function getTrackingMovements(EntityManagerInterface $manager, Request $request): Response {
         $article = $request->query->get('article');
-        $start = $request->query->getInt('start');
 
-        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article, $start);
-        $filtered = $movements['filtered'];
-        $total = $movements['total'];
+        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article);
 
         return $this->json([
             'template' => $this->renderView('article/show/timeline.html.twig', [
-                'movements' => $movements['data'],
-                'noDataLeft' => $filtered === $total
+                'movements' => $movements,
             ]),
-            'filtered' => $filtered,
-            'total' => $total,
         ]);
     }
 }

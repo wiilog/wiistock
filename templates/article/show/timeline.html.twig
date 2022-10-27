@@ -30,7 +30,7 @@
             </div>
             <div class="history-line-right-content inversed
                 {{ loop.first ? 'current last-history-line' : 'past' }}
-                {{ noDataLeft and loop.last ? 'first-history-line' }}
+                {{ loop.last ? 'first-history-line' }}
                 {{ hasLogisticUnitParent ? 'has-logistic-unit-parent' }}">
                 <div class="title-right {{ loop.first ? 'current' : 'past' }} text-left d-flex align-items-center">
                     <img src="{{ asset('svg/location-black.svg') }}" width="18px" height="18px">

@@ -29,6 +29,8 @@ class TrackingMovementRepository extends EntityRepository
     public const MOUVEMENT_TRACA_DEFAULT = 'tracking';
     public const MOUVEMENT_TRACA_STOCK = 'stock';
 
+    private const MAX_ARTICLE_TRACKING_MOVEMENTS_TIMELINE = 6;
+
     private const DtToDbLabels = [
         'date' => 'datetime',
         'code' => 'code',
@@ -251,10 +253,12 @@ class TrackingMovementRepository extends EntityRepository
             $qb->addOrderBy("tracking_movement.datetime", "DESC");
         }
 
-        if($params->get('movementsFilter')) {
-            $trackingMovements = explode(',', $params->get('movementsFilter'));
-            $qb->andWhere('tracking_movement IN (:tracking_movements)')
-                ->setParameter('tracking_movements', $trackingMovements);
+        if($params->get('article')) {
+            $qb
+                ->leftJoin('tracking_movement.pack', 'from_article_join_pack')
+                ->leftJoin('from_article_join_pack.article', 'from_article_join_article')
+                ->andWhere('from_article_join_article.id = :article')
+                ->setParameter('article', $params->get('article'));
         }
 
         // compte éléments filtrés
@@ -450,8 +454,8 @@ class TrackingMovementRepository extends EntityRepository
         ];
     }
 
-    public function getArticleTrackingMovements(int $article, ?int $start = null): array {
-        $qb = $this->createQueryBuilder('tracking_movement')
+    public function getArticleTrackingMovements(int $article): array {
+        return $this->createQueryBuilder('tracking_movement')
             ->addSelect('tracking_movement.id AS id')
             ->addSelect('join_status.code AS type')
             ->addSelect('join_location.label AS location')
@@ -465,16 +469,10 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.operateur', 'join_operator')
             ->leftJoin('tracking_movement.logisticUnitParent', 'join_logisticUnitParent')
             ->andWhere('join_article.id = :article')
-            ->setMaxResults($start)
             ->orderBy('tracking_movement.datetime', 'DESC')
-            ->setParameter('article', $article);
-
-        $total = QueryBuilderHelper::count($qb, 'tracking_movement');
-
-        return [
-            'data' => $qb->getQuery()->getResult(),
-            'total' => $total,
-            'filtered' => min($start, $total),
-        ];
+            ->setMaxResults(self::MAX_ARTICLE_TRACKING_MOVEMENTS_TIMELINE)
+            ->setParameter('article', $article)
+            ->getQuery()
+            ->getResult();
     }
 }

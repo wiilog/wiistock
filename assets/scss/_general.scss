@@ -122,6 +122,21 @@ a {
     &:hover {
         color: $white;
     }
+
+    &:has(.btn-outline-primary) {
+        &[disabled] {
+            cursor: not-allowed !important;
+            border-color: $medium-grey !important;
+            background-color: $white !important;
+            color: $medium-grey !important;
+            opacity: 1 !important;
+            pointer-events: none;
+
+            svg {
+                color: $medium-grey !important;
+            }
+        }
+    }
 }
 
 .pointer {
