@@ -87,7 +87,7 @@ class HandlingController extends AbstractController {
             ],
             [
                 'name' => 'treatmentDate',
-                'label' => $translationService->translate('Demande', 'Services', 'Date de réalisation'),
+                'label' => $translationService->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation'),
             ],
         ];
         foreach ($dateChoice as &$choice) {
