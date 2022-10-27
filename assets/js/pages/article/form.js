@@ -36,7 +36,7 @@ function getTrackingMovements(start = 10) {
             const $statusHistoryContainer = $(`.history-container`);
             dataToDisplay = start;
             $statusHistoryContainer.empty().html(template);
-            if(filtered === total) {
+            if(total !== 0 && filtered === total) {
                 noDataLeft = true;
                 $statusHistoryContainer.remove(`.no-data-left`);
                 $statusHistoryContainer.append(`<div class="wii-subtitle text-center no-data-left my-5">Toutes les données ont été chargées.</div>`);
