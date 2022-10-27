@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -58,7 +59,12 @@ class TrackingMovementController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $packFilter = $request->query->get('colis');
-        $movementsFilter = $request->query->get('movements');
+        $filterArticle = $request->query->get('article');
+        if($filterArticle) {
+            $article = $entityManager->getRepository(Article::class)->find($filterArticle);
+            $request->request->add(['article' => $filterArticle]);
+        }
+
         if (!empty($packFilter)) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
@@ -76,7 +82,6 @@ class TrackingMovementController extends AbstractController
         $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
         $request->request->add([
             'length' => 10,
-            'movementsFilter' => $movementsFilter
         ]);
 
         return $this->render('mouvement_traca/index.html.twig', [
@@ -86,7 +91,7 @@ class TrackingMovementController extends AbstractController
             'redirectAfterTrackingMovementCreation' => $redirectAfterTrackingMovementCreation,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'fields' => $fields,
-            'movementsFilter' => $movementsFilter,
+            'filterArticle' => $article,
             "initial_tracking_movements" => $this->api($request, $trackingMovementService)->getContent(),
             "initial_visible_columns" => $this->apiColumns($entityManager, $trackingMovementService)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_MVT_TRACA)),
@@ -97,8 +102,7 @@ class TrackingMovementController extends AbstractController
      * @Route("/api-columns", name="tracking_movement_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
      */
-    public function apiColumns(EntityManagerInterface $entityManager,
-                               TrackingMovementService $trackingMovementService): Response {
+    public function apiColumns(EntityManagerInterface $entityManager, TrackingMovementService $trackingMovementService): Response {
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();

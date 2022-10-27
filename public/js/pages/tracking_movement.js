@@ -15,8 +15,10 @@ $(function () {
 
     initTrackingMovementTable($(`#tableMvts`).data(`initial-visible`));
 
-    const filters = JSON.parse($(`#trackingMovementFilters`).val())
-    displayFiltersSup(filters, true);
+    if(!$(`#filterArticle`).exists()) {
+        const filters = JSON.parse($(`#trackingMovementFilters`).val())
+        displayFiltersSup(filters, true);
+    }
 
     Select2Old.user(Translation.of('Traçabilité', 'Mouvements', 'Opérateurs', false));
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of( 'Traçabilité', 'Général', 'Emplacement', false), 3);
@@ -34,7 +36,7 @@ function initTrackingMovementTable(columns) {
             url: Routing.generate('tracking_movement_api', true),
             type: "POST",
             data: {
-                movementsFilter: $(`input[name=movementsFilter]`).val(),
+                article: $(`#filterArticle`).val(),
             }
         },
         drawConfig: {

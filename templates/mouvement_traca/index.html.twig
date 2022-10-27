@@ -8,7 +8,8 @@
         tableSelector : '#tableMvts',
         callback: 'clearURL',
         needsDateFormatting: true,
-        disabled: movementsFilter != ''
+        disabled: filterArticle,
+        filterArticle: filterArticle,
     } %}
 {% endblock %}
 
@@ -80,13 +81,15 @@
     </div>
 
     <input id="trackingMovementFilters" value="{{ initial_filters }}" hidden>
+    {% if filterArticle %}
+        <input id="filterArticle" value="{{ filterArticle.id }}" hidden>
+    {% endif %}
 
     {% include "mouvement_traca/modalNewMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalEditMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalDeleteMvtTraca.html.twig" %}
     <input type="text" hidden id="redirectAfterTrackingMovementCreation" value="{{ redirectAfterTrackingMovementCreation }}">
-    <input type="hidden" name="movementsFilter" value="{{ movementsFilter }}">
 
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,

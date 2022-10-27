@@ -4,7 +4,11 @@
             <select class="form-control data min-150px filter-select2"
                     name="article"
                     data-s2="article"
-                    data-placeholder="Article">
+                    data-placeholder="Article"
+                    {{ disabled ?? false ? 'disabled' }}>
+                {% if value %}
+                    <option value="{{ filterArticle }}">{{ filterArticle }}</option>
+                {% endif %}
             </select>
         </div>
     </div>
