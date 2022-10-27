@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -12,6 +13,7 @@ use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Menu;
 use App\Entity\Cart;
+use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
@@ -26,6 +28,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
+use function PHPUnit\Framework\isEmpty;
 
 /**
  * @Route("/panier")
@@ -135,6 +138,13 @@ class CartController extends AbstractController
     public function addToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse {
         /** @var Cart $cart */
         $cart = $this->getUser()->getCart();
+        if ($cart->getArticles()->count()){
+            return $this->json([
+                'success' => false,
+                'msg' => "Le panier contient déjà des articles. Supprimez les pour pouvoir ajouter des references."
+            ]);
+        }
+
         if($cart->getReferences()->contains($reference)) {
             $referenceLabel = $reference->getReference();
             return $this->json([
@@ -227,5 +237,92 @@ class CartController extends AbstractController
         }
 
         return $this->json($response);
+    }
+
+    #[Route("/add-to-cart", name: "cart_add_ul", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
+    public function addUlToCart(    Request $request,
+                                    EntityManagerInterface $entityManager ): Response {
+        $data = json_decode($request->getContent(), true);
+        $ids = $data["id"];
+        $response = [];
+        $cart = $this->getUser()->getCart();
+
+        if ($cart->getReferences()->count()){
+            $response[] = [
+                "success" => false,
+                "msg" => "Le panier contient déjà des références. Supprimez les pour pouvoir ajouter des unités logistiques"
+            ];
+            return $this->json($response);
+        }
+        else {
+            $cartContent = $cart->getArticles()->toArray();
+            foreach ($ids as $id) {
+                $ul = $entityManager->getRepository(Pack::class)->findOneBy(["id" => $id]);
+                if (!$ul) {
+                    $wrongIds[] = $id;
+                }
+                else {
+                    if (isEmpty($cartContent) || Stream::from($cartContent)->some(fn($article) => $article->getProject()?->getId() == $ul->getProject()?->getId())) {
+                        foreach ($ul->getChildArticles() as $article) {
+                            if (in_array($article, $cartContent)) {
+                                $allreadyInCart[] = $article->getLabel();
+                            }
+                            else {
+                                $addedArticles[] = $article->getLabel();
+                                $cart->addArticle($article);
+                            }
+                        }
+                    }
+                    else {
+                        $wrongProject[] = $ul->getCode();
+                    }
+                }
+            }
+        }
+
+        if (isset($wrongIds)) {
+            $response[] = [
+                "success" => false,
+                "msg" => count($wrongIds) < 1
+                    ? "L'unitée logistique avec l'id " . $wrongIds[0] . " na pas été trouvée"
+                    : "Les unitées logistiques avec les ids " . implode(", ", $wrongIds) . " n'ont pas été trouvées"
+            ];
+        }
+
+        if (isset($wrongProject)) {
+            $response[] = [
+                "success" => false,
+                "msg" => count($wrongProject) < 1
+                    ? "L'unitée logistique " . $wrongProject[0] . " ne peut pas être ajoutée au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
+                    : "Les unitées logistiques  " . implode(", ", $wrongProject) . " ne peuvent pas être ajoutées au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
+            ];
+        }
+
+        if (isset($allreadyInCart)) {
+            $response[] = [
+                "success" => false,
+                "msg" => count($allreadyInCart) < 1
+                    ? "L'article " . $allreadyInCart[0] . " est déjà dans le panier"
+                    : "Les articles " . implode(", ", $allreadyInCart) . " sont déjà dans le panier"
+            ];
+        }
+
+        if(isset($addedArticles)) {
+            $response[] = [
+                "success" => true,
+                "msg" => count($addedArticles) < 1
+                    ? "L'article " . $addedArticles[0] . " a bien été ajouté au panier"
+                    : "Les articles " . implode(", ", $addedArticles) . " ont bien été ajoutés au panier"
+            ];
+        }
+
+        $entityManager->flush();
+        return $this->json(
+            [
+                "messages" => $response,
+                "cartQuantity" => $cart->getArticles()->count() ?? $cart->getReferences()->count()
+            ]
+        );
     }
 }
