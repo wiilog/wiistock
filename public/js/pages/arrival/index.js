@@ -15,15 +15,13 @@ $(function () {
     Select2Old.init($filtersContainer.find('[name="carriers"]'), Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Transporteurs', false));
     initOnTheFlyCopies($('.copyOnTheFly'));
 
-    initTableArrival().then((returnedArrivalsTable) => {
+    initTableArrival(false).then((returnedArrivalsTable) => {
         arrivalsTable = returnedArrivalsTable;
     });
 
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ARRIVAGE);
-    $.post(path, params, function (data) {
-        displayFiltersSup(data, true);
-    }, 'json');
+    const filters = JSON.parse($(`#arrivalFilters`).val())
+    displayFiltersSup(filters, true);
+
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2Old.provider($('.ajax-autocomplete-fournisseur'), Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Fournisseurs', false));
 
@@ -103,77 +101,84 @@ $(function () {
 
 function initTableArrival(dispatchMode = false) {
     let pathArrivage = Routing.generate('arrivage_api', {dispatchMode}, true);
-
-    return $
-        .post(Routing.generate('arrival_api_columns', {dispatchMode}))
-        .then((columns) => {
-            let tableArrivageConfig = {
-                serverSide: !dispatchMode,
-                processing: true,
-                pageLength: Number($('#pageLengthForArrivage').val()),
-                order: [['creationDate', "desc"]],
-                ajax: {
-                    "url": pathArrivage,
-                    "type": "POST",
-                    'data': {
-                        'clicked': () => clicked,
-                    }
-                },
-                columns,
-                drawConfig: {
-                    needsResize: true,
-                    needsSearchOverride: true,
-                    hidePaging: dispatchMode,
-                },
-                rowConfig: {
-                    needsColor: true,
-                    color: 'danger',
-                    needsRowClickAction: true,
-                    dataToCheck: 'checkEmergency'
-                },
-                buttons: [
-                    {
-                        extend: 'colvis',
-                        columns: ':not(.noVis)',
-                        className: 'd-none'
-                    },
-                ],
-                columnDefs: [{
-                    type: "customDate",
-                    targets: "creationDate"
-                }],
-                hideColumnConfig: {
-                    columns,
-                    tableFilter: 'arrivalsTable'
-                },
-                lengthMenu: [10, 25, 50, 100],
-                page: 'arrival',
-                disabledRealtimeReorder: dispatchMode,
-                initCompleteCallback: () => {
-                    updateArrivalPageLength();
-                    $('.dispatch-mode-button').removeClass('d-none');
-                    $('button[name=new-arrival]').attr('disabled', false);
-                    if(dispatchMode) {
-                        $(`.dispatch-mode-container`).find(`.cancel`).prop(`disabled`, false);
-                    }
-                },
-                createdRow: (row) => {
-                    if (dispatchMode) {
-                        $(row).addClass('pointer user-select-none');
-                    }
-                }
-            };
-
-            if (dispatchMode) {
-                extendsDateSort('customDate');
-            }
-
-            const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
-            arrivalsTable.on('responsive-resize', function () {
-                resizeTable(arrivalsTable);
-            });
-            return arrivalsTable;
+    if(dispatchMode) {
+        $.post(Routing.generate('arrival_api_columns', {dispatchMode}))
+            .then(columns => proceed(columns));
+    } else {
+        return new Promise((resolve) => {
+            resolve(proceed($(`#arrivalsTable`).data(`initial-visible`)));
         });
+    }
+
+    function proceed(columns) {
+        let tableArrivageConfig = {
+            serverSide: !dispatchMode,
+            processing: true,
+            pageLength: Number($('#pageLengthForArrivage').val()),
+            order: [['creationDate', "desc"]],
+            ajax: {
+                "url": pathArrivage,
+                "type": "POST",
+                'data': {
+                    'clicked': () => clicked,
+                }
+            },
+            columns,
+            drawConfig: {
+                needsResize: true,
+                needsSearchOverride: true,
+                hidePaging: dispatchMode,
+            },
+            rowConfig: {
+                needsColor: true,
+                color: 'danger',
+                needsRowClickAction: true,
+                dataToCheck: 'checkEmergency'
+            },
+            buttons: [
+                {
+                    extend: 'colvis',
+                    columns: ':not(.noVis)',
+                    className: 'd-none'
+                },
+            ],
+            columnDefs: [{
+                type: "customDate",
+                targets: "creationDate"
+            }],
+            hideColumnConfig: {
+                columns,
+                tableFilter: 'arrivalsTable'
+            },
+            lengthMenu: [10, 25, 50, 100],
+            page: 'arrival',
+            disabledRealtimeReorder: dispatchMode,
+            initCompleteCallback: () => {
+                updateArrivalPageLength();
+                $('.dispatch-mode-button').removeClass('d-none');
+                $('button[name=new-arrival]').attr('disabled', false);
+                if(dispatchMode) {
+                    $(`.dispatch-mode-container`).find(`.cancel`).prop(`disabled`, false);
+                }
+            },
+            createdRow: (row) => {
+                if (dispatchMode) {
+                    $(row).addClass('pointer user-select-none');
+                }
+            }
+        };
+
+        if (dispatchMode) {
+            extendsDateSort('customDate');
+        }
+
+        const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
+        arrivalsTable.on('responsive-resize', function () {
+            resizeTable(arrivalsTable);
+        });
+
+        return arrivalsTable;
+    }
 }
 
 function listColis(elem) {

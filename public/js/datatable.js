@@ -280,7 +280,7 @@ function initDataTable($table, options) {
     const drawConfig = options.drawConfig;
     const initCompleteCallback = options.initCompleteCallback;
     const hideColumnConfig = options.hideColumnConfig;
-    const config = Object.assign({}, options);
+    let config = Object.assign({}, options);
     delete config.domConfig;
     delete config.rowConfig;
     delete config.drawConfig;
@@ -288,6 +288,14 @@ function initDataTable($table, options) {
     delete config.hideColumnConfig;
     delete config.drawCallback;
     delete config.initComplete;
+
+    $table = typeof $table === 'string' ? $('#' + $table) : $table;
+    if($table.data(`initial-visible`)) {
+        config.columns = $table.data(`initial-visible`);
+        $table
+            .removeData('initial-visible')
+            .removeAttr('initial-visible');
+    }
 
     let tooltips = [];
     (config.columns || []).forEach((column, id) => {
@@ -327,7 +335,6 @@ function initDataTable($table, options) {
     }
 
     let datatableToReturn = null;
-    $table = typeof $table === 'string' ? $('#' + $table) : $table;
     $table
         .addClass('wii-table')
         .addClass('w-100');
@@ -367,6 +374,18 @@ function initDataTable($table, options) {
                 datatableToReturn.off('column-reorder');
             }
         };
+
+    const initial = $table.data(`initial-data`);
+    if(initial && typeof initial === `object`) {
+        config = {
+            ...config,
+            data: initial.data,
+            deferLoading: [initial.recordsFiltered || 0, initial.recordsTotal || 0],
+        };
+        $table
+            .removeData('initial-data')
+            .removeAttr('initial-data');
+    }
 
     datatableToReturn = $table
         .on('error.dt', function (e, settings, techNote, message) {

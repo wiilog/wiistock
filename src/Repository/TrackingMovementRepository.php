@@ -235,13 +235,18 @@ class TrackingMovementRepository extends EntityRepository
         $qb
             ->select('tracking_movement');
 
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        if ($params->getInt('start')) {
+            $qb->setFirstResult($params->getInt('start'));
+        }
+
+        if ($params->getInt('length')) {
+            $qb->setMaxResults($params->getInt('length'));
+        }
 
         $query = $qb->getQuery();
 
         return [
-            'data' => $query ? $query->getResult() : null,
+            'data' => $query?->getResult(),
             'count' => $countFiltered,
             'total' => $countTotal
         ];

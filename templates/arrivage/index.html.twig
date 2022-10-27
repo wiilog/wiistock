@@ -89,13 +89,17 @@
 
         <div class="row">
             <div class="col-12">
-                <table id="arrivalsTable" class="table w-100"></table>
+                <table id="arrivalsTable"
+                       data-initial-data="{{ initial_arrivals }}"
+                       data-initial-visible="{{ initial_visible_columns }}"
+                       class="table w-100"></table>
             </div>
         </div>
     </div>
 
     <input id="redirect" value="{{ redirect }}" hidden>
     <input id="pageLengthForArrivage" value="{{ pageLengthForArrivage }}" hidden>
+    <input id="arrivalFilters" value="{{ initial_filters }}" hidden>
     <input id="arrivalForm" value="{{ initial_form }}" hidden>
 
     {% include "arrivage/modalListColis.html.twig" %}
