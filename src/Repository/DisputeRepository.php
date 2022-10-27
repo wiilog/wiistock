@@ -209,7 +209,8 @@ class DisputeRepository extends EntityRepository
             ->leftJoin('dispute.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
 			->leftJoin('rra.referenceArticle', 'ra')
-			->leftJoin('rra.reception', 'r')
+			->leftJoin('rra.receptionLine', 'rl')
+			->leftJoin('rl.reception', 'r')
 			->leftJoin('r.fournisseur', 'rFourn');
 
         $countTotal = QueryBuilderHelper::count($qb, 'dispute');

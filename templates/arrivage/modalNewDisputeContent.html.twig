@@ -80,7 +80,7 @@
         <select class="form-control data needed" id="disputeType" name="disputeType">
             <option disabled value="" selected></option>
             {% for type in disputeTypes %}
-                <option value="{{ type.id }}">{{ type.label }}</option>
+                <option value="{{ type.id }}">{{ type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
             {% endfor %}
         </select>
     </div>
