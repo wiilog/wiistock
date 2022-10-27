@@ -36,12 +36,7 @@
                     </div>
                     <div class="d-flex header-wrapper">
                         <div class="image-container-show article">
-                            {{ printBarcode({
-                                code: article.barCode,
-                                type: barcodeType,
-                                format: 'svg',
-                                height: barcodeType == 'c128' ? 200 : 5
-                            })|raw }}
+                            <img src="{{ asset('svg/article-barcode.svg') }}" width="80">
                         </div>
                         <div class="specifications w-100">
                             <div><strong class="ref text-break">{{ article.barCode }}</strong></div>

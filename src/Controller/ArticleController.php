@@ -148,14 +148,12 @@ class ArticleController extends AbstractController
             ->filter(fn(ProjectHistoryRecord $record) => $record->getProject() !== $article->getProject())
             ->sort(fn(ProjectHistoryRecord $r1, ProjectHistoryRecord $r2) => $r2->getCreatedAt() <=> $r1->getCreatedAt())
             ->toArray();
-        $barcodeType = $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::BARCODE_TYPE_IS_128);
 
         return $this->render("article/show/index.html.twig", [
             'article' => $article,
             'freeFields' => $freeFields,
             'movementIds' => Stream::from($movements['data'])->map(fn(array $movement) => $movement['id'])->join(','),
             'projectHistoryRecords' => $projectHistoryRecords,
-            'barcodeType' => $barcodeType ? 'c128' : 'qrcode',
         ]);
     }
 
