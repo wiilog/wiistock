@@ -37,6 +37,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/mouvement-traca")
@@ -72,11 +73,13 @@ class TrackingMovementController extends AbstractController
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
         $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
-
+        $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
         $request->request->add(['length' => 10]);
 
         return $this->render('mouvement_traca/index.html.twig', [
-            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
+            'statuts' => Stream::from($statuses)
+            ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LOGISTIC_UNIT)
+            ->toArray(),
             'redirectAfterTrackingMovementCreation' => $redirectAfterTrackingMovementCreation,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'fields' => $fields,
@@ -342,10 +345,13 @@ class TrackingMovementController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
             $trackingMovement = $trackingMovementRepository->find($data['id']);
+            $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
 
             $json = $this->renderView('mouvement_traca/modalEditMvtTracaContent.html.twig', [
                 'mvt' => $trackingMovement,
-                'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
+                'statuts' => Stream::from($statuses)
+                    ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LOGISTIC_UNIT)
+                    ->toArray(),
                 'attachments' => $trackingMovement->getAttachments(),
                 'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
                 'editAttachments' => $userService->hasRightFunction(Menu::TRACA, Action::EDIT),
