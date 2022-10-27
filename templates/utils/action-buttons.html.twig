@@ -68,7 +68,7 @@
             {% endfor %}
         </div>
     {% endif %}
-{% else if actionsFiltered|length > 0 %}
+{% elseif actionsFiltered|length > 0 %}
     <div class="btn-group">
         {% set firstAction = actionsFiltered[0] %}
         {{ macros.button(firstAction) }}
@@ -85,7 +85,7 @@
                 icon: icon is defined ? icon : 'fa fa-angle-down',
                 iconClass: 'mr-0'
             }) }}
-            <div class="dropdown-menu dropdown-follow-gt {{ dropdownDirection is defined ? dropdownDirection :?? 'dropdown-menu-right' }}">
+            <div class="dropdown-menu dropdown-follow-gt {{ dropdownDirection is defined and dropdownDirection ? dropdownDirection : 'dropdown-menu-right' }}">
                 {% for action in actionsFiltered[1:] %}
                     {{ macros.dropdownButton(action) }}
                 {% endfor %}

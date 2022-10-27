@@ -62,13 +62,13 @@
                                                 <a class="dropdown-item d-flex align-items-center"
                                                    id="printColisBtn"
                                                    href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                                    <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}</span>
+                                                    <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques') }}</span>
                                                 </a>
                                             {% else %}
                                                 <a id="printColisBtn"
                                                    class="btn btn-primary d-flex align-items-center"
                                                    href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                                    <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}</span>
+                                                    <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques') }}</span>
                                                 </a>
                                             {% endif %}
                                         {% endif %}

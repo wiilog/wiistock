@@ -361,6 +361,10 @@ class ArrivageRepository extends EntityRepository
             }
         }
 
+        if(!$params->has("order")) {
+            $qb->addOrderBy("arrival.date", "DESC");
+        }
+
         if (!empty($params)) {
             if ($params->getInt('start')) {
                 $qb->setFirstResult($params->getInt('start'));
