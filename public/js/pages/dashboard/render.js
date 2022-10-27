@@ -190,7 +190,8 @@ function renderComponent(component, $container, data) {
                         null,
                         data,
                         false,
-                        isCardExample
+                        isCardExample,
+                        component.legends || []
                     );
                 } else {
                     createAndUpdateMultipleCharts($canvas, null, data, false, true, isCardExample);
@@ -793,7 +794,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
     chart.update();
 }
 
-function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false, disableAnimation = false) {
+function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false, disableAnimation = false, legends = []) {
     applyChartTranslations(data);
     if(forceCreation || !chart) {
         chart = newChart($canvas, data, false, disableAnimation);
@@ -1311,6 +1312,14 @@ function applyChartTranslations(data){
     }
     if(data.chartData && data.chartData.stack && data.chartData.stack[0].label){
         data.chartData.stack[0].label = Translation.of('Dashboard', data.chartData.stack[0].label, false);
+    }
+
+    if (legends && data.chartData && data.chartData.stack) {
+        data.chartData.stack.forEach(function(stack, index) {
+            if (legends[stack.id]) {
+                data.chartData.stack[index].label = legends[stack.id];
+            }
+        });
     }
     return data;
 }
