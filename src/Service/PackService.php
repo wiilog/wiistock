@@ -179,7 +179,7 @@ class PackService {
     public function dataRowProjectHistory(ProjectHistoryRecord $projectHistoryRecord) {
         return [
             'project' => $projectHistoryRecord->getProject() ? $projectHistoryRecord->getProject()->getCode() : '',
-            'createdAt' => $projectHistoryRecord->getCreatedAt(),
+            'createdAt' => $this->formatService->datetime($projectHistoryRecord->getCreatedAt()),
         ];
     }
 
@@ -231,8 +231,22 @@ class PackService {
         }
 
         $project = $projectRepository->find($projectId);
-        if (!empty($project)){
+        if (!empty($project)) {
+            $packRecord = (new ProjectHistoryRecord())
+                ->setProject($project)
+                ->setCreatedAt(new DateTime());
+
             $pack->setProject($project);
+            $pack->addProjectHistoryRecord($packRecord);
+
+            if ($pack->getArticle()) {
+                $articleRecord = (new ProjectHistoryRecord())
+                    ->setProject($project)
+                    ->setCreatedAt(new DateTime());
+
+                $pack->getArticle()->setProject($project);
+                $pack->getArticle()->addProjectHistoryRecord($articleRecord);
+            }
         }
 
         $pack

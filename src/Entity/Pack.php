@@ -110,7 +110,7 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: "currentLogisticUnit", targetEntity: Article::class)]
     private Collection $childArticles;
 
-    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["remove"])]
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
     private Collection $projectHistoryRecords;
 
     public function __construct() {
