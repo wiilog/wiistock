@@ -67,6 +67,7 @@ class HandlingController extends AbstractController {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
@@ -86,7 +87,7 @@ class HandlingController extends AbstractController {
             ],
             [
                 'name' => 'treatmentDate',
-                'label' => $translationService->translate('Demande', 'Services', 'Date de réalisation'),
+                'label' => $translationService->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation'),
             ],
         ];
         foreach ($dateChoice as &$choice) {
@@ -125,7 +126,8 @@ class HandlingController extends AbstractController {
                     ];
                 }, $types),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
-                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY)
+                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
+                'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_SERVICE_DATE_TODAY),
             ],
 		]);
     }

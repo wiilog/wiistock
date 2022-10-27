@@ -195,6 +195,9 @@ class FieldsParam {
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
     private ?bool $fieldRequiredHidden;
 
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $modalType = null;
+
     public function getId(): ?int {
         return $this->id;
     }
@@ -303,6 +306,16 @@ class FieldsParam {
         $this->fieldRequiredHidden = $fieldRequiredHidden;
 
         return $this;
+    }
+
+    public function getModalType(): ?string
+    {
+        return $this->modalType;
+    }
+
+    public function setModalType(?string $modalType): void
+    {
+        $this->modalType = $modalType;
     }
 
 }

@@ -128,6 +128,7 @@ function processSubmitAction($modal,
                              {tables, keepModal, keepForm, validator, success, error, headerCallback, keepLoading, waitDatatable, waitForUserAction} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
+
     if (formValidation) {
         const smartData = isAttachmentForm
             ? createFormData(data)

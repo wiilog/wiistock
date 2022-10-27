@@ -58,6 +58,9 @@
                             <label class="wii-field-name">Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? '*' : '' }}</label>
                             <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? 'needed' : '' }}" name="location"
                                     id="receptionLocation">
+                                {% if receptionLocation %}
+                                    <option value="{{ receptionLocation.id }}">{{ receptionLocation.text }}</option>
+                                {% endif %}
                             </select>
                             <input hidden id="receptionLocationValue" data-id="{{ receptionLocation ? receptionLocation.id }}" data-text="{{ receptionLocation ? receptionLocation.text }}">
                         </div>

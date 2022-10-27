@@ -115,7 +115,6 @@ function initTableArrival(dispatchMode = false) {
             serverSide: !dispatchMode,
             processing: true,
             pageLength: Number($('#pageLengthForArrivage').val()),
-            order: [['creationDate', "desc"]],
             ajax: {
                 "url": pathArrivage,
                 "type": "POST",
@@ -124,6 +123,7 @@ function initTableArrival(dispatchMode = false) {
                 }
             },
             columns,
+            order: [['creationDate', 'desc']],
             drawConfig: {
                 needsResize: true,
                 needsSearchOverride: true,

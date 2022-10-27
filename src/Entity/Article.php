@@ -146,7 +146,7 @@ class Article implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "childArticles")]
     private ?Pack $currentLogisticUnit = null;
 
-    #[ORM\OneToMany(mappedBy: 'article', targetEntity: ProjectHistoryRecord::class)]
+    #[ORM\OneToMany(mappedBy: 'article', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
     private Collection $projectHistoryRecords;
 
     public function __construct() {

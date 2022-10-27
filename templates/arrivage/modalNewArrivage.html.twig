@@ -34,7 +34,7 @@
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                             <div class="form-group col-auto toggle-button-container pl-0">
-                                <span class="btn btn-primary d-flex align-items-center p-2"
+                                <span class="btn btn-primary d-flex align-items-center p-2" style="height:36px"
                                       onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
                                     <span class="wii-icon wii-icon-plus mr-2"></span>
                                     {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
@@ -62,7 +62,7 @@
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                             <div class="form-group col-auto toggle-button-container pl-0">
-                                <span class="btn btn-primary d-flex align-items-center p-2"
+                                <span class="btn btn-primary d-flex align-items-center p-2" style="height:36px"
                                       onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
                                     <span class="wii-icon wii-icon-plus mr-2"></span>
                                     {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
@@ -91,7 +91,7 @@
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                             <div class="form-group col-auto toggle-button-container pl-0">
-                                <span class="btn btn-primary d-flex align-items-center p-2"
+                                <span class="btn btn-primary d-flex align-items-center p-2" style="height:36px"
                                       onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
                                     <span class="wii-icon wii-icon-plus mr-2"></span>
                                     {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
@@ -333,7 +333,7 @@
                     {% set printArrivalFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PRINT_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(printArrivalFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2 d-flex align-items-end">
-                            <label class="wii-field-name d-flex d-flex align-items-center">
+                            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
                                 <input class="checkbox data no-clear mr-2"
                                        type="checkbox"
                                        name="printArrivage"
@@ -347,14 +347,14 @@
 
                     {% if natures != null %}
                         <div class="form-group col-2 d-flex align-items-end">
-                            <label class="wii-field-name d-flex d-flex align-items-center">
+                            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
                                 <input
                                     class="checkbox no-clear mr-2"
                                     type="checkbox" name="printColis"
                                     id="printColis" {{ checked }}>
                                 <input hidden value="{{ checked }}" id="printColisChecked">
                                 <label class="text-break text-wrap">
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}
+                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques') }}
                                 </label>
                             </label>
                         </div>
@@ -397,7 +397,7 @@
                     {% set customsFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(customsFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2 d-flex align-items-end">
-                            <label class="wii-field-name d-flex d-flex align-items-center">
+                            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
                                 <input class="checkbox mr-2 {{ not isClientSafranED ? 'no-clear' }}"
                                        type="checkbox"
                                        name="customs"
@@ -411,7 +411,7 @@
                     {% set frozenFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(frozenFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2 d-flex align-items-end">
-                            <label class="wii-field-name d-flex d-flex align-items-center">
+                            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
                                 <input class="checkbox data no-clear mr-2"
                                        type="checkbox"
                                        name="frozen"
@@ -424,7 +424,7 @@
                     {% endif %}
                 </div>
                 <div class="wii-section-title my-3 d-flex align-items-center">
-                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nombre d\'UL à ajouter :') }}
+                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nombre d\'unités logistiques à ajouter :') }}
                 </div>
                 <div class="row">
                     {% if natures != null %}

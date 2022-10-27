@@ -179,7 +179,7 @@ class PackService {
     public function dataRowProjectHistory(ProjectHistoryRecord $projectHistoryRecord) {
         return [
             'project' => $projectHistoryRecord->getProject() ? $projectHistoryRecord->getProject()->getCode() : '',
-            'createdAt' => $projectHistoryRecord->getCreatedAt(),
+            'createdAt' => $this->formatService->datetime($projectHistoryRecord->getCreatedAt()),
         ];
     }
 
@@ -231,8 +231,22 @@ class PackService {
         }
 
         $project = $projectRepository->find($projectId);
-        if (!empty($project)){
+        if (!empty($project)) {
+            $packRecord = (new ProjectHistoryRecord())
+                ->setProject($project)
+                ->setCreatedAt(new DateTime());
+
             $pack->setProject($project);
+            $pack->addProjectHistoryRecord($packRecord);
+
+            if ($pack->getArticle()) {
+                $articleRecord = (new ProjectHistoryRecord())
+                    ->setProject($project)
+                    ->setCreatedAt(new DateTime());
+
+                $pack->getArticle()->setProject($project);
+                $pack->getArticle()->addProjectHistoryRecord($articleRecord);
+            }
         }
 
         $pack
@@ -404,10 +418,10 @@ class PackService {
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
                 ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature')],
                 ["name" => 'code', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Unités logistiques')],
+                ["name" => 'project', 'title' => 'Projet'],
                 ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
                 ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement')],
                 ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur')],
-                ["name" => 'project', 'title' => 'Projet'],
             ],
             [],
             $columnsVisible

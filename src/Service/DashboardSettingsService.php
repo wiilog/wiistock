@@ -35,6 +35,11 @@ class DashboardSettingsService {
     const UNKNOWN_COMPONENT = 'unknown_component';
     const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
 
+    const COMPONENTS_NEEDING_LEGEND_TRANSLATION = [
+        Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
+        Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS
+    ];
+
     #[Required]
     public DashboardService $dashboardService;
 
@@ -73,7 +78,7 @@ class DashboardSettingsService {
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
-
+        $natureRepository = $entityManager->getRepository(Nature::class);
         if ($mode === self::MODE_DISPLAY) {
             $pages = Stream::from($pageRepository->findAllowedToAccess($user));
         } else {
@@ -81,7 +86,7 @@ class DashboardSettingsService {
         }
 
         $pageIndex = 0;
-        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager, $mode, $user) {
+        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager, $mode, $user, $natureRepository) {
             $rowIndex = 0;
             return [
                 "id" => $page->getId(),
@@ -89,20 +94,30 @@ class DashboardSettingsService {
                 "componentCount" => $page->getComponentsCount(),
                 "dashboardIndex" => $pageIndex++,
                 "rows" => $page->getRows()
-                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $mode, $user) {
+                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $mode, $user, $natureRepository) {
                         return [
                             "id" => $row->getId(),
                             "size" => $row->getSize(),
                             "rowIndex" => $rowIndex++,
                             "components" => $row->getComponents()
-                                ->map(function(Dashboard\Component $component) use ($entityManager, $mode, $user) {
+                                ->map(function(Dashboard\Component $component) use ($entityManager, $mode, $user, $natureRepository) {
                                     $type = $component->getType();
                                     $config = $component->getConfig();
                                     $meter = $component->getMeter();
                                     $meterKey = $type->getMeterKey();
+                                    $legends = [];
+
+                                    if (in_array($meterKey, self::COMPONENTS_NEEDING_LEGEND_TRANSLATION)) {
+                                        $natures = $natureRepository->findAll();
+                                        $legends = Stream::from($natures)
+                                            ->keymap(fn (Nature $nature) => [$nature->getId(), $this->formatService->nature($nature)])
+                                            ->toArray();
+                                    }
+
                                     return [
                                         "id" => $component->getId(),
                                         "type" => $type->getId(),
+                                        "legends" => $legends,
                                         "columnIndex" => $component->getColumnIndex(),
                                         "direction" => $component->getDirection(),
                                         "cellIndex" => $component->getCellIndex(),

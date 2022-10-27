@@ -217,8 +217,7 @@ class PackController extends AbstractController
         $pack = $packRepository->find($data['id']);
         $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
         if (!empty($pack) && $packDataIsValid['success']) {
-            $packService
-                ->editPack($data, $natureRepository, $projectRepository, $pack);
+            $packService->editPack($data, $natureRepository, $projectRepository, $pack);
 
             $entityManager->flush();
             $response = [

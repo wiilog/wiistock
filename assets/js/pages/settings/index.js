@@ -25,9 +25,13 @@ import {
 import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
 import {onHeaderPageEditStop} from "./utils";
 import Form from '../../form';
+import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
+import AJAX, {GET, POST} from "@app/ajax";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
+global.addTypeRow = addTypeRow;
+global.removeTypeRow = removeTypeRow;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -78,8 +82,8 @@ const initializers = {
     trace_services_statuts: initializeHandlingStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
     utilisateurs_roles: initializeRolesPage,
-    stock_receptions_types_litiges: initializeTypesLitige,
-    trace_arrivages_types_litiges: initializeTypesLitige,
+    stock_receptions_types_litiges: initializeReceptionTypesLitige,
+    trace_arrivages_types_litiges: initializeTraceArrivalTypesLitige,
     trace_arrivages_statuts: initializeArrivalStatuses,
     stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
@@ -99,6 +103,7 @@ const slowOperations = [
 const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);
 const $managementButtons = $(`.save-settings, .discard-settings`);
+let canTranslate = true;
 
 $(function() {
     let canEdit = $(`input#edit`).val();
@@ -236,7 +241,6 @@ $(function() {
     $(document).on(`click`, `.submit-field-param`, function() {
         const $button = $(this);
         const $modal = $button.closest(`.modal`);
-
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
         if(data) {
@@ -244,6 +248,7 @@ $(function() {
             $modal.modal(`hide`);
         }
     });
+
 });
 
 function getCategoryLabel() {
@@ -594,6 +599,7 @@ function initializeHandlingFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+    initializeType();
 }
 
 function initializeDeliveries() {
@@ -822,7 +828,7 @@ function initializeInventoryMissionsTable($container){
     });
 }
 
-function initializeTypesLitige(){
+function initializeReceptionTypesLitige(){
     $saveButton.addClass('d-none');
     $discardButton.addClass('d-none');
 
@@ -853,6 +859,72 @@ function initializeTypesLitige(){
             label: `<input type='text' name='label' class='form-control data needed' data-global-error='Libellé'/>`,
             description: `<input type='text' name='description' class='form-control data' data-global-error='Description'/>`,
         },
+    });
+}
+
+function initializeTraceArrivalTypesLitige($container){
+    $saveButton.addClass('d-none');
+    $discardButton.addClass('d-none');
+    const $translateLabels = $container.find('.translate-labels');
+    const $translateButton = $container.find(`.translate-labels-button`);
+    const $modalEditTranslations = $container.find(".edit-translation-modal");
+
+    const table = EditableDatatable.create(`#table-types-litige`, {
+        route: Routing.generate('types_litige_api', true),
+        deleteRoute: `settings_delete_type_litige`,
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
+
+            if (canTranslate) {
+                $translateLabels.removeClass('d-none');
+            }
+
+            $translateButton
+                .off('click.disputeTypesTranslation')
+                .on('click.disputeTypesTranslation', function () {
+                    wrapLoadingOnActionButton($(this), () => (
+                        AJAX.route(GET, "settings_edit_types_litige_translations_api")
+                            .json()
+                            .then((response) => {
+                                $modalEditTranslations.find(`.modal-body`).html(response.html);
+                                $modalEditTranslations.modal('show');
+                            })
+                    ));
+                });
+        },
+        onEditStop: () => {
+            $saveButton.addClass('d-none');
+            $discardButton.addClass('d-none');
+            if (canTranslate) {
+                $translateLabels.addClass('d-none');
+            }
+            canTranslate = true;
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `description`, title: `Description`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed' data-global-error='Libellé'/>`,
+            description: `<input type='text' name='description' class='form-control data' data-global-error='Description'/>`,
+        },
+    });
+
+    let submitEditTranslations = $modalEditTranslations.find("[type=submit]");
+    let urlEditTranslations = Routing.generate('settings_edit_types_litige_translations', true);
+    InitModal($modalEditTranslations, submitEditTranslations, urlEditTranslations, {
+        success: () => {
+            table.toggleEdit(STATE_VIEWING, true);
+        }
     });
 }
 
@@ -950,4 +1022,54 @@ function saveTranslations($button) {
             showBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
         }
     });
+}
+
+function initializeType() {
+    applyEventForType($('.handling-type'));
+}
+
+function addTypeRow($button) {
+    let field = $button.closest('.modal').find('.zone-type');
+    let template = $button.closest('.modal').find('.row-template');
+    let clone = template.clone().contents();
+    let newMultipleKey = Math.floor(Math.random() * 100000000);
+    field.append(clone);
+    field.find($('select[name=user]').last()).data('multiple-object-index', newMultipleKey);
+    field.find($('select[name=handlingType]').last()).data('multiple-object-index', newMultipleKey);
+    applyEventForType(clone.find('.handling-type'));
+    verifyAlreadyDefineTypes(clone.find('.handling-type'));
+}
+
+function removeTypeRow($button) {
+    let rowType = $button.parents('.row-type');
+    rowType.remove();
+    verifyAlreadyDefineTypes(rowType.find('.handling-type'));
+}
+
+function applyEventForType(select2) {
+    select2.on("change", function () {
+        verifyAlreadyDefineTypes(select2);
+    });
+    select2.on("open", function () {
+        verifyAlreadyDefineTypes(select2);
+    });
+}
+
+function verifyAlreadyDefineTypes(select2) {
+    const $alreadyDefinedTypes = select2.closest('.modal').find('input[name=alreadyDefinedTypes]');
+    let values = [];
+    let $handlingTypeContainer = $('.handling-type');
+    $handlingTypeContainer.each(function() {
+        if ($(this).val() && !values.includes($(this).val())) {
+            values.push($(this).val());
+        }
+    });
+    $alreadyDefinedTypes.val(values.join(','));
+    const $types = JSON.parse($('.zone-type').closest('.modal').find('input[name=types]').val());
+    if ($handlingTypeContainer.length < $types.length) {
+        $('.add-row-type').attr("disabled", false);
+    }
+    if ($handlingTypeContainer.length >= $types.length) {
+        $('.add-row-type').attr("disabled", true);
+    }
 }

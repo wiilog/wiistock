@@ -633,7 +633,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Détails arrivages - Liste des unités logistiques",
                         ],
                         [
-                            "fr" => "Nombre d'UL à ajouter :",
+                            "fr" => "Nombre d'unités logistiques à ajouter :",
                             "en" => "Quantity of L.U. to add :",
                             "tooltip" => "Page Flux - Arrivages :\nModale Nouvel arrivage\nDétails arrivages - Liste des UL - Modale Ajouter une UL",
                         ],
@@ -755,7 +755,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Modale Nouvel arrivage\nDétails arrivages - Entête - Bouton",
                         ],
                         [
-                            "fr" => "Imprimer UL",
+                            "fr" => "Imprimer unités logistiques",
                             "en" => "Print L.U.",
                             "tooltip" => "Modale Nouvel arrivage\nDétails arrivages - Liste des UL - Bouton",
                         ],
@@ -2686,6 +2686,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Nouvelle demande de service",
                             "en" => "New service operation",
                             "tooltip" => "Modale Nouvelle demande de service",
+                        ],
+                        [
+                            "fr" => "Type",
+                            "en" => "Type",
+                            "tooltip" => "Paramètrage des champs fixes, sélection de destinataires par type de service",
                         ],
                     ],
                 ],
