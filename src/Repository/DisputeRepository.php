@@ -163,7 +163,7 @@ class DisputeRepository extends EntityRepository
             FROM App\Entity\Dispute dispute
             INNER JOIN dispute.articles a
             INNER JOIN a.receptionReferenceArticle rra
-            INNER JOIN rra.reception r
+            INNER JOIN rra.receptionLine r
             WHERE r.id = :reception'
         )->setParameter('reception', $reception);
 

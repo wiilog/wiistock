@@ -29,7 +29,7 @@ class ReceptionReferenceArticleRepository extends EntityRepository
         $query = $entityManager->createQuery(
             'SELECT a
             FROM App\Entity\ReceptionReferenceArticle a
-            WHERE a.reception = :reception'
+            WHERE a.receptionLine = :reception'
         )->setParameter('reception', $reception);;
         return $query->execute();
     }
@@ -40,7 +40,7 @@ class ReceptionReferenceArticleRepository extends EntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT (a)
             FROM App\Entity\ReceptionReferenceArticle a
-            WHERE a.anomalie = :conform AND a.reception = :reception"
+            WHERE a.anomalie = :conform AND a.receptionLine = :reception"
         )->setParameters([
             'conform' => 1,
             'reception' => $reception
@@ -56,7 +56,7 @@ class ReceptionReferenceArticleRepository extends EntityRepository
                                                               ?int $refArticleId): array {
         return $this->createQueryBuilder('reception_reference_article')
             ->join('reception_reference_article.referenceArticle', 'referenceArticle')
-            ->andWhere('reception_reference_article.reception = :reception')
+            ->andWhere('reception_reference_article.receptionLine = :reception')
             ->andWhere('reception_reference_article.commande = :orderNumber')
             ->andWhere('referenceArticle.id = :refArticleId')
             ->setParameters([
@@ -73,7 +73,7 @@ class ReceptionReferenceArticleRepository extends EntityRepository
 	    $queryExpression = $queryBuilder->expr();
         $query = $queryBuilder
             ->join('reception_reference_article.referenceArticle', 'reference_article')
-            ->join('reception_reference_article.reception', 'reception')
+            ->join('reception_reference_article.receptionLine', 'reception')
             ->join('reception.statut', 'status')
             ->where('reference_article = :ref')
             ->andWhere('status.code IN (:statuses)')
