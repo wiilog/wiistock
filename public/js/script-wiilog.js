@@ -1204,6 +1204,14 @@ function onTypeChange($select) {
             $errorEmptyStatus.removeClass('d-none');
             $selectStatus.addClass('d-none');
         }
+        $.post(Routing.generate('handling_users_by_type'), {id: type}, function (data) {
+            const $select2 = $('.modal-body select[name=receivers]');
+            $select2.empty().trigger('change');
+            Object.entries(data).forEach(([key, value]) => {
+                let option = new Option(value, key, true, true);
+                $select2.append(option).trigger('change');
+            })
+        });
     }
 }
 
