@@ -404,10 +404,10 @@ class PackService {
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
                 ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature')],
                 ["name" => 'code', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Unités logistiques')],
+                ["name" => 'project', 'title' => 'Projet'],
                 ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
                 ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement')],
                 ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur')],
-                ["name" => 'project', 'title' => 'Projet'],
             ],
             [],
             $columnsVisible
