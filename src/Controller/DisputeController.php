@@ -136,7 +136,7 @@ class DisputeController extends AbstractController
             $associatedIdAndReferences = $receptionReferenceArticleRepository->getAssociatedIdAndReferences();
             $associatedIdAndOrderNumbers = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers();
 
-            $receptionDisputes = $disputeRepository->iterateReceptionDisputesByDates($dateTimeMin, $dateTimeMax);
+            $receptionDisputes = $disputeRepository->iterateReceptionDisputesByDates($dateTimeMin, $dateTimeMax, $statuses);
             /** @var Dispute $dispute */
             foreach ($receptionDisputes as $dispute) {
                 $articles = $articleRepository->getArticlesByDisputeId($dispute["id"]);
