@@ -115,11 +115,7 @@ class DisputeRepository extends EntityRepository
         return $queryBuilder;
     }
 
-    public function iterateArrivalDisputesByDatesOrAndStatus(DateTime $dateMin, DateTime $dateMax, $statuses = null): iterable {
-        if(!empty($statuses) && !empty($statuses[0])){
-            $this->createQueryBuilderByDates($dateMin, $dateMax);
-        }
-
+    public function iterateArrivalDisputesByDatesOrAndStatus(DateTime $dateMin, DateTime $dateMax, $statuses = []): iterable {
         return $this
             ->createQueryBuilderByDates($dateMin, $dateMax, $statuses)
             ->join('dispute.packs', 'pack')
@@ -128,10 +124,10 @@ class DisputeRepository extends EntityRepository
             ->toIterable();
     }
 
-	public function iterateReceptionDisputesByDates(DateTime $dateMin, DateTime $dateMax): iterable
+	public function iterateReceptionDisputesByDates(DateTime $dateMin, DateTime $dateMax, $statuses = []): iterable
 	{
         return $this
-            ->createQueryBuilderByDates($dateMin, $dateMax)
+            ->createQueryBuilderByDates($dateMin, $dateMax, $statuses)
             ->join('dispute.articles', 'article')
             ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
             ->join('receptionReferenceArticle.reception', 'reception')
