@@ -8,7 +8,7 @@
             <span class="pointer">
                 {{ userLanguage is defined and defaultLanguage is defined and userLanguage is not null and defaultLanguage is not null
                     ? status.labelIn(userLanguage, defaultLanguage)
-                    : status.nom }} - <span class="italic">{{ status_state_values[status.state] }}</span>
+                    : status.nom }} - <span class="italic">{{ trans('Demande', 'Acheminements', 'Général', status_state_values[status.state]) }}</span>
             </span>
         </label>
     </li>
