@@ -234,10 +234,9 @@
                 <div class="wii-box">
                     <div class="header wii-title d-flex justify-content-between align-items-center p-2">
                         <span class="ml-2">Mouvements de traçabilité</span>
-                        <a class="btn btn-outline-primary" {{ movementIds != '' ? 'disabled' }}
-                           href="{{ path('mvt_traca_index', {movements: movementIds}) }}" target="_blank">
-                            <i class="fas fa-share-square"></i>
-                            <span>Ouvrir la page</span>
+                        <a class="btn btn-outline-primary {{ not hasMovements ? 'disabled' }}"
+                           href="{{ path('mvt_traca_index', {article: article.id}) }}" target="_blank">
+                            <i class="fas fa-share-square mr-2"></i>Ouvrir la page
                         </a>
                     </div>
                     <div class="content" data-loader-color="primary" data-loader-size="normal">

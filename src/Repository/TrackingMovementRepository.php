@@ -94,54 +94,61 @@ class TrackingMovementRepository extends EntityRepository
 
         $countTotal = QueryBuilderHelper::count($qb, 'tracking_movement');
 
-        // filtres sup
-        foreach ($filters as $filter) {
-            switch ($filter['field']) {
-                case 'statut':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('tracking_movement.type', 'filter_type')
-                        ->andWhere('filter_type.id in (:type)')
-                        ->setParameter('type', $value);
-                    break;
-                case 'emplacement':
-                    $emplacementValue = explode(':', $filter['value']);
-                    $qb
-                        ->join('tracking_movement.emplacement', 'filter_location')
-                        ->andWhere('filter_location.label = :location')
-                        ->setParameter('location', $emplacementValue[1] ?? $filter['value']);
-                    break;
-                case 'utilisateurs':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('tracking_movement.operateur', 'filter_operator')
-                        ->andWhere("filter_operator.id in (:userId)")
-                        ->setParameter('userId', $value);
-                    break;
-                case 'dateMin':
-                    $qb
-                        ->andWhere('tracking_movement.datetime >= :dateMin')
-                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
-                    break;
-                case 'dateMax':
-                    $qb
-                        ->andWhere('tracking_movement.datetime <= :dateMax')
-                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
-                    break;
-                case 'colis':
-                    $qb
-                        ->leftJoin('tracking_movement.pack', 'filter_pack')
-                        ->andWhere('filter_pack.code LIKE :filter_code')
-                        ->setParameter('filter_code', '%' . $filter['value'] . '%');
-                    break;
-                case FiltreSup::FIELD_ARTICLE:
-                    $value = explode(':', $filter['value'])[0];
-                    $qb
-                        ->leftJoin('tracking_movement.pack', 'filter_article_pack')
-                        ->andWhere(":article MEMBER OF filter_article_pack.childArticles")
-                        ->setParameter('article', $value);
-                    break;
-           }
+        if($params->get('article')) {
+            $qb
+                ->leftJoin('tracking_movement.pack', 'from_article_join_pack')
+                ->leftJoin('from_article_join_pack.article', 'from_article_join_article')
+                ->andWhere('from_article_join_article.id = :article')
+                ->setParameter('article', $params->get('article'));
+        } else {
+            foreach ($filters as $filter) {
+                switch ($filter['field']) {
+                    case 'statut':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('tracking_movement.type', 'filter_type')
+                            ->andWhere('filter_type.id in (:type)')
+                            ->setParameter('type', $value);
+                        break;
+                    case 'emplacement':
+                        $emplacementValue = explode(':', $filter['value']);
+                        $qb
+                            ->join('tracking_movement.emplacement', 'filter_location')
+                            ->andWhere('filter_location.label = :location')
+                            ->setParameter('location', $emplacementValue[1] ?? $filter['value']);
+                        break;
+                    case 'utilisateurs':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('tracking_movement.operateur', 'filter_operator')
+                            ->andWhere("filter_operator.id in (:userId)")
+                            ->setParameter('userId', $value);
+                        break;
+                    case 'dateMin':
+                        $qb
+                            ->andWhere('tracking_movement.datetime >= :dateMin')
+                            ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                        break;
+                    case 'dateMax':
+                        $qb
+                            ->andWhere('tracking_movement.datetime <= :dateMax')
+                            ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                        break;
+                    case 'colis':
+                        $qb
+                            ->leftJoin('tracking_movement.pack', 'filter_pack')
+                            ->andWhere('filter_pack.code LIKE :filter_code')
+                            ->setParameter('filter_code', '%' . $filter['value'] . '%');
+                        break;
+                    case FiltreSup::FIELD_ARTICLE:
+                        $value = explode(':', $filter['value'])[0];
+                        $qb
+                            ->leftJoin('tracking_movement.pack', 'filter_article_pack')
+                            ->andWhere(":article MEMBER OF filter_article_pack.childArticles")
+                            ->setParameter('article', $value);
+                        break;
+                }
+            }
         }
 
         //Filter search
@@ -251,14 +258,6 @@ class TrackingMovementRepository extends EntityRepository
 
         if(!$params->has("order")) {
             $qb->addOrderBy("tracking_movement.datetime", "DESC");
-        }
-
-        if($params->get('article')) {
-            $qb
-                ->leftJoin('tracking_movement.pack', 'from_article_join_pack')
-                ->leftJoin('from_article_join_pack.article', 'from_article_join_article')
-                ->andWhere('from_article_join_article.id = :article')
-                ->setParameter('article', $params->get('article'));
         }
 
         // compte éléments filtrés

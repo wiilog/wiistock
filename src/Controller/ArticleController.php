@@ -143,7 +143,7 @@ class ArticleController extends AbstractController
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
         $type = $article->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId());
+        $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
         $projectHistoryRecords = Stream::from($article->getProjectHistoryRecords())
             ->filter(fn(ProjectHistoryRecord $record) => $record->getProject() !== $article->getProject())
             ->sort(fn(ProjectHistoryRecord $r1, ProjectHistoryRecord $r2) => $r2->getCreatedAt() <=> $r1->getCreatedAt())
@@ -151,8 +151,8 @@ class ArticleController extends AbstractController
 
         return $this->render("article/show/index.html.twig", [
             'article' => $article,
+            'hasMovements' => $hasMovements,
             'freeFields' => $freeFields,
-            'movementIds' => Stream::from($movements)->map(fn(array $movement) => $movement['id'])->join(','),
             'projectHistoryRecords' => $projectHistoryRecords,
         ]);
     }
