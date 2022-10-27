@@ -9,6 +9,7 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
+    initDateTimePicker('#datetime', DATE_FORMATS_TO_DISPLAY[format] + ` HH:mm`, {setTodayDate: true});
     initDatePickers();
     Select2Old.init($('#emplacement'), 'Emplacements');
 
