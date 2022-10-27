@@ -190,10 +190,11 @@ function renderComponent(component, $container, data) {
                         null,
                         data,
                         false,
-                        isCardExample
+                        isCardExample,
+                        component.legends || null
                     );
                 } else {
-                    createAndUpdateMultipleCharts($canvas, null, data, false, true, isCardExample);
+                    createAndUpdateMultipleCharts($canvas, null, data, false, true, isCardExample, component.legends || null);
                 }
             } else if($table.length > 0) {
                 if($table.hasClass('retards-table')) {
@@ -793,8 +794,8 @@ function updateSimpleChartData(chart, data, label, stack = false,
     chart.update();
 }
 
-function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false, disableAnimation = false) {
-    applyChartTranslations(data);
+function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false, disableAnimation = false, legends = null) {
+    applyChartTranslations(data, legends);
     if(forceCreation || !chart) {
         chart = newChart($canvas, data, false, disableAnimation);
     }
@@ -1048,8 +1049,8 @@ function createAndUpdateMultipleCharts($canvas,
                                        data,
                                        forceCreation = false,
                                        redForLastData = true,
-                                       disableAnimation = false) {
-    applyChartTranslations(data);
+                                       disableAnimation = false, legends = null) {
+    applyChartTranslations(data, legends);
     if(forceCreation || !chart) {
         if(data.chartData) {
             delete data.chartData.hint;
@@ -1299,7 +1300,7 @@ function displayLegendTranslation(data){
     }
 }
 
-function applyChartTranslations(data){
+function applyChartTranslations(data, legends = null){
     if(data.__meterKey === PACK_TO_TREAT_FROM.toLowerCase()){
         for(const [key, value] of Object.entries(data.chartColors)){
             delete data.chartColors[key];
@@ -1311,6 +1312,14 @@ function applyChartTranslations(data){
     }
     if(data.chartData && data.chartData.stack && data.chartData.stack[0].label){
         data.chartData.stack[0].label = Translation.of('Dashboard', data.chartData.stack[0].label, false);
+    }
+
+    if (legends && data.chartData && data.chartData.stack) {
+        data.chartData.stack.forEach(function(stack, index) {
+            if (legends[stack.id]) {
+                data.chartData.stack[index].label = legends[stack.id];
+            }
+        });
     }
     return data;
 }
