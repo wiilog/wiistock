@@ -76,7 +76,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Unité logistique",
-                            "en" => "Logistics unit",
+                            "en" => "Logistic unit",
                         ],
                     ],
                 ],
@@ -319,7 +319,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             "content" => [
                 [
                     "fr" => "Unité logistique",
-                    "en" => "Logistics unit",
+                    "en" => "Logistic unit",
                     "tooltip" => "Composant \"UL en retard\"\nComposant \"Nombre d'arrivages et d'UL quotidiens\"\nComposant \"Nombres d'arrivages et d'UL hebdomadaires\"",
                 ],
                 [
@@ -474,12 +474,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Unités logistiques",
-                        "en" => "Logistics units",
+                        "en" => "Logistic units",
                         "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nEmail litige\n_____\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage UL :\nMenu\nFil d'ariane\nFiltre\nOnglet\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Unité logistique",
-                        "en" => "Logistics unit",
+                        "en" => "Logistic unit",
                         "tooltip" => "Page Mouvements :\nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage Association BR :\nFiltre\nZone liste - Nom de colonnes",
                     ],
                     [
@@ -554,12 +554,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Votre unité logistique a été livrée",
-                        "en" => "Your logistics unit has been delivered",
+                        "en" => "Your logistic unit has been delivered",
                         "tooltip" => "Email de confirmation de livraison d'unité logistique",
                     ],
                     [
                         "fr" => "Article",
-                        "en" => "Article",
+                        "en" => "Item",
                         "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes",
                     ],
                 ],
@@ -624,12 +624,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Ajouter des unités logistiques",
-                            "en" => "Add Logistics units",
+                            "en" => "Add Logistic units",
                             "tooltip" => "Page Flux - Arrivages :\nDétails arrivages - Liste des colis - Bouton\nDétails arrivages - Liste des colis - Modale Ajouter colis ",
                         ],
                         [
                             "fr" => "Liste des unités logistiques",
-                            "en" => "Logistics unit list",
+                            "en" => "Logistic unit list",
                             "tooltip" => "Détails arrivages - Liste des unités logistiques",
                         ],
                         [
@@ -839,7 +839,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Veuillez renseigner au moins une unité logistique",
-                            "en" => "Fill in at least one logistics unit",
+                            "en" => "Fill in at least one logistic unit",
                             "tooltip" => "Modale Nouvel arrivage",
                         ],
                     ],
@@ -917,7 +917,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Unités logistiques réceptionnées :",
-                            "en" => "Receipted logistics units",
+                            "en" => "Receipted logistic units",
                             "tooltip" => "Email arrivage",
                         ],
                         [
@@ -1038,7 +1038,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Unités logistiques à acheminer",
-                            "en" => "Logistics unit to ship",
+                            "en" => "Logistic unit to ship",
                             "tooltip" => "Modale acheminer",
                         ],
                     ],
@@ -1196,33 +1196,38 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Modale Supprimer l'UL",
                         ],
                         [
-                            "fr" => "X articles dans l'unité logistique. Cliquez sur le logo pour voir le contenu de l'unité logistique.",
-                            "en" => "X units in the logistics unit. Click on the logo to see the contents of the logistics unit.",
+                            "fr" => "{1} articles dans l'unité logistique. Cliquez pour voir le contenu.",
+                            "en" => "{1} items in the logistic unit. Click to see the contents.",
                             "tooltip" => "Zone liste",
                         ],
                         [
                             "fr" => "Contenu unité logistique",
-                            "en" => "Logistics unit content",
+                            "en" => "Logistic unit content",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
                             "fr" => "Articles",
-                            "en" => "Units",
+                            "en" => "Items",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
                             "fr" => "Historique des articles",
-                            "en" => "Units history",
+                            "en" => "Items history",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
                             "fr" => "L'unité logistique ne contient aucun article actuellement",
-                            "en" => "The logistics unit does not currently contain any items",
+                            "en" => "The logistic unit does not currently contain any items",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
                             "fr" => "Ref",
                             "en" => "Ref",
+                            "tooltip" => "Zone liste - contenu UL",
+                        ],
+                        [
+                            "fr" => "Quantité",
+                            "en" => "Quantity",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
@@ -1285,7 +1290,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Cette unité logistique est utilisé dans un ordre de livraison",
-                            "en" => "This logistics unit is used in a delivery order",
+                            "en" => "This logistic unit is used in a delivery order",
                         ],
                     ],
                 ],
@@ -1368,12 +1373,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Article",
-                        "en" => "Article",
+                        "en" => "Item",
                         "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes",
                     ],
                     [
                         "fr" => "Article(s)",
-                        "en" => "Article(s)",
+                        "en" => "Item(s)",
                         "tooltip" => "Modale nouveau mouvement (dépose dans UL)",
                     ],
                     [
@@ -1697,7 +1702,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "articles",
-                        "en" => "units",
+                        "en" => "items",
                         "tooltip" => "Modale modifier un litige",
                     ],
                     [
@@ -1707,7 +1712,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Code article",
-                        "en" => "Unit code",
+                        "en" => "Item code",
                         "tooltip" => "Modale modifier un litige",
                     ],
                     [
@@ -1717,7 +1722,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Référence article",
-                        "en" => "Unit reference",
+                        "en" => "Item reference",
                         "tooltip" => "Modale modifier un litige",
                     ],
                     [
@@ -1966,7 +1971,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Une unité logistique minimum est nécessaire pour procéder à l'acheminement",
-                            "en" => "A logistics unit is required to proceed with the transfer",
+                            "en" => "A logistic unit is required to proceed with the transfer",
                         ],
                         [
                             "fr" => "Les unités logistiques de l'arrivage ont bien été ajoutés dans l'acheminement {1}",
@@ -2017,7 +2022,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Attention : L'acheminement contient plus de {1} unités logistiques, cette lettre de voiture ne peut contenir plus de {1} lignes.",
-                            "en" => "Warning: The tranfer contains more than {1} logistics units, this consignment note cannot contain more than {1} lines.",
+                            "en" => "Warning: The tranfer contains more than {1} logistic units, this consignment note cannot contain more than {1} lines.",
                             "tooltip" => "Modale Création\nModification Lettre de voiture",
                         ],
                     ],
@@ -2107,7 +2112,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Unité logistique",
-                            "en" => "Logistics unit",
+                            "en" => "Logistic unit",
                             "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture",
                         ],
                         [
@@ -2233,7 +2238,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Des unités logistiques sont nécessaires pour générer une lettre de voiture",
-                            "en" => "Logistics units are necessary to create a consignment note",
+                            "en" => "Logistic units are necessary to create a consignment note",
                         ],
                         [
                             "fr" => "L'acheminement contient plus de {1} colis",
@@ -2437,7 +2442,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Des unités logistiques sont nécessaires pour générer un bon de livraison",
-                            "en" => "Logistics units are necessary to generate a delivery note",
+                            "en" => "Logistic units are necessary to generate a delivery note",
                         ],
                         [
                             "fr" => "Le bon de livraison n'existe pas pour cet acheminement",

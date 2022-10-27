@@ -75,6 +75,20 @@ class PackController extends AbstractController
     }
 
     /**
+     * @Route("/{pack}/contenu", name="logistic_unit_content", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK}, mode=HasPermission::IN_JSON)
+     */
+    public function logisticUnitContent(Pack $pack): Response
+    {
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("pack/logistic-unit-content.html.twig", [
+                "articles" => $pack->getChildArticles(),
+            ]),
+        ]);
+    }
+
+    /**
      * @Route("/csv", name="export_packs", options={"expose"=true}, methods={"GET"})
      * @HasPermission({Menu::TRACA, Action::EXPORT})
      */

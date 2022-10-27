@@ -14,6 +14,7 @@
 $icons: (
     "accueil": "../../public/svg/accueil.svg",
     "ask-quantity": "../../public/svg/ask-quantity.svg",
+    "article": "../../public/svg/article.svg",
     "article-in-lu": "../../public/svg/article-in-lu.svg",
     "addlist": "../../public/svg/addlist.svg",
     "addref": "../../public/svg/addref.svg",
@@ -146,5 +147,6 @@ $icon-colors: (
 }
 
 .primary-on-hover:hover {
+    color: $primary;
     background: $primary;
 }
