@@ -241,7 +241,7 @@ class TrackingMovement {
             : null;
     }
 
-    public function getArticle(): ?Article {
+    public function getPackArticle(): ?Article {
         return isset($this->pack)
             ? $this->pack->getArticle()
             : null;

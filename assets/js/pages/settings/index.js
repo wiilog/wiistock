@@ -12,7 +12,7 @@ import {
     createFreeFieldsPage,
     initializeTraceMovementsFreeFields,
     initializeIotFreeFields,
-    initializeReceptionsFreeFields, createArrivalsFreeFieldsPage, createDispatchFreeFieldsPage, createHandlingFreeFieldsPage,
+    initializeReceptionsFreeFields, createArrivalsFreeFieldsPage, createDispatchFreeFieldsPage, createHandlingFreeFieldsPage, createDeliveryRequestFieldsPage,
 } from "./free-fields";
 import {
     initializeArrivalDisputeStatuses,
@@ -51,7 +51,7 @@ const initializers = {
     global_etiquettes: initializeGlobalLabels,
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
-    stock_demandes_types_champs_libres_livraisons: createFreeFieldsPage,
+    stock_demandes_types_champs_libres_livraisons: createDeliveryRequestFieldsPage,
     stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
     track_demande_transport_types_champs_libres_livraisons: createFreeFieldsPage,
     track_demande_transport_types_champs_libres_collectes: createFreeFieldsPage,
@@ -104,11 +104,17 @@ const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);
 const $managementButtons = $(`.save-settings, .discard-settings`);
 let canTranslate = true;
+let editing = false;
 
 $(function() {
     let canEdit = $(`input#edit`).val();
 
     updateMenu(submenu || menu, canEdit);
+
+
+    $(document).on(`change`, `.wii-box.settings-content:not(.d-none) *`, function() {
+        editing = true;
+    });
 
     document.body.addEventListener(`click`, function(event) {
         const $target = $(event.target);
@@ -139,8 +145,7 @@ $(function() {
     }, true);
 
     $(`.settings-item`).on(`click`, function() {
-        const editing = $(`.settings-content`).find(`.dataTables_wrapper`).is('.current-editing');
-        if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez-vous continuer ?"))) {
+        if (!editing || window.confirm(`Vous avez des modifications en attente, souhaitez-vous continuer ?`)) {
             const selectedMenu = $(this).data(`menu`);
             $(`.settings-item.selected`).removeClass(`selected`);
             $(this).addClass(`selected`);
@@ -158,6 +163,7 @@ $(function() {
         const config = {ignored: `[data-table-processing]`,};
 
         const data = Form.process(form.element, config);
+
         let hasErrors = false;
         if(data) {
             const fieldNames = Form.getFieldNames(form.element, config);
@@ -202,6 +208,9 @@ $(function() {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
         $saveButton.pushLoader('white');
+
+        editing = false;
+
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
             .then(result => {
