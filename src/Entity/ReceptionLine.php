@@ -6,6 +6,7 @@ use App\Repository\ReceptionLineRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use phpDocumentor\Reflection\Types\Boolean;
 
 
 #[ORM\Entity(repositoryClass: ReceptionLineRepository::class)]
@@ -54,6 +55,10 @@ class ReceptionLine {
     public function setPack(?Pack $pack): self {
         $this->pack = $pack;
         return $this;
+    }
+
+    public function hasPack(): bool {
+        return $this->pack !== null;
     }
 
     /**

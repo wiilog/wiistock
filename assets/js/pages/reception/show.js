@@ -511,6 +511,8 @@ function initNewArticleEditor(modal) {
     setTimeout(() => {
         Select2Old.open($select2refs);
     }, 400);
+
+    initULSelect($modal);
 }
 
 function openModalArticlesFromLigneArticle(ligneArticleId) {

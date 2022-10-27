@@ -13,6 +13,8 @@ use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\ReceptionLine;
+use App\Entity\ReceptionReferenceArticle;
+use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;
@@ -22,7 +24,9 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use InvalidArgumentException;
+use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -499,5 +503,14 @@ class ReceptionService
                 'reception' => $reception
             ];
         }
+    }
+
+    public function getReceptionRefArticlesDuplicates(?Collection $receptionReferenceArticles, ?string $commande, ?int $refArticleId): bool {
+        return ($receptionReferenceArticles->filter(function(ReceptionReferenceArticle $receptionReferenceArticle) use ($refArticleId, $commande) {
+            return (
+                $commande === $receptionReferenceArticle->getCommande() &&
+                $refArticleId === $receptionReferenceArticle->getReferenceArticle()->getId()
+            );
+        }))->count() !== 0;
     }
 }

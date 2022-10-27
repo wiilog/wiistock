@@ -33,6 +33,17 @@
                             {% endif %}
                         </div>
                     </div>
+                    {% if reception.arrival is not null %}
+                    <div class="form-group col-xl-6 col-12">
+                        <label class="wii-field-name">{{ trans('Général', '', 'Zone filtre', 'Unité logistique') }}</label>
+                        <select class="ajax-autocomplete w-100 data form-control wii-field-text"
+                                name="ULArticleLine"
+                                data-s2="receptionLogisticUnits"
+                                data-other-params
+                                data-other-params-reception="{{ reception.id }}">
+                        </select>
+                    </div>
+                    {% endif %}
                     <div id='innerNewRef'
                          class="form-group w-100 col-12">
                     </div>
@@ -49,10 +60,19 @@
 
                     <div class="form-group col-6">
                         <label class="wii-field-name">Numéro de commande d'achat*</label>
-                        <input class="form-control data needed wii-field-text"
-                               type="text"
-                               name="commande"
-                               id="numCommandeAchat">
+                        {% if reception.orderNumber is not null %}
+                        <select name="commande"
+                                id="numCommandeAchat"
+                                class="form-control needed w-100 data">
+                            {% for orderNumber in reception.orderNumber %}
+                                <option>{{ orderNumber }}</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                            <input type="text"
+                                   class="form-control data needed wii-field-text"
+                                   name="commande">
+                        {% endif %}
                     </div>
                     <div class="form-group col-6">
                         <label class="wii-field-name">Quantité à recevoir*</label>
