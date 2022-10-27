@@ -953,19 +953,21 @@ class ReceptionController extends AbstractController {
     public function getArticles(ArticleDataService $articleDataService,
                                 Reception $reception): JsonResponse {
         $articles = [];
-        // TODO WIIS-7809
-        foreach($reception->getReceptionReferenceArticles() as $rra) {
-            foreach($rra->getArticles() as $article) {
-                if($articleDataService->articleCanBeAddedInDispute($article)) {
-                    $articles[] = [
-                        'id' => $article->getId(),
-                        'text' => $article->getBarCode(),
-                        'numReception' => $article->getReceptionReferenceArticle(),
-                        'isUrgent' => $article->getReceptionReferenceArticle()->getEmergencyTriggered() ?? false,
+        foreach ($reception->getLines() as $line) {
+            foreach($line->getReceptionReferenceArticles() as $rra) {
+                foreach($rra->getArticles() as $article) {
+                    if($articleDataService->articleCanBeAddedInDispute($article)) {
+                        $articles[] = [
+                            'id' => $article->getId(),
+                            'text' => $article->getBarCode(),
+                            'numReception' => $article->getReceptionReferenceArticle(),
+                            'isUrgent' => $article->getReceptionReferenceArticle()->getEmergencyTriggered() ?? false,
                         ];
+                    }
                 }
             }
         }
+
 
         return new JsonResponse([
             'results' => $articles,
