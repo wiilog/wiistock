@@ -19,7 +19,9 @@ final class Version20221019141245 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql("ALTER TABLE fields_param ADD modal_type VARCHAR(255) DEFAULT NULL");
+        if (!$schema->getTable('fields_param')->hasColumn('modal_type')) {
+            $this->addSql("ALTER TABLE fields_param ADD modal_type VARCHAR(255) DEFAULT NULL");
+        }
         $this->addSql("UPDATE fields_param SET modal_type = 'FREE' WHERE elements IS NOT NULL");
         $this->addSql("UPDATE fields_param SET modal_type = 'USER_BY_TYPE' WHERE field_code = 'receivers'");
         $this->addSql("UPDATE fields_param SET elements = '[]' WHERE modal_type = 'USER_BY_TYPE' AND elements is NULL");
