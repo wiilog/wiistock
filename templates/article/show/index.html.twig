@@ -114,7 +114,7 @@
                                     : null %}
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Assigné le</span>
-                                    <span class="wii-body-text">{{ lastRecord.project == article.project ? lastRecord.createdAt|format_helper('longDate', {time: true}) : '-' }}</span>
+                                    <span class="wii-body-text">{{ article.project and lastRecord.project == article.project ? lastRecord.createdAt|format_helper('longDate', {time: true}) : '-' }}</span>
                                 </label>
                             </div>
                         </div>
