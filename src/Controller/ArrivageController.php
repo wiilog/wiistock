@@ -1379,7 +1379,7 @@ class ArrivageController extends AbstractController {
             : '';
 
         $project = $projectParam
-            ? $arrival->getProjectNumber()
+            ? $colis->getProject()?->getCode()
             : '';
 
         $arrivalType = $typeArrivalParamIsDefined
