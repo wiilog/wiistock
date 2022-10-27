@@ -32,6 +32,8 @@
                                 <div class="btn-group">
                                     {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
                                     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+                                    {% dump hasRightEdit %}
+                                    {% dump hasRightExport %}
                                     {% if hasRightEdit and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_PACK')) %}
                                         <button type="button"
                                                 data-toggle="modal"
@@ -41,6 +43,13 @@
                                             <span class="wii-icon wii-icon-plus mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Ajouter des unités logistiques') }}</span>
                                         </button>
                                     {% endif %}
+                                    <button type="button"
+                                            class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                            data-toggle="dropdown"
+                                            aria-haspopup="true"
+                                            aria-expanded="false">
+                                        <span class="fa fa-angle-down"></span>
+                                    </button>
                                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                                         <a class="dropdown-item pointer"
                                            data-toggle="modal"
@@ -48,31 +57,22 @@
                                             <i class="fa fa-cog mr-2"></i>
                                             {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
                                         </a>
-                                    </div>
-                                    {% if hasRightExport %}
-                                        {% if hasRightEdit %}
-                                            <button type="button"
-                                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                                    data-toggle="dropdown"
-                                                    aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                <span class="fa fa-angle-down"></span>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                        {% if hasRightExport %}
+                                            {% if hasRightEdit %}
                                                 <a class="dropdown-item d-flex align-items-center"
                                                    id="printColisBtn"
                                                    href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
                                                     <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}</span>
                                                 </a>
-                                            </div>
-                                        {% else %}
-                                            <a id="printColisBtn"
-                                               class="btn btn-primary d-flex align-items-center"
-                                               href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                                <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}</span>
-                                            </a>
+                                            {% else %}
+                                                <a id="printColisBtn"
+                                                   class="btn btn-primary d-flex align-items-center"
+                                                   href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
+                                                    <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}</span>
+                                                </a>
+                                            {% endif %}
                                         {% endif %}
-                                    {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
