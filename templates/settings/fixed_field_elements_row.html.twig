@@ -5,8 +5,8 @@
     key: 'lines',
     index: random()
 } %}
-<div class="row row-type mt-2 justify-content-between">
-    <div class="col-5 mr-4">
+<div class="row row-type mt-2 justify-content-between no-gutters">
+    <div class="col-5 ">
         {{ form.select('handlingType', trans('Demande', 'Services', null, 'Type'), true, {
             type: 'handlingType',
             inputClass: 'handling-type',
@@ -17,7 +17,7 @@
             items: element ? element.type : null,
         }) }}
     </div>
-    <div class="col-5 mr-4">
+    <div class="col-5">
         {{ form.select('user', trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Destinataires'), true, {
             type: 'user',
             multiple :true,
@@ -27,7 +27,7 @@
             items: element ? element.users : null,
         }) }}
     </div>
-    <div class="col-1 d-flex justify-content-end align-items-end">
+    <div class="col-1 d-flex justify-content-end align-items-end delete-container">
         <button class='ml-4 d-flex justify-content-end align-items-center btn btn-outline-primary delete-type-row' data-id=''
                 onclick="removeTypeRow($(this))">
             <i class='wii-icon wii-icon-trash text-primary'></i>
