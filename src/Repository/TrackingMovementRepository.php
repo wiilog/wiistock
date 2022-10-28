@@ -230,6 +230,10 @@ class TrackingMovementRepository extends EntityRepository
             }
         }
 
+        if(!$params->has("order")) {
+            $qb->addOrderBy("tracking_movement.datetime", "DESC");
+        }
+
         // compte éléments filtrés
         $countFiltered = QueryBuilderHelper::count($qb, 'tracking_movement');
         $qb
