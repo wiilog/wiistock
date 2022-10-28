@@ -679,6 +679,7 @@ class ArrivageController extends AbstractController {
                 foreach ($arrivage->getAttachments() as $attachement) {
                     $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
                 }
+
                 foreach ($arrivage->getUrgences() as $urgence) {
                     $urgence->setLastArrival(null);
                 }
