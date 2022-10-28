@@ -31,7 +31,7 @@
                         title : trans('Général', '', 'Modale', 'Supprimer', false),
                         icon : "wii-icon wii-icon-trash-black",
                         attributes: {
-                            "data-id": "{{ mvt.id }}",
+                            "data-id": mvt.id,
                             "data-target": "#modalDeleteMvtTraca",
                             "data-toggle": "modal",
                             "onclick": "deleteRow($(this), $('#modalDeleteMvtTraca'), $('#submitDeleteMvtTraca'))",
