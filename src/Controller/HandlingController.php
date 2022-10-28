@@ -155,6 +155,22 @@ class HandlingController extends AbstractController {
         return new JsonResponse($data);
     }
 
+    #[Route("/users-by-type", name: "handling_users_by_type", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
+    public function apiUserByType(Request $request, EntityManagerInterface $entityManager, HandlingService $handlingService): Response
+    {
+        $typeId = $request->request->get('id');
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $receivers = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_RECEIVERS_HANDLING);
+        $receiversId = $receivers[$typeId];
+        $users = [];
+        foreach ($receiversId as $receiverId) {
+            $users[$receiverId] = $userRepository->find($receiverId)->getUsername();
+        }
+        return new JsonResponse($users);
+    }
+
     #[Route("/creer", name: "handling_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
