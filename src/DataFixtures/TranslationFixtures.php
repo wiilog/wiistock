@@ -619,7 +619,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Ajouter des unités logistiques",
-                            "en" => "Add Logistics units",
+                            "en" => "Add logistic units",
                             "tooltip" => "Page Flux - Arrivages :\nDétails arrivages - Liste des colis - Bouton\nDétails arrivages - Liste des colis - Modale Ajouter colis ",
                         ],
                         [

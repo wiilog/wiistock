@@ -76,11 +76,11 @@
     {% endif %}
 
     <div class="form-group col-4">
-        <label class="wii-field-name">{{ trans('Qualité', 'Litiges', 'Statut') }}*</label>
+        <label class="wii-field-name">{{ trans('Qualité', 'Litiges', 'Type') }}*</label>
         <select class="form-control data needed" id="disputeType" name="disputeType">
             <option disabled value="" selected></option>
             {% for type in disputeTypes %}
-                <option value="{{ type.id }}">{{ type.label }}</option>
+                <option value="{{ type.id }}">{{ type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
             {% endfor %}
         </select>
     </div>
