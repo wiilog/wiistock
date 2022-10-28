@@ -84,7 +84,6 @@ $(function() {
         // to get the event before action-on-click and be able to
         // cancel modal openning through event.stopPropagation
         $icon.on(`mouseup`, event => {
-            console.log('bro')
             event.stopPropagation();
 
             const $container = $(`.packsTableContainer`);
