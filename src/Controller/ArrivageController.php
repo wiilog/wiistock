@@ -819,7 +819,7 @@ class ArrivageController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
-            "projects" => $projectRepository->findAll(),
+            "projects" => $projectRepository->findActive(),
             'fields' => $fields,
         ]);
     }

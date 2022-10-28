@@ -59,7 +59,7 @@ class PackController extends AbstractController
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
-            'projects' => $projectRepository->findAll(),
+            'projects' => $projectRepository->findActive(),
         ]);
     }
 
@@ -190,7 +190,7 @@ class PackController extends AbstractController
             $projectRepository = $entityManager->getRepository(Project::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
             $pack = $packRepository->find($data['id']);
-            $projects = Stream::from($projectRepository->findAll())
+            $projects = Stream::from($projectRepository->findActive())
                 ->map(fn(Project $project) => [
                     "label" => $project->getCode(),
                     "value" => $project->getId(),
