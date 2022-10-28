@@ -59,6 +59,7 @@ class Dispute {
     private ?Utilisateur $reporter = null;
 
     #[ORM\OneToOne(targetEntity: DisputeHistoryRecord::class)]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?DisputeHistoryRecord $lastHistoryRecord = null;
 
     public function __construct() {

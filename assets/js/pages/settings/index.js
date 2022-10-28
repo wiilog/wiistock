@@ -1059,7 +1059,7 @@ function applyEventForType(select2) {
     select2.on("change", function () {
         verifyAlreadyDefineTypes(select2);
     });
-    select2.on("open", function () {
+    select2.on("select2:opening", function () {
         verifyAlreadyDefineTypes(select2);
     });
 }
