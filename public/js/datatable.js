@@ -293,8 +293,8 @@ function initDataTable($table, options) {
     if($table.data(`initial-visible`)) {
         config.columns = $table.data(`initial-visible`);
         $table
-            .removeData('initial-visible')
-            .removeAttr('initial-visible');
+            .removeAttr('data-initial-visible')
+            .removeData('initial-visible');
     }
 
     let tooltips = [];
@@ -383,8 +383,8 @@ function initDataTable($table, options) {
             deferLoading: [initial.recordsFiltered || 0, initial.recordsTotal || 0],
         };
         $table
-            .removeData('initial-data')
-            .removeAttr('initial-data');
+            .removeAttr('data-initial-data')
+            .removeData('initial-data');
     }
 
     datatableToReturn = $table
