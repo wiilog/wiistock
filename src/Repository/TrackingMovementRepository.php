@@ -137,7 +137,13 @@ class TrackingMovementRepository extends EntityRepository
                     case 'colis':
                         $qb
                             ->leftJoin('tracking_movement.pack', 'filter_pack')
-                            ->andWhere('filter_pack.code LIKE :filter_code')
+                            ->leftJoin('filter_pack.article', 'filter_pack_article')
+                            ->leftJoin('tracking_movement.logisticUnitParent', 'code_filter_logistic_unit')
+                            ->andWhere('IF(code_filter_logistic_unit.id IS NOT NULL,
+                                            code_filter_logistic_unit.code,
+                                            (IF (filter_pack_article.currentLogisticUnit IS NOT NULL,
+                                                NULL,
+                                                filter_pack.code))) LIKE :filter_code')
                             ->setParameter('filter_code', '%' . $filter['value'] . '%');
                         break;
                     case FiltreSup::FIELD_ARTICLE:
@@ -166,7 +172,7 @@ class TrackingMovementRepository extends EntityRepository
                         "location" => "search_location.label LIKE :search_value",
                         "type" => "search_type.nom LIKE :search_value",
                         "operator" => "search_operator.username LIKE :search_value",
-                        "article" => "IF(search_logistic_unit_parent.id IS NOT NULL, search_pack_article.barCode, NULL) LIKE :search_value",
+                        "article" => "search_pack_article.barCode LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'trackingMovement', $qb, $user, $search);
@@ -205,9 +211,8 @@ class TrackingMovementRepository extends EntityRepository
                     } else if ($column === 'article') {
                         $qb
                             ->leftJoin('tracking_movement.pack', 'order_pack')
-                            ->leftJoin('tracking_movement.logisticUnitParent', 'article_order_logistic_unit')
                             ->leftJoin('order_pack.article', 'order_pack_article')
-                            ->orderBy('IF(article_order_logistic_unit.id IS NOT NULL, order_pack_article.barCode, NULL)', $order);
+                            ->orderBy('order_pack_article.barCode', $order);
                     } else if ($column === 'reference') {
                         $qb
                             ->innerJoin('tracking_movement.pack', 'order_pack')
@@ -229,10 +234,15 @@ class TrackingMovementRepository extends EntityRepository
                             ->leftJoin('tracking_movement.operateur', 'order_operator')
                             ->orderBy('order_operator.username', $order);
                     }  else if ($column === 'packCode') {
-                        $qb->leftJoin('tracking_movement.pack', 'code_order_pack')
+                        $qb
+                            ->leftJoin('tracking_movement.pack', 'code_order_pack')
                             ->leftJoin('code_order_pack.article', 'code_order_pack_article')
                             ->leftJoin('tracking_movement.logisticUnitParent', 'code_order_logistic_unit')
-                            ->orderBy('IF(NOT (code_order_logistic_unit.id IS NOT NULL AND code_order_pack_article.id IS NOT NULL), tracking_movement.pack, NULL)', $order);
+                            ->orderBy('IF(code_order_logistic_unit.id IS NOT NULL,
+                                            code_order_logistic_unit.code,
+                                            (IF (code_order_pack_article.currentLogisticUnit IS NOT NULL,
+                                                NULL,
+                                                code_order_pack.code)))', $order);
                     } else {
                         $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {

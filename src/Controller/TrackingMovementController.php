@@ -59,6 +59,7 @@ class TrackingMovementController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $packFilter = $request->query->get('colis');
+        $article = null;
         $filterArticle = $request->query->get('article');
         if($filterArticle) {
             $article = $entityManager->getRepository(Article::class)->find($filterArticle);
