@@ -24,7 +24,7 @@ class DisputeHistoryRecord {
     private ?Utilisateur $user = null;
 
     #[ORM\ManyToOne(targetEntity: Dispute::class, inversedBy: 'disputeHistory')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Dispute $dispute = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
