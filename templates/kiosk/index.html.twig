@@ -1,0 +1,49 @@
+{% extends 'kiosk/layout.thml.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %} oui {# TODO TITLE #}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('kiosk-general') }}
+{% endblock %}
+
+
+{% block page_content %}
+    <div class="p-5">
+        <button>
+            Suivant
+        </button>
+        <button class="outline">
+            Retour
+        </button>
+        <button class="outline danger">
+            Abandonner
+        </button>
+
+        <button class="btn-small">
+            O
+        </button>
+    </div>
+    <div class="p-5 row ">
+        <div class="col-3">
+
+            <label class="w-100">
+                Normal
+                <input type="search" class="w-100">
+            </label>
+        </div>
+        <div class="col-3">
+            <label class="w-100" >
+                Erreur
+                <input type="search" class="w-100 invalid">
+                <span class="error">Ce champs est obligatoire pour continuer</span>
+            </label>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('kiosk-general') }}
+{% endblock %}
