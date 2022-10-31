@@ -2071,7 +2071,6 @@ class ReceptionController extends AbstractController {
         $supplierReference = $supplierReferenceRepository->find($supplierReference);
         $type = $reference->getType();
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-        // TODO WIIS-7812 ajouter l'ul ?
         $receptionReferenceArticle = $reception->getReceptionReferenceArticles()
             ->filter(fn(ReceptionReferenceArticle $line) =>
                 $line->getCommande() === $orderNumber &&

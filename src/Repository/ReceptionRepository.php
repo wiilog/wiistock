@@ -87,7 +87,6 @@ class ReceptionRepository extends EntityRepository
     }
 
     public function getByDates(DateTime $dateMin, DateTime $dateMax): array {
-        // TODO WIIS-7812
         $queryBuilder = $this->createQueryBuilder('reception')
             ->select('reception.id AS id')
             ->addSelect('article.id AS articleId')
