@@ -9,7 +9,7 @@
 {% endif %}
 
 {% if not hideFooter and elements is not empty %}
-    <div class="modal-footer {{ classes }}">
+    <div class=" {{ kiosk is defined and kiosk ? 'kiosk-modal-footer' : 'modal-footer'}} {{ classes }}">
         {% for element in elements %}
             {% if element['input'] is not defined %}
                 <button type="{{ element['type'] ?? 'button' }}"

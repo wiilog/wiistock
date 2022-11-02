@@ -11,7 +11,7 @@
 
 {% block page_content %}
     <div class="p-5">
-        <button>
+        <button id="openModal">
             Suivant
         </button>
         <button class="outline">
@@ -41,6 +41,32 @@
             </label>
         </div>
     </div>
+
+    <div class="modal fade" id="modalDeTest" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="kiosk-modal-content">
+                <div class="modal-body">
+                    <div class="a">
+                        La référence T20S0019 est déjà en stock en quantité 1, <br>
+                        vous ne pouvez donc pas faire une nouvelle entrée en <br>
+                        stock pour cet article. <br>
+                        Contactez GT au 8 45 65 pour plus d’informations. <br>
+                    </div>
+                </div>
+                {% include 'utils/modal/footer.html.twig' with {
+                    kiosk : true,
+                    elements: [
+                        {classes: '', dismiss: true, text: 'Suivant'},
+                        {classes: 'danger', dismiss: true, text: 'Suivant'},
+                    ],
+                    renderErrorContainer: false
+                } %}
+            </div>
+        </div>
+    </div>
+
+
+
 {% endblock %}
 
 {% block javascripts %}
