@@ -29,6 +29,7 @@ $(function () {
     tableArticle = dataTableInitRes.tableArticle;
     tableLitigesReception = dataTableInitRes.tableLitigesReception;
     initPageModals();
+    loadLogisticUnitPack();
     $('#packing-package-number, #packing-number-in-package').on('keypress keydown keyup', function () {
         if ($(this).val() === '' || $(this).val() < 0) {
             $(this).val('');
@@ -875,3 +876,41 @@ function clearPackingContent($element, hideSupplierReferenceSelect = true, hideP
     }
     $modal.find(`input[name=packingArticles]`).val(null);
 }
+
+function loadLogisticUnitPack() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const reception = $('#receptionId').val();
+    console.log($logisticUnitsContainer)
+    wrapLoadingOnActionButton(
+        $logisticUnitsContainer,
+        () => (
+            AJAX.route(GET, 'reception_lines_api', {reception})
+                .json()
+                .then(({html}) => {
+                    $logisticUnitsContainer.html(html);
+                    $logisticUnitsContainer.find('.articles-container table')
+                        .each(function() {
+                            const $table = $(this);
+                            console.log($table.data('initial-data'));
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                columns: [
+                                    { data: 'actions', className: 'noVis', orderable: false },
+                                    { data: 'reference', title: 'Référence'},
+                                    { data: 'orderNumber', title: 'Commande'},
+                                    { data: 'quantityToReceive', title: 'À recevoir'},
+                                    { data: 'receivedQuantity', title: 'Reçu'},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                },
+                            })
+                        })
+                })
+        )
+    )
+}
+

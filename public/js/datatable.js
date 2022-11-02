@@ -10,6 +10,7 @@ $(function () {
             $table.DataTable().columns.adjust().draw();
         });
     });
+
     onToggleInputRadioOnRow();
 });
 
@@ -376,6 +377,7 @@ function initDataTable($table, options) {
         };
 
     const initial = $table.data(`initial-data`);
+
     if(initial && typeof initial === `object`) {
         config = {
             ...config,

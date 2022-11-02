@@ -50,7 +50,7 @@
                                 <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
                                     <a href="{{ path('reception_bar_codes_print', {reception: reception.id}) }}"
                                        id="buttonPrintMultipleBarcodes"
-                                       class="dropdown-item d-none print  d-flex align-items-center">
+                                       class="dropdown-item d-none print d-flex align-items-center">
                                         <span class="wii-icon wii-icon-printer-black mr-2"></span>Générer les étiquettes
                                     </a>
                                 </div>
@@ -58,8 +58,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-12">
-                            <table id="tableArticle_id" class="table"></table>
+                        <div class="col-12 logistic-units-container mt-3">
                         </div>
                     </div>
                 </div>
@@ -100,7 +99,7 @@
             hidden></button>
     <button class="btn" id="chooseConditionnement" data-target='#modalChoose' data-toggle='modal' hidden></button>
     <button class="btn" id="finishReception" data-target='#modalFinishReception' data-toggle='modal' hidden></button>
-    <input type="number" id="ligneSelected" value="-1" hidden></button>
+    <input type="number" id="ligneSelected" value="-1" hidden>
 
 
     {% include "reception/show/modalDeleteReception.html.twig" %}
