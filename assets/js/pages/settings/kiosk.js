@@ -1,4 +1,4 @@
-export function initializeTacticalTerminal($container){
+export function initializeTouchTerminal($container){
     Select2Old.init($container.find('select[name=referenceType]'));
     Select2Old.init($container.find('select[name=collectType]'));
     Select2Old.init($container.find('select[name=location]'));

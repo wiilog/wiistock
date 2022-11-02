@@ -157,9 +157,9 @@ class SettingsController extends AbstractController {
                         ],
                     ],
                 ],
-                self::MENU_TACTILE_TERMINAL => [
+                self::MENU_TOUCH_TERMINAL => [
                     "label" => "Borne tactile",
-                    "right" => Action::SETTINGS_DISPLAY_TACTILE_TERMINAL,
+                    "right" => Action::SETTINGS_DISPLAY_TOUCH_TERMINAL,
                     "save" => true,
                 ],
                 self::MENU_REQUESTS => [
@@ -484,7 +484,7 @@ class SettingsController extends AbstractController {
     public const MENU_CONFIGURATIONS = "configurations";
     public const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
     public const MENU_ALERTS = "alertes";
-    public const MENU_TACTILE_TERMINAL = "borne_tactile";
+    public const MENU_TOUCH_TERMINAL = "borne_tactile";
     public const MENU_INVENTORIES = "inventaires";
     public const MENU_FREQUENCIES = "frequences";
     public const MENU_CATEGORIES = "categories";

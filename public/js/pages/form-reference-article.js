@@ -44,9 +44,9 @@ function addArticleFournisseurReferenceArticle($plusButton) {
     }
 }
 
-function loadAndDisplayInfos($select, fromTactileTerminalSettings = null) {
+function loadAndDisplayInfos($select, fromTouchTerminalSettings = null) {
     const $form = $select.closest('.ligneFournisseurArticle');
-    const $nomSelect = fromTactileTerminalSettings ? $form.find('[name="FOURNISSEUR_LABEL_REFERENCE_CREATE"]') : $form.find('[name="fournisseurLabel"]');
+    const $nomSelect = fromTouchTerminalSettings ? $form.find('[name="FOURNISSEUR_LABEL_REFERENCE_CREATE"]') : $form.find('[name="fournisseurLabel"]');
     if($select.val()) {
         const [selected] = $select.select2('data');
         if (selected) {
@@ -82,9 +82,9 @@ function loadAndDisplayInfos($select, fromTactileTerminalSettings = null) {
     });
 }
 
-function loadAndDisplayLabels($select, fromTactileTerminalSettings = null) {
+function loadAndDisplayLabels($select, fromTouchTerminalSettings = null) {
     const $form = $select.closest('.ligneFournisseurArticle');
-    const $codeSelect = fromTactileTerminalSettings ? $form.find('[name="FOURNISSEUR_REFERENCE_CREATE"]') : $form.find('[name="fournisseur"]');
+    const $codeSelect = fromTouchTerminalSettings ? $form.find('[name="FOURNISSEUR_REFERENCE_CREATE"]') : $form.find('[name="fournisseur"]');
     if($select.val()) {
         const [selected] = $select.select2('data');
         if (selected) {

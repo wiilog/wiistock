@@ -6,7 +6,7 @@ import {initUserPage} from "./users/users";
 import {initializeExports, initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
-import {initializeTacticalTerminal} from "./kiosk";
+import {initializeTouchTerminal} from "./kiosk";
 import {initializeTransportRound} from "./transport-round";
 import {
     initializeStockArticlesTypesFreeFields,
@@ -77,7 +77,7 @@ const initializers = {
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_inventaires_missions: initializeInventoryMissionsTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
-    stock_borne_tactile: initializeTacticalTerminal,
+    stock_borne_tactile: initializeTouchTerminal,
     utilisateurs_utilisateurs: initUserPage,
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
     trace_acheminements_statuts: initializeDispatchStatuses,
