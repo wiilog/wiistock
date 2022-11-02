@@ -5,10 +5,11 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('kiosk-general') }}
+    {{ encore_entry_link_tags('kiosk') }}
 {% endblock %}
 
 
+{# TODO : A supprimer quand le devis sera terminé, uniqement dans un but de test pour les designs #}
 {% block page_content %}
     <div class="p-5">
         <button id="openModal">
@@ -71,5 +72,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('kiosk-general') }}
+    {{ encore_entry_script_tags('kiosk') }}
 {% endblock %}

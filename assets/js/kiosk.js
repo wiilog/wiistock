@@ -1,4 +1,4 @@
-import '@styles/pages/kiosk/general.scss';
+import '@styles/kiosk.scss';
 
 $(document).ready(function() {
     console.log('Kiosk General Page Ready');
