@@ -21,6 +21,7 @@ class ReceptionLine {
     private ?Reception $reception = null;
 
     #[ORM\ManyToOne(targetEntity: Pack::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Pack $pack = null;
 
     #[ORM\OneToMany(mappedBy: 'receptionLine', targetEntity: ReceptionReferenceArticle::class)]
@@ -48,7 +49,7 @@ class ReceptionLine {
         return $this;
     }
 
-    public function getPack(): Pack {
+    public function getPack(): ?Pack {
         return $this->pack;
     }
 

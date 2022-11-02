@@ -228,9 +228,17 @@ textarea {
     padding: 0rem !important;
 }
 
-.status-translation {
+.translation {
     &.border-bottom {
         border-bottom: 1px solid $medium-grey;
     }
     padding: 10px 1rem 13px 1rem;
+}
+
+.delete-type-row {
+    height: 35px;
+}
+
+.delete-container{
+    margin-left: -30px;
 }

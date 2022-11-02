@@ -2213,4 +2213,42 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
+    #[Route("/{reception}/reception-lines-api", name: "reception_lines_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
+    public function getReceptionLinesApi(Reception $reception,
+                                         Request   $request): JsonResponse {
+        $lines = $reception->getLines();
+        $linesCount = $lines->count();
+
+        $receptionWithoutUnits = $linesCount === 1 && $lines->get(0)->getPack() === null;
+
+        $start = $request->query->get('start') ?: 0;
+        $lineStart = $receptionWithoutUnits ? 0 : $start;
+
+        $listLength = 10;
+
+        $pagination = match($receptionWithoutUnits) {
+            true => $lines->get(0)->getReceptionReferenceArticles()->count() > $listLength, // reference display
+            false => $linesCount > $listLength // logistic unit display
+        };
+
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("reception/show/line-list.html.twig", [
+                'pagination' => $pagination,
+                'lines' => Stream::from($lines->toArray())
+                    ->slice($lineStart, $listLength)
+                    ->map(fn(ReceptionLine $line) => [
+                        'pack' => $line->getPack(),
+                        'references' => $receptionWithoutUnits
+                            ? Stream::from($line->getReceptionReferenceArticles()->toArray())
+                                ->slice($start, $listLength)
+                                ->toArray()
+                            : $line->getReceptionReferenceArticles()->toArray()
+                    ])
+                    ->toArray(),
+            ]),
+        ]);
+    }
+
 }

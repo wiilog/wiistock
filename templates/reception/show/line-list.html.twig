@@ -1,0 +1,26 @@
+{% for line in lines %}
+    {% set pack = line.pack %}
+    {% set lastDrop = pack ? pack.lastDrop %}
+    {% set references = line.references %}
+
+    {% include 'pack/utils/packItemListTemplate.html.twig' with {
+        header: pack
+            ? {
+                sideLabel: pack.nature ? pack.nature.label,
+                color: pack.nature ? pack.nature.color,
+                content: [
+                    {label: 'Unité logistique', value: pack.code, bold: 'value'},
+                    {label: 'Emplacement', value: lastDrop ? lastDrop.emplacement, bold: 'label', icon: 'reference-article-location'},
+                    {label: 'Projet', value: pack.project, bold: 'label', icon: 'reference-article-stock'},
+                ]
+            },
+        content: references|map((reference) => ({
+            actions: '',
+            id: reference.id,
+            reference: reference.referenceArticle.reference,
+            orderNumber: reference.commande,
+            quantityToReceive: reference.quantiteAR,
+            receivedQuantity: reference.quantite,
+        }))
+    } %}
+{% endfor %}

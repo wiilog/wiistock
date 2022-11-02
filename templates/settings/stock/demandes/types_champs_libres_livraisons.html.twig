@@ -22,3 +22,9 @@
 {% endblock %}
 
 {% block subtitle %}Champs libres{% endblock %}
+
+{% block footer %}
+    {% include 'settings/modal_edit_translations.html.twig' with {
+        large: true,
+    } %}
+{% endblock %}

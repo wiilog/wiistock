@@ -1,6 +1,5 @@
 {% extends 'mails/template.html.twig' %}
 
-{% set emergency = handling.emergency ? 'Oui' : 'Non' %}
 {% set treatedBy = handling.treatedByHandling ? handling.treatedByHandling.username : '' %}
 
 {% block content %}
@@ -11,7 +10,7 @@
         <strong>{{ handling.creationDate ? handling.creationDate|date('d/m/Y à H:i:s') }}</strong>
     </div>
     <div>{{ translateIn(language, 'Demande', 'Général', 'Type', false) }} :
-        <strong>{{ handling.type.label }}</strong>
+        <strong>{{ handling.type.labelIn(language, language_service.defaultSlug) }}</strong>
     </div>
     <div>{{ translateIn(language, 'Demande', 'Général', 'Demandeur', false) }} :
         <strong>{{ handling.requester ? handling.requester.username }}</strong>
@@ -38,17 +37,17 @@
         </div>
     {% endif %}
 
-    <div>{{ translateIn(language, 'Demande', 'Services', 'Date attendue', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Modale et détails', 'Date attendue', false) }} :
         <strong>{{ handling.desiredDate ? handling.desiredDate|date(viewHoursOnExpectedDate ? 'd/m/Y à H:i:s' : 'd/m/Y') }}</strong>
     </div>
-    <div>{{ translateIn(language, 'Demande', 'Services', 'Date de réalisation', false) }} :
+    <div>{{ translateIn(language, 'Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation', false) }} :
         <strong>{{ handling.validationDate ? handling.validationDate|date('d/m/Y à H:i:s') }}</strong>
     </div>
     <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut', false) }} :
         <strong>{{ handling.status.labelIn(language, language_service.defaultSlug) }}</strong>
     </div>
     <div>{{ translateIn(language, 'Demande', 'Général', 'Urgence', false) }} :
-        <strong>{{ emergency }}</strong>
+        <strong>{{ trans('Général', null, 'Modale', handling.emergency ? 'Oui' : 'Non', false) }}</strong>
     </div>
 
     <div>{{ translateIn(language, 'Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)', false) }} :

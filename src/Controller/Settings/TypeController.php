@@ -28,7 +28,7 @@ use WiiCommon\Helper\Stream;
 class TypeController extends AbstractController {
 
     /**
-     * @Route("/type-api/{type}/edit/translate", name="settings_edit_type_translations_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/type-api/{type}/edit/translate", name="settings_edit_type_translations_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT})
      */
     public function apiEditTranslations(EntityManagerInterface $manager,

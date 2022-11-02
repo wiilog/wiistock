@@ -1,51 +1,53 @@
+{% set header = header ?? null %}
+{% set content = content ?? null %}
 <div class="ul-detail">
-    <table style="--reference-color: {{ color ?? '$primary;' }};">
-        <tbody>
-        <tr class="ul">
-            <td>
-                caisse
-            </td>
-            <td>
-                <div class="w-max-content main-ul-data row no-gutters">
-                    <div class="col-4 col d-flex">
-                        <div class="text-break">
-                            <div class="wii-body-text w-100">Unité logistique</div>
-                            <div class="wii-label">P5437865654576-4566</div>
+    <table>
+        {% if header %}
+            <tr class="ul"
+                style="--row-color: {{ header.color ?? 'var(--primary)' }};">
+                <td class="side-unit-label">
+                    <div>{{ header.sideLabel ?? '' }}</div>
+                </td>
+                <td>
+                    <div class="col-12 h-100">
+                        <div class="main-ul-data row">
+                            {% set headerLength = header.content|length %}
+                            {% for item in header.content %}
+                                <div class="col d-flex"
+                                     style="flex: 0 0 {{ 100 / headerLength }}%; max-width: {{ 100 / headerLength }}%;">
+                                    {% if item.icon is defined %}
+                                        <div class="mr-2">
+                                            <i class="wii-icon wii-icon-{{ item.icon }} wii-icon-15px bg-primary"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="d-flex h-100 align-items-start text-break flex-column">
+                                        <div class="wii-body-text flex-fill {{ item.bold == 'label' ? 'font-weight-bold' : 'font-weight-normal' }}">{{ item.label }}</div>
+                                        <div class="wii-label flex-fill {{ item.bold == 'value' ? 'font-weight-bold' : 'font-weight-normal' }}">{{ item.value }}</div>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
-                    <div class="col-4 col d-flex">
-                        <span class="wii-icon wii-icon-iot-location h-100 mr-1"></span>
-                        <div class="text-break">
-                            <div class="wii-label">Emplacement</div>
-                            <div >Zone de déchargement</div>
-                        </div>
+                </td>
+                <td>
+                    <button type="button"
+                            class="btn btn-outline-primary ml-2 h-100 p-1">
+                        <span class="wii-icon wii-icon-new-article"></span>
+                    </button>
+                </td>
+            </tr>
+        {% endif %}
+        {% if content|length > 0 %}
+            <tr class="articles-container">
+                <td></td>
+                <td>
+                    <div class="articles-wrapper {{ header ? 'sub-articles-wrapper' }}">
+                        <table class="table w-100"
+                               data-initial-data="{{ {data: content}|json_encode }}"></table>
                     </div>
-                    <div class="col-4 col d-flex">
-                        <span class="wii-icon wii-icon-quantity h-100 mr-1"></span>
-                        <div class="text-break">
-                            <div class="wii-label">Projet</div>
-                            <div>CODE78578</div>
-                        </div>
-                    </div>
-                </div>
-            </td>
-            <td>
-                <button type="button"
-                        class="btn btn-outline-primary ml-2 h-100 p-1">
-                    <span class="wii-icon wii-icon-new-article"></span>
-                </button>
-            </td>
-        </tr>
-        <tr class="list-article">
-            <td></td>
-            <td>
-                <div class="data-table-container">
-                    <table id="{{ tableId }}" class="table w-100"></table>
-                </div>
-            </td>
-            <td></td>
-        </tr>
-        </tbody>
+                </td>
+                <td></td>
+            </tr>
+        {% endif %}
     </table>
 </div>
-

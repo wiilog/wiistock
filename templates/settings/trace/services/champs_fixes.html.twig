@@ -3,7 +3,16 @@
 {% include 'settings/fixed_field_elements.html.twig' with {
     modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY'),
     field: emergency.field,
+    modalType: emergency.modalType,
     elements: emergency.elements,
+} %}
+
+{% include 'settings/fixed_field_elements.html.twig' with {
+    modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING'),
+    field: receivers.field,
+    types: receivers.types,
+    modalType: receivers.modalType,
+    elements: receivers.elements,
 } %}
 
 <div class="wii-section">

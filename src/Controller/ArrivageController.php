@@ -684,6 +684,7 @@ class ArrivageController extends AbstractController {
                 foreach ($arrivage->getAttachments() as $attachement) {
                     $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
                 }
+
                 foreach ($arrivage->getUrgences() as $urgence) {
                     $urgence->setLastArrival(null);
                 }
@@ -819,7 +820,7 @@ class ArrivageController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
-            "projects" => $projectRepository->findAll(),
+            "projects" => $projectRepository->findActive(),
             'fields' => $fields,
         ]);
     }
@@ -1379,7 +1380,7 @@ class ArrivageController extends AbstractController {
             : '';
 
         $project = $projectParam
-            ? $arrival->getProjectNumber()
+            ? $colis->getProject()?->getCode()
             : '';
 
         $arrivalType = $typeArrivalParamIsDefined

@@ -10,6 +10,7 @@ $(function () {
             $table.DataTable().columns.adjust().draw();
         });
     });
+
     onToggleInputRadioOnRow();
 });
 
@@ -292,6 +293,9 @@ function initDataTable($table, options) {
     $table = typeof $table === 'string' ? $('#' + $table) : $table;
     if($table.data(`initial-visible`)) {
         config.columns = $table.data(`initial-visible`);
+        $table
+            .removeAttr('data-initial-visible')
+            .removeData('initial-visible');
     }
 
     let tooltips = [];
@@ -373,12 +377,16 @@ function initDataTable($table, options) {
         };
 
     const initial = $table.data(`initial-data`);
+
     if(initial && typeof initial === `object`) {
         config = {
             ...config,
             data: initial.data,
             deferLoading: [initial.recordsFiltered || 0, initial.recordsTotal || 0],
         };
+        $table
+            .removeAttr('data-initial-data')
+            .removeData('initial-data');
     }
 
     datatableToReturn = $table

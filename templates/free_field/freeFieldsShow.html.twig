@@ -3,7 +3,7 @@
 
 {% if freeFields | length > 0 %}
     {% if containerClass %}<div class="{{ containerClass }}">{% endif %}
-    {% include 'utils/data-index.html.twig' with {
+    {% include 'utils/data-show.html.twig' with {
         data: freeFields|map((freeField) => {
             label: freeField.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) ?: freeField.label,
             value: (values[freeField.id] ?? (freeField.defaultValue ?? ''))

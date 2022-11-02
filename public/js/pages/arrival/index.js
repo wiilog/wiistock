@@ -85,16 +85,8 @@ $(function () {
     });
 
     $(document).arrive(`.dispatch-checkbox:not(:disabled)`, function () {
-        $(this).on(`click`, function() {
-            $(this).prop(`checked`, !$(this).is(`:checked`));
+        $(this).on(`change`, function() {
             toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
-        });
-
-        $(this).closest(`tr`).on(`click`, () => {
-            if(!$(this).is(`:disabled`)) {
-                $(this).prop(`checked`, !$(this).is(`:checked`));
-                toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
-            }
         });
     });
 });
@@ -102,7 +94,7 @@ $(function () {
 function initTableArrival(dispatchMode = false) {
     let pathArrivage = Routing.generate('arrivage_api', {dispatchMode}, true);
     if(dispatchMode) {
-        $.post(Routing.generate('arrival_api_columns', {dispatchMode}))
+        return $.post(Routing.generate('arrival_api_columns', {dispatchMode}))
             .then(columns => proceed(columns));
     } else {
         return new Promise((resolve) => {

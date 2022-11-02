@@ -104,7 +104,7 @@ class ArrivageService {
                 'user' => $this->security->getUser(),
                 'dispatchMode' => $dispatchMode,
                 'defaultLanguage' => $defaultLanguage,
-                'language' => $language
+                'language' => $language,
             ]
         );
 

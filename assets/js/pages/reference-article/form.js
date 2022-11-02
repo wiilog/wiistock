@@ -1,4 +1,4 @@
-import '../../../scss/pages/reference-article.scss';
+import '@styles/details-page.scss';
 import AJAX from "@app/ajax";
 
 window.onTypeQuantityChange = onTypeQuantityChange;
@@ -23,7 +23,7 @@ $(document).ready(() => {
     });
 
     $(`#touch`).change(function() {
-        $(this).closest(`.ra-dropdown`).find(`.dropdown-wrapper`).toggleClass(`open`)
+        $(this).closest(`.details-page-dropdown`).find(`.dropdown-wrapper`).toggleClass(`open`)
     })
 
     $(`.save`).click(function() {
