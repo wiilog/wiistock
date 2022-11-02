@@ -271,7 +271,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_CONFIGURATIONS,
                 Action::SETTINGS_DISPLAY_STOCK_ALERTS,
                 Action::SETTINGS_DISPLAY_ARTICLES,
-                //Action::SETTINGS_DISPLAY_TACTILE_TERMINAL,
+                Action::SETTINGS_DISPLAY_TOUCH_TERMINAL,
                 Action::SETTINGS_DISPLAY_REQUESTS,
                 Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS,
                 Action::SETTINGS_DISPLAY_INVENTORIES,

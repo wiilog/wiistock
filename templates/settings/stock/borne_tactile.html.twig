@@ -1,0 +1,283 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section-title">Général</div>
+<div class="wii-section touch-terminal">
+    <div class="row">
+        <div class="col-12 mb-3">
+            <button class="btn btn-primary">
+                <i class="fas fa-external-link-alt mr-2"></i>
+                Lien vers l'application
+            </button>
+        </div>
+        <div class="form-group w-fit-content col-4">
+            <div class="row">
+                <div class="col-auto">
+                    {{ form.image(setting('FILE_TOP_LEFT_LOGO'), 'Logo en haut à gauche', false, setting_value('FILE_TOP_LEFT_LOGO'), {
+                        defaultValue: setting_value('FILE_TOP_LEFT_LOGO'),
+                    }) }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group w-fit-content col-4">
+            <div class="row">
+                <div class="col-auto">
+                    {{ form.image(setting('FILE_TOP_RIGHT_LOGO'), 'Logo en haut à droite', false, setting_value('FILE_TOP_RIGHT_LOGO'), {
+                        defaultValue: setting_value('FILE_TOP_RIGHT_LOGO'),
+                    }) }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group w-fit-content col-4">
+            <div class="row">
+                <div class="col-auto">
+                    {{ form.image(setting('FILE_LABEL_EXAMPLE_LOGO'), "Exemple d'étiquette Follow GT", false, setting_value('FILE_LABEL_EXAMPLE_LOGO'), {
+                        defaultValue: setting_value('FILE_LABEL_EXAMPLE_LOGO'),
+                    }) }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group w-fit-content col-4">
+            <div class="wii-field-name">Message d'accueil*</div>
+            {{ form.textarea(setting('WELCOME_MESSAGE'), null, true, setting_value('WELCOME_MESSAGE')) }}
+        </div>
+        <div class="form-group w-fit-content col-4">
+            <div class="wii-field-name">Message d'information*</div>
+            {{ form.textarea(setting('INFORMATION_MESSAGE'), null, true, setting_value('INFORMATION_MESSAGE')) }}
+        </div>
+        <div class="form-group w-fit-content col-4">
+            <div class="wii-field-name">Message scan étiquette article*</div>
+            {{ form.textarea(setting('SCAN_ARTICLE_LABEL_MESSAGE'), null, true, setting_value('SCAN_ARTICLE_LABEL_MESSAGE')) }}
+        </div>
+        <div class="form-group w-fit-content col-4">
+            <div class="wii-field-name">Message de validation, entrée d'une référence*</div>
+            {{ form.textarea(setting('VALIDATION_REFERENCE_ENTRY_MESSAGE'), null, true, setting_value('VALIDATION_REFERENCE_ENTRY_MESSAGE')) }}
+        </div>
+        <div class="form-group w-fit-content col-4">
+            <div class="wii-field-name">Message de validation, entrée d'un article*</div>
+            {{ form.textarea(setting('VALIDATION_ARTICLE_ENTRY_MESSAGE'), null, true, setting_value('VALIDATION_ARTICLE_ENTRY_MESSAGE')) }}
+        </div>
+        <div class="form-group w-fit-content col-4">
+            <div class="wii-field-name">Message d'erreur si quantité égale à 1*</div>
+            {{ form.textarea(setting('QUANTITY_ERROR_MESSAGE'), null, true, setting_value('QUANTITY_ERROR_MESSAGE')) }}
+        </div>
+        <div class="form-group w-fit-content col-12">
+            {% include 'variables_dictionary.html.twig' with {dictionary: 'KIOSK_DICTIONARY'} %}
+        </div>
+    </div>
+</div>
+
+<div class="wii-section-title">Création d'une référence (gestion quantité par article)</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="form-group col-4">
+            {% set settingTypeReference = setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type') %}
+            {{ form.select(setting('TYPE_REFERENCE_CREATE'), 'Type', true, {
+                type: 'referenceType',
+                placeholder: 'Sélectionnez un type',
+                search: true,
+                value: settingTypeReference ? settingTypeReference.id : null,
+                items: settingTypeReference ? {
+                    0: {
+                        'value': settingTypeReference.id,
+                        'label':  settingTypeReference.label,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+        <div class="form-group col-4">
+            {% set settingFreeFieldReference = setting_value('FREE_FIELD_REFERENCE_CREATE', 'App\\Entity\\FreeField') %}
+            {{ form.select(setting('FREE_FIELD_REFERENCE_CREATE'), 'Champ libre', false, {
+                search: false,
+                value: settingFreeFieldReference ? settingFreeFieldReference.id : null,
+                items: settingFreeFieldReference ? {
+                    0: {
+                        'value': settingFreeFieldReference.id,
+                        'label':  settingFreeFieldReference.label,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+        <input hidden value="{{ setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type') ? setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type').id : '' }}" id="settingReferenceType"/>
+        <div class="form-group col-4">
+            {% set settingStatutReference = setting_value('STATUT_REFERENCE_CREATE') %}
+            {{ form.switch('Statut', 'Statut', true, [
+                {
+                    value: constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF'),
+                    label: 'Actif',
+                    name: setting('STATUT_REFERENCE_CREATE'),
+                    checked: settingStatutReference == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF'),
+                },
+                {
+                    value: constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF'),
+                    label: 'Inactif',
+                    name: setting('STATUT_REFERENCE_CREATE'),
+                    checked: settingStatutReference == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF'),
+                },
+                {
+                    value: constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'),
+                    label: 'Brouillon',
+                    name: setting('STATUT_REFERENCE_CREATE'),
+                    checked: settingStatutReference == constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'),
+                },
+            ]) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-4">
+            {% set visibilityGroupForReference = setting_value('VISIBILITY_GROUP_REFERENCE_CREATE', 'App\\Entity\\VisibilityGroup') %}
+            {{ form.select(setting('VISIBILITY_GROUP_REFERENCE_CREATE'), 'Groupe de visibilité', false, {
+                type: 'visibilityGroup',
+                value: visibilityGroupForReference ? visibilityGroupForReference.id : null,
+                items: visibilityGroupForReference ? {
+                    0: {
+                        'value': visibilityGroupForReference.id,
+                        'label':  visibilityGroupForReference.label,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+        <div class="form-group col-4">
+            {% set inventoryCategoryForReference = setting_value('INVENTORIES_CATEGORY_REFERENCE_CREATE', 'App\\Entity\\Inventory\\InventoryCategory') %}
+            {{ form.select(setting('INVENTORIES_CATEGORY_REFERENCE_CREATE'), "Catégorie d'inventaire", false, {
+                type: 'inventoryCategories',
+                value: inventoryCategoryForReference ? inventoryCategoryForReference.id : null,
+                items: inventoryCategoryForReference ? {
+                    0: {
+                        'value': inventoryCategoryForReference.id,
+                        'label':  inventoryCategoryForReference.label,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+    </div>
+    <div class="row ligneFournisseurArticle">
+        {% set nomFournisseurReference = setting_value('FOURNISSEUR_LABEL_REFERENCE_CREATE', 'App\\Entity\\Fournisseur') %}
+        {% set codeFournisseurReference = setting_value('FOURNISSEUR_REFERENCE_CREATE', 'App\\Entity\\Fournisseur') %}
+        <div class="form-group col-4">
+            <label class="wii-field-name">Nom fournisseur*</label>
+            <select class="form-control w-100 data needed" data-s2="supplierLabel"
+                    onchange="loadAndDisplayLabels($(this), true)"
+                    name="FOURNISSEUR_LABEL_REFERENCE_CREATE">
+                {% if nomFournisseurReference is defined and nomFournisseurReference %}
+                    <option selected value="{{ nomFournisseurReference.id }}">{{ nomFournisseurReference.nom }}</option>
+                {% endif %}
+            </select>
+        </div>
+        <div class="form-group col-4">
+            <label class="wii-field-name">Code fournisseur*</label>
+            <select class="form-control w-100 data needed" data-s2="supplierCode"
+                    onchange="loadAndDisplayInfos($(this), true)"
+                    name="FOURNISSEUR_REFERENCE_CREATE">
+                {% if codeFournisseurReference is defined and codeFournisseurReference %}
+                    <option selected value="{{ codeFournisseurReference.id }}">{{ codeFournisseurReference.codeReference }}</option>
+                {% endif %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="wii-section-title">Demande de collecte</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="form-group col-4">
+            {% set settingCollectRequestType = setting_value('COLLECT_REQUEST_TYPE', 'App\\Entity\\Type') %}
+            {{ form.select(setting('COLLECT_REQUEST_TYPE'), 'Type', true, {
+                type: 'collectType',
+                placeholder: 'Sélectionnez un type',
+                search: true,
+                value: settingCollectRequestType ? settingCollectRequestType.id : null,
+                items: settingCollectRequestType ? {
+                    0: {
+                        'value': settingCollectRequestType.id,
+                        'label':  settingCollectRequestType.label,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+        <div class="form-group col-4">
+            {{ form.input(setting('COLLECT_REQUEST_OBJECT'), 'Objet', true, setting_value('COLLECT_REQUEST_OBJECT')) }}
+        </div>
+        <div class="form-group col-4">
+            {% set settingCollectRequestCollectPoint = setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement') %}
+            {{ form.select(setting('COLLECT_REQUEST_POINT_COLLECT'), 'Point de collecte', true, {
+                type: 'location',
+                search: true,
+                value: settingCollectRequestCollectPoint ? settingCollectRequestCollectPoint.id : null,
+                items: settingCollectRequestCollectPoint ? {
+                    0: {
+                        'value': settingCollectRequestCollectPoint.id,
+                        'label':  settingCollectRequestCollectPoint.label,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-4">
+            {{ form.switch(setting('COLLECT_REQUEST_DESTINATION'), 'Destination', true, [
+                {
+                    label: 'Mise en stock',
+                    value: 'stock',
+                    checked: setting_value('COLLECT_REQUEST_DESTINATION') == 'stock'
+                },
+                {
+                    label: 'Destruction',
+                    value: 'destruction',
+                    checked: setting_value('COLLECT_REQUEST_DESTINATION') == 'destruction'
+                },
+            ]) }}
+        </div>
+        <div class="form-group col-4">
+            {{ form.input(setting('COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT'), "Quantité d'article à collecter", false, setting_value('COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT'), {
+                type: 'number'
+            }  ) }}
+        </div>
+    </div>
+</div>
+
+<div class="wii-section-title">Imprimante</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="form-group col-4">
+            {{ form.input(setting('PRINTER_NAME'), "Nom", true, setting_value('PRINTER_NAME')) }}
+        </div>
+        <div class="form-group col-4">
+            {{ form.input(setting('PRINTER_SERIAL_NUMBER'), "Numéro de série", true, setting_value('PRINTER_SERIAL_NUMBER')) }}
+        </div>
+        <div class="form-group col-4">
+            {{ form.input(setting('PRINTER_LABEL_WIDTH'), "Largeur étiquette", true, setting_value('PRINTER_LABEL_WIDTH'), {
+                type: 'number',
+                labelOptions: {
+                    smallText: 'mm'
+                }
+            }  ) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-4">
+            {{ form.input(setting('PRINTER_LABEL_HEIGHT'), "Hauteur étiquette", true, setting_value('PRINTER_LABEL_HEIGHT'), {
+                type: 'number',
+                labelOptions: {
+                    smallText: 'mm'
+                }
+            }  ) }}
+        </div>
+        <div class="form-group col-4">
+            {{ form.input(setting('PRINTER_DPI'), "DPI", true, setting_value('PRINTER_DPI'), {
+                type: 'number',
+                labelOptions: {
+                    smallText: 'Pixels par pouce'
+                }
+            }  ) }}
+        </div>
+        <div class="form-group col-4 d-flex align-items-end">
+            <button class="btn btn-primary">Test d'impression</button>
+        </div>
+    </div>
+</div>

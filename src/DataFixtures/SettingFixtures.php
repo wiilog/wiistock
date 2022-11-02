@@ -221,6 +221,21 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::FILE_SHIPMENT_NOTE_LOGO => [
                 'default' => null,
             ],
+            Setting::FILE_TOP_LEFT_LOGO => [
+                'default' => Setting::DEFAULT_TOP_LEFT_VALUE,
+            ],
+            Setting::FILE_TOP_RIGHT_LOGO => [
+                'default' => null,
+            ],
+            Setting::FILE_LABEL_EXAMPLE_LOGO => [
+                'default' => Setting::DEFAULT_LABEL_EXAMPLE_VALUE,
+            ],
+            Setting::STATUT_REFERENCE_CREATE => [
+                'default' => "actif"
+            ],
+            Setting::COLLECT_REQUEST_DESTINATION => [
+                'default' => 'stock'
+            ]
         ];
 
         foreach ($globalParameterLabels as $globalParameterLabel => $values) {
