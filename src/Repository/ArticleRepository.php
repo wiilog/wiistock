@@ -865,9 +865,17 @@ class ArticleRepository extends EntityRepository {
         }
     }
 
-    public function getForSelect(?string $term) {
-        return $this->createQueryBuilder("article")
-            ->select("article.id AS id, article.barCode AS text")
+    public function getForSelect(?string $term, string $status = null) {
+        $qb = $this->createQueryBuilder("article")
+            ->select("article.id AS id, article.barCode AS text");
+
+        if($status !== null) {
+            $qb->join("article.statut", "status")
+                ->andWhere("status.code = :status")
+                ->setParameter("status", $status);
+        }
+
+        return $qb
             ->andWhere("article.barCode LIKE :term")
             ->setParameter("term", "%$term%")
             ->setMaxResults(100)
@@ -1111,4 +1119,5 @@ class ArticleRepository extends EntityRepository {
             ->getQuery()
             ->getArrayResult();
     }
+
 }

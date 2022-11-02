@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Controller\AbstractController;
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\Cart;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -17,6 +18,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\ReceptionLine;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
@@ -391,7 +393,7 @@ class TrackingMovementService extends AbstractController
     public function persistPack(EntityManagerInterface $entityManager,
                                 $packOrCode,
                                 $quantity,
-                                $natureId,
+                                $natureId = null,
                                 bool $onlyPack = false): Pack {
         $packRepository = $entityManager->getRepository(Pack::class);
 
@@ -945,7 +947,7 @@ class TrackingMovementService extends AbstractController
     }
 
     public function persistTrackingMovementForPackOrGroup(EntityManagerInterface $entityManager,
-                                                                                 $packOrCode,
+                                                          Pack|string            $packOrCode,
                                                           ?Emplacement           $location,
                                                           Utilisateur            $operator,
                                                           DateTime               $date,
@@ -957,18 +959,23 @@ class TrackingMovementService extends AbstractController
         $pack = $packOrCode instanceof Pack
             ? $packOrCode
             : $packRepository->findOneBy(['code' => $packOrCode]);
+
         if (!isset($pack) || $pack->getGroupIteration() === null) { // it's a simple pack
-            return $this->persistTrackingMovement(
-                $entityManager,
-                $pack ?? $packOrCode,
-                $location,
-                $operator,
-                $date,
-                $finished,
-                $trackingType,
-                $forced,
-                $options
-            );
+            if(isset($options["articles"]) && $options["articles"]) {
+                return $this->persistLogisticUnitMovements($entityManager, $packOrCode, $location, $options["articles"], $operator, $options);
+            } else {
+                return $this->persistTrackingMovement(
+                    $entityManager,
+                    $pack ?? $packOrCode,
+                    $location,
+                    $operator,
+                    $date,
+                    $finished,
+                    $trackingType,
+                    $forced,
+                    $options
+                );
+            }
         }
         else { // it's a group
             $parent = $pack;
@@ -1028,5 +1035,134 @@ class TrackingMovementService extends AbstractController
                 'parent' => $parent
             ];
         }
+    }
+
+    private function persistLogisticUnitMovements(EntityManagerInterface $manager, Pack|string $pack, Emplacement $location, ?array $articles, ?Utilisateur $user, array $options) {
+        $packRepository = $manager->getRepository(Pack::class);
+
+        $movements = [];
+        $inCarts = [];
+
+        if(is_string($pack)) {
+            $pack = $this->persistPack($manager, $pack, 1);
+            $lastTracking = $this->persistTrackingMovement(
+                $manager,
+                $pack,
+                $location,
+                $user,
+                new DateTime(),
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+                false,
+                $options,
+            )["movement"];
+
+            $movements[] = $lastTracking;
+        }
+
+        /** @var Article $article */
+        foreach($articles as $article) {
+            if(!$article->getTrackingPack()) {
+                $trackingPack = $packRepository->findOneBy(["code" => $article->getBarCode()]);
+                if($trackingPack) {
+                    $article->setTrackingPack($trackingPack);
+                } else {
+                    $article->setTrackingPack($this->persistPack($manager, $article->getBarCode(), $article->getQuantite()));
+                }
+            }
+
+            if($packRepository->isInOngoingReception($article->getTrackingPack())) {
+                return [
+                    "success" => false,
+                    "error" => Pack::IN_ONGOING_RECEPTION,
+                ];
+            }
+            return [
+                "success" => false,
+                "error" => Pack::IN_ONGOING_RECEPTION,
+            ];
+            if($article->getCarts()->count()) {
+                $inCarts = array_merge($inCarts, $article->getCarts());
+            }
+
+            //generate pick up in LU movements
+            if($article->getCurrentLogisticUnit()) {
+                /** @var TrackingMovement $luPick */
+                $luPick = $this->persistTrackingMovement(
+                    $manager,
+                    $article->getTrackingPack(),
+                    $article->getEmplacement(),
+                    $user,
+                    new DateTime(),
+                    true,
+                    TrackingMovement::TYPE_PICK_LU,
+                    false,
+                    $options,
+                )["movement"];
+
+                $luPick->setLogisticUnitParent($article->getCurrentLogisticUnit());
+                $movements[] = $luPick;
+            }
+
+            $article->setCurrentLogisticUnit($pack);
+
+            //generate pick up movements
+            $movements[] = $this->persistTrackingMovement(
+                $manager,
+                $article->getTrackingPack(),
+                $article->getEmplacement(),
+                $user,
+                new DateTime(),
+                true,
+                TrackingMovement::TYPE_PRISE,
+                false,
+                $options,
+            )["movement"];
+
+            //generate drop in LU movements
+            $luDrop = $this->persistTrackingMovement(
+                $manager,
+                $article->getTrackingPack(),
+                $location,
+                $user,
+                new DateTime(),
+                true,
+                TrackingMovement::TYPE_DROP_LU,
+                false,
+                $options,
+            )["movement"];
+
+            $luDrop->setLogisticUnitParent($pack);
+            $movements[] = $luDrop;
+
+            //generate drop movements
+            $movements[] = $this->persistTrackingMovement(
+                $manager,
+                $article->getTrackingPack(),
+                ($lastTracking ?? $pack->getLastTracking())?->getEmplacement(),
+                $user,
+                new DateTime(),
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+                false,
+                $options,
+            )["movement"];
+        }
+
+        //add all new articles
+        if($inCarts) {
+            /** @var Cart $cart */
+            foreach($inCarts as $cart) {
+                foreach($articles as $article) {
+                    $cart->addArticle($article);
+                }
+            }
+        }
+
+        return [
+            "success" => true,
+            "multiple" => true,
+            "movements" => $movements,
+        ];
     }
 }

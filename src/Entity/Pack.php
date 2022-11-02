@@ -20,6 +20,7 @@ class Pack implements PairedEntity {
     use SensorMessageTrait;
 
     public const CONFIRM_CREATE_GROUP = 'CONFIRM_CREATE_GROUP';
+    public const IN_ONGOING_RECEPTION = 'IN_ONGOING_RECEPTION';
     public const PACK_IS_GROUP = 'PACK_IS_GROUP';
     public const EMPTY_ROUND_PACK = 'passageavide';
 
