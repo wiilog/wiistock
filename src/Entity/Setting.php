@@ -12,7 +12,8 @@ class Setting {
     const DEFAULT_EMAIL_LOGO_VALUE = '/img/gtlogistics.jpg';
     const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/mobile_logo_login.svg';
     const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/mobile_logo_header.svg';
-    const DEFAULT_TOP_RIGHT_VALUE = '/img/cea-leti.png';
+    const DEFAULT_TOP_LEFT_VALUE = '/img/followGTblack.svg';
+    const DEFAULT_LABEL_EXAMPLE_VALUE = '/img/followGTblack.svg';
 
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";

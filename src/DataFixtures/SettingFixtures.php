@@ -222,13 +222,13 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => null,
             ],
             Setting::FILE_TOP_LEFT_LOGO => [
-                'default' => Setting::DEFAULT_TOP_RIGHT_VALUE
+                'default' => Setting::DEFAULT_TOP_LEFT_VALUE,
             ],
             Setting::FILE_TOP_RIGHT_LOGO => [
-                'default' => Setting::DEFAULT_TOP_RIGHT_VALUE
+                'default' => null,
             ],
             Setting::FILE_LABEL_EXAMPLE_LOGO => [
-                'default' => Setting::DEFAULT_TOP_RIGHT_VALUE
+                'default' => Setting::DEFAULT_LABEL_EXAMPLE_VALUE,
             ],
             Setting::STATUT_REFERENCE_CREATE => [
                 'default' => "actif"
