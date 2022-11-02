@@ -5,71 +5,25 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('kiosk-general') }}
+    {{ encore_entry_link_tags('kiosk-index') }}
 {% endblock %}
 
-
 {% block page_content %}
-    <div class="p-5">
-        <button id="openModal">
-            Suivant
-        </button>
-        <button class="outline">
-            Retour
-        </button>
-        <button class="outline danger">
-            Abandonner
-        </button>
-
-        <button class="btn-small">
-            O
-        </button>
-    </div>
-    <div class="p-5 row ">
-        <div class="col-3">
-
-            <label class="w-100">
-                Normal
-                <input type="search" class="w-100">
-            </label>
-        </div>
-        <div class="col-3">
-            <label class="w-100" >
-                Erreur
-                <input type="search" class="w-100 invalid">
-                <span class="error">Ce champs est obligatoire pour continuer</span>
-            </label>
-        </div>
+    <div class="corner home top position-absolute left-0 top-0 p-3">
+        <img src="{{ setting_value('FILE_TOP_LEFT_LOGO') }}" >
     </div>
 
-    <div class="modal fade" id="modalDeTest" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="kiosk-modal-content">
-                <div class="modal-body">
-                    <div class="a">
-                        La référence T20S0019 est déjà en stock en quantité 1, <br>
-                        vous ne pouvez donc pas faire une nouvelle entrée en <br>
-                        stock pour cet article. <br>
-                        Contactez GT au 8 45 65 pour plus d’informations. <br>
-                    </div>
-                </div>
-                {% include 'utils/modal/footer.html.twig' with {
-                    kiosk : true,
-                    elements: [
-                        {classes: '', dismiss: true, text: 'Suivant'},
-                        {classes: 'danger', dismiss: true, text: 'Suivant'},
-                    ],
-                    renderErrorContainer: false
-                } %}
-            </div>
-        </div>
+    <div class="corner home top position-absolute right-0 top-0 p-3">
+        <img src="{{ setting_value('FILE_TOP_RIGHT_LOGO') }}" >
     </div>
 
-
+    <div data-page-index="1">
+        {% include 'kiosk/pages/home.html.twig' %}
+    </div>
 
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('kiosk-general') }}
+    {{ encore_entry_script_tags('kiosk-index') }}
 {% endblock %}

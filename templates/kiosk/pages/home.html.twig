@@ -1,0 +1,22 @@
+<div class="corner position-absolute right-0 bottom-0 p-4">
+    <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
+</div>
+
+<div class="corner position-absolute left-0 bottom-0 p-4">
+    <button class="outline btn-small">
+        <img src="{{ asset('svg/printer-history.svg') }}" alt="" height="30px" class="mx-3">
+    </button>
+</div>
+
+<div class="page-content home">
+    <h1 class="home">
+        {{ setting_value('WELCOME_MESSAGE') }}
+    </h1>
+    <p class="pt-5">
+        Follow GT met à disposition cette application de réception de production pour simplier la mise à disposition du stock
+    </p>
+    <button class="home mt-5" id="test">
+        <img src="{{ asset('svg/ref-modif.svg') }}" alt="" height="60px">
+        <span>Faire une entrée manuelle</span>
+    </button>
+</div>

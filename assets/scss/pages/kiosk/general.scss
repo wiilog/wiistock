@@ -1,62 +1,92 @@
 $primary :  #3353D7;
 $danger : #D73353;
+$title : #281A56;
 
-button {
+body{
+    background-color: white !important;
+}
 
-    $primaryLowOpacity : #3353D719;
-    $dangerLowOpacity : #D733531A;
+button{
+    &:not(.home){
+        $primaryLowOpacity : #3353D719;
+        $dangerLowOpacity : #D733531A;
 
-    min-width: 232px;
-    height: 76px;
-    &.btn-small {
-        min-width: 76px;
-    }
+        min-width: 232px;
+        height: 76px;
+        &.btn-small {
+            min-width: 76px;
+        }
 
-    border: 2px solid $primary;
-    border-radius: 38px;
-    box-shadow:0 3px 10px $primary;
-    font-weight: bold;
-    font-size: 25px;
-    padding: 5px;
-    margin-left: 3px;
-    margin-right: 3px;
-
-    &.danger{
-        border: 2px solid $danger;
-        box-shadow:0 3px 10px $danger;
-    }
-
-
-    &:not(.outline){
-        color: white;
-        background: $primary;
+        border: 2px solid $primary;
+        border-radius: 38px;
+        box-shadow:0 3px 10px $primary;
+        font-weight: bold;
+        font-size: 25px;
+        padding: 5px;
+        margin-left: 3px;
+        margin-right: 3px;
 
         &.danger{
-            background: $danger;
+            border: 2px solid $danger;
+            box-shadow:0 3px 10px $danger;
         }
 
-        &:active{
-           filter: brightness(85%);
-        }
-    }
+        &:not(.outline){
+            color: white;
+            background: $primary;
 
-    &.outline{
-        color: $primary;
-        &.danger{
-            color: $danger;
-        }
-
-        &:active{
-            background: $primaryLowOpacity;
             &.danger{
-                background: $dangerLowOpacity;
+                background: $danger;
+            }
+
+            &:active{
+                filter: brightness(85%);
             }
         }
+
+        &.outline{
+            color: $primary;
+            &.danger{
+                color: $danger;
+            }
+
+            &:active{
+                background: $primaryLowOpacity;
+                &.danger{
+                    background: $dangerLowOpacity;
+                }
+            }
+        }
+
+        &:active{
+            transition: all .1s;
+            box-shadow: none;
+        }
     }
 
-    &:active{
-        transition: all .1s;
-        box-shadow: none;
+    &.home{
+        width: fit-content;
+        padding: 35px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+        box-shadow:0 3px 10px rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        background: white;
+        border: none;
+        color: $title;
+        font-weight: bold;
+        font-size: 25px;
+        max-width: 250px;
+
+        img{
+            margin: auto;
+        }
+
+        &:active{
+            box-shadow:0 3px 10px rgba(0, 0, 0, 0.15);
+        }
     }
 }
 
@@ -84,7 +114,6 @@ label{
             border: 2px solid $danger;
             &:focus-visible{
                 outline: $danger solid 2px;
-                box-shadow:0 3px 10px $danger;
             }
         }
 
@@ -120,7 +149,6 @@ label{
         border-radius: 38px;
         padding: 30px;
         width: 50vw;
-        display: flex;
         align-content: center;
 
         .kiosk-modal-footer{
@@ -136,11 +164,93 @@ label{
     }
 }
 
-.wave{
-
+.top-0 {
+    top: 0
 }
 
-.min-h-screen{
+.right-0 {
+    right: 0
+}
+
+.bottom-0 {
+    bottom: 0
+}
+
+.left-0 {
+    left: 0
+}
+
+.wave{
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+.page-content{
+    max-width: 65vw ;
+    display: flex;
+    margin: auto;
+    flex-direction: column;
+    padding-top: 75px;
+    h1{
+        font-family: 'Outfit', sans-serif;
+        font-size: 50px;
+        font-weight: bold;
+        color: $title;
+
+        &.home{
+            font-size: 70px;
+            text-align: center;
+            line-height: 88px;
+        }
+    }
+
+    p{
+        font-size: 30px;
+        color: black;
+        text-align: center;
+        line-height: 43px;
+    }
+}
+
+.wave-container {
+    z-index: -1;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+
+    &.home {
+        #wave {
+            display: none;
+        }
+    }
+    &:not(.home){
+        #wave-home {
+            display: none;
+        }
+    }
+
+    .wave {
+        fill: url(#Dégradé_);
+        isolation: isolate;
+        opacity: .45;
+
+        &.home {
+            fill: url(#Dégradé_home);
+            opacity: 1;
+        }
+    }
+}
+
+.corner.top{
+    img {
+        height: 65px;
+    }
+    &.home img{
+        height: 100px;
+    }
 }
 
 
