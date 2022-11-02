@@ -83,8 +83,10 @@
                         ) %}
                     <div class="col-auto pr-0 mr-0">
                         <a class="header-icon cart" href="{{ path('cart') }}">
-                            <div class="icon-figure small {{ not app.user.cart or not app.user.cart.references | length ? 'd-none' }}">
-                                {{ app.user.cart.references | length }}
+                            {% set referencesQuantity = app.user.cart.references|length %}
+                            {% set articlesQuantity = app.user.cart.articles|length %}
+                            <div class="icon-figure small {{ not app.user.cart or not (referencesQuantity != 0 or articlesQuantity != 0) ? 'd-none' }}">
+                                {{ referencesQuantity != 0  ? referencesQuantity != 0 : articlesQuantity }}
                             </div>
                         </a>
                     </div>
