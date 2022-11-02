@@ -232,6 +232,7 @@ class TrackingMovementRepository extends EntityRepository
 
         if(!$params->has("order")) {
             $qb->addOrderBy("tracking_movement.datetime", "DESC");
+            $qb->addOrderBy("tracking_movement.id", "DESC");
         }
 
         // compte éléments filtrés
