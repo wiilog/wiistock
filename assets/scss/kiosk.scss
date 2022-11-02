@@ -1,0 +1,145 @@
+$primary :  #3353D7;
+$danger : #D73353;
+
+button {
+
+    $primaryLowOpacity : #3353D719;
+    $dangerLowOpacity : #D733531A;
+
+    min-width: 232px;
+    height: 76px;
+    &.btn-small {
+        min-width: 76px;
+    }
+
+    border: 2px solid $primary;
+    border-radius: 38px;
+    box-shadow:0 3px 10px $primary;
+    font-weight: bold;
+    font-size: 25px;
+    padding: 5px;
+    margin-left: 3px;
+    margin-right: 3px;
+
+    &.danger{
+        border: 2px solid $danger;
+        box-shadow:0 3px 10px $danger;
+    }
+
+
+    &:not(.outline){
+        color: white;
+        background: $primary;
+
+        &.danger{
+            background: $danger;
+        }
+
+        &:active{
+           filter: brightness(85%);
+        }
+    }
+
+    &.outline{
+        color: $primary;
+        &.danger{
+            color: $danger;
+        }
+
+        &:active{
+            background: $primaryLowOpacity;
+            &.danger{
+                background: $dangerLowOpacity;
+            }
+        }
+    }
+
+    &:active{
+        transition: all .1s;
+        box-shadow: none;
+    }
+}
+
+label{
+    color: black;
+    font-weight: bold;
+    font-size: 25px;
+
+    input{
+        $greyBorder : #CDCDCD;
+        font-size: 25px;
+        padding-left: 15px;
+        height: 76px;
+        border-radius: 10px;
+        border: 2px solid $greyBorder;
+        margin-top: 8px;
+
+        &:focus-visible{
+            outline: $primary solid 2px;
+            box-shadow:0 3px 10px $primary;
+            transition: all .2s;
+        }
+
+        &.invalid{
+            border: 2px solid $danger;
+            &:focus-visible{
+                outline: $danger solid 2px;
+                box-shadow:0 3px 10px $danger;
+            }
+        }
+
+        &::-webkit-search-cancel-button {
+            -webkit-appearance: none;
+            content: url("../../public/svg/cross-grey.svg");
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+            transition: all .1s;
+        }
+    }
+
+    .error{
+        color: $danger;
+        font-size: 17px;
+        margin-top: 5px;
+    }
+}
+
+.modal-dialog {
+    max-width: fit-content;
+
+    .kiosk-modal-content{
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        pointer-events: auto;
+        border: none;
+        outline: 0;
+        background-color: white;
+        border-radius: 38px;
+        padding: 30px;
+        width: 50vw;
+        align-content: center;
+
+        .kiosk-modal-footer{
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+
+            flex-wrap: wrap;
+            width: 100%;
+            align-items: center;
+            padding: 0.75rem;
+        }
+    }
+}
+
+.wave{
+
+}
+
+.min-h-screen{
+}
+
+
