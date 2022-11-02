@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Customer;
 use App\Entity\Menu;
+use App\Service\CSVExportService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -158,5 +159,33 @@ class CustomerController extends AbstractController
             "success" => true,
             "msg" => "Le projet a bien été supprimé"
         ]);
+    }
+
+    /**
+     * @Route("/csv", name="get_customers_csv", options={"expose"=true}, methods={"GET"})
+     */
+    public function getCustomersCSV(CSVExportService        $CSVExportService,
+                                    EntityManagerInterface  $entityManager): Response {
+        $csvHeader = [
+            'Client',
+            'Adresse',
+            'Téléphone',
+            'Email',
+            'Fax',
+        ];
+
+        return $CSVExportService->streamResponse(
+            function ($output) use (
+                $entityManager,
+                $CSVExportService
+            ) {
+                $customers = $entityManager->getRepository(Customer::class)->getForExport();
+
+                foreach ($customers as $customer) {
+                    $CSVExportService->putLine($output, $customer->serialize());
+                }
+            }, 'export_customers.csv',
+            $csvHeader
+        );
     }
 }
