@@ -44,9 +44,9 @@ function addArticleFournisseurReferenceArticle($plusButton) {
     }
 }
 
-function loadAndDisplayInfos($select) {
+function loadAndDisplayInfos($select, fromTactileTerminalSettings = null) {
     const $form = $select.closest('.ligneFournisseurArticle');
-    const $nomSelect = $form.find('[name="fournisseurLabel"]');
+    const $nomSelect = fromTactileTerminalSettings ? $form.find('[name="FOURNISSEUR_LABEL_REFERENCE_CREATE"]') : $form.find('[name="fournisseurLabel"]');
     if($select.val()) {
         const [selected] = $select.select2('data');
         if (selected) {
@@ -81,9 +81,10 @@ function loadAndDisplayInfos($select) {
         $(this).parent().css('border-color', '');
     });
 }
-function loadAndDisplayLabels($select) {
+
+function loadAndDisplayLabels($select, fromTactileTerminalSettings = null) {
     const $form = $select.closest('.ligneFournisseurArticle');
-    const $codeSelect = $form.find('[name="fournisseur"]');
+    const $codeSelect = fromTactileTerminalSettings ? $form.find('[name="FOURNISSEUR_REFERENCE_CREATE"]') : $form.find('[name="fournisseur"]');
     if($select.val()) {
         const [selected] = $select.select2('data');
         if (selected) {
@@ -103,9 +104,9 @@ function loadAndDisplayLabels($select) {
                 selectCodeFournisseur();
             }
         }
-    else {
-        $codeSelect.val(null).trigger('change');
-    }
+        else {
+            $codeSelect.val(null).trigger('change');
+        }
     }
 }
 

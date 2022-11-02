@@ -177,6 +177,20 @@ class SelectController extends AbstractController {
     }
 
     /**
+     * @Route("/select/types/references", name="ajax_select_reference_type", options={"expose": true})
+     */
+    public function referenceType(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Type::class)->getForSelect(
+            CategoryType::ARTICLE,
+            $request->query->get("term")
+        );
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
      * @Route("/select/types", name="ajax_select_types", options={"expose": true})
      */
     public function types(Request                $request,

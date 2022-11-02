@@ -436,7 +436,6 @@ function processInputsForm($modal, data, isAttachmentForm) {
             } else if ($input.prev('label').text()){
                 missingInputNames.push($input.prev('label').text().replace('*', ''));
             }else if ($input.closest('label').find(`.wii-field-name`)){
-                console.log(label, $input.text());
                 missingInputNames.push(
                     $input.closest('label').find(`.wii-field-name`).text().replace('*', '')
                 );

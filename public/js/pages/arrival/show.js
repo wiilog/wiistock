@@ -229,7 +229,6 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
-    console.log('passe par editRowLitigeArrivage');
 
     let params = {
         disputeId,
@@ -239,7 +238,6 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        console.log(data.html);
         modal.find('#colisEditLitige').val(data.colis).select2();
         fillDemandeurField(modal);
         afterLoadingEditModal()
