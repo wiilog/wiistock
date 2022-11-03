@@ -1,25 +1,26 @@
-$primary :  #3353D7;
-$danger : #D73353;
-$title : #281A56;
+$primary: #3353D7;
+$danger: #D73353;
+$title: #281A56;
 
-body{
+body {
     background-color: white !important;
 }
 
-button {
+.wrapper button {
     &:not(.home) {
-        $primaryLowOpacity : #3353D719;
-        $dangerLowOpacity : #D733531A;
+        $primaryLowOpacity: #3353D719;
+        $dangerLowOpacity: #D733531A;
 
         min-width: 232px;
         height: 76px;
+
         &.btn-small {
             min-width: 76px;
         }
 
         border: 2px solid $primary;
         border-radius: 38px;
-        box-shadow:0 3px 10px $primary;
+        box-shadow: 0 3px 10px $primary;
         font-weight: bold;
         font-size: 25px;
         padding: 5px;
@@ -28,31 +29,35 @@ button {
 
         &.danger {
             border: 2px solid $danger;
-            box-shadow:0 3px 10px $danger;
+            box-shadow: 0 3px 10px $danger;
         }
 
         &:not(.outline) {
             color: white;
             background: $primary;
 
-            &.danger{
+            &.danger {
                 background: $danger;
             }
 
-            &:active{
+            &:active {
                 filter: brightness(85%);
             }
         }
 
         &.outline {
             color: $primary;
-            &.danger{
+
+            &.danger {
                 color: $danger;
             }
 
-            &:active{
-                background: $primaryLowOpacity;
-                &.danger{
+            &:active {
+                &:not(.keep-background) {
+                    background: $primaryLowOpacity;
+                }
+
+                &.danger {
                     background: $dangerLowOpacity;
                 }
             }
@@ -71,7 +76,7 @@ button {
         display: flex;
         flex-direction: column;
         margin: auto;
-        box-shadow:0 3px 10px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
         border-radius: 8px;
         background: white;
         border: none;
@@ -89,7 +94,7 @@ button {
         }
 
         &:active {
-            box-shadow:0 3px 10px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
         }
     }
 }
@@ -100,7 +105,7 @@ label {
     font-size: 25px;
 
     input {
-        $greyBorder : #CDCDCD;
+        $greyBorder: #CDCDCD;
         font-size: 25px;
         padding-left: 15px;
         height: 76px;
@@ -110,13 +115,14 @@ label {
 
         &:focus-visible {
             outline: $primary solid 2px;
-            box-shadow:0 3px 10px $primary;
+            box-shadow: 0 3px 10px $primary;
             transition: all .2s;
         }
 
         &.invalid {
             border: 2px solid $danger;
-            &:focus-visible{
+
+            &:focus-visible {
                 outline: $danger solid 2px;
             }
         }
@@ -142,7 +148,7 @@ label {
 .modal-dialog {
     max-width: fit-content;
 
-    .kiosk-modal-content{
+    .kiosk-modal-content {
         position: relative;
         display: flex;
         flex-direction: column;
@@ -155,7 +161,7 @@ label {
         width: 50vw;
         align-content: center;
 
-        .kiosk-modal-footer{
+        .kiosk-modal-footer {
             display: flex;
             justify-content: center;
             margin-top: 30px;
@@ -184,15 +190,15 @@ label {
     left: 0
 }
 
-.wave{
+.wave {
     width: 100%;
     position: absolute;
     bottom: 0;
     left: 0;
 }
 
-.page-content{
-    max-width: 65vw ;
+.page-content {
+    max-width: 65vw;
     display: flex;
     margin: auto;
     flex-direction: column;
@@ -245,11 +251,12 @@ label {
     }
 }
 
-.corner.top{
+.corner.top {
     img {
         height: 65px;
     }
-    &.home img{
+
+    &.home img {
         height: 100px;
     }
 }
@@ -258,5 +265,40 @@ label {
     display: flex;
     justify-content: space-between;
 }
+
+.field-small {
+    font-family: "Myriad pro";
+    font-size: 20px;
+    color: black;
+}
+
+.field-name {
+    font-family: "Myriad pro";
+    font-size: 25px;
+    font-weight: bold;
+    color: black;
+}
+
+.info {
+    padding: 15px;
+    border: solid 2px $primary;
+    border-radius: 10px;
+
+    &::after {
+        content: url("../../../public/svg/information.svg"); // TODO : mettre info fond blanc
+        display: block;
+        width: 25px;
+        position: absolute;
+        top: -10px;
+        left: 3px;
+    }
+}
+
+.bordered-image {
+    border: 2px solid #CDCDCD;
+    border-radius: 10px;
+    padding: 10px;
+}
+
 
 

@@ -1,17 +1,73 @@
-<div>
-    <div class="form-header">
+{% extends 'kiosk/layout.thml.twig' %}
+{% import 'form.html.twig' as form %}
 
-    </div>
-    <div class="form-content">
-        <div class="timeline-container">
+{% block title %} Borne {% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('kiosk') }}
+{% endblock %}
+
+{% block page_content %}
+    <div>
+        <div class="form-header">
 
         </div>
-        <div>
-            <div class="reference-container"></div>
-            <div class="manager-container"></div>
-            <div class="other-informations-container"></div>
-            <div class="article-container"></div>
-            <div class="summary-container"></div>
+        <div class="form-content">
+            <div class="timeline-container">
+
+            </div>
+            <div>
+                <div class="reference-container"></div>
+                <div class="manager-container"></div>
+                <div class="other-informations-container"></div>
+                <div class="article-container">
+                    <div class="corner position-absolute right-0 bottom-0 p-4">
+                        <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
+                    </div>
+                    <div class="corner position-absolute left-0 bottom-0 p-4">
+                        <button class="outline">
+                            Retour
+                        </button>
+                    </div>
+                    <div class="page-content home">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="info field-small ">
+                                    {{ setting_value('SCAN_ARTICLE_LABEL_MESSAGE') }}
+                                </div>
+                                <div class="field-name my-4">
+                                    Référence : {# TODO num ref #}
+                                </div>
+                                <img src="{{ setting_value('FILE_LABEL_EXAMPLE_LOGO') }}" alt="" width="100%" class="bordered-image">
+                                <div class="field-small ">
+                                    Exemple d’étiquette à flasher
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="w-100">
+                                    Libellé
+                                    <input type="search" class="w-100">
+                                </label>
+                                <div class="d-flex flex-row-reverse pt-5">
+                                    <button>
+                                        Suivant
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="summary-container"></div>
+            </div>
         </div>
     </div>
-</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('kiosk') }}
+{% endblock %}
+
+
+
