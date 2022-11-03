@@ -2173,7 +2173,7 @@ class ReceptionController extends AbstractController {
         $receptionWithoutUnits = $linesCount === 1 && $lines->get(0)->getPack() === null;
 
         $start = $request->query->get('start') ?: 0;
-        $lineStart = $receptionWithoutUnits ? 0 : $start;
+        $search = $request->query->get('search') ?: 0;
 
         $listLength = 5;
 
@@ -2185,16 +2185,18 @@ class ReceptionController extends AbstractController {
         $result = $receptionLineRepository->getByReception($reception, [
             "start" => $start,
             "length" => $listLength,
-            "paginationMode" => $receptionWithoutUnits ? "references" : "units"
+            "paginationMode" => $receptionWithoutUnits ? "references" : "units",
+            "search" => $search
         ]);
 
         return $this->json([
             "success" => true,
             "html" => $this->renderView("reception/show/line-list.html.twig", [
+                "reception" => $reception,
                 "pagination" => $pagination,
                 "lines" => $result["data"],
                 "total" => $result["total"],
-                "current" => $lineStart ?? 0,
+                "current" => $start,
                 "pageLength" => $listLength
             ]),
         ]);
