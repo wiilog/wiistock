@@ -9,14 +9,14 @@ use Symfony\Component\Routing\Annotation\Route;
 
 
 /**
- * @Route("/kiosk")
+ * @Route("/borne")
  */
 class KioskController extends AbstractController
 {
     #[Route("/", name: "kiosk_index", options: ["expose" => true], methods: ["GET","POST"])]
     public function showIndex( EntityManagerInterface $entityManager): Response {
 
-        return $this->render('kiosk/index.html.twig', [
+        return $this->render('kiosk/pages/home.html.twig', [
         ]);
     }
 }

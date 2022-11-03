@@ -4,11 +4,20 @@
     <input type="hidden" id="BARCODE_VALID_REGEX" value="{{ constant("App\\Service\\SettingsService::CHARACTER_VALID_REGEX")|e('html') }}">
     <div class="wrapper {% block wrapperClass '' %}">
         <div class="container-fluid {% block pageContainerClass '' %}">
+
+            <div class="corner {% block cornerLeftClass '' %} top position-absolute left-0 top-0 p-3">
+                <img src="{{ setting_value('FILE_TOP_LEFT_LOGO') }}" >
+            </div>
+
+            <div class="corner {% block cornerRightClass '' %} top position-absolute right-0 top-0 p-3">
+                <img src="{{ setting_value('FILE_TOP_RIGHT_LOGO') }}" >
+            </div>
+
             {% block page_content %}{% endblock %}
         </div>
     </div>
 
-    <div class="wave-container home">
+    <div class="wave-container {% block waveClass '' %}">
         <div id="wave-home">
             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 345">
                 <defs>
