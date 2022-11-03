@@ -1406,7 +1406,7 @@ label.required:after {
     }
 }
 
-.ul-detail {
+.logistic-unit-wrapper {
     display: table;
     width: 100%;
     &:not(:first-child) {
@@ -1414,7 +1414,7 @@ label.required:after {
     }
 
     table{
-        height: 1px ; // utile pour remplissage des cellules
+        height: 1px; // utile pour remplissage des cellules
         border-collapse: collapse;
         border-spacing: 0;
         width: 100%;

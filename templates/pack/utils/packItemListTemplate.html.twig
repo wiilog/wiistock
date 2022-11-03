@@ -1,6 +1,9 @@
 {% set header = header ?? null %}
 {% set content = content ?? null %}
-<div class="ul-detail">
+<div class="logistic-unit-wrapper"
+     {% for key, value in data ?? [] %}
+         data-{{ key }}="{{ value }}"
+     {% endfor %}>
     <table>
         {% if header %}
             <tr class="ul"

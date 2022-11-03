@@ -2215,8 +2215,12 @@ class ReceptionController extends AbstractController {
 
     #[Route("/{reception}/reception-lines-api", name: "reception_lines_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
-    public function getReceptionLinesApi(Reception $reception,
-                                         Request   $request): JsonResponse {
+    public function getReceptionLinesApi(EntityManagerInterface $entityManager,
+                                         Reception              $reception,
+                                         Request                $request): JsonResponse {
+
+        $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
+
         $lines = $reception->getLines();
         $linesCount = $lines->count();
 
@@ -2225,28 +2229,27 @@ class ReceptionController extends AbstractController {
         $start = $request->query->get('start') ?: 0;
         $lineStart = $receptionWithoutUnits ? 0 : $start;
 
-        $listLength = 10;
+        $listLength = 5;
 
         $pagination = match($receptionWithoutUnits) {
             true => $lines->get(0)->getReceptionReferenceArticles()->count() > $listLength, // reference display
             false => $linesCount > $listLength // logistic unit display
         };
 
+        $result = $receptionLineRepository->getByReception($reception, [
+            "start" => $start,
+            "length" => $listLength,
+            "paginationMode" => $receptionWithoutUnits ? "references" : "units"
+        ]);
+
         return $this->json([
             "success" => true,
             "html" => $this->renderView("reception/show/line-list.html.twig", [
-                'pagination' => $pagination,
-                'lines' => Stream::from($lines->toArray())
-                    ->slice($lineStart, $listLength)
-                    ->map(fn(ReceptionLine $line) => [
-                        'pack' => $line->getPack(),
-                        'references' => $receptionWithoutUnits
-                            ? Stream::from($line->getReceptionReferenceArticles()->toArray())
-                                ->slice($start, $listLength)
-                                ->toArray()
-                            : $line->getReceptionReferenceArticles()->toArray()
-                    ])
-                    ->toArray(),
+                "pagination" => $pagination,
+                "lines" => $result["data"],
+                "total" => $result["total"],
+                "current" => $start ?? 0,
+                "pageLength" => $listLength
             ]),
         ]);
     }
