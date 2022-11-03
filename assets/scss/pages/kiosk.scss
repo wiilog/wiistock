@@ -7,90 +7,59 @@ body{
 }
 
 button {
-    &:not(.home) {
-        $primaryLowOpacity : #3353D719;
-        $dangerLowOpacity : #D733531A;
+    $primaryLowOpacity : #3353D719;
+    $dangerLowOpacity : #D733531A;
 
-        min-width: 232px;
-        height: 76px;
-        &.btn-small {
-            min-width: 76px;
+    min-width: 232px;
+    height: 76px;
+    &.btn-small {
+        min-width: 76px;
+    }
+
+    border: 2px solid $primary;
+    border-radius: 38px;
+    box-shadow:0 3px 10px $primary;
+    font-weight: bold;
+    font-size: 25px;
+    padding: 5px;
+    margin-left: 3px;
+    margin-right: 3px;
+
+    &.danger {
+        border: 2px solid $danger;
+        box-shadow:0 3px 10px $danger;
+    }
+
+    &:not(.outline) {
+        color: white;
+        background: $primary;
+
+        &.danger{
+            background: $danger;
         }
 
-        border: 2px solid $primary;
-        border-radius: 38px;
-        box-shadow:0 3px 10px $primary;
-        font-weight: bold;
-        font-size: 25px;
-        padding: 5px;
-        margin-left: 3px;
-        margin-right: 3px;
-
-        &.danger {
-            border: 2px solid $danger;
-            box-shadow:0 3px 10px $danger;
-        }
-
-        &:not(.outline) {
-            color: white;
-            background: $primary;
-
-            &.danger{
-                background: $danger;
-            }
-
-            &:active{
-                filter: brightness(85%);
-            }
-        }
-
-        &.outline {
-            color: $primary;
-            &.danger{
-                color: $danger;
-            }
-
-            &:active{
-                background: $primaryLowOpacity;
-                &.danger{
-                    background: $dangerLowOpacity;
-                }
-            }
-        }
-
-        &:active {
-            transition: all .1s;
-            box-shadow: none;
+        &:active{
+            filter: brightness(85%);
         }
     }
 
-    &.home {
-        width: fit-content;
-        padding: 25px 35px;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        margin: auto;
-        box-shadow:0 3px 10px rgba(0, 0, 0, 0.5);
-        border-radius: 8px;
-        background: white;
-        border: none;
-        color: $title;
-        font-weight: bold;
-        font-size: 25px;
-        max-width: 290px;
-
-        span {
-            line-height: 30px;
+    &.outline {
+        color: $primary;
+        &.danger{
+            color: $danger;
         }
 
-        img {
-            margin: auto;
+        &:active{
+            background: $primaryLowOpacity;
+            &.danger{
+                background: $dangerLowOpacity;
+            }
         }
+    }
 
-        &:active {
-            box-shadow:0 3px 10px rgba(0, 0, 0, 0.15);
-        }
+    &:active {
+        transition: all .1s;
+        box-shadow: none;
     }
 }
 
@@ -219,6 +188,35 @@ label {
         line-height: 43px;
         padding: 30px 140px;
     }
+
+    a {
+        width: fit-content;
+        padding: 25px 35px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+        box-shadow:0 3px 10px rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        background: white;
+        border: none;
+        color: $title;
+        font-weight: bold;
+        font-size: 25px;
+        max-width: 290px;
+
+        span {
+            line-height: 30px;
+        }
+
+        img {
+            margin: auto;
+        }
+
+        &:active {
+            box-shadow:0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+    }
 }
 
 .wave-container {
@@ -257,6 +255,12 @@ label {
 .form-header {
     display: flex;
     justify-content: space-between;
+}
+
+.timeline-container {
+    span {
+
+    }
 }
 
 

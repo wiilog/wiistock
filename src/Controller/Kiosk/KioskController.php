@@ -14,6 +14,11 @@ class KioskController extends AbstractController
 {
     #[Route("/", name: "kiosk_index")]
     public function index(): Response {
-        return $this->render('kiosk/pages/home.html.twig');
+        return $this->render('kiosk/home.html.twig');
+    }
+
+    #[Route("/formulaire", name: "kiosk_form")]
+    public function form(): Response {
+        return $this->render('kiosk/form.html.twig');
     }
 }

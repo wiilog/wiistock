@@ -1,17 +1,37 @@
-<div>
-    <div class="form-header">
+{% extends 'kiosk/layout.thml.twig' %}
 
-    </div>
-    <div class="form-content">
-        <div class="timeline-container">
+{% block title %} Borne | Formulaire {% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('kiosk') }}
+{% endblock %}
+
+{% block page_content %}
+    <div>
+        <div class="form-header">
 
         </div>
-        <div>
-            <div class="reference-container"></div>
-            <div class="manager-container"></div>
-            <div class="other-informations-container"></div>
-            <div class="article-container"></div>
-            <div class="summary-container"></div>
+        <div class="form-content">
+            <div class="timeline-container">
+                <span>Référence</span>
+                <span>Demandeur et suiveur</span>
+                <span>Autres informations</span>
+                <span>Article</span>
+                <span>Récapitulatif</span>
+            </div>
+            <div>
+                <div class="reference-container"></div>
+                <div class="manager-container"></div>
+                <div class="other-informations-container"></div>
+                <div class="article-container"></div>
+                <div class="summary-container"></div>
+            </div>
         </div>
     </div>
-</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('kiosk') }}
+{% endblock %}
