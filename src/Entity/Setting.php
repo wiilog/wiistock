@@ -13,7 +13,7 @@ class Setting {
     const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/mobile_logo_login.svg';
     const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/mobile_logo_header.svg';
     const DEFAULT_TOP_LEFT_VALUE = '/img/followGTblack.svg';
-    const DEFAULT_LABEL_EXAMPLE_VALUE = '/img/followGTblack.svg';
+    const DEFAULT_LABEL_EXAMPLE_VALUE = '/img/exemple_etiquette_article.png';
 
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";
