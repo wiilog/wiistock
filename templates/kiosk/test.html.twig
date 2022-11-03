@@ -11,13 +11,7 @@
 
 {# TODO : A supprimer quand le devis sera terminé, uniqement dans un but de test pour les designs #}
 {% block page_content %}
-    <div class="corner home top position-absolute left-0 top-0 p-3">
-        <img src="{{ setting_value('FILE_TOP_LEFT_LOGO') }}" >
-    </div>
 
-    <div class="corner home top position-absolute right-0 top-0 p-3">
-        <img src="{{ setting_value('FILE_TOP_RIGHT_LOGO') }}" >
-    </div>
 
     <div data-page-index="1">
         {% include 'kiosk/pages/home.html.twig' %}
