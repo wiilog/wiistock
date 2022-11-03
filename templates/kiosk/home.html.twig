@@ -10,25 +10,27 @@
 {% endblock %}
 
 {% block page_content %}
-    <div class="corner position-absolute right-0 bottom-0 p-4">
-        <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
-    </div>
+    <div class="home-page-wrapper">
+        <div class="corner position-absolute right-0 bottom-0 p-4">
+            <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
+        </div>
 
-    <div class="corner position-absolute left-0 bottom-0 p-4">
-        <button class="outline btn-small">
-            <img src="{{ asset('svg/printer-history.svg') }}" alt="" height="30px" class="mx-3">
-        </button>
-    </div>
+        <div class="corner position-absolute left-0 bottom-0 p-4">
+            <button class="outline btn-small">
+                <img src="{{ asset('svg/printer-history.svg') }}" alt="" height="30px" class="mx-3">
+            </button>
+        </div>
 
-    <div class="page-content home">
-        <h1 class="home">
-            {{ setting_value('WELCOME_MESSAGE') }}
-        </h1>
-        <p>Follow GT met à disposition cette application de réception de production pour simplifier la mise à disposition du stock.</p>
-        <a href="{{ path('kiosk_form') }}" class="mt-5">
-            <img src="{{ asset('svg/ref-modif.svg') }}" height="100">
-            <span class="mt-3">Faire une entrée manuelle</span>
-        </a>
+        <div class="page-content home">
+            <h1 class="home">
+                {{ setting_value('WELCOME_MESSAGE') }}
+            </h1>
+            <p>Follow GT met à disposition cette application de réception de production pour simplifier la mise à disposition du stock.</p>
+            <a href="{{ path('kiosk_form') }}" class="mt-5">
+                <img src="{{ asset('svg/ref-modif.svg') }}" height="100">
+                <span class="mt-3">Faire une entrée manuelle</span>
+            </a>
+        </div>
     </div>
 {% endblock %}
 
