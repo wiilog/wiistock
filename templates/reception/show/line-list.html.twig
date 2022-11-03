@@ -4,11 +4,13 @@
 
     {% include 'pack/utils/packItemListTemplate.html.twig' with {
         data: {
-            'pack-id': pack.packId ?? null,
-            'line-id': pack.lineId ?? null
+            'line-id': line.id
         },
         header: pack
             ? {
+                data: {
+                    'pack-id': pack.id,
+                },
                 sideLabel: pack.nature,
                 color: pack.color,
                 content: [
@@ -25,11 +27,11 @@
     <div class="datatable-paging">
         <div class="dataTables_paginate paging_simple_numbers">
             <a class="paginate_button previous {{ current == 0 ? 'disabled' }}"
-               data-page="{{ current - 1 }}">
+               data-page="{{ current - pageLength }}">
                 {{ trans('Général', '', 'Zone liste', 'Précédent') }}
             </a>
             <a class="paginate_button next {{ current == (total / pageLength | round(0, 'ceil')) ? 'disabled' }}"
-               data-page="{{ current + 1 }}">
+               data-page="{{ current + pageLength }}">
                 {{ trans('Général', '', 'Zone liste', 'Suivant') }}
             </a>
         </div>

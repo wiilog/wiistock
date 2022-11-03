@@ -66,10 +66,10 @@ class ReceptionLineRepository extends EntityRepository {
                     $packColor = $references[0]["packColor"] ?? null;
                 }
                 return [
-                    'pack' => isset($packId)
+                    "id" => $key,
+                    "pack" => isset($packId)
                         ? [
-                            "lineId" => $key,
-                            "packId" => $packId,
+                            "id" => $packId,
                             "code" => $packCode ?? null,
                             "location" => $packLocation ?? null,
                             "project" => $packProject ?? null,
@@ -77,7 +77,7 @@ class ReceptionLineRepository extends EntityRepository {
                             "color" => $packColor ?? null,
                         ]
                         : null,
-                    'references' => Stream::from($references)
+                    "references" => Stream::from($references)
                         ->filter(fn(array $reference) => (
                             isset($reference["reference"])
                                 ? [
