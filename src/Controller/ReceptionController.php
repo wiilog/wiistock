@@ -2194,7 +2194,7 @@ class ReceptionController extends AbstractController {
                 "pagination" => $pagination,
                 "lines" => $result["data"],
                 "total" => $result["total"],
-                "current" => $start ?? 0,
+                "current" => $lineStart ?? 0,
                 "pageLength" => $listLength
             ]),
         ]);

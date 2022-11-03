@@ -1,13 +1,19 @@
 {% set header = header ?? null %}
 {% set content = content ?? null %}
+
+{% macro dataAttributes(data) %}
+    {% for key, value in data %}
+        data-{{ key }}="{{ value }}"
+    {% endfor %}
+{% endmacro %}
+
 <div class="logistic-unit-wrapper"
-     {% for key, value in data ?? [] %}
-         data-{{ key }}="{{ value }}"
-     {% endfor %}>
+     {{ _self.dataAttributes(data ?? []) }}>
     <table>
         {% if header %}
             <tr class="ul"
-                style="--row-color: {{ header.color ?? 'var(--primary)' }};">
+                style="--row-color: {{ header.color ?? 'var(--primary)' }};"
+                {{ _self.dataAttributes(header.data ?? []) }}>
                 <td class="side-unit-label">
                     <div>{{ header.sideLabel ?? '' }}</div>
                 </td>
