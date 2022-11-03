@@ -1,3 +1,5 @@
+{% set isHome = true %}
+
 {% extends 'kiosk/layout.thml.twig' %}
 {% import 'form.html.twig' as form %}
 
@@ -7,10 +9,6 @@
     {{ parent() }}
     {{ encore_entry_link_tags('kiosk') }}
 {% endblock %}
-
-{% block waveClass %}home{% endblock %}
-{% block cornerLeftClass %}home{% endblock %}
-{% block cornerRightClass%}home{% endblock %}
 
 {% block page_content %}
 
@@ -28,12 +26,10 @@
         <h1 class="home">
             {{ setting_value('WELCOME_MESSAGE') }}
         </h1>
-        <p class="pt-5">
-            Follow GT met à disposition cette application de réception de production pour simplier la mise à disposition du stock
-        </p>
-        <button class="home mt-5" id="test">
-            <img src="{{ asset('svg/ref-modif.svg') }}" alt="" height="60px">
-            <span>Faire une entrée manuelle</span>
+        <p>Follow GT met à disposition cette application de réception de production pour simplifier la mise à disposition du stock.</p>
+        <button class="home mt-5">
+            <img src="{{ asset('svg/ref-modif.svg') }}" height="100">
+            <span class="mt-3">Faire une entrée manuelle</span>
         </button>
     </div>
 {% endblock %}

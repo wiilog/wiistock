@@ -1,15 +1,17 @@
 {% extends 'base.html.twig' %}
 
+{% set homeClass = isHome is defined and isHome ? 'home' : '' %}
+
 {% block body %}
     <input type="hidden" id="BARCODE_VALID_REGEX" value="{{ constant("App\\Service\\SettingsService::CHARACTER_VALID_REGEX")|e('html') }}">
-    <div class="wrapper {% block wrapperClass '' %}">
+    <div class="wrapper {{ homeClass }}">
         <div class="container-fluid {% block pageContainerClass '' %}">
 
-            <div class="corner {% block cornerLeftClass '' %} top position-absolute left-0 top-0 p-3">
+            <div class="corner {{ homeClass }} top position-absolute left-0 top-0 p-3">
                 <img src="{{ setting_value('FILE_TOP_LEFT_LOGO') }}" >
             </div>
 
-            <div class="corner {% block cornerRightClass '' %} top position-absolute right-0 top-0 p-3">
+            <div class="corner {{ homeClass }} top position-absolute right-0 top-0 p-3">
                 <img src="{{ setting_value('FILE_TOP_RIGHT_LOGO') }}" >
             </div>
 
@@ -17,28 +19,7 @@
         </div>
     </div>
 
-    <div class="wave-container {% block waveClass '' %}">
-        <div id="wave-home">
-            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 345">
-                <defs>
-                    <linearGradient id="Dégradé_home" data-name="Dégradé " x1="193.08" y1="679.42" x2="1773.95" y2="-233.29" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" stop-color="#3353d8"/>
-                        <stop offset="1" stop-color="#00dda8"/>
-                    </linearGradient>
-                </defs>
-                <path data-name="courbe dégradé" class="wave home" d="M1920,19.68C1388.7,171.82,246.84-187.01,0,153.79v191.21H1920s0-325.32,0-325.32Z"/>
-            </svg>
-        </div>
-        <div id="wave">
-            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 291">
-                <defs>
-                    <linearGradient id="Dégradé_" data-name="Dégradé " x1="206.08" y1="647.94" x2="1771.99" y2="-256.14" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" stop-color="#3353d8"/>
-                        <stop offset="1" stop-color="#00dda8"/>
-                    </linearGradient>
-                </defs>
-                <path data-name="courbe dégradé" class="wave" d="M0,134.32C531.3-17.82,1673.16,341.01,1920,.21V291H0V134.32Z"/>
-            </svg>
-        </div>
+    <div class="wave-container">
+        <div class="wave {{ homeClass }}"></div>
     </div>
 {% endblock %}

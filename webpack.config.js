@@ -18,7 +18,7 @@ Encore
     .addEntry('cart', './assets/js/pages/cart.js')
     .addEntry('settings-index', './assets/js/pages/settings/index.js')
     .addEntry('settings-data-imports', './assets/js/pages/settings/data/imports.js')
-    .addEntry('kiosk', './assets/js/pages/settings/kiosk.js')
+    .addEntry('kiosk-settings', './assets/js/pages/settings/kiosk.js')
     .addEntry('settings-data-exports', './assets/js/pages/settings/data/exports.js')
     .addEntry('settings-data-inventories-imports', './assets/js/pages/settings/data/inventories-imports.js')
     .addEntry('settings-users-roles-form', './assets/js/pages/settings/users/roles/form.js')
