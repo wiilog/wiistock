@@ -877,21 +877,20 @@ function clearPackingContent($element, hideSupplierReferenceSelect = true, hideP
     $modal.find(`input[name=packingArticles]`).val(null);
 }
 
-function loadLogisticUnitPack() {
+function loadLogisticUnitPack(start = 0) {
     const $logisticUnitsContainer = $('.logistic-units-container');
     const reception = $('#receptionId').val();
     console.log($logisticUnitsContainer)
     wrapLoadingOnActionButton(
         $logisticUnitsContainer,
         () => (
-            AJAX.route(GET, 'reception_lines_api', {reception})
+            AJAX.route(GET, 'reception_lines_api', {reception, start})
                 .json()
                 .then(({html}) => {
                     $logisticUnitsContainer.html(html);
                     $logisticUnitsContainer.find('.articles-container table')
                         .each(function() {
                             const $table = $(this);
-                            console.log($table.data('initial-data'));
                             initDataTable($table, {
                                 serverSide: false,
                                 ordering: true,
@@ -908,7 +907,14 @@ function loadLogisticUnitPack() {
                                     removeInfo: true,
                                 },
                             })
-                        })
+                        });
+
+                    $logisticUnitsContainer
+                        .find('.paginate_button')
+                        .on('click', function() {
+                            const $button = $(this);
+                            loadLogisticUnitPack($button.data('page'));
+                        });
                 })
         )
     )
