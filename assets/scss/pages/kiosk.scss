@@ -119,7 +119,7 @@ label{
 
         &::-webkit-search-cancel-button {
             -webkit-appearance: none;
-            content: url("../../../../public/svg/cross-grey.svg");
+            content: url("../../../public/svg/cross-grey.svg");
             width: 20px;
             height: 20px;
             margin-right: 15px;
@@ -135,7 +135,7 @@ label{
     }
 }
 
-.modal-dialog{
+.modal-dialog {
     max-width: fit-content;
 
     .kiosk-modal-content{
@@ -251,6 +251,11 @@ label{
     &.home img{
         height: 100px;
     }
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
 }
 
 

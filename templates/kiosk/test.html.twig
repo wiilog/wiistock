@@ -5,9 +5,11 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('kiosk-index') }}
+    {{ encore_entry_link_tags('kiosk') }}
 {% endblock %}
 
+
+{# TODO : A supprimer quand le devis sera terminé, uniqement dans un but de test pour les designs #}
 {% block page_content %}
     <div class="corner home top position-absolute left-0 top-0 p-3">
         <img src="{{ setting_value('FILE_TOP_LEFT_LOGO') }}" >
@@ -21,9 +23,11 @@
         {% include 'kiosk/pages/home.html.twig' %}
     </div>
 
+
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('kiosk-index') }}
+    {{ encore_entry_script_tags('kiosk') }}
 {% endblock %}
