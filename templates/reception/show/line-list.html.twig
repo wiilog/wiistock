@@ -1,0 +1,37 @@
+{% for line in lines %}
+    {% set pack = line.pack ?? null %}
+    {% set references = line.references %}
+
+    {% include 'pack/utils/packItemListTemplate.html.twig' with {
+        data: {
+            'pack-id': pack.packId,
+            'line-id': pack.lineId
+        },
+        header: pack
+            ? {
+                sideLabel: pack.nature,
+                color: pack.color,
+                content: [
+                    {label: 'Unité logistique', value: pack.code, bold: 'value'},
+                    {label: 'Emplacement', value: pack.location, bold: 'label', icon: 'reference-article-location'},
+                    {label: 'Projet', value: pack.project, bold: 'label', icon: 'reference-article-stock'},
+                ]
+            },
+        content: references|map((reference) => reference|merge({actions: ''}))
+    } %}
+{% endfor %}
+
+<div class="dataTables_wrapper">
+    <div class="datatable-paging">
+        <div class="dataTables_paginate paging_simple_numbers">
+            <a class="paginate_button previous {{ current == 0 ? 'disabled' }}"
+               data-page="{{ current - pageLength }}">
+                {{ trans('Général', '', 'Zone liste', 'Précédent') }}
+            </a>
+            <a class="paginate_button next {{ current == (total / pageLength | round(0, 'ceil')) ? 'disabled' }}"
+               data-page="{{ current + pageLength }}">
+                {{ trans('Général', '', 'Zone liste', 'Suivant') }}
+            </a>
+        </div>
+    </div>
+</div>
