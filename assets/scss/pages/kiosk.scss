@@ -6,8 +6,8 @@ body{
     background-color: white !important;
 }
 
-button{
-    &:not(.home){
+button {
+    &:not(.home) {
         $primaryLowOpacity : #3353D719;
         $dangerLowOpacity : #D733531A;
 
@@ -26,12 +26,12 @@ button{
         margin-left: 3px;
         margin-right: 3px;
 
-        &.danger{
+        &.danger {
             border: 2px solid $danger;
             box-shadow:0 3px 10px $danger;
         }
 
-        &:not(.outline){
+        &:not(.outline) {
             color: white;
             background: $primary;
 
@@ -44,7 +44,7 @@ button{
             }
         }
 
-        &.outline{
+        &.outline {
             color: $primary;
             &.danger{
                 color: $danger;
@@ -58,15 +58,15 @@ button{
             }
         }
 
-        &:active{
+        &:active {
             transition: all .1s;
             box-shadow: none;
         }
     }
 
-    &.home{
+    &.home {
         width: fit-content;
-        padding: 35px;
+        padding: 25px 35px;
         text-align: center;
         display: flex;
         flex-direction: column;
@@ -78,24 +78,28 @@ button{
         color: $title;
         font-weight: bold;
         font-size: 25px;
-        max-width: 250px;
+        max-width: 290px;
 
-        img{
+        span {
+            line-height: 30px;
+        }
+
+        img {
             margin: auto;
         }
 
-        &:active{
+        &:active {
             box-shadow:0 3px 10px rgba(0, 0, 0, 0.15);
         }
     }
 }
 
-label{
+label {
     color: black;
     font-weight: bold;
     font-size: 25px;
 
-    input{
+    input {
         $greyBorder : #CDCDCD;
         font-size: 25px;
         padding-left: 15px;
@@ -104,13 +108,13 @@ label{
         border: 2px solid $greyBorder;
         margin-top: 8px;
 
-        &:focus-visible{
+        &:focus-visible {
             outline: $primary solid 2px;
             box-shadow:0 3px 10px $primary;
             transition: all .2s;
         }
 
-        &.invalid{
+        &.invalid {
             border: 2px solid $danger;
             &:focus-visible{
                 outline: $danger solid 2px;
@@ -128,7 +132,7 @@ label{
         }
     }
 
-    .error{
+    .error {
         color: $danger;
         font-size: 17px;
         margin-top: 5px;
@@ -193,24 +197,27 @@ label{
     margin: auto;
     flex-direction: column;
     padding-top: 75px;
-    h1{
+
+    h1 {
         font-family: 'Outfit', sans-serif;
         font-size: 50px;
         font-weight: bold;
         color: $title;
 
-        &.home{
+        &.home {
             font-size: 70px;
             text-align: center;
             line-height: 88px;
+            padding: 0 140px;
         }
     }
 
-    p{
+    p {
         font-size: 30px;
         color: black;
         text-align: center;
         line-height: 43px;
+        padding: 30px 140px;
     }
 }
 
@@ -220,25 +227,19 @@ label{
     bottom: 0;
     left: 0;
     width: 100%;
-
-    &.home {
-        #wave {
-            display: none;
-        }
-    }
-    &:not(.home){
-        #wave-home {
-            display: none;
-        }
-    }
+    height: 350px;
 
     .wave {
-        fill: url(#Dégradé_);
-        isolation: isolate;
+        background-image: url("../../../public/svg/kiosk/wave.svg");
+        background-repeat: no-repeat;
+        background-size: cover;
         opacity: .45;
+        width: 100%;
+        height: 80%;
 
         &.home {
-            fill: url(#Dégradé_home);
+            background-image: url("../../../public/svg/kiosk/wave-home.svg");
+            height: 100%;
             opacity: 1;
         }
     }
