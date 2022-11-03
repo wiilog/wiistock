@@ -4,8 +4,8 @@
 
     {% include 'pack/utils/packItemListTemplate.html.twig' with {
         data: {
-            'pack-id': pack.packId,
-            'line-id': pack.lineId
+            'pack-id': pack.packId ?? null,
+            'line-id': pack.lineId ?? null
         },
         header: pack
             ? {

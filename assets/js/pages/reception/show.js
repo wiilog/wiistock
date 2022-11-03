@@ -491,7 +491,7 @@ function initModalCondit(tableFromArticle) {
     InitModal($modalDeleteInnerArticle, $submitDeleteInnerArticle, urlDeleteInnerArticle, {tables: [tableFromArticle, tableArticle]});
 }
 
-function initNewArticleEditor(modal) {
+function initNewArticleEditor(modal, options = {}) {
     const $modal = $(modal);
     let $select2refs = $modal.find('[name="referenceArticle"]');
 
@@ -513,8 +513,12 @@ function initNewArticleEditor(modal) {
         Select2Old.open($select2refs);
     }, 400);
 
-    initULSelect($modal);
+    if (options['unitCode'] && options['unitId']) {
+        let $selectUl = $modal.find('[name="ULArticleLine"]');
+        $selectUl.append(new Option(options['unitCode'], options['unitId'], true, true)).trigger('change');
+    }
 }
+
 
 function openModalArticlesFromLigneArticle(ligneArticleId) {
     $('#ligneSelected').val(ligneArticleId);
