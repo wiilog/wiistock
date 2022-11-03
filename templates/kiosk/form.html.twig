@@ -1,7 +1,6 @@
 {% extends 'kiosk/layout.thml.twig' %}
-{% import 'form.html.twig' as form %}
 
-{% block title %} Borne {% endblock %}
+{% block title %} Borne | Formulaire {% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -15,7 +14,11 @@
         </div>
         <div class="form-content">
             <div class="timeline-container">
-
+                <span>Référence</span>
+                <span>Demandeur et suiveur</span>
+                <span>Autres informations</span>
+                <span>Article</span>
+                <span>Récapitulatif</span>
             </div>
             <div>
                 <div class="reference-container"></div>
@@ -68,6 +71,3 @@
     {{ parent() }}
     {{ encore_entry_script_tags('kiosk') }}
 {% endblock %}
-
-
-
