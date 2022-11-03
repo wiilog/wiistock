@@ -910,7 +910,7 @@ function loadLogisticUnitPack(start = 0) {
                         });
 
                     $logisticUnitsContainer
-                        .find('.paginate_button')
+                        .find('.paginate_button:not(.disabled)')
                         .on('click', function() {
                             const $button = $(this);
                             loadLogisticUnitPack($button.data('page'));
