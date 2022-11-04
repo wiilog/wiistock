@@ -740,10 +740,14 @@ class ImportService
             $user = $userRepository->find($user->getId());
         }
 
+        //gerer situation où plusieurs ordernumber
         $dataOrderNumber = $data['orderNumber'] ?? null;
         $dataExpectedDate = $data['expectedDate'] ?? null;
+        $dataFournisseur = $data['fournisseur'] ?? null;
+        $dataTransporteur = $data['transporteur'] ?? null;
 
-        $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $dataOrderNumber, $dataExpectedDate, fn() => $this->updateStats($stats, false));
+        //
+        $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $dataOrderNumber, $dataExpectedDate, $dataFournisseur, $dataTransporteur, fn() => $this->updateStats($stats, false));
         $newEntity = !isset($reception);
         if (!$reception) {
             try {
@@ -767,9 +771,12 @@ class ImportService
                 }
             }
 
+            //changer parametres
             $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $reception);
         }
         $locationRepository = $this->entityManager->getRepository(Emplacement::class);
+
+        //verifier ou on ajoute ordernumber à reception et tester si import avec meme d/f/t fonctionne
 
         if (!empty($data['fournisseur'])) {
             $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
