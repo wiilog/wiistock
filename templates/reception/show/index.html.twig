@@ -4,6 +4,10 @@
 {% block title_tooltip %}Ordre | Réception | Détails{% endblock %}
 {% block titleLink path('reception_index') %}
 
+{% block stylesheets %}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
 {% block page_content %}
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
     {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
@@ -25,6 +29,11 @@
                     <div class="header wii-title">Liste des articles</div>
                     <div class="content">
                         <div class="row wii-page-card-header">
+                            <div class="col-auto">
+                                <div class="dataTables_filter">
+                                    <label>{{ trans('Général', '', 'Zone liste', 'Rechercher : ') }} <input type="search"/></label>
+                                </div>
+                            </div>
                             <div class="col-auto ml-auto">
                                 <div class="btn-group">
                                     {% if modifiable %}
@@ -33,37 +42,38 @@
                                                     data-toggle="modal"
                                                     data-target="#modalAddLigneArticle"
                                                     class="btn btn-primary split-button d-flex align-items-center"
-                                                    onclick="initNewArticleEditor('#modalAddLigneArticle'),
-                                                Select2Old.provider($('.ajax-autocomplete-fournisseur'))">
-                                            <span class="wii-icon wii-icon-new-article mr-2"></span>
-                                            Ajouter une référence
-                                        </button>
+                                                    onclick="initNewArticleEditor('#modalAddLigneArticle'), Select2Old.provider($('.ajax-autocomplete-fournisseur'))">
+                                                <span class="wii-icon wii-icon-new-article mr-2"></span>
+                                                Ajouter une référence
+                                            </button>
+                                        {% endif %}
                                     {% endif %}
-                                {% endif %}
-                                <button type="button"
-                                        class="btn btn-outline-primary d-none print dropdown-toggle dropdown-toggle-split"
-                                        data-toggle="dropdown"
-                                        aria-haspopup="true"
-                                        aria-expanded="false">
-                                    <span class="fa fa-angle-down"></span>
-                                </button>
-                                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                    <a href="{{ path('reception_bar_codes_print', {reception: reception.id}) }}"
-                                       id="buttonPrintMultipleBarcodes"
-                                       class="dropdown-item d-none print d-flex align-items-center">
-                                        <span class="wii-icon wii-icon-printer-black mr-2"></span>Générer les étiquettes
-                                    </a>
+                                    <button type="button"
+                                            class="btn btn-outline-primary d-none print dropdown-toggle dropdown-toggle-split"
+                                            data-toggle="dropdown"
+                                            aria-haspopup="true"
+                                            aria-expanded="false">
+                                        <span class="fa fa-angle-down"></span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                        <a href="{{ path('reception_bar_codes_print', {reception: reception.id}) }}"
+                                           id="buttonPrintMultipleBarcodes"
+                                           class="dropdown-item d-none print d-flex align-items-center">
+                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>Générer les étiquettes
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12 logistic-units-container mt-3">
+                        <div class="row">
+                            <div class="col-12 logistic-units-container my-3 wii-multiple-loading"
+                                 data-loader-color="primary"
+                                 data-loader-size="normal">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
             {% if displayLitiges %}
                 <div class="col-6 pl-2">
                     <div class="wii-box mt-0">

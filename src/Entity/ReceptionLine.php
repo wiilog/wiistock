@@ -57,6 +57,10 @@ class ReceptionLine {
         return $this;
     }
 
+    public function hasPack(): bool {
+        return $this->pack !== null;
+    }
+
     /**
      * @return Collection<ReceptionReferenceArticle>
      */

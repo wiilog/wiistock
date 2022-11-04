@@ -2,13 +2,13 @@ import '@styles/pages/reception/show.scss';
 import AJAX, {GET} from "@app/ajax";
 import Select2 from "@app/select2";
 
-let tableArticle;
-let tableLitigesReception;
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
 let modalArticleAlreadyInit = false;
 let tableArticleLitige;
 let tableHistoLitige;
+let receptionDisputesDatatable;
+let articleSearch;
 
 window.initNewArticleEditor = initNewArticleEditor;
 window.openModalLigneReception = openModalLigneReception;
@@ -25,11 +25,11 @@ window.initEditReception = initEditReception;
 
 $(function () {
     $('.select2').select2();
-    const dataTableInitRes = InitPageDataTable();
-    tableArticle = dataTableInitRes.tableArticle;
-    tableLitigesReception = dataTableInitRes.tableLitigesReception;
+    receptionDisputesDatatable = InitDisputeDataTable();
     initPageModals();
+    launchPackListSearching();
     loadLogisticUnitPack();
+
     $('#packing-package-number, #packing-number-in-package').on('keypress keydown keyup', function () {
         if ($(this).val() === '' || $(this).val() < 0) {
             $(this).val('');
@@ -196,9 +196,12 @@ function initPageModals() {
     let $submitAddLigneArticle = $("#addArticleLigneSubmit");
     let $submitAndRedirectLigneArticle = $('#addArticleLigneSubmitAndRedirect');
     let urlAddLigneArticle = Routing.generate('reception_article_add', true);
-    InitModal($modalAddLigneArticle, $submitAddLigneArticle, urlAddLigneArticle, {tables: [tableArticle]});
+    InitModal($modalAddLigneArticle, $submitAddLigneArticle, urlAddLigneArticle, {
+        success: () => {
+            loadLogisticUnitPack();
+        }
+    });
     InitModal($modalAddLigneArticle, $submitAndRedirectLigneArticle, urlAddLigneArticle, {
-        tables: [tableArticle],
         success: createHandlerAddLigneArticleResponseAndRedirect($modalAddLigneArticle),
         keepForm: true,
         keepModal: true
@@ -224,12 +227,20 @@ function initPageModals() {
     let $modalDeleteArticle = $("#modalDeleteLigneArticle");
     let $submitDeleteArticle = $("#submitDeleteLigneArticle");
     let urlDeleteArticle = Routing.generate('reception_article_remove', true);
-    InitModal($modalDeleteArticle, $submitDeleteArticle, urlDeleteArticle, {tables: [tableArticle]});
+    InitModal($modalDeleteArticle, $submitDeleteArticle, urlDeleteArticle, {
+        success: () => {
+            loadLogisticUnitPack();
+        }
+    });
 
     let $modalEditArticle = $("#modalEditLigneArticle");
     let $submitEditArticle = $("#submitEditLigneArticle");
     let urlEditArticle = Routing.generate('reception_article_edit', true);
-    InitModal($modalEditArticle, $submitEditArticle, urlEditArticle, {tables: [tableArticle]});
+    InitModal($modalEditArticle, $submitEditArticle, urlEditArticle, {
+        success: () => {
+            loadLogisticUnitPack();
+        }
+    });
 
     let $modalDelete = $("#modalDeleteReception");
     let $submitDelete = $("#submitDeleteReception");
@@ -249,67 +260,22 @@ function initPageModals() {
     let modalNewLitige = $('#modalNewLitige');
     let submitNewLitige = $('#submitNewLitige');
     let urlNewLitige = Routing.generate('dispute_new_reception', true);
-    InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableLitigesReception]});
+    InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [receptionDisputesDatatable]});
 
     let modalEditLitige = $('#modalEditLitige');
     let submitEditLitige = $('#submitEditLitige');
     let urlEditLitige = Routing.generate('litige_edit_reception', true);
-    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitigesReception]});
+    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [receptionDisputesDatatable]});
 
     let $modalDeleteLitige = $("#modalDeleteLitige");
     let $submitDeleteLitige = $("#submitDeleteLitige");
     let urlDeleteLitige = Routing.generate('litige_delete_reception', true);
-    InitModal($modalDeleteLitige, $submitDeleteLitige, urlDeleteLitige, {tables: [tableLitigesReception]});
+    InitModal($modalDeleteLitige, $submitDeleteLitige, urlDeleteLitige, {tables: [receptionDisputesDatatable]});
 }
 
-function InitPageDataTable() {
-    let pathAddArticle = Routing.generate('reception_article_api', {'id': $('input[type="hidden"]#receptionId').val()}, true);
+function InitDisputeDataTable() {
     let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
-    let tableArticleConfig = {
-        lengthMenu: [5, 10, 25],
-        ajax: {
-            url: pathAddArticle,
-            type: "POST",
-            dataSrc: ({data, hasBarCodeToPrint}) => {
-                const $printButton = $('#buttonPrintMultipleBarcodes');
-                const dNoneClass = 'd-none';
-                if (hasBarCodeToPrint) {
-                    $printButton.removeClass(dNoneClass);
-                    $('.print').removeClass(dNoneClass)
-                } else {
-                    $printButton.addClass(dNoneClass);
-                    $('.print').addClass(dNoneClass)
-                }
-                return data;
-            }
-        },
-        domConfig: {
-            removeInfo: true
-        },
-        order: [['Urgence', "desc"], ['Référence', "desc"]],
-        columns: [
-            {data: 'Actions', title: '', className: 'noVis', orderable: false},
-            {data: 'Référence', title: 'Référence'},
-            {data: 'Commande', title: 'Commande'},
-            {data: 'A recevoir', title: 'A recevoir'},
-            {data: 'Reçu', title: 'Reçu'},
-            {data: 'Urgence', title: 'Urgence', visible: false},
-            {data: 'Comment', title: 'Comment', visible: false},
-        ],
-        rowConfig: {
-            needsRowClickAction: true,
-            needsColor: true,
-            dataToCheck: 'Urgence',
-            color: 'danger',
-            callback: (row, data) => {
-                if (data.Urgence && data.Comment) {
-                    const $row = $(row);
-                    $row.attr('title', data.Comment);
-                    initTooltips($row);
-                }
-            }
-        },
-    };
+
     let tableLitigeConfig = {
         lengthMenu: [5, 10, 25],
         ajax: {
@@ -338,10 +304,7 @@ function InitPageDataTable() {
             color: 'danger',
         },
     };
-    return {
-        tableArticle: initDataTable('tableArticle_id', tableArticleConfig),
-        tableLitigesReception: initDataTable('tableReceptionLitiges', tableLitigeConfig)
-    };
+    return initDataTable('tableReceptionLitiges', tableLitigeConfig);
 }
 
 function initEditReception() {
@@ -488,10 +451,15 @@ function initModalCondit(tableFromArticle) {
     let $modalDeleteInnerArticle = $("#modalDeleteArticle");
     let $submitDeleteInnerArticle = $("#submitDeleteArticle");
     let urlDeleteInnerArticle = Routing.generate('article_delete', true);
-    InitModal($modalDeleteInnerArticle, $submitDeleteInnerArticle, urlDeleteInnerArticle, {tables: [tableFromArticle, tableArticle]});
+    InitModal($modalDeleteInnerArticle, $submitDeleteInnerArticle, urlDeleteInnerArticle, {
+        tables: [tableFromArticle],
+        success: () => {
+            loadLogisticUnitPack();
+        }
+    });
 }
 
-function initNewArticleEditor(modal) {
+function initNewArticleEditor(modal, options = {}) {
     const $modal = $(modal);
     let $select2refs = $modal.find('[name="referenceArticle"]');
 
@@ -512,7 +480,13 @@ function initNewArticleEditor(modal) {
     setTimeout(() => {
         Select2Old.open($select2refs);
     }, 400);
+
+    if (options['unitCode'] && options['unitId']) {
+        let $selectUl = $modal.find('[name="ULArticleLine"]');
+        $selectUl.append(new Option(options['unitCode'], options['unitId'], true, true)).trigger('change');
+    }
 }
+
 
 function openModalArticlesFromLigneArticle(ligneArticleId) {
     $('#ligneSelected').val(ligneArticleId);
@@ -691,7 +665,6 @@ function initNewLigneReception($button) {
                     if(success) {
                         wrapLoadingOnActionButton($button, () => (
                             SubmitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {
-                                tables: [tableArticle],
                                 success: (response) => {
                                     if (response && response.success) {
                                         const $printButton = $('#buttonPrintMultipleBarcodes');
@@ -701,6 +674,7 @@ function initNewLigneReception($button) {
                                                 articleIds: response.articleIds
                                             }, true);
                                         }
+                                        loadLogisticUnitPack();
                                     }
                                 },
                                 keepForm: true
@@ -766,6 +740,8 @@ function createHandlerAddLigneArticleResponseAndRedirect($modal) {
                             const [selectedPicking] = $pickingSelect.select2('data');
                             Object.assign(selectedPicking, selected);
                             $pickingSelect.trigger(`change`);
+
+                            loadLogisticUnitPack();
                         }
                     }
                 });
@@ -877,14 +853,23 @@ function clearPackingContent($element, hideSupplierReferenceSelect = true, hideP
     $modal.find(`input[name=packingArticles]`).val(null);
 }
 
-function loadLogisticUnitPack(start = 0) {
+function loadLogisticUnitPack({start, search} = {}) {
+    start = start || 0;
     const $logisticUnitsContainer = $('.logistic-units-container');
     const reception = $('#receptionId').val();
-    console.log($logisticUnitsContainer)
+
+    const params = {reception, start};
+    if (search) {
+        params.search = search;
+    }
+    else {
+        clearPackListSearching();
+    }
+
     wrapLoadingOnActionButton(
         $logisticUnitsContainer,
         () => (
-            AJAX.route(GET, 'reception_lines_api', {reception, start})
+            AJAX.route(GET, 'reception_lines_api', params)
                 .json()
                 .then(({html}) => {
                     $logisticUnitsContainer.html(html);
@@ -896,15 +881,31 @@ function loadLogisticUnitPack(start = 0) {
                                 ordering: true,
                                 paging: false,
                                 searching: false,
+                                order: [['emergency', "desc"], ['reference', "desc"]],
                                 columns: [
-                                    { data: 'actions', className: 'noVis', orderable: false },
-                                    { data: 'reference', title: 'Référence'},
-                                    { data: 'orderNumber', title: 'Commande'},
-                                    { data: 'quantityToReceive', title: 'À recevoir'},
-                                    { data: 'receivedQuantity', title: 'Reçu'},
+                                    {data: 'actions', className: 'noVis hideOrder', orderable: false},
+                                    {data: 'reference', title: 'Référence'},
+                                    {data: 'orderNumber', title: 'Commande'},
+                                    {data: 'quantityToReceive', title: 'À recevoir'},
+                                    {data: 'receivedQuantity', title: 'Reçu'},
+                                    {data: 'emergency', visible: false},
+                                    {data: 'comment', visible: false},
                                 ],
                                 domConfig: {
                                     removeInfo: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                    needsColor: true,
+                                    dataToCheck: 'emergency',
+                                    color: 'danger',
+                                    callback: (row, data) => {
+                                        if (data.emergency && data.comment) {
+                                            const $row = $(row);
+                                            $row.attr('title', data.comment);
+                                            initTooltips($row);
+                                        }
+                                    }
                                 },
                             })
                         });
@@ -913,10 +914,34 @@ function loadLogisticUnitPack(start = 0) {
                         .find('.paginate_button:not(.disabled)')
                         .on('click', function() {
                             const $button = $(this);
-                            loadLogisticUnitPack($button.data('page'));
+                            loadLogisticUnitPack({
+                                start: $button.data('page'),
+                                search: articleSearch
+                            });
                         });
                 })
         )
     )
+}
+
+function launchPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+
+    $searchInput.on('input', function () {
+        const $input = $(this);
+        const articleSearch = $input.val();
+        loadLogisticUnitPack({search: articleSearch});
+    });
+}
+
+function clearPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+    $searchInput.val(null);
 }
 

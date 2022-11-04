@@ -1,13 +1,19 @@
 {% set header = header ?? null %}
 {% set content = content ?? null %}
+
+{% macro dataAttributes(data) %}
+    {% for key, value in data %}
+        data-{{ key }}="{{ value }}"
+    {% endfor %}
+{% endmacro %}
+
 <div class="logistic-unit-wrapper"
-     {% for key, value in data ?? [] %}
-         data-{{ key }}="{{ value }}"
-     {% endfor %}>
+     {{ _self.dataAttributes(data ?? []) }}>
     <table>
         {% if header %}
             <tr class="ul"
-                style="--row-color: {{ header.color ?? 'var(--primary)' }};">
+                style="--row-color: {{ header.color ?? 'var(--primary)' }};"
+                {{ _self.dataAttributes(header.data ?? []) }}>
                 <td class="side-unit-label">
                     <div>{{ header.sideLabel ?? '' }}</div>
                 </td>
@@ -34,7 +40,10 @@
                 </td>
                 <td>
                     <button type="button"
-                            class="btn btn-outline-primary ml-2 h-100 p-1">
+                            data-toggle="modal"
+                            data-target="#modalAddLigneArticle"
+                            class="btn btn-outline-primary ml-2 h-100 p-1"
+                            onclick="initNewArticleEditor('#modalAddLigneArticle', { unitId : {{ header.data['pack-id'] }}, unitCode : '{{ header.content[0].value }}' })">
                         <span class="wii-icon wii-icon-new-article"></span>
                     </button>
                 </td>

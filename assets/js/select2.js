@@ -37,6 +37,7 @@ const ROUTES = {
     vehicles: 'ajax_select_vehicles',
     inventoryCategories: 'ajax_select_inventory_categories',
     project: 'ajax_select_project',
+    receptionLogisticUnits: 'ajax_select_reception_logistic_units',
 }
 
 const INSTANT_SELECT_TYPES = {
