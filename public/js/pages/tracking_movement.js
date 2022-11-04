@@ -9,13 +9,16 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
+    initDateTimePicker('#datetime', DATE_FORMATS_TO_DISPLAY[format] + ` HH:mm`, {setTodayDate: true});
     initDatePickers();
     Select2Old.init($('#emplacement'), 'Emplacements');
 
     initTrackingMovementTable($(`#tableMvts`).data(`initial-visible`));
 
-    const filters = JSON.parse($(`#trackingMovementFilters`).val())
-    displayFiltersSup(filters, true);
+    if(!$(`#filterArticle`).exists()) {
+        const filters = JSON.parse($(`#trackingMovementFilters`).val())
+        displayFiltersSup(filters, true);
+    }
 
     Select2Old.user(Translation.of('Traçabilité', 'Mouvements', 'Opérateurs', false));
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of( 'Traçabilité', 'Général', 'Emplacement', false), 3);
@@ -30,8 +33,11 @@ function initTrackingMovementTable(columns) {
         processing: true,
         order: [['date', "desc"]],
         ajax: {
-            "url": Routing.generate('tracking_movement_api', true),
-            "type": "POST",
+            url: Routing.generate('tracking_movement_api', true),
+            type: "POST",
+            data: {
+                article: $(`#filterArticle`).val(),
+            }
         },
         drawConfig: {
             needsSearchOverride: true,

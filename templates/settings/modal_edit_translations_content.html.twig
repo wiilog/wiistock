@@ -1,16 +1,15 @@
-{% for status in statuses %}
-    <input type="hidden" class="data-array" name="status" required="" value="{{ status.id }}">
-    <div class="status-translation {{ status == last_status ? "" : "border-bottom" }}">
+{% for line in lines %}
+    <input type="hidden" class="data-array" name="lines" required="" value="{{ line.id }}">
+    <div class="translation {{ not loop.last ? "border-bottom" }}">
         <label class="wii-field-name mb-1">Libellé*</label>
         {% for language in language_service.getLanguages %}
             {% set slug = language.slug %}
             {% set isNeeded = language.slug == constant('App\\Entity\\Language::FRENCH_SLUG')
                 or language.slug == constant('App\\Entity\\Language::ENGLISH_SLUG') %}
-            {% set value = status.getLabelTranslation.getTranslationIn(language.slug)
-                ? status.getLabelTranslation.getTranslationIn(language.slug).getTranslation
-                : "" %}
+            {% set translation = line.labelTranslation.translationIn(language.slug) %}
+            {% set value = translation ? translation.translation : '' %}
             <div class="input-group lang-input-group mb-1"
-                 data-multiple-key="labels-{{ status.id }}"
+                 data-multiple-key="labels-{{ line.id }}"
                  data-multiple-object-index="{{ language.value }}">
                 <div class="input-group-prepend langue-img-prepend">
                     <span class="langue-img" style="background-image: url({{ language.iconUrl }})"></span>

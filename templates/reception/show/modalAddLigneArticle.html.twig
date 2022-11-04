@@ -27,7 +27,7 @@
                                     <a href="{{ path('reference_article_new_page', {from: 'reception_add_line', reception: reception.id}) }}"
                                        class="btn btn-primary m-0 d-flex align-items-center">
                                         <span class="wii-icon wii-icon-plus mr-1"></span>
-                                        <span >Créer</span>
+                                        <span>Créer</span>
                                     </a>
                                 </div>
                             {% endif %}
@@ -89,7 +89,7 @@
                     {classes: 'btn btn-success', text: 'Enregistrer', id: 'addArticleLigneSubmit'},
                     {
                         classes: 'btn btn-success d-none',
-                        text: 'Enregistrer et ' ~ trans('Ordre', 'Réceptions', 'réception', true),
+                        text: 'Enregistrer et ' ~ trans('Ordre', 'Réceptions', 'réception', false),
                         id: 'addArticleLigneSubmitAndRedirect',
                         event: 'openModalLigneReception($(this))'
                     },

@@ -57,6 +57,7 @@ class FieldsParam {
     const FIELD_CODE_ARRIVAL_STATUS = 'arrivalStatus'; // not in settings table
     const FIELD_CODE_ARRIVAL_DATE = 'arrivalDate'; // not in settings table
     const FIELD_CODE_ARRIVAL_CREATOR = 'arrivalCreator'; // not in settings table
+    const FIELD_CODE_PROJECT = 'project';
 
     const FIELD_LABEL_PROVIDER_ARRIVAGE = 'fournisseur';
     const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';
@@ -79,6 +80,7 @@ class FieldsParam {
     const FIELD_LABEL_ARRIVAL_STATUS = 'Statut'; // not in settings table
     const FIELD_LABEL_ARRIVAL_DATE = 'Date'; // not in settings table
     const FIELD_LABEL_ARRIVAL_CREATOR = 'Utilisateur'; // not in settings table
+    const FIELD_LABEL_PROJECT = 'Projet';
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
@@ -120,7 +122,12 @@ class FieldsParam {
     const FIELD_LABEL_EXPECTED_AT = 'date attendue';
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
+        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
         FieldsParam::FIELD_CODE_PJ_ARRIVAGE,
+    ];
+
+    public const FILTER_ONLY_FIELDS = [
+        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
     ];
 
     public const FILTERED_FIELDS = [
@@ -132,6 +139,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_TRANSPORTEUR,
         FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
         FieldsParam::FIELD_CODE_BUSINESS_UNIT,
+        FieldsParam::FIELD_CODE_PROJECT_NUMBER,
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
 
         // Acheminements
@@ -142,6 +150,11 @@ class FieldsParam {
 
         // Services
         FieldsParam::FIELD_CODE_RECEIVERS_HANDLING,
+    ];
+
+    public const NOT_EDITABLE_FIELDS = [
+        // Arrivages
+        FieldsParam::FIELD_CODE_PROJECT
     ];
 
     #[ORM\Id]
@@ -181,6 +194,9 @@ class FieldsParam {
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
     private ?bool $fieldRequiredHidden;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $modalType = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -290,6 +306,16 @@ class FieldsParam {
         $this->fieldRequiredHidden = $fieldRequiredHidden;
 
         return $this;
+    }
+
+    public function getModalType(): ?string
+    {
+        return $this->modalType;
+    }
+
+    public function setModalType(?string $modalType): void
+    {
+        $this->modalType = $modalType;
     }
 
 }

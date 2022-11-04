@@ -14,6 +14,7 @@ use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Project;
 use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
@@ -94,9 +95,13 @@ class SelectController extends AbstractController {
      * @Route("/select/types/services", name="ajax_select_handling_type", options={"expose": true})
      */
     public function handlingType(Request $request, EntityManagerInterface $manager): Response {
+        $alreadyDefinedTypes = $request->query->has('alreadyDefinedTypes')
+            ? explode(",", $request->query->get('alreadyDefinedTypes'))
+            : [];
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::DEMANDE_HANDLING,
-            $request->query->get("term")
+            $request->query->get("term"),
+            ['alreadyDefinedTypes' => $alreadyDefinedTypes]
         );
 
         return $this->json([
@@ -569,6 +574,18 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $vehicles
+        ]);
+    }
+
+    /**
+     * @Route("/select/project", name="ajax_select_project", options={"expose": true})
+     */
+    public function project(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get("term");
+        $projects = $entityManager->getRepository(Project::class)->getForSelect($search);
+
+        return $this->json([
+            "results" => $projects
         ]);
     }
 

@@ -82,4 +82,22 @@ class ProjectRepository extends EntityRepository
             'total' => $total
         ];
     }
+
+    public function findActive(): array {
+        return $this->createQueryBuilder("project")
+            ->andWhere("project.active = 1")
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getForSelect(?string $term): array {
+        return $this->createQueryBuilder("project")
+            ->select("project.id AS id, project.code AS text")
+            ->andWhere("project.code LIKE :term")
+            ->andWhere("project.active = 1")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
+
 }

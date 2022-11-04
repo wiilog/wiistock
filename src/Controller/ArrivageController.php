@@ -102,6 +102,7 @@ class ArrivageController extends AbstractController {
         $request->request->add(['length' => $pageLength]);
 
         return $this->render('arrivage/index.html.twig', [
+            "types" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'statuts' => $statuses,
             "fieldsParam" => $fieldsParam,
@@ -249,6 +250,7 @@ class ArrivageController extends AbstractController {
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT_NUMBER, $data["noProject"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, $data["noTracking"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE, $data["transporteur"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT, $data["project"] ?? null);
 
         $arrivage = new Arrivage();
         $arrivage
@@ -361,13 +363,15 @@ class ArrivageController extends AbstractController {
             $arrivage->setIsUrgent(true);
         }
 
+        $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
         // persist packs after set arrival urgent
         $colisService->persistMultiPacks(
             $entityManager,
             $arrivage,
             $natures,
             $currentUser,
-            false
+            false,
+            $project
         );
 
         $entityManager->flush();
@@ -680,6 +684,7 @@ class ArrivageController extends AbstractController {
                 foreach ($arrivage->getAttachments() as $attachement) {
                     $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
                 }
+
                 foreach ($arrivage->getUrgences() as $urgence) {
                     $urgence->setLastArrival(null);
                 }
@@ -815,7 +820,7 @@ class ArrivageController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
-            "projects" => $projectRepository->findAll(),
+            "projects" => $projectRepository->findActive(),
             'fields' => $fields,
         ]);
     }
@@ -1375,7 +1380,7 @@ class ArrivageController extends AbstractController {
             : '';
 
         $project = $projectParam
-            ? $arrival->getProjectNumber()
+            ? $colis->getProject()?->getCode()
             : '';
 
         $arrivalType = $typeArrivalParamIsDefined

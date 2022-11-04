@@ -5,12 +5,17 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
+use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 
+use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
+use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -29,7 +34,9 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use App\Service\TranslationService;
+use Symfony\Component\Security\Core\Authentication\Token\PreAuthenticatedToken;
 use Throwable;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/colis")
@@ -52,7 +59,7 @@ class PackController extends AbstractController
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
-            'projects' => $projectRepository->findAll(),
+            'projects' => $projectRepository->findActive(),
             'code' => $code
         ]);
     }
@@ -179,11 +186,27 @@ class PackController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $packRepository = $entityManager->getRepository(Pack::class);
+            $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
+            $projectRepository = $entityManager->getRepository(Project::class);
+            $statusRepository = $entityManager->getRepository(Statut::class);
             $pack = $packRepository->find($data['id']);
+            $projects = Stream::from($projectRepository->findActive())
+                ->map(fn(Project $project) => [
+                    "label" => $project->getCode(),
+                    "value" => $project->getId(),
+                    "selected" => $pack->getProject() === $project
+                ]);
+            $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER);
+            $disabledProject = $preparationOrderArticleLineRepository->getPreparationOrderArticleLine($pack, [$status->getId()]);
+            $articlesQuantity = Stream::from($pack->getChildArticles())->reduce(fn(int $carry, Article $article) => $carry + $article->getQuantite());
             $html = $this->renderView('pack/modalEditPackContent.html.twig', [
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
-                'pack' => $pack
+                'pack' => $pack,
+                'projects' => $projects,
+                'containsArticle' => $pack->getChildArticles()->isEmpty(),
+                'articlesQuantity' => $articlesQuantity,
+                'disabledProject' => !empty($disabledProject)
             ]);
 
             return new JsonResponse($html);
@@ -204,12 +227,12 @@ class PackController extends AbstractController
         $response = [];
         $packRepository = $entityManager->getRepository(Pack::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
         $pack = $packRepository->find($data['id']);
         $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
         if (!empty($pack) && $packDataIsValid['success']) {
-            $packService
-                ->editPack($data, $natureRepository, $pack);
+            $packService->editPack($data, $natureRepository, $projectRepository, $pack);
 
             $entityManager->flush();
             $response = [
@@ -300,6 +323,15 @@ class PackController extends AbstractController
     public function groupHistory(Request $request, PackService $packService, $pack): Response {
         if ($request->isXmlHttpRequest()) {
             $data = $packService->getGroupHistoryForDatatable($pack, $request->request);
+            return $this->json($data);
+        }
+        throw new BadRequestHttpException();
+    }
+
+    #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    public function projectHistory(Request $request, PackService $packService, $pack): Response {
+        if ($request->isXmlHttpRequest()) {
+            $data = $packService->getProjectHistoryForDatatable($pack, $request->request);
             return $this->json($data);
         }
         throw new BadRequestHttpException();

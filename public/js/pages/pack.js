@@ -22,7 +22,7 @@ const packsTableConfig = {
         {data: 'packNum', name: 'packNum', title: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
         {data: 'packNature', name: 'packNature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
         {data: `quantity`, name: 'quantity',  'title': Translation.of('Traçabilité', 'Général', 'Quantité')},
-        {data: `project`, name: 'project',  'title': Translation.of('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Project')},
+        {data: `project`, name: 'project',  'title': Translation.of('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Projet')},
         {data: 'packLastDate', name: 'packLastDate', title: Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
         {data: "packOrigin", name: 'packOrigin', title: Translation.of('Traçabilité', 'Général', 'Issu de'), className: 'noVis', orderable: false},
         {data: "packLocation", name: 'packLocation', title: Translation.of('Traçabilité', 'Général', 'Emplacement')},
@@ -112,7 +112,6 @@ $(function() {
         // to get the event before action-on-click and be able to
         // cancel modal openning through event.stopPropagation
         $icon.on(`mouseup`, event => {
-            console.log('bro')
             event.stopPropagation();
 
             const $container = $(`.packsTableContainer`);
@@ -222,24 +221,4 @@ function toExport() {
             true
         );
     }
-}
-
-function initializeGroupHistoryTable(packId) {
-    initDataTable('groupHistoryTable', {
-        serverSide: true,
-        processing: true,
-        order: [['date', "desc"]],
-        ajax: {
-            "url": Routing.generate('group_history_api', {pack: packId}, true),
-            "type": "POST"
-        },
-        columns: [
-            {data: 'group', name: 'group', title: Translation.of('Traçabilité', 'Mouvements', 'Groupe')},
-            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
-            {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Mouvements', 'Type')},
-        ],
-        domConfig: {
-            needsPartialDomOverride: true,
-        }
-    });
 }

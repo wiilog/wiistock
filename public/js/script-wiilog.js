@@ -144,7 +144,6 @@ function openQueryModal(query = null, event) {
     query = query || GetRequestQuery();
     const openModalNew = 'new';
     const openModalEdit = 'edit';
-    console.log(Object.assign({}, query));
 
     if (query["open-modal"] === openModalNew
         || query["open-modal"] === openModalEdit) {
@@ -1056,7 +1055,7 @@ function saveExportFile(routeName,
         format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
     }
     const data = {};
-    $('.filterService input, .dateFilters input').each(function () {
+    $('.filterService input, .dateFilters input, select[name="statut"]').each(function () {
         const $input = $(this);
         const name = $input.attr('name');
         const val = $input.val();
@@ -1210,6 +1209,14 @@ function onTypeChange($select) {
             $errorEmptyStatus.removeClass('d-none');
             $selectStatus.addClass('d-none');
         }
+        $.post(Routing.generate('handling_users_by_type'), {id: type}, function (data) {
+            const $select2 = $('.modal-body select[name=receivers]');
+            $select2.empty().trigger('change');
+            Object.entries(data).forEach(([key, value]) => {
+                let option = new Option(value, key, true, true);
+                $select2.append(option).trigger('change');
+            })
+        });
     }
 }
 

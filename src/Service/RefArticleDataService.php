@@ -22,6 +22,7 @@ use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Reception;
+use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -994,7 +995,8 @@ class RefArticleDataService {
 
     private function extractIncomingReceptionsData(array $quantityByDatesWithEvents, array $receptions, ReferenceArticle $referenceArticle): array {
         foreach ($receptions as $reception) {
-            $reservedQuantity = Stream::from($reception->getReceptionReferenceArticles())
+            $reservedQuantity = Stream::from($reception->getLines())
+                ->flatMap(fn(ReceptionLine $line) => $line->getReceptionReferenceArticles()->toArray())
                 ->filterMap(function(ReceptionReferenceArticle $line) use ($referenceArticle) {
                     return $line->getReferenceArticle()->getId() === $referenceArticle->getId()
                         ? $line->getQuantiteAR() - $line->getQuantite()

@@ -12,7 +12,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\ReceptionPackLine;
+use App\Entity\ReceptionLine;
 use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;
@@ -144,11 +144,11 @@ class ReceptionService
             if ($arrivage && !$arrivage->getReception()) {
                 $arrivage->setReception($reception);
                 foreach ($arrivage->getPacks() as $pack) {
-                    $receptionPackLine = new ReceptionPackLine();
-                    $receptionPackLine
+                    $line = new ReceptionLine();
+                    $line
                         ->setReception($reception)
                         ->setPack($pack);
-                    $entityManager->persist($receptionPackLine);
+                    $entityManager->persist($line);
                 }
             }
         }

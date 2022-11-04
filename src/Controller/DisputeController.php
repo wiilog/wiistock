@@ -91,12 +91,11 @@ class DisputeController extends AbstractController
 
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
+        $status = $request->query->get('statut');
+        $statuses = $status ? explode(',', $status) : [];
 
-        try {
-            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (\Throwable $throwable) {
-        }
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
         $headers = [
             'Numéro de litige',
@@ -119,13 +118,14 @@ class DisputeController extends AbstractController
         ];
 
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
-        return $CSVExportService->streamResponse(function ($output) use ($disputeService, $entityManager, $dateTimeMin, $dateTimeMax) {
+        return $CSVExportService->streamResponse(function ($output) use ($disputeService, $entityManager, $dateTimeMin, $dateTimeMax, $statuses) {
 
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
-            $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDates($dateTimeMin, $dateTimeMax);
+            $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDatesOrAndStatus($dateTimeMin, $dateTimeMax, $statuses);
+
             /** @var Dispute $dispute */
             foreach ($arrivalDisputes as $dispute) {
                 $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_ARRIVAL, $output, $dispute, $disputeRepository);
@@ -136,7 +136,7 @@ class DisputeController extends AbstractController
             $associatedIdAndReferences = $receptionReferenceArticleRepository->getAssociatedIdAndReferences();
             $associatedIdAndOrderNumbers = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers();
 
-            $receptionDisputes = $disputeRepository->iterateReceptionDisputesByDates($dateTimeMin, $dateTimeMax);
+            $receptionDisputes = $disputeRepository->iterateReceptionDisputesByDates($dateTimeMin, $dateTimeMax, $statuses);
             /** @var Dispute $dispute */
             foreach ($receptionDisputes as $dispute) {
                 $articles = $articleRepository->getArticlesByDisputeId($dispute["id"]);
@@ -179,17 +179,19 @@ class DisputeController extends AbstractController
                                       Dispute                $dispute): Response
     {
         $rows = [];
+        $typeRepository = $entityManager->getRepository(Type::class);
         $disputeHistoryRecordRepository = $entityManager->getRepository(DisputeHistoryRecord::class);
         $disputeHistory = $disputeHistoryRecordRepository->findBy(['dispute' => $dispute]);
 
         foreach ($disputeHistory as $record)
         {
+            $disputeType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DISPUTE, $record->getTypeLabel());
             $rows[] = [
                 'user' => FormatHelper::user($record->getUser()),
                 'date' => FormatHelper::datetime($record->getDate(), "", false, $this->getUser()),
                 'commentaire' => nl2br($record->getComment()),
                 'status' => $record->getStatusLabel(),
-                'type' => $record->getTypeLabel()
+                'type' => $this->getFormatter()->type($disputeType)
             ];
         }
         $data['data'] = $rows;

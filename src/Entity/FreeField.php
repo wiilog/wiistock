@@ -125,7 +125,8 @@ class FreeField implements Serializable {
         return $this->id;
     }
 
-    public function getLabelIn(Language|string $in, Language|string|null $default = null): ?string {
+    public function getLabelIn(Language|string $in,
+                               Language|string|null $default = null): ?string {
         $in = LanguageHelper::clearLanguage($in);
         $default = LanguageHelper::clearLanguage($default);
 

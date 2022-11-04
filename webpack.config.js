@@ -14,6 +14,7 @@ Encore
     .addEntry('app', './assets/js/app.js')
     .addEntry('dashboard', './assets/js/dashboard.js')
     .addEntry('reference-article-form', './assets/js/pages/reference-article/form.js')
+    .addEntry('article-form', './assets/js/pages/article/form.js')
     .addEntry('reference-article-index', './assets/js/pages/reference-article/index.js')
     .addEntry('cart', './assets/js/pages/cart.js')
     .addEntry('settings-index', './assets/js/pages/settings/index.js')

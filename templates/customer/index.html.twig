@@ -10,7 +10,7 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {% include "utils/action-button.html.twig" with {
+                {% include "utils/action-buttons.html.twig" with {
                     actions: [
                         {
                             hasRight: hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')),
@@ -26,7 +26,7 @@
                             title: "Exporter au format CSV",
                             icon : "fa fa-file-csv",
                             attributes: {
-                                "onclick" : "",
+                                "onclick" : "saveExportFile('get_customers_csv', false)",
                             },
                         },
                     ]

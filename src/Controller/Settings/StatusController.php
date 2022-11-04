@@ -210,17 +210,15 @@ class StatusController extends AbstractController
     }
 
     /**
-     * @Route("/status-api/edit/translate", name="settings_edit_status_translations_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/status-api/edit/translate", name="settings_edit_status_translations_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT})
      */
     public function apiEditTranslations(Request $request,
                                         EntityManagerInterface $manager,
                                         TranslationService $translationService): JsonResponse
     {
-        $data = $request->request;
-
-        $mode = $data->get("mode");
-        $typeId = $data->get("type");
+        $mode = $request->query->get("mode");
+        $typeId = $request->query->get("type");
 
         $statusRepository = $manager->getRepository(Statut::class);
         $typeRepository = $manager->getRepository(Type::class);
@@ -244,12 +242,12 @@ class StatusController extends AbstractController
         }
         $manager->flush();
 
+
         $html = $this->renderView('settings/modal_edit_translations_content.html.twig', [
-            'statuses' => $statuses,
-            'last_status' => end($statuses)
+            'lines' => $statuses
         ]);
 
-        return new JsonResponse([
+        return $this->json([
             'success' => true,
             'html' => $html
             ]);
@@ -265,7 +263,7 @@ class StatusController extends AbstractController
                                      TranslationService     $translationService): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $statusRepository = $manager->getRepository(Statut::class);
-            $statuses = json_decode($data['status'], true);
+            $statuses = json_decode($data['lines'], true);
 
             $persistedStatuses = [];
             foreach ($statuses as $statusId) {

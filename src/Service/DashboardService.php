@@ -1298,6 +1298,7 @@ class DashboardService {
                 $natureId = $nature->getId();
                 if (!isset($naturesStack[$natureId])) {
                     $naturesStack[$natureId] = [
+                        'id' => $natureId,
                         'label' => $this->formatService->nature($nature),
                         'backgroundColor' => $nature->getColor(),
                         'stack' => 'stack',

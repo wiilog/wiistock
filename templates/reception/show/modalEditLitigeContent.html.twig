@@ -5,10 +5,10 @@
                 id="disputeType"
                 name="disputeType">
             <option value="{{ dispute.type.id }}"
-                    selected>{{ dispute.type.label }}</option>
+                    selected>{{ dispute.type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
             {% for type in disputeTypes %}
                 {% if type.id != dispute.type.id %}
-                    <option value="{{ type.id }}">{{ type.label }}</option>
+                    <option value="{{ type.id }}">{{ type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
                 {% endif %}
             {% endfor %}
         </select>

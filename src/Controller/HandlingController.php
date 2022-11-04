@@ -67,6 +67,7 @@ class HandlingController extends AbstractController {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
@@ -86,7 +87,7 @@ class HandlingController extends AbstractController {
             ],
             [
                 'name' => 'treatmentDate',
-                'label' => $translationService->translate('Demande', 'Services', 'Date de réalisation'),
+                'label' => $translationService->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation'),
             ],
         ];
         foreach ($dateChoice as &$choice) {
@@ -125,7 +126,8 @@ class HandlingController extends AbstractController {
                     ];
                 }, $types),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
-                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY)
+                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
+                'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_SERVICE_DATE_TODAY),
             ],
 		]);
     }
@@ -151,6 +153,22 @@ class HandlingController extends AbstractController {
         $data = $handlingService->getDataForDatatable($request->request, $filterStatus, $selectedDate);
 
         return new JsonResponse($data);
+    }
+
+    #[Route("/users-by-type", name: "handling_users_by_type", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
+    public function apiUserByType(Request $request, EntityManagerInterface $entityManager, HandlingService $handlingService): Response
+    {
+        $typeId = $request->request->get('id');
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $receivers = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_RECEIVERS_HANDLING);
+        $receiversId = $receivers[$typeId];
+        $users = [];
+        foreach ($receiversId as $receiverId) {
+            $users[$receiverId] = $userRepository->find($receiverId)->getUsername();
+        }
+        return new JsonResponse($users);
     }
 
     #[Route("/creer", name: "handling_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
