@@ -5,6 +5,14 @@ const $referenceRefInput = $('.reference-ref-input');
 const $referenceLabelInput = $('.reference-label-input');
 
 $(function() {
+    let modal = $("#modalPrintHistory");
+    let submit = $("#cancel");
+    InitModal(modal, submit, '', {});
+
+    $('#openModalPrintHistory').on('click', function() {
+        modal.modal('show');
+    });
+
     $(document).on('keypress', function(event) {
         if(event.originalEvent.key === 'Enter') {
             window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});

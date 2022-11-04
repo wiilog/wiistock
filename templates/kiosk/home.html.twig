@@ -15,11 +15,11 @@
             <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
         </div>
 
-        <div class="corner position-absolute left-0 bottom-0 p-4">
-            <button class="outline btn-small">
-                <img src="{{ asset('svg/printer-history.svg') }}" alt="" height="30px" class="mx-3">
-            </button>
-        </div>
+    <div class="corner position-absolute left-0 bottom-0 p-4">
+        <button class="outline btn-small keep-background" id="openModalPrintHistory">
+            <img src="{{ asset('svg/printer-history.svg') }}" alt="" height="30px" class="mx-3">
+        </button>
+    </div>
 
         <div class="page-content home">
             <h1 class="home">
@@ -32,6 +32,10 @@
             </a>
         </div>
     </div>
+
+    {% include 'kiosk/modalPrintHistory.html.twig' with {
+        'latestsPrint': latestsPrint
+    }%}
 {% endblock %}
 
 {% block javascripts %}

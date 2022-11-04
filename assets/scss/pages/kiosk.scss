@@ -1,12 +1,12 @@
-$primary :  #3353D7;
-$danger : #D73353;
-$title : #281A56;
+$primary: #3353D7;
+$danger: #D73353;
+$title: #281A56;
 
-body{
+body {
     background-color: white !important;
 }
 
-button {
+.wrapper button{
     $primaryLowOpacity : #3353D719;
     $dangerLowOpacity : #D733531A;
 
@@ -49,16 +49,23 @@ button {
             color: $danger;
         }
 
-        &:active{
-            background: $primaryLowOpacity;
-            &.danger{
+        &:active {
+            &:not(.keep-background) {
+                background: $primaryLowOpacity;
+            }
+
+            &.keep-background {
+                filter: brightness(85%);
+            }
+
+            &.danger {
                 background: $dangerLowOpacity;
             }
         }
     }
 
     &:active {
-        transition: all .1s;
+        transition: all .3s;
         box-shadow: none;
     }
 }
@@ -69,7 +76,7 @@ label {
     font-size: 25px;
 
     input {
-        $greyBorder : #CDCDCD;
+        $greyBorder: #CDCDCD;
         font-size: 25px;
         padding-left: 15px;
         height: 76px;
@@ -79,13 +86,14 @@ label {
 
         &:focus-visible {
             outline: $primary solid 2px;
-            box-shadow:0 3px 10px $primary;
+            box-shadow: 0 3px 10px $primary;
             transition: all .2s;
         }
 
         &.invalid {
             border: 2px solid $danger;
-            &:focus-visible{
+
+            &:focus-visible {
                 outline: $danger solid 2px;
             }
         }
@@ -111,7 +119,7 @@ label {
 .modal-dialog {
     max-width: fit-content;
 
-    .kiosk-modal-content{
+    .kiosk-modal-content {
         position: relative;
         display: flex;
         flex-direction: column;
@@ -120,11 +128,11 @@ label {
         outline: 0;
         background-color: white;
         border-radius: 38px;
-        padding: 30px;
+        padding: 25px;
         width: 50vw;
         align-content: center;
 
-        .kiosk-modal-footer{
+        .kiosk-modal-footer {
             display: flex;
             justify-content: center;
             margin-top: 30px;
@@ -134,6 +142,18 @@ label {
             align-items: center;
             padding: 0.75rem;
         }
+    }
+
+    .modal-title {
+        text-align: center;
+        font-size: 30px;
+        color: #3353D7;
+        font-weight: bold;
+    }
+
+    .content{
+        max-width: 640px;
+        margin: auto;
     }
 }
 
@@ -153,19 +173,19 @@ label {
     left: 0
 }
 
-.wave{
+.wave {
     width: 100%;
     position: absolute;
     bottom: 0;
     left: 0;
 }
 
-.page-content{
-    max-width: 65vw ;
+.page-content {
+    max-width: 65vw;
     display: flex;
     margin: auto;
     flex-direction: column;
-    padding-top: 75px;
+    padding-top: 130px;
 
     h1 {
         font-family: 'Outfit', sans-serif;
@@ -225,7 +245,7 @@ label {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 350px;
+    height: 400px;
 
     .wave {
         background-image: url("../../../public/svg/kiosk/wave.svg");
@@ -243,11 +263,12 @@ label {
     }
 }
 
-.corner.top{
+.corner.top {
     img {
         height: 65px;
     }
-    &.home img{
+
+    &.home img {
         height: 100px;
     }
 }
@@ -262,5 +283,47 @@ label {
 
     }
 }
+
+.field-small {
+    font-family: "Myriad pro";
+    font-size: 20px;
+    color: black;
+}
+
+.field-name {
+    font-family: "Myriad pro";
+    font-size: 25px;
+    font-weight: bold;
+    color: black;
+}
+
+.field-text{
+    font-family: "Myriad pro";
+    font-size: 25px;
+    color: black;
+    line-height: 35px;
+}
+
+.info {
+    padding: 15px;
+    border: solid 2px $primary;
+    border-radius: 10px;
+
+    &::after {
+        content: url("../../../public/svg/information.svg"); // TODO : mettre info fond blanc
+        display: block;
+        width: 25px;
+        position: absolute;
+        top: -10px;
+        left: 3px;
+    }
+}
+
+.bordered-image {
+    border: 2px solid #CDCDCD;
+    border-radius: 10px;
+    padding: 10px;
+}
+
 
 
