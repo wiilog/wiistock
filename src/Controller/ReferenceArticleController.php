@@ -890,4 +890,17 @@ class ReferenceArticleController extends AbstractController
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
         ]);
     }
+
+    #[Route("/api-check-stock", name: "reference_article_check_quantity", options: ["expose" => true], methods: ["GET"])]
+    public function checkQuantity(Request                $request,
+                                  EntityManagerInterface $entityManager): Response {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $refArticle = $referenceArticleRepository->findOneBy(['reference' => $request->query->get('scannedReference')]);
+
+        return new JsonResponse([
+                'exist' => (bool)$refArticle,
+                'inStock' => $refArticle?->getQuantiteStock() > 0,
+            ]
+        );
+    }
 }

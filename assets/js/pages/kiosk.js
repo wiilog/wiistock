@@ -1,21 +1,41 @@
 import '@styles/pages/kiosk.scss';
+import AJAX, {GET} from "@app/ajax";
 
 let scannedReference = '';
 const $referenceRefInput = $('.reference-ref-input');
 const $referenceLabelInput = $('.reference-label-input');
 
 $(function() {
-    let modal = $("#modalPrintHistory");
-    let submit = $("#cancel");
-    InitModal(modal, submit, '', {});
-
+    let modalPrintHistory = $("#modal-print-history");
+    let modalPrintHistoryCloseButton = modalPrintHistory.find("#cancel");
+    InitModal(modalPrintHistory, modalPrintHistoryCloseButton,'',{});
     $('#openModalPrintHistory').on('click', function() {
-        modal.modal('show');
+        modalPrintHistory.modal('show');
     });
+
+    let modalInStockWarning = $("#modal-in-stock-warning");
+    let modalInStockWarningCloseButton = modalInStockWarning.find("#cancel");
+    InitModal(modalPrintHistory, modalPrintHistoryCloseButton,'',{});
 
     $(document).on('keypress', function(event) {
         if(event.originalEvent.key === 'Enter') {
-            window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
+            AJAX.route(GET, `reference_article_check_quantity`, {
+                scannedReference: scannedReference,
+            })
+                .json()
+                .then((data) => {
+                    if(data.exist && data.inStock) {
+                        let $errorMessage = modalInStockWarning.find('#stock-error-message');
+                        $errorMessage.text($errorMessage.text().replace('@reference', scannedReference ))
+                        modalInStockWarning.modal('show');
+                        modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
+                    }
+                    else {
+                        window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
+                    }
+                    scannedReference = ''
+                });
+
         } else {
             scannedReference += event.originalEvent.key;
         }
