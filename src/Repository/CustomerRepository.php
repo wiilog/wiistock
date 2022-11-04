@@ -51,7 +51,7 @@ class CustomerRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getForExport(): iterable {
+    public function iterateAll(): iterable {
         return $this->createQueryBuilder("customer")
             ->getQuery()
             ->toIterable();

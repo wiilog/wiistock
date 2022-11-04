@@ -95,11 +95,11 @@ class Customer
 
     public function serialize(): array {
         return [
-            'name' => $this->getName(),
-            'address' => $this->getAddress(),
-            'phone' => $this->getPhoneNumber(),
-            'email' => $this->getEmail(),
-            'fax' => $this->getFax(),
+            "name" => $this->getName(),
+            "address" => $this->getAddress(),
+            "phone" => $this->getPhoneNumber(),
+            "email" => $this->getEmail(),
+            "fax" => $this->getFax(),
         ];
     }
 }

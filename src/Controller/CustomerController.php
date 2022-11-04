@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\Customer;
 use App\Entity\Menu;
 use App\Service\CSVExportService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -164,28 +165,24 @@ class CustomerController extends AbstractController
     /**
      * @Route("/csv", name="get_customers_csv", options={"expose"=true}, methods={"GET"})
      */
-    public function getCustomersCSV(CSVExportService        $CSVExportService,
-                                    EntityManagerInterface  $entityManager): Response {
+    public function getCustomersCSV(CSVExportService $CSVExportService, EntityManagerInterface $entityManager): Response {
         $csvHeader = [
-            'Client',
-            'Adresse',
-            'Téléphone',
-            'Email',
-            'Fax',
+            "Client",
+            "Adresse",
+            "Téléphone",
+            "Email",
+            "Fax",
         ];
 
-        return $CSVExportService->streamResponse(
-            function ($output) use (
-                $entityManager,
-                $CSVExportService
-            ) {
-                $customers = $entityManager->getRepository(Customer::class)->getForExport();
+        $today = new DateTime();
+        $today = $today->format("d-m-Y-H-i-s");
 
-                foreach ($customers as $customer) {
-                    $CSVExportService->putLine($output, $customer->serialize());
-                }
-            }, 'export_customers.csv',
-            $csvHeader
-        );
+        return $CSVExportService->streamResponse(function ($output) use ($entityManager, $CSVExportService) {
+            $customers = $entityManager->getRepository(Customer::class)->iterateAll();
+
+            foreach ($customers as $customer) {
+                $CSVExportService->putLine($output, $customer->serialize());
+            }
+        }, "export-customers-$today.csv", $csvHeader);
     }
 }
