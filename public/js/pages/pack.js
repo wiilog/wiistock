@@ -14,7 +14,7 @@ const packsTableConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'actions', name: 'actions', title: '<div class="w-100 d-flex justify-content-end"><span class="wii-icon wii-icon-cart add-all-cart"></span></div>', className: 'noVis', orderable: false},
         {data: 'pairing', name: 'pairing', title: '', className: 'pairing-row'},
         {data: 'packNum', name: 'packNum', title: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
         {data: 'packNature', name: 'packNature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
@@ -76,6 +76,20 @@ $(function() {
     switchPageBasedOnHash();
     $(window).on("hashchange", switchPageBasedOnHash);
 
+    $(document).arrive(`.add-cart`, function() {
+        $(this).on("click", function() {
+            const id = [$(this).data(`id`)];
+            addToCart(id);
+        });
+    });
+
+    $(document).on('click', `.add-all-cart`, function() {
+        const ids = $('.add-cart').map(function() {
+            return $(this).data(`id`);
+        }).toArray();
+        addToCart(ids);
+    })
+
     $(document).arrive(`.logistic-unit-number .wii-icon`, function() {
         const $icon = $(this);
         const $number = $icon.closest(`.logistic-unit-number`);
@@ -105,6 +119,25 @@ $(function() {
         })
     });
 });
+
+function addToCart(ids) {
+    const path = Routing.generate('cart_add_ul',true);
+    $.post(
+        path,
+        JSON.stringify({id : ids}),
+        function (data) {
+            data.messages.forEach((response) => {
+                if (response.success) {
+                    Flash.add('success', response.msg);
+                }
+                else {
+                    Flash.add('danger', response.msg);
+                }
+            });
+            $('.header-icon.cart .icon-figure.small').removeClass(`d-none`).text(data.cartQuantity);
+        }
+    );
+}
 
 function switchPageBasedOnHash() {
     let hash = window.location.hash;
