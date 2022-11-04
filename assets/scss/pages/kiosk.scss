@@ -45,7 +45,9 @@ body {
 
     &.outline {
         color: $primary;
-        &.danger{
+        background-color: white;
+
+        &.danger {
             color: $danger;
         }
 
