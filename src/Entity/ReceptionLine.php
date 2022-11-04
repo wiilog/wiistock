@@ -89,4 +89,12 @@ class ReceptionLine {
         return $this;
     }
 
+    public function hasReceptionRefArticleDuplicates(?string $commande, ?int $refArticleId): bool {
+        return ($this->receptionReferenceArticles->filter(function(ReceptionReferenceArticle $receptionReferenceArticle) use ($refArticleId, $commande) {
+                return (
+                    $commande === $receptionReferenceArticle->getCommande() &&
+                    $refArticleId === $receptionReferenceArticle->getReferenceArticle()->getId()
+                );
+            }))->count() !== 0;
+    }
 }
