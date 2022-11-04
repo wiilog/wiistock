@@ -40,7 +40,10 @@
                 </td>
                 <td>
                     <button type="button"
-                            class="btn btn-outline-primary ml-2 h-100 p-1">
+                            data-toggle="modal"
+                            data-target="#modalAddLigneArticle"
+                            class="btn btn-outline-primary ml-2 h-100 p-1"
+                            onclick="initNewArticleEditor('#modalAddLigneArticle', { unitId : {{ header.data['pack-id'] }}, unitCode : '{{ header.content[0].value }}' })">
                         <span class="wii-icon wii-icon-new-article"></span>
                     </button>
                 </td>
