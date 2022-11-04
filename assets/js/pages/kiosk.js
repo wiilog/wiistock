@@ -26,7 +26,7 @@ $(function() {
                 .then((data) => {
                     if(data.exist && data.inStock) {
                         let $errorMessage = modalInStockWarning.find('#stock-error-message');
-                        $errorMessage.text($errorMessage.text().replace('@reference', scannedReference ))
+                        $errorMessage.html($errorMessage.text().replace('@reference', `<span class="bold">${scannedReference}</span>`))
                         modalInStockWarning.modal('show');
                         modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
                     }
