@@ -1424,6 +1424,9 @@ class ImportService
         }
 
         if (isset($data['phone'])) {
+            if (!preg_match(StringHelper::PHONE_NUMBER_REGEX, $data['phone'])) {
+                $this->throwError('Le format du numéro de téléphone est incorrect');
+            }
             $customer->setPhoneNumber($data['phone']);
         }
 
@@ -1435,6 +1438,9 @@ class ImportService
         }
 
         if (isset($data['fax'])) {
+            if (!preg_match(StringHelper::PHONE_NUMBER_REGEX, $data['fax'])) {
+                $this->throwError('Le format du numéro de fax est incorrect');
+            }
             $customer->setFax($data['fax']);
         }
 

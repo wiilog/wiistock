@@ -148,7 +148,7 @@ class Import {
         'email' => 'Email',
         'secondaryEmail' => 'Email 2',
         'lastEmail' => 'Email 3',
-        'phone' => 'Numéro de téléphone',
+        'phone' => 'Téléphone',
         'mobileLoginKey' => 'Clé de connexion nomade',
         'address' => 'Adresse',
         'deliveryTypes' => 'Types de livraison',
