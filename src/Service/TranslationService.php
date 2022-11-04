@@ -187,7 +187,7 @@ class TranslationService {
         return array_reverse($stack);
     }
 
-    public function generateCache(?string $slug = null) {
+    public function loadTranslations(?string $slug = null) {
         $languageRepository = $this->manager->getRepository(Language::class);
         $translationSourceRepository = $this->manager->getRepository(TranslationSource::class);
 
@@ -224,11 +224,28 @@ class TranslationService {
                 }
             }
 
-            $this->cacheService->set(CacheService::TRANSLATIONS, $slug, $this->translations[$slug]);
             if ($language->getSelected()) {
-                $this->cacheService->set(CacheService::TRANSLATIONS, "default", $this->translations[$slug]);
+                $this->translations["default"] = $this->translations[$slug];
             }
         }
+    }
+
+    public function generateCache(?string $slug = null, ?bool $force = false) {
+        if($force) {
+            $this->cacheService->delete(CacheService::TRANSLATIONS);
+        }
+
+        if($slug) {
+            $this->translations[$slug] = $this->cacheService->get(CacheService::TRANSLATIONS, $slug, function() use($slug) {
+                $this->loadTranslations($slug);
+                return $this->translations[$slug];
+            });
+        } else {
+            foreach($this->languageService->getLanguages() as $language) {
+                $this->generateCache($language["slug"]);
+            }
+        }
+
     }
 
     public function generateJavascripts() {

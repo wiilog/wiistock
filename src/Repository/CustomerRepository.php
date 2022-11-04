@@ -51,6 +51,12 @@ class CustomerRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function iterateAll(): iterable {
+        return $this->createQueryBuilder("customer")
+            ->getQuery()
+            ->toIterable();
+    }
+
 //    /**
 //     * @return Customer[] Returns an array of Customer objects
 //     */

@@ -8,6 +8,7 @@ use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Customer;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
@@ -164,6 +165,13 @@ class ImportService
             "isDeliveryPoint",
             "allowedCollectTypes",
             "allowedDeliveryTypes"
+        ],
+        Import::ENTITY_CLIENT => [
+            "name",
+            "address",
+            "phone",
+            "email",
+            "fax"
         ]
     ];
 
@@ -502,6 +510,9 @@ class ImportService
                         break;
                     case Import::ENTITY_LOCATION:
                         $this->importLocationEntity($data, $stats);
+                        break;
+                    case Import::ENTITY_CLIENT:
+                        $this->importClientEntity($data, $stats);
                         break;
                 }
 
@@ -1404,6 +1415,45 @@ class ImportService
         $this->entityManager->persist($user);
 
         $this->updateStats($stats, !$user->getId());
+    }
+
+    private function importClientEntity(array $data, array &$stats) {
+
+        $customerAlreadyExists = $this->entityManager->getRepository(Customer::class)->findOneBy(['name' => $data['name']]);
+        $customer = $customerAlreadyExists ?? new Customer();
+
+        if (isset($data['name'])) {
+            $customer->setName($data['name']);
+        }
+
+        if (isset($data['address'])) {
+            $customer->setAddress($data['address']);
+        }
+
+        if (isset($data['phone'])) {
+            if (!preg_match(StringHelper::PHONE_NUMBER_REGEX, $data['phone'])) {
+                $this->throwError('Le format du numéro de téléphone est incorrect');
+            }
+            $customer->setPhoneNumber($data['phone']);
+        }
+
+        if (isset($data['email'])) {
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $this->throwError('Le format de l\'adresse email est incorrect');
+            }
+            $customer->setEmail($data['email']);
+        }
+
+        if (isset($data['fax'])) {
+            if (!preg_match(StringHelper::PHONE_NUMBER_REGEX, $data['fax'])) {
+                $this->throwError('Le format du numéro de fax est incorrect');
+            }
+            $customer->setFax($data['fax']);
+        }
+
+        $this->entityManager->persist($customer);
+
+        $this->updateStats($stats, !$customerAlreadyExists);
     }
 
     private function importDeliveryEntity(array $data, array &$stats, array &$deliveries, Utilisateur $utilisateur, array &$refsToUpdate, array $colChampsLibres, $row): ?Demande {
