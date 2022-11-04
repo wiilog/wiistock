@@ -17,7 +17,7 @@ const packsTableConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {data: 'actions', name: 'actions', title: '<div class="w-100 d-flex justify-content-end"><span class="wii-icon wii-icon-cart add-all-cart"></span></div>', className: 'noVis', orderable: false},
+        {data: 'actions', name: 'actions', title: '<div class="w-100 text-right"><span class="wii-icon wii-icon-cart add-all-cart pointer"></span></div>', className: 'noVis', orderable: false},
         {data: 'pairing', name: 'pairing', title: '', className: 'pairing-row'},
         {data: 'packNum', name: 'packNum', title: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
         {data: 'packNature', name: 'packNature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
@@ -28,6 +28,7 @@ const packsTableConfig = {
         {data: "packLocation", name: 'packLocation', title: Translation.of('Traçabilité', 'Général', 'Emplacement')},
     ],
     drawCallback: () => {
+        toggleAddAllToCartButton();
         const codeUl = $('#lu-code').val();
         if(codeUl) {
             const $icon = $(`.logistic-unit-number .wii-icon`).first();
@@ -112,9 +113,11 @@ $(function() {
     });
 
     $(document).on('click', `.add-all-cart`, function() {
-        const ids = $('.add-cart').map(function() {
-            return $(this).data(`id`);
-        }).toArray();
+        const ids = $('.add-cart')
+            .map(function() {
+                return $(this).data(`id`);
+            })
+            .toArray();
         addToCart(ids);
     })
 
@@ -162,7 +165,10 @@ function addToCart(ids) {
                     Flash.add('danger', response.msg);
                 }
             });
-            $('.header-icon.cart .icon-figure.small').removeClass(`d-none`).text(data.cartQuantity);
+
+            if (data.cartQuantity !== undefined) {
+                $('.header-icon.cart .icon-figure.small').removeClass(`d-none`).text(data.cartQuantity);
+            }
         }
     );
 }
@@ -253,5 +259,17 @@ function toExport() {
             Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'),
             true
         );
+    }
+}
+
+function toggleAddAllToCartButton() {
+    const $addAllCart = $('.add-all-cart').parent();
+    if ($('.add-cart').length === 0) {
+        console.log('== 1')
+        $addAllCart.addClass('d-none');
+    }
+    else {
+        console.log('== 2')
+        $addAllCart.removeClass('d-none');
     }
 }
