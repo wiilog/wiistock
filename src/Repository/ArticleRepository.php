@@ -295,6 +295,7 @@ class ArticleRepository extends EntityRepository {
 						$searchForArticle = Utilisateur::SEARCH_DEFAULT;
 					}
 
+                    dump($searchForArticle);
                     foreach ($searchForArticle as $key => $searchField) {
 
                         $date = DateTime::createFromFormat('d/m/Y', $searchValue);
@@ -352,6 +353,17 @@ class ArticleRepository extends EntityRepository {
                                     ->select('article.id')
                                     ->leftJoin('article.articleFournisseur', 'afa')
                                     ->andWhere('afa.reference LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
+                            case "project":
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.project', 'project_search')
+                                    ->andWhere('project_search.code LIKE :search')
                                     ->setParameter('search', $search);
 
                                 foreach ($subqb->getQuery()->execute() as $idArray) {

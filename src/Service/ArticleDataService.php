@@ -397,8 +397,8 @@ class ArticleDataService
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
-            'ul' => $this->templating->render('ul-icon.html.twig', [
-                'ul' => $ul,
+            'lu' => $this->templating->render("lu_icon.html.twig", [
+                'lu' => $ul,
             ]),
             'project' => $article->getProject()?->getCode() ?? '',
         ];
@@ -562,8 +562,8 @@ class ArticleDataService
 
         $fieldConfig = [
             ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
-            ['name' => "pairing", "alwaysVisible" => true],
-            ["title" => "<span class='wii-icon wii-icon-ul'><span>",'name' => "ul", "alwaysVisible" => true],
+            ["title" => "<span class='wii-icon wii-icon-pairing black'><span>", 'name' => "pairing"],
+            ["title" => "<span class='wii-icon wii-icon-lu'><span>",'name' => "lu"],
             ["title" => "Libellé", "name" => "label", 'searchable' => true],
             ["title" => "Référence article", "name" => "articleReference", 'searchable' => true],
             ["title" => "Référence fournisseur", "name" => "supplierReference", 'searchable' => true],

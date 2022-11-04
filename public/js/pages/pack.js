@@ -7,7 +7,7 @@ const packsTableConfig = {
         url: Routing.generate('pack_api', true),
         type: "POST",
         data: {
-            codeUl: $('#code-ul').val(),
+            codeUl: $('#lu-code').val(),
         },
     },
     drawConfig: {
@@ -28,7 +28,7 @@ const packsTableConfig = {
         {data: "packLocation", name: 'packLocation', title: Translation.of('Traçabilité', 'Général', 'Emplacement')},
     ],
     drawCallback: () => {
-        const codeUl = $('#code-ul').val();
+        const codeUl = $('#lu-code').val();
         if(codeUl) {
             const $icon = $(`.logistic-unit-number .wii-icon`).first();
             const $container = $(`.packsTableContainer`);
@@ -91,7 +91,7 @@ $(function() {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_PACK);
 
-    const codeUl = $('#code-ul').val();
+    const codeUl = $('#lu-code').val();
     if(codeUl) {
         displayFiltersSup([{field: 'colis', value: codeUl}], true);
     }
