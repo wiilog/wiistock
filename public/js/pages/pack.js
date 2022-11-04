@@ -6,6 +6,9 @@ const packsTableConfig = {
     ajax: {
         url: Routing.generate('pack_api', true),
         type: "POST",
+        data: {
+            codeUl: $('#lu-code').val(),
+        },
     },
     drawConfig: {
         needsSearchOverride: true,
@@ -23,7 +26,25 @@ const packsTableConfig = {
         {data: 'packLastDate', name: 'packLastDate', title: Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
         {data: "packOrigin", name: 'packOrigin', title: Translation.of('Traçabilité', 'Général', 'Issu de'), className: 'noVis', orderable: false},
         {data: "packLocation", name: 'packLocation', title: Translation.of('Traçabilité', 'Général', 'Emplacement')},
-    ]
+    ],
+    drawCallback: () => {
+        const codeUl = $('#lu-code').val();
+        if(codeUl) {
+            const $icon = $(`.logistic-unit-number .wii-icon`).first();
+            const $container = $(`.packsTableContainer`);
+            const $number = $icon.closest(`.logistic-unit-number`);
+            $icon.trigger('mouseover');
+
+            AJAX.route(`GET`, `logistic_unit_content`, {pack: $number.data(`id`)})
+                .json()
+                .then(result => {
+                    $(`.logistic-unit-number`).removeClass(`.active`);
+                    $number.addClass(`active`);
+                    $container.append(result.html);
+                    packsTable.columns.adjust();
+                });
+        }
+    }
 };
 
 const groupsTableConfig = {
@@ -69,9 +90,16 @@ $(function() {
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_PACK);
-    $.post(path, params, function(data) {
-        displayFiltersSup(data, true);
-    }, 'json');
+
+    const codeUl = $('#lu-code').val();
+    if(codeUl) {
+        displayFiltersSup([{field: 'colis', value: codeUl}], true);
+    }
+    else {
+        $.post(path, params, function(data) {
+            displayFiltersSup(data, true);
+        }, 'json');
+    }
 
     switchPageBasedOnHash();
     $(window).on("hashchange", switchPageBasedOnHash);
