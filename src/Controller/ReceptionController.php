@@ -35,6 +35,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -639,6 +640,7 @@ class ReceptionController extends AbstractController {
             $refAlreadyExistsWithoutPack = false;
             $refAlreadyExistsInSelectedPack = false;
 
+            // TODO WIIS-7810 remove
             foreach ($receptionLines as $receptionLine) {
                 $receptionReferenceArticles = $receptionLine->getReceptionReferenceArticles();
                 if (!$receptionLine->hasPack()) {
@@ -650,79 +652,82 @@ class ReceptionController extends AbstractController {
                 }
             }
 
+
+            if (isset($pack)
+                && $refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+                throw new FormException('Attention ! Vous pouvez uniquement ajouter des référence par article aux unités logistique et il s\'agit d\'une référence par référence.');
+            }
+
+            // TODO WIIS-7810
+            //$receptionLine = $reception->getLine($pack, $refArticle, $commande)
+
             if ((!$refAlreadyExistsInSelectedPack) && (!$refAlreadyExistsWithoutPack)) {
                 /* Only reference by article in the reception's packs */
-                if (isset($pack) && $refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-                    $json = [
-                        'success' => false,
-                        'msg' => 'Attention ! Vous pouvez uniquement ajouter des référence par article aux unités logistique et il s\'agit d\'une référence par référence.',
-                    ];
-                } else {
-                    $anomalie = $contentData['anomalie'];
-                    if($anomalie) {
-                        $statutRecep = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_ANOMALIE);
-                        $reception->setStatut($statutRecep);
-                    }
-
-                    $receptionReferenceArticle = new ReceptionReferenceArticle();
-
-                    if (empty($reception->getOrderNumber())) {
-                        $reception->setOrderNumber([$commande]);
-                    }
-
-                    $receptionReferenceArticle
-                        ->setCommande($commande)
-                        ->setAnomalie($contentData['anomalie'])
-                        ->setCommentaire($contentData['commentaire'])
-                        ->setReferenceArticle($refArticle)
-                        ->setQuantiteAR(max($contentData['quantiteAR'], 1));// protection contre quantités négatives ou nulles
-
-                    if(array_key_exists('quantite', $contentData) && $contentData['quantite']) {
-                        $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
-                    }
-
-                    $entityManager->persist($receptionReferenceArticle);
-                    $entityManager->flush();
-
-                    if($refArticle->getIsUrgent()) {
-                        $reception->setUrgentArticles(true);
-                        $receptionReferenceArticle->setEmergencyTriggered(true);
-                        $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
-                    }
-                    $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
-
-                    if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
-                        $refArticle->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
-                    }
-
-                    if (isset($pack) && isset($receptionLineWithPack)) {
-                        $receptionLineWithPack->addReceptionReferenceArticle($receptionReferenceArticle);
-                        $reception->addLine($receptionLineWithPack);
-                    } else {
-                        if (!isset($receptionLineWithoutPack)) {
-                            /** @var ReceptionLine $receptionLineWithoutPack */
-                            $receptionLineWithoutPack = new ReceptionLine();
-                        }
-                        $receptionLineWithoutPack
-                            ->setReception($reception)
-                            ->addReceptionReferenceArticle($receptionReferenceArticle);
-                        $entityManager->persist($receptionLineWithoutPack);
-                        $reception->addLine($receptionLineWithoutPack);
-                    }
-
-                    $entityManager->flush();
-
-                    $json = [
-                        'success' => true,
-                        'msg' => 'La référence <strong>' . $refArticle->getReference() . '</strong> a bien été ajoutée.',
-                        'entete' => $this->renderView('reception/show/header.html.twig', [
-                            'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-                            'reception' => $reception,
-                            'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
-                        ]),
-                    ];
+                $anomalie = $contentData['anomalie'];
+                if($anomalie) {
+                    $statutRecep = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_ANOMALIE);
+                    $reception->setStatut($statutRecep);
                 }
-            } else {
+
+                $receptionReferenceArticle = new ReceptionReferenceArticle();
+
+                if (empty($reception->getOrderNumber())) {
+                    $reception->setOrderNumber([$commande]);
+                }
+
+                $receptionReferenceArticle
+                    ->setCommande($commande)
+                    ->setAnomalie($contentData['anomalie'])
+                    ->setCommentaire($contentData['commentaire'])
+                    ->setReferenceArticle($refArticle)
+                    ->setQuantiteAR(max($contentData['quantiteAR'], 1));// protection contre quantités négatives ou nulles
+
+                if(array_key_exists('quantite', $contentData) && $contentData['quantite']) {
+                    $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
+                }
+
+                $entityManager->persist($receptionReferenceArticle);
+                $entityManager->flush();
+
+                if($refArticle->getIsUrgent()) {
+                    $reception->setUrgentArticles(true);
+                    $receptionReferenceArticle->setEmergencyTriggered(true);
+                    $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
+                }
+                $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
+
+                if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
+                    $refArticle->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
+                }
+
+                if (isset($pack) && isset($receptionLineWithPack)) {
+                    $receptionLineWithPack->addReceptionReferenceArticle($receptionReferenceArticle);
+                    $reception->addLine($receptionLineWithPack);
+                } else {
+                    if (!isset($receptionLineWithoutPack)) {
+                        /** @var ReceptionLine $receptionLineWithoutPack */
+                        $receptionLineWithoutPack = new ReceptionLine();
+                    }
+                    $receptionLineWithoutPack
+                        ->setReception($reception)
+                        ->addReceptionReferenceArticle($receptionReferenceArticle);
+                    $entityManager->persist($receptionLineWithoutPack);
+                    $reception->addLine($receptionLineWithoutPack);
+                }
+
+                $entityManager->flush();
+
+                $json = [
+                    'success' => true,
+                    'msg' => 'La référence <strong>' . $refArticle->getReference() . '</strong> a bien été ajoutée.',
+                    'entete' => $this->renderView('reception/show/header.html.twig', [
+                        'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
+                        'reception' => $reception,
+                        'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
+                    ]),
+                ];
+            }
+            else {
                 if ($refAlreadyExistsWithoutPack) {
                     $json = [
                         'success' => false,
