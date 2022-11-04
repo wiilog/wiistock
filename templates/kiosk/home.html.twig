@@ -11,15 +11,11 @@
 
 {% block page_content %}
     <div class="home-page-wrapper">
-        <div class="corner position-absolute right-0 bottom-0 p-4">
-            <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
+        <div class="corner position-absolute left-0 bottom-0 p-4">
+            <button class="outline btn-small keep-background" id="openModalPrintHistory">
+                <img src="{{ asset('svg/printer-history.svg') }}" alt="" height="30px" class="mx-3" >
+            </button>
         </div>
-
-    <div class="corner position-absolute left-0 bottom-0 p-4">
-        <button class="outline btn-small keep-background" id="openModalPrintHistory">
-            <img src="{{ asset('svg/printer-history.svg') }}" alt="" height="30px" class="mx-3">
-        </button>
-    </div>
 
         <div class="page-content home">
             <h1 class="home">

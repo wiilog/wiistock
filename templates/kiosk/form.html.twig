@@ -80,6 +80,10 @@
            Retour
         </button>
     </div>
+    <div class="corner position-absolute right-0 bottom-0 p-4" id="information-button">
+        <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
+    </div>
+    {% include 'kiosk/modalInformation.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

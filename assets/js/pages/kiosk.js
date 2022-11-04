@@ -13,6 +13,14 @@ $(function() {
         modalPrintHistory.modal('show');
     });
 
+    let modalInformation = $("#modal-information");
+    let modalInformationCloseButton = modalPrintHistory.find("#cancel");
+    InitModal(modalPrintHistory, modalPrintHistoryCloseButton,'',{});
+    $('#information-button').on('click', function() {
+        modalInformation.modal('show');
+        modalInformation.find('.bookmark-icon').removeClass('d-none');
+    });
+
     let modalInStockWarning = $("#modal-in-stock-warning");
     let modalInStockWarningCloseButton = modalInStockWarning.find("#cancel");
     InitModal(modalPrintHistory, modalPrintHistoryCloseButton,'',{});
