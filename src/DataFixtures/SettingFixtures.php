@@ -133,7 +133,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::CL_USED_IN_LABELS => [
                 'default' => FreeField::SPECIC_COLLINS_BL
             ],
-            Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT => [
+            Setting::CLEAR_AND_STAY_AFTER_NEW_MVT => [
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
