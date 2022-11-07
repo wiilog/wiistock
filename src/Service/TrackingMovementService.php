@@ -1070,18 +1070,13 @@ class TrackingMovementService extends AbstractController
                     $article->setTrackingPack($this->persistPack($manager, $article->getBarCode(), $article->getQuantite()));
                 }
             }
-
             if($packRepository->isInOngoingReception($article->getTrackingPack())) {
                 return [
                     "success" => false,
                     "error" => Pack::IN_ONGOING_RECEPTION,
                 ];
             }
-            return [
-                "success" => false,
-                "error" => Pack::IN_ONGOING_RECEPTION,
-            ];
-            if($article->getCarts()->count()) {
+            if(!$article->getCarts()->isEmpty()) {
                 $inCarts = array_merge($inCarts, $article->getCarts());
             }
 

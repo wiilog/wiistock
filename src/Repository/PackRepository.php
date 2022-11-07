@@ -609,15 +609,15 @@ class PackRepository extends EntityRepository
     }
 
     public function isInOngoingReception(Pack|int $pack): bool {
-        return $this->createQueryBuilder("pack")
+        return intval($this->createQueryBuilder("pack")
             ->select("COUNT(reception)")
-            ->leftJoin(ReceptionLine::class, "reception_line", Join::WITH, "reception_line.pack = pack")
-            ->leftJoin("reception_line.reception", "reception")
-            ->leftJoin("reception.statut", "status")
-            ->where("status.code != :ongoing")
+            ->join(ReceptionLine::class, "reception_line", Join::WITH, "reception_line.pack = pack")
+            ->join("reception_line.reception", "reception")
+            ->join("reception.statut", "status")
+            ->andWhere("status.code = :ongoing")
             ->setParameter("ongoing", Reception::STATUT_EN_ATTENTE)
             ->getQuery()
-            ->getSingleScalarResult() > 0;
+            ->getSingleScalarResult()) > 0;
     }
 
 }
