@@ -1,10 +1,10 @@
-<div class="modal fade" id="modal-in-stock-warning" role="dialog" aria-hidden="true">
+<div class="modal fade" id="{{ id }}" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="kiosk-modal-content">
             <div class="modal-body">
                 {% include 'utils/modal-alert/warning-bookmark.html.twig' %}
                 <div class="mt-4 content field-text text-center" id="stock-error-message">
-                    {{ setting_value('QUANTITY_ERROR_MESSAGE') }}
+                    {{ message }}
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {

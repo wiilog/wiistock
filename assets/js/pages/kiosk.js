@@ -7,31 +7,35 @@ const $referenceLabelInput = $('.reference-label-input');
 
 $(function() {
     let modalPrintHistory = $("#modal-print-history");
-    let modalPrintHistoryCloseButton = modalPrintHistory.find("#cancel");
-    InitModal(modalPrintHistory, modalPrintHistoryCloseButton,'',{});
-    $('#openModalPrintHistory').on('click', function() {
-        modalPrintHistory.modal('show');
-    });
+    if (modalPrintHistory) {
+        $('#openModalPrintHistory').on('click', function() {
+            modalPrintHistory.modal('show');
+        });
+    }
 
     let modalInformation = $("#modal-information");
-    let modalInformationCloseButton = modalPrintHistory.find("#cancel");
-    InitModal(modalPrintHistory, modalPrintHistoryCloseButton,'',{});
-    $('#information-button').on('click', function() {
-        modalInformation.modal('show');
-        modalInformation.find('.bookmark-icon').removeClass('d-none');
-    });
+    if (modalInformation) {
+        $('#information-button').on('click', function() {
+            modalInformation.modal('show');
+            modalInformation.find('.bookmark-icon').removeClass('d-none');
+        });
+    }
+
+    let modalWaiting = $("#modal-waiting");
 
     let modalInStockWarning = $("#modal-in-stock-warning");
-    let modalInStockWarningCloseButton = modalInStockWarning.find("#cancel");
-    InitModal(modalPrintHistory, modalPrintHistoryCloseButton,'',{});
+
+    let modalBadReadingWarning = $("#modal-bad-reading-warning");
 
     $(document).on('keypress', function(event) {
         if(event.originalEvent.key === 'Enter') {
+            modalWaiting.modal('show');
             AJAX.route(GET, `reference_article_check_quantity`, {
                 scannedReference: scannedReference,
             })
                 .json()
                 .then((data) => {
+                    modalWaiting.modal('hide');
                     if(data.exist && data.inStock) {
                         let $errorMessage = modalInStockWarning.find('#stock-error-message');
                         $errorMessage.html($errorMessage.text().replace('@reference', `<span class="bold">${scannedReference}</span>`))
@@ -43,7 +47,6 @@ $(function() {
                     }
                     scannedReference = ''
                 });
-
         } else {
             scannedReference += event.originalEvent.key;
         }
