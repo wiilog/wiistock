@@ -6,11 +6,12 @@
     <input type="hidden" id="BARCODE_VALID_REGEX" value="{{ constant("App\\Service\\SettingsService::CHARACTER_VALID_REGEX")|e('html') }}">
     <div class="wrapper {{ homeClass }}">
         <div class="container-fluid {% block pageContainerClass '' %}">
-            <div class="corner {{ homeClass }} top position-absolute left-0 top-0 p-3">
-                <img src="{{ setting_value('FILE_TOP_LEFT_LOGO') }}">
-            </div>
-            <div class="corner {{ homeClass }} top position-absolute right-0 top-0 p-3">
-                <img src="{{ setting_value('FILE_TOP_RIGHT_LOGO') }}">
+            <div class="d-flex justify-content-between align-items-center w-100 px-4 py-2">
+                <img src="{{ setting_value('FILE_TOP_LEFT_LOGO') }}" height="65px">
+                <h1 class="form-header">
+                    Entrée de stock
+                </h1>
+                <img src="{{ setting_value('FILE_TOP_RIGHT_LOGO') }}" height="65px">
             </div>
 
             {% block page_content %}{% endblock %}

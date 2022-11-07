@@ -1,0 +1,20 @@
+<div class="modal fade" id="modalGiveUpStockEntry" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="kiosk-modal-content">
+            <div class="modal-body">
+                {# TODO RAJOUTER LOGO ROUGE POINT EXCLAMATION #}
+                <div class="d-flex justify-content-center">
+                    Voulez-vous abandonner cette entrée de stock ?
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                kiosk : true,
+                elements: [
+                    {classes: 'outline', dismiss: true, text: 'Annuler'},
+                    {classes: '', dismiss: true, text: 'Abandonner', id: 'submitGiveUpStockEntry'},
+                ],
+                renderErrorContainer: false
+            } %}
+        </div>
+    </div>
+</div>

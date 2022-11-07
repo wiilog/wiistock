@@ -68,13 +68,12 @@ label {
     font-size: 25px;
 
     input {
-        $greyBorder : #CDCDCD;
         font-size: 25px;
         padding-left: 15px;
         height: 76px;
         border-radius: 10px;
-        border: 2px solid $greyBorder;
-        margin-top: 8px;
+        border: 2px solid $medium-grey;
+        margin-top: 15px;
 
         &:focus-visible {
             outline: $primary solid 2px;
@@ -218,6 +217,20 @@ label {
     }
 }
 
+h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 50px;
+    font-weight: bold;
+    color: $title;
+
+    &.home {
+        font-size: 70px;
+        text-align: center;
+        line-height: 88px;
+        padding: 0 140px;
+    }
+}
+
 .wave-container {
     z-index: -1;
     position: absolute;
@@ -257,7 +270,7 @@ label {
 }
 
 .form-content {
-    padding: 50px;
+    padding: 20px 400px;
     overflow: hidden;
 }
 
@@ -326,6 +339,10 @@ label {
             background-color: $medium-grey;
         }
     }
+}
+
+.entry-stock-container {
+    margin-top: 120px;
 }
 
 
