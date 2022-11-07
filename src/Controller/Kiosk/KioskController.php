@@ -43,7 +43,8 @@ class KioskController extends AbstractController
         return $this->render('kiosk/form.html.twig', [
             'reference' => $reference,
             'scannedReference' => $scannedReference,
-            'freeField' => $freeField
+            'freeField' => $freeField,
+            'inStock' => $reference?->getQuantiteStock() > 0,
         ]);
     }
 }

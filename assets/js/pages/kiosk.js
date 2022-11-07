@@ -27,8 +27,6 @@ $(function() {
 
     let modalInStockWarning = $("#modal-in-stock-warning");
 
-    let modalBadReadingWarning = $("#modal-bad-reading-warning");
-
     Select2Old.user($('[name=applicant]'), '', 3);
     Select2Old.user($('[name=follower]'), '', 3);
 
@@ -49,9 +47,6 @@ $(function() {
                         modalInStockWarning.modal('show');
                         modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
                         scannedReference = ''
-                    }
-                    else if(data.exist && !data.inStock) {
-
                     }
                     else {
                         window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
