@@ -73,7 +73,7 @@ class Setting {
     const VALIDATION_ARTICLE_ENTRY_MESSAGE = 'VALIDATION_ARTICLE_ENTRY_MESSAGE';
     const QUANTITY_ERROR_MESSAGE = 'QUANTITY_ERROR_MESSAGE';
 
-    // borne tactile - création d'une référence (gestion quantité par article
+    // borne tactile - création d'une référence (gestion quantité par article)
     const TYPE_REFERENCE_CREATE = 'TYPE_REFERENCE_CREATE';
     const FREE_FIELD_REFERENCE_CREATE = 'FREE_FIELD_REFERENCE_CREATE';
     const STATUT_REFERENCE_CREATE = 'STATUT_REFERENCE_CREATE';

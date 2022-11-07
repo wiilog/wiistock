@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class KioskController extends AbstractController
 {
-    #[Route("/", name: "kiosk_index")]
+    #[Route("/", name: "kiosk_index", options: ["expose" => true])]
     public function index(EntityManagerInterface $manager): Response {
         $refArticleRepository = $manager->getRepository(ReferenceArticle::class);
         $latestsPrint = $refArticleRepository->getLatestsKioskPrint();

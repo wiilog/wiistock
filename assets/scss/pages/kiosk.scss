@@ -396,6 +396,10 @@ h1 {
     border: solid 2px $primary;
     border-radius: 10px;
 
+    &.field-small {
+        line-height: 30px;
+    }
+
     &::after {
         content: url("../../../public/svg/timeline-information-dashboard.svg");
         display: block;
@@ -417,6 +421,12 @@ h1 {
     width: 80px;
     height: 80px;
     color: $primary;
+}
+
+.summary-container {
+    .box-item {
+        display: grid;
+    }
 }
 
 

@@ -21,8 +21,8 @@
             <div class="entry-stock-container">
                 <div class="reference-container active">
                     <div class="d-flex justify-content-center">
-                        <label class="w-100 mr-3">Référence<input type="search" class="w-100 reference-ref-input" value="{{ reference.reference ?? scannedReference }}" autofocus></label>
-                        <label class="w-100 ml-3">Libellé<input type="search" class="w-100 reference-label-input" value="{{ reference.libelle ?? scannedReference }}"></label>
+                        <label class="w-100 mr-3">Référence<input type="search" class="w-100" name="reference-ref-input" value="{{ reference.reference ?? scannedReference }}" autofocus></label>
+                        <label class="w-100 ml-3">Libellé<input type="search" class="w-100" name="reference-label-input" value="{{ reference.libelle ?? scannedReference }}"></label>
                     </div>
                 </div>
                 <div class="manager-container d-none">
@@ -59,22 +59,20 @@
                             } %}
 
                         </label>
-                        <label class="w-100 mr-3">Commentaire <span class="wii-small-text">(Facultatif)</span><input type="search" class="w-100" value="{{ reference.commentaire }}"></label>
+                        <label class="w-100 mr-3">
+                            Commentaire <span class="wii-small-text">(Facultatif)</span>
+                            <input type="search" class="w-100" value="{{ reference.commentaire }}" name="reference-comment">
+                        </label>
                     </div>
                 </div>
                 <div class="article-container d-none">
                     <div class="corner position-absolute right-0 bottom-0 p-4">
                         <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
                     </div>
-                    <div class="corner position-absolute left-0 bottom-0 p-4">
-                        <button class="outline">
-                            Retour
-                        </button>
-                    </div>
-                    <div class="page-content home">
+                    <div class="page-content home p-0">
                         <div class="row">
                             <div class="col-6">
-                                <div class="info field-small ">
+                                <div class="info field-small">
                                     {{ setting_value('SCAN_ARTICLE_LABEL_MESSAGE') }}
                                 </div>
                                 <div class="field-name my-4">
@@ -88,37 +86,96 @@
                             <div class="col-6">
                                 <label class="w-100">
                                     Libellé
-                                    <input type="search" class="w-100">
+                                    <input type="search" class="w-100" name="reference-article-input">
                                 </label>
-                                <div class="d-flex flex-row-reverse pt-5">
-                                    <button>
-                                        Suivant
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="summary-container d-none"></div>
+                <div class="summary-container d-none">
+                    <div class="row">
+                        <div class="col-12 flex-column">
+                            <div class="d-flex">
+                                <div class="">Ref : <span class="reference-reference"></span> </div>
+                                <div class="">Article : <span class="reference-article"></span></div>
+                            </div>
+                            <span class="reference-label"></span>
+                            <span class="reference-type">{{ setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type').label }}</span>
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="col-6 d-flex">
+                            <img src="{{ asset('svg/quantity.svg') }}" alt="Icône quantité" width="20px">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Quantité</span>
+                                <span class="wii-body-text">1</span>
+                            </label>
+                        </div>
+                        <div class="col-6 d-flex">
+                            <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="20px">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Demandeur et suiveur</span>
+                                <span class="wii-body-text reference-managers"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="col-6 d-flex">
+                            <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="20px">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Emplacement</span>
+                                <span class="wii-body-text">{{ setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement').label }}</span>
+                            </label>
+                        </div>
+                        <div class="col-6 d-flex">
+                            <img src="{{ asset('svg/document.svg') }}" alt="Icône document" width="20px">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">{{ freeField.label }}</span>
+                                <span class="wii-body-text reference-free-field"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="col-6 d-flex">
+                            <img src="{{ asset('svg/commentary.svg') }}" alt="Icône commentaire" width="20px">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Commentaire</span>
+                                <span class="wii-body-text reference-commentary"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
                 <div class="d-flex flex-row-reverse mt-5">
                     <button class="button-next">
                         Suivant
                     </button>
                 </div>
-                <input hidden name="stockEntryData" value=""/>
+                <div class="d-none justify-content-between summary-button-container mt-5">
+                    <button class="outline danger give-up-button">
+                        Abandonner
+                    </button>
+                    <div>
+                        <button class="outline">
+                            Modifier
+                        </button>
+                        <button class="">
+                            Valider
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="corner position-absolute left-0 bottom-0 p-4">
-        <button class="outline give-up-button">
+    <div class="corner position-absolute left-0 bottom-0 p-4 give-up-button-container">
+        <button class="outline return-or-give-up-button">
            Retour
         </button>
     </div>
     <div class="corner position-absolute right-0 bottom-0 p-4" id="information-button">
         <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
     </div>
-    {% include 'kiosk/modalInformation.html.twig' %}
 
+    {% include 'kiosk/modalInformation.html.twig' %}
     {% include 'kiosk/modalGiveUpStockEntry.html.twig' %}
 {% endblock %}
 
