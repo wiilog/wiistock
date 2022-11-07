@@ -32,6 +32,7 @@ const ROUTES = {
     keyboardPacks: `ajax_select_keyboard_pack`,
     businessUnit: `ajax_select_business_unit`,
     article: `ajax_select_articles`,
+    availableArticle: `ajax_select_available_articles`,
     carrier: 'ajax_select_carrier',
     types: 'ajax_select_types',
     vehicles: 'ajax_select_vehicles',

@@ -179,17 +179,19 @@ class DisputeController extends AbstractController
                                       Dispute                $dispute): Response
     {
         $rows = [];
+        $typeRepository = $entityManager->getRepository(Type::class);
         $disputeHistoryRecordRepository = $entityManager->getRepository(DisputeHistoryRecord::class);
         $disputeHistory = $disputeHistoryRecordRepository->findBy(['dispute' => $dispute]);
 
         foreach ($disputeHistory as $record)
         {
+            $disputeType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DISPUTE, $record->getTypeLabel());
             $rows[] = [
                 'user' => FormatHelper::user($record->getUser()),
                 'date' => FormatHelper::datetime($record->getDate(), "", false, $this->getUser()),
                 'commentaire' => nl2br($record->getComment()),
                 'status' => $record->getStatusLabel(),
-                'type' => $record->getTypeLabel()
+                'type' => $this->getFormatter()->type($disputeType)
             ];
         }
         $data['data'] = $rows;

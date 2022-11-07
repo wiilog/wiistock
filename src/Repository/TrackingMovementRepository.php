@@ -266,8 +266,15 @@ class TrackingMovementRepository extends EntityRepository
             }
         }
 
+        if($params->get('movementsFilter')) {
+            $trackingMovements = explode(',', $params->get('movementsFilter'));
+            $qb->andWhere('tracking_movement IN (:tracking_movements)')
+                ->setParameter('tracking_movements', $trackingMovements);
+        }
+
         if(!$params->has("order")) {
             $qb->addOrderBy("tracking_movement.datetime", "DESC");
+            $qb->addOrderBy("tracking_movement.id", "DESC");
         }
 
         // compte éléments filtrés

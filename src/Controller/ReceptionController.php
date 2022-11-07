@@ -1572,6 +1572,7 @@ class ReceptionController extends AbstractController {
                 'type',
                 'code-barre reference',
                 'code-barre article',
+                'unité logistique'
             ];
             $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");
             $addedRefs = [];
@@ -1593,6 +1594,7 @@ class ReceptionController extends AbstractController {
                             $row[] = $reception['articleTypeLabel'] ?: '';
                             $row[] = $reception['articleReferenceArticleBarcode'] ?: '';
                             $row[] = $reception['articleBarcode'] ?: '';
+                            $row[] = $reception['currentLogisticUnit'] ?: '';
 
                             $rows[] = $row;
                         }
@@ -1608,6 +1610,7 @@ class ReceptionController extends AbstractController {
                                 $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
                                 $row[] = $reception['referenceArticleTypeLabel'] ?: '';
                                 $row[] = $reception['referenceArticleBarcode'] ?: '';
+                                $row[] = $reception['currentLogisticUnit'] ?: '';
 
                                 $rows[] = $row;
                             }
@@ -2085,7 +2088,6 @@ class ReceptionController extends AbstractController {
         $supplierReference = $supplierReferenceRepository->find($supplierReference);
         $type = $reference->getType();
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-        // TODO WIIS-7812 ajouter l'ul ?
         $receptionReferenceArticle = $reception->getReceptionReferenceArticles()
             ->filter(fn(ReceptionReferenceArticle $line) =>
                 $line->getCommande() === $orderNumber &&
