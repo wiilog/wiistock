@@ -116,6 +116,82 @@ label {
     }
 }
 
+.select2.select2-container.select2-container--default {
+    .select2-selection.select2-selection.select2-selection--single {
+        padding-left: 15px !important;
+        height: 76px !important;
+        border-radius: 10px !important;
+        border: 2px solid $medium-grey !important;
+        margin-top: 15px !important;
+
+        .select2-selection__rendered {
+            font-size: 25px !important;
+            height: 76px !important;
+            display: flex;
+            align-items: center;
+            flex-direction: row-reverse;
+            justify-content: space-between;
+
+            .select2-selection__clear {
+                content: url("../../../public/svg/cross-grey.svg");
+                width: 20px;
+                height: 20px;
+                margin-right: 0 !important;
+                cursor: pointer;
+                transition: all .1s;
+            }
+        }
+
+        .select2-selection__arrow {
+            display: none;
+        }
+    }
+
+    &.select2-container--open {
+        .select2-selection.select2-selection.select2-selection--single {
+            border-bottom-left-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+    }
+}
+
+.select2-container.select2-container--default.select2-container--open {
+    .select2-dropdown.select2-dropdown--below {
+        border-radius: 0 0 10px 10px !important;
+        border-top: none !important;
+        border-bottom: 2px solid $medium-grey !important;
+        border-left: 2px solid $medium-grey !important;
+        border-right: 2px solid $medium-grey !important;
+
+        .select2-search.select2-search--dropdown {
+            .select2-search__field {
+                margin-top: 0;
+                border-radius: 10px !important;
+                border: 2px solid $medium-grey !important;
+                font-size: 25px !important;
+                padding-left: 15px !important;
+
+                &:focus-visible {
+                    outline: $primary solid 2px !important;
+                    box-shadow: none !important;
+                    transition: all .2s;
+                }
+            }
+        }
+
+        .select2-results {
+            ul.select2-results__options {
+                font-size: 25px;
+                font-weight: normal !important;
+
+                li {
+                    padding: 15px 15px !important;
+                }
+            }
+        }
+    }
+}
+
 .modal-dialog {
     max-width: fit-content;
 
@@ -296,7 +372,7 @@ h1 {
 }
 
 .form-content {
-    margin: 20px 400px;
+    margin: 20px 15%;
     padding: 10px;
     overflow: hidden;
 }
