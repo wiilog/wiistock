@@ -124,12 +124,14 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.stockEntryDate')
             ->addSelect('article.expiryDate')
             ->addSelect("join_visibilityGroup.label AS visibilityGroup")
+            ->addSelect('project.code as projectCode')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
+            ->leftJoin('article.project', 'project' )
             ->groupBy('article.id')
             ->getQuery()
             ->toIterable();
@@ -293,6 +295,7 @@ class ArticleRepository extends EntityRepository {
 						$searchForArticle = Utilisateur::SEARCH_DEFAULT;
 					}
 
+                    dump($searchForArticle);
                     foreach ($searchForArticle as $key => $searchField) {
 
                         $date = DateTime::createFromFormat('d/m/Y', $searchValue);
@@ -350,6 +353,17 @@ class ArticleRepository extends EntityRepository {
                                     ->select('article.id')
                                     ->leftJoin('article.articleFournisseur', 'afa')
                                     ->andWhere('afa.reference LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
+                            case "project":
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.project', 'project_search')
+                                    ->andWhere('project_search.code LIKE :search')
                                     ->setParameter('search', $search);
 
                                 foreach ($subqb->getQuery()->execute() as $idArray) {
@@ -865,9 +879,17 @@ class ArticleRepository extends EntityRepository {
         }
     }
 
-    public function getForSelect(?string $term) {
-        return $this->createQueryBuilder("article")
-            ->select("article.id AS id, article.barCode AS text")
+    public function getForSelect(?string $term, string $status = null) {
+        $qb = $this->createQueryBuilder("article")
+            ->select("article.id AS id, article.barCode AS text");
+
+        if($status !== null) {
+            $qb->join("article.statut", "status")
+                ->andWhere("status.code = :status")
+                ->setParameter("status", $status);
+        }
+
+        return $qb
             ->andWhere("article.barCode LIKE :term")
             ->setParameter("term", "%$term%")
             ->setMaxResults(100)
@@ -1111,4 +1133,5 @@ class ArticleRepository extends EntityRepository {
             ->getQuery()
             ->getArrayResult();
     }
+
 }

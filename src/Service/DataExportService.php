@@ -82,7 +82,8 @@ class DataExportService
             'lot',
             'date d\'entrée en stock',
             'date de péremption',
-            'groupe de visibilité'
+            'groupe de visibilité',
+            'projet'
         ], $freeFieldsConfig['freeFieldsHeader']);
     }
 

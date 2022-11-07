@@ -600,4 +600,15 @@ class SelectController extends AbstractController {
         ]);
     }
 
+    /**
+     * @Route("/select/articles-disponibles", name="ajax_select_available_articles", options={"expose"=true})
+     */
+    public function availableArticles(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"), Article::STATUT_ACTIF);
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
 }

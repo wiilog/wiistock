@@ -870,7 +870,7 @@ label.required:after {
     height: 18px;
 }
 
-.wii-icon-trash-black {
+.wii-icon-trash-black, .wii-icon-cart, .wii-icon-lu {
     display: inline-block;
     background-color: $black;
     width: 17px;
@@ -957,6 +957,10 @@ label.required:after {
     width: 15px;
     height: 15px;
     display: inline-block;
+
+    &.black {
+        background-color: $black;
+    }
 
     .dropdown-item:active & {
         background-color: $white;
@@ -1406,7 +1410,7 @@ label.required:after {
     }
 }
 
-.ul-detail {
+.lu-detail {
     display: table;
     width: 100%;
     table{
@@ -1416,7 +1420,7 @@ label.required:after {
         width: 100%;
 
         tr{
-            &.ul td{
+            &.lu td{
                 &:nth-child(1) {
                     background: var(--reference-color);
                     color: $white;
@@ -1438,7 +1442,7 @@ label.required:after {
                     border-left: 1px solid var(--reference-color);
                     vertical-align: top;
 
-                    div.main-ul-data {
+                    div.main-lu-data {
                         border: 1px solid var(--reference-color);
                         border-top-right-radius: 0.25rem;
                         border-bottom-right-radius: 0.25rem;

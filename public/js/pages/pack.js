@@ -6,6 +6,9 @@ const packsTableConfig = {
     ajax: {
         url: Routing.generate('pack_api', true),
         type: "POST",
+        data: {
+            codeUl: $('#lu-code').val(),
+        },
     },
     drawConfig: {
         needsSearchOverride: true,
@@ -14,7 +17,7 @@ const packsTableConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'actions', name: 'actions', title: '<div class="w-100 text-right"><span class="wii-icon wii-icon-cart add-all-cart pointer"></span></div>', className: 'noVis', orderable: false},
         {data: 'pairing', name: 'pairing', title: '', className: 'pairing-row'},
         {data: 'packNum', name: 'packNum', title: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
         {data: 'packNature', name: 'packNature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
@@ -23,7 +26,26 @@ const packsTableConfig = {
         {data: 'packLastDate', name: 'packLastDate', title: Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
         {data: "packOrigin", name: 'packOrigin', title: Translation.of('Traçabilité', 'Général', 'Issu de'), className: 'noVis', orderable: false},
         {data: "packLocation", name: 'packLocation', title: Translation.of('Traçabilité', 'Général', 'Emplacement')},
-    ]
+    ],
+    drawCallback: () => {
+        toggleAddAllToCartButton();
+        const codeUl = $('#lu-code').val();
+        if(codeUl) {
+            const $icon = $(`.logistic-unit-number .wii-icon`).first();
+            const $container = $(`.packsTableContainer`);
+            const $number = $icon.closest(`.logistic-unit-number`);
+            $icon.trigger('mouseover');
+
+            AJAX.route(`GET`, `logistic_unit_content`, {pack: $number.data(`id`)})
+                .json()
+                .then(result => {
+                    $(`.logistic-unit-number`).removeClass(`.active`);
+                    $number.addClass(`active`);
+                    $container.append(result.html);
+                    packsTable.columns.adjust();
+                });
+        }
+    }
 };
 
 const groupsTableConfig = {
@@ -69,12 +91,35 @@ $(function() {
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_PACK);
-    $.post(path, params, function(data) {
-        displayFiltersSup(data, true);
-    }, 'json');
+
+    const codeUl = $('#lu-code').val();
+    if(codeUl) {
+        displayFiltersSup([{field: 'colis', value: codeUl}], true);
+    }
+    else {
+        $.post(path, params, function(data) {
+            displayFiltersSup(data, true);
+        }, 'json');
+    }
 
     switchPageBasedOnHash();
     $(window).on("hashchange", switchPageBasedOnHash);
+
+    $(document).arrive(`.add-cart`, function() {
+        $(this).on("click", function() {
+            const id = [$(this).data(`id`)];
+            addToCart(id);
+        });
+    });
+
+    $(document).on('click', `.add-all-cart`, function() {
+        const ids = $('.add-cart')
+            .map(function() {
+                return $(this).data(`id`);
+            })
+            .toArray();
+        addToCart(ids);
+    })
 
     $(document).arrive(`.logistic-unit-number .wii-icon`, function() {
         const $icon = $(this);
@@ -105,6 +150,28 @@ $(function() {
         })
     });
 });
+
+function addToCart(ids) {
+    const path = Routing.generate('cart_add_logistic_units',true);
+    $.post(
+        path,
+        JSON.stringify({id : ids}),
+        function (data) {
+            data.messages.forEach((response) => {
+                if (response.success) {
+                    Flash.add('success', response.msg);
+                }
+                else {
+                    Flash.add('danger', response.msg);
+                }
+            });
+
+            if (data.cartQuantity !== undefined) {
+                $('.header-icon.cart .icon-figure.small').removeClass(`d-none`).text(data.cartQuantity);
+            }
+        }
+    );
+}
 
 function switchPageBasedOnHash() {
     let hash = window.location.hash;
@@ -192,5 +259,17 @@ function toExport() {
             Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'),
             true
         );
+    }
+}
+
+function toggleAddAllToCartButton() {
+    const $addAllCart = $('.add-all-cart').parent();
+    if ($('.add-cart').length === 0) {
+        console.log('== 1')
+        $addAllCart.addClass('d-none');
+    }
+    else {
+        console.log('== 2')
+        $addAllCart.removeClass('d-none');
     }
 }
