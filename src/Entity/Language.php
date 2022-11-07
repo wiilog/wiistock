@@ -165,13 +165,13 @@ class Language {
         return $this;
     }
 
-    public function serialize(Utilisateur $user): array {
+    public function serialize(?Utilisateur $user = null): array {
         return [
             'label' => $this->getLabel(),
             'value' => $this->getId(),
             'slug' => $this->getSlug(),
             'iconUrl' => $this->getFlag(),
-            'checked' => $user->getLanguage()->getId() === $this->getId()
+            'checked' => $user && $user->getLanguage()->getId() === $this->getId()
         ];
     }
 

@@ -46,10 +46,10 @@ class PackController extends AbstractController
 {
 
     /**
-     * @Route("/", name="pack_index", options={"expose"=true})
+     * @Route("/{code}", name="pack_index", options={"expose"=true}, defaults={"code"=null}, methods={"GET"})
      * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK})
      */
-    public function index(EntityManagerInterface $entityManager, LanguageService $languageService)
+    public function index(EntityManagerInterface $entityManager, LanguageService $languageService, $code)
     {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -61,6 +61,7 @@ class PackController extends AbstractController
             'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'projects' => $projectRepository->findActive(),
+            'code' => $code
         ]);
     }
 

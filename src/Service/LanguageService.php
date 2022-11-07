@@ -67,7 +67,7 @@ class LanguageService {
     public function getLanguages(): array
     {
         $user = $this->security->getUser();
-        $userId = $user->getId();
+        $userId = $user?->getId();
 
         return $this->cacheService->get(CacheService::LANGUAGES, "languagesSelector" . $userId, function () {
             $languages = $this->cacheService->get(CacheService::LANGUAGES, "languagesNotHidden", function () {

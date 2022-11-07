@@ -25,6 +25,7 @@ class Import {
     const ENTITY_USER = 'USER';
     const ENTITY_DELIVERY = 'DELIVERY';
     const ENTITY_LOCATION = 'LOCATION';
+    const ENTITY_CLIENT = 'CLIENT';
     const ENTITY_LABEL = [
         self::ENTITY_ART => "Articles",
         self::ENTITY_REF => "Références",
@@ -34,6 +35,7 @@ class Import {
         self::ENTITY_USER => "Utilisateurs",
         self::ENTITY_DELIVERY => "Livraisons",
         self::ENTITY_LOCATION => "Emplacements",
+        self::ENTITY_CLIENT => "Clients",
     ];
     const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
@@ -79,6 +81,9 @@ class Import {
         self::ENTITY_LOCATION => [
             'name',
         ],
+        self::ENTITY_CLIENT => [
+            'name',
+        ],
     ];
     const FIELD_PK = [
         self::ENTITY_ART_FOU => 'reference',
@@ -89,6 +94,7 @@ class Import {
         self::ENTITY_USER => null,
         self::ENTITY_DELIVERY => null,
         self::ENTITY_LOCATION => 'name',
+        self::ENTITY_CLIENT => 'name',
     ];
 
     public const IMPORT_FIELDS_TO_FIELDS_PARAM = [
@@ -142,7 +148,7 @@ class Import {
         'email' => 'Email',
         'secondaryEmail' => 'Email 2',
         'lastEmail' => 'Email 3',
-        'phone' => 'Numéro de téléphone',
+        'phone' => 'Téléphone',
         'mobileLoginKey' => 'Clé de connexion nomade',
         'address' => 'Adresse',
         'deliveryTypes' => 'Types de livraison',
@@ -169,6 +175,8 @@ class Import {
 
         'possibleCustoms' => 'Possible douane',
         'urgent' => 'Urgent',
+
+        'fax' => 'Fax',
     ];
 
     #[ORM\Id]

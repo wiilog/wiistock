@@ -114,6 +114,8 @@ $icons: (
     'reception-white': "../../public/svg/reception-white.svg",
     'dots': "../../public/svg/dotsblack.svg",
     'quantity': "../../public/svg/quantity.svg",
+    'arrival': "../../public/svg/arrival.svg",
+    'lu': "../../public/svg/UL.svg",
 );
 
 @each $iconName, $iconPath in $icons {
@@ -147,6 +149,5 @@ $icon-colors: (
 }
 
 .primary-on-hover:hover {
-    color: $primary;
     background: $primary;
 }
