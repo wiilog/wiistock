@@ -967,8 +967,8 @@ class TrackingMovementService extends AbstractController
                 $newMovements = [];
                 $selectedType = $entityManager->find(Statut::class, $trackingType);
 
-                if($selectedType->getCode() === TrackingMovement::TYPE_PRISE && $pack->getChildArticles()->count()) {
-                    $newMovements[] = $this->persistTrackingMovement(
+                if($selectedType->getCode() === TrackingMovement::TYPE_PRISE && $pack->getArticle() && $pack->getArticle()->getCurrentLogisticUnit()) {
+                    $movement = $this->persistTrackingMovement(
                         $entityManager,
                         $pack ?? $packOrCode,
                         $location,
@@ -978,10 +978,16 @@ class TrackingMovementService extends AbstractController
                         TrackingMovement::TYPE_PICK_LU,
                         $forced,
                         $options
-                    )["movement"];
+                    );
+
+                    if($movement["success"]) {
+                        $newMovements[] = $movement["movement"];
+                    } else {
+                        return $movement;
+                    }
                 }
 
-                $newMovements[] = $this->persistTrackingMovement(
+                $movement = $this->persistTrackingMovement(
                     $entityManager,
                     $pack ?? $packOrCode,
                     $location,
@@ -991,7 +997,13 @@ class TrackingMovementService extends AbstractController
                     $trackingType,
                     $forced,
                     $options
-                )["movement"];
+                );
+
+                if($movement["success"]) {
+                    $newMovements[] = $movement["movement"];
+                } else {
+                    return $movement;
+                }
 
                 if(count($newMovements) > 1) {
                     return [
@@ -1000,7 +1012,10 @@ class TrackingMovementService extends AbstractController
                         "movements" => $newMovements,
                     ];
                 } else {
-                    return $newMovements[0];
+                    return [
+                        "success" => true,
+                        "movement" => $newMovements[0],
+                    ];
                 }
             }
         }

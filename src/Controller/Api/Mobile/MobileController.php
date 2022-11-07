@@ -1971,6 +1971,7 @@ class MobileController extends AbstractApiController
                 $resData['article'] = $referenceArticleArray;
             } else {
                 $article = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
+                dump($article);
                 if (!empty($article)) {
                     $article['can_transfer'] = ($article['reference_status'] === ReferenceArticle::STATUT_ACTIF);
                 }
