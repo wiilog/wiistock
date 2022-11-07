@@ -94,16 +94,6 @@
                     </div>
                 </div>
             {% endif %}
-            {% for line in reception.lines %}
-                {% for ra in line.receptionReferenceArticles %}
-                    {% if line.pack is not null %}
-                        {% dump('pack : ') %}
-                        {% dump(line.pack.code) %}
-                    {% endif %}
-                    {% dump('ref : ') %}
-                    {% dump(ra.referenceArticle.reference) %}
-                {% endfor %}
-            {% endfor %}
         </div>
     </div>
     <button class="btn" id="cannotGenerateStock" data-target='#modalCannotGenerateStock' data-toggle='modal'

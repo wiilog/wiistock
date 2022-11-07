@@ -118,6 +118,7 @@ class ReceptionService
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $packRepository = $entityManager->getRepository(Pack::class);
+
         if(!empty($data['anomalie'])) {
             $anomaly = (
                 isset($data['anomalie'])
@@ -231,7 +232,6 @@ class ReceptionService
         $line = new ReceptionLine();
         $line->setReception($reception);
         if (!empty($data['pack'])) {
-            dump("pack : " . $data['pack']);
             $pack = $packRepository->findOneBy(['code' => $data['pack']]);
             if (!isset($pack)) {
                 throw new \http\Exception\InvalidArgumentException(self::INVALID_PACK);
@@ -529,9 +529,7 @@ class ReceptionService
 
     public function setAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, ?string $fournisseur, ?string $transporteur,  Reception $reception): void {
         $receptionSaved = false;
-        dump("bon");
         foreach($collection as &$receptionIntel) {
-            dump("oui");
             if ($orderNumber === $receptionIntel['orderNumber']
                 && $expectedDate === $receptionIntel['expectedDate']) {
                 $receptionIntel['reception'] = $reception;
@@ -545,7 +543,6 @@ class ReceptionService
                 break;
             }
         }
-        dump($orderNumber . " " . $expectedDate . " " . $reception->getId() . " " . $fournisseur . " " . $transporteur);
         if (!$receptionSaved) {
             $collection[] = [
                 'orderNumber' => $orderNumber,
