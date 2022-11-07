@@ -639,7 +639,7 @@ class ReceptionController extends AbstractController {
                 throw new FormException('Attention ! Vous pouvez uniquement ajouter des référence par article aux unités logistique et il s\'agit d\'une référence par référence.');
             }
 
-            $receptionLine = $reception->getDuplicateLine($refArticle->getId(), $commande, $pack);
+            $receptionLine = $receptionService->getDuplicateLine($reception, $refArticle->getId(), $commande, $pack);
             if (isset($receptionLine)) { // rule of unicity : ref can be only one time in a reception line with or without pack
                 if (!$receptionLine->hasPack()) {
                     throw new FormException('Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.');
@@ -684,7 +684,7 @@ class ReceptionController extends AbstractController {
                     $refArticle->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                 }
 
-                $receptionLine = $reception->getLine($pack);
+                $receptionLine = $receptionService->getLine($reception, $pack);
                 $receptionLine->addReceptionReferenceArticle($receptionReferenceArticle);
 
                 $entityManager->flush();

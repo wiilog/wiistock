@@ -159,37 +159,8 @@ class Reception {
         return $this;
     }
 
-    public function getDuplicateLine(?int $refArticle, ?string $commande, ?Pack $pack = null): ?ReceptionLine {
-        $line = null;
-        foreach ($this->lines as $receptionLine) {
-            /** @var ReceptionLine $receptionLine */
-            if ($receptionLine->hasReceptionRefArticleDuplicates($commande, $refArticle)) {
-                if ((isset($pack) && $receptionLine->hasPack() && $pack->getId() === $receptionLine->getPack()->getId()) || !isset($pack)) {
-                    $line = $receptionLine;
-                    break;
-                }
-            }
-        }
-        return $line;
-    }
 
-    public function getLine(?Pack $pack = null): ?ReceptionLine {
-        $line = null;
-        foreach ($this->lines as $receptionLine) {
-            if (!isset($pack)) {
-                if (!$receptionLine->hasPack()) {
-                    $line = $receptionLine;
-                    break;
-                }
-            } else {
-                if ($receptionLine->hasPack() && $pack->getId() === $receptionLine->getPack()->getId()) {
-                    $line = $receptionLine;
-                    break;
-                }
-            }
-        }
-        return $line;
-    }
+
 
     public function getFournisseur(): ?Fournisseur {
         return $this->fournisseur;
