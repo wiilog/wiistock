@@ -177,6 +177,7 @@ class Import {
         'urgent' => 'Urgent',
 
         'fax' => 'Fax',
+        'pack' => 'Unité logistique'
     ];
 
     #[ORM\Id]

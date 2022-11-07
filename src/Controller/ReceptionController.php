@@ -879,6 +879,15 @@ class ReceptionController extends AbstractController {
             default => 'Livraison',
         };
 
+        dump('dans show : ' . $reception->getId());
+        foreach ($reception->getLines() as $line) {
+            dump("une ligne : " . $line->getId());
+            dump("pack : " . $line->getPack() ?? $line->getPack()->getId());
+            foreach ($line->getReceptionReferenceArticles() as $ra) {
+                dump("une ref : " . $ra->getReferenceArticle()->getReference());
+            }
+        }
+
         return $this->render("reception/show/index.html.twig", [
             'reception' => $reception,
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,

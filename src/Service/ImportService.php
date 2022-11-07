@@ -21,9 +21,11 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\LocationGroup;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Reception;
+use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
@@ -118,7 +120,8 @@ class ImportService
             "quantité à recevoir",
             "référence",
             "transporteur",
-            "manualUrgent"
+            "manualUrgent",
+            "pack"
         ],
         Import::ENTITY_ART_FOU => [
             "label",
@@ -745,25 +748,27 @@ class ImportService
                                            ReceptionService $receptionService)
     {
         $refArtRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $packRepository = $this->entityManager->getRepository(Pack::class);
 
         if ($user) {
             $userRepository = $this->entityManager->getRepository(Utilisateur::class);
             $user = $userRepository->find($user->getId());
         }
 
-        //gerer situation où plusieurs ordernumber
+        dump($data);
         $dataOrderNumber = $data['orderNumber'] ?? null;
         $dataExpectedDate = $data['expectedDate'] ?? null;
         $dataFournisseur = $data['fournisseur'] ?? null;
         $dataTransporteur = $data['transporteur'] ?? null;
 
-        //
         $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $dataOrderNumber, $dataExpectedDate, $dataFournisseur, $dataTransporteur, fn() => $this->updateStats($stats, false));
         $newEntity = !isset($reception);
         if (!$reception) {
             try {
                 $reception = $this->receptionService->createAndPersistReception($this->entityManager, $user, $data, true);
+
             } catch (InvalidArgumentException $exception) {
+                dump("exception : " . $exception->getMessage());
                 switch ($exception->getMessage()) {
                     case ReceptionService::INVALID_EXPECTED_DATE:
                         $this->throwError('La date attendue n\'est pas au bon format (dd/mm/yyyy)');
@@ -777,17 +782,16 @@ class ImportService
                         $this->throwError('Transporteur renseigné invalide');
                     case ReceptionService::INVALID_PROVIDER:
                         $this->throwError('Fournisseur renseigné invalide');
+                    case ReceptionService::INVALID_PACK:
+                        $this->throwError('Unité logistique renseignée invalide');
                     default:
                         throw $exception;
                 }
             }
-
-            //changer parametres
-            $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $reception);
+            dump("nouvelle reception " . $reception->getId());
+            $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $data['fournisseur'] ?? null, $data['transporteur'] ?? null, $reception);
         }
         $locationRepository = $this->entityManager->getRepository(Emplacement::class);
-
-        //verifier ou on ajoute ordernumber à reception et tester si import avec meme d/f/t fonctionne
 
         if (!empty($data['fournisseur'])) {
             $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
@@ -885,13 +889,41 @@ class ImportService
                 }
 
                 if (isset($data['quantité à recevoir'])) {
+                    $pack = null;
+                    if (isset($data['pack'])) {
+                        dump('pack code : ' . $data['pack']);
+                        $pack = $packRepository->findOneBy(['code' => $data['pack']]);
+                    }
+
+                    dump('pack : ' . (isset($pack) ? 'pack exist' : 'pack doesnt exist or null'));
+
+                    $line = $receptionService->getLine($reception, $pack);
+                    dump('line : ' . (isset($line) ? $line->getId() : 'line doesnt exist'));
+
+                    if (!isset($line)) {
+                        dump('line non defini');
+
+                        $line = new ReceptionLine();
+                        $line->setReception($reception);
+                        if (isset($data['pack'])) {
+                            $line->setPack($pack);
+                        }
+                        $this->entityManager->persist($line);
+                    }
+                    dump('line has pack : ' . ($line->hasPack() ? 'oui' : 'non'));
+
+                    //ajouter la reception/ligne seulement si ref existe pas deja dans la ligne et si
+
                     $receptionRefArticle
-                        ->setReception($reception)
                         ->setReferenceArticle($refArt)
                         ->setQuantiteAR($data['quantité à recevoir'])
                         ->setCommande($dataOrderNumber)
                         ->setQuantite(0);
+                    $line->addReceptionReferenceArticle($receptionRefArticle);
                     $this->entityManager->persist($receptionRefArticle);
+                    $this->entityManager->flush();
+
+                    dump("import nombre ref : " . count($line->getReceptionReferenceArticles()));
                 } else {
                     $this->throwError('La quantité à recevoir doit être renseignée.');
                 }

@@ -94,13 +94,23 @@
                     </div>
                 </div>
             {% endif %}
+            {% for line in reception.lines %}
+                {% for ra in line.receptionReferenceArticles %}
+                    {% if line.pack is not null %}
+                        {% dump('pack : ') %}
+                        {% dump(line.pack.code) %}
+                    {% endif %}
+                    {% dump('ref : ') %}
+                    {% dump(ra.referenceArticle.reference) %}
+                {% endfor %}
+            {% endfor %}
         </div>
     </div>
     <button class="btn" id="cannotGenerateStock" data-target='#modalCannotGenerateStock' data-toggle='modal'
             hidden></button>
     <button class="btn" id="chooseConditionnement" data-target='#modalChoose' data-toggle='modal' hidden></button>
     <button class="btn" id="finishReception" data-target='#modalFinishReception' data-toggle='modal' hidden></button>
-    <input type="number" id="ligneSelected" value="-1" hidden></button>
+    <input type="number" id="ligneSelected" value="-1" hidden></input>
 
 
     {% include "reception/show/modalDeleteReception.html.twig" %}

@@ -47,13 +47,17 @@ class ReceptionLine {
         return $this;
     }
 
-    public function getPack(): Pack {
+    public function getPack(): ?Pack {
         return $this->pack;
     }
 
     public function setPack(?Pack $pack): self {
         $this->pack = $pack;
         return $this;
+    }
+
+    public function hasPack(): bool {
+        return $this->pack !== null;
     }
 
     /**
