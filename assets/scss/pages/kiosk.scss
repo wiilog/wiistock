@@ -290,6 +290,9 @@ h1 {
 .form-header {
     display: flex;
     justify-content: center;
+    &.home {
+        display: none;
+    }
 }
 
 .form-content {
