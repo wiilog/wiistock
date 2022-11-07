@@ -504,47 +504,4 @@ class ReceptionService
             ];
         }
     }
-
-    public function getDuplicateLine(Reception $reception, ?int $refArticle, ?string $commande, ?Pack $pack = null): ?ReceptionLine {
-        $line = null;
-        foreach ($reception->getLines() as $receptionLine) {
-            /** @var ReceptionLine $receptionLine */
-            if ($receptionLine->hasReceptionRefArticleDuplicates($commande, $refArticle)) {
-                if ((isset($pack) && $receptionLine->hasPack() && $pack->getId() === $receptionLine->getPack()->getId()) || !isset($pack)) {
-                    $line = $receptionLine;
-                    break;
-                }
-            }
-        }
-        return $line;
-    }
-
-    public function getLine(Reception $reception, ?Pack $pack = null): ?ReceptionLine {
-        $line = null;
-        foreach ($reception->getLines() as $receptionLine) {
-            if (!isset($pack)) {
-                if (!$receptionLine->hasPack()) {
-                    $line = $receptionLine;
-                    break;
-                }
-            } else {
-                if ($receptionLine->hasPack() && $pack->getId() === $receptionLine->getPack()->getId()) {
-                    $line = $receptionLine;
-                    break;
-                }
-            }
-        }
-
-        if (!isset($pack) && !isset($line)) {
-            $this->initFirstLine($reception);
-        }
-        return $line;
-    }
-
-    public function initFirstLine(Reception $reception) {
-        $line = new ReceptionLine();
-        $line->setReception($reception);
-        $this->entityManager->persist($line);
-        $this->entityManager->flush();
-    }
 }

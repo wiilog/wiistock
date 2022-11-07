@@ -6,6 +6,7 @@ use App\Repository\ReceptionLineRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 
 #[ORM\Entity(repositoryClass: ReceptionLineRepository::class)]
@@ -89,12 +90,12 @@ class ReceptionLine {
         return $this;
     }
 
-    public function hasReceptionRefArticleDuplicates(?string $commande, ?int $refArticleId): bool {
-        return ($this->receptionReferenceArticles->filter(function(ReceptionReferenceArticle $receptionReferenceArticle) use ($refArticleId, $commande) {
-                return (
-                    $commande === $receptionReferenceArticle->getCommande() &&
-                    $refArticleId === $receptionReferenceArticle->getReferenceArticle()->getId()
-                );
-            }))->count() !== 0;
+    public function getReceptionReferenceArticle(ReferenceArticle $referenceArticle,
+                                                 ?string $orderNumber): ?ReceptionReferenceArticle {
+        return Stream::from($this->receptionReferenceArticles->toArray())
+            ->find(fn(ReceptionReferenceArticle $receptionReferenceArticle) => (
+                $receptionReferenceArticle->getReferenceArticle()?->getId() === $referenceArticle->getId()
+                && $receptionReferenceArticle->getCommande() === $orderNumber
+            ));
     }
 }
