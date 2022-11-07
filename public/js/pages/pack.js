@@ -152,7 +152,7 @@ $(function() {
 });
 
 function addToCart(ids) {
-    const path = Routing.generate('cart_add_ul',true);
+    const path = Routing.generate('cart_add_logistic_units',true);
     $.post(
         path,
         JSON.stringify({id : ids}),

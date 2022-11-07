@@ -134,13 +134,12 @@ class CartController extends AbstractController
      * @Route("/ajouter/{reference}", name="cart_add_reference", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
      */
-    public function addToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse {
-        /** @var Cart $cart */
+    public function addReferenceToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse {
         $cart = $this->getUser()->getCart();
-        if ($cart->getArticles()->count()){
+        if (!$cart->getArticles()->isEmpty()){
             return $this->json([
                 'success' => false,
-                'msg' => "Le panier contient déjà des articles. Supprimez les pour pouvoir ajouter des references."
+                'msg' => "Le panier contient déjà des articles. Supprimez les pour pouvoir ajouter des références."
             ]);
         }
 
@@ -238,10 +237,10 @@ class CartController extends AbstractController
         return $this->json($response);
     }
 
-    #[Route("/add-to-cart", name: "cart_add_ul", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/add-to-cart-logistic-units", name: "cart_add_logistic_units", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
-    public function addUlToCart(Request                $request,
-                                EntityManagerInterface $entityManager): Response {
+    public function addLogisticUnitsToCart(Request                $request,
+                                           EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
         $ids = $data["id"];
         $response = [];
@@ -266,25 +265,35 @@ class CartController extends AbstractController
             $cartContent = $cart->getArticles()->toArray();
             $cartContentStream = Stream::from($cartContent);
             foreach ($ids as $id) {
-                $ul = $packRepository->findOneBy(["id" => $id]);
-                if ($ul
-                    && ($cartContentStream->isEmpty()
-                        || $cartContentStream->some(fn($article) => $article->getProject()?->getId() == $ul->getProject()?->getId()))) {
-                    foreach ($ul->getChildArticles() as $article) {
-                        if (in_array($article, $cartContent)) {
-                            $alreadyInCart[] = $article->getBarCode();
-                        }
-                        else if ($article->getStatut()?->getCode() !== Article::STATUT_ACTIF) {
-                            $unavailableArticles[] = $article->getBarCode();
+                $unit = $packRepository->findOneBy(["id" => $id]);
+                if ($unit) {
+                    $rightCartProject = $cartContentStream->every(fn(Article $article) => $article->getProject()?->getId() === $unit->getProject()?->getId());
+                    if ($rightCartProject) { // error
+                        $wrongProject[] = $unit->getCode();
+                    }
+                    else {
+                        $unitAlreadyInProject = $cartContentStream->some(fn(Article $article) => $article->getCurrentLogisticUnit()?->getId() === $unit->getId());
+                        if ($unitAlreadyInProject) { // error
+                            $alreadyInCart[] = $unit->getCode();
                         }
                         else {
-                            $addedArticles[] = $article->getBarCode();
-                            $cart->addArticle($article);
+                            foreach ($unit->getChildArticles() as $article) {
+                                if ($article->getStatut()?->getCode() !== Article::STATUT_ACTIF) { // error
+                                    $unavailableArticles[] = [
+                                        'barCode' => $article->getBarCode(),
+                                        'unit' => $unit->getCode()
+                                    ];
+                                }
+                                else { // success
+                                    $cart->addArticle($article);
+                                    $addedArticles[] = [
+                                        'barCode' => $article->getBarCode(),
+                                        'unit' => $unit->getCode()
+                                    ];
+                                }
+                            }
                         }
                     }
-                }
-                else {
-                    $wrongProject[] = $ul->getCode();
                 }
             }
         }
@@ -299,30 +308,43 @@ class CartController extends AbstractController
         }
 
         if (!empty($unavailableArticles)) {
-            $response[] = [
-                "success" => false,
-                "msg" => count($unavailableArticles) === 1
-                    ? "L'article " . $unavailableArticles[0] . " n'est pas disponible, il ne peut pas être ajouté au panier"
-                    : "Les articles " . implode(", ", $unavailableArticles) . " ne sont pas disponibles, ils ne peuvent pas être ajoutés au panier"
-            ];
+            $unavailableArticlesGrouped = Stream::from($unavailableArticles)
+                ->keymap(fn($article) => [$article['unit'], $article['barCode']], true)
+                ->toArray();
+
+            foreach ($unavailableArticlesGrouped as $unit => $articles) {
+                $articlesStr = implode($articles, ', ');
+                $response[] = [
+                    "success" => false,
+                    "msg" => count($articles) === 1
+                        ? "L'article {$articlesStr} présent dans l'unité logistique {$unit} n'est pas disponible, il ne peut pas être ajouté au panier"
+                        : "Les articles {$articlesStr} présents dans l'unité logistique {$unit} ne sont pas disponibles, ils ne peuvent pas être ajoutés au panier"
+                ];
+            }
         }
 
         if (!empty($alreadyInCart)) {
             $response[] = [
                 "success" => false,
                 "msg" => count($alreadyInCart) === 1
-                    ? "L'article " . $alreadyInCart[0] . " est déjà dans le panier"
-                    : "Les articles " . implode(", ", $alreadyInCart) . " sont déjà dans le panier"
+                    ? "L'unité logistique " . $alreadyInCart[0] . " est déjà dans le panier"
+                    : "Les unités logistiques " . implode(", ", $alreadyInCart) . " sont déjà dans le panier"
             ];
         }
 
         if(!empty($addedArticles)) {
-            $response[] = [
-                "success" => true,
-                "msg" => count($addedArticles) === 1
-                    ? "L'article " . $addedArticles[0] . " a bien été ajouté au panier"
-                    : "Les articles " . implode(", ", $addedArticles) . " ont bien été ajoutés au panier"
-            ];
+            $addedArticlesGrouped = Stream::from($addedArticles)
+                ->keymap(fn($article) => [$article['unit'], $article['barCode']], true)
+                ->toArray();
+            foreach ($addedArticlesGrouped as $unit => $articles) {
+                $articlesStr = implode($articles, ', ');
+                $response[] = [
+                    "success" => true,
+                    "msg" => count($articles) === 1
+                        ? "L'unité logistique {$unit} ainsi que l'article {$articlesStr} contenu dedans a bien été ajouté au panier"
+                        : "L'unité logistique {$unit}  ainsi que les articles {$articlesStr} contenus dedans ont bien été ajoutés au panier"
+                ];
+            }
         }
 
         $entityManager->flush();
