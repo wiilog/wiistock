@@ -45,9 +45,6 @@ $(function() {
                         modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
                         scannedReference = ''
                     }
-                    else if(data.exist && !data.inStock) {
-
-                    }
                     else {
                         window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
                     }
