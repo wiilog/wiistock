@@ -45,11 +45,14 @@ $(function() {
                         $errorMessage.html($errorMessage.text().replace('@reference', `<span class="bold">${scannedReference}</span>`))
                         modalInStockWarning.modal('show');
                         modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
+                        scannedReference = ''
+                    }
+                    else if(data.exist && !data.inStock) {
+
                     }
                     else {
                         window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
                     }
-                    scannedReference = ''
                 });
         } else {
             scannedReference += event.originalEvent.key;
@@ -76,6 +79,7 @@ $(function() {
 
     $('.give-up-button').on('click', function() {
         $("#modalGiveUpStockEntry").modal('show');
+        $("#modalGiveUpStockEntry").find('.bookmark-icon').removeClass('d-none');
     });
 
     $('#submitGiveUpStockEntry').on('click', function() {
