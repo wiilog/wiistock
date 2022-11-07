@@ -80,7 +80,7 @@
                                 <div class="field-name my-4">
                                     Référence : {{ reference.reference }}
                                 </div>
-                                <img src="{{ setting_value('FILE_LABEL_EXAMPLE_LOGO') }}" alt="" width="100%" class="bordered-image">
+                                <img src="{{ asset(setting_value('FILE_LABEL_EXAMPLE_LOGO')) }}" alt="" width="100%" class="bordered-image">
                                 <div class="field-small ">
                                     Exemple d’étiquette à flasher
                                 </div>
@@ -88,7 +88,7 @@
                             <div class="col-6">
                                 <label class="w-100">
                                     Libellé
-                                    <input type="search" class="w-100" autofocus value="{{ reference.libelle }} name="reference-article-input">
+                                    <input type="search" class="w-100" autofocus value="{{ reference.libelle }}" name="reference-article-input">
                                 </label>
                             </div>
                         </div>

@@ -46,11 +46,11 @@ $(function() {
                         $errorMessage.html($errorMessage.text().replace('@reference', `<span class="bold">${scannedReference}</span>`))
                         modalInStockWarning.modal('show');
                         modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
-                        scannedReference = ''
                     }
                     else {
                         window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
                     }
+                    scannedReference = '';
                 });
         } else {
             scannedReference += event.originalEvent.key;
