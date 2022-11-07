@@ -36,10 +36,6 @@
         'message': setting_value('QUANTITY_ERROR_MESSAGE'),
         'id': 'modal-in-stock-warning',
     }%}
-    {% include 'kiosk/modalWarning.html.twig' with {
-        'message': 'Une erreur est survenue lors de la lecture du code barre. Veuillez recommencer ou faire une entrée manuelle',
-        'id': 'modal-bad-reading-warning',
-    }%}
     {% include 'kiosk/modalWaiting.html.twig' with {
         'message': 'Un instant, nous interrogeons la base de données.'
     }%}

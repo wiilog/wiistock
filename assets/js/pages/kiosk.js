@@ -26,8 +26,6 @@ $(function() {
 
     let modalInStockWarning = $("#modal-in-stock-warning");
 
-    let modalBadReadingWarning = $("#modal-bad-reading-warning");
-
     Select2Old.user($('[name=applicant]'), '', 3);
     Select2Old.user($('[name=follower]'), '', 3);
 
