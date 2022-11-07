@@ -1,4 +1,5 @@
 {% extends 'kiosk/layout.thml.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %} Borne | Formulaire {% endblock %}
 
@@ -8,27 +9,59 @@
 {% endblock %}
 
 {% block page_content %}
-    <div style="display: flex; justify-content: center">
-        <div class="form-header">
-
-        </div>
+    <div>
         <div class="form-content">
-            <div class="timeline-container" style="height: 200px;">
-                <span>Référence</span>
-                <span>Demandeur et suiveur</span>
-                <span>Autres informations</span>
-                <span>Article</span>
-                <span>Récapitulatif</span>
+            <div class="timeline-container">
+                <span class="current wii-field-text">Référence</span>
+                <span class="future wii-field-text">Demandeur et suiveur</span>
+                <span class="future wii-field-text">Autres informations</span>
+                <span class="future wii-field-text">Article</span>
+                <span class="future wii-field-text">Récapitulatif</span>
             </div>
             <div class="entry-stock-container">
-                <div class="reference-container">
+                <div class="reference-container active">
                     <div class="d-flex justify-content-center">
-                        <label class="w-100 mr-3">Référence<input type="search" class="w-100 reference-ref-input" value="{{ reference.reference }}" autofocus></label>
-                        <label class="w-100 ml-3">Libellé<input type="search" class="w-100 reference-label-input" value="{{ reference.libelle }}"></label>
+                        <label class="w-100 mr-3">Référence<input type="search" class="w-100 reference-ref-input" value="{{ reference.reference ?? scannedReference }}" autofocus></label>
+                        <label class="w-100 ml-3">Libellé<input type="search" class="w-100 reference-label-input" value="{{ reference.libelle ?? scannedReference }}"></label>
                     </div>
                 </div>
-                <div class="manager-container d-none"></div>
-                <div class="other-informations-container d-none"></div>
+                <div class="manager-container d-none">
+                    <div class="d-flex justify-content-center">
+                        <label class="w-100 mr-3">
+                            Demandeur
+                            <select name="applicant" class="w-100 data" data-s2="user">
+                                {% if reference.managers[0] is defined %}
+                                    <option value="{{ reference.managers[0].id }}" selected>{{ reference.managers[0].username }}</option>
+                                {% endif %}
+                            </select>
+                        </label>
+                        <label class="w-100 ml-3">
+                            Suiveur
+                            <select name="follower" class="w-100 data" data-s2="user">
+                                {% if reference.managers[1] is defined %}
+                                    <option value="{{ reference.managers[1].id }}" selected>{{ reference.managers[1].username }}</option>
+                                {% endif %}
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <div class="other-informations-container d-none">
+                    <div class="d-flex justify-content-center">
+                        <label class="w-100 mr-3">
+                            {{ freeField.label }}
+                            {% include 'free_field/freeFieldsEdit.html.twig' with {
+                                freeFields: [freeField],
+                                freeFieldValues: [],
+                                colType: 'col-12',
+                                requiredType: 'requiredEdit',
+                                actionType: 'edit',
+                                kiosk: true
+                            } %}
+
+                        </label>
+                        <label class="w-100 mr-3">Commentaire <span class="wii-small-text">(Facultatif)</span><input type="search" class="w-100" value="{{ reference.commentaire }}"></label>
+                    </div>
+                </div>
                 <div class="article-container d-none">
                     <div class="corner position-absolute right-0 bottom-0 p-4">
                         <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
@@ -67,16 +100,17 @@
                     </div>
                 </div>
                 <div class="summary-container d-none"></div>
-                <div class="d-flex flex-row-reverse mt-4">
+                <div class="d-flex flex-row-reverse mt-5">
                     <button class="button-next">
                         Suivant
                     </button>
                 </div>
+                <input hidden name="stockEntryData" value=""/>
             </div>
         </div>
     </div>
     <div class="corner position-absolute left-0 bottom-0 p-4">
-        <button class="outline">
+        <button class="outline give-up-button">
            Retour
         </button>
     </div>
@@ -84,6 +118,8 @@
         <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
     </div>
     {% include 'kiosk/modalInformation.html.twig' %}
+
+    {% include 'kiosk/modalGiveUpStockEntry.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
