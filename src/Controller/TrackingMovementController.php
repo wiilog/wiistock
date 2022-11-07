@@ -305,7 +305,7 @@ class TrackingMovementController extends AbstractController
                 ]);
             } else {
                 // uncomment following line to debug
-                throw $exception;
+                //throw $exception;
 
                 return $this->json([
                     "success" => false,
@@ -326,7 +326,7 @@ class TrackingMovementController extends AbstractController
                 $this->persistAttachments($mouvement, $attachmentService, $fileNames, $entityManager);
             }
         }
-
+dump($createdMouvements);
         foreach ($createdMouvements as $mouvement) {
             $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager, $this->getUser());
         }

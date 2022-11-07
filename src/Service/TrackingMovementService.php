@@ -301,7 +301,7 @@ class TrackingMovementService extends AbstractController
                                            DateTime $date,
                                            bool $fromNomade,
                                            ?bool $finished,
-                                           $trackingType,
+                                           Statut|string|int $trackingType,
                                            array $options = []): TrackingMovement
     {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
@@ -952,7 +952,7 @@ class TrackingMovementService extends AbstractController
                                                           Utilisateur            $operator,
                                                           DateTime               $date,
                                                           ?bool                  $finished,
-                                                                                 $trackingType,
+                                                          Statut|string|int      $trackingType,
                                                           bool                   $forced,
                                                           array                  $options = []): array {
         $packRepository = $entityManager->getRepository(Pack::class);
@@ -964,7 +964,24 @@ class TrackingMovementService extends AbstractController
             if(isset($options["articles"]) && $options["articles"]) {
                 return $this->persistLogisticUnitMovements($entityManager, $packOrCode, $location, $options["articles"], $operator, $options);
             } else {
-                return $this->persistTrackingMovement(
+                $newMovements = [];
+                $selectedType = $entityManager->find(Statut::class, $trackingType);
+
+                if($selectedType->getCode() === TrackingMovement::TYPE_PRISE && $pack->getChildArticles()->count()) {
+                    $newMovements[] = $this->persistTrackingMovement(
+                        $entityManager,
+                        $pack ?? $packOrCode,
+                        $location,
+                        $operator,
+                        $date,
+                        $finished,
+                        TrackingMovement::TYPE_PICK_LU,
+                        $forced,
+                        $options
+                    )["movement"];
+                }
+
+                $newMovements[] = $this->persistTrackingMovement(
                     $entityManager,
                     $pack ?? $packOrCode,
                     $location,
@@ -974,7 +991,17 @@ class TrackingMovementService extends AbstractController
                     $trackingType,
                     $forced,
                     $options
-                );
+                )["movement"];
+
+                if(count($newMovements) > 1) {
+                    return [
+                        "success" => true,
+                        "multiple" => true,
+                        "movements" => $newMovements,
+                    ];
+                } else {
+                    return $newMovements[0];
+                }
             }
         }
         else { // it's a group
