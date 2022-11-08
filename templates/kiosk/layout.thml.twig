@@ -7,11 +7,11 @@
     <div class="wrapper {{ homeClass }}">
         <div class="container-fluid {% block pageContainerClass '' %}">
             <div class="d-flex justify-content-between align-items-center w-100 px-4 py-2">
-                <img src="{{ asset(setting_value('FILE_TOP_LEFT_LOGO')) }}" height="65px">
+                <img src="{{ setting_value('FILE_TOP_LEFT_LOGO') ? asset(setting_value('FILE_TOP_LEFT_LOGO')) }}" height="65px">
                 <h1 class="form-header {{ homeClass }}">
                     Entrée de stock
                 </h1>
-                <img src="{{ asset(setting_value('FILE_TOP_RIGHT_LOGO')) }}" height="65px">
+                <img src="{{ setting_value('FILE_TOP_RIGHT_LOGO') ? asset(setting_value('FILE_TOP_RIGHT_LOGO')) }}" height="65px">
             </div>
             {% block page_content %}{% endblock %}
         </div>

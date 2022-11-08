@@ -10,16 +10,17 @@
 
 {% block page_content %}
     <div>
+        <div class="timeline-container">
+            <span class="{{ not inStock  and reference.id ? '' : 'current' }} wii-field-text">Référence</span>
+            <span class="{{ not inStock  and reference.id ? '' : 'future' }} wii-field-text">Demandeur et suiveur</span>
+            <span class="{{ not inStock  and reference.id ? '' : 'future' }} wii-field-text">Autres informations</span>
+            {% if not inStock and reference.id %}
+                <span class="current wii-field-text">Article</span>
+            {% endif %}
+            <span class="future wii-field-text">Récapitulatif</span>
+        </div>
         <div class="form-content">
-            <div class="timeline-container">
-                <span class="{{ not inStock  and reference.id ? '' : 'current' }} wii-field-text">Référence</span>
-                <span class="{{ not inStock  and reference.id ? '' : 'future' }} wii-field-text">Demandeur et suiveur</span>
-                <span class="{{ not inStock  and reference.id ? '' : 'future' }} wii-field-text">Autres informations</span>
-                {% if not inStock and reference.id %}
-                    <span class="current wii-field-text">Article</span>
-                {% endif %}
-                <span class="future wii-field-text">Récapitulatif</span>
-            </div>
+
             <div class="entry-stock-container">
                 <div class="reference-container {{ not inStock  and reference.id ? 'd-none' : 'active' }}">
                     <div class="d-flex justify-content-center">
@@ -80,7 +81,7 @@
                                 <div class="field-name my-4">
                                     Référence : {{ reference.reference }}
                                 </div>
-                                <img src="{{ asset(setting_value('FILE_LABEL_EXAMPLE_LOGO')) }}" alt="" width="100%" class="bordered-image">
+                                <img src="{{setting_value('FILE_LABEL_EXAMPLE_LOGO') ? asset(setting_value('FILE_LABEL_EXAMPLE_LOGO')) }}" alt="" width="100%" class="bordered-image">
                                 <div class="field-small ">
                                     Exemple d’étiquette à flasher
                                 </div>
