@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
@@ -589,7 +590,11 @@ class DemandeLivraisonService
             $entityManager->flush();
             $this->preparationsManager->handlePreparationTreatMovements($mouvementRepository, $preparation, $livraison, $locationEndPrepa, $user);
             $this->preparationsManager->updateRefArticlesQuantities($preparation);
-
+            $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
+                'demande' => $demande,
+                'modifiable' => false,
+                'showDetails' => $this->createHeaderDetailsConfig($demande)
+            ]);
             $entityManager->flush();
             if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
                 $this->notificationService->toTreat($livraison);
