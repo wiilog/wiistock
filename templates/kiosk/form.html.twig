@@ -24,15 +24,15 @@
             <div class="entry-stock-container">
                 <div class="reference-container {{ not inStock  and reference.id ? 'd-none' : 'active' }}">
                     <div class="d-flex justify-content-center">
-                        <label class="w-100 mr-3">Référence<input type="search" class="w-100" name="reference-ref-input" value="{{ reference.reference ?? scannedReference }}" autofocus></label>
-                        <label class="w-100 ml-3">Libellé<input type="search" class="w-100" name="reference-label-input" value="{{ reference.libelle ?? scannedReference }}"></label>
+                        <label class="w-100 mr-3">Référence<input type="search" class="w-100" required name="reference-ref-input" value="{{ reference.reference ?? scannedReference }}" autofocus></label>
+                        <label class="w-100 ml-3">Libellé<input type="search" class="w-100" required name="reference-label-input" value="{{ reference.libelle ?? scannedReference }}"></label>
                     </div>
                 </div>
                 <div class="manager-container d-none">
                     <div class="d-flex justify-content-center">
                         <label class="w-100 mr-3">
                             Demandeur
-                            <select name="applicant" class="w-100 data" data-s2="user">
+                            <select name="applicant" class="w-100 data needed" data-s2="user">
                                 {% if reference.managers[0] is defined %}
                                     <option value="{{ reference.managers[0].id }}" selected>{{ reference.managers[0].username }}</option>
                                 {% endif %}
@@ -40,7 +40,7 @@
                         </label>
                         <label class="w-100 ml-3">
                             Suiveur
-                            <select name="follower" class="w-100 data" data-s2="user">
+                            <select name="follower" class="w-100 data needed" data-s2="user">
                                 {% if reference.managers[1] is defined %}
                                     <option value="{{ reference.managers[1].id }}" selected>{{ reference.managers[1].username }}</option>
                                 {% endif %}
@@ -81,7 +81,7 @@
                                 <div class="field-name my-4">
                                     Référence : {{ reference.reference }}
                                 </div>
-                                <img src="{{setting_value('FILE_LABEL_EXAMPLE_LOGO') ? asset(setting_value('FILE_LABEL_EXAMPLE_LOGO')) }}" alt="" width="100%" class="bordered-image">
+                                <img src="{{ setting_value('FILE_LABEL_EXAMPLE_LOGO') ? asset(setting_value('FILE_LABEL_EXAMPLE_LOGO')) }}" alt="" width="100%" class="bordered-image">
                                 <div class="field-small ">
                                     Exemple d’étiquette à flasher
                                 </div>
@@ -89,7 +89,7 @@
                             <div class="col-6">
                                 <label class="w-100">
                                     Libellé
-                                    <input type="search" class="w-100" autofocus value="{{ reference.libelle }}" name="reference-article-input">
+                                    <input type="search" class="w-100" required autofocus value="{{ reference.libelle }}" name="reference-article-input">
                                 </label>
                             </div>
                         </div>
@@ -99,23 +99,27 @@
                     <div class="row">
                         <div class="col-12 flex-column">
                             <div class="d-flex">
-                                <div class="">Ref : <span class="reference-reference"></span> </div>
-                                <div class="">Article : <span class="reference-article"></span></div>
+                                <div class="field-reference-title">Ref : <span class="reference-reference"></span> </div>
+                                <div class="field-article-title">Article : <span class="reference-article"></span></div>
                             </div>
-                            <span class="reference-label"></span>
-                            <span class="reference-type">{{ setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type').label }}</span>
+                            <div class="mt-3">
+                                <span class="reference-label field-small"></span>
+                            </div>
+                            <div class="mt-2">
+                                <span class="reference-type field-name">{{ setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type').label }}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="row mt-5">
                         <div class="col-6 d-flex">
-                            <img src="{{ asset('svg/quantity.svg') }}" alt="Icône quantité" width="20px">
+                            <img src="{{ asset('svg/quantity.svg') }}" alt="Icône quantité" width="35px">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">Quantité</span>
                                 <span class="wii-body-text">1</span>
                             </label>
                         </div>
                         <div class="col-6 d-flex">
-                            <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="20px">
+                            <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="35px">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">Demandeur et suiveur</span>
                                 <span class="wii-body-text reference-managers"></span>
@@ -124,14 +128,14 @@
                     </div>
                     <div class="row mt-5">
                         <div class="col-6 d-flex">
-                            <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="20px">
+                            <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="35px">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">Emplacement</span>
                                 <span class="wii-body-text">{{ setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement').label }}</span>
                             </label>
                         </div>
                         <div class="col-6 d-flex">
-                            <img src="{{ asset('svg/document.svg') }}" alt="Icône document" width="20px">
+                            <img src="{{ asset('svg/document.svg') }}" alt="Icône document" width="35px">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">{{ freeField.label }}</span>
                                 <span class="wii-body-text reference-free-field"></span>
@@ -140,7 +144,7 @@
                     </div>
                     <div class="row mt-5">
                         <div class="col-6 d-flex">
-                            <img src="{{ asset('svg/commentary.svg') }}" alt="Icône commentaire" width="20px">
+                            <img src="{{ asset('svg/commentary.svg') }}" alt="Icône commentaire" width="35px">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">Commentaire</span>
                                 <span class="wii-body-text reference-commentary"></span>
@@ -158,10 +162,10 @@
                         Abandonner
                     </button>
                     <div>
-                        <button class="outline">
+                        <button class="outline edit-stock-entry-button">
                             Modifier
                         </button>
-                        <button class="">
+                        <button class="validate-stock-entry-button">
                             Valider
                         </button>
                     </div>

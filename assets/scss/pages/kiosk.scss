@@ -512,6 +512,20 @@ h1 {
     line-height: 35px;
 }
 
+.field-reference-title {
+    font-family: "Myriad pro";
+    font-size: 35px;
+    font-weight: bold;
+    color: #00DDA8;
+}
+
+.field-article-title {
+    font-family: "Myriad pro";
+    font-size: 30px;
+    font-weight: bold;
+    color: $primary;
+}
+
 .info {
     margin: 3px;
     padding: 15px;

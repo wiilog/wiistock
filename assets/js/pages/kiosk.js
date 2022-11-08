@@ -2,9 +2,8 @@ import '@styles/pages/kiosk.scss';
 import AJAX, {GET} from "@app/ajax";
 
 let scannedReference = '';
-const $referenceRefInput = $('.reference-ref-input');
-const $referenceLabelInput = $('.reference-label-input');
-let $inputStockEntryData = $('input[name=stockEntryData]');
+const $referenceRefInput = $('input[name=reference-ref-input]');
+const $referenceLabelInput = $('input[name=reference-label-input]');
 const $modalGiveUpStockEntry = $("#modalGiveUpStockEntry");
 
 $(function() {
@@ -31,8 +30,6 @@ $(function() {
     Select2Old.user($('[name=follower]'), '', 3);
 
     $(document).on('keypress', function(event) {
-        console.log(event);
-        console.log(event.originalEvent.key);
         if(event.originalEvent.key === 'Enter') {
             modalWaiting.modal('show');
             AJAX.route(GET, `reference_article_check_quantity`, {
@@ -69,38 +66,63 @@ $(function() {
         const $current = $(this).closest('.entry-stock-container').find('.active');
         const $timeline = $('.timeline-container');
         const $currentTimelineEvent = $timeline.find('.current');
-        $currentTimelineEvent.removeClass('current');
-        $($currentTimelineEvent.next()[0]).addClass('current').removeClass('future');
+        const $inputs = $current.find('input[required]');
+        const $selects = $current.find('select.needed');
 
-        if($($current.next()[0]).hasClass('summary-container')){
-            $(this).parent().removeClass('d-flex');
-            $(this).parent().addClass('d-none');
-            $('.give-up-button-container').addClass('d-none');
-            $('.summary-button-container').removeClass('d-none').addClass('d-flex');
 
-            //endroit où l'on rajoute toutes les infos dans les sections correspondantes pour le récapitulatif
-            $('.reference-reference').html($('input[name=reference-ref-input]').val());
-
-            const $articleDataInput = $('input[name=reference-article-input]');
-            $articleDataInput.val() ?
-                $('.reference-article').html($articleDataInput.val()) :
-                $articleDataInput.parent().addClass('d-none');
-            $('.reference-label').html($('input[name=reference-label-input]').val());
-
-            const $applicantInput = $('select[name=applicant]');
-            const $followerInput = $('select[name=follower]');
-            if($applicantInput.val()){
-                $('.reference-managers').html(
-                    $('select[name=follower]').val() ?
-                        $applicantInput.val().concat(',', $followerInput.val()) :
-                        $applicantInput.val());
+        $selects.each(function(){
+            if($(this).find('option:selected').length === 0){
+                $(this).addClass('invalid');
+            } else {
+                $(this).removeClass('invalid');
             }
-            $('.reference-free-field').html();
-            $('.reference-comment').html($('.reference-commentary').val());
-        }
+        });
 
-        $current.removeClass('active').addClass('d-none');
-        $($current.next()[0]).addClass('active').removeClass('d-none');
+        $inputs.each(function(){
+            if (!($(this).val())){
+                $(this).addClass('invalid');
+            } else {
+                $(this).removeClass('invalid');
+            }
+        });
+
+        if($current.find('.invalid').length === 0){
+            $current.removeClass('active').addClass('d-none');
+            $($current.next()[0]).addClass('active').removeClass('d-none');
+            $currentTimelineEvent.removeClass('current');
+            $($currentTimelineEvent.next()[0]).addClass('current').removeClass('future');
+
+            if($($current.next()[0]).hasClass('summary-container')){
+                $(this).parent().removeClass('d-flex');
+                $(this).parent().addClass('d-none');
+                $('.give-up-button-container').addClass('d-none');
+                $('.summary-button-container').removeClass('d-none').addClass('d-flex');
+
+                //endroit où l'on rajoute toutes les infos dans les sections correspondantes pour le récapitulatif
+                $('.reference-reference').html($('input[name=reference-ref-input]').val());
+
+                const $articleDataInput = $('input[name=reference-article-input]');
+                if($articleDataInput.val()){
+                    $('.reference-article').html($articleDataInput.val());
+                } else {
+                    $('.field-article-title').removeClass('d-flex');
+                    $('.field-article-title').addClass('d-none');
+                }
+
+                $('.reference-label').html($('input[name=reference-label-input]').val());
+
+                const $applicantInput = $('select[name=applicant] option:selected');
+                const $followerInput = $('select[name=follower] option:selected');
+                if($applicantInput.val()){
+                    $('.reference-managers').html(
+                        $followerInput.val() ?
+                            $applicantInput.text().concat(', ', $followerInput.text()) :
+                            $applicantInput.text());
+                }
+                $('.reference-free-field').html();
+                $('.reference-commentary').html($('input[name=reference-comment]').val());
+            }
+        }
     });
 
     $('.return-or-give-up-button').on('click', function() {
@@ -122,6 +144,30 @@ $(function() {
     $('.give-up-button').on('click', function() {
         $modalGiveUpStockEntry.modal('show');
         $modalGiveUpStockEntry.find('.bookmark-icon').removeClass('d-none');
+    });
+
+    $('.edit-stock-entry-button').on('click', function() {
+        const $current = $(this).closest('.entry-stock-container').find('.active');
+        const $referenceContainer = $(this).closest('.entry-stock-container').find('.reference-container');
+        const $buttonNextContainer = $('.button-next').parent();
+        const $timelineSpans = $('.timeline-container span');
+        $('.give-up-button-container').removeClass('d-none').addClass('d-flex');
+        $('.summary-button-container').removeClass('d-flex').addClass('d-none');
+        $buttonNextContainer.removeClass('d-none');
+        $buttonNextContainer.addClass('d-flex');
+
+        $timelineSpans.each(function() {
+            $(this).removeClass('current').addClass('future');
+        });
+
+        $timelineSpans.first().removeClass('future').addClass('current');
+
+        $current.removeClass('active').addClass('d-none');
+        $referenceContainer.addClass('active').removeClass('d-none');
+    });
+
+    $('.validate-stock-entry-button').on('click', function() {
+        // TODO Valider
     });
 
 
