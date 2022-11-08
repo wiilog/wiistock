@@ -1401,7 +1401,7 @@ class ReceptionController extends AbstractController {
         } else {
             $articles = $entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]);
             $barcodeConfigs = Stream::from($articles)
-                ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReception()))
+                ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReceptionLine()->getReception()))
                 ->toArray();
         }
 
@@ -2045,11 +2045,18 @@ class ReceptionController extends AbstractController {
         $supplierReference = $supplierReferenceRepository->find($supplierReference);
         $type = $reference->getType();
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-        $receptionReferenceArticle = $reception->getReceptionReferenceArticles()
-            ->filter(fn(ReceptionReferenceArticle $line) =>
-                $line->getCommande() === $orderNumber &&
-                $line->getReferenceArticle()->getId() === $reference->getId()
-            )->first();
+        $receptionReferenceArticle = Stream::from($reception->getLines())
+            ->reduce(function(array $carry, ReceptionLine $line) use ($orderNumber, $reference) {
+                $receptionReferenceArticles = $line->getReceptionReferenceArticles();
+                foreach ($receptionReferenceArticles as $receptionReferenceArticle) {
+                    if ($receptionReferenceArticle->getCommande() === $orderNumber
+                        && $receptionReferenceArticle->getReferenceArticle()->getId() === $reference->getId()
+                        && empty($carry)) {
+                        $carry[] = $receptionReferenceArticle;
+                    }
+                }
+                return $carry;
+            }, [])[0];
 
         return $this->json([
             'template' => $this->renderView('reception/show/packing_content.html.twig', [
@@ -2120,18 +2127,17 @@ class ReceptionController extends AbstractController {
         $reference = $manager->getRepository(ReferenceArticle::class)->findOneBy([
             'reference' => $data['reference'],
         ]);
-        $receptionLine = $manager->getRepository(ReceptionReferenceArticle::class)->findOneBy([
-            'reception' => $reception,
-            'commande' => $orderNumber,
-            'referenceArticle' => $reference,
-        ]);
+        dump($orderNumber, $reference->getId(), $reception->getId());
+        $receptionLine = $manager->getRepository(ReceptionReferenceArticle::class)
+            ->findByReceptionAndCommandeAndRefArticleId($reception, $orderNumber, $reference->getId());
+        $receptionReferenceArticle = $receptionLine[0] ?? null;
 
-        $success = $data['cumulatedQuantities'] <= ($receptionLine->getQuantiteAR() - $receptionLine->getQuantite());
+        $success = $data['cumulatedQuantities'] <= ($receptionReferenceArticle->getQuantiteAR() - $receptionReferenceArticle->getQuantite());
         return $this->json([
             'success' => $success,
             'reference' => $reference->getReference(),
             'orderNumber' => $orderNumber,
-            'expectedQuantity' => $receptionLine->getQuantiteAR(),
+            'expectedQuantity' => $receptionReferenceArticle->getQuantiteAR(),
         ]);
     }
 

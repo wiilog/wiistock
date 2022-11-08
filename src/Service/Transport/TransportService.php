@@ -21,7 +21,6 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\GeoException;
-use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
@@ -165,7 +164,7 @@ class TransportService {
             $expectedAt = $customExpectedAt;
         }
         else if(isset($expectedAtStr)){
-            $expectedAt = FormatHelper::parseDatetime($expectedAtStr);
+            $expectedAt = $this->formatService->parseDatetime($expectedAtStr);
 
             if (!$expectedAt) {
                 throw new FormException("Le format de date est invalide");
@@ -541,7 +540,7 @@ class TransportService {
                                         Nature $nature): TransportDeliveryOrderPack {
         $orderPack = new TransportDeliveryOrderPack();
         $orderPack->setOrder($transportOrder);
-        $pack = $this->packService->createPack(['orderLine' => $orderPack, 'nature' => $nature]);
+        $pack = $this->packService->createPack($entityManager, ['orderLine' => $orderPack, 'nature' => $nature]);
         $entityManager->persist($orderPack);
         $entityManager->persist($pack);
         return $orderPack;
@@ -566,30 +565,30 @@ class TransportService {
         $freeFields = [];
 
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $freeFields[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
+            $freeFields[] = $this->formatService->freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
         }
         $dataTransportRequest = [
             TransportRequest::NUMBER_PREFIX . $request->getNumber(),
             $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison-Collecte" : "Livraison") : "Collecte",
-            FormatHelper::type($request->getType()),
-            FormatHelper::status($request->getStatus()),
-            ...($request instanceof TransportDeliveryRequest ? [FormatHelper::bool(!empty($request->getEmergency()))] : []),
-            FormatHelper::user($request->getCreatedBy()),
+            $this->formatService->type($request->getType()),
+            $this->formatService->status($request->getStatus()),
+            ...($request instanceof TransportDeliveryRequest ? [$this->formatService->bool(!empty($request->getEmergency()))] : []),
+            $this->formatService->user($request->getCreatedBy()),
             $request->getContact()->getName(),
             $request->getContact()->getFileNumber(),
             str_replace("\n", " / ", $request->getContact()->getAddress()),
-            $request->getContact()->getAddress() ? FormatHelper::bool($this->isMetropolis($request->getContact()->getAddress())) : '',
-            FormatHelper::datetime($request->getExpectedAt()),
+            $request->getContact()->getAddress() ? $this->formatService->bool($this->isMetropolis($request->getContact()->getAddress())) : '',
+            $this->formatService->datetime($request->getExpectedAt()),
         ];
 
         if($request instanceof TransportDeliveryRequest) {
             $dataTransportDeliveryRequest = array_merge($dataTransportRequest, [
-                isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) : '',
-                isset($statusRequest[TransportRequest::STATUS_TO_PREPARE]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_PREPARE]) : '',
-                isset($statusRequest[TransportRequest::STATUS_TO_DELIVER]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_DELIVER]) : '',
-                isset($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) : '',
-                isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
-                isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
+                isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) : '',
+                isset($statusRequest[TransportRequest::STATUS_TO_PREPARE]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_TO_PREPARE]) : '',
+                isset($statusRequest[TransportRequest::STATUS_TO_DELIVER]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_TO_DELIVER]) : '',
+                isset($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_SUBCONTRACTED]) : '',
+                isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
+                isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
                 $request->getContact()->getObservation(),
             ]);
 
@@ -608,7 +607,7 @@ class TransportService {
                                 ? 'Non'
                                 : '-'),
                         $pack->getRejectReason() ?: ($pack->getState() && $pack->getState() !== TransportDeliveryOrderPack::REJECTED_STATE ? '/' : '-'),
-                        $pack->getReturnedAt() ? FormatHelper::datetime($pack->getReturnedAt()) : '-',
+                        $pack->getReturnedAt() ? $this->formatService->datetime($pack->getReturnedAt()) : '-',
                     ], $freeFields);
                     $csvService->putLine($output, $dataTransportDeliveryRequestPacks);
                 }
@@ -620,13 +619,13 @@ class TransportService {
         }
         else if($request instanceof TransportCollectRequest) {
             $dataTransportCollectRequest = array_merge($dataTransportRequest, [
-                $request->getValidatedDate() ? FormatHelper::datetime($request->getValidatedDate()) : '-',
-                isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? FormatHelper::datetime($request->getCreatedAt()): '',
-                isset($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) && isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) : '',
-                isset($statusRequest[TransportRequest::STATUS_TO_COLLECT]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_TO_COLLECT]) : '',
-                isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
-                isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
-                isset($statusRequest[TransportRequest::STATUS_DEPOSITED]) ? FormatHelper::datetime($statusRequest[TransportRequest::STATUS_DEPOSITED]): '',
+                $request->getValidatedDate() ? $this->formatService->datetime($request->getValidatedDate()) : '-',
+                isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? $this->formatService->datetime($request->getCreatedAt()): '',
+                isset($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) && isset($statusRequest[TransportRequest::STATUS_AWAITING_VALIDATION]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_AWAITING_PLANNING]) : '',
+                isset($statusRequest[TransportRequest::STATUS_TO_COLLECT]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_TO_COLLECT]) : '',
+                isset($statusRequest[TransportRequest::STATUS_ONGOING]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_ONGOING]) : '',
+                isset($statusRequest[TransportRequest::STATUS_FINISHED]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_FINISHED]) : (isset($statusRequest[TransportRequest::STATUS_CANCELLED]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_CANCELLED]) : '' ),
+                isset($statusRequest[TransportRequest::STATUS_DEPOSITED]) ? $this->formatService->datetime($statusRequest[TransportRequest::STATUS_DEPOSITED]): '',
                 $request->getContact()->getObservation(),
             ]);
 
@@ -679,7 +678,7 @@ class TransportService {
 
 
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $freeFields[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
+            $freeFields[] = $this->formatService->freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
         }
 
         $transportRoundNumber = null;
@@ -695,27 +694,27 @@ class TransportService {
         $dataTransportRequest = [
             $request->getNumber(),
             $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison-Collecte" : "Livraison") : "Collecte",
-            FormatHelper::type($request->getType()),
-            FormatHelper::status($order->getStatus()),
-            ...($request instanceof TransportDeliveryRequest ? [FormatHelper::bool(!empty($request->getEmergency()))] : []),
-            FormatHelper::user($request->getCreatedBy()),
+            $this->formatService->type($request->getType()),
+            $this->formatService->status($order->getStatus()),
+            ...($request instanceof TransportDeliveryRequest ? [$this->formatService->bool(!empty($request->getEmergency()))] : []),
+            $this->formatService->user($request->getCreatedBy()),
             $request->getContact()->getName(),
             $request->getContact()->getFileNumber(),
             str_replace("\n", " ", $request->getContact()->getAddress()),
-            $request->getContact()->getAddress() ? FormatHelper::bool($this->isMetropolis($request->getContact()->getAddress())) : '',
-            FormatHelper::datetime($request->getExpectedAt()),
+            $request->getContact()->getAddress() ? $this->formatService->bool($this->isMetropolis($request->getContact()->getAddress())) : '',
+            $this->formatService->datetime($request->getExpectedAt()),
         ];
 
 
         if($request instanceof TransportDeliveryRequest) {
             $dataTransportDeliveryRequest = array_merge($dataTransportRequest, [
-                isset($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) : '',
-                isset($statusOrder[TransportOrder::STATUS_ASSIGNED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ASSIGNED]) : '',
-                isset($statusOrder[TransportOrder::STATUS_ONGOING]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ONGOING]) : '',
-                $estimatedDate ? FormatHelper::date($estimatedDate) : '/',
-                isset($statusOrder[TransportOrder::STATUS_FINISHED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_FINISHED]) : (isset($statusOrder[TransportOrder::STATUS_CANCELLED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_CANCELLED]) : '' ),
+                isset($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) ? $this->formatService->datetime($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) : '',
+                isset($statusOrder[TransportOrder::STATUS_ASSIGNED]) ? $this->formatService->datetime($statusOrder[TransportOrder::STATUS_ASSIGNED]) : '',
+                isset($statusOrder[TransportOrder::STATUS_ONGOING]) ? $this->formatService->datetime($statusOrder[TransportOrder::STATUS_ONGOING]) : '',
+                $estimatedDate ? $this->formatService->date($estimatedDate) : '/',
+                isset($statusOrder[TransportOrder::STATUS_FINISHED]) ? $this->formatService->datetime($statusOrder[TransportOrder::STATUS_FINISHED]) : (isset($statusOrder[TransportOrder::STATUS_CANCELLED]) ? $this->formatService->datetime($statusOrder[TransportOrder::STATUS_CANCELLED]) : '' ),
                 $transportRoundNumber,
-                FormatHelper::user($transportRoundDeliverer),
+                $this->formatService->user($transportRoundDeliverer),
                 $request->getContact()->getObservation(),
             ]);
 
@@ -728,7 +727,7 @@ class TransportService {
                         $pack->getPack()?->getQuantity() ?: '0',
                         $pack->getPack()?->getNature() ? $pack->getPackTemperature($pack->getPack()->getNature()) ?: '' : '',
                         $pack->getPack()?->getActivePairing()?->hasExceededThreshold()
-                            ? FormatHelper::bool($pack->getPack()?->getActivePairing()?->hasExceededThreshold())
+                            ? $this->formatService->bool($pack->getPack()?->getActivePairing()?->hasExceededThreshold())
                             : "non",
                         $pack->getPack()?->getCode() ?: '',
                         $pack->getState() === TransportDeliveryOrderPack::REJECTED_STATE
@@ -737,7 +736,7 @@ class TransportService {
                                 ? 'Non'
                                 : '-'),
                         $pack->getRejectReason() ?: ($pack->getState() && $pack->getState() !== TransportDeliveryOrderPack::REJECTED_STATE ? '/' : '-'),
-                        $pack->getReturnedAt() ? FormatHelper::datetime($pack->getReturnedAt()) : '-',
+                        $pack->getReturnedAt() ? $this->formatService->datetime($pack->getReturnedAt()) : '-',
                     ], $freeFields);
                     $csvService->putLine($output, $dataTransportDeliveryRequestPacks);
                 }
@@ -750,16 +749,16 @@ class TransportService {
         else if($request instanceof TransportCollectRequest) {
             $timeSlot = $request->getTimeSlot()?->getName();
             $dataTransportCollectRequest = array_merge($dataTransportRequest, [
-                FormatHelper::datetime($request->getCreatedAt()),
-                $request->getValidatedDate() ? FormatHelper::datetime($request->getValidatedDate()) : '-',
-                isset($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) : '',
-                isset($statusOrder[TransportOrder::STATUS_ASSIGNED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ASSIGNED]) : '',
-                isset($statusOrder[TransportOrder::STATUS_ONGOING]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_ONGOING]) : '',
-                $timeSlot ?? ($estimatedDate ? FormatHelper::date($estimatedDate) : '/'),
-                isset($statusOrder[TransportOrder::STATUS_FINISHED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_FINISHED]) : (isset($statusOrder[TransportOrder::STATUS_CANCELLED]) ? FormatHelper::datetime($statusOrder[TransportOrder::STATUS_CANCELLED]) : '' ),
-                FormatHelper::datetime($order->getTreatedAt()),
+                $this->formatService->datetime($request->getCreatedAt()),
+                $request->getValidatedDate() ? $this->formatService->datetime($request->getValidatedDate()) : '-',
+                isset($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) ? $this->formatService->datetime($statusOrder[TransportOrder::STATUS_TO_ASSIGN]) : '',
+                isset($statusOrder[TransportOrder::STATUS_ASSIGNED]) ? $this->formatService->datetime($statusOrder[TransportOrder::STATUS_ASSIGNED]) : '',
+                isset($statusOrder[TransportOrder::STATUS_ONGOING]) ? $this->formatService->datetime($statusOrder[TransportOrder::STATUS_ONGOING]) : '',
+                $timeSlot ?? ($estimatedDate ? $this->formatService->date($estimatedDate) : '/'),
+                isset($statusOrder[TransportOrder::STATUS_FINISHED]) ? $this->formatService->datetime($statusOrder[TransportOrder::STATUS_FINISHED]) : (isset($statusOrder[TransportOrder::STATUS_CANCELLED]) ? $this->formatService->datetime($statusOrder[TransportOrder::STATUS_CANCELLED]) : '' ),
+                $this->formatService->datetime($order->getTreatedAt()),
                 $transportRoundNumber,
-                FormatHelper::user($transportRoundDeliverer),
+                $this->formatService->user($transportRoundDeliverer),
                 $request->getContact()->getObservation(),
             ]);
 

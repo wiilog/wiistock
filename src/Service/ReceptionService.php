@@ -148,11 +148,7 @@ class ReceptionService
             if ($arrivage && !$arrivage->getReception()) {
                 $arrivage->setReception($reception);
                 foreach ($arrivage->getPacks() as $pack) {
-                    $line = new ReceptionLine();
-                    $line
-                        ->setReception($reception)
-                        ->setPack($pack);
-                    $entityManager->persist($line);
+                    $this->persistReceptionPackLine($entityManager, $reception, $pack);
                 }
             }
         }
@@ -267,6 +263,15 @@ class ReceptionService
 
         $entityManager->persist($reception);
         return $reception;
+    }
+
+    public function persistReceptionPackLine(EntityManagerInterface $entityManager,
+                                             Reception $reception,
+                                             Pack $pack) {
+        $receptionPackLine = new ReceptionLine();
+        $receptionPackLine->setReception($reception);
+        $receptionPackLine->setPack($pack);
+        $entityManager->persist($receptionPackLine);
     }
 
     public function dataRowReception(Reception $reception)

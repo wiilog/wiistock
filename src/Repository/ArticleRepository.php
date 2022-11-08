@@ -295,7 +295,7 @@ class ArticleRepository extends EntityRepository {
 						$searchForArticle = Utilisateur::SEARCH_DEFAULT;
 					}
 
-                    foreach ($searchForArticle as $key => $searchField) {
+                    foreach ($searchForArticle as $searchField) {
 
                         $date = DateTime::createFromFormat('d/m/Y', $searchValue);
                         $date = $date ? $date->format('Y-m-d') : null;
@@ -789,10 +789,13 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.quantite as quantity')
             ->addSelect('referenceArticle_status.nom as reference_status')
             ->addSelect('0 as is_ref')
+            ->addSelect('current_logistic_unit.id as currentLogisticUnitId')
+            ->addSelect('current_logistic_unit.code as currentLogisticUnitCode')
             ->join('article.articleFournisseur', 'article_articleFournisseur')
             ->join('article_articleFournisseur.referenceArticle', 'articleFournisseur_reference')
             ->join('articleFournisseur_reference.statut', 'referenceArticle_status')
-            ->join('article.emplacement', 'article_location');
+            ->join('article.emplacement', 'article_location')
+            ->leftJoin('article.currentLogisticUnit', 'current_logistic_unit');
 
         $result = $queryBuilder->getQuery()->execute();
         return !empty($result) ? $result[0] : null;
