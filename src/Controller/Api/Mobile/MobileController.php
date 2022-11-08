@@ -278,7 +278,27 @@ class MobileController extends AbstractApiController
                             $type,
                             $options,
                         );
+
                         $associatedPack = $createdMvt->getPack();
+
+                        if($createdMvt->getType()->getCode() === TrackingMovement::TYPE_PRISE && $associatedPack->getArticle() && $associatedPack->getArticle()->getCurrentLogisticUnit()) {
+                            $movement = $trackingMovementService->persistTrackingMovement(
+                                $entityManager,
+                                $associatedPack,
+                                $location,
+                                $nomadUser,
+                                $date,
+                                true,
+                                TrackingMovement::TYPE_PICK_LU,
+                                false,
+                                $options
+                            )['movement'];
+                            $movement->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
+                            $trackingMovementService->persistSubEntities($entityManager, $movement);
+                            $entityManager->persist($movement);
+                            $numberOfRowsInserted++;
+
+                        }
 
                         if ($associatedPack) {
                             $associatedGroup = $associatedPack->getParent();
@@ -489,6 +509,25 @@ class MobileController extends AbstractApiController
                             $type,
                             $options,
                         );
+                        $associatedPack = $createdMvt->getPack();
+                        if($createdMvt->getType()->getCode() === TrackingMovement::TYPE_PRISE && $associatedPack->getArticle() && $associatedPack->getArticle()->getCurrentLogisticUnit()) {
+                            $movement = $trackingMovementService->persistTrackingMovement(
+                                $entityManager,
+                                $associatedPack,
+                                $location,
+                                $nomadUser,
+                                $date,
+                                true,
+                                TrackingMovement::TYPE_PICK_LU,
+                                false,
+                                $options
+                            )['movement'];
+                            $movement->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
+                            $trackingMovementService->persistSubEntities($entityManager, $movement);
+                            $entityManager->persist($movement);
+                            $associatedPack->getArticle()->setCurrentLogisticUnit(null);
+                        }
+
                         $associatedPack = $createdMvt->getPack();
 
                         if ($associatedPack) {
@@ -1971,7 +2010,6 @@ class MobileController extends AbstractApiController
                 $resData['article'] = $referenceArticleArray;
             } else {
                 $article = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
-                dump($article);
                 if (!empty($article)) {
                     $article['can_transfer'] = ($article['reference_status'] === ReferenceArticle::STATUT_ACTIF);
                 }
