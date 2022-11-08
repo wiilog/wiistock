@@ -14,6 +14,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Pack;
 use App\Entity\ReceptionPackLine;
+use App\Entity\ReceptionLine;
 use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;

@@ -2,12 +2,13 @@ import {createManagementPage} from './utils';
 import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "@app/editatable";
 
 import Form from '@app/form';
-import AJAX, {POST} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 
 const MODE_ARRIVAL = `arrival`;
 const MODE_TRACKING = `tracking`;
 const MODE_DISPATCH = `dispatch`;
 const MODE_HANDLING = `handling`;
+const MODE_DELIVERY_REQUEST = `delivery_request`;
 
 const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);
@@ -124,6 +125,10 @@ export function createHandlingFreeFieldsPage($container, canEdit) {
     createFreeFieldsPage($container, canEdit, MODE_HANDLING)
 }
 
+export function createDeliveryRequestFieldsPage($container, canEdit) {
+    createFreeFieldsPage($container, canEdit, MODE_DELIVERY_REQUEST)
+}
+
 export function createFreeFieldsPage($container, canEdit, mode) {
     const category = $container.find('.management-body').data('category');
     const table = createManagementPage($container, {
@@ -201,18 +206,19 @@ function createFreeFieldsListeners($container, canEdit, mode) {
                     }
 
                     $translateButton
-                        .off('click')
-                        .on(`click`, function () {
+                        .off('click.freeFieldsTranslation')
+                        .on('click.freeFieldsTranslation', function () {
                             const params = {
                                 type: $container.find('[name=entity]:checked').val(),
                             };
-
-                            AJAX.route(`POST`, `settings_edit_type_translations_api`, params)
-                                .json()
-                                .then(response => {
-                                    $modalEditTranslations.find(`.modal-body`).html(response.html);
-                                    $modalEditTranslations.modal('show');
-                                })
+                            wrapLoadingOnActionButton($(this), () => (
+                                AJAX.route(GET, `settings_edit_type_translations_api`, params)
+                                    .json()
+                                    .then(response => {
+                                        $modalEditTranslations.find(`.modal-body`).html(response.html);
+                                        $modalEditTranslations.modal('show');
+                                    })
+                            ));
                         });
                 }
             },

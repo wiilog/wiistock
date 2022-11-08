@@ -46,6 +46,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => false,
                 SpecificService::CLIENT_SAFRAN_ED => true,
             ],
+            Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION => [
+                'default' => false,
+            ],
             Setting::MANAGE_PREPARATIONS_WITH_PLANNING => [
                 'default' => false,
             ],
@@ -136,7 +139,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::CL_USED_IN_LABELS => [
                 'default' => FreeField::SPECIC_COLLINS_BL
             ],
-            Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT => [
+            Setting::CLEAR_AND_STAY_AFTER_NEW_MVT => [
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],

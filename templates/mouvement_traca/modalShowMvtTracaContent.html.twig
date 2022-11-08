@@ -35,7 +35,7 @@
         </div>
     </div>
     <div class="form-group col-12">
-        {% for attachment in attachments %}
+        {% for attachment in mvt.attachments %}
             {% include 'attachment/attachmentLine.html.twig' with {
                 attachment: attachment,
                 canRemove: false,

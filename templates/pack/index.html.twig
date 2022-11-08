@@ -41,7 +41,7 @@
         {% endif %}
 
         <div class="row">
-            <div class="col-12 packsTableContainer">
+            <div class="col-12 packsTableContainer d-flex">
                 <table id="packsTable" class="table w-100"></table>
             </div>
             <div class="col-12 groupsTableContainer">
@@ -49,6 +49,7 @@
             </div>
         </div>
     </div>
+    <input hidden value="{{ code }}" id="lu-code" class="data">
 
     {% include 'pack/modalEditPack.html.twig' %}
     {% include 'pack/modalDeletePack.html.twig' %}
@@ -59,4 +60,5 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/pages/pack.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/arrival/common.js') }}?v={{ web_version }}"></script>
 {% endblock %}

@@ -6,9 +6,12 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
+use App\Entity\Reception;
+use App\Entity\ReceptionLine;
 use App\Entity\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use DateTimeInterface;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -528,7 +531,7 @@ class PackRepository extends EntityRepository
         return $res[0]['count'] ?? 0;
     }
 
-    public function getForSelect(?string $term, $exclude) {
+    public function getForSelect(?string $term, ?array $exclude = null, ?bool $withoutArticle = false) {
         if($exclude && !is_array($exclude)) {
             $exclude = [$exclude];
         }
@@ -554,6 +557,11 @@ class PackRepository extends EntityRepository
         if($exclude) {
             $qb->andWhere("pack.code NOT IN (:exclude)")
                 ->setParameter("exclude", $exclude);
+        }
+
+        if($withoutArticle) {
+            $qb->leftJoin("pack.article", "article")
+                ->andWhere("article.id IS NULL");
         }
 
         return $qb->getQuery()->getResult();
@@ -599,4 +607,17 @@ class PackRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function isInOngoingReception(Pack|int $pack): bool {
+        return intval($this->createQueryBuilder("pack")
+            ->select("COUNT(reception)")
+            ->join(ReceptionLine::class, "reception_line", Join::WITH, "reception_line.pack = pack")
+            ->join("reception_line.reception", "reception")
+            ->join("reception.statut", "status")
+            ->andWhere("status.code = :ongoing")
+            ->setParameter("ongoing", Reception::STATUT_EN_ATTENTE)
+            ->getQuery()
+            ->getSingleScalarResult()) > 0;
+    }
+
 }

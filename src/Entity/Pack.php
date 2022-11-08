@@ -20,6 +20,7 @@ class Pack implements PairedEntity {
     use SensorMessageTrait;
 
     public const CONFIRM_CREATE_GROUP = 'CONFIRM_CREATE_GROUP';
+    public const IN_ONGOING_RECEPTION = 'IN_ONGOING_RECEPTION';
     public const PACK_IS_GROUP = 'PACK_IS_GROUP';
     public const EMPTY_ROUND_PACK = 'passageavide';
 
@@ -110,8 +111,10 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: "currentLogisticUnit", targetEntity: Article::class)]
     private Collection $childArticles;
 
-    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["remove"])]
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
     private Collection $projectHistoryRecords;
+
+    private ?bool $articleContainer = false;
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -728,4 +731,16 @@ class Pack implements PairedEntity {
 
         return $this;
     }
+
+    public function isArticleContainer(): ?bool
+    {
+        return $this->articleContainer;
+    }
+
+    public function setArticleContainer(?bool $articleContainer): self
+    {
+        $this->articleContainer = $articleContainer;
+        return $this;
+    }
+
 }

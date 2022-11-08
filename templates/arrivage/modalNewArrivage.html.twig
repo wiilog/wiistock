@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 {% set isClientSafranED =
     isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
     or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
@@ -31,10 +33,11 @@
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-auto toggle-button-container">
-                                <span class="btn btn-primary d-flex align-items-center p-2"
+                            <div class="form-group col-auto toggle-button-container pl-0">
+                                <span class="btn btn-primary d-flex align-items-center p-2" style="height:36px"
                                       onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
-                                    <span class="wii-icon wii-icon-plus"></span>
+                                    <span class="wii-icon wii-icon-plus mr-2"></span>
+                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
                                 </span>
                             </div>
                         {% endif %}
@@ -58,10 +61,11 @@
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-auto toggle-button-container">
-                                <span class="btn btn-primary d-flex align-items-center p-2"
+                            <div class="form-group col-auto toggle-button-container pl-0">
+                                <span class="btn btn-primary d-flex align-items-center p-2" style="height:36px"
                                       onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
-                                    <span class="wii-icon wii-icon-plus"></span>
+                                    <span class="wii-icon wii-icon-plus mr-2"></span>
+                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
                                 </span>
                             </div>
                         {% endif %}
@@ -86,10 +90,11 @@
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-auto toggle-button-container">
-                                <span class="btn btn-primary d-flex align-items-center p-2"
+                            <div class="form-group col-auto toggle-button-container pl-0">
+                                <span class="btn btn-primary d-flex align-items-center p-2" style="height:36px"
                                       onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
-                                    <span class="wii-icon wii-icon-plus"></span>
+                                    <span class="wii-icon wii-icon-plus mr-2"></span>
+                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
                                 </span>
                             </div>
                         {% endif %}
@@ -327,36 +332,104 @@
                     {% set checked = (autoPrint ? 'checked' : '') %}
                     {% set printArrivalFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PRINT_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(printArrivalFieldCode, 'displayedCreate') %}
-                        <div class="form-group col-2">
-                            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer arrivage') }}</label>
-                            <label class="switch d-block-switch mt-2">
-                                <input class="checkbox data no-clear"
+                        <div class="form-group col-2 d-flex align-items-end">
+                            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
+                                <input class="checkbox data no-clear mr-2"
                                        type="checkbox"
                                        name="printArrivage"
-                                       {{ keptFields[printArrivalFieldCode] ?? true ? 'checked' }}>
-                                <span class="slider round"></span>
+                                    {{ keptFields[printArrivalFieldCode] ?? true ? 'checked' }}>
+                                <label class="text-break text-wrap">
+                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer arrivage') }}
+                                </label>
                             </label>
                         </div>
                     {% endif %}
 
                     {% if natures != null %}
-                        <div class="form-group col-2">
-                            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer UL') }}</label>
-                            <label class="switch d-block-switch mt-2">
-                                <input class="checkbox no-clear" type="checkbox" name="printColis"
-                                       id="printColis" {{ checked }}>
-                                <span class="slider round"></span>
+                        <div class="form-group col-2 d-flex align-items-end">
+                            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
+                                <input
+                                    class="checkbox no-clear mr-2"
+                                    type="checkbox" name="printColis"
+                                    id="printColis" {{ checked }}>
                                 <input hidden value="{{ checked }}" id="printColisChecked">
+                                <label class="text-break text-wrap">
+                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques') }}
+                                </label>
                             </label>
                         </div>
                     {% endif %}
                 </div>
 
                 <div class="row">
-                    {% if natures != null %}
-                        <div class="col-12 blocVisible d-block natures-container">
-                            <h3 class="label">{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nombre d\'UL à ajouter :') }}</h3>
+                    {% set projectNumberFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
+                    {% if fieldsParam|isFieldRequired(projectNumberFieldCode, 'displayedCreate') %}
+                        {% set projectNumberRequired = fieldsParam|isFieldRequired(projectNumberFieldCode, 'requiredCreate') %}
+                        <div class="form-group col-4">
+                            <label class="wii-field-name" for="noProject">
+                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet') }}{{ projectNumberRequired ? '*' }}
+                            </label>
+                            <input type="text"
+                                   class="form-control input-sm data {{ projectNumberRequired ? 'needed' }}"
+                                   value="{{ keptFields[projectNumberFieldCode] ?? null }}"
+                                   name="noProject"
+                                   maxlength="64">
+                        </div>
+                    {% endif %}
 
+                    {% set businessUnitFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
+                    {% if fieldsParam|isFieldRequired(businessUnitFieldCode, 'displayedCreate') %}
+                        {% set businessUnitRequired = fieldsParam|isFieldRequired(businessUnitFieldCode, 'requiredCreate') %}
+                        <div class="form-group col-4">
+                            <label class="wii-field-name">
+                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit') }}{{ businessUnitRequired ? '*' }}
+                            </label>
+                            <select class="needs-default form-control input-sm data {{ businessUnitRequired ? 'needed' }}"
+                                    name="businessUnit">
+                                <option value=""></option>
+                                {% for business in businessUnits %}
+                                    <option value="{{ business }}" {{ (keptFields[businessUnitFieldCode] ?? null) == business ? 'selected' }}>{{ business }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+
+                    {% set customsFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
+                    {% if fieldsParam|isFieldRequired(customsFieldCode, 'displayedCreate') %}
+                        <div class="form-group col-2 d-flex align-items-end">
+                            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
+                                <input class="checkbox mr-2 {{ not isClientSafranED ? 'no-clear' }}"
+                                       type="checkbox"
+                                       name="customs"
+                                    {{ keptFields[customsFieldCode] ?? false ? 'checked' }}>
+                                <label class="text-break text-wrap">
+                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}
+                                </label>
+                            </label>
+                        </div>
+                    {% endif %}
+                    {% set frozenFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
+                    {% if fieldsParam|isFieldRequired(frozenFieldCode, 'displayedCreate') %}
+                        <div class="form-group col-2 d-flex align-items-end">
+                            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
+                                <input class="checkbox data no-clear mr-2"
+                                       type="checkbox"
+                                       name="frozen"
+                                    {{ keptFields[frozenFieldCode] ?? false ? 'checked' }}>
+                                <label class="text-break text-wrap">
+                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}
+                                </label>
+                            </label>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="wii-section-title my-3 d-flex align-items-center">
+                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nombre d\'unités logistiques à ajouter :') }}
+                </div>
+                <div class="row">
+                    {% if natures != null %}
+
+                        <div class="col-12 blocVisible d-block natures-container">
                             <div class="mt-2 row">
                                 {% for nature in natures %}
                                     <div class="form-group col-2 d-flex flex-column">
@@ -393,67 +466,21 @@
                         </div>
                     {% endif %}
                 </div>
-                <div class="row">
-                    {% set projectNumberFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
-                    {% if fieldsParam|isFieldRequired(projectNumberFieldCode, 'displayedCreate') %}
-                        {% set projectNumberRequired = fieldsParam|isFieldRequired(projectNumberFieldCode, 'requiredCreate') %}
-                        <div class="form-group col-4">
-                            <label class="wii-field-name" for="noProject">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet') }}{{ projectNumberRequired ? '*' }}
-                            </label>
-                            <input type="text"
-                                   class="form-control input-sm data {{ projectNumberRequired ? 'needed' }}"
-                                   value="{{ keptFields[projectNumberFieldCode] ?? null }}"
-                                   name="noProject"
-                                   maxlength="64">
-                        </div>
-                    {% endif %}
 
-                    {% set businessUnitFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
-                    {% if fieldsParam|isFieldRequired(businessUnitFieldCode, 'displayedCreate') %}
-                        {% set businessUnitRequired = fieldsParam|isFieldRequired(businessUnitFieldCode, 'requiredCreate') %}
+                {% set projectNumberFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT') %}
+                {% if fieldsParam|isFieldRequired(projectNumberFieldCode, 'displayedCreate') %}
+                    {% set projectRequired = fieldsParam|isFieldRequired(projectNumberFieldCode, 'requiredCreate') %}
+                    <div class="row">
                         <div class="form-group col-4">
-                            <label class="wii-field-name">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit') }}{{ businessUnitRequired ? '*' }}
-                            </label>
-                            <select class="needs-default form-control input-sm data {{ businessUnitRequired ? 'needed' }}"
-                                    name="businessUnit">
-                                <option value=""></option>
-                                {% for business in businessUnits %}
-                                    <option value="{{ business }}" {{ (keptFields[businessUnitFieldCode] ?? null) == business ? 'selected' }}>{{ business }}</option>
-                                {% endfor %}
-                            </select>
+                            {{ form.select('project', "Projet", projectRequired, {
+                                type: 'project',
+                                labelOptions: {
+                                    removeAsterisk: false
+                                }
+                            }) }}
                         </div>
-                    {% endif %}
-                </div>
-                <div class="row">
-                    {% set customsFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(customsFieldCode, 'displayedCreate') %}
-                        <div class="form-group col-2">
-                            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}</label>
-                            <label class="switch d-block-switch mt-2">
-                                <input class="checkbox {{ not isClientSafranED ? 'no-clear' }}"
-                                       type="checkbox"
-                                       name="customs"
-                                       {{ keptFields[customsFieldCode] ?? false ? 'checked' }}>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    {% endif %}
-                    {% set frozenFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(frozenFieldCode, 'displayedCreate') %}
-                        <div class="form-group col-2">
-                            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}</label>
-                            <label class="switch d-block-switch mt-2">
-                                <input class="checkbox no-clear"
-                                       type="checkbox"
-                                       name="frozen"
-                                       {{ keptFields[frozenFieldCode] ?? false ? 'checked' }}>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    {% endif %}
-                </div>
+                    </div>
+                {% endif %}
 
                 <!-- CHAMPS LIBRES -->
                 <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
@@ -479,7 +506,7 @@
                     {% if fieldsParam|isFieldRequired(commentFieldCode, 'displayedCreate') %}
                         {% set commentRequired = fieldsParam|isFieldRequired(commentFieldCode, 'requiredCreate') %}
                         <div class="form-group col-8 h-fit-content">
-                            <label class="wii-field-name" for="commentaire">
+                            <label class="wii-subtitle" for="commentaire">
                                 {{ trans('Général', null, 'Modale', 'Commentaire') }}{{ commentRequired ? '*' }}
                             </label>
                             <input class="commentaire form-control input-sm data {{ commentRequired ? 'needed' }}"
@@ -494,12 +521,12 @@
                     {% set attachmentFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PJ_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(attachmentFieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
-                            <div>
-                                {% include 'attachment/attachment.html.twig' with {
-                                    'isNew': true,
-                                    'required': fieldsParam|isFieldRequired(attachmentFieldCode, 'requiredCreate')
-                                } %}
-                            </div>
+                            {% include 'attachment/attachment.html.twig' with {
+                                'isNew': true,
+                                'required': fieldsParam|isFieldRequired(attachmentFieldCode, 'requiredCreate'),
+                                fieldNameClass : 'wii-subtitle',
+                                override: true,
+                            } %}
                         </div>
                     {% else %}
                         <input type="hidden" name="isAttachmentForm" value="1"/>

@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Controller\AbstractController;
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\Cart;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -17,6 +18,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\ReceptionLine;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
@@ -155,10 +157,18 @@ class TrackingMovementService extends AbstractController
             );
         }
 
+        $article = $movement->getPackArticle()?->getBarCode();
+
+        $pack = match (true) {
+            !empty($movement->getLogisticUnitParent())                     => $movement->getLogisticUnitParent()->getCode(),
+            !empty($movement->getPackArticle()?->getCurrentLogisticUnit()) => "",
+            default                                                        => $movement->getPack()->getCode()
+        };
+
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'packCode' => !($movement->getLogisticUnitParent() && $movement->getPack()?->getArticle()) ? $this->formatService->pack($trackingPack) : "",
+            'packCode' => $pack,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
@@ -166,16 +176,16 @@ class TrackingMovementService extends AbstractController
             'location' => $this->formatService->location($movement->getEmplacement()),
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
-                : ($movement->getArticle()
-                    ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
+                : ($movement->getPackArticle()
+                    ? $movement->getPackArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
                     : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getArticleFournisseur()?->getReferenceArticle()?->getLibelle()),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
-                : ($movement->getArticle()
-                    ? $movement->getArticle()->getLabel()
+                : ($movement->getPackArticle()
+                    ? $movement->getPackArticle()->getLabel()
                     : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getLabel()),
             "quantity" => $movement->getQuantity() ?: '',
-            "article" => $movement->getLogisticUnitParent() && $movement->getPack()->getArticle() ? $movement->getPack()->getArticle()?->getBarCode() : "",
+            "article" => $article,
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => $this->formatService->user($movement->getOperateur()),
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
@@ -291,7 +301,7 @@ class TrackingMovementService extends AbstractController
                                            DateTime $date,
                                            bool $fromNomade,
                                            ?bool $finished,
-                                           $trackingType,
+                                           Statut|string|int $trackingType,
                                            array $options = []): TrackingMovement
     {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
@@ -383,7 +393,7 @@ class TrackingMovementService extends AbstractController
     public function persistPack(EntityManagerInterface $entityManager,
                                 $packOrCode,
                                 $quantity,
-                                $natureId,
+                                $natureId = null,
                                 bool $onlyPack = false): Pack {
         $packRepository = $entityManager->getRepository(Pack::class);
 
@@ -937,30 +947,77 @@ class TrackingMovementService extends AbstractController
     }
 
     public function persistTrackingMovementForPackOrGroup(EntityManagerInterface $entityManager,
-                                                                                 $packOrCode,
+                                                          Pack|string            $packOrCode,
                                                           ?Emplacement           $location,
                                                           Utilisateur            $operator,
                                                           DateTime               $date,
                                                           ?bool                  $finished,
-                                                                                 $trackingType,
+                                                          Statut|string|int      $trackingType,
                                                           bool                   $forced,
                                                           array                  $options = []): array {
         $packRepository = $entityManager->getRepository(Pack::class);
         $pack = $packOrCode instanceof Pack
             ? $packOrCode
             : $packRepository->findOneBy(['code' => $packOrCode]);
+
         if (!isset($pack) || $pack->getGroupIteration() === null) { // it's a simple pack
-            return $this->persistTrackingMovement(
-                $entityManager,
-                $pack ?? $packOrCode,
-                $location,
-                $operator,
-                $date,
-                $finished,
-                $trackingType,
-                $forced,
-                $options
-            );
+            if(isset($options["articles"]) && $options["articles"]) {
+                return $this->persistLogisticUnitMovements($entityManager, $packOrCode, $location, $options["articles"], $operator, $options);
+            } else {
+                $newMovements = [];
+                $selectedType = $entityManager->find(Statut::class, $trackingType);
+
+                if($selectedType->getCode() === TrackingMovement::TYPE_PRISE && $pack->getArticle() && $pack->getArticle()->getCurrentLogisticUnit()) {
+                    $movement = $this->persistTrackingMovement(
+                        $entityManager,
+                        $pack ?? $packOrCode,
+                        $location,
+                        $operator,
+                        $date,
+                        $finished,
+                        TrackingMovement::TYPE_PICK_LU,
+                        $forced,
+                        $options
+                    );
+
+                    if($movement["success"]) {
+                        $newMovements[] = $movement["movement"];
+                    } else {
+                        return $movement;
+                    }
+                }
+
+                $movement = $this->persistTrackingMovement(
+                    $entityManager,
+                    $pack ?? $packOrCode,
+                    $location,
+                    $operator,
+                    $date,
+                    $finished,
+                    $trackingType,
+                    $forced,
+                    $options
+                );
+
+                if($movement["success"]) {
+                    $newMovements[] = $movement["movement"];
+                } else {
+                    return $movement;
+                }
+
+                if(count($newMovements) > 1) {
+                    return [
+                        "success" => true,
+                        "multiple" => true,
+                        "movements" => $newMovements,
+                    ];
+                } else {
+                    return [
+                        "success" => true,
+                        "movement" => $newMovements[0],
+                    ];
+                }
+            }
         }
         else { // it's a group
             $parent = $pack;
@@ -1020,5 +1077,129 @@ class TrackingMovementService extends AbstractController
                 'parent' => $parent
             ];
         }
+    }
+
+    private function persistLogisticUnitMovements(EntityManagerInterface $manager, Pack|string $pack, Emplacement $location, ?array $articles, ?Utilisateur $user, array $options) {
+        $packRepository = $manager->getRepository(Pack::class);
+
+        $movements = [];
+        $inCarts = [];
+
+        if(is_string($pack)) {
+            $pack = $this->persistPack($manager, $pack, 1);
+            $lastTracking = $this->persistTrackingMovement(
+                $manager,
+                $pack,
+                $location,
+                $user,
+                new DateTime(),
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+                false,
+                $options,
+            )["movement"];
+
+            $movements[] = $lastTracking;
+        }
+
+        /** @var Article $article */
+        foreach($articles as $article) {
+            if(!$article->getTrackingPack()) {
+                $trackingPack = $packRepository->findOneBy(["code" => $article->getBarCode()]);
+                if($trackingPack) {
+                    $article->setTrackingPack($trackingPack);
+                } else {
+                    $article->setTrackingPack($this->persistPack($manager, $article->getBarCode(), $article->getQuantite()));
+                }
+            }
+            if($packRepository->isInOngoingReception($article->getTrackingPack())) {
+                return [
+                    "success" => false,
+                    "error" => Pack::IN_ONGOING_RECEPTION,
+                ];
+            }
+            if(!$article->getCarts()->isEmpty()) {
+                $inCarts = array_merge($inCarts, $article->getCarts());
+            }
+
+            //generate pick up in LU movements
+            if($article->getCurrentLogisticUnit()) {
+                /** @var TrackingMovement $luPick */
+                $luPick = $this->persistTrackingMovement(
+                    $manager,
+                    $article->getTrackingPack(),
+                    $article->getEmplacement(),
+                    $user,
+                    new DateTime(),
+                    true,
+                    TrackingMovement::TYPE_PICK_LU,
+                    false,
+                    $options,
+                )["movement"];
+
+                $luPick->setLogisticUnitParent($article->getCurrentLogisticUnit());
+                $movements[] = $luPick;
+            }
+
+            $article->setCurrentLogisticUnit($pack);
+
+            //generate pick up movements
+            $movements[] = $this->persistTrackingMovement(
+                $manager,
+                $article->getTrackingPack(),
+                $article->getEmplacement(),
+                $user,
+                new DateTime(),
+                true,
+                TrackingMovement::TYPE_PRISE,
+                false,
+                $options,
+            )["movement"];
+
+            //generate drop in LU movements
+            $luDrop = $this->persistTrackingMovement(
+                $manager,
+                $article->getTrackingPack(),
+                $location,
+                $user,
+                new DateTime(),
+                true,
+                TrackingMovement::TYPE_DROP_LU,
+                false,
+                $options,
+            )["movement"];
+
+            $luDrop->setLogisticUnitParent($pack);
+            $movements[] = $luDrop;
+
+            //generate drop movements
+            $movements[] = $this->persistTrackingMovement(
+                $manager,
+                $article->getTrackingPack(),
+                ($lastTracking ?? $pack->getLastTracking())?->getEmplacement(),
+                $user,
+                new DateTime(),
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+                false,
+                $options,
+            )["movement"];
+        }
+
+        //add all new articles
+        if($inCarts) {
+            /** @var Cart $cart */
+            foreach($inCarts as $cart) {
+                foreach($articles as $article) {
+                    $cart->addArticle($article);
+                }
+            }
+        }
+
+        return [
+            "success" => true,
+            "multiple" => true,
+            "movements" => $movements,
+        ];
     }
 }

@@ -1030,6 +1030,7 @@ class SettingsController extends AbstractController {
                         return [
                             "emergency" => [
                                 "field" => $emergencyField->getId(),
+                                "modalType" => $emergencyField->getModalType(),
                                 "elements" => Stream::from($emergencyField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1040,6 +1041,7 @@ class SettingsController extends AbstractController {
                             ],
                             "businessUnit" => [
                                 "field" => $businessField->getId(),
+                                "modalType" => $emergencyField->getModalType(),
                                 "elements" => Stream::from($businessField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1072,6 +1074,7 @@ class SettingsController extends AbstractController {
                         return [
                             "businessUnit" => [
                                 "field" => $field->getId(),
+                                "modalType" => $field->getModalType(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1101,16 +1104,39 @@ class SettingsController extends AbstractController {
                     },
                 ],
                 self::MENU_HANDLINGS => [
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
+                    self::MENU_FIXED_FIELDS => function() use ($userRepository, $typeRepository, $fixedFieldRepository) {
                         $field = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY);
-
+                        $receiversField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_RECEIVERS_HANDLING);
+                        $types = $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false);
                         return [
                             "emergency" => [
                                 "field" => $field->getId(),
+                                "modalType" => $field->getModalType(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
                                         "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                            "receivers" => [
+                                "field" => $receiversField->getId(),
+                                "modalType" => $receiversField->getModalType(),
+                                "types" => $types,
+                                "elements" => Stream::from($receiversField->getElements() ?? [])
+                                    ->map(fn($users, $type) => [
+                                        "type" => Stream::from([$type])->map(fn($typeId) => [
+                                            "value" => $typeId,
+                                            "label" => $typeRepository->find($typeId)->getLabel(),
+                                            ])
+                                            ->toArray(),
+                                        "users" => Stream::from($users)->map(fn($user) => [
+                                            "value" => $user,
+                                            "label" => $userRepository->find($user)->getUsername(),
+                                            'selected' => true,
+                                            ])
+                                            ->toArray(),
                                         "selected" => true,
                                     ])
                                     ->toArray(),
@@ -1351,7 +1377,16 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function saveFieldParam(Request $request, EntityManagerInterface $manager, FieldsParam $field): Response {
-        $field->setElements(explode(",", $request->request->get("elements")));
+        if ($field->getModalType() == "FREE") {
+            $field->setElements(explode(",", $request->request->get("elements")));
+        } elseif ($field->getModalType() == "USER_BY_TYPE") {
+            $lines = $request->request->has("lines") ? json_decode($request->request->get("lines"), true) : [];
+            $elements = [];
+            foreach ($lines as $line) {
+                $elements[$line['handlingType']] = $line['user'];
+            }
+            $field->setElements($elements);
+        }
         $manager->flush();
 
         return $this->json([
@@ -2025,7 +2060,10 @@ class SettingsController extends AbstractController {
             $displayedEdit = $field->isDisplayedEdit() ? "checked" : "";
             $requiredEdit = $field->isRequiredEdit() ? "checked" : "";
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
+            $editDisabled = in_array($field->getFieldCode(), FieldsParam::NOT_EDITABLE_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
+
+            $filterOnly = in_array($field->getFieldCode(), FieldsParam::FILTER_ONLY_FIELDS) ? "disabled" : "";
 
             if ($edit) {
                 $labelAttributes = "class='font-weight-bold'";
@@ -2036,10 +2074,10 @@ class SettingsController extends AbstractController {
 
                 $row = [
                     "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
-                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
-                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit/>",
-                    "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
-                    "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
+                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate $filterOnly/>",
+                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit $filterOnly/>",
+                    "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate $filterOnly/>",
+                    "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit $filterOnly/>",
                     "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",
                 ];
 
@@ -2406,7 +2444,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/types_litiges/supprimer/{entity}", name="settings_delete_type_litige", options={"expose"=true})
+     * @Route("/types_litige/supprimer/{entity}", name="settings_delete_type_litige", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP}, mode=HasPermission::IN_JSON)
      */
     public function deleteTypeLitige(EntityManagerInterface $entityManager, Type $entity): Response {
@@ -2423,6 +2461,63 @@ class SettingsController extends AbstractController {
                 "msg" => "Ce type de litige est utilisé, vous ne pouvez pas le supprimer.",
             ]);
         }
+    }
+
+    /**
+     * @Route("/types_litige_api/edit/translate", name="settings_edit_types_litige_translations_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT})
+     */
+    public function apiEditTranslationsTypeLitige(EntityManagerInterface $manager,
+                                                  TranslationService     $translationService): JsonResponse {
+        $typeRepository = $manager->getRepository(Type::class);
+        $typesLitige = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
+
+        foreach ($typesLitige as $type) {
+            if ($type->getLabelTranslation() === null) {
+                $translationService->setFirstTranslation($manager, $type, $type->getLabel());
+            }
+        }
+        $manager->flush();
+
+        $html = $this->renderView('settings/modal_edit_translations_content.html.twig', [
+            'lines' => $typesLitige
+        ]);
+
+        return new JsonResponse([
+            'success' => true,
+            'html' => $html
+        ]);
+    }
+
+    /**
+     * @Route("/types_litige/edit/translate", name="settings_edit_types_litige_translations", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
+     */
+    public function editTranslations(Request                $request,
+                                     EntityManagerInterface $manager,
+                                     TranslationService     $translationService): JsonResponse {
+        if ($data = json_decode($request->getContent(), true)) {
+            $typeRepository = $manager->getRepository(Type::class);
+            $typesLitige = json_decode($data['lines'], true);
+
+            foreach ($typesLitige as $typeId) {
+                $type = $typeRepository->find($typeId);
+
+                $name = 'labels-'.$typeId;
+                $labels = $data[$name];
+                $labelTranslationSource = $type->getLabelTranslation();
+
+                $translationService->editEntityTranslations($manager, $labelTranslationSource, $labels);
+            }
+
+            $manager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'msg' => "Les traductions ont bien été modifiées."
+            ]);
+        }
+        throw new BadRequestHttpException();
     }
 
     public function getRequestTemplates(TypeRepository $typeRepository, RequestTemplateRepository $requestTemplateRepository, string $templateType) {

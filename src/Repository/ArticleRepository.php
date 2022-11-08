@@ -124,12 +124,14 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.stockEntryDate')
             ->addSelect('article.expiryDate')
             ->addSelect("join_visibilityGroup.label AS visibilityGroup")
+            ->addSelect('project.code as projectCode')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
+            ->leftJoin('article.project', 'project' )
             ->groupBy('article.id')
             ->getQuery()
             ->toIterable();
@@ -293,7 +295,7 @@ class ArticleRepository extends EntityRepository {
 						$searchForArticle = Utilisateur::SEARCH_DEFAULT;
 					}
 
-                    foreach ($searchForArticle as $key => $searchField) {
+                    foreach ($searchForArticle as $searchField) {
 
                         $date = DateTime::createFromFormat('d/m/Y', $searchValue);
                         $date = $date ? $date->format('Y-m-d') : null;
@@ -350,6 +352,17 @@ class ArticleRepository extends EntityRepository {
                                     ->select('article.id')
                                     ->leftJoin('article.articleFournisseur', 'afa')
                                     ->andWhere('afa.reference LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
+                            case "project":
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.project', 'project_search')
+                                    ->andWhere('project_search.code LIKE :search')
                                     ->setParameter('search', $search);
 
                                 foreach ($subqb->getQuery()->execute() as $idArray) {
@@ -776,10 +789,13 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.quantite as quantity')
             ->addSelect('referenceArticle_status.nom as reference_status')
             ->addSelect('0 as is_ref')
+            ->addSelect('current_logistic_unit.id as currentLogisticUnitId')
+            ->addSelect('current_logistic_unit.code as currentLogisticUnitCode')
             ->join('article.articleFournisseur', 'article_articleFournisseur')
             ->join('article_articleFournisseur.referenceArticle', 'articleFournisseur_reference')
             ->join('articleFournisseur_reference.statut', 'referenceArticle_status')
-            ->join('article.emplacement', 'article_location');
+            ->join('article.emplacement', 'article_location')
+            ->leftJoin('article.currentLogisticUnit', 'current_logistic_unit');
 
         $result = $queryBuilder->getQuery()->execute();
         return !empty($result) ? $result[0] : null;
@@ -865,9 +881,17 @@ class ArticleRepository extends EntityRepository {
         }
     }
 
-    public function getForSelect(?string $term) {
-        return $this->createQueryBuilder("article")
-            ->select("article.id AS id, article.barCode AS text")
+    public function getForSelect(?string $term, string $status = null) {
+        $qb = $this->createQueryBuilder("article")
+            ->select("article.id AS id, article.barCode AS text");
+
+        if($status !== null) {
+            $qb->join("article.statut", "status")
+                ->andWhere("status.code = :status")
+                ->setParameter("status", $status);
+        }
+
+        return $qb
             ->andWhere("article.barCode LIKE :term")
             ->setParameter("term", "%$term%")
             ->setMaxResults(100)
@@ -1111,4 +1135,5 @@ class ArticleRepository extends EntityRepository {
             ->getQuery()
             ->getArrayResult();
     }
+
 }

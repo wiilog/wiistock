@@ -9,19 +9,53 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
+    initDateTimePicker('#datetime', DATE_FORMATS_TO_DISPLAY[format] + ` HH:mm`, {setTodayDate: true});
     initDatePickers();
     Select2Old.init($('#emplacement'), 'Emplacements');
 
     initTrackingMovementTable($(`#tableMvts`).data(`initial-visible`));
 
-    const filters = JSON.parse($(`#trackingMovementFilters`).val())
-    displayFiltersSup(filters, true);
+    if(!$(`#filterArticle`).exists()) {
+        const filters = JSON.parse($(`#trackingMovementFilters`).val())
+        displayFiltersSup(filters, true);
+    }
 
     Select2Old.user(Translation.of('Traçabilité', 'Mouvements', 'Opérateurs', false));
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of( 'Traçabilité', 'Général', 'Emplacement', false), 3);
 
     initNewModal($modalNewMvtTraca);
+
+    $(document).on(`keypress`, `[data-fill-location]`, function(event) {
+        if(event.code === `Enter`) {
+            loadLULocation($(this));
+        }
+    });
+
+    $(document).on(`focusout`, `[data-fill-location]`, function () {
+        loadLULocation($(this));
+    })
 });
+
+function loadLULocation($input) {
+    const $modalNewMvtTraca = $('#modalNewMvtTraca');
+    const code = $input.val();
+
+    AJAX.route(`GET`, `tracking_movement_lu_location`, {code}).json().then(response => {
+        $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+        if(response.error) {
+            Flash.add(`danger`, response.error);
+        }
+
+        const $location = $modalNewMvtTraca.find(`[name="emplacement"]`);
+        if(response.location) {
+            $location.append(new Option(response.location.label, response.location.id, true, true))
+        } else {
+            $location.val(null);
+        }
+
+        $location.prop(`disabled`, !!response.location).trigger(`change`);
+    });
+}
 
 function initTrackingMovementTable(columns) {
     let trackingMovementTableConfig = {
@@ -30,8 +64,11 @@ function initTrackingMovementTable(columns) {
         processing: true,
         order: [['date', "desc"]],
         ajax: {
-            "url": Routing.generate('tracking_movement_api', true),
-            "type": "POST",
+            url: Routing.generate('tracking_movement_api', true),
+            type: "POST",
+            data: {
+                article: $(`#filterArticle`).val(),
+            }
         },
         drawConfig: {
             needsSearchOverride: true,
@@ -89,7 +126,7 @@ function initPageModal(tableMvt) {
         urlNewMvtTraca,
         {
             tables: [tableMvt],
-            keepModal: !Number($('#redirectAfterTrackingMovementCreation').val()),
+            keepModal: Number($('#clearAndStayAfterNewMvt').val()),
             keepForm: true,
             success: ({success, trackingMovementsCounter, group}) => {
                 if (group) {

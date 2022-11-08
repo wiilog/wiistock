@@ -104,11 +104,12 @@ class DataHistoryController extends AbstractController {
 
         $type = $query->get('type');
         $id = $query->get('id');
-
+        $now = new DateTime();
+        $start = (clone $now)->modify('-1 day');
         $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
         $associatedMessages = $entity->getSensorMessagesBetween(
-            $filters["start"],
-            $filters["end"],
+            $start,
+            $now,
             Sensor::GPS
         );
 

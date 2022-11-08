@@ -128,6 +128,7 @@ function processSubmitAction($modal,
                              {tables, keepModal, keepForm, validator, success, error, headerCallback, keepLoading, waitDatatable, waitForUserAction} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
+
     if (formValidation) {
         const smartData = isAttachmentForm
             ? createFormData(data)
@@ -434,6 +435,10 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 missingInputNames.push($input.data(`label`));
             } else if ($input.prev('label').text()){
                 missingInputNames.push($input.prev('label').text().replace('*', ''));
+            }else if ($input.closest('label').find(`.wii-field-name`)){
+                missingInputNames.push(
+                    $input.closest('label').find(`.wii-field-name`).text().replace('*', '')
+                );
             } else if (label && missingInputNames.indexOf(label) === -1) {
                 missingInputNames.push(label);
             }

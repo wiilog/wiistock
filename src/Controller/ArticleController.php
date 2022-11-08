@@ -14,6 +14,7 @@ use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\ProjectHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
@@ -136,6 +137,27 @@ class ArticleController extends AbstractController
     }
 
     /**
+     * @Route("/voir/{article}", name="article_show_page")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
+     */
+    public function showPage(Article $article, EntityManagerInterface $manager): Response {
+        $type = $article->getType();
+        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
+        $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
+        $projectHistoryRecords = Stream::from($article->getProjectHistoryRecords())
+            ->filter(fn(ProjectHistoryRecord $record) => $record->getProject() !== $article->getProject())
+            ->sort(fn(ProjectHistoryRecord $r1, ProjectHistoryRecord $r2) => $r2->getCreatedAt() <=> $r1->getCreatedAt())
+            ->toArray();
+
+        return $this->render("article/show/index.html.twig", [
+            'article' => $article,
+            'hasMovements' => $hasMovements,
+            'freeFields' => $freeFields,
+            'projectHistoryRecords' => $projectHistoryRecords,
+        ]);
+    }
+
+    /**
      * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      */
@@ -168,7 +190,7 @@ class ArticleController extends AbstractController
     /**
      * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function editApi(Request $request,
+    public function show(Request $request,
                             ArticleDataService $articleDataService,
                             EntityManagerInterface $entityManager): Response
     {
@@ -661,5 +683,18 @@ class ArticleController extends AbstractController
             $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
+    }
+
+    #[Route("/get-article-tracking-movements", name: "get_article_tracking_movements", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    public function getTrackingMovements(EntityManagerInterface $manager, Request $request): Response {
+        $article = $request->query->get('article');
+
+        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article);
+
+        return $this->json([
+            'template' => $this->renderView('article/show/timeline.html.twig', [
+                'movements' => $movements,
+            ]),
+        ]);
     }
 }

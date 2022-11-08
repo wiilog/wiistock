@@ -289,6 +289,7 @@ function toggleCreationForm($pageHeader, $form, show) {
     const $category = $form.find(`.category`);
     if (show) {
         $pageHeader.addClass('d-none');
+        $form.closest('.wii-section').find('.translate-labels').addClass('d-none');
         $category.addClass('data');
     }
     else {

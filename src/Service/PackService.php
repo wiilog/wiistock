@@ -8,6 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Pack;
 use App\Entity\Project;
+use App\Entity\ProjectHistoryRecord;
 use App\Entity\Reception;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
@@ -17,6 +18,8 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
+use App\Repository\ProjectHistoryRecordRepository;
+use App\Repository\ProjectRepository;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -65,7 +68,7 @@ class PackService {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
+        $filters = $params->get("codeUl") ? [["field"=> "colis", "value"=> $params->get("codeUl")]] : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
@@ -98,6 +101,25 @@ class PackService {
         $rows = [];
         foreach ($trackingMovements as $trackingMovement) {
             $rows[] = $this->dataRowGroupHistory($trackingMovement);
+        }
+
+        return [
+            "data" => $rows,
+            "recordsFiltered" => $queryResult['filtered'],
+            "recordsTotal" => $queryResult['total'],
+        ];
+    }
+
+    public function getProjectHistoryForDatatable($pack, $params) {
+        $projectHistoryRecordRepository = $this->entityManager->getRepository(ProjectHistoryRecord::class);
+
+        $queryResult = $projectHistoryRecordRepository->findLineForProjectHistory($pack, $params);
+
+        $lines = $queryResult["data"];
+
+        $rows = [];
+        foreach ($lines as $line) {
+            $rows[] = $this->dataRowProjectHistory($line);
         }
 
         return [
@@ -158,6 +180,13 @@ class PackService {
         ];
     }
 
+    public function dataRowProjectHistory(ProjectHistoryRecord $projectHistoryRecord) {
+        return [
+            'project' => $projectHistoryRecord->getProject() ? $projectHistoryRecord->getProject()->getCode() : '',
+            'createdAt' => $this->formatService->datetime($projectHistoryRecord->getCreatedAt()),
+        ];
+    }
+
     public function checkPackDataBeforeEdition(array $data): array
     {
         $quantity = $data['quantity'] ?? null;
@@ -191,9 +220,10 @@ class PackService {
         ];
     }
 
-    public function editPack(array $data, NatureRepository $natureRepository, Pack $pack)
+    public function editPack(array $data, NatureRepository $natureRepository, ProjectRepository $projectRepository, Pack $pack)
     {
         $natureId = $data['nature'] ?? null;
+        $projectId = $data['projects'] ?? null;
         $quantity = $data['quantity'] ?? null;
         $comment = $data['comment'] ?? null;
         $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
@@ -202,6 +232,25 @@ class PackService {
         $nature = $natureRepository->find($natureId);
         if (!empty($nature)) {
             $pack->setNature($nature);
+        }
+
+        $project = $projectRepository->find($projectId);
+        if (!empty($project)) {
+            $packRecord = (new ProjectHistoryRecord())
+                ->setProject($project)
+                ->setCreatedAt(new DateTime());
+
+            $pack->setProject($project);
+            $pack->addProjectHistoryRecord($packRecord);
+
+            if ($pack->getArticle()) {
+                $articleRecord = (new ProjectHistoryRecord())
+                    ->setProject($project)
+                    ->setCreatedAt(new DateTime());
+
+                $pack->getArticle()->setProject($project);
+                $pack->getArticle()->addProjectHistoryRecord($articleRecord);
+            }
         }
 
         $pack
@@ -223,6 +272,9 @@ class PackService {
                 /** @var Nature $nature */
                 $nature = $options['nature'];
 
+                /** @var ?Project $project */
+                $project = $options['project'];
+
                 $arrivalNum = $arrival->getNumeroArrivage();
                 $counter = $this->getNextPackCodeForArrival($arrival) + 1;
                 $counterStr = sprintf("%03u", $counter);
@@ -230,7 +282,8 @@ class PackService {
                 $code = (($nature->getPrefix() ?? '') . $arrivalNum . $counterStr ?? '');
                 $pack = $this
                     ->createPackWithCode($code)
-                    ->setNature($nature);
+                    ->setNature($nature)
+                    ->setProject($project);
 
                 if(isset($options['project'])){
                     $pack->setProject($options['project']);
@@ -376,10 +429,10 @@ class PackService {
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
                 ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature')],
                 ["name" => 'code', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Unités logistiques')],
+                ["name" => 'project', 'title' => 'Projet'],
                 ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
                 ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement')],
                 ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur')],
-                ["name" => 'project', 'title' => 'Projet'],
             ],
             [],
             $columnsVisible

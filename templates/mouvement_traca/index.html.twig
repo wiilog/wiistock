@@ -4,10 +4,12 @@
 
 {% block page_filter %}
     {% include 'filters/filtersTrackingMovements.html.twig' with {
-        'page' : 'PAGE_MVT_TRACA',
-        'tableSelector' : '#tableMvts',
+        page : 'PAGE_MVT_TRACA',
+        tableSelector : '#tableMvts',
         callback: 'clearURL',
-        needsDateFormatting: true
+        needsDateFormatting: true,
+        disabled: filterArticle,
+        filterArticle: filterArticle,
     } %}
 {% endblock %}
 
@@ -23,7 +25,7 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {% include "utils/action-button.html.twig" with {
+                {% include "utils/action-buttons.html.twig" with {
                     actions: [
                         {
                             hasRight: hasRightToCreateMovement,
@@ -79,13 +81,15 @@
     </div>
 
     <input id="trackingMovementFilters" value="{{ initial_filters }}" hidden>
+    {% if filterArticle %}
+        <input id="filterArticle" value="{{ filterArticle.id }}" hidden>
+    {% endif %}
 
     {% include "mouvement_traca/modalNewMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalEditMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalDeleteMvtTraca.html.twig" %}
-    <input type="text" hidden id="redirectAfterTrackingMovementCreation"
-           value="{{ redirectAfterTrackingMovementCreation }}">
+    <input type="text" hidden id="clearAndStayAfterNewMvt" value="{{ clearAndStayAfterNewMvt }}">
 
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
