@@ -2127,7 +2127,7 @@ class ReceptionController extends AbstractController {
         $reference = $manager->getRepository(ReferenceArticle::class)->findOneBy([
             'reference' => $data['reference'],
         ]);
-        dump($orderNumber, $reference->getId(), $reception->getId());
+
         $receptionLine = $manager->getRepository(ReceptionReferenceArticle::class)
             ->findByReceptionAndCommandeAndRefArticleId($reception, $orderNumber, $reference->getId());
         $receptionReferenceArticle = $receptionLine[0] ?? null;
