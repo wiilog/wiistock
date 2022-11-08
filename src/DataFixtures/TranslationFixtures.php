@@ -1292,6 +1292,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Cette unité logistique est utilisé dans un ordre de livraison",
                             "en" => "This logistic unit is used in a delivery order",
                         ],
+                        [
+                            "fr" => "Cette unité logistique contient des articles",
+                            "en" => "This logistic unit contains articles",
+                        ],
                     ],
                 ],
                 "Onglet \"Groupes\"" => [
@@ -1392,11 +1396,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\n_____\nUL : \nModale Modifier une unité logistique",
                     ],
                     [
-                        "fr" => "Prise dans UL",
-                        "en" => "Pick up in L.U.",
-                        "tooltip" => "Zone liste - type de mouvement",
-                    ],
-                    [
                         "fr" => "Nouveau mouvement",
                         "en" => "New movement",
                         "tooltip" => "Bouton",
@@ -1437,8 +1436,13 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
-                        "fr" => "Dépose dans UL",
-                        "en" => "Drop off in L.U.",
+                        "fr" => "prise dans UL",
+                        "en" => "pick up in L.U.",
+                        "tooltip" => "Zone liste - type de mouvement",
+                    ],
+                    [
+                        "fr" => "dépose dans UL",
+                        "en" => "drop off in L.U.",
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
@@ -1479,23 +1483,27 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "natures requises",
                         "en" => "required natures",
-                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
                     ],
                     [
                         "fr" => "Mouvements créés avec succès.",
                         "en" => "Movements created successfully",
-                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
                     ],
                     [
                         "fr" => "Mouvement créé avec succès.",
                         "en" => "Movement created successfully",
-                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
                     ],
                     [
                         "fr" => "Aucun mouvement créé.",
                         "en" => "No movement created",
-                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
                     ],
+                    [
+                        "fr" => "L'unité logistique ne doit pas correspondre à un article",
+                        "en" => "The logistic unit must not match an item",
+                    ],
+                    [
+                        "fr" => "L'unité logistique est dans une réception en attente et ne peut pas être mouvementé",
+                        "en" => "The logistic unit is in a pending reception and can not be moved",
+                    ]
                 ],
             ],
             "Association BR" => [
@@ -3042,6 +3050,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     $this->manager->persist($french);
 
                     $this->console->writeln("Created default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                } else if($french->getTranslation() != $translation["fr"]) {
+                    $english->setTranslation($translation["fr"]);
+
+                    $this->console->writeln("Updated default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
 
                 if(isset($translation["en"])) {

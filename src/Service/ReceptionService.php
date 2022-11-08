@@ -12,6 +12,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\Pack;
 use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
@@ -21,7 +22,6 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -273,11 +273,11 @@ class ReceptionService
     {
         return [
             "id" => ($reception->getId()),
-            "Statut" => FormatHelper::status($reception->getStatut()),
-            "Date" => FormatHelper::datetime($reception->getDate()),
-            "dateAttendue" => FormatHelper::date($reception->getDateAttendue()),
-            "DateFin" => FormatHelper::datetime($reception->getDateFinReception()),
-            "Fournisseur" => FormatHelper::supplier($reception->getFournisseur()),
+            "Statut" => $this->formatService->status($reception->getStatut()),
+            "Date" => $this->formatService->datetime($reception->getDate()),
+            "dateAttendue" => $this->formatService->date($reception->getDateAttendue()),
+            "DateFin" => $this->formatService->datetime($reception->getDateFinReception()),
+            "Fournisseur" => $this->formatService->supplier($reception->getFournisseur()),
             "Commentaire" => $reception->getCommentaire() ?: '',
             "receiver" => implode(', ', array_unique(
                 $reception->getDemandes()
@@ -291,7 +291,7 @@ class ReceptionService
             ),
             "number" => $reception->getNumber() ?: "",
             "orderNumber" => $reception->getOrderNumber() ? join(",", $reception->getOrderNumber()) : "",
-            "storageLocation" => FormatHelper::location($reception->getStorageLocation()),
+            "storageLocation" => $this->formatService->location($reception->getStorageLocation()),
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
                 'deliveries' => $reception->getDemandes()
@@ -503,14 +503,5 @@ class ReceptionService
                 'reception' => $reception
             ];
         }
-    }
-
-    public function getReceptionRefArticlesDuplicates(?Collection $receptionReferenceArticles, ?string $commande, ?int $refArticleId): bool {
-        return ($receptionReferenceArticles->filter(function(ReceptionReferenceArticle $receptionReferenceArticle) use ($refArticleId, $commande) {
-            return (
-                $commande === $receptionReferenceArticle->getCommande() &&
-                $refArticleId === $receptionReferenceArticle->getReferenceArticle()->getId()
-            );
-        }))->count() !== 0;
     }
 }

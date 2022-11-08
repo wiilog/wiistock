@@ -28,7 +28,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
-use function PHPUnit\Framework\isEmpty;
 
 /**
  * @Route("/panier")
@@ -135,13 +134,12 @@ class CartController extends AbstractController
      * @Route("/ajouter/{reference}", name="cart_add_reference", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
      */
-    public function addToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse {
-        /** @var Cart $cart */
+    public function addReferenceToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse {
         $cart = $this->getUser()->getCart();
-        if ($cart->getArticles()->count()){
+        if (!$cart->getArticles()->isEmpty()){
             return $this->json([
                 'success' => false,
-                'msg' => "Le panier contient déjà des articles. Supprimez les pour pouvoir ajouter des references."
+                'msg' => "Le panier contient déjà des articles. Supprimez les pour pouvoir ajouter des références."
             ]);
         }
 
@@ -239,90 +237,120 @@ class CartController extends AbstractController
         return $this->json($response);
     }
 
-    #[Route("/add-to-cart", name: "cart_add_ul", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/add-to-cart-logistic-units", name: "cart_add_logistic_units", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
-    public function addUlToCart(    Request $request,
-                                    EntityManagerInterface $entityManager ): Response {
+    public function addLogisticUnitsToCart(Request                $request,
+                                           EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
         $ids = $data["id"];
         $response = [];
+        $wrongProject = [];
+        $alreadyInCart = [];
+        $addedArticles = [];
+        $unavailableArticles = [];
         $cart = $this->getUser()->getCart();
+
+        $packRepository = $entityManager->getRepository(Pack::class);
 
         if ($cart->getReferences()->count()){
             $response[] = [
                 "success" => false,
                 "msg" => "Le panier contient déjà des références. Supprimez les pour pouvoir ajouter des unités logistiques"
             ];
-            return $this->json($response);
+            return $this->json([
+                "messages" => $response,
+            ]);
         }
         else {
             $cartContent = $cart->getArticles()->toArray();
+            $cartContentStream = Stream::from($cartContent);
             foreach ($ids as $id) {
-                $ul = $entityManager->getRepository(Pack::class)->findOneBy(["id" => $id]);
-                if (!$ul) {
-                    $wrongIds[] = $id;
-                }
-                else {
-                    if (isEmpty($cartContent) || Stream::from($cartContent)->some(fn($article) => $article->getProject()?->getId() == $ul->getProject()?->getId())) {
-                        foreach ($ul->getChildArticles() as $article) {
-                            if (in_array($article, $cartContent)) {
-                                $allreadyInCart[] = $article->getLabel();
-                            }
-                            else {
-                                $addedArticles[] = $article->getLabel();
-                                $cart->addArticle($article);
-                            }
-                        }
+                $unit = $packRepository->findOneBy(["id" => $id]);
+                if ($unit) {
+                    $rightCartProject = $cartContentStream->every(fn(Article $article) => $article->getProject()?->getId() === $unit->getProject()?->getId());
+                    if ($rightCartProject) { // error
+                        $wrongProject[] = $unit->getCode();
                     }
                     else {
-                        $wrongProject[] = $ul->getCode();
+                        $unitAlreadyInProject = $cartContentStream->some(fn(Article $article) => $article->getCurrentLogisticUnit()?->getId() === $unit->getId());
+                        if ($unitAlreadyInProject) { // error
+                            $alreadyInCart[] = $unit->getCode();
+                        }
+                        else {
+                            foreach ($unit->getChildArticles() as $article) {
+                                if ($article->getStatut()?->getCode() !== Article::STATUT_ACTIF) { // error
+                                    $unavailableArticles[] = [
+                                        'barCode' => $article->getBarCode(),
+                                        'unit' => $unit->getCode()
+                                    ];
+                                }
+                                else { // success
+                                    $cart->addArticle($article);
+                                    $addedArticles[] = [
+                                        'barCode' => $article->getBarCode(),
+                                        'unit' => $unit->getCode()
+                                    ];
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
-        if (isset($wrongIds)) {
+        if (!empty($wrongProject)) {
             $response[] = [
                 "success" => false,
-                "msg" => count($wrongIds) < 1
-                    ? "L'unitée logistique avec l'id " . $wrongIds[0] . " na pas été trouvée"
-                    : "Les unitées logistiques avec les ids " . implode(", ", $wrongIds) . " n'ont pas été trouvées"
+                "msg" => count($wrongProject) === 1
+                    ? "L'unité logistique " . $wrongProject[0] . " ne peut pas être ajoutée au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
+                    : "Les unités logistiques  " . implode(", ", $wrongProject) . " ne peuvent pas être ajoutées au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
             ];
         }
 
-        if (isset($wrongProject)) {
+        if (!empty($unavailableArticles)) {
+            $unavailableArticlesGrouped = Stream::from($unavailableArticles)
+                ->keymap(fn($article) => [$article['unit'], $article['barCode']], true)
+                ->toArray();
+
+            foreach ($unavailableArticlesGrouped as $unit => $articles) {
+                $articlesStr = implode($articles, ', ');
+                $response[] = [
+                    "success" => false,
+                    "msg" => count($articles) === 1
+                        ? "L'article {$articlesStr} présent dans l'unité logistique {$unit} n'est pas disponible, il ne peut pas être ajouté au panier"
+                        : "Les articles {$articlesStr} présents dans l'unité logistique {$unit} ne sont pas disponibles, ils ne peuvent pas être ajoutés au panier"
+                ];
+            }
+        }
+
+        if (!empty($alreadyInCart)) {
             $response[] = [
                 "success" => false,
-                "msg" => count($wrongProject) < 1
-                    ? "L'unitée logistique " . $wrongProject[0] . " ne peut pas être ajoutée au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
-                    : "Les unitées logistiques  " . implode(", ", $wrongProject) . " ne peuvent pas être ajoutées au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
+                "msg" => count($alreadyInCart) === 1
+                    ? "L'unité logistique " . $alreadyInCart[0] . " est déjà dans le panier"
+                    : "Les unités logistiques " . implode(", ", $alreadyInCart) . " sont déjà dans le panier"
             ];
         }
 
-        if (isset($allreadyInCart)) {
-            $response[] = [
-                "success" => false,
-                "msg" => count($allreadyInCart) < 1
-                    ? "L'article " . $allreadyInCart[0] . " est déjà dans le panier"
-                    : "Les articles " . implode(", ", $allreadyInCart) . " sont déjà dans le panier"
-            ];
-        }
-
-        if(isset($addedArticles)) {
-            $response[] = [
-                "success" => true,
-                "msg" => count($addedArticles) < 1
-                    ? "L'article " . $addedArticles[0] . " a bien été ajouté au panier"
-                    : "Les articles " . implode(", ", $addedArticles) . " ont bien été ajoutés au panier"
-            ];
+        if(!empty($addedArticles)) {
+            $addedArticlesGrouped = Stream::from($addedArticles)
+                ->keymap(fn($article) => [$article['unit'], $article['barCode']], true)
+                ->toArray();
+            foreach ($addedArticlesGrouped as $unit => $articles) {
+                $articlesStr = implode($articles, ', ');
+                $response[] = [
+                    "success" => true,
+                    "msg" => count($articles) === 1
+                        ? "L'unité logistique {$unit} ainsi que l'article {$articlesStr} contenu dedans a bien été ajouté au panier"
+                        : "L'unité logistique {$unit}  ainsi que les articles {$articlesStr} contenus dedans ont bien été ajoutés au panier"
+                ];
+            }
         }
 
         $entityManager->flush();
-        return $this->json(
-            [
-                "messages" => $response,
-                "cartQuantity" => $cart->getArticles()->count() ?? $cart->getReferences()->count()
-            ]
-        );
+        return $this->json([
+            "messages" => $response,
+            "cartQuantity" => $cart->getArticles()->count() ?? $cart->getReferences()->count()
+        ]);
     }
 }

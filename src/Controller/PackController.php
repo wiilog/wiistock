@@ -15,6 +15,7 @@ use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
+use App\Entity\ReceptionLine;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
@@ -45,10 +46,10 @@ class PackController extends AbstractController
 {
 
     /**
-     * @Route("/", name="pack_index", options={"expose"=true})
+     * @Route("/{code}", name="pack_index", options={"expose"=true}, defaults={"code"=null}, methods={"GET"})
      * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK})
      */
-    public function index(EntityManagerInterface $entityManager, LanguageService $languageService)
+    public function index(EntityManagerInterface $entityManager, LanguageService $languageService, $code)
     {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -60,6 +61,7 @@ class PackController extends AbstractController
             'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'projects' => $projectRepository->findActive(),
+            'code' => $code
         ]);
     }
 
@@ -258,6 +260,7 @@ class PackController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $packRepository = $entityManager->getRepository(Pack::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
 
             $pack = $packRepository->find($data['pack']);
             $packCode = $pack->getCode();
@@ -281,12 +284,24 @@ class PackController extends AbstractController
             if ($pack->getTransportDeliveryOrderPack() ) {
                 $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans un ordre de livraison');
             }
+            if (!$pack->getChildArticles()->isEmpty()) {
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique contient des articles');
+            }
 
             if (isset($msg)) {
                 return $this->json([
                     "success" => false,
                     "msg" => $msg
                 ]);
+            }
+
+            $receptionLine = $receptionLineRepository->findOneBy(['pack' => $pack]);
+            if ($receptionLine) {
+                $reception = $receptionLine->getReception();
+                $reception?->removeLine($receptionLine);
+                $receptionLine->setPack(null);
+                $entityManager->flush();
+                $entityManager->remove($receptionLine);
             }
 
             $entityManager->remove($pack);

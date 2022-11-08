@@ -24,7 +24,38 @@ $(function () {
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of( 'Traçabilité', 'Général', 'Emplacement', false), 3);
 
     initNewModal($modalNewMvtTraca);
+
+    $(document).on(`keypress`, `[data-fill-location]`, function(event) {
+        if(event.code === `Enter`) {
+            loadLULocation($(this));
+        }
+    });
+
+    $(document).on(`focusout`, `[data-fill-location]`, function () {
+        loadLULocation($(this));
+    })
 });
+
+function loadLULocation($input) {
+    const $modalNewMvtTraca = $('#modalNewMvtTraca');
+    const code = $input.val();
+
+    AJAX.route(`GET`, `tracking_movement_lu_location`, {code}).json().then(response => {
+        $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+        if(response.error) {
+            Flash.add(`danger`, response.error);
+        }
+
+        const $location = $modalNewMvtTraca.find(`[name="emplacement"]`);
+        if(response.location) {
+            $location.append(new Option(response.location.label, response.location.id, true, true))
+        } else {
+            $location.val(null);
+        }
+
+        $location.prop(`disabled`, !!response.location).trigger(`change`);
+    });
+}
 
 function initTrackingMovementTable(columns) {
     let trackingMovementTableConfig = {

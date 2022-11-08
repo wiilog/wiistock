@@ -48,6 +48,7 @@ use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
+use App\Service\ReceptionLineService;
 use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
@@ -613,6 +614,7 @@ class ReceptionController extends AbstractController {
      */
     public function addArticle(EntityManagerInterface $entityManager,
                                ReceptionService $receptionService,
+                               ReceptionLineService $receptionLineService,
                                Request $request): Response {
         if($contentData = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -622,11 +624,10 @@ class ReceptionController extends AbstractController {
 
             $refArticleId = (int)$contentData['referenceArticle'];
             $refArticle = $referenceArticleRepository->find($refArticleId);
-
             $reception = $receptionRepository->find($contentData['reception']);
             $commande = $contentData['commande'];
-
             $pack = null;
+
             if (array_key_exists('ULArticleLine', $contentData)) {
                 if ($packId = $contentData['ULArticleLine']) {
                     /** @var Pack $pack */
@@ -634,35 +635,21 @@ class ReceptionController extends AbstractController {
                 }
             }
 
-            $receptionLines = $reception->getLines();
-            $receptionLineWithPack = null;
-            $receptionLineWithoutPack = null;
-            $refAlreadyExistsWithoutPack = false;
-            $refAlreadyExistsInSelectedPack = false;
-
-            // TODO WIIS-7810 remove
-            foreach ($receptionLines as $receptionLine) {
-                $receptionReferenceArticles = $receptionLine->getReceptionReferenceArticles();
-                if (!$receptionLine->hasPack()) {
-                    $receptionLineWithoutPack = $receptionLine;
-                    $refAlreadyExistsWithoutPack = $receptionService->getReceptionRefArticlesDuplicates($receptionReferenceArticles, $commande, $refArticleId);
-                } elseif (isset($pack) && $receptionLine->getPack()->getId() === $pack->getId()) {
-                    $receptionLineWithPack = $receptionLine;
-                    $refAlreadyExistsInSelectedPack = $receptionService->getReceptionRefArticlesDuplicates($receptionReferenceArticles, $commande, $refArticleId);
-                }
-            }
-
-
+            /* Only reference by article in the reception's packs */
             if (isset($pack)
                 && $refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 throw new FormException('Attention ! Vous pouvez uniquement ajouter des référence par article aux unités logistique et il s\'agit d\'une référence par référence.');
             }
 
-            // TODO WIIS-7810
-            //$receptionLine = $reception->getLine($pack, $refArticle, $commande)
-
-            if ((!$refAlreadyExistsInSelectedPack) && (!$refAlreadyExistsWithoutPack)) {
-                /* Only reference by article in the reception's packs */
+            $receptionLine = $reception->getLine($pack);
+            // rule of unicity : ref can be only one time in a reception line with or without pack
+            if ($receptionLine?->getReceptionReferenceArticle($refArticle, $commande)) {
+                if (!$receptionLine->hasPack()) {
+                    throw new FormException('Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.');
+                } else {
+                    throw new FormException('Attention ! La référence et le numéro de commande d\'achat saisis existent déjà dans l\'unité logistique que vous avez sélectionnée.');
+                }
+            } else {
                 $anomalie = $contentData['anomalie'];
                 if($anomalie) {
                     $statutRecep = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_ANOMALIE);
@@ -700,20 +687,10 @@ class ReceptionController extends AbstractController {
                     $refArticle->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                 }
 
-                if (isset($pack) && isset($receptionLineWithPack)) {
-                    $receptionLineWithPack->addReceptionReferenceArticle($receptionReferenceArticle);
-                    $reception->addLine($receptionLineWithPack);
-                } else {
-                    if (!isset($receptionLineWithoutPack)) {
-                        /** @var ReceptionLine $receptionLineWithoutPack */
-                        $receptionLineWithoutPack = new ReceptionLine();
-                    }
-                    $receptionLineWithoutPack
-                        ->setReception($reception)
-                        ->addReceptionReferenceArticle($receptionReferenceArticle);
-                    $entityManager->persist($receptionLineWithoutPack);
-                    $reception->addLine($receptionLineWithoutPack);
+                if (!isset($receptionLine)) {
+                    $receptionLine = $receptionLineService->persistReceptionLine($entityManager, $reception, $pack);
                 }
+                $receptionLine->addReceptionReferenceArticle($receptionReferenceArticle);
 
                 $entityManager->flush();
 
@@ -726,20 +703,6 @@ class ReceptionController extends AbstractController {
                         'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
                     ]),
                 ];
-            }
-            else {
-                if ($refAlreadyExistsWithoutPack) {
-                    $json = [
-                        'success' => false,
-                        'msg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.',
-                    ];
-                } elseif ($refAlreadyExistsInSelectedPack) {
-                    $json = [
-                        'success' => false,
-                        'msg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà dans l\'unité logistique que vous avez sélectionné.',
-                    ];
-                }
-
             }
             return new JsonResponse($json);
         }
