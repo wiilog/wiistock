@@ -870,11 +870,6 @@ class ReferenceArticleController extends AbstractController
 
         foreach ($types as $type) {
             $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-            $typeChampLibre[] = [
-                'typeLabel' =>  $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 

@@ -190,8 +190,7 @@ class ArticleDataService
         ]);
     }
 
-    public function editArticle($data)
-    {
+    public function editArticle($data) {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
@@ -199,33 +198,38 @@ class ArticleDataService
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
-
-        $article = $articleRepository->find($data['article']);
+        dump($data);
+        $article = $articleRepository->find(intval($data['idArticle']));
+        dump($article->getId());
         if ($article) {
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
 
                 $expiryDate = !empty($data['expiry']) ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null;
                 $price = max(0, $data['prix'] ?? 0);
-                if (isset($data['label'])) {
-                    $article
-                        ->setPrixUnitaire($price)
-                        ->setLabel($data['label'])
-                        ->setConform(!$data['conform'])
-                        ->setBatch($data['batch'] ?? null)
-                        ->setExpiryDate($expiryDate ? $expiryDate : null)
-                        ->setCommentaire($data['commentaire']);
 
-                    if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);
-                        if ($statut) {
-                            $article->setStatut($statut);
-                        }
+                $article
+                    ->setPrixUnitaire((float)$price)
+                    ->setBatch($data['batch'] ?? null)
+                    ->setExpiryDate($expiryDate ?: null)
+                    ->setCommentaire($data['commentaire']);
+
+                if (isset($data['conform'])) {
+                    dump($data['conform'] == 1);
+                    $article->setConform($data['conform'] == 1);
+                }
+
+                if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
+                    $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);
+                    if ($statut) {
+                        $article->setStatut($statut);
                     }
                 }
+
             }
 
             $this->freeFieldService->manageFreeFields($article, $data, $this->entityManager);
             $this->entityManager->flush();
+            dump($article->getCommentaire());
             return true;
         } else {
             return false;

@@ -777,7 +777,6 @@ class ImportService
                         throw $exception;
                 }
             }
-
             $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $reception);
         }
         $locationRepository = $this->entityManager->getRepository(Emplacement::class);
