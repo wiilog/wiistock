@@ -72,9 +72,9 @@ $(function() {
 
         $selects.each(function(){
             if($(this).find('option:selected').length === 0){
-                $(this).addClass('invalid');
+                $(this).parent().find('.select2-selection ').addClass('invalid');
             } else {
-                $(this).removeClass('invalid');
+                $(this).parent().find('.select2-selection ').removeClass('invalid');
             }
         });
 

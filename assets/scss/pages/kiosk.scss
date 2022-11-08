@@ -104,6 +104,8 @@ label {
 
             &:focus-visible {
                 outline: $danger solid 2px !important;
+                box-shadow: 0 3px 10px $danger !important;
+                transition: all .2s !important;
             }
         }
 
@@ -139,6 +141,10 @@ label {
             padding-left: 10px;
             padding-right: 10px;
         }
+
+        &.invalid {
+            border: 2px solid $danger !important;
+        }
     }
 }
 
@@ -153,6 +159,10 @@ label {
             height: 72px !important;
             display: flex;
             align-items: center;
+        }
+
+        &.invalid {
+            border: 2px solid $danger !important;
         }
 
         &.select2-selection--multiple {
@@ -186,10 +196,13 @@ label {
 
     &.select2-container--open {
         .select2-selection.select2-selection {
-            border-bottom-left-radius: 0 !important;
-            border-bottom-right-radius: 0 !important;
-
             &.select2-selection--multiple {
+                &.invalid {
+                    border: $danger solid 2px !important;
+                    box-shadow: 0 3px 10px $danger !important;
+                    transition: all .2s !important;
+                }
+
                 border: $primary solid 2px !important;
                 box-shadow: 0 3px 10px $primary !important;
                 transition: all .2s !important;
@@ -232,6 +245,19 @@ label {
                 }
             }
         }
+
+        &::before {
+            content: "";
+            position: absolute;
+            display: block;
+            top: -6px;
+            left: -2px;
+            right: -2px;
+            bottom: 30px;
+            border-left: 2px solid $medium-grey;
+            border-right: 2px solid $medium-grey;
+            z-index: -1;
+        }
     }
 }
 
@@ -270,7 +296,7 @@ label {
         font-weight: bold;
     }
 
-    .content{
+    .content {
         max-width: 640px;
         margin: auto;
     }
