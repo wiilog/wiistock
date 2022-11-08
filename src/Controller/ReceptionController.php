@@ -19,6 +19,7 @@ use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
@@ -34,7 +35,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
+use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -47,6 +48,7 @@ use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
+use App\Service\ReceptionLineService;
 use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
@@ -57,6 +59,7 @@ use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -611,30 +614,38 @@ class ReceptionController extends AbstractController {
      */
     public function addArticle(EntityManagerInterface $entityManager,
                                ReceptionService $receptionService,
+                               ReceptionLineService $receptionLineService,
                                Request $request): Response {
         if($contentData = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
+            $packRepository = $entityManager->getRepository(Pack::class);
 
             $refArticleId = (int)$contentData['referenceArticle'];
-            $refArticle = $referenceArticleRepository->find($refArticleId);
-
+            $refArticle = $refArticleId ? $referenceArticleRepository->find($refArticleId) : null;
             $reception = $receptionRepository->find($contentData['reception']);
             $commande = $contentData['commande'];
 
-            $receptionReferenceArticle = $reception->getReceptionReferenceArticles();
+            $packId = $contentData['pack'] ?? null;
+            $pack = $packId ? $packRepository->find($packId) : null;
 
-            // On vérifie que le couple (référence, commande) n'est pas déjà utilisé dans la réception
-            // TODO WIIS-7809 Refaire avec les UL
-            $refAlreadyExists = $receptionReferenceArticle->filter(function(ReceptionReferenceArticle $receptionReferenceArticle) use ($refArticleId, $commande) {
-                return (
-                    $commande === $receptionReferenceArticle->getCommande() &&
-                    $refArticleId === $receptionReferenceArticle->getReferenceArticle()->getId()
-                );
-            });
+            /* Only reference by article in the reception's packs */
+            if (isset($pack)
+                && $refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+                throw new FormException('Vous pouvez uniquement ajouter des références gérées par article aux unités logistiques et il s\'agit d\'une référence gérée par référence.');
+            }
 
-            if($refAlreadyExists->count() === 0) {
+            $receptionLine = $reception->getLine($pack);
+
+            // rule of unicity : ref can be only one time in a reception line with or without pack
+            if ($receptionLine?->getReceptionReferenceArticle($refArticle, $commande)) {
+                if (!$receptionLine->hasPack()) {
+                    throw new FormException('La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.');
+                } else {
+                    throw new FormException('La référence et le numéro de commande d\'achat saisis existent déjà dans l\'unité logistique que vous avez sélectionnée.');
+                }
+            } else {
                 $anomalie = $contentData['anomalie'];
                 if($anomalie) {
                     $statutRecep = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_ANOMALIE);
@@ -642,13 +653,17 @@ class ReceptionController extends AbstractController {
                 }
 
                 $receptionReferenceArticle = new ReceptionReferenceArticle();
+
+                if (empty($reception->getOrderNumber())) {
+                    $reception->setOrderNumber([$commande]);
+                }
+
                 $receptionReferenceArticle
                     ->setCommande($commande)
                     ->setAnomalie($contentData['anomalie'])
                     ->setCommentaire($contentData['commentaire'])
                     ->setReferenceArticle($refArticle)
-                    ->setQuantiteAR(max($contentData['quantiteAR'], 1))// protection contre quantités négatives ou nulles
-                    ->setReception($reception);
+                    ->setQuantiteAR(max($contentData['quantiteAR'], 1));// protection contre quantités négatives ou nulles
 
                 if(array_key_exists('quantite', $contentData) && $contentData['quantite']) {
                     $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
@@ -667,6 +682,12 @@ class ReceptionController extends AbstractController {
                 if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
                     $refArticle->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                 }
+
+                if (!isset($receptionLine)) {
+                    $receptionLine = $receptionLineService->persistReceptionLine($entityManager, $reception, $pack);
+                }
+                $receptionLine->addReceptionReferenceArticle($receptionReferenceArticle);
+
                 $entityManager->flush();
 
                 $json = [
@@ -677,11 +698,6 @@ class ReceptionController extends AbstractController {
                         'reception' => $reception,
                         'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
                     ]),
-                ];
-            } else {
-                $json = [
-                    'success' => false,
-                    'msg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.',
                 ];
             }
             return new JsonResponse($json);
@@ -901,19 +917,21 @@ class ReceptionController extends AbstractController {
     public function getArticles(ArticleDataService $articleDataService,
                                 Reception $reception): JsonResponse {
         $articles = [];
-        // TODO WIIS-7809
-        foreach($reception->getReceptionReferenceArticles() as $rra) {
-            foreach($rra->getArticles() as $article) {
-                if($articleDataService->articleCanBeAddedInDispute($article)) {
-                    $articles[] = [
-                        'id' => $article->getId(),
-                        'text' => $article->getBarCode(),
-                        'numReception' => $article->getReceptionReferenceArticle(),
-                        'isUrgent' => $article->getReceptionReferenceArticle()->getEmergencyTriggered() ?? false,
+        foreach ($reception->getLines() as $line) {
+            foreach($line->getReceptionReferenceArticles() as $rra) {
+                foreach($rra->getArticles() as $article) {
+                    if($articleDataService->articleCanBeAddedInDispute($article)) {
+                        $articles[] = [
+                            'id' => $article->getId(),
+                            'text' => $article->getBarCode(),
+                            'numReception' => $article->getReceptionReferenceArticle(),
+                            'isUrgent' => $article->getReceptionReferenceArticle()->getEmergencyTriggered() ?? false,
                         ];
+                    }
                 }
             }
         }
+
 
         return new JsonResponse([
             'results' => $articles,
@@ -1617,8 +1635,8 @@ class ReceptionController extends AbstractController {
             $reception['providerName'] ?: '',
             $reception['userUsername'] ?: '',
             $reception['statusName'] ?: '',
-            FormatHelper::datetime($reception['date']),
-            FormatHelper::datetime($reception['dateFinReception']),
+            $this->formatService->datetime($reception['date']),
+            $this->formatService->datetime($reception['dateFinReception']),
             $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
             $reception['receptionRefArticleQuantiteAR'] ?: '',
             (!$reception['referenceArticleId'] && !$reception['articleId']
@@ -2158,6 +2176,49 @@ class ReceptionController extends AbstractController {
             'reference' => $reference->getReference(),
             'orderNumber' => $orderNumber,
             'expectedQuantity' => $receptionLine->getQuantiteAR(),
+        ]);
+    }
+
+    #[Route("/{reception}/reception-lines-api", name: "reception_lines_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
+    public function getReceptionLinesApi(EntityManagerInterface $entityManager,
+                                         Reception              $reception,
+                                         Request                $request): JsonResponse {
+
+        $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
+
+        $lines = $reception->getLines();
+        $linesCount = $lines->count();
+
+        $receptionWithoutUnits = $linesCount === 1 && $lines->get(0)->getPack() === null;
+
+        $start = $request->query->get('start') ?: 0;
+        $search = $request->query->get('search') ?: 0;
+
+        $listLength = 5;
+
+        $pagination = match($receptionWithoutUnits) {
+            true => $lines->get(0)->getReceptionReferenceArticles()->count() > $listLength, // reference display
+            false => $linesCount > $listLength // logistic unit display
+        };
+
+        $result = $receptionLineRepository->getByReception($reception, [
+            "start" => $start,
+            "length" => $listLength,
+            "paginationMode" => $receptionWithoutUnits ? "references" : "units",
+            "search" => $search
+        ]);
+
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("reception/show/line-list.html.twig", [
+                "reception" => $reception,
+                "pagination" => $pagination,
+                "lines" => $result["data"],
+                "total" => $result["total"],
+                "current" => $start,
+                "pageLength" => $listLength
+            ]),
         ]);
     }
 
