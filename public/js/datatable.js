@@ -141,11 +141,11 @@ function createDatatableDomFooter({information, length, pagination}) {
         : ''
 }
 
-function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo}) {
+function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo, removeLength}) {
 
     const domFooter = createDatatableDomFooter({
         information: !removeInfo,
-        length: true,
+        length: !removeLength,
         pagination: !needsPaginationRemoval
     });
     let dtDefaultValue = (

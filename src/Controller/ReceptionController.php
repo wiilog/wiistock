@@ -623,31 +623,27 @@ class ReceptionController extends AbstractController {
             $packRepository = $entityManager->getRepository(Pack::class);
 
             $refArticleId = (int)$contentData['referenceArticle'];
-            $refArticle = $referenceArticleRepository->find($refArticleId);
+            $refArticle = $refArticleId ? $referenceArticleRepository->find($refArticleId) : null;
             $reception = $receptionRepository->find($contentData['reception']);
             $commande = $contentData['commande'];
-            $pack = null;
 
-            if (array_key_exists('ULArticleLine', $contentData)) {
-                if ($packId = $contentData['ULArticleLine']) {
-                    /** @var Pack $pack */
-                    $pack = $packRepository->find($packId);
-                }
-            }
+            $packId = $contentData['pack'] ?? null;
+            $pack = $packId ? $packRepository->find($packId) : null;
 
             /* Only reference by article in the reception's packs */
             if (isset($pack)
                 && $refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-                throw new FormException('Attention ! Vous pouvez uniquement ajouter des référence par article aux unités logistique et il s\'agit d\'une référence par référence.');
+                throw new FormException('Vous pouvez uniquement ajouter des références gérées par article aux unités logistiques et il s\'agit d\'une référence gérée par référence.');
             }
 
             $receptionLine = $reception->getLine($pack);
+
             // rule of unicity : ref can be only one time in a reception line with or without pack
             if ($receptionLine?->getReceptionReferenceArticle($refArticle, $commande)) {
                 if (!$receptionLine->hasPack()) {
-                    throw new FormException('Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.');
+                    throw new FormException('La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.');
                 } else {
-                    throw new FormException('Attention ! La référence et le numéro de commande d\'achat saisis existent déjà dans l\'unité logistique que vous avez sélectionnée.');
+                    throw new FormException('La référence et le numéro de commande d\'achat saisis existent déjà dans l\'unité logistique que vous avez sélectionnée.');
                 }
             } else {
                 $anomalie = $contentData['anomalie'];

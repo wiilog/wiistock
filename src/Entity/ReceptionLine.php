@@ -90,11 +90,11 @@ class ReceptionLine {
         return $this;
     }
 
-    public function getReceptionReferenceArticle(ReferenceArticle $referenceArticle,
+    public function getReceptionReferenceArticle(?ReferenceArticle $referenceArticle,
                                                  ?string $orderNumber): ?ReceptionReferenceArticle {
         return Stream::from($this->receptionReferenceArticles->toArray())
             ->find(fn(ReceptionReferenceArticle $receptionReferenceArticle) => (
-                $receptionReferenceArticle->getReferenceArticle()?->getId() === $referenceArticle->getId()
+                $receptionReferenceArticle->getReferenceArticle()?->getId() === $referenceArticle?->getId()
                 && $receptionReferenceArticle->getCommande() === $orderNumber
             ));
     }

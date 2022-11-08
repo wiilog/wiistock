@@ -478,6 +478,6 @@ class Reception {
 
     public function getLine(?Pack $pack): ?ReceptionLine {
         return Stream::from($this->getLines()->toArray())
-            ->find(fn(ReceptionLine $line) => $line->getPack()?->getId() !== $pack?->getId());
+            ->find(fn(ReceptionLine $line) => $line->getPack()?->getId() === $pack?->getId());
     }
 }

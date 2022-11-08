@@ -49,6 +49,8 @@ class ReceptionLineRepository extends EntityRepository {
             ->leftJoin('line.receptionReferenceArticles', 'join_receptionReferenceArticle')
             ->leftJoin('join_receptionReferenceArticle.referenceArticle', 'join_referenceArticle')
             ->andWhere('line.reception = :reception')
+            ->addOrderBy('IF(join_pack.id IS NULL, 0, 1)') // show receptionLine without pack first
+            ->addOrderBy('line.id')
             ->setParameter('reception', $reception);
 
         if (!empty($search)) {

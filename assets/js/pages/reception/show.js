@@ -482,7 +482,7 @@ function initNewArticleEditor(modal, options = {}) {
     }, 400);
 
     if (options['unitCode'] && options['unitId']) {
-        let $selectUl = $modal.find('[name="ULArticleLine"]');
+        let $selectUl = $modal.find('[name="pack"]');
         $selectUl.append(new Option(options['unitCode'], options['unitId'], true, true)).trigger('change');
     }
 }
@@ -893,6 +893,8 @@ function loadLogisticUnitPack({start, search} = {}) {
                                 ],
                                 domConfig: {
                                     removeInfo: true,
+                                    needsPaginationRemoval: true,
+                                    removeLength: true
                                 },
                                 rowConfig: {
                                     needsRowClickAction: true,
