@@ -606,7 +606,7 @@ class SelectController extends AbstractController {
      * @Route("/select/reception-logistic-units", name="ajax_select_reception_logistic_units", options={"expose"=true})
      */
     public function receptionLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
-        $results = $entityManager->getRepository(ReceptionLine::class)
+        $results = $entityManager->getRepository(Pack::class)
             ->getForSelectFromReception($request->query->get("term"), $request->query->get("reception"));
 
         return $this->json([

@@ -315,67 +315,6 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/api-article/{id}", name="reception_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
-    public function articleApi(EntityManagerInterface $entityManager, $id): Response {
-
-        // TODO adrien remove
-        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-        $receptionRepository = $entityManager->getRepository(Reception::class);
-
-        $reception = $receptionRepository->find($id);
-        $ligneArticles = $receptionReferenceArticleRepository->findByReception($reception);
-
-        $rows = [];
-        $hasBarCodeToPrint = false;
-        foreach($ligneArticles as $ligneArticle) {
-            $referenceArticle = $ligneArticle->getReferenceArticle();
-            if(!$hasBarCodeToPrint && isset($referenceArticle)) {
-                $articles = $ligneArticle->getArticles();
-                $hasBarCodeToPrint = (
-                    ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) ||
-                    ($articles->count() > 0)
-                );
-            }
-
-            $isReferenceTypeLinked = (
-                isset($referenceArticle)
-                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE)
-            );
-
-            $isArticleTypeLinked = (
-                isset($referenceArticle)
-                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE)
-            );
-
-            $rows[] = [
-                "Référence" => (isset($referenceArticle) ? $referenceArticle->getReference() : ''),
-                "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
-                "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : 0),
-                "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : 0),
-                "Urgence" => ($ligneArticle->getEmergencyTriggered() ?? false),
-                "Comment" => ($ligneArticle->getEmergencyComment() ?? ''),
-                'Actions' => $this->renderView(
-                    'reception/datatableLigneRefArticleRow.html.twig',
-                    [
-                        'ligneId' => $ligneArticle->getId(),
-                        'ligneArticleQuantity' => $ligneArticle->getQuantite(),
-                        'receptionId' => $reception->getId(),
-                        'isReferenceTypeLinked' => $isReferenceTypeLinked,
-                        'isArticleTypeLinked' => $isArticleTypeLinked,
-                        'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-                        'packFilter' => (isset($referenceArticle) ? $referenceArticle->getBarCode() : ''),
-                    ]
-                ),
-            ];
-        }
-        $data['data'] = $rows;
-        $data['hasBarCodeToPrint'] = $hasBarCodeToPrint;
-        return new JsonResponse($data);
-    }
-
-    /**
      * @Route("/liste/{purchaseRequest}", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
      */
@@ -533,17 +472,17 @@ class ReceptionController extends AbstractController {
             $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
+            /** @var ReceptionReferenceArticle $ligneArticle */
             $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
-            $ligneArticleLabel = $ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : '';
 
-            if(!$ligneArticle) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'La référence est introuvable',
-                ]);
+            $reception = $ligneArticle
+                ?->getReceptionLine()
+                ?->getReception();
+            if(!$ligneArticle || !$reception) {
+                throw new FormException('La référence est introuvable');
             }
 
-            $reception = $ligneArticle->getReception();
+            $ligneArticleLabel = $ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : '';
 
             $associatedMovements = $trackingMovementRepository->findBy([
                 'receptionReferenceArticle' => $ligneArticle,
@@ -564,6 +503,16 @@ class ReceptionController extends AbstractController {
 
             foreach($associatedMovements as $associatedMvt) {
                 $entityManager->remove($associatedMvt);
+            }
+
+            // if receptionReferenceArticle is not attached to a pack
+            // then we delete reception line if it doesn't have any reference articles linked
+            $receptionLine = $ligneArticle->getReceptionLine();
+            $ligneArticle->setReceptionLine(null);
+            if (!$receptionLine->getPack()
+                && $receptionLine->getReceptionReferenceArticles()->isEmpty()) {
+                $receptionLine->setReception(null);
+                $entityManager->remove($receptionLine);
             }
 
             $entityManager->remove($ligneArticle);
@@ -638,11 +587,17 @@ class ReceptionController extends AbstractController {
 
             $receptionLine = $reception->getLine($pack);
 
-            // rule of unicity : ref can be only one time in a reception line with or without pack
-            if ($receptionLine?->getReceptionReferenceArticle($refArticle, $commande)) {
-                if (!$receptionLine->hasPack()) {
+            // we can't add a reference to a pack which does not already exist in the reception
+            //  + unique constraint: ref can be only one time in a reception line with or without pack
+            if ((!$receptionLine && $pack)
+                || $receptionLine?->getReceptionReferenceArticle($refArticle, $commande)) {
+                if (!$receptionLine) {
+                    throw new FormException('Il y a eu un problème lors de l\'ajout de la référence à la réception, veuillez recharger la page et réessayer.');
+                }
+                else if (!$receptionLine->hasPack()) {
                     throw new FormException('La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.');
-                } else {
+                }
+                else {
                     throw new FormException('La référence et le numéro de commande d\'achat saisis existent déjà dans l\'unité logistique que vous avez sélectionnée.');
                 }
             } else {
@@ -1372,12 +1327,13 @@ class ReceptionController extends AbstractController {
                                            Request $request) {
         if($id = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $nbArticles = $receptionReferenceArticleRepository->countArticlesByRRA($id);
             $ligneArticle = $receptionReferenceArticleRepository->find($id);
+            $nbArticles = $ligneArticle->getArticles()->count();
+
             $reference = $ligneArticle->getReferenceArticle();
             $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
             $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
-            if ($ligneArticle->getArticles()->count() === 0
+            if ($nbArticles === 0
                 && ($newRefAvailableQuantity >= 0 || $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE)) {
                 $delete = true;
                 $html = "
@@ -1386,7 +1342,7 @@ class ReceptionController extends AbstractController {
                 ";
             } else {
                 $delete = false;
-                if(intval($nbArticles) > 0) {
+                if($nbArticles > 0) {
                     $html = "
                         <p class='error-msg'>
                             Vous ne pouvez pas supprimer cette ligne.<br>

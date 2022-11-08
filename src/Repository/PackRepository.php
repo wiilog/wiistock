@@ -620,4 +620,20 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult()) > 0;
     }
 
+    public function getForSelectFromReception(?string $term, ?int $reception): array {
+        return $this->createQueryBuilder("pack")
+            ->select("pack.id AS id, pack.code AS text")
+            ->join(ReceptionLine::class, "reception_line", Join::WITH, "reception_line.pack = pack")
+            ->join("reception_line.reception",  "reception")
+            ->andWhere("pack.code LIKE :term")
+            ->andWhere("reception.id = :reception")
+            ->setParameters([
+                "term" => "%$term%",
+                "reception" => $reception
+            ])
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
 }

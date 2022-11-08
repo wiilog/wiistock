@@ -295,7 +295,6 @@ class ArticleRepository extends EntityRepository {
 						$searchForArticle = Utilisateur::SEARCH_DEFAULT;
 					}
 
-                    dump($searchForArticle);
                     foreach ($searchForArticle as $key => $searchField) {
 
                         $date = DateTime::createFromFormat('d/m/Y', $searchValue);

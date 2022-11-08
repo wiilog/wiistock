@@ -1,6 +1,6 @@
 {% for line in lines %}
     {% set pack = line.pack ?? null %}
-    {% set references = line.references %}
+    {% set references = line.references ?? [] %}
 
     {% include 'pack/utils/packItemListTemplate.html.twig' with {
         data: {

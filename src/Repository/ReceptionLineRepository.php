@@ -85,6 +85,7 @@ class ReceptionLineRepository extends EntityRepository {
                     $packNature = $references[0]["packNature"] ?? null;
                     $packColor = $references[0]["packColor"] ?? null;
                 }
+
                 return [
                     "id" => $key,
                     "pack" => isset($packId)
@@ -98,7 +99,7 @@ class ReceptionLineRepository extends EntityRepository {
                         ]
                         : null,
                     "references" => Stream::from($references)
-                        ->filter(fn(array $reference) => (
+                        ->filterMap(fn(array $reference) => (
                             isset($reference["reference"])
                                 ? [
                                     "id" => $reference["referenceId"],
@@ -126,21 +127,5 @@ class ReceptionLineRepository extends EntityRepository {
             "data" => $result->values(),
             "total" => $total ?? 0
         ];
-    }
-
-    public function getForSelectFromReception(?string $term, ?int $reception) {
-        return $this->createQueryBuilder("reception_line")
-            ->select("reception_line.id AS id, pack.code AS text")
-            ->join("reception_line.reception",  "reception")
-            ->join("reception_line.pack", "pack")
-            ->andWhere("pack.code LIKE :term")
-            ->andWhere("reception.id = :reception")
-            ->setParameters([
-                "term" => "%$term%",
-                "reception" => $reception
-            ])
-            ->setMaxResults(100)
-            ->getQuery()
-            ->getArrayResult();
     }
 }

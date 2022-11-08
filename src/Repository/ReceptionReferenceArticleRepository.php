@@ -73,9 +73,10 @@ class ReceptionReferenceArticleRepository extends EntityRepository
 	    $queryExpression = $queryBuilder->expr();
         $query = $queryBuilder
             ->join('reception_reference_article.referenceArticle', 'reference_article')
-            ->join('reception_reference_article.receptionLine', 'reception')
+            ->join('reception_reference_article.receptionLine', 'receptionLine')
+            ->join('receptionLine.reception', 'reception')
             ->join('reception.statut', 'status')
-            ->where('reference_article = :ref')
+            ->andWhere('reference_article = :ref')
             ->andWhere('status.code IN (:statuses)')
             ->andWhere(
                 $queryExpression->orX(
