@@ -268,7 +268,7 @@ class ReceptionService
     public function persistReceptionPackLine(EntityManagerInterface $entityManager,
                                              Reception $reception,
                                              Pack $pack) {
-        $receptionPackLine = new ReceptionPackLine();
+        $receptionPackLine = new ReceptionLine();
         $receptionPackLine->setReception($reception);
         $receptionPackLine->setPack($pack);
         $entityManager->persist($receptionPackLine);

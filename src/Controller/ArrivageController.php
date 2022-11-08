@@ -960,7 +960,7 @@ class ArrivageController extends AbstractController {
             $projectRepository = $entityManager->getRepository(Project::class);
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
-            $project = $projectRepository->find($data['project']);
+            $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
 
             $natures = json_decode($data['colis'], true);
 
