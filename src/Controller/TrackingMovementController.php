@@ -84,17 +84,16 @@ class TrackingMovementController extends AbstractController
         $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-        $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
+        $clearAndStayAfterNewMvt = $settingRepository->getOneParamByLabel(Setting::CLEAR_AND_STAY_AFTER_NEW_MVT);
         $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
-        $request->request->add([
-            'length' => 10,
-        ]);
+
+        $request->request->add(['length' => 10]);
 
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => Stream::from($statuses)
                 ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
                 ->toArray(),
-            'redirectAfterTrackingMovementCreation' => $redirectAfterTrackingMovementCreation,
+            'clearAndStayAfterNewMvt' => $clearAndStayAfterNewMvt,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'fields' => $fields,
             'filterArticle' => $article,
