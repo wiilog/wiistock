@@ -7,6 +7,7 @@ use App\Entity\FreeField;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Type;
+use App\Service\Kiosk\KioskService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Article;
@@ -22,8 +23,8 @@ class KioskController extends AbstractController
 {
     #[Route("/", name: "kiosk_index", options: ["expose" => true])]
     public function index(EntityManagerInterface $manager): Response {
-        $refArticleRepository = $manager->getRepository(ReferenceArticle::class);
-        $latestsPrint = $refArticleRepository->getLatestsKioskPrint();
+        $articleRepository = $manager->getRepository(Article::class);
+        $latestsPrint = $articleRepository->getLatestsKioskPrint();
 
         return $this->render('kiosk/home.html.twig' , [
             'latestsPrint' => $latestsPrint
@@ -46,5 +47,24 @@ class KioskController extends AbstractController
             'freeField' => $freeField,
             'inStock' => $reference?->getQuantiteStock() > 0,
         ]);
+    }
+
+    #[Route("/imprimer", name: "print_article", options: ["expose" => true], methods: ["GET"])]
+    public function print(Request                $request,
+                                  EntityManagerInterface $entityManager,
+                                  KioskService $kioskService): \Symfony\Component\HttpFoundation\JsonResponse
+    {
+        $articleRepository = $entityManager->getRepository(Article::class);
+
+        $articleId = $request->query->get('article');
+        if($articleId){
+            $article = $articleRepository->find($request->query->get('article'));
+
+            $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
+            $options['barcode'] = $article->getBarCode();
+        }
+
+        $kioskService->printLabel($options, $entityManager);
+        return $this->json(['success' => true]);
     }
 }

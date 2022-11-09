@@ -174,4 +174,10 @@ $(function() {
     $('#submitGiveUpStockEntry').on('click', function() {
         window.location.href = Routing.generate('kiosk_index', true);
     })
+
+    $('.print-article').on('click', function() {
+        AJAX.route(GET, `print_article`, {
+            article: $(this).data('article'),
+        }).json().then((response) => {console.log(response)});
+    });
 });
