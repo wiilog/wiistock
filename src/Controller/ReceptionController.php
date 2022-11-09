@@ -671,11 +671,13 @@ class ReceptionController extends AbstractController {
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['id']);
             $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
+            $reception = $ligneArticle->getReceptionLine()->getReception();
 
             $json = $this->renderView(
                 'reception/show/modalEditLigneArticleContent.html.twig',
                 [
                     'ligneArticle' => $ligneArticle,
+                    'reception' => $reception,
                     'canUpdateQuantity' => $canUpdateQuantity,
                     'minValue' => $ligneArticle->getQuantite() ?? 0,
                 ]
@@ -699,9 +701,10 @@ class ReceptionController extends AbstractController {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
+            /** @var ReceptionReferenceArticle $receptionReferenceArticle */
             $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
-            $reception = $receptionReferenceArticle->getReception();
-            $quantite = $data['quantite'];
+            $reception = $receptionReferenceArticle->getReceptionLine()->getReception();
+
             $receivedQuantity = $receptionReferenceArticle->getQuantite();
 
             if(empty($receivedQuantity)) {
@@ -718,6 +721,7 @@ class ReceptionController extends AbstractController {
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
             if($typeQuantite === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+                $quantite = $data['quantite'];
                 $oldReceivedQuantity = $receptionReferenceArticle->getQuantite() ?? 0;
                 $newReceivedQuantity = max((int)$quantite, 0);
                 $diffReceivedQuantity = $newReceivedQuantity - $oldReceivedQuantity;
