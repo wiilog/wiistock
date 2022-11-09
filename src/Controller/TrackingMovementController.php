@@ -592,7 +592,6 @@ class TrackingMovementController extends AbstractController
     {
         if ($typeId = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $packRepository = $entityManager->getRepository(Pack::class);
 
             $templateDirectory = "mouvement_traca";
 

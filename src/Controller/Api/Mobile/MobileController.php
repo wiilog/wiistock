@@ -501,6 +501,7 @@ class MobileController extends AbstractApiController
                                 $pack,
                                 $packRepository,
                                 $entityManager,
+                                $mouvementStockService,
                                 $mvt,
                                 $type,
                                 $nomadUser,
