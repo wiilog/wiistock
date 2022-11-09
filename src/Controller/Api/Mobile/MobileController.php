@@ -484,78 +484,35 @@ class MobileController extends AbstractApiController
                         //dans le cas d'une prise stock sur une UL, on ne peut pas créer de
                         //mouvement de stock sur l'UL donc on ignore la partie stock et
                         //on créé juste un mouvement de prise sur l'UL et ses articles
+                        dump($pack?->getId());
                         if($pack) {
-                            $createdMvt = $trackingMovementService->createTrackingMovement(
-                                $pack->getCode(),
+                            $packMvt = $trackingMovementService->treatLUPicking(
+                                $pack,
                                 $location,
                                 $nomadUser,
                                 $date,
-                                true,
-                                $mvt['finished'],
+                                $mvt,
                                 $type,
                                 $options,
+                                $entityManager,
+                                $emptyGroups,
+                                $numberOfRowsInserted
                             );
-
-                            $associatedGroup = $pack->getParent();
-                            if ($associatedGroup) {
-                                $associatedGroup->removeChild($pack);
-                                if ($associatedGroup->getChildren()->isEmpty()) {
-                                    $emptyGroups[] = $associatedGroup->getCode();
-                                }
-                            }
-
-                            $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                            $entityManager->persist($createdMvt);
-                            $numberOfRowsInserted++;
-
-                            //créé les mouvements traça pour les articles contenus
-                            //dans l'unité logistique
-                            foreach($pack->getChildArticles() as $article) {
-                                dump($article->getTrackingPack());
-                                if(!$article->getTrackingPack()) {
-                                    $trackingPack = $packRepository->findOneBy(["code" => $article->getBarCode()]);
-                                    if($trackingPack) {
-                                        $article->setTrackingPack($trackingPack);
-                                    } else {
-                                        $article->setTrackingPack($trackingMovementService->persistPack($entityManager, $article->getBarCode(), $article->getQuantite()));
-                                    }
-                                }
-
-                                $articleMvt = [
-                                    "ref_article" => $article->getBarCode(),
-                                    "ref_emplacement" => $mvt["ref_emplacement"],
-                                ];
-
-                                $currentArticleOptions = $trackingMovementService->treatStockMovement($entityManager, $type?->getCode(), $articleMvt, $nomadUser, $location, $date);
-                                $currentArticleOptions["entityManager"] = $entityManager;
-
-                                $createdMvt = $trackingMovementService->createTrackingMovement(
-                                    $article->getBarCode(),
-                                    $location,
-                                    $nomadUser,
-                                    $date,
-                                    true,
-                                    $mvt['finished'],
-                                    $type,
-                                    $currentArticleOptions,
-                                );
-
-                                $associatedPack = $createdMvt->getPack();
-                                if ($associatedPack) {
-                                    $associatedGroup = $associatedPack->getParent();
-
-                                    if ($associatedGroup) {
-                                        $associatedGroup->removeChild($associatedPack);
-                                        if ($associatedGroup->getChildren()->isEmpty()) {
-                                            $emptyGroups[] = $associatedGroup->getCode();
-                                        }
-                                    }
-                                }
-
-                                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                                $entityManager->persist($createdMvt);
-                                $numberOfRowsInserted++;
-                            }
+                            $trackingMovementService->manageTrackingMovementsForLU(
+                                $pack,
+                                $packRepository,
+                                $entityManager,
+                                $mvt,
+                                $type,
+                                $nomadUser,
+                                $location,
+                                $date,
+                                $emptyGroups,
+                                $numberOfRowsInserted
+                            );
+                            $entityManager->persist($packMvt);
+                            $entityManager->flush();
+                            dump($packMvt->getId());
                         } else { //cas mouvement stock classique sur un article ou une ref
                             $options += $trackingMovementService->treatStockMovement($entityManager, $type?->getCode(), $mvt, $nomadUser, $location, $date);
                             if ($options['invalidLocationTo'] ?? null) {

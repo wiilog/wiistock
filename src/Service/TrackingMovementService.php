@@ -25,6 +25,8 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Repository\PackRepository;
+use Monolog\Handler\Curl\Util;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -734,6 +736,101 @@ class TrackingMovementService extends AbstractController
             }
         }
         return null;
+    }
+
+    public function treatLUPicking(Pack $pack,
+                                   Emplacement $location,
+                                   Utilisateur $nomadUser,
+                                   DateTime $date,
+                                   array $mvt,
+                                   Statut $type,
+                                   array $options,
+                                   EntityManagerInterface $entityManager,
+                                   array &$emptyGroups,
+                                   int &$numberOfRowsInserted) {
+        $createdMvt = $this->createTrackingMovement(
+            $pack->getCode(),
+            $location,
+            $nomadUser,
+            $date,
+            true,
+            $mvt['finished'],
+            $type,
+            $options,
+        );
+
+        $associatedGroup = $pack->getParent();
+        if ($associatedGroup) {
+            $associatedGroup->removeChild($pack);
+            if ($associatedGroup->getChildren()->isEmpty()) {
+                $emptyGroups[] = $associatedGroup->getCode();
+            }
+        }
+
+        $this->persistSubEntities($entityManager, $createdMvt);
+        $entityManager->persist($createdMvt);
+        $numberOfRowsInserted++;
+
+        return $createdMvt;
+    }
+
+    public function manageTrackingMovementsForLU(Pack $pack,
+                                                 PackRepository $packRepository,
+                                                 EntityManagerInterface $entityManager,
+                                                 array $mvt,
+                                                 Statut $type,
+                                                 Utilisateur $nomadUser,
+                                                 Emplacement $location,
+                                                 DateTime $date,
+                                                 array &$emptyGroups,
+                                                 int &$numberOfRowsInserted) {
+        //créé les mouvements traça pour les articles contenus
+        //dans l'unité logistique
+        foreach($pack->getChildArticles() as $article) {
+            if(!$article->getTrackingPack()) {
+                $trackingPack = $packRepository->findOneBy(["code" => $article->getBarCode()]);
+                if($trackingPack) {
+                    $article->setTrackingPack($trackingPack);
+                } else {
+                    $article->setTrackingPack($this->persistPack($entityManager, $article->getBarCode(), $article->getQuantite()));
+                }
+            }
+
+            $articleMvt = [
+                "ref_article" => $article->getBarCode(),
+                "ref_emplacement" => $mvt["ref_emplacement"],
+            ];
+
+            $currentArticleOptions = $this->treatStockMovement($entityManager, $type?->getCode(), $articleMvt, $nomadUser, $location, $date);
+            $currentArticleOptions["entityManager"] = $entityManager;
+
+            $createdMvt = $this->createTrackingMovement(
+                $article->getBarCode(),
+                $location,
+                $nomadUser,
+                $date,
+                true,
+                $mvt['finished'],
+                $type,
+                $currentArticleOptions,
+            );
+
+            $associatedPack = $createdMvt->getPack();
+            if ($associatedPack) {
+                $associatedGroup = $associatedPack->getParent();
+
+                if ($associatedGroup) {
+                    $associatedGroup->removeChild($associatedPack);
+                    if ($associatedGroup->getChildren()->isEmpty()) {
+                        $emptyGroups[] = $associatedGroup->getCode();
+                    }
+                }
+            }
+
+            $this->persistSubEntities($entityManager, $createdMvt);
+            $entityManager->persist($createdMvt);
+            $numberOfRowsInserted++;
+        }
     }
 
     public function treatStockMovement(EntityManagerInterface $entityManager,
