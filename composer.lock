@@ -2208,16 +2208,16 @@
         },
         {
             "name": "google/apiclient-services",
-            "version": "v0.272.1",
+            "version": "v0.273.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-api-php-client-services.git",
-                "reference": "436943c42277545c2310fe5852835d7e3628a35a"
+                "reference": "827bbf2b7b20fa97e845122d3d91517e173e959f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/436943c42277545c2310fe5852835d7e3628a35a",
-                "reference": "436943c42277545c2310fe5852835d7e3628a35a",
+                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/827bbf2b7b20fa97e845122d3d91517e173e959f",
+                "reference": "827bbf2b7b20fa97e845122d3d91517e173e959f",
                 "shasum": ""
             },
             "require": {
@@ -2246,9 +2246,9 @@
             ],
             "support": {
                 "issues": "https://github.com/googleapis/google-api-php-client-services/issues",
-                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.272.1"
+                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.273.0"
             },
-            "time": "2022-10-31T01:22:13+00:00"
+            "time": "2022-11-07T01:34:13+00:00"
         },
         {
             "name": "google/auth",
@@ -9821,12 +9821,11 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wiilog/zpl-generator",
-                "reference": "466dc7d86ed92a79170a1ee4e8978c2a52665fb4"
+                "reference": "07a89593caa4909ecf3082dd5d868d79e58425bf"
             },
             "require": {
                 "ext-curl": "*",
                 "ext-gd": "*",
-                "ext-sockets": "*",
                 "php": "^8.0",
                 "robgridley/zebra": "^2.0"
             },
@@ -9841,7 +9840,7 @@
                 }
             },
             "description": "Generates ZPL code",
-            "time": "2022-11-07T10:42:19+00:00"
+            "time": "2022-11-09T23:17:15+00:00"
         },
         {
             "name": "willdurand/jsonp-callback-validator",
