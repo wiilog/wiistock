@@ -484,7 +484,6 @@ class MobileController extends AbstractApiController
                         //dans le cas d'une prise stock sur une UL, on ne peut pas créer de
                         //mouvement de stock sur l'UL donc on ignore la partie stock et
                         //on créé juste un mouvement de prise sur l'UL et ses articles
-                        dump($pack?->getId());
                         if($pack) {
                             $packMvt = $trackingMovementService->treatLUPicking(
                                 $pack,
@@ -512,7 +511,6 @@ class MobileController extends AbstractApiController
                             );
                             $entityManager->persist($packMvt);
                             $entityManager->flush();
-                            dump($packMvt->getId());
                         } else { //cas mouvement stock classique sur un article ou une ref
                             $options += $trackingMovementService->treatStockMovement($entityManager, $type?->getCode(), $mvt, $nomadUser, $location, $date);
                             if ($options['invalidLocationTo'] ?? null) {
