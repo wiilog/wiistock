@@ -475,6 +475,14 @@ class Reception {
         return $this;
     }
 
+    /**
+     * @return ReceptionReferenceArticle[]
+     */
+    public function getReceptionReferenceArticles(): array {
+        return Stream::from($this->getLines()->toArray())
+            ->flatMap(fn(ReceptionLine $line) => $line->getReceptionReferenceArticles()->toArray())
+            ->toArray();
+    }
 
     public function getLine(?Pack $pack): ?ReceptionLine {
         return Stream::from($this->getLines()->toArray())
