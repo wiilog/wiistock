@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% set homeClass = isHome is defined and isHome ? 'home' : '' %}
+
+{% block body %}
+    <input type="hidden" id="BARCODE_VALID_REGEX" value="{{ constant("App\\Service\\SettingsService::CHARACTER_VALID_REGEX")|e('html') }}">
+    <div class="wrapper {{ homeClass }}">
+        <div class="container-fluid {% block pageContainerClass '' %}">
+            <div class="d-flex justify-content-between align-items-center w-100 px-4 py-2">
+                <img src="{{ setting_value('FILE_TOP_LEFT_LOGO') ? asset(setting_value('FILE_TOP_LEFT_LOGO')) }}" height="65px">
+                <h1 class="form-header {{ homeClass }}">
+                    Entrée de stock
+                </h1>
+                <img src="{{ setting_value('FILE_TOP_RIGHT_LOGO') ? asset(setting_value('FILE_TOP_RIGHT_LOGO')) }}" height="65px">
+            </div>
+            {% block page_content %}{% endblock %}
+        </div>
+    </div>
+    <div class="wave-container">
+        <div class="wave {{ homeClass }}"></div>
+    </div>
+{% endblock %}

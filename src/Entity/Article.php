@@ -137,6 +137,9 @@ class Article implements PairedEntity {
     #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'article', cascade: ['remove'])]
     private Collection $pairings;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $createdOnKioskAt = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
@@ -699,4 +702,13 @@ class Article implements PairedEntity {
         return $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
     }
 
+    public function getCreatedOnKioskAt(): ?\DateTimeInterface {
+        return $this->createdOnKioskAt;
+    }
+
+    public function setCreatedOnKioskAt(?\DateTimeInterface $createdOnKioskAt): self {
+        $this->createdOnKioskAt = $createdOnKioskAt;
+
+        return $this;
+    }
 }

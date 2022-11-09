@@ -124,7 +124,7 @@ class Action {
     const SETTINGS_DISPLAY_CONFIGURATIONS = 'afficher configurations';
     const SETTINGS_DISPLAY_STOCK_ALERTS = 'afficher alertes stock';
     const SETTINGS_DISPLAY_ARTICLES = 'afficher articles';
-    const SETTINGS_DISPLAY_TACTILE_TERMINAL = 'afficher borne tactile';
+    const SETTINGS_DISPLAY_TOUCH_TERMINAL = 'afficher borne tactile';
     const SETTINGS_DISPLAY_REQUESTS = 'afficher demandes stock';
     const SETTINGS_DISPLAY_VISIBILITY_GROUPS = 'afficher groupes de visibilité';
     const SETTINGS_DISPLAY_INVENTORIES = 'afficher inventaires';
