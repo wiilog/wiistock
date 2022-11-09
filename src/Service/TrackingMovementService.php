@@ -777,6 +777,7 @@ class TrackingMovementService extends AbstractController
     public function manageTrackingMovementsForLU(Pack $pack,
                                                  PackRepository $packRepository,
                                                  EntityManagerInterface $entityManager,
+                                                 MouvementStockService $mouvementStockService,
                                                  array $mvt,
                                                  Statut $type,
                                                  Utilisateur $nomadUser,
@@ -796,13 +797,24 @@ class TrackingMovementService extends AbstractController
                 }
             }
 
-            $articleMvt = [
-                "ref_article" => $article->getBarCode(),
-                "ref_emplacement" => $mvt["ref_emplacement"],
-            ];
-
-            $currentArticleOptions = $this->treatStockMovement($entityManager, $type?->getCode(), $articleMvt, $nomadUser, $location, $date);
+            $currentArticleOptions = [];
             $currentArticleOptions["entityManager"] = $entityManager;
+            if($mvt['type'] === TrackingMovement::TYPE_DEPOSE) {
+                $stockMovement = $mouvementStockService->createMouvementStock(
+                    $nomadUser,
+                    $location,
+                    $article->getQuantite(),
+                    $article,
+                    MouvementStock::TYPE_TRANSFER
+                );
+
+                $mouvementStockService->finishMouvementStock($stockMovement, new DateTime(), $location);
+                $article->setEmplacement($location);
+
+                $entityManager->persist($stockMovement);
+
+                $currentArticleOptions["mouvementStock"] = $stockMovement;
+            }
 
             $createdMvt = $this->createTrackingMovement(
                 $article->getBarCode(),
