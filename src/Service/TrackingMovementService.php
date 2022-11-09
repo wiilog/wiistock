@@ -1174,7 +1174,8 @@ class TrackingMovementService extends AbstractController
             $movements[] = $luDrop;
 
             //generate drop movements
-            $movements[] = $this->persistTrackingMovement(
+            /** @var TrackingMovement $drop */
+            $drop = $this->persistTrackingMovement(
                 $manager,
                 $article->getTrackingPack(),
                 ($lastTracking ?? $pack->getLastTracking())?->getEmplacement(),
@@ -1185,6 +1186,22 @@ class TrackingMovementService extends AbstractController
                 false,
                 $options,
             )["movement"];
+
+            $movements[] = $drop;
+
+            $stockMovement = $this->stockMovementService->createMouvementStock(
+                $user,
+                $location,
+                $article->getQuantite(),
+                $article,
+                MouvementStock::TYPE_TRANSFER
+            );
+
+            $this->stockMovementService->finishMouvementStock($stockMovement, new DateTime(), $location);
+            $article->setEmplacement($location);
+
+            $drop->setMouvementStock($stockMovement);
+            $manager->persist($stockMovement);
         }
 
         //add all new articles

@@ -234,7 +234,7 @@ class PackService {
             $pack->setNature($nature);
         }
 
-        $project = $projectRepository->find($projectId);
+        $project = $projectRepository->findOneBy(["id" => $projectId]);
         if (!empty($project)) {
             $packRecord = (new ProjectHistoryRecord())
                 ->setProject($project)

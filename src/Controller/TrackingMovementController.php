@@ -304,7 +304,7 @@ class TrackingMovementController extends AbstractController
                 ]);
             } else {
                 // uncomment following line to debug
-                //throw $exception;
+                throw $exception;
 
                 return $this->json([
                     "success" => false,
@@ -597,10 +597,10 @@ class TrackingMovementController extends AbstractController
             $templateDirectory = "mouvement_traca";
 
             $appropriateType = $statutRepository->find($typeId);
+            dump($appropriateType?->getCode());
             $fileToRender = match($appropriateType?->getCode()) {
                 TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassMvtTraca.html.twig",
                 TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroupMvtTraca.html.twig",
-                TrackingMovement::TYPE_PICK_LU,
                 TrackingMovement::TYPE_DROP_LU => "$templateDirectory/newLUMvtTraca.html.twig",
                 default => "$templateDirectory/newSingleMvtTraca.html.twig"
             };

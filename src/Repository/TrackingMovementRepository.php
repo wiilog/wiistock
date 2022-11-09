@@ -319,7 +319,7 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect('tracking_movement.uniqueIdForMobile AS date')
             ->addSelect('join_pack_nature.id AS nature_id')
             ->addSelect('(CASE WHEN tracking_movement.finished = 1 THEN 1 ELSE 0 END) AS finished')
-            ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock')
+            ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL OR join_pack.articleContainer = 1 THEN 1 ELSE 0 END) AS fromStock')
             ->addSelect('(CASE WHEN join_pack.groupIteration IS NOT NULL THEN 1 ELSE 0 END) AS isGroup')
             ->addSelect('join_packParent.code AS packParent');
 
@@ -340,6 +340,7 @@ class TrackingMovementRepository extends EntityRepository
             ->join('tracking_movement.operateur', 'join_operator')
             ->join('tracking_movement.emplacement', 'join_location')
             ->leftJoin('tracking_movement.pack', 'join_pack')
+            ->leftJoin('join_pack.childArticles', 'pack_child_articles')
             ->leftJoin('join_pack.nature', 'join_pack_nature')
             ->leftJoin('tracking_movement.mouvementStock', 'join_stockMovement')
             ->leftJoin('tracking_movement.packParent', 'join_packParent')
