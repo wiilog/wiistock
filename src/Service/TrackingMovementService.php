@@ -1142,6 +1142,7 @@ class TrackingMovementService extends AbstractController
             }
 
             $article->setCurrentLogisticUnit($pack);
+            $pack->setArticleContainer(true);
 
             //generate pick up movements
             $movements[] = $this->persistTrackingMovement(

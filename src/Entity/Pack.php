@@ -114,6 +114,7 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
     private Collection $projectHistoryRecords;
 
+    #[ORM\Column(type: 'boolean')]
     private ?bool $articleContainer = false;
 
     public function __construct() {
