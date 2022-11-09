@@ -90,7 +90,7 @@ $(function() {
             if($($current.next()[0]).hasClass('summary-container')){
                 const $articleDataInput = $('input[name=reference-article-input]');
                 $.post(Routing.generate('check_article_is_valid'), {articleLabel: $articleDataInput.val()}, function(response){
-                    if(response.success){
+                    if(response.success || !response.fromArticlePage){
                         $current.removeClass('active').addClass('d-none');
                         $($current.next()[0]).addClass('active').removeClass('d-none');
                         $currentTimelineEvent.removeClass('current');

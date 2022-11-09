@@ -55,7 +55,8 @@ class KioskController extends AbstractController
         $articleRepository = $entityManager->getRepository(Article::class);
         $article = $articleRepository->findOneBy(['barCode' => $request->request->get('articleLabel')]);
         return new JsonResponse([
-            'success' => !$article||($article && $article->getStatut()->getCode() === Article::STATUT_INACTIF),
+            'success' => $article && $article->getStatut()->getCode() === Article::STATUT_INACTIF,
+            'fromArticlePage' => $request->request->get('articleLabel') !== null
         ]);
     }
 
