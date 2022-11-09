@@ -62,7 +62,6 @@ $(function() {
     });
 
     $('.button-next').on('click', function (){
-        console.log('Papa pourquoi le bouton il marche pas ?');
         const $current = $(this).closest('.entry-stock-container').find('.active');
         const $buttonNextContainer = $(this).parent();
         const $timeline = $('.timeline-container');
