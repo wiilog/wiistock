@@ -309,7 +309,7 @@ class ArticleDataService
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
         $articles = $ligne->getArticles();
-        $reception = $ligne->getReception();
+        $reception = $ligne->getReceptionLine()->getReception();
         $rows = [];
         foreach ($articles as $article) {
             $rows[] = $this->dataRowArticle($article, $reception);
