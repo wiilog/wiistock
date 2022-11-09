@@ -189,6 +189,38 @@
                 z-index: 2;
             }
         }
+
+        &.sa-question {
+            border-color: $primary;
+            animation: scaleWarning 0.75s infinite alternate;
+
+            &:after, &:before {
+                border-radius: 50%;
+                height: 100%;
+                width: 100%;
+            }
+
+            &:after {
+                display: block;
+                z-index: 1;
+            }
+
+            &:before {
+                display: inline-block;
+                opacity: 0;
+                animation: pulseQuestion 2s linear infinite;
+            }
+
+            .sa-question-mark{
+                position: absolute;
+                height: 100%;
+                width: 100%;
+                z-index: 10;
+                padding: 20%;
+                background: url("../../public/svg/question.svg") no-repeat;
+                background-origin: content-box;
+            }
+        }
     }
 }
 
@@ -329,6 +361,26 @@
 
     100% {
         background-color: $warning;
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes pulseQuestion {
+    0% {
+        background-color: $primary;
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    30% {
+        background-color: $primary;
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    100% {
+        background-color: $primary;
         transform: scale(2);
         opacity: 0;
     }

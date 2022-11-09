@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "85ac003cbe0f7f98ba710bbe8ce393f7",
+    "content-hash": "168ec40745bcecf28d490e68a56dac41",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -4063,6 +4063,57 @@
                 "source": "https://github.com/ralouphie/getallheaders/tree/develop"
             },
             "time": "2019-03-08T08:55:37+00:00"
+        },
+        {
+            "name": "robgridley/zebra",
+            "version": "v2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/robgridley/zebra.git",
+                "reference": "aed6c02c1976db5864e917ad8585ac11d8514bde"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/robgridley/zebra/zipball/aed6c02c1976db5864e917ad8585ac11d8514bde",
+                "reference": "aed6c02c1976db5864e917ad8585ac11d8514bde",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1.0"
+            },
+            "require-dev": {
+                "phpspec/phpspec": "^7.1"
+            },
+            "suggest": {
+                "ext-gd": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Zebra\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Rob Gridley",
+                    "email": "me@robgridley.com"
+                }
+            ],
+            "description": "PHP ZPL builder, image conversion and a basic client for network-connected Zebra label printers.",
+            "keywords": [
+                "image",
+                "zebra",
+                "zpl"
+            ],
+            "support": {
+                "issues": "https://github.com/robgridley/zebra/issues",
+                "source": "https://github.com/robgridley/zebra/tree/v2.0.2"
+            },
+            "time": "2022-01-18T21:33:15+00:00"
         },
         {
             "name": "robrichards/xmlseclibs",
@@ -9765,6 +9816,34 @@
             "time": "2022-11-04T10:52:13+00:00"
         },
         {
+            "name": "wiilog/zpl-generator",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/wiilog/zpl-generator",
+                "reference": "466dc7d86ed92a79170a1ee4e8978c2a52665fb4"
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-gd": "*",
+                "ext-sockets": "*",
+                "php": "^8.0",
+                "robgridley/zebra": "^2.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.5"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ZplGenerator\\": "src/"
+                }
+            },
+            "description": "Generates ZPL code",
+            "time": "2022-11-07T10:42:19+00:00"
+        },
+        {
             "name": "willdurand/jsonp-callback-validator",
             "version": "v2.0.0",
             "source": {
@@ -11934,7 +12013,8 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "wiilog/barcode-bundle": 20,
-        "wiilog/common": 20
+        "wiilog/common": 20,
+        "wiilog/zpl-generator": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

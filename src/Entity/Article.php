@@ -149,6 +149,9 @@ class Article implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
     private Collection $projectHistoryRecords;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $createdOnKioskAt = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
@@ -721,6 +724,16 @@ class Article implements PairedEntity {
             $this->carts[] = $cart;
             $cart->addArticle($this);
         }
+
+        return $this;
+    }
+
+    public function getCreatedOnKioskAt(): ?\DateTimeInterface {
+        return $this->createdOnKioskAt;
+    }
+
+    public function setCreatedOnKioskAt(?\DateTimeInterface $createdOnKioskAt): self {
+        $this->createdOnKioskAt = $createdOnKioskAt;
 
         return $this;
     }
