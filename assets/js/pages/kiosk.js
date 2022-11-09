@@ -5,26 +5,25 @@ let scannedReference = '';
 const $referenceRefInput = $('input[name=reference-ref-input]');
 const $referenceLabelInput = $('input[name=reference-label-input]');
 const $modalGiveUpStockEntry = $("#modalGiveUpStockEntry");
+const $modalArticleIsNotValid = $("#modalArticleIsNotValid");
+const modalPrintHistory = $("#modal-print-history");
+const modalInformation = $("#modal-information");
+const modalWaiting = $("#modal-waiting");
+const modalInStockWarning = $("#modal-in-stock-warning");
 
 $(function() {
-    let modalPrintHistory = $("#modal-print-history");
     if (modalPrintHistory) {
         $('#openModalPrintHistory').on('click', function() {
             modalPrintHistory.modal('show');
         });
     }
 
-    let modalInformation = $("#modal-information");
     if (modalInformation) {
         $('#information-button').on('click', function() {
             modalInformation.modal('show');
             modalInformation.find('.bookmark-icon').removeClass('d-none');
         });
     }
-
-    let modalWaiting = $("#modal-waiting");
-
-    let modalInStockWarning = $("#modal-in-stock-warning");
 
     Select2Old.user($('[name=applicant]'), '', 3);
     Select2Old.user($('[name=follower]'), '', 3);
@@ -63,7 +62,9 @@ $(function() {
     });
 
     $('.button-next').on('click', function (){
+        console.log('Papa pourquoi le bouton il marche pas ?');
         const $current = $(this).closest('.entry-stock-container').find('.active');
+        const $buttonNextContainer = $(this).parent();
         const $timeline = $('.timeline-container');
         const $currentTimelineEvent = $timeline.find('.current');
         const $inputs = $current.find('input[required]');
@@ -72,9 +73,9 @@ $(function() {
 
         $selects.each(function(){
             if($(this).find('option:selected').length === 0){
-                $(this).parent().find('.select2-selection ').addClass('invalid');
+                $buttonNextContainer.find('.select2-selection ').addClass('invalid');
             } else {
-                $(this).parent().find('.select2-selection ').removeClass('invalid');
+                $buttonNextContainer.find('.select2-selection ').removeClass('invalid');
             }
         });
 
@@ -87,40 +88,49 @@ $(function() {
         });
 
         if($current.find('.invalid').length === 0){
-            $current.removeClass('active').addClass('d-none');
-            $($current.next()[0]).addClass('active').removeClass('d-none');
-            $currentTimelineEvent.removeClass('current');
-            $($currentTimelineEvent.next()[0]).addClass('current').removeClass('future');
-
             if($($current.next()[0]).hasClass('summary-container')){
-                $(this).parent().removeClass('d-flex');
-                $(this).parent().addClass('d-none');
-                $('.give-up-button-container').addClass('d-none');
-                $('.summary-button-container').removeClass('d-none').addClass('d-flex');
-
-                //endroit où l'on rajoute toutes les infos dans les sections correspondantes pour le récapitulatif
-                $('.reference-reference').html($('input[name=reference-ref-input]').val());
-
                 const $articleDataInput = $('input[name=reference-article-input]');
-                if($articleDataInput.val()){
-                    $('.reference-article').html($articleDataInput.val());
-                } else {
-                    $('.field-article-title').removeClass('d-flex');
-                    $('.field-article-title').addClass('d-none');
-                }
+                $.post(Routing.generate('check_article_is_valid'), {articleLabel: $articleDataInput.val()}, function(response){
+                    if(response.success){
+                        $current.removeClass('active').addClass('d-none');
+                        $($current.next()[0]).addClass('active').removeClass('d-none');
+                        $currentTimelineEvent.removeClass('current');
+                        $($currentTimelineEvent.next()[0]).addClass('current').removeClass('future');
 
-                $('.reference-label').html($('input[name=reference-label-input]').val());
+                        $buttonNextContainer.removeClass('d-flex').addClass('d-none');
+                        $('.give-up-button-container').removeClass('d-flex').addClass('d-none');
+                        $('.summary-button-container').removeClass('d-none').addClass('d-flex');
 
-                const $applicantInput = $('select[name=applicant] option:selected');
-                const $followerInput = $('select[name=follower] option:selected');
-                if($applicantInput.val()){
-                    $('.reference-managers').html(
-                        $followerInput.val() ?
-                            $applicantInput.text().concat(', ', $followerInput.text()) :
-                            $applicantInput.text());
-                }
-                $('.reference-free-field').html();
-                $('.reference-commentary').html($('input[name=reference-comment]').val());
+                        //endroit où l'on rajoute toutes les infos dans les sections correspondantes pour le récapitulatif
+                        $('.reference-reference').html($('input[name=reference-ref-input]').val());
+                        if($articleDataInput.val()){
+                            $('.reference-article').html($articleDataInput.val());
+                        } else {
+                            $('.field-article-title').removeClass('d-flex').addClass('d-none');
+                        }
+
+                        $('.reference-label').html($('input[name=reference-label-input]').val());
+
+                        const $applicantInput = $('select[name=applicant] option:selected');
+                        const $followerInput = $('select[name=follower] option:selected');
+                        if($applicantInput.val()){
+                            $('.reference-managers').html(
+                                $followerInput.val() ?
+                                    $applicantInput.text().concat(', ', $followerInput.text()) :
+                                    $applicantInput.text());
+                        }
+                        $('.reference-free-field').html();
+                        $('.reference-commentary').html($('input[name=reference-comment]').val());
+                    } else {
+                        $modalArticleIsNotValid.modal('show');
+                        $modalArticleIsNotValid.find('.bookmark-icon').removeClass('d-none');
+                    }
+                });
+            } else {
+                $current.removeClass('active').addClass('d-none');
+                $($current.next()[0]).addClass('active').removeClass('d-none');
+                $currentTimelineEvent.removeClass('current');
+                $($currentTimelineEvent.next()[0]).addClass('current').removeClass('future');
             }
         }
     });
@@ -153,8 +163,7 @@ $(function() {
         const $timelineSpans = $('.timeline-container span');
         $('.give-up-button-container').removeClass('d-none').addClass('d-flex');
         $('.summary-button-container').removeClass('d-flex').addClass('d-none');
-        $buttonNextContainer.removeClass('d-none');
-        $buttonNextContainer.addClass('d-flex');
+        $buttonNextContainer.removeClass('d-none').addClass('d-flex');
 
         $timelineSpans.each(function() {
             $(this).removeClass('current').addClass('future');
@@ -167,11 +176,48 @@ $(function() {
     });
 
     $('.validate-stock-entry-button').on('click', function() {
-        // TODO Valider
-    });
+        $('#modal-waiting').modal('show');
+        $.post(Routing.generate('entry_stock_validate'), {
+            'reference': $('input[name=reference-ref-input]').val(),
+            'label': $('input[name=reference-label-input]').val(),
+            'article': $('input[name=reference-article-input]').val(),
+            'applicant': $('select[name=applicant] option:selected').val(),
+            'follower': $('select[name=follower] option:selected').val(),
+            'comment': $('input[name=reference-comment]').val(),
+            // 'freeField': $('input[name=reference-ref-input]'),
+        }, function (res){
+            if(res.success){
+                const $successPage =  $('.success-page-container');
+                $('.main-page-container').addClass('d-none');
 
+                $('.go-home-button').on('click', function() {
+                    window.location.href = Routing.generate('kiosk_index', true);
+                })
+
+                if(res.referenceExist){
+                    $('.print-again-button').addClass('d-none');
+                    $('.article-entry-stock-success .field-success-page').html(res.successMessage);
+                    $('.article-entry-stock-success').removeClass('d-none');
+                } else {
+                    $('.ref-entry-stock-success .field-success-page').html(res.successMessage);
+                    $('.ref-entry-stock-success').removeClass('d-none');
+                }
+
+                $successPage.removeClass('d-none');
+                $successPage.find('.bookmark-icon').removeClass('d-none');
+                $('#modal-waiting').modal('hide');
+                setTimeout(() => {
+                    window.location.href = Routing.generate('kiosk_index', true);
+                }, 10000);
+            }
+        });
+    });
 
     $('#submitGiveUpStockEntry').on('click', function() {
         window.location.href = Routing.generate('kiosk_index', true);
-    })
+    });
+
+    $('.print-again-button').on('click', function(){
+        //TODO GREGOIRE appeler fonction impression d'article
+    });
 });

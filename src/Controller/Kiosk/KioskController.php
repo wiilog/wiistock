@@ -8,6 +8,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Article;
 use App\Entity\Utilisateur;
@@ -45,6 +46,15 @@ class KioskController extends AbstractController
             'scannedReference' => $scannedReference,
             'freeField' => $freeField,
             'inStock' => $reference?->getQuantiteStock() > 0,
+        ]);
+    }
+
+    #[Route("/check-is-valid", name: "check_article_is_valid", options: ["expose" => true], methods: 'GET|POST')]
+    public function getArticleExistAndNotActive(Request $request, EntityManagerInterface $entityManager): Response {
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $article = $articleRepository->findOneBy(['barCode' => $request->request->get('articleLabel')]);
+        return new JsonResponse([
+            'success' => $article && $article->getStatut()->getCode() === Article::STATUT_INACTIF,
         ]);
     }
 }

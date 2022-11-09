@@ -17,7 +17,7 @@
                 <div class="{{ colType is defined ? colType }} {% if showLabels ?? true %}my-2{% endif %}">
                     <div class="row form-group free-field mb-0 ">
                         <div class="col-12 d-flex">
-                            {% set label = kiosk ? '' : freeField.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug)
+                            {% set label = kiosk is defined and kiosk ? '' : freeField.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug)
                                 ?: freeField.label %}
                             {% set displayedLabel = (showLabels ?? true) ? label : '' %}
                             {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
