@@ -1286,17 +1286,4 @@ class ReferenceArticleRepository extends EntityRepository {
 
         return $query->execute();
     }
-
-    public function getLatestsKioskPrint() {
-        $userRepository = $this->getEntityManager()->getRepository(Utilisateur::class);
-        $kioskUser = $userRepository->getKioskUser();
-
-        return $this->createQueryBuilder('referenceArticle')
-            ->where('referenceArticle.createdBy = :kioskUser')
-            ->setParameter('kioskUser', $kioskUser)
-            ->orderBy('referenceArticle.createdAt', 'DESC')
-            ->setMaxResults(3)
-            ->getQuery()
-            ->getResult();
-    }
 }
