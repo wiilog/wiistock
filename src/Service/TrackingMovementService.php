@@ -1064,7 +1064,7 @@ class TrackingMovementService extends AbstractController
                 $newMovements = [];
                 $selectedType = $entityManager->find(Statut::class, $trackingType);
 
-                if($selectedType->getCode() === TrackingMovement::TYPE_PRISE && $pack->getArticle() && $pack->getArticle()->getCurrentLogisticUnit()) {
+                if($selectedType->getCode() === TrackingMovement::TYPE_PRISE && $pack && $pack->getArticle() && $pack->getArticle()->getCurrentLogisticUnit()) {
                     $movement = $this->persistTrackingMovement(
                         $entityManager,
                         $pack ?? $packOrCode,
