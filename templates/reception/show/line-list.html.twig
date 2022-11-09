@@ -32,7 +32,13 @@
                     packFilter:  reference.quantityType,
                 }
             )
-        }))
+        })),
+        action: {
+            icon: 'new-article',
+            datatarget: "#modalAddLigneArticle",
+            class: "btn btn-outline-primary ml-2 h-100 p-1",
+            onclick: "initNewArticleEditor('#modalAddLigneArticle', { unitId : {{ header.data['pack-id'] }}, unitCode : '{{ header.content[0].value }}' })",
+        }
     } %}
 {% endfor %}
 
