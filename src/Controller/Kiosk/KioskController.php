@@ -39,7 +39,7 @@ class KioskController extends AbstractController
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $scannedReference = $request->query->get('scannedReference');
 
-        $freeField = $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE));
+        $freeField = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE) ? $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE)) : '';
         $reference = $referenceArticleRepository->findOneBy(['reference' => $scannedReference]) ?? new ReferenceArticle();
 
         return $this->render('kiosk/form.html.twig', [
@@ -55,7 +55,7 @@ class KioskController extends AbstractController
         $articleRepository = $entityManager->getRepository(Article::class);
         $article = $articleRepository->findOneBy(['barCode' => $request->request->get('articleLabel')]);
         return new JsonResponse([
-            'success' => $article && $article->getStatut()->getCode() === Article::STATUT_INACTIF,
+            'success' => !$article||($article && $article->getStatut()->getCode() === Article::STATUT_INACTIF),
         ]);
     }
 
@@ -67,12 +67,16 @@ class KioskController extends AbstractController
         $articleRepository = $entityManager->getRepository(Article::class);
 
         $articleId = $request->query->get('article');
-        if($articleId){
+        $reprint = $request->query->get('reprint');
+        if ($articleId) {
             $article = $articleRepository->find($request->query->get('article'));
-
-            $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
-            $options['barcode'] = $article->getBarCode();
+        } elseif ($reprint) {
+            $article = $articleRepository->getLatestsKioskPrint()[0];
+        } else {
+            return $this->json(['success' => false]);
         }
+        $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
+        $options['barcode'] = $article->getBarCode();
 
         $kioskService->printLabel($options, $entityManager);
         return $this->json(['success' => true]);

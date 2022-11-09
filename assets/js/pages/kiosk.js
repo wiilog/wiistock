@@ -219,6 +219,12 @@ $(function() {
     $('.print-article').on('click', function() {
         AJAX.route(GET, `print_article`, {
             article: $(this).data('article'),
-        }).json().then((response) => {console.log(response)});
+        }).json().then((response) => {});
+    });
+
+    $('.print-again-button').on('click', function() {
+        AJAX.route(GET, `print_article`, {
+            reprint : true
+        }).json().then((response) => {});
     });
 });

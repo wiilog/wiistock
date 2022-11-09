@@ -32,6 +32,7 @@ use App\Service\ArticleDataService;
 use App\Service\ArticleFournisseurService;
 use App\Service\AttachmentService;
 use App\Service\FreeFieldService;
+use App\Service\Kiosk\KioskService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
@@ -914,7 +915,8 @@ class ReferenceArticleController extends AbstractController
                                   EntityManagerInterface $entityManager,
                                   ArticleFournisseurService $articleFournisseurService,
                                   ArticleDataService $articleDataService,
-                                  RefArticleDataService $refArticleDataService): Response {
+                                  RefArticleDataService $refArticleDataService,
+                                  KioskService $kioskService): Response {
         $refArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -1008,8 +1010,12 @@ class ReferenceArticleController extends AbstractController
                     'libelle' => $reference->getLibelle(),
                     'quantite' => 1,
                 ], $entityManager);
+                $article->setCreatedOnKioskAt(new DateTime());
                 $entityManager->persist($article);
-                //TODO GREGOIRE appeler fonction impression d'article
+
+                $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
+                $options['barcode'] = $article->getBarCode();
+                $kioskService->printLabel($options, $entityManager);
 
                 $ordreCollecte->addArticle($article);
             }
