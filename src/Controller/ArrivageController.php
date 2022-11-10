@@ -974,8 +974,6 @@ class ArrivageController extends AbstractController {
                 if ($statusCode === Reception::STATUT_EN_ATTENTE) {
                     $persistedColis = $colisService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project, $reception);
                     $entityManager->flush();
-
-
                 } elseif ($statusCode === Reception::STATUT_RECEPTION_TOTALE || $statusCode === Reception::STATUT_RECEPTION_PARTIELLE) {
                     $response = [
                         'success' => false,

@@ -265,15 +265,15 @@ class PackService {
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
         } else {
+            /** @var ?Project $project */
+            $project = $options['project'] ?? null;
+
             if(isset($options['arrival'])) {
                 /** @var Arrivage $arrival */
                 $arrival = $options['arrival'];
 
                 /** @var Nature $nature */
                 $nature = $options['nature'];
-
-                /** @var ?Project $project */
-                $project = $options['project'];
 
                 $arrivalNum = $arrival->getNumeroArrivage();
                 $counter = $this->getNextPackCodeForArrival($arrival) + 1;
@@ -284,10 +284,6 @@ class PackService {
                     ->createPackWithCode($code)
                     ->setNature($nature)
                     ->setProject($project);
-
-                if(isset($options['project'])){
-                    $pack->setProject($options['project']);
-                }
                 if (isset($options['reception'])) {
                     /** @var Reception $reception */
                     $reception = $options['reception'];
@@ -313,15 +309,31 @@ class PackService {
                 $code = $naturePrefix . $requestNumber . $counterStr;
                 $pack = $this
                     ->createPackWithCode($code)
-                    ->setNature($nature);
+                    ->setNature($nature)
+                    ->setProject($project);
 
-                if(isset($options['project'])){
-                    $pack->setProject($options['project']);
-                }
                 $orderLine->setPack($pack);
             }
             else {
                 throw new RuntimeException('Unhandled pack configuration');
+            }
+
+            if ($pack->getProject()) {
+                $packRecord = (new ProjectHistoryRecord())
+                    ->setProject($project)
+                    ->setCreatedAt(new DateTime());
+
+                $pack->setProject($project);
+                $pack->addProjectHistoryRecord($packRecord);
+
+                if ($pack->getArticle()) {
+                    $articleRecord = (new ProjectHistoryRecord())
+                        ->setProject($project)
+                        ->setCreatedAt(new DateTime());
+
+                    $pack->getArticle()->setProject($project);
+                    $pack->getArticle()->addProjectHistoryRecord($articleRecord);
+                }
             }
         }
         return $pack;
