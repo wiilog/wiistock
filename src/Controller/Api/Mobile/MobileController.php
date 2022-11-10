@@ -280,6 +280,7 @@ class MobileController extends AbstractApiController
                         );
 
                         $associatedPack = $createdMvt->getPack();
+                        $createdMvt->setLogisticUnitParent($associatedPack?->getArticle()?->getCurrentLogisticUnit());
 
                         if($createdMvt->getType()->getCode() === TrackingMovement::TYPE_PRISE && $associatedPack->getArticle() && $associatedPack->getArticle()->getCurrentLogisticUnit()) {
                             $movement = $trackingMovementService->persistTrackingMovement(

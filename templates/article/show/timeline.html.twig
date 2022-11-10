@@ -8,6 +8,7 @@
         'dégroupage': 'Dégroupage'
     } %}
     {% for movement in movements %}
+        {% if not (movement['type'] starts with 'prise') %}
         {% set hasLogisticUnitParent = movement['logisticUnitParent'] is defined and movement['logisticUnitParent'] %}
         <div class="history-line {{ hasLogisticUnitParent ? 'has-logistic-unit-parent' }}">
             <div class="history-line-left-content justify-content-between">
@@ -38,6 +39,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     {% endfor %}
 {% else %}
     <div class="wii-body-text text-center">Il n'y a aucun mouvement de traçabilité pour cet article</div>
