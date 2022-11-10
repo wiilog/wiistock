@@ -28,11 +28,10 @@ class KioskService
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         // kiosk settings
-        $printerName = $settingRepository->getOneParamByLabel('PRINTER_NAME');
-        $printerSerialNumber = $settingRepository->getOneParamByLabel('PRINTER_SERIAL_NUMBER');
-        $printerLabelWidth = $settingRepository->getOneParamByLabel('PRINTER_LABEL_WIDTH');
-        $printerLabelHeight = $settingRepository->getOneParamByLabel('PRINTER_LABEL_HEIGHT');
-        $printerDpi = $settingRepository->getOneParamByLabel('PRINTER_DPI');
+        $printerSerialNumber = key_exists('serialNumber', $options) ? $options['serialNumber'] : $settingRepository->getOneParamByLabel('PRINTER_SERIAL_NUMBER');
+        $printerLabelWidth = key_exists('labelWidth', $options) ? $options['labelWidth'] : $settingRepository->getOneParamByLabel('PRINTER_LABEL_WIDTH');
+        $printerLabelHeight = key_exists('labelHeight', $options) ? $options['labelHeight'] :$settingRepository->getOneParamByLabel('PRINTER_LABEL_HEIGHT');
+        $printerDpi = key_exists('printerDPI', $options) ? $options['printerDPI'] :$settingRepository->getOneParamByLabel('PRINTER_DPI');
 
         // local variables
         $zebraCloudApiKey = $_SERVER['ZEBRA_CLOUD_API_KEY'];
