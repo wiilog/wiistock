@@ -23,13 +23,14 @@
                     data-target='#modalNewLigneReception'
                     data-toggle='modal'
                     onclick="openModalLigneReception($(this))"
-                    class="btn btn-primary split-button" title="réception">
+                    class="btn btn-primary split-button mr-2" title="réception">
                 {{ trans('Ordre','Réceptions', 'réception', false) }}
             </button>
             <button type="button"
-                    class="btn btn-primary {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
+                    class="btn btn-primary d-flex align-items-center {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
                     onclick="finishReception({{ reception.id }}, false,$(this))"
                     id="finishReceptionButton">
+                <span class="wii-icon wii-icon-check-white mr-2"></span>
                 Finir la {{ trans('Ordre','Réceptions', 'réception', false) }}
             </button>
         {% endif %}
