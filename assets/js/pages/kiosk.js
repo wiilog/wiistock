@@ -1,5 +1,5 @@
 import '@styles/pages/kiosk.scss';
-import AJAX, {GET} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {SUCCESS, ERROR} from "@app/flash";
 
 let scannedReference = '';
@@ -181,40 +181,39 @@ $(function() {
 
     $('.validate-stock-entry-button').on('click', function() {
         $('#modal-waiting').modal('show');
-        $.post(Routing.generate('entry_stock_validate'), {
+        AJAX.route(POST, 'entry_stock_validate', {
             'reference': $('input[name=reference-ref-input]').val(),
             'label': $('input[name=reference-label-input]').val(),
-            'article': $('input[name=reference-article-input]').val(),
+            'article': $('input[name=reference-article-input]').val() || null,
             'applicant': $('select[name=applicant] option:selected').val(),
             'follower': $('select[name=follower] option:selected').val(),
             'comment': $('input[name=reference-comment]').val(),
             // 'freeField': $('input[name=reference-ref-input]'),
-        }, function (res){
+        }).json().then((res) => {
             if(res.success){
-                const $successPage =  $('.success-page-container');
-                $('.main-page-container').addClass('d-none');
+            const $successPage =  $('.success-page-container');
+            $('.main-page-container').addClass('d-none');
 
-                $('.go-home-button').on('click', function() {
-                    window.location.href = Routing.generate('kiosk_index', true);
-                })
+            $('.go-home-button').on('click', function() {
+                window.location.href = Routing.generate('kiosk_index', true);
+            })
 
-                if(res.referenceExist){
-                    $('.print-again-button').addClass('d-none');
-                    $('.article-entry-stock-success .field-success-page').html(res.successMessage);
-                    $('.article-entry-stock-success').removeClass('d-none');
-                } else {
-                    $('.ref-entry-stock-success .field-success-page').html(res.successMessage);
-                    $('.ref-entry-stock-success').removeClass('d-none');
-                }
-
-                $successPage.removeClass('d-none');
-                $successPage.find('.bookmark-icon').removeClass('d-none');
-                $('#modal-waiting').modal('hide');
-                setTimeout(() => {
-                    window.location.href = Routing.generate('kiosk_index', true);
-                }, 10000);
+            if(res.referenceExist){
+                $('.print-again-button').addClass('d-none');
+                $('.article-entry-stock-success .field-success-page').html(res.successMessage);
+                $('.article-entry-stock-success').removeClass('d-none');
+            } else {
+                $('.ref-entry-stock-success .field-success-page').html(res.successMessage);
+                $('.ref-entry-stock-success').removeClass('d-none');
             }
-        });
+
+            $successPage.removeClass('d-none');
+            $successPage.find('.bookmark-icon').removeClass('d-none');
+            $('#modal-waiting').modal('hide');
+            setTimeout(() => {
+                window.location.href = Routing.generate('kiosk_index', true);
+            }, 10000);
+        }});
     });
 
     $('#submitGiveUpStockEntry').on('click', function() {

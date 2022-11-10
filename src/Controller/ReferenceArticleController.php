@@ -925,7 +925,10 @@ class ReferenceArticleController extends AbstractController
         $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $data = $request->request->all();
+        $data = $request->query->all();
+
+        dump($data);
+        dump($request);
 
         $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
