@@ -1278,7 +1278,6 @@ class TrackingMovementService extends AbstractController
                 $options,
             )["movement"];
 
-            $pick->setLogisticUnitParent($article->getCurrentLogisticUnit());
             $movements[] = $pick;
 
             //generate drop in LU movements
@@ -1312,6 +1311,7 @@ class TrackingMovementService extends AbstractController
                 $options,
             )["movement"];
 
+            $drop->setLogisticUnitParent($article->getCurrentLogisticUnit());
             $movements[] = $drop;
 
             $stockMovement = $this->stockMovementService->createMouvementStock(
