@@ -165,7 +165,7 @@ class TrackingMovementService extends AbstractController
             if(in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
                 $pack = "";
             } else {
-                $pack = $movement->getLogisticUnitParent() !== null;
+                $pack = $movement->getLogisticUnitParent()->getCode();
             }
         } else {
             $pack = $movement->getPack()->getCode();
@@ -1296,6 +1296,7 @@ class TrackingMovementService extends AbstractController
             )["movement"];
 
             $luDrop->setLogisticUnitParent($pack);
+
             $movements[] = $luDrop;
 
             //generate drop movements

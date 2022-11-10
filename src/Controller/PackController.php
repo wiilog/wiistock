@@ -8,6 +8,7 @@ use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
@@ -188,6 +189,7 @@ class PackController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $packRepository = $entityManager->getRepository(Pack::class);
             $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
+            $deliveryRequestArticleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
             $projectRepository = $entityManager->getRepository(Project::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
@@ -199,7 +201,11 @@ class PackController extends AbstractController
                     "selected" => $pack->getProject() === $project
                 ]);
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER);
-            $disabledProject = $preparationOrderArticleLineRepository->getPreparationOrderArticleLine($pack, [$status->getId()]);
+            $disabledProject = (
+                $preparationOrderArticleLineRepository->getPreparationOrderArticleLine($pack, [$status->getId()])
+                || $deliveryRequestArticleLineRepository->isOngoingAndUsingPack($pack)
+                || Stream::from($pack->getChildArticles())->some(fn(Article $article) => $article->getCarts()->count())
+            );
             $articlesQuantity = Stream::from($pack->getChildArticles())->reduce(fn(int $carry, Article $article) => $carry + $article->getQuantite());
             $html = $this->renderView('pack/modalEditPackContent.html.twig', [
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC']),

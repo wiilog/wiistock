@@ -25,9 +25,6 @@ class ProjectHistoryRecord {
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'projectHistoryRecords')]
     private ?Pack $pack = null;
 
-    #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'projectHistoryRecords')]
-    private ?Article $article = null;
-
     public function getId(): ?int {
         return $this->id;
     }
@@ -51,20 +48,6 @@ class ProjectHistoryRecord {
         }
         $this->pack = $pack;
         $pack?->addProjectHistoryRecord($this);
-
-        return $this;
-    }
-
-    public function getArticle(): ?Article {
-        return $this->article;
-    }
-
-    public function setArticle(?Article $article): self {
-        if($this->article && $this->article !== $article) {
-            $this->article->removeProjectHistoryRecord($this);
-        }
-        $this->article = $article;
-        $article?->addProjectHistoryRecord($this);
 
         return $this;
     }

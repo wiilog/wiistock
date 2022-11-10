@@ -242,15 +242,6 @@ class PackService {
 
             $pack->setProject($project);
             $pack->addProjectHistoryRecord($packRecord);
-
-            if ($pack->getArticle()) {
-                $articleRecord = (new ProjectHistoryRecord())
-                    ->setProject($project)
-                    ->setCreatedAt(new DateTime());
-
-                $pack->getArticle()->setProject($project);
-                $pack->getArticle()->addProjectHistoryRecord($articleRecord);
-            }
         }
 
         $pack
@@ -325,15 +316,6 @@ class PackService {
 
                 $pack->setProject($project);
                 $pack->addProjectHistoryRecord($packRecord);
-
-                if ($pack->getArticle()) {
-                    $articleRecord = (new ProjectHistoryRecord())
-                        ->setProject($project)
-                        ->setCreatedAt(new DateTime());
-
-                    $pack->getArticle()->setProject($project);
-                    $pack->getArticle()->addProjectHistoryRecord($articleRecord);
-                }
             }
         }
         return $pack;

@@ -144,10 +144,12 @@ class ArticleController extends AbstractController
         $type = $article->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
-        $projectHistoryRecords = Stream::from($article->getProjectHistoryRecords())
-            ->filter(fn(ProjectHistoryRecord $record) => $record->getProject() !== $article->getProject())
+        $projectHistoryRecords = Stream::from($article->getCurrentLogisticUnit()?->getProjectHistoryRecords() ?? [])
             ->sort(fn(ProjectHistoryRecord $r1, ProjectHistoryRecord $r2) => $r2->getCreatedAt() <=> $r1->getCreatedAt())
             ->toArray();
+
+        //remove last element = current project
+        array_pop($projectHistoryRecords);
 
         return $this->render("article/show/index.html.twig", [
             'article' => $article,

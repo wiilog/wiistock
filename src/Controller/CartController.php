@@ -267,7 +267,11 @@ class CartController extends AbstractController
             foreach ($ids as $id) {
                 $unit = $packRepository->findOneBy(["id" => $id]);
                 if ($unit) {
-                    $rightCartProject = $cartContentStream->every(fn(Article $article) => $article->getProject()?->getId() === $unit->getProject()?->getId());
+                    $rightCartProject = $cartContentStream->every(fn(Article $article) =>
+                        $article->getCurrentLogisticUnit()?->getProject()?->getId()
+                        === $unit->getProject()?->getId()
+                    );
+
                     if ($rightCartProject) { // error
                         $wrongProject[] = $unit->getCode();
                     }

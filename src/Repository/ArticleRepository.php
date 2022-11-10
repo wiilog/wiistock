@@ -131,7 +131,8 @@ class ArticleRepository extends EntityRepository {
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
-            ->leftJoin('article.project', 'project' )
+            ->leftJoin('article.currentLogisticUnit', 'currentLogisticUnit')
+            ->leftJoin('currentLogisticUnit.project', 'project')
             ->groupBy('article.id')
             ->getQuery()
             ->toIterable();
@@ -361,7 +362,8 @@ class ArticleRepository extends EntityRepository {
                             case "project":
                                 $subqb = $this->createQueryBuilder("article")
                                     ->select('article.id')
-                                    ->leftJoin('article.project', 'project_search')
+                                    ->leftJoin('article.currentLogisticUnit', 'project_current_logistic_unit_search')
+                                    ->leftJoin('project_current_logistic_unit_search.project', 'project_search')
                                     ->andWhere('project_search.code LIKE :search')
                                     ->setParameter('search', $search);
 

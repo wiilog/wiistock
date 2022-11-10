@@ -137,17 +137,11 @@ class Article implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Pairing::class, cascade: ['remove'])]
     private Collection $pairings;
 
-    #[ORM\ManyToOne(targetEntity: Project::class)]
-    private ?Project $project = null;
-
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'articles')]
     private ?Collection $carts;
 
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "childArticles")]
     private ?Pack $currentLogisticUnit = null;
-
-    #[ORM\OneToMany(mappedBy: 'article', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
-    private Collection $projectHistoryRecords;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdOnKioskAt = null;
@@ -746,18 +740,6 @@ class Article implements PairedEntity {
         return $this;
     }
 
-    public function getProject(): ?Project
-    {
-        return $this->project;
-    }
-
-    public function setProject(?Project $project): self
-    {
-        $this->project = $project;
-
-        return $this;
-    }
-
     public function getCurrentLogisticUnit(): ?Pack {
         return $this->currentLogisticUnit;
     }
@@ -772,42 +754,4 @@ class Article implements PairedEntity {
         return $this;
     }
 
-    /**
-     * @return Collection<int, ProjectHistoryRecord>
-     */
-    public function getProjectHistoryRecords(): Collection {
-        return $this->projectHistoryRecords;
-    }
-
-    public function addProjectHistoryRecord(ProjectHistoryRecord $projectHistoryRecord): self {
-        if (!$this->projectHistoryRecords->contains($projectHistoryRecord)) {
-            $this->projectHistoryRecords[] = $projectHistoryRecord;
-            $projectHistoryRecord->setArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeProjectHistoryRecord(ProjectHistoryRecord $projectHistoryRecord): self {
-        if ($this->projectHistoryRecords->removeElement($projectHistoryRecord)) {
-            if ($projectHistoryRecord->getArticle() === $this) {
-                $projectHistoryRecord->setArticle(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setProjectHistoryRecords(?iterable $projectHistoryRecords): self {
-        foreach($this->getProjectHistoryRecords()->toArray() as $projectHistoryRecord) {
-            $this->removeProjectHistoryRecord($projectHistoryRecord);
-        }
-
-        $this->projectHistoryRecords = new ArrayCollection();
-        foreach($projectHistoryRecords ?? [] as $projectHistoryRecord) {
-            $this->addProjectHistoryRecord($projectHistoryRecord);
-        }
-
-        return $this;
-    }
 }
