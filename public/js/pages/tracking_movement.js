@@ -153,6 +153,8 @@ function initPageModal(tableMvt) {
                                     },
                                     cancelled: () => resolve(false),
                                 });
+                            } else {
+                                resolve(true)
                             }
                         })
                 })

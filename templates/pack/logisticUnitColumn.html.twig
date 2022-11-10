@@ -2,12 +2,12 @@
 
 {% if articles or pack.isArticleContainer %}
     <span class="logistic-unit-number" data-id="{{ pack.id }}">
-        <span class="d-flex align-items-center has-tooltip"
-              title="{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', '{1} articles dans l\'unité logistique. Cliquez pour voir le contenu.', {
-                  1: articles
-              }) }}">
+        <span class="d-flex align-items-center">
             <div class="mt-1">{{ pack.code }}</div>
-            <span class="wii-icon wii-icon-article-in-lu wii-icon-20px-black primary-on-hover ml-1"></span>
+            <span class="wii-icon wii-icon-article-in-lu wii-icon-20px-black primary-on-hover ml-1 has-tooltip"
+                  title="{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', '{1} articles dans l\'unité logistique. Cliquez pour voir le contenu.', {
+                      1: articles
+                  }) }}"></span>
         </span>
      </span>
 {% else %}

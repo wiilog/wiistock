@@ -132,7 +132,6 @@ $(function() {
             event.stopPropagation();
 
             const $container = $(`.packsTableContainer`);
-            $container.find(`.logistic-unit-content`).remove();
 
             if($number.is(`.active`)) {
                 $number.removeClass(`active`);
@@ -141,6 +140,7 @@ $(function() {
                 AJAX.route(`GET`, `logistic_unit_content`, {pack: $number.data(`id`)})
                     .json()
                     .then(result => {
+                        $container.find(`.logistic-unit-content`).remove();
                         $(`.logistic-unit-number`).removeClass(`.active`);
                         $number.addClass(`active`);
                         $container.append(result.html);
