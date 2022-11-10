@@ -929,17 +929,13 @@ class ReferenceArticleController extends AbstractController
 
         $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
-        $inventoryCategory = $inventoryCategoryRepository->find($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE));
-        $visibilityGroup = $visibilityGroupRepository->find($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE));
         $applicant = $userRepository->find($data['applicant']);
         $follower = $userRepository->find($data['follower']);
         $articleSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
         $referenceSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
 
         $reference = $refArticleRepository->findOneBy(['reference' => $data['reference']]) ?? new ReferenceArticle();
-
         $referenceExist = isset($data['article']);
-
         $reference->setReference($data['reference'])
             ->setLibelle($data['label'])
             ->setType($type)
@@ -947,13 +943,18 @@ class ReferenceArticleController extends AbstractController
             ->addManager($follower)
             ->setStatut($status)
             ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE)
-            ->setVisibilityGroup($visibilityGroup)
-            ->setCategory($inventoryCategory)
             ->setCreatedBy($userRepository->getKioskUser())
             ->setBarCode($refArticleDataService->generateBarCode());
+        if($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE)){
+            $visibilityGroup = $visibilityGroupRepository->find($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE));
+            $reference->setProperties(['visibilityGroup' => $visibilityGroup]);
+        }
+        if($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE)){
+            $inventoryCategory = $inventoryCategoryRepository->find($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE));
+            $reference->setCategory($inventoryCategory);
+        }
+
         $entityManager->persist($reference);
-        $visibilityGroup->addArticleReference($reference);
-        $entityManager->persist($visibilityGroup);
         try {
             $supplierArticle = $articleFournisseurService->createArticleFournisseur([
                 'fournisseur' => $settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_REFERENCE_CREATE),
