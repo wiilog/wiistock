@@ -148,7 +148,7 @@ $(function() {
                     .json()
                     .then(result => {
                         $container.find(`.logistic-unit-content`).remove();
-                        $(`.logistic-unit-number`).removeClass(`.active`);
+                        $(`.logistic-unit-number.active`).removeClass(`active`);
                         $number.addClass(`active`);
                         $container.append(result.html);
                         packsTable.columns.adjust();

@@ -63,13 +63,13 @@
 
     <div class="content article-history d-none">
         {% for movement in movements %}
-            {% set article = movement.article %}
+            {% set article = movement.packArticle %}
 
             {% if article %}
                 <div class="logistic-unit-history-interstice">
-                    {% if movement.type.code == constant('App\\Entity\\TrackingMovement::TYPE_DROP_LOGISTIC_UNIT') %}
+                    {% if movement.type.code == constant('App\\Entity\\TrackingMovement::TYPE_DROP_LU') %}
                         <div class="logistic-unit-entry">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Entrée') }}</div>
-                    {% elseif movement.type.code == constant('App\\Entity\\TrackingMovement::TYPE_PICK_LOGISTIC_UNIT') %}
+                    {% elseif movement.type.code == constant('App\\Entity\\TrackingMovement::TYPE_PICK_LU') %}
                         <div class="logistic-unit-exit">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Sortie') }}</div>
                     {% endif %}
                     <span class="wii-small-text">Ven 04 avril 2022 08:45</span>

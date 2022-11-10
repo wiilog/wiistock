@@ -503,8 +503,8 @@ class TrackingMovementRepository extends EntityRepository
             ->andWhere("movement_status.code IN (:types)")
             ->andWhere("movement.logisticUnitParent = :pack")
             ->setParameter("types", [
-                TrackingMovement::TYPE_PICK_LOGISTIC_UNIT,
-                TrackingMovement::TYPE_DROP_LOGISTIC_UNIT,
+                TrackingMovement::TYPE_PICK_LU,
+                TrackingMovement::TYPE_DROP_LU,
             ])
             ->setParameter("pack", $pack)
             ->getQuery()
