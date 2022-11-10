@@ -66,6 +66,11 @@ class AnnotationListener {
         }
 
         $annotation = $reader->getMethodAnnotation($method, HasPermission::class);
+        if($nativeAnnotations = $method->getAttributes(HasPermission::class)) {
+            $annotation = new HasPermission();
+            $annotation->value = $nativeAnnotations[0]->getArguments()[0];
+        }
+
         if ($annotation instanceof HasPermission) {
             $this->handleHasPermission($event, $annotation);
         }
@@ -100,6 +105,7 @@ class AnnotationListener {
     }
 
     private function handleHasPermission(ControllerArgumentsEvent $event, HasPermission $annotation) {
+        dump($annotation->value);
         if (!$this->userService->hasRightFunction(...$annotation->value)) {
             $event->setController(function() use ($annotation) {
                 if ($annotation->mode == HasPermission::IN_JSON) {
