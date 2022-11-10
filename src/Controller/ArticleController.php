@@ -139,11 +139,10 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{article}", name="article_show_page")
+     * @Route("/voir/{id}", name="article_show_page", options={"expose"=true})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
      */
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
-        dump('coucou');
         $type = $article->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));

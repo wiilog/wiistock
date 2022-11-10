@@ -1,7 +1,6 @@
 import '@styles/details-page.scss';
 import {GET} from "@app/ajax";
 
-
 $(function () {
     getTrackingMovements();
 
@@ -11,7 +10,6 @@ $(function () {
         clearFormErrors($form);
         processSubmitAction($form, $button, $button.data(`submit`), {
             success: data => {
-                console.log(data.data.id);
                 window.location.href = Routing.generate('article_show_page', {id: data.data.id});
             },
         });

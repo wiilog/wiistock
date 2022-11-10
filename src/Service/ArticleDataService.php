@@ -22,7 +22,6 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
-use App\Helper\FormatHelper;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -198,9 +197,7 @@ class ArticleDataService
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
-        dump($data);
         $article = $articleRepository->find(intval($data['idArticle']));
-        dump($article->getId());
         if ($article) {
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
 
@@ -214,7 +211,6 @@ class ArticleDataService
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['conform'])) {
-                    dump($data['conform'] == 1);
                     $article->setConform($data['conform'] == 1);
                 }
 
@@ -229,7 +225,6 @@ class ArticleDataService
 
             $this->freeFieldService->manageFreeFields($article, $data, $this->entityManager);
             $this->entityManager->flush();
-            dump($article->getCommentaire());
             return true;
         } else {
             return false;
@@ -302,7 +297,7 @@ class ArticleDataService
         }
 
         if (isset($data['expiry'])) {
-            $toInsert->setExpiryDate($data['expiry'] ? FormatHelper::parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+            $toInsert->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
         }
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
@@ -313,7 +308,7 @@ class ArticleDataService
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
         $articles = $ligne->getArticles();
-        $reception = $ligne->getReception();
+        $reception = $ligne->getReceptionLine()?->getReception();
         $rows = [];
         foreach ($articles as $article) {
             $rows[] = $this->dataRowArticle($article, $reception);
@@ -410,7 +405,7 @@ class ArticleDataService
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $article->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
 
         return $row;
@@ -463,15 +458,15 @@ class ArticleDataService
         $labelArticle = $article->getLabel();
         $champLibreValue = $this->clIdWantedOnLabel ? $article->getFreeFieldValue($this->clIdWantedOnLabel) : '';
         $batchArticle = $article->getBatch() ?? '';
-        $expirationDateArticle = FormatHelper::date($article->getExpiryDate());
-        $stockEntryDateArticle = FormatHelper::date($article->getStockEntryDate());
+        $expirationDateArticle = $this->formatService->date($article->getExpiryDate());
+        $stockEntryDateArticle = $this->formatService->date($article->getStockEntryDate());
 
         $wantsRecipient = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
         $wantsRecipientDropzone = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
         $wantDestinationLocation = $settingRepository->getOneParamByLabel(Setting::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
 
         // Récupération du username & dropzone de l'utilisateur
-        $articleReception = $article->getReceptionReferenceArticle() ? $article->getReceptionReferenceArticle()->getReception() : '';
+        $articleReception = $article->getReceptionReferenceArticle() ? $article->getReceptionReferenceArticle()->getReceptionLine()->getReception() : '';
         $articleReceptionRecipient = $articleReception ? $articleReception->getUtilisateur() : '';
         $articleReceptionRecipientUsername = ($articleReceptionRecipient && $wantsRecipient) ? $articleReceptionRecipient->getUsername() : '';
         $articleReceptionRecipientDropzone = $articleReceptionRecipient ? $articleReceptionRecipient->getDropzone() : '';
@@ -609,7 +604,7 @@ class ArticleDataService
         ];
 
         foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $line[] = FormatHelper::freeField($article['freeFields'][$freeFieldId] ?? '', $freeField);
+            $line[] = $this->formatService->freeField($article['freeFields'][$freeFieldId] ?? '', $freeField);
         }
 
         $this->CSVExportService->putLine($handle, $line);

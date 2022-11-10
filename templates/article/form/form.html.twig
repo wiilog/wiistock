@@ -1,3 +1,4 @@
+{% import 'form.html.twig' as form %}
 {% set statuses = {
     'disponible': {
         'status': 'disponible',
@@ -66,19 +67,19 @@
                                                   title="A déterminer">
                                         </sup>
                                     </span>
-                                <div class="wii-switch" data-title="Anomalie">
+                                <div class="wii-switch w-fit-content" data-title="Anomalie">
                                     <input class="data"
                                            type="radio"
                                            name="conform"
-                                           value="{{ true }}"
+                                           value="{{ 0 }}"
                                            content="Oui"
-                                        {{ article.conform is not null and article.conform == true ? 'checked' }}>
+                                           {{ article.conform is not null and article.conform == 0 ? 'checked' }}>
                                     <input class="data"
                                            type="radio"
                                            name="conform"
-                                           value="{{ false }}"
+                                           value="{{ 1 }}"
                                            content="Non"
-                                        {{ article.conform is not null and article.conform != true ? 'checked' }}>
+                                           {{ article.conform is not null and article.conform == 1 ? 'checked' }}>
                                 </div>
                             </label>
                         </div>
@@ -220,17 +221,19 @@
                     </div>
                 </div>
             </div>
+            <div class="save-buttons">
+                <button class="btn btn-outline-secondary" onclick="history.back()">
+                    <span>Annuler</span>
+                </button>
+                <button class="btn btn-success ml-2 save data"
+                        data-submit="{{ submit_url }}"
+                        value="{{ article.id }}"
+                        name="idArticle">
+                    <span>Enregistrer</span>
+                </button>
+            </div>
         </div>
-        <div class="save-buttons">
-            <button class="btn btn-outline-secondary" onclick="history.back()">
-                <span>Annuler</span>
-            </button>
-            <button class="btn btn-success ml-2 save data"
-                    data-submit="{{ submit_url }}"
-                    value="{{ article.id }}"
-                    name="idArticle">
-                <span>Enregistrer</span>
-            </button>
-        </div>
+
     </div>
+
 </div>
