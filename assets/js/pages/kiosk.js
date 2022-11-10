@@ -73,9 +73,9 @@ $(function() {
 
         $selects.each(function(){
             if($(this).find('option:selected').length === 0){
-                $buttonNextContainer.find('.select2-selection ').addClass('invalid');
+                $(this).parent().find('.select2-selection ').addClass('invalid');
             } else {
-                $buttonNextContainer.find('.select2-selection ').removeClass('invalid');
+                $(this).parent().find('.select2-selection ').removeClass('invalid');
             }
         });
 

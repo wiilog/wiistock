@@ -949,7 +949,8 @@ class ReferenceArticleController extends AbstractController
             ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE)
             ->setVisibilityGroup($visibilityGroup)
             ->setCategory($inventoryCategory)
-            ->setCreatedBy($userRepository->getKioskUser());
+            ->setCreatedBy($userRepository->getKioskUser())
+            ->setBarCode($refArticleDataService->generateBarCode());
         $entityManager->persist($reference);
         $visibilityGroup->addArticleReference($reference);
         $entityManager->persist($visibilityGroup);
