@@ -147,10 +147,12 @@ class TrackingMovementRepository extends EntityRepository
                             ->setParameter('filter_code', '%' . $filter['value'] . '%');
                         break;
                     case FiltreSup::FIELD_ARTICLE:
+                        dump($filter['value']);
                         $value = explode(':', $filter['value'])[0];
+                        dump($value);
                         $qb
                             ->leftJoin('tracking_movement.pack', 'filter_article_pack')
-                            ->andWhere(":article MEMBER OF filter_article_pack.childArticles")
+                            ->andWhere("filter_article_pack.article = :article")
                             ->setParameter('article', $value);
                         break;
                 }
