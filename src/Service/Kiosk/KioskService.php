@@ -69,6 +69,7 @@ class KioskService
             ->setText($options['text'])
             ->setAlignment(Align::CENTER)
             ->setWidth(100)
+            ->setSpacing(10)
             ->setMaxLines(1000);
 
         $client = CloudClient::create($zebraCloudApiKey, $zebraCloudTenant, $printerSerialNumber);
@@ -102,12 +103,14 @@ class KioskService
         $showEntryDate = $settingRepository->getOneParamByLabel('INCLURE_DATE_EXPIRATION_SUR_ETIQUETTE_ARTICLE_RECEPTION');
         $showBatchNumber = $settingRepository->getOneParamByLabel('INCLURE_NUMERO_DE_LOT_SUR_ETIQUETTE_ARTICLE_RECEPTION');
 
-        $labelText = $referenceArticle?->getLibelle() ? ' L/R ' . $referenceArticle?->getLibelle() . '\&' : '';
+        $labelText = $referenceArticle?->getLibelle() ? ' L/R :' . $referenceArticle?->getLibelle() . '\&' : '';
         $labelText .= $article->getReference() ? 'C/R :' . $article->getReference() . '\&' : '';
         $labelText .= $article->getLabel() ? 'L/A :' . $article->getLabel() . '\&' : '';
-        $labelText .= $showQuantity && $article->getQuantite() ? 'Qte : ' . $article->getQuantite() . '\&' : '';
-        $labelText .= $showEntryDate && $article->getStockEntryDate() ? 'Date d\'entrée : ' . $article->getStockEntryDate()?->format('d/m/Y') . '\&' : '';
-        $labelText .= $showBatchNumber && $article->getBatch() ? 'N° lot : ' . $article->getBatch() . '\&' : '';
+        $labelText .= $showQuantity && $article->getQuantite() ? 'Qte :' . $article->getQuantite() . '\&' : '';
+        $labelText .= $showEntryDate && $article->getStockEntryDate() ? 'Date d\'entrée :' . $article->getStockEntryDate()?->format('d/m/Y') . '\&' : '';
+        $labelText .= $showBatchNumber && $article->getBatch() ? 'N° lot :' . $article->getBatch() . '\&' : '';
+
+        $labelText = str_replace('_', '_5F', $labelText);
 
         return $labelText;
     }
