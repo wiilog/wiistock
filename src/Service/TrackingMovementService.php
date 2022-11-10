@@ -161,11 +161,15 @@ class TrackingMovementService extends AbstractController
 
         $article = $movement->getPackArticle()?->getBarCode();
 
-        $pack = match (true) {
-            !empty($movement->getLogisticUnitParent())                     => $movement->getLogisticUnitParent()->getCode(),
-            !empty($movement->getPackArticle()?->getCurrentLogisticUnit()) => "",
-            default                                                        => $movement->getPack()->getCode()
-        };
+        if($movement->getLogisticUnitParent()) {
+            if(in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
+                $pack = "";
+            } else {
+                $pack = $movement->getLogisticUnitParent() !== null;
+            }
+        } else {
+            $pack = $movement->getPack()->getCode();
+        }
 
         $row = [
             'id' => $movement->getId(),
