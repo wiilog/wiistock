@@ -30,27 +30,29 @@ $(function() {
     Select2Old.user($('[name=follower]'), '', 3);
 
     $(document).on('keypress', function(event) {
-        if(event.originalEvent.key === 'Enter') {
-            modalWaiting.modal('show');
-            AJAX.route(GET, `reference_article_check_quantity`, {
-                scannedReference: scannedReference,
-            })
-                .json()
-                .then((data) => {
-                    modalWaiting.modal('hide');
-                    if(data.exist && data.inStock) {
-                        let $errorMessage = modalInStockWarning.find('#stock-error-message');
-                        $errorMessage.html($errorMessage.text().replace('@reference', `<span class="bold">${scannedReference}</span>`))
-                        modalInStockWarning.modal('show');
-                        modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
-                    }
-                    else {
-                        window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
-                    }
-                    scannedReference = '';
-                });
-        } else {
-            scannedReference += event.originalEvent.key;
+        if ($('.page-content').addClass('home')) {
+            if(event.originalEvent.key === 'Enter') {
+                modalWaiting.modal('show');
+                AJAX.route(GET, `reference_article_check_quantity`, {
+                    scannedReference: scannedReference,
+                })
+                    .json()
+                    .then((data) => {
+                        modalWaiting.modal('hide');
+                        if(data.exist && data.inStock) {
+                            let $errorMessage = modalInStockWarning.find('#stock-error-message');
+                            $errorMessage.html($errorMessage.text().replace('@reference', `<span class="bold">${scannedReference}</span>`))
+                            modalInStockWarning.modal('show');
+                            modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
+                        }
+                        else {
+                            window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
+                        }
+                        scannedReference = '';
+                    });
+            } else {
+                scannedReference += event.originalEvent.key;
+            }
         }
     });
 
