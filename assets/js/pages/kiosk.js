@@ -119,7 +119,11 @@ $(function() {
                                     $applicantInput.text().concat(', ', $followerInput.text()) :
                                     $applicantInput.text());
                         }
-                        $('.reference-free-field').html();
+                        let $freeFieldLabel = $('.free-field-label');
+                        $('.reference-free-field').html(
+                            $freeFieldLabel.find('input').val()
+                            || $freeFieldLabel.find('textarea').val()
+                            || $freeFieldLabel.find('select').find('option:selected').text());
                         $('.reference-commentary').html($('input[name=reference-comment]').val());
                     } else {
                         $modalArticleIsNotValid.modal('show');
