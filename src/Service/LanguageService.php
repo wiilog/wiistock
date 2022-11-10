@@ -69,13 +69,12 @@ class LanguageService {
         $user = $this->security->getUser();
         $userId = $user?->getId();
 
-        return $this->cacheService->get(CacheService::LANGUAGES, "languagesSelector" . $userId, function () {
+        return $this->cacheService->get(CacheService::LANGUAGES, "languagesSelector" . $userId, function () use ($user) {
             $languages = $this->cacheService->get(CacheService::LANGUAGES, "languagesNotHidden", function () {
                 $languageRepository = $this->entityManager->getRepository(Language::class);
                 return $languageRepository->findBy(["hidden" => false]);
             });
 
-            $user = $this->security->getUser();
             $mappedLanguages = [];
             /** @var Language $language */
             foreach ($languages as $language) {

@@ -145,7 +145,7 @@
         }
 
         &.sa-warning {
-            border-color: $warning;
+            border-color: $danger;
             animation: scaleWarning 0.75s infinite alternate;
 
             &:after, &:before {
@@ -166,7 +166,7 @@
             }
 
             .sa-warning-body {
-                background-color: $warning;
+                background-color: $danger;
                 border-radius: 2px;
                 height: 47px;
                 left: 50%;
@@ -178,7 +178,7 @@
             }
 
             .sa-warning-dot {
-                background-color: $warning;
+                background-color: $danger;
                 border-radius: 50%;
                 bottom: 10px;
                 height: 7px;
@@ -360,7 +360,7 @@
     }
 
     100% {
-        background-color: $warning;
+        background-color: $danger;
         transform: scale(2);
         opacity: 0;
     }

@@ -901,7 +901,7 @@ class ReferenceArticleController extends AbstractController
     public function checkQuantity(Request                $request,
                                   EntityManagerInterface $entityManager): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $refArticle = $referenceArticleRepository->findOneBy(['reference' => $request->query->get('scannedReference')]);
+        $refArticle = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
 
         return new JsonResponse([
                 'exist' => (bool)$refArticle,
@@ -910,7 +910,7 @@ class ReferenceArticleController extends AbstractController
         );
     }
 
-    #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["POST"])]
+    #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["GET|POST"])]
     public function validateEntryStock(Request $request,
                                   EntityManagerInterface $entityManager,
                                   ArticleFournisseurService $articleFournisseurService,
@@ -925,7 +925,7 @@ class ReferenceArticleController extends AbstractController
         $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $data = $request->request->all();
+        $data = $request->query->all();
 
         $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
@@ -949,7 +949,8 @@ class ReferenceArticleController extends AbstractController
             ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE)
             ->setVisibilityGroup($visibilityGroup)
             ->setCategory($inventoryCategory)
-            ->setCreatedBy($userRepository->getKioskUser());
+            ->setCreatedBy($userRepository->getKioskUser())
+            ->setBarCode($refArticleDataService->generateBarCode());
         $entityManager->persist($reference);
         $visibilityGroup->addArticleReference($reference);
         $entityManager->persist($visibilityGroup);

@@ -51,7 +51,7 @@
                     </div>
                     <div class="other-informations-container d-none">
                         <div class="d-flex justify-content-center">
-                            <label class="w-100 mr-3">
+                            <label class="w-100 mr-3 free-field-label">
                                 {% if freeField %}
                                     {{ freeField.label }}
                                     {% include 'free_field/freeFieldsEdit.html.twig' with {
@@ -113,15 +113,15 @@
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/quantity.svg') }}" alt="Icône quantité" width="35px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Quantité</span>
-                                    <span class="wii-body-text">1</span>
+                                    <span class="field-name">Quantité</span>
+                                    <span class="field-text">1</span>
                                 </label>
                             </div>
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="35px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Demandeur et suiveur</span>
-                                    <span class="wii-body-text reference-managers"></span>
+                                    <span class="field-name">Demandeur et suiveur</span>
+                                    <span class="field-text reference-managers"></span>
                                 </label>
                             </div>
                         </div>
@@ -129,16 +129,16 @@
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="35px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Emplacement</span>
-                                    <span class="wii-body-text">{{ setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement').label }}</span>
+                                    <span class="field-name">Emplacement</span>
+                                    <span class="field-text">{{ setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement').label }}</span>
                                 </label>
                             </div>
                             {% if freeField %}
                                 <div class="col-6 d-flex">
                                     <img src="{{ asset('svg/document.svg') }}" alt="Icône document" width="35px">
                                     <label class="box-item ml-3">
-                                        <span class="wii-field-name">{{ freeField.label }}</span>
-                                        <span class="wii-body-text reference-free-field"></span>
+                                        <span class="field-name">{{ freeField.label }}</span>
+                                        <span class="field-text reference-free-field"></span>
                                     </label>
                                 </div>
                             {% endif %}
@@ -147,8 +147,8 @@
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/commentary.svg') }}" alt="Icône commentaire" width="35px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Commentaire</span>
-                                    <span class="wii-body-text reference-commentary"></span>
+                                    <span class="field-name">Commentaire</span>
+                                    <span class="field-text reference-commentary"></span>
                                 </label>
                             </div>
                         </div>
