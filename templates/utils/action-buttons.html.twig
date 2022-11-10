@@ -70,7 +70,7 @@
     {% endif %}
 {% elseif actionsFiltered|length > 0 %}
     <div class="btn-group">
-        {% set firstAction = actionsFiltered[0] %}
+        {% set firstAction = actionsFiltered | first %}
         {{ macros.button(firstAction) }}
 
         {% if actionsFiltered|length > 1 %}
