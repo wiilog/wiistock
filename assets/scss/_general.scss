@@ -1415,6 +1415,85 @@ label.required:after {
     }
 }
 
+.ul-detail {
+    display: table;
+    width: 100%;
+    table{
+        height: 1px ; // utile pour remplissage des cellules
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+
+        tr{
+            &.ul td{
+                &:nth-child(1) {
+                    background: var(--reference-color);
+                    color: $white;
+                    font-weight: bold;
+                    font-size: 1rem;
+                    text-align: center;
+                    text-transform: uppercase;
+                    writing-mode: vertical-rl;
+                    transform: rotate(180deg);
+                    border-bottom-right-radius: 0.25rem;
+                    border-top-right-radius: 0.25rem;
+                    padding-top: 5px;
+                    padding-bottom: 5px;
+                    overflow-wrap: break-word;
+                    height: min-content;
+                }
+
+                &:nth-child(2) {
+                    border-left: 1px solid var(--reference-color);
+                    vertical-align: top;
+
+                    div.main-ul-data {
+                        border: 1px solid var(--reference-color);
+                        border-top-right-radius: 0.25rem;
+                        border-bottom-right-radius: 0.25rem;
+                        height: 100%;
+                        width: 100%;
+                        z-index: 2;
+                        background-color: #f2f3f7;
+
+                        div.col {
+                            margin-top: 15px;
+                            margin-bottom: 15px;
+                            padding-left: 5%;
+                            padding-right: 5%;
+                            display: flex;
+                            align-items: center;
+
+                            span.wii-icon {
+                                background-color: $primary;
+                            ;
+                            }
+
+                            &:nth-child(2){
+                                border-left: lightblue solid 1px;
+                                border-right: lightblue solid 1px;
+                            }
+                        }
+                    }
+                }
+            }
+            &.list-article {
+                width: max-content;
+                .data-table-container {
+                    border-left: 1px solid lightblue;
+                    border-right: 1px solid lightblue;
+                    border-bottom: 1px solid lightblue;
+                    border-bottom-left-radius: 0.25rem;
+                    border-bottom-right-radius: 0.25rem;
+                    height: 100%;
+                    margin-top: -0.20rem;
+                    z-index: 1;
+                }
+            }
+        }
+    }
+}
+
 .packsTableContainer .dataTables_wrapper {
     flex: 1 1 auto;
     width: calc(100% - 400px);
@@ -1440,6 +1519,7 @@ label.required:after {
             border-bottom: 2px solid $light-grey;
             width: 50%;
             padding-bottom: 5px;
+            cursor: pointer;
 
             &.active {
                 font-weight: bold;
@@ -1453,6 +1533,7 @@ label.required:after {
         border-radius: 4px;
         margin-top: 10px;
         padding: 7px;
+        box-shadow: 2px 0 4px rgba($black, 0.05);
 
         .article-code {
             display: flex;
@@ -1460,6 +1541,29 @@ label.required:after {
             color: $primary;
             font-weight: bold;
             font-size: 16px;
+        }
+    }
+
+    .logistic-unit-history-interstice {
+        display: flex;
+        align-items: center;
+        border-left: 2px solid $medium-grey;
+        margin-left: 20px;
+        padding: 15px 5px 5px;
+
+        .logistic-unit-entry, .logistic-unit-exit {
+            border-radius: 4px;
+            padding: 0 5px;
+            margin-right: 10px;
+            border: 2px solid transparent;
+            font-size: 14px;
+        }
+        .logistic-unit-entry {
+            border-color: $green;
+        }
+
+        .logistic-unit-exit {
+            border-color: $orange;
         }
     }
 

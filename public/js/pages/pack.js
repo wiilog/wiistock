@@ -125,11 +125,18 @@ $(function() {
         const $icon = $(this);
         const $number = $icon.closest(`.logistic-unit-number`);
 
+        let isLoading = false;
+
         // register the event directly on the element through arrive
         // to get the event before action-on-click and be able to
         // cancel modal openning through event.stopPropagation
         $icon.on(`mouseup`, event => {
             event.stopPropagation();
+            if(isLoading) {
+                return;
+            }
+
+            isLoading = true;
 
             const $container = $(`.packsTableContainer`);
 
@@ -145,10 +152,23 @@ $(function() {
                         $number.addClass(`active`);
                         $container.append(result.html);
                         packsTable.columns.adjust();
+
+                        isLoading = false;
                     });
             }
         })
     });
+
+    $(document).on(`click`, `.logistic-unit-tab`, function() {
+        const $tab = $(this);
+        const $parent = $tab.closest(`.logistic-unit-content`);
+
+        $(`.logistic-unit-tab`).removeClass(`active`);
+        $tab.addClass(`active`);
+
+        $parent.find(`.content`).addClass(`d-none`);
+        $parent.find(`.content${$tab.data(`target`)}`).removeClass(`d-none`);
+    })
 });
 
 function addToCart(ids) {

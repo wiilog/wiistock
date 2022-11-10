@@ -443,7 +443,7 @@ class TrackingMovementService extends AbstractController
 
         $pack = $tracking->getPack();
         $packCode = $pack ? $pack->getCode() : null;
-
+dump($pack);
         if ($pack) {
             $alreadyLinkedArticle = $pack->getArticle();
             $alreadyLinkedReferenceArticle = $pack->getReferenceArticle();
@@ -452,6 +452,7 @@ class TrackingMovementService extends AbstractController
                     $referenceArticleRepository->findOneBy(['barCode' => $packCode])
                     ?: $articleRepository->findOneBy(['barCode' => $packCode])
                 );
+                dump($refOrArticle);
 
                 if ($refOrArticle instanceof ReferenceArticle) {
                     $pack->setReferenceArticle($refOrArticle);
