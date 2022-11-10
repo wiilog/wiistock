@@ -4,7 +4,7 @@
          role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Ajouter une ligne"
+                title: "Ajouter une référence"
             } %}
 
             <div class="modal-body modal-input container-fluid">
@@ -109,7 +109,7 @@
                     {classes: 'btn btn-success', text: 'Enregistrer', id: 'addArticleLigneSubmit'},
                     {
                         classes: 'btn btn-success d-none',
-                        text: 'Enregistrer et ' ~ trans('Ordre', 'Réceptions', 'réception', false),
+                        text: 'Réceptionner les articles',
                         id: 'addArticleLigneSubmitAndRedirect',
                         event: 'openModalLigneReception($(this))'
                     },
