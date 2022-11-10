@@ -40,6 +40,7 @@
                 {{ label | raw }}{{ required and options.removeAsterisk is not defined ? '*' }}
             {% endif %}
         </span>
+        <span class="wii-small-text"> {{ options.smallText ?? '' }}</span>
     {% endif %}
 {% endmacro %}
 
@@ -73,7 +74,7 @@
 
             <input type="radio"
                    id="{{ name }}-{{ id }}"
-                   name="{{ name }}"
+                   name="{{ switch.name ?? name }}"
                    class="data {{ switch.class ?? null }}"
                    value="{{ switch.value ?? '' }}"
                 {{ disabled ? 'disabled' }}

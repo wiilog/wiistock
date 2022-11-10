@@ -59,7 +59,6 @@ use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use DateTime;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -1270,15 +1269,13 @@ class ReceptionController extends AbstractController {
     public function finish(Request $request,
                            EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
-
             $receptionRepository = $entityManager->getRepository(Reception::class);
-            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
             $reception = $receptionRepository->find($data['id']);
-            // TODO Adrien
-            $listReceptionReferenceArticle = $receptionReferenceArticleRepository->findByReception($reception);
 
-            if(empty($listReceptionReferenceArticle)) {
+            $listReceptionReferenceArticle = Stream::from($reception->getReceptionReferenceArticles()->toArray());
+
+            if($listReceptionReferenceArticle->isEmpty()) {
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
                 if($data['confirmed'] === true) {
@@ -1288,18 +1285,15 @@ class ReceptionController extends AbstractController {
                         'redirect' => $this->generateUrl('reception_index'),
                     ]);
                 } else {
-                    $partielle = false;
-                    foreach($listReceptionReferenceArticle as $receptionRA) {
-                        if($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) {
-                            $partielle = true;
-                            break;
-                        }
-                    }
-                    if(!$partielle) {
+                    $partialReception = $listReceptionReferenceArticle
+                        ->some(fn(ReceptionReferenceArticle $reference) => $reference->getQuantite() !== $reference->getQuantiteAR());
+
+                    if(!$partialReception) {
                         $this->validateReception($entityManager, $reception);
                     }
+
                     return new JsonResponse([
-                        'code' => $partielle ? 0 : 1,
+                        'code' => $partialReception ? 0 : 1,
                         'redirect' => $this->generateUrl('reception_index'),
                     ]);
                 }
@@ -1381,10 +1375,7 @@ class ReceptionController extends AbstractController {
         $articleIds = json_decode($request->query->get('articleIds'), true);
 
         if(empty($articleIds)) {
-            // TODO adrien
-            $listReceptionReferenceArticle = $entityManager->getRepository(ReceptionReferenceArticle::class)->findByReception($reception);
-
-            $barcodeConfigs = Stream::from($listReceptionReferenceArticle)
+            $barcodeConfigs = Stream::from($reception->getReceptionReferenceArticles())
                 ->flatMap(function(ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception) {
                     $referenceArticle = $recepRef->getReferenceArticle();
 
@@ -1604,8 +1595,8 @@ class ReceptionController extends AbstractController {
                 : ($reception['receptionRefArticleQuantite']
                     ?: 0)),
             $reception['storageLocation'] ?: '',
-            $reception['receptionEmergency'] ? 'oui' : 'non',
-            $reception['referenceEmergency'] ? 'oui' : 'non',
+            $this->formatService->bool($reception['receptionEmergency']),
+            $this->formatService->bool($reception['referenceEmergency']),
         ];
     }
 

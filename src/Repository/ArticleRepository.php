@@ -1136,4 +1136,12 @@ class ArticleRepository extends EntityRepository {
             ->getArrayResult();
     }
 
+    public function getLatestsKioskPrint() {
+        return $this->createQueryBuilder('article')
+            ->andWhere('article.createdOnKioskAt IS NOT null')
+            ->orderBy('article.createdOnKioskAt', 'DESC')
+            ->setMaxResults(3)
+            ->getQuery()
+            ->getResult();
+    }
 }

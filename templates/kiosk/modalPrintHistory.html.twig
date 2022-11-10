@@ -1,0 +1,29 @@
+<div class="modal fade" id="modal-print-history" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="kiosk-modal-content">
+            <div class="modal-body">
+                <h1 class="modal-title">
+                    Historique des dernières impressions
+                </h1>
+                <div class="mt-5 content">
+                    {% for article in latestsPrint %}
+                        <div class="d-flex justify-content-between my-5">
+                            <div class="d-flex flex-column">
+                                <span class="field-text">{{ article.createdOnKioskAt|format_helper('datetime', "", false, app.user) }}</span>
+                                <span class="field-name mt-2">Référence : {{ article.label }}</span>
+                            </div>
+                            <button class="print-article" data-article="{{ article.id }}">Réimprimer</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                kiosk : true,
+                elements: [
+                    {classes: 'outline', dismiss: true, text: 'Fermer'},
+                ],
+                renderErrorContainer: false
+            } %}
+        </div>
+    </div>
+</div>

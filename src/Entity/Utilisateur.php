@@ -284,6 +284,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: KeptFieldValue::class)]
     private Collection $keptFieldValues;
 
+    #[ORM\Column(type: "boolean", nullable: false, options: ["default" => false])]
+    private ?bool $kioskUser = false;
+
     public function __construct() {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
@@ -1907,6 +1910,15 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
             }
         }
 
+        return $this;
+    }
+
+    public function isKioskUser(): ?bool {
+        return $this->kioskUser;
+    }
+
+    public function setKioskUser(?bool $kioskUser): self {
+        $this->kioskUser = $kioskUser;
         return $this;
     }
 }

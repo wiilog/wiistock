@@ -345,10 +345,12 @@ class DisputeService {
             ->setUser($user);
 
         if ($dispute->getStatus()) {
-            $historyRecord->setStatusLabel($this->formatService->status($dispute->getStatus()));
+            // set french status name to translate it after
+            $historyRecord->setStatusLabel($dispute->getStatus()->getNom());
         }
 
         if ($dispute->getType()) {
+            // set french type label to translate it after
             $historyRecord->setTypeLabel($dispute->getType()->getLabel());
         }
 

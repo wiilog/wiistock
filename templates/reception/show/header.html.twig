@@ -30,7 +30,7 @@
                     class="btn btn-primary {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
                     onclick="finishReception({{ reception.id }}, false,$(this))"
                     id="finishReceptionButton">
-                Fin <span title="réception">{{ trans('Ordre','Réceptions', 'réception', false) }}</span>
+                Finir la {{ trans('Ordre','Réceptions', 'réception', false) }}
             </button>
         {% endif %}
         {% if dropdownNeedsToBeDisplayed %}

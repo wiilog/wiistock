@@ -49,7 +49,7 @@ class ReceptionReferenceArticleRepository extends EntityRepository
             'conform' => 1,
             'reception' => $reception
         ]);
-        return $query->getSingleScalarResult();;
+        return $query->getSingleScalarResult();
     }
 
 	/**
