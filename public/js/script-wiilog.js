@@ -763,7 +763,7 @@ function fillDatePickers(selector, sourceFormat = 'YYYY-MM-DD', appendTime = fal
     const destinationFormat = DATE_FORMATS_TO_DISPLAY[format] + time;
     $(selector).each(function () {
         if ($(this).data('init')) {
-            const dateValue = moment($(this).data('init'), sourceFormat + time).format(destinationFormat);
+            const dateValue = ($(this).data('init') === `now` ? moment() : moment($(this).data('init'), sourceFormat + time)).format(destinationFormat);
             $(this)
                 .data("DateTimePicker")
                 .format(destinationFormat)
