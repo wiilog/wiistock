@@ -90,7 +90,8 @@ class TrackingMovementController extends AbstractController
         $request->request->add(['length' => 10]);
 
         return $this->render('mouvement_traca/index.html.twig', [
-            'statuts' => Stream::from($statuses)
+            'statuts' => $statuses,
+            'form_statuses' => Stream::from($statuses)
                 ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
                 ->toArray(),
             'clearAndStayAfterNewMvt' => $clearAndStayAfterNewMvt,
