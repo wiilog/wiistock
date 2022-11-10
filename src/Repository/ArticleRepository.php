@@ -424,7 +424,6 @@ class ArticleRepository extends EntityRepository {
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
-
                     switch ($column) {
                         case "type":
                             $queryBuilder->leftJoin('article.type', 't')
@@ -450,6 +449,9 @@ class ArticleRepository extends EntityRepository {
                         case "pairing":
                             $queryBuilder->leftJoin('article.pairings', 'order_pairings')
                                 ->orderBy('order_pairings.active', $order);
+                            break;
+                        case "lu":
+                            $queryBuilder->orderBy('IF(article.currentLogisticUnit IS NULL, 0, 1)', $order);
                             break;
                         default:
                             $field = self::FIELD_ENTITY_NAME[$column] ?? $column;
