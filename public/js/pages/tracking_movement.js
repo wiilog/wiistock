@@ -83,6 +83,13 @@ function initPageModal(tableMvt) {
     let modalNewMvtTraca = $("#modalNewMvtTraca");
     let submitNewMvtTraca = $("#submitNewMvtTraca");
     let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
+
+    modalNewMvtTraca.on(`shown.bs.modal`, function() {
+        console.log("heeeee");
+
+        fillDatePickers('[name="datetime"]', 'YYYY-MM-DD', true);
+    })
+
     InitModal(
         modalNewMvtTraca,
         submitNewMvtTraca,
