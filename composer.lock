@@ -9821,11 +9821,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wiilog/zpl-generator",
-                "reference": "07a89593caa4909ecf3082dd5d868d79e58425bf"
+                "reference": "2c0755f86b69d4edf162745f1b25f6636697136d"
             },
             "require": {
                 "ext-curl": "*",
                 "ext-gd": "*",
+                "ext-sockets": "*",
                 "php": "^8.0",
                 "robgridley/zebra": "^2.0"
             },
@@ -9840,7 +9841,7 @@
                 }
             },
             "description": "Generates ZPL code",
-            "time": "2022-11-09T23:17:15+00:00"
+            "time": "2022-11-10T11:09:27+00:00"
         },
         {
             "name": "willdurand/jsonp-callback-validator",
