@@ -135,6 +135,28 @@ function initPageModal(tableMvt) {
             tables: [tableMvt],
             keepModal: Number($('#clearAndStayAfterNewMvt').val()),
             keepForm: true,
+            confirmMessage: $modal => {
+                return new Promise((resolve, reject) => {
+                    const pack = $modal.find(`[name="colis"]`).val();
+
+                    AJAX.route(`GET`, `tracking_movement_is_in_lu`, {barcode: pack})
+                        .json()
+                        .then(result => {
+                            if(result.in_logistic_unit) {
+                                Modal.confirm({
+                                    title: `Article dans unité logistique`,
+                                    message: `L'article ${pack} sera enlevé de l'unité logistique ${result.logistic_unit}`,
+                                    validateButton: {
+                                        color: 'success',
+                                        label: 'Continuer',
+                                        click: () => resolve(true)
+                                    },
+                                    cancelled: () => resolve(false),
+                                });
+                            }
+                        })
+                })
+            },
             success: ({success, trackingMovementsCounter, group}) => {
                 if (group) {
                     displayConfirmationModal(group);

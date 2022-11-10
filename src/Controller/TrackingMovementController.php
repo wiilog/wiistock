@@ -351,6 +351,20 @@ class TrackingMovementController extends AbstractController
 
         return new JsonResponse($data);
     }
+    /**
+     * @Route("/est-dans-ul/{barcode}", name="tracking_movement_is_in_lu", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
+     */
+    public function isInLU(EntityManagerInterface $manager, string $barcode): Response
+    {
+        $article = $manager->getRepository(Article::class)->isInLogisticUnit($barcode);
+
+        return $this->json([
+            "success" => true,
+            "in_logistic_unit" => !empty($article),
+            "logistic_unit" => $article?->getCurrentLogisticUnit()?->getCode(),
+        ]);
+    }
 
     /**
      * @Route("/api-modifier", name="tracking_movement_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")

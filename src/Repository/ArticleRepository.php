@@ -899,6 +899,15 @@ class ArticleRepository extends EntityRepository {
             ->getArrayResult();
     }
 
+    public function isInLogisticUnit(string $barcode): ?Article {
+        return $this->createQueryBuilder("article")
+            ->join("article.currentLogisticUnit", "current_logistic_unit")
+            ->andWhere("article.barCode = :barcode")
+            ->setParameter("barcode", $barcode)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findWithNoPairing(?string $term) {
         return $this->createQueryBuilder("article")
             ->select("article.id AS id, article.barCode AS text")
