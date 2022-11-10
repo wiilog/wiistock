@@ -30,7 +30,7 @@ $(function() {
     Select2Old.user($('[name=follower]'), '', 3);
 
     $(document).on('keypress', function(event) {
-        if ($('.page-content').addClass('home')) {
+        if ($('.page-content').hasClass('home')) {
             if(event.originalEvent.key === 'Enter') {
                 modalWaiting.modal('show');
                 AJAX.route(GET, `reference_article_check_quantity`, {
