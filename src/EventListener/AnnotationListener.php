@@ -105,7 +105,6 @@ class AnnotationListener {
     }
 
     private function handleHasPermission(ControllerArgumentsEvent $event, HasPermission $annotation) {
-        dump($annotation->value);
         if (!$this->userService->hasRightFunction(...$annotation->value)) {
             $event->setController(function() use ($annotation) {
                 if ($annotation->mode == HasPermission::IN_JSON) {
