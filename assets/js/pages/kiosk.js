@@ -186,7 +186,7 @@ $(function() {
 
     $('.validate-stock-entry-button').on('click', function() {
         $('#modal-waiting').modal('show');
-        AJAX.route(POST, 'entry_stock_validate', {
+        AJAX.route(GET, 'entry_stock_validate', {
             'reference': $('input[name=reference-ref-input]').val(),
             'label': $('input[name=reference-label-input]').val(),
             'article': $('input[name=reference-article-input]').val() || null,

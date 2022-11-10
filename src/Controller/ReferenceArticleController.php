@@ -910,7 +910,7 @@ class ReferenceArticleController extends AbstractController
         );
     }
 
-    #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["POST"])]
+    #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["GET|POST"])]
     public function validateEntryStock(Request $request,
                                   EntityManagerInterface $entityManager,
                                   ArticleFournisseurService $articleFournisseurService,
