@@ -98,6 +98,35 @@
             Votre colis est disponible auprès du magasin.
         </p>
     {% endif %}
+    {%  if packsNatureNb is not empty %}
+        <p>
+            Unités logistiques réceptionnées :
+        </p>
+        <table class="table table-stripped table-bordered">
+            <thead>
+                <tr>
+                    <th>
+                        Nature
+                    </th>
+                    <th>
+                        Quantité
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nature, packNb in packsNatureNb %}
+                    <tr>
+                        <th>
+                            {{ nature }}
+                        </th>
+                        <th>
+                            {{ packNb }}
+                        </th>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 {% endblock %}
 {% block postScriptum %}
     {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
