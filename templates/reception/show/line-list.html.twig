@@ -16,8 +16,7 @@
                 content: [
                     {label: 'Unité logistique', value: pack.code, bold: 'value'},
                     {label: 'Emplacement', value: pack.location, bold: 'label', icon: 'reference-article-location'},
-                    {label: 'Projet', value: pack.project, bold: 'label', icon: 'reference-article-stock'},
-                ]
+                ] | merge(pack.project ? [{label: 'Projet', value: pack.project, bold: 'label', icon: 'reference-article-stock'}] : [])
             },
         content: references|map((reference) => reference|merge({
             actions: include(
