@@ -901,7 +901,7 @@ class ReferenceArticleController extends AbstractController
     public function checkQuantity(Request                $request,
                                   EntityManagerInterface $entityManager): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $refArticle = $referenceArticleRepository->findOneBy(['reference' => $request->query->get('scannedReference')]);
+        $refArticle = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
 
         return new JsonResponse([
                 'exist' => (bool)$refArticle,
