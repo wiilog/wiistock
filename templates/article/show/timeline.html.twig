@@ -16,7 +16,7 @@
                 <div class="line-date wii-small-text d-none d-xl-block">{{ movement['date']|format_helper('datetime') }}</div>
                 <div class="line-event">
                     <div class="title-left {{ loop.first ? 'last current' : 'past wii-field-text text-white' }}">
-                        {{ types[movement['type']] ?? movement['type']|capitalize }}
+                        {{ types[movement['type']] ?? movement['type']| ucfirst }}
                     </div>
                     <div class="associated-details">
                         {% if hasLogisticUnitParent %}
