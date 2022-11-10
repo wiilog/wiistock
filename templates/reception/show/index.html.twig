@@ -6,6 +6,7 @@
 
 {% block stylesheets %}
     {{ encore_entry_link_tags('pack-common') }}
+    {{ encore_entry_link_tags('reception-show') }}
 {% endblock %}
 
 {% block page_content %}
@@ -138,5 +139,4 @@
     <script src="{{ asset('js/pages/delivery/request/common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/form-reference-article.js') }}?v={{ web_version }}"></script>
     {{ encore_entry_script_tags('reception-show') }}
-    {{ encore_entry_link_tags('reception-show') }}
 {% endblock %}
