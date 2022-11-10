@@ -927,9 +927,6 @@ class ReferenceArticleController extends AbstractController
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $data = $request->query->all();
 
-        dump($data);
-        dump($request);
-
         $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
         $inventoryCategory = $inventoryCategoryRepository->find($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE));
