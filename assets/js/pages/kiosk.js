@@ -54,12 +54,15 @@ $(function() {
         }
     });
 
-    $referenceRefInput.on('keypress keyup', function(event) {
-        if(event.originalEvent.key === 'Backspace' && event.type === 'keyup') {
-            $referenceLabelInput.val($referenceLabelInput.val().slice(0,-1));
-        } else if(event.originalEvent.key !== 'Enter' && event.originalEvent.key !== 'Backspace' && event.type === 'keypress'){
-            $referenceLabelInput.val($referenceLabelInput.val()+event.originalEvent.key);
-        }
+    $referenceRefInput.on('keypress keyup search', function(event) {
+        // if(event.originalEvent.key === 'Backspace' && event.type === 'keyup') {
+        //     $referenceLabelInput.val($referenceRefInput.val());
+        // } else if(event.originalEvent.key !== 'Enter' && event.originalEvent.key !== 'Backspace' && event.type === 'keypress'){
+        //     $referenceLabelInput.val($referenceLabelInput.val());
+        // } else if(event.originalEvent.type === 'search'){
+        //     $referenceLabelInput.val($referenceRefInput.val());
+        // }
+        $referenceLabelInput.val($referenceRefInput.val());
     });
 
     $('.button-next').on('click', function (){
