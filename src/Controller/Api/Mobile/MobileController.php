@@ -298,7 +298,6 @@ class MobileController extends AbstractApiController
                             $trackingMovementService->persistSubEntities($entityManager, $movement);
                             $entityManager->persist($movement);
                             $numberOfRowsInserted++;
-
                         }
 
                         if ($associatedPack) {
