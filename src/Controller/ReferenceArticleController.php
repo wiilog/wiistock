@@ -942,6 +942,7 @@ class ReferenceArticleController extends AbstractController
             ->addManager($applicant)
             ->addManager($follower)
             ->setStatut($status)
+            ->setCommentaire($data['comment'])
             ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE)
             ->setCreatedBy($userRepository->getKioskUser())
             ->setBarCode($refArticleDataService->generateBarCode());
@@ -975,15 +976,17 @@ class ReferenceArticleController extends AbstractController
         }
 
         try {
+            $number = 'C-' . (new DateTime('now'))->format('YmdHis');
             $collecte = new Collecte();
             $collecte
-                ->setDemandeur($userRepository->find($data['applicant']))
+                ->setNumero($number)
+                ->setDemandeur($userRepository->getKioskUser())
                 ->setDate(new DateTime())
+                ->setValidationDate(new DateTime())
                 ->setType($typeRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_TYPE)))
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER))
                 ->setPointCollecte($emplacementRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT)))
                 ->setObjet($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_OBJECT))
-                ->setCommentaire($data['comment'])
                 ->setstockOrDestruct($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_DESTINATION));
 
             $collecteReference = new CollecteReference();
