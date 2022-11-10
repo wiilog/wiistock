@@ -69,10 +69,26 @@ class KioskController extends AbstractController
 
         $articleId = $request->query->get('article');
         $reprint = $request->query->get('reprint');
+        $testPrint = $request->query->get('testPrint');
         if ($articleId) {
             $article = $articleRepository->find($request->query->get('article'));
         } elseif ($reprint) {
             $article = $articleRepository->getLatestsKioskPrint()[0];
+        } elseif ($testPrint) {
+            $refArticle = new ReferenceArticle();
+            $refArticle->setReference('Test')
+                ->setLibelle('Test')
+                ->setQuantiteStock(1);
+
+            $article = new Article();
+            $article->setLabel('Test')
+                ->setBarCode('Test')
+                ->setReceptionReferenceArticle($refArticle);
+
+            $options['serialNumber'] = $request->query->get('serialNumber');
+            $options['labelWidth'] = $request->query->get('labelWidth');
+            $options['labelHeight'] = $request->query->get('labelHeight');
+            $options['printerDPI'] = $request->query->get('printerDPI');
         } else {
             return $this->json(['success' => false]);
         }

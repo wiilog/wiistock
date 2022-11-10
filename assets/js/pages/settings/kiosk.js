@@ -1,3 +1,6 @@
+import AJAX, {GET} from "@app/ajax";
+import Flash, {ERROR, SUCCESS} from "@app/flash";
+
 export function initializeTouchTerminal($container){
     Select2Old.init($container.find('select[name=referenceType]'));
     Select2Old.init($container.find('select[name=collectType]'));
@@ -17,6 +20,43 @@ export function initializeTouchTerminal($container){
             displayFreeFields($(this).val());
         }
     })
+
+    $('.test-print-btn').on('click', function() {
+        let $button = $(this);
+
+        let $serialNumber = $("[name='PRINTER_SERIAL_NUMBER']")
+        let $getLabelWidth = $("[name='PRINTER_LABEL_WIDTH']")
+        let $getLabelHeight = $("[name='PRINTER_LABEL_HEIGHT']")
+        let $printerDPI = $("[name='PRINTER_DPI']");
+
+        let inputs = [$serialNumber, $getLabelWidth, $getLabelHeight, $printerDPI];
+        inputs.forEach(function (input) {
+            if (input.val() ) {
+                input.removeClass('is-invalid');
+            } else {
+                input.addClass('is-invalid');
+            }
+        });
+
+        if (inputs.every(function (input) { return input.val() })) {
+            $button.pushLoader(`white`);
+            AJAX.route(GET, `print_article`, {
+                testPrint: true,
+                serialNumber: $serialNumber.val(),
+                labelWidth: $getLabelWidth.val(),
+                labelHeight: $getLabelHeight.val(),
+                printerDPI: $printerDPI.val(),
+            }).json().then((response) => {
+                $button.popLoader()
+                if(response.success) {
+                    Flash.add(SUCCESS, 'Test d\'impression en cours.', true, true);
+                }
+                else {
+                    Flash.add(ERROR, 'L\'envoi du test d\'impression à échoué.', true, true);
+                }
+            });
+        }
+    });
 }
 
 function displayFreeFields(typeId){

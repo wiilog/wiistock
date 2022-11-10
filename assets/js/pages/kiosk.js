@@ -1,5 +1,6 @@
 import '@styles/pages/kiosk.scss';
 import AJAX, {GET} from "@app/ajax";
+import Flash, {SUCCESS, ERROR} from "@app/flash";
 
 let scannedReference = '';
 const $referenceRefInput = $('input[name=reference-ref-input]');
