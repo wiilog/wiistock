@@ -22,7 +22,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReferenceArticleRepository::class)]
-class ReferenceArticle extends \App\Entity\ReceptionReferenceArticle
+class ReferenceArticle
 {
 
     use FreeFieldsManagerTrait;
