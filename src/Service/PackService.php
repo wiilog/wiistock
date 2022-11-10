@@ -148,6 +148,9 @@ class PackService {
                 'pack' => $pack,
                 'hasPairing' => $hasPairing
             ]),
+            'cart' => $this->templating->render('pack/cart-column.html.twig', [
+                'pack' => $pack,
+            ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing

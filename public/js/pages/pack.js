@@ -17,8 +17,9 @@ const packsTableConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {data: 'actions', name: 'actions', title: '<div class="w-100 text-right"><span class="wii-icon wii-icon-cart add-all-cart pointer"></span></div>', className: 'noVis', orderable: false},
-        {data: 'pairing', name: 'pairing', title: '', className: 'pairing-row'},
+        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'cart', name: 'cart', title: '<span class="wii-icon wii-icon-cart add-all-cart pointer"></span>', className: 'cart-row', orderable: false},
+        {data: 'pairing', name: 'pairing', title: '<span class=\'wii-icon wii-icon-pairing black\'><span>', className: 'pairing-row'},
         {data: 'packNum', name: 'packNum', title: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
         {data: 'packNature', name: 'packNature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
         {data: `quantity`, name: 'quantity',  'title': Translation.of('Traçabilité', 'Général', 'Quantité')},
