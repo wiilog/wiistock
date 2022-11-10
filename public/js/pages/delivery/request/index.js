@@ -39,6 +39,7 @@ $(function () {
 function initNewLivraisonEditor(modal) {
     clearModal(modal);
     Select2Old.location($('.ajax-autocomplete-location'));
+    Select2Old.project($('.ajax-autocomplete-project'));
     const type = ($('#modalNewDemande select[name="type"] option:selected').val());
     const $locationSelector = $(`#modalNewDemande select[name="destination"]`);
 

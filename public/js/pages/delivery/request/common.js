@@ -17,6 +17,7 @@ function toggleLocationSelect($type, $modal = null) {
             (defaultDeliveryLocations ? defaultDeliveryLocations[typeId] || defaultDeliveryLocations.all : null)
             || userDropzone
         );
+        Select2Old.project($('.ajax-autocomplete-project'));
 
         Select2Old.init(
             $locationSelector,

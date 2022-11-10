@@ -73,6 +73,19 @@
                                 </div>
                             </div>
                         {% endif %}
+
+                        {% set fieldCodeProject = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT') %}
+                        {% set fieldLabelProject = constant('App\\Entity\\FieldsParam::FIELD_LABEL_PROJECT') %}
+                        {% if fieldsParam|isFieldRequired(fieldCodeProject, 'displayedCreate') %}
+                            {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeProject, 'requiredCreate') %}
+                            <div class="col-12 col-md-6">
+                                <div class="form-group w-100">
+                                    <label class="wii-field-name">{{ fieldLabelProject }}{{ fieldRequired ? '*' }}</label>
+                                    <select name="project" class="form-control data ajax-autocomplete-project d-block {{fieldRequired ? 'needed'}}" id="projectDemandeLivraison">
+                                    </select>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
 
                     <!-- CHAMPS LIBRES -->

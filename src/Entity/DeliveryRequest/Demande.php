@@ -10,6 +10,7 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Livraison;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Traits\CommentTrait;
@@ -76,6 +77,9 @@ class Demande implements PairedEntity {
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'demandes')]
     private ?Reception $reception = null;
+
+    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'demandes')]
+    private ?Project $project = null;
 
     #[ORM\ManyToOne(targetEntity: SensorWrapper::class)]
     private ?SensorWrapper $triggeringSensorWrapper = null;
@@ -311,6 +315,16 @@ class Demande implements PairedEntity {
 
     public function setReception(?Reception $reception): self {
         $this->reception = $reception;
+
+        return $this;
+    }
+
+    public function getProject(): ?Project {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self {
+        $this->project = $project;
 
         return $this;
     }
