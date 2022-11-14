@@ -916,7 +916,8 @@ class ReferenceArticleController extends AbstractController
                                   ArticleFournisseurService $articleFournisseurService,
                                   ArticleDataService $articleDataService,
                                   RefArticleDataService $refArticleDataService,
-                                  KioskService $kioskService): Response {
+                                  KioskService $kioskService,
+                                  FreeFieldService $freeFieldService): Response {
         $refArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -945,7 +946,11 @@ class ReferenceArticleController extends AbstractController
             ->setCommentaire($data['comment'])
             ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE)
             ->setCreatedBy($userRepository->getKioskUser())
-            ->setBarCode($refArticleDataService->generateBarCode());
+            ->setCreatedAt(new DateTime());
+        if(!$referenceExist){
+            $reference->setBarCode($refArticleDataService->generateBarCode());
+        }
+
         if($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE)){
             $visibilityGroup = $visibilityGroupRepository->find($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE));
             $reference->setProperties(['visibilityGroup' => $visibilityGroup]);
@@ -973,6 +978,12 @@ class ReferenceArticleController extends AbstractController
                     'msg' => "La référence ".$data['reference']." existe déjà pour un article fournisseur.",
                 ]);
             }
+        }
+
+        if(!empty($data['freeField'])){
+            $freeFieldService->manageFreeFields($reference, [
+                $data['freeField'][0] => $data['freeField'][1]
+            ],  $entityManager);
         }
 
         try {
@@ -1006,6 +1017,7 @@ class ReferenceArticleController extends AbstractController
                 ->setNumero('C-' . $date->format('YmdHis'))
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER))
                 ->setDemandeCollecte($collecte);
+
             if(!$referenceExist){
                 $entityManager->flush();
                 $article = $articleDataService->newArticle([
