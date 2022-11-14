@@ -14,6 +14,7 @@ use App\Entity\Emplacement;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Menu;
+use App\Entity\Project;
 use App\Entity\Setting;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
@@ -125,6 +126,7 @@ class DemandeController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
+            $projectRepository = $entityManager->getRepository(Project::class);
 
             $demande = $demandeRepository->find($data['demandeId']);
             if(isset($data['type'])) {
@@ -145,10 +147,12 @@ class DemandeController extends AbstractController
             if ($requiredEdit) {
                 $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
                 $emplacement = $emplacementRepository->find(intval($data['destination']));
+                $project = $projectRepository->find(isset($data['project']) ? intval($data['project']) : -1);
                 $expectedAt = FormatHelper::parseDatetime($data['expectedAt'] ?? '');
                 $demande
                     ->setUtilisateur($utilisateur)
                     ->setDestination($emplacement)
+                    ->setProject($project)
                     ->setExpectedAt($expectedAt)
                     ->setType($type)
                     ->setCommentaire($data['commentaire']);
@@ -560,6 +564,7 @@ class DemandeController extends AbstractController
                     'date de validation',
                     'numéro',
                     'type demande',
+                    'projet',
                     'code(s) préparation(s)',
                     'code(s) livraison(s)',
                     'référence article',
@@ -660,6 +665,7 @@ class DemandeController extends AbstractController
             FormatHelper::datetime($demande->getValidatedAt()),
             $demande->getNumero(),
             FormatHelper::type($demande->getType()),
+            $demande?->getProject()?->getCode(),
             !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',
             !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND',
         ];
