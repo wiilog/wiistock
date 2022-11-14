@@ -198,10 +198,6 @@ class Select2Old {
         this.init(select, 'Numéros de demande', 3, {route: 'get_demandes'});
     }
 
-    static project(select, autoSelectOptions) {
-        this.init(select, '', 1, {route: 'ajax_select_project'}, autoSelectOptions);
-    }
-
     static initFree($selects, placeholder = undefined) {
         $selects.each(function () {
             const $self = $(this);

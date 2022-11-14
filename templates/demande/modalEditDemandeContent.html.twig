@@ -60,7 +60,7 @@
         <div class="col-12 col-md-6">
             <div class="form-group w-100">
                 <label class="wii-field-name">{{ fieldLabelProject }}{{ fieldRequired ? '*' }}</label>
-                <select name="project" class="form-control data ajax-autocomplete-project d-block {{fieldRequired ? 'needed'}}" id="projectDemandeLivraison">
+                <select name="project" data-s2="project" class="form-control data d-block {{fieldRequired ? 'needed'}}">
                     {% if demande.project is defined and demande.project != null %}
                         <option value="{{ demande.project.id }}" selected>{{ demande.project.code }}</option>
                     {% endif %}

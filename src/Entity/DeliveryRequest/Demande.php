@@ -78,7 +78,7 @@ class Demande implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'demandes')]
     private ?Reception $reception = null;
 
-    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'demandes')]
+    #[ORM\ManyToOne(targetEntity: Project::class)]
     private ?Project $project = null;
 
     #[ORM\ManyToOne(targetEntity: SensorWrapper::class)]
