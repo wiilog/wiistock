@@ -295,6 +295,7 @@ class MobileController extends AbstractApiController
                                 $options
                             )['movement'];
                             $movement->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
+                            $associatedPack->getArticle()->setCurrentLogisticUnit(null);
                             $trackingMovementService->persistSubEntities($entityManager, $movement);
                             $entityManager->persist($movement);
                             $numberOfRowsInserted++;
@@ -534,6 +535,29 @@ class MobileController extends AbstractApiController
                             );
                             $associatedPack = $createdMvt->getPack();
 
+                            if($associatedPack->getArticle()->getCurrentLogisticUnit()) {
+                                $createdMvt->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
+                            }
+
+                            if($createdMvt->getType()->getCode() === TrackingMovement::TYPE_PRISE && $associatedPack->getArticle() && $associatedPack->getArticle()->getCurrentLogisticUnit()) {
+                                $movement = $trackingMovementService->persistTrackingMovement(
+                                    $entityManager,
+                                    $associatedPack,
+                                    $location,
+                                    $nomadUser,
+                                    $date,
+                                    true,
+                                    TrackingMovement::TYPE_PICK_LU,
+                                    false,
+                                    $options
+                                )['movement'];
+                                $movement->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
+                                $associatedPack->getArticle()->setCurrentLogisticUnit(null);
+                                $trackingMovementService->persistSubEntities($entityManager, $movement);
+                                $entityManager->persist($movement);
+                                $numberOfRowsInserted++;
+                            }
+
                             if ($associatedPack) {
                                 $associatedGroup = $associatedPack->getParent();
 
@@ -573,6 +597,7 @@ class MobileController extends AbstractApiController
                 } else if ($throwable->getMessage() === Pack::PACK_IS_GROUP) {
                     $successData['data']['errors'][$mvt['ref_article']] = 'Le colis scanné est un groupe';
                 } else {
+                    throw $throwable;
                     $exceptionLoggerService->sendLog($throwable, $request);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
                 }

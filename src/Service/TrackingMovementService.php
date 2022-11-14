@@ -828,6 +828,10 @@ class TrackingMovementService extends AbstractController
                 $currentArticleOptions,
             );
 
+            if($article->getCurrentLogisticUnit()) {
+                $createdMvt->setLogisticUnitParent($article->getCurrentLogisticUnit());
+            }
+
             $associatedPack = $createdMvt->getPack();
             if ($associatedPack) {
                 $associatedGroup = $associatedPack->getParent();
