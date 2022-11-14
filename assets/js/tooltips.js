@@ -1,6 +1,8 @@
 const tooltipConfig = {
     html: true,
     trigger : `hover`,
+    container: `body`,
+    boundary: `window`,
 };
 
 $(document)

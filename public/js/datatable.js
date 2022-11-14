@@ -428,6 +428,10 @@ function initDataTable($table, options) {
                 setTimeout(() => {
                     drawCallback(response);
                 });
+
+                //remove any ghost tooltip that could be caused by
+                //datatable refresh while a tooltip is open
+                $('body > [role=tooltip]').remove();
             },
             initComplete: () => {
                 setTimeout(() => {

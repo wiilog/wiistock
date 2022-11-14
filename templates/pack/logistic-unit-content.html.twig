@@ -1,4 +1,4 @@
-<div class="logistic-unit-content">
+<div class="logistic-unit-content" data-pack="{{ pack.code }}">
     <span class="wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Contenu unité logistique') }}</span>
     <div class="logistic-unit-tabs">
         <div class="logistic-unit-tab active" data-target=".current-articles">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Articles') }}</div>
@@ -6,7 +6,7 @@
     </div>
 
     <div class="content current-articles">
-        {% for article in articles %}
+        {% for article in pack.childArticles %}
             <div class="logistic-unit-card">
                 <div class="row">
                     <div class="col d-flex align-items-center">

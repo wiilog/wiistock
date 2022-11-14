@@ -340,13 +340,14 @@ class CartController extends AbstractController
             $addedArticlesGrouped = Stream::from($addedArticles)
                 ->keymap(fn($article) => [$article['unit'], $article['barCode']], true)
                 ->toArray();
+
             foreach ($addedArticlesGrouped as $unit => $articles) {
                 $articlesStr = join(", ", $articles);
                 $response[] = [
                     "success" => true,
                     "msg" => count($articles) === 1
-                        ? "L'unité logistique {$unit} ainsi que l'article {$articlesStr} contenu dedans a bien été ajouté au panier"
-                        : "L'unité logistique {$unit}  ainsi que les articles {$articlesStr} contenus dedans ont bien été ajoutés au panier"
+                        ? "L'unité logistique {$unit} et l'article contenu {$articlesStr} ont bien été ajoutés au panier"
+                        : "L'unité logistique {$unit} et les articles contenus {$articlesStr} ont bien été ajoutés au panier"
                 ];
             }
         }

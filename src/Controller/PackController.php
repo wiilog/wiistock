@@ -92,7 +92,7 @@ class PackController extends AbstractController
         return $this->json([
             "success" => true,
             "html" => $this->renderView("pack/logistic-unit-content.html.twig", [
-                "articles" => $pack->getChildArticles(),
+                "pack" => $pack,
                 "movements" => $movements,
                 "use_long_format" => $longFormat,
             ]),

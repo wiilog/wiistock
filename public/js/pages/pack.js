@@ -30,21 +30,23 @@ const packsTableConfig = {
     ],
     drawCallback: () => {
         toggleAddAllToCartButton();
+
+        //remove open logistic unit details pane
+        const $logisticUnitPane = $(`.logistic-unit-content`);
+        if($logisticUnitPane.exists()) {
+            const pack = $logisticUnitPane.data(`pack`);
+            const $number = $(`.logistic-unit-number[data-pack="${pack}"]`);
+            if(!$number.exists()) {
+                $logisticUnitPane.remove();
+                packsTable.columns.adjust();
+            } else {
+                $number.addClass(`active`);
+            }
+        }
+
         const codeUl = $('#lu-code').val();
         if(codeUl) {
-            const $icon = $(`.logistic-unit-number .wii-icon`).first();
-            const $container = $(`.packsTableContainer`);
-            const $number = $icon.closest(`.logistic-unit-number`);
-            $icon.trigger('mouseover');
-
-            AJAX.route(`GET`, `logistic_unit_content`, {pack: $number.data(`id`)})
-                .json()
-                .then(result => {
-                    $(`.logistic-unit-number`).removeClass(`.active`);
-                    $number.addClass(`active`);
-                    $container.append(result.html);
-                    packsTable.columns.adjust();
-                });
+            $(`.logistic-unit-number .wii-icon`).trigger(`mouseup`);
         }
     }
 };
@@ -107,7 +109,10 @@ $(function() {
     $(window).on("hashchange", switchPageBasedOnHash);
 
     $(document).arrive(`.add-cart`, function() {
-        $(this).on("click", function() {
+        $(this).on("mouseup", function(event) {
+            console.log("huh?");
+            event.stopPropagation();
+
             const id = [$(this).data(`id`)];
             addToCart(id);
         });
@@ -134,6 +139,7 @@ $(function() {
         $icon.on(`mouseup`, event => {
             event.stopPropagation();
             if(isLoading) {
+                Flash.add(`info`, `Chargement du contenu de l'unité logistique en cours`)
                 return;
             }
 
@@ -143,6 +149,7 @@ $(function() {
 
             if($number.is(`.active`)) {
                 $number.removeClass(`active`);
+                $container.find(`.logistic-unit-content`).remove();
                 packsTable.columns.adjust().draw();
             } else {
                 AJAX.route(`GET`, `logistic_unit_content`, {pack: $number.data(`id`)})
