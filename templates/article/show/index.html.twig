@@ -92,14 +92,12 @@
                                 <img src="{{ asset('svg/document.svg') }}" alt="Icône projet" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Projet</span>
-                                    <span class="wii-body-text">{{ article.currentLogisticUnit and article.currentLogisticUnit.project ? article.currentLogisticUnit.project.code : '-' }}</span>
+                                    <span class="wii-body-text">{{ article.currentLogisticUnit and article.projectHistoryRecords | length ? article.projectHistoryRecords.last.project.code : '-' }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 d-flex">
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône projet" width="20px">
-                                {% set lastRecord = article.currentLogisticUnit and article.currentLogisticUnit.projectHistoryRecords.last
-                                    ? article.currentLogisticUnit.projectHistoryRecords.last
-                                    : null %}
+                                {% set lastRecord = article.currentLogisticUnit ? article.projectHistoryRecords.last ?: null : null %}
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Assigné le</span>
                                     <span class="wii-body-text">{{ lastRecord ? lastRecord.createdAt | format_helper('longDate', {time: true}) : '-' }}</span>

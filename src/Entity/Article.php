@@ -146,7 +146,7 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdOnKioskAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'article', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
+    #[ORM\OneToMany(mappedBy: "article", targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
     private Collection $projectHistoryRecords;
 
     public function __construct() {

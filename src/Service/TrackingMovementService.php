@@ -18,15 +18,13 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\ReceptionLine;
+use App\Entity\ProjectHistoryRecord;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Repository\PackRepository;
-use Monolog\Handler\Curl\Util;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -1097,6 +1095,8 @@ class TrackingMovementService extends AbstractController
                         $movement["movement"]->setLogisticUnitParent($packArticle->getCurrentLogisticUnit());
                     }
 
+                    $packArticle->setCurrentLogisticUnit(null);
+
                     if($movement["success"]) {
                         $newMovements[] = $movement["movement"];
                     } else {
@@ -1240,7 +1240,7 @@ class TrackingMovementService extends AbstractController
                 ];
             }
             if(!$article->getCarts()->isEmpty()) {
-                $inCarts = array_merge($inCarts, $article->getCarts());
+                $inCarts = array_merge($inCarts, $article->getCarts()->toArray());
             }
 
             //generate pick up in LU movements
@@ -1263,6 +1263,15 @@ class TrackingMovementService extends AbstractController
             }
 
             $article->setCurrentLogisticUnit($pack);
+            if($pack->getProject()) {
+                $articleRecord = (new ProjectHistoryRecord())
+                    ->setArticle($article)
+                    ->setProject($pack->getProject())
+                    ->setCreatedAt(new DateTime());
+
+                $this->entityManager->persist($articleRecord);
+            }
+
             $pack->setArticleContainer(true);
 
             //generate pick up movements

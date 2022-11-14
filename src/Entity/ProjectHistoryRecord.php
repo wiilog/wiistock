@@ -22,7 +22,7 @@ class ProjectHistoryRecord {
     #[ORM\ManyToOne(targetEntity: Project::class)]
     private ?Project $project = null;
 
-    #[ORM\ManyToOne(targetEntity: Article::class)]
+    #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'projectHistoryRecords')]
     private ?Article $article = null;
 
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'projectHistoryRecords')]

@@ -148,8 +148,10 @@ class ArticleController extends AbstractController
             ->sort(fn(ProjectHistoryRecord $r1, ProjectHistoryRecord $r2) => $r2->getCreatedAt() <=> $r1->getCreatedAt())
             ->toArray();
 
-        //remove first element = current project
-        array_shift($projectHistoryRecords);
+        if($article->getCurrentLogisticUnit()) {
+            //remove first element = current project
+            array_shift($projectHistoryRecords);
+        }
 
         return $this->render("article/show/index.html.twig", [
             'article' => $article,

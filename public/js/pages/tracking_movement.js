@@ -138,6 +138,11 @@ function initPageModal(tableMvt) {
             confirmMessage: $modal => {
                 return new Promise((resolve, reject) => {
                     const pack = $modal.find(`[name="colis"]`).val();
+                    const type = $modal.find(`[name="type"] option:selected`).text().trim();
+
+                    if(type !== `prise`) {
+                        return resolve(true);
+                    }
 
                     AJAX.route(`GET`, `tracking_movement_is_in_lu`, {barcode: pack})
                         .json()
@@ -222,6 +227,9 @@ function resetNewModal($modal) {
 function switchMvtCreationType($input) {
     let pathToGetAppropriateHtml = Routing.generate("mouvement_traca_get_appropriate_html", true);
     let paramsToGetAppropriateHtml = $input.val();
+
+    $(`#submitNewMvtTraca`).prop(`disabled`, false);
+
     $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function (response) {
         if (response) {
             const $modal = $input.closest('.modal');
