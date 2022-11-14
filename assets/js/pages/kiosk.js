@@ -2,46 +2,46 @@ import '@styles/pages/kiosk.scss';
 import AJAX, {GET} from "@app/ajax";
 
 let scannedReference = '';
+const $modalInStockWarning = $("#modal-in-stock-warning");
+let $errorMessage = $modalInStockWarning.find('#stock-error-message');
+let originalMessage = $errorMessage.text();
 const $referenceRefInput = $('input[name=reference-ref-input]');
 const $referenceLabelInput = $('input[name=reference-label-input]');
 const $modalGiveUpStockEntry = $("#modalGiveUpStockEntry");
 const $modalArticleIsNotValid = $("#modalArticleIsNotValid");
-const modalPrintHistory = $("#modal-print-history");
-const modalInformation = $("#modal-information");
-const modalWaiting = $("#modal-waiting");
-const modalInStockWarning = $("#modal-in-stock-warning");
+const $modalPrintHistory = $("#modal-print-history");
+const $modalInformation = $("#modal-information");
+const $modalWaiting = $("#modal-waiting");
 
 $(function() {
-    if (modalPrintHistory) {
+    if ($modalPrintHistory) {
         $('#openModalPrintHistory').on('click', function() {
-            modalPrintHistory.modal('show');
+            $modalPrintHistory.modal('show');
         });
     }
 
-    if (modalInformation) {
+    if ($modalInformation) {
         $('#information-button').on('click', function() {
-            modalInformation.modal('show');
-            modalInformation.find('.bookmark-icon').removeClass('d-none');
+            $modalInformation.modal('show');
+            $modalInformation.find('.bookmark-icon').removeClass('d-none');
         });
     }
 
     Select2Old.user($('[name=applicant]'), '', 3);
     Select2Old.user($('[name=follower]'), '', 3);
 
-    $(document).on('keypress', function(event) {
+    $(document).on('keypress', (event) => {
         if(event.originalEvent.key === 'Enter') {
-            modalWaiting.modal('show');
-            AJAX.route(GET, `reference_article_check_quantity`, {
-                scannedReference: scannedReference,
-            })
+            $modalWaiting.modal('show');
+            AJAX.route(GET, `reference_article_check_quantity`, {scannedReference})
                 .json()
-                .then((data) => {
-                    modalWaiting.modal('hide');
-                    if(data.exist && data.inStock) {
-                        let $errorMessage = modalInStockWarning.find('#stock-error-message');
-                        $errorMessage.html($errorMessage.text().replace('@reference', `<span class="bold">${scannedReference}</span>`))
-                        modalInStockWarning.modal('show');
-                        modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
+                .then(({exists, inStock}) => {
+                    $modalWaiting.modal('hide');
+                    if(exists && inStock) {
+                        let $errorMessage = $modalInStockWarning.find('#stock-error-message');
+                        $errorMessage.html(originalMessage.replace('@reference', `<span class="bold">${scannedReference}</span>`));
+                        $modalInStockWarning.modal('show');
+                        $modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
                     }
                     else {
                         window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
@@ -68,7 +68,6 @@ $(function() {
         const $currentTimelineEvent = $timeline.find('.current');
         const $inputs = $current.find('input[required]');
         const $selects = $current.find('select.needed');
-
 
         $selects.each(function(){
             if($(this).find('option:selected').length === 0){

@@ -901,11 +901,11 @@ class ReferenceArticleController extends AbstractController
     public function checkQuantity(Request                $request,
                                   EntityManagerInterface $entityManager): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $refArticle = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+        $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
 
-        return new JsonResponse([
-                'exist' => (bool)$refArticle,
-                'inStock' => $refArticle?->getQuantiteStock() > 0,
+        return $this->json([
+                'exists' => $reference !== null,
+                'inStock' => $reference?->getQuantiteStock() > 0,
             ]
         );
     }
