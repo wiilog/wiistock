@@ -19,6 +19,7 @@ use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
@@ -142,6 +143,7 @@ class DemandeLivraisonService
             'number' => $demande->getNumero() ?? '',
             'status' => FormatHelper::status($demande->getStatut()),
             'type' => FormatHelper::type($demande->getType()),
+            'project' => $demande?->getProject()?->getCode() ?? '',
             'actions' => $this->templating->render('demande/datatableDemandeRow.html.twig', [
                 'idDemande' => $idDemande,
                 'url' => $url,
@@ -258,6 +260,7 @@ class DemandeLivraisonService
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $receptionRepository = $entityManager->getRepository(Reception::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
         $isManual = $data['isManual'] ?? false;
 
@@ -284,6 +287,7 @@ class DemandeLivraisonService
         $date = new DateTime('now');
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
+        $project = $projectRepository->find(isset($data['project']) ? intval($data['project']) : -1);
         $number = $this->uniqueNumberService->create(
             $entityManager,
             Demande::NUMBER_PREFIX,
@@ -300,6 +304,7 @@ class DemandeLivraisonService
             ->setCreatedAt($date)
             ->setExpectedAt($expectedAt)
             ->setType($type)
+            ->setProject($project)
             ->setDestination($destination)
             ->setNumero($number)
             ->setManual($isManual)
@@ -624,6 +629,11 @@ class DemandeLivraisonService
                 'value' => FormatHelper::date($demande->getExpectedAt()),
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
+            [
+                'label' => 'Projet',
+                'value' => $demande?->getProject()?->getCode() ?? '',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT]
+            ],
         ];
 
         $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DEMANDE);
@@ -709,6 +719,7 @@ class DemandeLivraisonService
             ['title' => 'Numéro', 'name' => 'number'],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Type', 'name' => 'type'],
+            ['title' => 'Projet', 'name' => 'project'],
             ['title' => 'Destination', 'name' => 'destination'],
             ['title' => 'Commentaire', 'name' => 'comment', 'orderable' => false],
         ];
