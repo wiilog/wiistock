@@ -22,6 +22,9 @@ class ProjectHistoryRecord {
     #[ORM\ManyToOne(targetEntity: Project::class)]
     private ?Project $project = null;
 
+    #[ORM\ManyToOne(targetEntity: Article::class)]
+    private ?Article $article = null;
+
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'projectHistoryRecords')]
     private ?Pack $pack = null;
 
@@ -58,6 +61,16 @@ class ProjectHistoryRecord {
 
     public function setProject(?Project $project): self {
         $this->project = $project;
+
+        return $this;
+    }
+
+    public function getArticle(): ?Article {
+        return $this->article;
+    }
+
+    public function setArticle(?Article $article): self {
+        $this->article = $article;
 
         return $this;
     }

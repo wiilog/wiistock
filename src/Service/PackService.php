@@ -245,6 +245,14 @@ class PackService {
 
             $pack->setProject($project);
             $pack->addProjectHistoryRecord($packRecord);
+
+            foreach($pack->getChildArticles() as $article) {
+                $packRecord = (new ProjectHistoryRecord())
+                    ->setArticle($article)
+                    ->setCreatedAt(new DateTime());
+
+                $this->entityManager->persist($packRecord);
+            }
         }
 
         $pack
@@ -319,6 +327,14 @@ class PackService {
 
                 $pack->setProject($project);
                 $pack->addProjectHistoryRecord($packRecord);
+
+                foreach($pack->getChildArticles() as $article) {
+                    $packRecord = (new ProjectHistoryRecord())
+                        ->setArticle($article)
+                        ->setCreatedAt(new DateTime());
+
+                    $this->entityManager->persist($packRecord);
+                }
             }
         }
         return $pack;
