@@ -70,8 +70,13 @@ class ProjectHistoryRecord {
     }
 
     public function setArticle(?Article $article): self {
+        if($this->article && $this->article !== $article) {
+            $this->article->removeProjectHistoryRecord($this);
+        }
         $this->article = $article;
+        $article?->addProjectHistoryRecord($this);
 
         return $this;
     }
+
 }

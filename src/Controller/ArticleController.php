@@ -144,7 +144,7 @@ class ArticleController extends AbstractController
         $type = $article->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
-        $projectHistoryRecords = Stream::from($article->getCurrentLogisticUnit()?->getProjectHistoryRecords() ?? [])
+        $projectHistoryRecords = Stream::from($article->getProjectHistoryRecords() ?? [])
             ->sort(fn(ProjectHistoryRecord $r1, ProjectHistoryRecord $r2) => $r2->getCreatedAt() <=> $r1->getCreatedAt())
             ->toArray();
 
