@@ -57,9 +57,10 @@
                             </label>
                         </div>
                         <div class="col-12 col-md-4 d-flex">
-                            <img src="{{ asset('svg/reference_article/threshold.svg') }}" alt="Icône anomalie" width="20px">
-                            <label class="box-item ml-3">
-                                    <span class="wii-field-name">Anomalie
+                            <label class="box-item">
+                                    <span class="wii-field-name">
+                                        <img src="{{ asset('svg/reference_article/threshold.svg') }}" alt="Icône anomalie" width="20px">
+                                        Anomalie
                                         <sup><img src="{{ asset('svg/information.svg') }}"
                                                   alt="Icône information"
                                                   width="10px"
@@ -95,7 +96,7 @@
                             <img src="{{ asset('svg/document.svg') }}" alt="Icône projet" width="20px">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">Projet</span>
-                                <span class="wii-body-text">{{ article.project ? article.project.code : '-' }}</span>
+                                <span class="wii-body-text">{{ article.currentLogisticUnit and article.currentLogisticUnit.project ? article.currentLogisticUnit.project.code : '-' }}</span>
                             </label>
                         </div>
                     </div>
@@ -117,16 +118,18 @@
                 <div class="content">
                     <div class="row">
                         <div class="col-12 col-md-6 d-flex">
-                            <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Lot</span>
+                            <label class="box-item">
+                                <span class="icon wii-field-name">
+                                    <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">Lot
+                                </span>
                                 <input class="form-control data" type="text" name="batch" value ="{{ article.batch ?: ''}}">
                             </label>
                         </div>
                         <div class="col-12 col-md-6 d-flex">
-                            <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Date de péremption</span>
+                            <label class="box-item">
+                                <span class="icon wii-field-name">
+                                    <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">Date de péremption
+                                </span>
                                 <input type="date" class="form-control data" name="expiry" value ="{{ article.expiryDate ? article.expiryDate|format_helper('longDate') : '' }}"/>
                             </label>
                         </div>
@@ -140,9 +143,10 @@
                             </label>
                         </div>
                         <div class="col-12 col-md-6 d-flex mt-3">
-                            <img src="{{ asset('svg/price.svg') }}" alt="Icône monnaie euro" width="20px">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Prix unitaire (€)</span>
+                            <label class="box-item">
+                                <span class="icon wii-field-name">
+                                    <img src="{{ asset('svg/price.svg') }}" alt="Icône monnaie euro" width="20px">Prix unitaire (€)
+                                </span>
                                 <input type="number" name="prix" class="form-control w-100 data"
                                        value="{{ article.prixUnitaire }}" min="0">
                             </label>
