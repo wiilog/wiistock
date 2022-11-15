@@ -242,19 +242,14 @@
             </div>
             {% if hasRightEdit %}
                 <div class="col-12 text-right mt-3">
-                    <a {# href="{{ path('article_edit_page', {'article': article.id, 'from': 'show'}) }}" #}
-                        class="btn btn-success" data-id='{{ article.id }}' data-toggle='modal'
-                        data-target='#modalEditArticle' {# A SUPPRIMER QUAND LA MODIFICATION SERA FAITE #}
-                        onclick="editRow($(this), Routing.generate('article_show', true), $('#modalEditArticle'), $('#submitEditArticle'))">
+                    <a href="{{ path('article_edit_page', {'article': article.id, 'from': 'show'}) }}"
+                       class="btn btn-success">
                         <span>Modifier</span>
                     </a>
                 </div>
             {% endif %}
         </div>
     </div>
-
-    {# A SUPPRIMER QUAND LA MODIFICATION SERA FAITE #}
-    {% include "article/modalEditArticle.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

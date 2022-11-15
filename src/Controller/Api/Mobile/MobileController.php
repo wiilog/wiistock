@@ -279,13 +279,15 @@ class MobileController extends AbstractApiController
                             $options,
                         );
 
+                        $entityManager->persist($createdMvt);
+
                         $associatedPack = $createdMvt->getPack();
                         $createdMvt->setLogisticUnitParent($associatedPack?->getArticle()?->getCurrentLogisticUnit());
 
-                        if($createdMvt->getType()->getCode() === TrackingMovement::TYPE_PRISE && $associatedPack->getArticle() && $associatedPack->getArticle()->getCurrentLogisticUnit()) {
+                        if($type->getCode() === TrackingMovement::TYPE_PRISE && $associatedPack?->getArticle()?->getCurrentLogisticUnit()) {
                             $movement = $trackingMovementService->persistTrackingMovement(
                                 $entityManager,
-                                $associatedPack,
+                                $associatedPack ?? $mvt['ref_article'],
                                 $location,
                                 $nomadUser,
                                 $date,
@@ -524,7 +526,7 @@ class MobileController extends AbstractApiController
 
                             $createdMvt = $trackingMovementService->createTrackingMovement(
                                 //either reference or article
-                                $mvt['ref_article'],
+                                $mvt["ref_article"],
                                 $location,
                                 $nomadUser,
                                 $date,
@@ -533,13 +535,13 @@ class MobileController extends AbstractApiController
                                 $type,
                                 $options,
                             );
+
+                            $entityManager->persist($createdMvt);
+
                             $associatedPack = $createdMvt->getPack();
+                            $createdMvt->setLogisticUnitParent($associatedPack?->getArticle()?->getCurrentLogisticUnit());
 
-                            if($associatedPack->getArticle()->getCurrentLogisticUnit()) {
-                                $createdMvt->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
-                            }
-
-                            if($createdMvt->getType()->getCode() === TrackingMovement::TYPE_PRISE && $associatedPack->getArticle() && $associatedPack->getArticle()->getCurrentLogisticUnit()) {
+                            if($type->getCode() === TrackingMovement::TYPE_PRISE && $associatedPack?->getArticle()?->getCurrentLogisticUnit()) {
                                 $movement = $trackingMovementService->persistTrackingMovement(
                                     $entityManager,
                                     $associatedPack,

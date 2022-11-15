@@ -480,9 +480,6 @@ class RefArticleDataService {
         $rows = $this->dataRowRefArticle($refArticle);
         $response['success'] = true;
         $response['id'] = $refArticle->getId();
-        $response['data'] = [
-            "id" => $refArticle->getId(),
-        ];
         $response['edit'] = $rows;
         if ($sendMail){
             $this->sendMailCreateDraftOrDraftToActive($refArticle, $refArticle->getCreatedBy());

@@ -4,12 +4,15 @@ import {GET} from "@app/ajax";
 $(function () {
     getTrackingMovements();
 
-    /* A SUPPRIMER QUAND LA MODIFICATION SERA FAITE */
-    let $modalEditArticle = $("#modalEditArticle");
-    let $submitEditArticle = $("#submitEditArticle");
-    let urlEditArticle = Routing.generate('article_edit', true);
-    InitModal($modalEditArticle, $submitEditArticle, urlEditArticle, {
-        success: () => window.location.reload()
+    $(`.save`).click(function() {
+        const $button = $(this);
+        const $form = $(`.wii-form`);
+        clearFormErrors($form);
+        processSubmitAction($form, $button, $button.data(`submit`), {
+            success: data => {
+                window.location.href = Routing.generate('article_show_page', {id: data.data.id});
+            },
+        });
     });
 });
 
