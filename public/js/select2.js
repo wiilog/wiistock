@@ -171,7 +171,7 @@ class Select2Old {
         this.init(select, '', 1, {route: 'get_chauffeur'});
     }
 
-    static user($select = null, placeholder = '') {
+    static user($select = null, placeholder = '', lengthMin = 1) {
         if(typeof $select === "string") {
             placeholder = $select;
             $select = $('.ajax-autocomplete-user');
@@ -179,7 +179,7 @@ class Select2Old {
             $select = $('.ajax-autocomplete-user');
         }
 
-        this.init($select, placeholder, 1, {route: 'ajax_select_user'});
+        this.init($select, placeholder, lengthMin, {route: 'ajax_select_user'});
     }
 
     static dispatch(select, placeholder = '') {

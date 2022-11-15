@@ -84,21 +84,20 @@ $(function () {
         });
     });
 
-    $(document).arrive(`.dispatch-checkbox:not(:disabled)`, function () {
-        $(this).on(`change`, function() {
-            toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
-        });
+    $(document).on(`change`, `.dispatch-checkbox:not(:disabled)`, function() {
+        toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
     });
 });
 
 function initTableArrival(dispatchMode = false) {
     let pathArrivage = Routing.generate('arrivage_api', {dispatchMode}, true);
-    if(dispatchMode) {
+    let initialVisible = $(`#arrivalsTable`).data(`initial-visible`);
+    if(dispatchMode || !initialVisible) {
         return $.post(Routing.generate('arrival_api_columns', {dispatchMode}))
             .then(columns => proceed(columns));
     } else {
         return new Promise((resolve) => {
-            resolve(proceed($(`#arrivalsTable`).data(`initial-visible`)));
+            resolve(proceed(initialVisible));
         });
     }
 

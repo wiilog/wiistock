@@ -6,6 +6,11 @@
         {{ form.checkbox(setting('MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST'), 'Gérer le champ "Destination" en liste déroulante', false, setting_value('MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST')) }}
     </div>
     <div class="col-md-6 col-12 my-1">
+        {{ form.checkbox(setting('SET_PREPARED_UPON_DELIVERY_VALIDATION'), 'La livraison est directement préparée à sa validation', false, setting_value('SET_PREPARED_UPON_DELIVERY_VALIDATION'), {
+            tooltip: 'L\'ordre de préparation est directement mis en préparé et l\'ordre de livraison<br> généré à la validation de la demande de livraison, sauf si les références/articles<br>sur la demande sont sur des emplacements différents au moment de la<br>validation de la demande de livraison',
+        }) }}
+    </div>
+    <div class="col-md-6 col-12 my-1">
         {{ form.checkbox(
             setting('MANAGE_PREPARATIONS_WITH_PLANNING'),
             'Réaliser une demande de livraison sans quantité en stock (lancement de préparation)',

@@ -15,6 +15,8 @@ use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Project;
+use App\Entity\Reception;
+use App\Entity\ReceptionLine;
 use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
@@ -169,6 +171,20 @@ class SelectController extends AbstractController {
     public function collectType(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::DEMANDE_COLLECTE,
+            $request->query->get("term")
+        );
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/types/references", name="ajax_select_reference_type", options={"expose": true})
+     */
+    public function referenceType(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Type::class)->getForSelect(
+            CategoryType::ARTICLE,
             $request->query->get("term")
         );
 
@@ -594,6 +610,18 @@ class SelectController extends AbstractController {
      */
     public function articles(Request $request, EntityManagerInterface $entityManager): Response {
         $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"));
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/reception-logistic-units", name="ajax_select_reception_logistic_units", options={"expose"=true})
+     */
+    public function receptionLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(Pack::class)
+            ->getForSelectFromReception($request->query->get("term"), $request->query->get("reception"));
 
         return $this->json([
             "results" => $results

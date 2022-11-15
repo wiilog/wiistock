@@ -863,6 +863,12 @@ label.required:after {
     height: 18px;
 }
 
+.wii-icon-cross-grey {
+    display: block;
+    width: 18px;
+    height: 18px;
+}
+
 .wii-icon-trash {
     display: inline-block;
     background-color: $primary;
@@ -1301,7 +1307,6 @@ label.required:after {
 
             &.has-logistic-unit-parent:before {
                 height: 140px !important;
-                top: 25% !important;
             }
 
             &:after {
@@ -1410,7 +1415,7 @@ label.required:after {
     }
 }
 
-.lu-detail {
+.ul-detail {
     display: table;
     width: 100%;
     table{
@@ -1420,7 +1425,7 @@ label.required:after {
         width: 100%;
 
         tr{
-            &.lu td{
+            &.ul td{
                 &:nth-child(1) {
                     background: var(--reference-color);
                     color: $white;
@@ -1442,7 +1447,7 @@ label.required:after {
                     border-left: 1px solid var(--reference-color);
                     vertical-align: top;
 
-                    div.main-lu-data {
+                    div.main-ul-data {
                         border: 1px solid var(--reference-color);
                         border-top-right-radius: 0.25rem;
                         border-bottom-right-radius: 0.25rem;
@@ -1461,7 +1466,7 @@ label.required:after {
 
                             span.wii-icon {
                                 background-color: $primary;
-                                ;
+                            ;
                             }
 
                             &:nth-child(2){
@@ -1514,6 +1519,7 @@ label.required:after {
             border-bottom: 2px solid $light-grey;
             width: 50%;
             padding-bottom: 5px;
+            cursor: pointer;
 
             &.active {
                 font-weight: bold;
@@ -1527,6 +1533,7 @@ label.required:after {
         border-radius: 4px;
         margin-top: 10px;
         padding: 7px;
+        box-shadow: 2px 0 4px rgba($black, 0.05);
 
         .article-code {
             display: flex;
@@ -1534,6 +1541,29 @@ label.required:after {
             color: $primary;
             font-weight: bold;
             font-size: 16px;
+        }
+    }
+
+    .logistic-unit-history-interstice {
+        display: flex;
+        align-items: center;
+        border-left: 2px solid $medium-grey;
+        margin-left: 20px;
+        padding: 15px 5px 5px;
+
+        .logistic-unit-entry, .logistic-unit-exit {
+            border-radius: 4px;
+            padding: 0 5px;
+            margin-right: 10px;
+            border: 2px solid transparent;
+            font-size: 14px;
+        }
+        .logistic-unit-entry {
+            border-color: $green;
+        }
+
+        .logistic-unit-exit {
+            border-color: $orange;
         }
     }
 

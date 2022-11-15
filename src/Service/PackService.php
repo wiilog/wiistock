@@ -9,18 +9,19 @@ use App\Entity\Language;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ProjectHistoryRecord;
+use App\Entity\Reception;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
 use App\Repository\ProjectHistoryRecordRepository;
 use App\Repository\ProjectRepository;
 use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\Security\Core\Security;
@@ -59,6 +60,9 @@ class PackService {
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public ReceptionService $receptionService;
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -144,6 +148,9 @@ class PackService {
                 'pack' => $pack,
                 'hasPairing' => $hasPairing
             ]),
+            'cart' => $this->templating->render('pack/cart-column.html.twig', [
+                'pack' => $pack,
+            ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
@@ -170,9 +177,9 @@ class PackService {
 
     public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
         return [
-            'group' => $trackingMovement->getPackParent() ? (FormatHelper::pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
-            'date' => FormatHelper::datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
-            'type' => FormatHelper::status($trackingMovement->getType())
+            'group' => $trackingMovement->getPackParent() ? ($this->formatService->pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
+            'date' => $this->formatService->datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
+            'type' => $this->formatService->status($trackingMovement->getType())
         ];
     }
 
@@ -230,7 +237,7 @@ class PackService {
             $pack->setNature($nature);
         }
 
-        $project = $projectRepository->find($projectId);
+        $project = $projectRepository->findOneBy(["id" => $projectId]);
         if (!empty($project)) {
             $packRecord = (new ProjectHistoryRecord())
                 ->setProject($project)
@@ -239,13 +246,13 @@ class PackService {
             $pack->setProject($project);
             $pack->addProjectHistoryRecord($packRecord);
 
-            if ($pack->getArticle()) {
+            foreach($pack->getChildArticles() as $article) {
                 $articleRecord = (new ProjectHistoryRecord())
+                    ->setArticle($article)
                     ->setProject($project)
                     ->setCreatedAt(new DateTime());
 
-                $pack->getArticle()->setProject($project);
-                $pack->getArticle()->addProjectHistoryRecord($articleRecord);
+                $this->entityManager->persist($articleRecord);
             }
         }
 
@@ -256,20 +263,20 @@ class PackService {
             ->setComment($comment);
     }
 
-    public function createPack(array $options = []): Pack
+    public function createPack(EntityManager $entityManager, array $options = []): Pack
     {
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
         } else {
+            /** @var ?Project $project */
+            $project = $options['project'] ?? null;
+
             if(isset($options['arrival'])) {
                 /** @var Arrivage $arrival */
                 $arrival = $options['arrival'];
 
                 /** @var Nature $nature */
                 $nature = $options['nature'];
-
-                /** @var ?Project $project */
-                $project = $options['project'];
 
                 $arrivalNum = $arrival->getNumeroArrivage();
                 $counter = $this->getNextPackCodeForArrival($arrival) + 1;
@@ -280,10 +287,12 @@ class PackService {
                     ->createPackWithCode($code)
                     ->setNature($nature)
                     ->setProject($project);
-
-                if(isset($options['project'])){
-                    $pack->setProject($options['project']);
+                if (isset($options['reception'])) {
+                    /** @var Reception $reception */
+                    $reception = $options['reception'];
+                    $this->receptionService->persistReceptionPackLine($entityManager, $reception, $pack);
                 }
+
                 $arrival->addPack($pack);
             }
             else if (isset($options['orderLine'])) {
@@ -303,15 +312,31 @@ class PackService {
                 $code = $naturePrefix . $requestNumber . $counterStr;
                 $pack = $this
                     ->createPackWithCode($code)
-                    ->setNature($nature);
+                    ->setNature($nature)
+                    ->setProject($project);
 
-                if(isset($options['project'])){
-                    $pack->setProject($options['project']);
-                }
                 $orderLine->setPack($pack);
             }
             else {
                 throw new RuntimeException('Unhandled pack configuration');
+            }
+
+            if ($pack->getProject()) {
+                $packRecord = (new ProjectHistoryRecord())
+                    ->setProject($project)
+                    ->setCreatedAt(new DateTime());
+
+                $pack->setProject($project);
+                $pack->addProjectHistoryRecord($packRecord);
+
+                foreach($pack->getChildArticles() as $article) {
+                    $articleRecord = (new ProjectHistoryRecord())
+                        ->setArticle($article)
+                        ->setProject($project)
+                        ->setCreatedAt(new DateTime());
+
+                    $this->entityManager->persist($articleRecord);
+                }
             }
         }
         return $pack;
@@ -325,11 +350,12 @@ class PackService {
     }
 
     public function persistMultiPacks(EntityManagerInterface $entityManager,
-                                      Arrivage $arrivage,
-                                      array $colisByNatures,
-                                      $user,
-                                      bool $persistTrackingMovements = true,
-                                      Project $project = null): array
+                                      Arrivage               $arrivage,
+                                      array                  $colisByNatures,
+                                                             $user,
+                                      bool                   $persistTrackingMovements = true,
+                                      Project                $project = null,
+                                      Reception              $reception = null): array
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
@@ -347,7 +373,7 @@ class PackService {
         foreach ($colisByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);
             for ($i = 0; $i < $number; $i++) {
-                $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature, 'project' => $project]);
+                $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception]);
                 if ($persistTrackingMovements && isset($location)) {
                     $this->trackingMovementService->persistTrackingForArrivalPack(
                         $entityManager,
@@ -389,10 +415,10 @@ class PackService {
                 $this->templating->render('mails/contents/mail-pack-delivery-done.html.twig', [
                     'title' => 'Votre colis est toujours présent dans votre magasin',
                     'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
-                    'colis' => FormatHelper::pack($pack),
+                    'colis' => $this->formatService->pack($pack),
                     'emplacement' => $lastDrop->getEmplacement(),
                     'date' => $lastDrop->getDatetime(),
-                    'fournisseur' => FormatHelper::supplier($arrival->getFournisseur()),
+                    'fournisseur' => $this->formatService->supplier($arrival->getFournisseur()),
                     'pjs' => $arrival->getAttachments()
                 ]),
                 $arrival->getDestinataire()

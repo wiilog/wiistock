@@ -90,7 +90,8 @@ class TrackingMovementController extends AbstractController
         $request->request->add(['length' => 10]);
 
         return $this->render('mouvement_traca/index.html.twig', [
-            'statuts' => Stream::from($statuses)
+            'statuts' => $statuses,
+            'form_statuses' => Stream::from($statuses)
                 ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
                 ->toArray(),
             'clearAndStayAfterNewMvt' => $clearAndStayAfterNewMvt,
@@ -304,7 +305,7 @@ class TrackingMovementController extends AbstractController
                 ]);
             } else {
                 // uncomment following line to debug
-                //throw $exception;
+                throw $exception;
 
                 return $this->json([
                     "success" => false,
@@ -349,6 +350,20 @@ class TrackingMovementController extends AbstractController
         $data = $trackingMovementService->getDataForDatatable($request->request);
 
         return new JsonResponse($data);
+    }
+    /**
+     * @Route("/est-dans-ul/{barcode}", name="tracking_movement_is_in_lu", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
+     */
+    public function isInLU(EntityManagerInterface $manager, string $barcode): Response
+    {
+        $article = $manager->getRepository(Article::class)->isInLogisticUnit($barcode);
+
+        return $this->json([
+            "success" => true,
+            "in_logistic_unit" => !empty($article),
+            "logistic_unit" => $article?->getCurrentLogisticUnit()?->getCode(),
+        ]);
     }
 
     /**
@@ -592,7 +607,6 @@ class TrackingMovementController extends AbstractController
     {
         if ($typeId = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $packRepository = $entityManager->getRepository(Pack::class);
 
             $templateDirectory = "mouvement_traca";
 
@@ -600,7 +614,6 @@ class TrackingMovementController extends AbstractController
             $fileToRender = match($appropriateType?->getCode()) {
                 TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassMvtTraca.html.twig",
                 TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroupMvtTraca.html.twig",
-                TrackingMovement::TYPE_PICK_LU,
                 TrackingMovement::TYPE_DROP_LU => "$templateDirectory/newLUMvtTraca.html.twig",
                 default => "$templateDirectory/newSingleMvtTraca.html.twig"
             };

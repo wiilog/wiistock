@@ -399,7 +399,7 @@ class ArticleDataService
             'lu' => $this->templating->render("lu_icon.html.twig", [
                 'lu' => $ul,
             ]),
-            'project' => $article->getProject()?->getCode() ?? '',
+            'project' => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? '',
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {

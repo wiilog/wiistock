@@ -1,0 +1,53 @@
+{% for line in lines %}
+    {% set pack = line.pack ?? null %}
+    {% set references = line.references ?? [] %}
+
+    {% include 'pack/utils/packItemListTemplate.html.twig' with {
+        data: {
+            'line-id': line.id
+        },
+        header: pack
+            ? {
+                data: {
+                    'pack-id': pack.id,
+                },
+                sideLabel: pack.nature,
+                color: pack.color,
+                content: [
+                    {label: 'Unité logistique', value: pack.code, bold: 'value'},
+                    {label: 'Emplacement', value: pack.location, bold: 'label', icon: 'reference-article-location'},
+                ] | merge(pack.project ? [{label: 'Projet', value: pack.project, bold: 'label', icon: 'reference-article-stock'}] : [])
+            },
+        content: references|map((reference) => reference|merge({
+            actions: include(
+                'reception/datatableLigneRefArticleRow.html.twig',
+                {
+                    ligneId: reference.id,
+                    ligneArticleQuantity: reference.receivedQuantity,
+                    receptionId: reception.id,
+                    isReferenceTypeLinked: reference.quantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE'),
+                    isArticleTypeLinked: reference.quantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE'),
+                    modifiable: reception.statut.code != constant('App\\Entity\\Reception::STATUT_RECEPTION_TOTALE'),
+                    packFilter:  reference.quantityType,
+                }
+            )
+        }))
+    } %}
+{% endfor %}
+
+{% if pageLength < total %}
+    <div class="dataTables_wrapper">
+        <div class="datatable-paging">
+            <div class="dataTables_paginate paging_simple_numbers">
+                <a class="paginate_button previous {{ current == 0 ? 'disabled' }}"
+                   data-page="{{ current - pageLength }}">
+                    {{ trans('Général', '', 'Zone liste', 'Précédent') }}
+                </a>
+                <a class="paginate_button next {{ (current + pageLength >= total) ? 'disabled' }}"
+                   data-page="{{ current + pageLength }}">
+                    {{ trans('Général', '', 'Zone liste', 'Suivant') }}
+                </a>
+            </div>
+        </div>
+    </div>
+{% endif %}

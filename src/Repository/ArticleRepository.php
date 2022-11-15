@@ -131,7 +131,8 @@ class ArticleRepository extends EntityRepository {
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
-            ->leftJoin('article.project', 'project' )
+            ->leftJoin('article.currentLogisticUnit', 'currentLogisticUnit')
+            ->leftJoin('currentLogisticUnit.project', 'project')
             ->groupBy('article.id')
             ->getQuery()
             ->toIterable();
@@ -361,7 +362,8 @@ class ArticleRepository extends EntityRepository {
                             case "project":
                                 $subqb = $this->createQueryBuilder("article")
                                     ->select('article.id')
-                                    ->leftJoin('article.project', 'project_search')
+                                    ->leftJoin('article.currentLogisticUnit', 'project_current_logistic_unit_search')
+                                    ->leftJoin('project_current_logistic_unit_search.project', 'project_search')
                                     ->andWhere('project_search.code LIKE :search')
                                     ->setParameter('search', $search);
 
@@ -422,7 +424,6 @@ class ArticleRepository extends EntityRepository {
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
-
                     switch ($column) {
                         case "type":
                             $queryBuilder->leftJoin('article.type', 't')
@@ -448,6 +449,9 @@ class ArticleRepository extends EntityRepository {
                         case "pairing":
                             $queryBuilder->leftJoin('article.pairings', 'order_pairings')
                                 ->orderBy('order_pairings.active', $order);
+                            break;
+                        case "lu":
+                            $queryBuilder->orderBy('IF(article.currentLogisticUnit IS NULL, 0, 1)', $order);
                             break;
                         default:
                             $field = self::FIELD_ENTITY_NAME[$column] ?? $column;
@@ -899,6 +903,15 @@ class ArticleRepository extends EntityRepository {
             ->getArrayResult();
     }
 
+    public function isInLogisticUnit(string $barcode): ?Article {
+        return $this->createQueryBuilder("article")
+            ->join("article.currentLogisticUnit", "current_logistic_unit")
+            ->andWhere("article.barCode = :barcode")
+            ->setParameter("barcode", $barcode)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findWithNoPairing(?string $term) {
         return $this->createQueryBuilder("article")
             ->select("article.id AS id, article.barCode AS text")
@@ -1136,4 +1149,12 @@ class ArticleRepository extends EntityRepository {
             ->getArrayResult();
     }
 
+    public function getLatestsKioskPrint() {
+        return $this->createQueryBuilder('article')
+            ->andWhere('article.createdOnKioskAt IS NOT null')
+            ->orderBy('article.createdOnKioskAt', 'DESC')
+            ->setMaxResults(3)
+            ->getQuery()
+            ->getResult();
+    }
 }

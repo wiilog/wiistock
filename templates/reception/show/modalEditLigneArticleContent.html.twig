@@ -1,5 +1,7 @@
+{% set packCode = ligneArticle.receptionLine and ligneArticle.receptionLine.pack ? ligneArticle.receptionLine.pack.code %}
+{% set isReferenceAttachedToUnit = reception.arrival is not null and packCode %}
 <div class="row">
-    <div class="form-group col-12  w-100 mb-3">
+    <div class="form-group {{ isReferenceAttachedToUnit ? 'col-xl-6' }} col-12  w-100 mb-3">
         <label for="reference" title="référence" class="wii-field-name">
             {{ trans('Stock', 'Références', 'référence', false) }}*
         </label>
@@ -10,9 +12,30 @@
             <option value="{{ligneArticle.referenceArticle.id}}">{{ligneArticle.referenceArticle.reference}}</option>
         </select>
     </div>
+    {% if isReferenceAttachedToUnit %}
+        <div class="form-group col-xl-6 col-12">
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
+            <input class="form-control" disabled type="text" name="logisticUnit" value="{{ packCode }}">
+        </div>
+    {% endif %}
     <div class="form-group col-6">
-        <label class="wii-field-name">Numéro de commande d'achat</label>
-        <input class="form-control data" type="text" name="commande" value="{{ligneArticle.commande}}">
+        <label class="wii-field-name">Numéro de commande d'achat*</label>
+        {% if reception.orderNumber is not empty %}
+            <select name="commande"
+                    class="form-control needed w-100 data">
+                {% for orderNumber in reception.orderNumber %}
+                    <option {{ ligneArticle.commande == orderNumber ? 'selected' }}
+                            value="{{ orderNumber }}">
+                        {{ orderNumber }}
+                    </option>
+                {% endfor %}
+            </select>
+        {% else %}
+            <input type="text"
+                   class="form-control data needed wii-field-text"
+                   name="commande"
+                   value="{{ligneArticle.commande}}">
+        {% endif %}
     </div>
     <div class="form-group col-6">
         <label class="wii-field-name">Quantité à recevoir*</label>

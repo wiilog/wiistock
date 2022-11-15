@@ -22,11 +22,11 @@ class ProjectHistoryRecord {
     #[ORM\ManyToOne(targetEntity: Project::class)]
     private ?Project $project = null;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'projectHistoryRecords')]
-    private ?Pack $pack = null;
-
     #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'projectHistoryRecords')]
     private ?Article $article = null;
+
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'projectHistoryRecords')]
+    private ?Pack $pack = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -55,6 +55,16 @@ class ProjectHistoryRecord {
         return $this;
     }
 
+    public function getProject(): ?Project {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self {
+        $this->project = $project;
+
+        return $this;
+    }
+
     public function getArticle(): ?Article {
         return $this->article;
     }
@@ -69,13 +79,4 @@ class ProjectHistoryRecord {
         return $this;
     }
 
-    public function getProject(): ?Project {
-        return $this->project;
-    }
-
-    public function setProject(?Project $project): self {
-        $this->project = $project;
-
-        return $this;
-    }
 }

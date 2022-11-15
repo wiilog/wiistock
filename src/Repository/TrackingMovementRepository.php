@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -150,8 +151,8 @@ class TrackingMovementRepository extends EntityRepository
                         $value = explode(':', $filter['value'])[0];
                         $qb
                             ->leftJoin('tracking_movement.pack', 'filter_article_pack')
-                            ->andWhere(":article MEMBER OF filter_article_pack.childArticles")
-                            ->setParameter('article', $value);
+                            ->andWhere("filter_article_pack.article = :filter_article")
+                            ->setParameter("filter_article", $value);
                         break;
                 }
             }
@@ -319,7 +320,7 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect('tracking_movement.uniqueIdForMobile AS date')
             ->addSelect('join_pack_nature.id AS nature_id')
             ->addSelect('(CASE WHEN tracking_movement.finished = 1 THEN 1 ELSE 0 END) AS finished')
-            ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock')
+            ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL OR join_pack.articleContainer = 1 THEN 1 ELSE 0 END) AS fromStock')
             ->addSelect('(CASE WHEN join_pack.groupIteration IS NOT NULL THEN 1 ELSE 0 END) AS isGroup')
             ->addSelect('join_packParent.code AS packParent');
 
@@ -341,12 +342,14 @@ class TrackingMovementRepository extends EntityRepository
             ->join('tracking_movement.emplacement', 'join_location')
             ->leftJoin('tracking_movement.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_pack_nature')
+            ->leftJoin('join_pack.article', 'join_pack_article')
             ->leftJoin('tracking_movement.mouvementStock', 'join_stockMovement')
             ->leftJoin('tracking_movement.packParent', 'join_packParent')
             ->innerJoin('tracking_movement.linkedPackLastTracking', 'linkedPackLastTracking') // check if it's the last tracking pick
-            ->where('join_operator = :operator')
+            ->andWhere('join_operator = :operator')
             ->andWhere('join_trackingType.nom LIKE :priseType')
             ->andWhere('tracking_movement.finished = :finished')
+            ->andWhere('join_pack_article.currentLogisticUnit IS NULL')
             ->andWhere($typeCondition)
             ->setParameter('operator', $operator)
             ->setParameter('priseType', TrackingMovement::TYPE_PRISE)
@@ -412,6 +415,7 @@ class TrackingMovementRepository extends EntityRepository
         return $this->createQueryBuilder('tracking_movement')
             ->join('tracking_movement.pack', 'join_pack')
             ->join('tracking_movement.type', 'join_type')
+            ->join('tracking_movement.mouvementStock', 'join_stock_movement')
             ->where('join_pack.code = :code')
             ->andWhere('join_type.code = :takingCode')
             ->andWhere('tracking_movement.finished = false')
@@ -491,4 +495,21 @@ class TrackingMovementRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findChildArticleMovementsBy(Pack $pack) {
+        return $this->createQueryBuilder("movement")
+            ->join("movement.type", "movement_status")
+            ->join("movement.pack", "movement_pack")
+            ->join("movement_pack.article", "movement_pack_article")
+            ->andWhere("movement_status.code IN (:types)")
+            ->andWhere("movement.logisticUnitParent = :pack")
+            ->setParameter("types", [
+                TrackingMovement::TYPE_PICK_LU,
+                TrackingMovement::TYPE_DROP_LU,
+            ])
+            ->setParameter("pack", $pack)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

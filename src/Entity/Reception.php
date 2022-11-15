@@ -12,6 +12,7 @@ use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReceptionRepository::class)]
 class Reception {
@@ -158,6 +159,9 @@ class Reception {
 
         return $this;
     }
+
+
+
 
     public function getFournisseur(): ?Fournisseur {
         return $this->fournisseur;
@@ -469,5 +473,19 @@ class Reception {
         }
 
         return $this;
+    }
+
+    /**
+     * @return ReceptionReferenceArticle[]
+     */
+    public function getReceptionReferenceArticles(): array {
+        return Stream::from($this->getLines()->toArray())
+            ->flatMap(fn(ReceptionLine $line) => $line->getReceptionReferenceArticles()->toArray())
+            ->toArray();
+    }
+
+    public function getLine(?Pack $pack): ?ReceptionLine {
+        return Stream::from($this->getLines()->toArray())
+            ->find(fn(ReceptionLine $line) => $line->getPack()?->getId() === $pack?->getId());
     }
 }

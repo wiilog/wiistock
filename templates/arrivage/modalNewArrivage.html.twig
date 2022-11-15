@@ -467,17 +467,15 @@
                     {% endif %}
                 </div>
 
-                {% set projectNumberFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT') %}
-                {% if fieldsParam|isFieldRequired(projectNumberFieldCode, 'displayedCreate') %}
-                    {% set projectRequired = fieldsParam|isFieldRequired(projectNumberFieldCode, 'requiredCreate') %}
+                {% set projectFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT') %}
+                {% if fieldsParam|isFieldRequired(projectFieldCode, 'displayedCreate') %}
+                    {% set projectRequired = fieldsParam|isFieldRequired(projectFieldCode, 'requiredCreate') %}
                     <div class="row">
                         <div class="form-group col-4">
-                            {{ form.select('project', "Projet", projectRequired, {
-                                type: 'project',
-                                labelOptions: {
-                                    removeAsterisk: false
-                                }
-                            }) }}
+                            <label class="w-100 " data-select2-id="1012">
+                                <span class="d-inline-flex align-items-center field-label wii-field-name" style="margin-bottom: 5px">Projet{{ projectRequired ? '*' }}</span>
+                                <select class="form-control data {{ projectRequired ? 'needed' }} w-100" name="project" data-s2="project"></select>
+                            </label>
                         </div>
                     </div>
                 {% endif %}

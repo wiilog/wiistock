@@ -1,0 +1,109 @@
+@import "@styles/variables";
+
+.logistic-unit-wrapper {
+    display: table;
+    width: 100%;
+
+    &:not(:first-child) {
+        margin-top: 0.5rem;
+    }
+
+    table{
+        height: 1px; // utile pour remplissage des cellules
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+
+        tr{
+            &.ul td:nth-child(2),
+            &.list-article td:nth-child(2) {
+                width: 100%;
+            }
+            &.ul td{
+                &.side-unit-label {
+                    background: var(--row-color);
+                    color: $white;
+                    font-weight: bold;
+                    font-size: .8rem;
+                    text-align: center;
+                    text-transform: uppercase;
+                    writing-mode: vertical-rl;
+                    transform: rotate(180deg);
+                    border-bottom-right-radius: 0.35rem;
+                    border-top-right-radius: 0.35rem;
+                    padding-top: 5px;
+                    padding-bottom: 5px;
+                    overflow-wrap: break-word;
+                    height: min-content;
+                    min-width: 40px;
+                    max-width: 40px;
+                    vertical-align: middle;
+                }
+
+                &:nth-child(2) {
+                    border-left: 1px solid var(--row-color);
+                    vertical-align: top;
+                    position: relative;
+
+                    div.main-ul-data {
+                        border: 1px solid var(--row-color);
+                        border-top-right-radius: 0.35rem;
+                        border-bottom-right-radius: 0.35rem;
+                        height: 100%;
+                        z-index: 2;
+                        background-color: #f2f3f7;
+
+                        div.col {
+                            margin-top: 15px;
+                            margin-bottom: 15px;
+                            display: flex;
+                            align-items: center;
+
+                            span.wii-icon {
+                                background-color: $primary;
+                            }
+
+                            &:nth-child(2){
+                                border-left: lightblue solid 1px;
+                                border-right: lightblue solid 1px;
+                            }
+                        }
+                    }
+                }
+            }
+            &.articles-container {
+                width: max-content;
+                .articles-wrapper {
+                    height: 100%;
+                    margin-top: -0.20rem;
+                    z-index: 1;
+
+                    &.sub-articles-wrapper {
+                        border-left: 1px solid $medium-grey;
+                        border-right: 1px solid $medium-grey;
+                        border-bottom-left-radius: 0.35rem;
+                        border-bottom-right-radius: 0.35rem;
+
+                        td {
+                            border-color: $medium-grey;
+                        }
+
+                        tr:last-child {
+                            border-bottom-left-radius: 0.35rem;
+                            border-bottom-right-radius: 0.35rem;
+                            td {
+                                &:first-child {
+                                    border-bottom-left-radius: 0.35rem;
+                                }
+                                &:last-child {
+                                    border-bottom-right-radius: 0.35rem;
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

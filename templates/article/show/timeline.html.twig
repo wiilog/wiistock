@@ -8,6 +8,7 @@
         'dégroupage': 'Dégroupage'
     } %}
     {% for movement in movements %}
+        {% if not (movement['type'] starts with 'prise') %}
         {% set hasLogisticUnitParent = movement['logisticUnitParent'] is defined and movement['logisticUnitParent'] %}
         <div class="history-line {{ hasLogisticUnitParent ? 'has-logistic-unit-parent' }}">
             <div class="history-line-left-content justify-content-between">
@@ -15,7 +16,7 @@
                 <div class="line-date wii-small-text d-none d-xl-block">{{ movement['date']|format_helper('datetime') }}</div>
                 <div class="line-event">
                     <div class="title-left {{ loop.first ? 'last current' : 'past wii-field-text text-white' }}">
-                        {{ types[movement['type']] ?? movement['type']|capitalize }}
+                        {{ types[movement['type']] ?? movement['type']| ucfirst }}
                     </div>
                     <div class="associated-details">
                         {% if hasLogisticUnitParent %}
@@ -38,6 +39,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     {% endfor %}
 {% else %}
     <div class="wii-body-text text-center">Il n'y a aucun mouvement de traçabilité pour cet article</div>

@@ -64,7 +64,7 @@ final class Version20220711124619 extends AbstractMigration {
                 Action::SETTINGS_DISPLAY_CONFIGURATIONS,
                 Action::SETTINGS_DISPLAY_STOCK_ALERTS,
                 Action::SETTINGS_DISPLAY_ARTICLES,
-                Action::SETTINGS_DISPLAY_TACTILE_TERMINAL,
+                Action::SETTINGS_DISPLAY_TOUCH_TERMINAL,
                 Action::SETTINGS_DISPLAY_REQUESTS,
                 Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS,
                 Action::SETTINGS_DISPLAY_INVENTORIES,
@@ -136,7 +136,7 @@ final class Version20220711124619 extends AbstractMigration {
                     $roleId = $role['id'];
 
                     $hasPermission = $this->connection->executeQuery(
-                        "SELECT * 
+                        "SELECT *
                         FROM action_role
                             INNER JOIN action ON action_role.action_id = action.id
                             INNER JOIN menu ON action.menu_id = menu.id

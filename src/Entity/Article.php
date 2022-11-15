@@ -137,16 +137,16 @@ class Article implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Pairing::class, cascade: ['remove'])]
     private Collection $pairings;
 
-    #[ORM\ManyToOne(targetEntity: Project::class)]
-    private ?Project $project = null;
-
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'articles')]
     private ?Collection $carts;
 
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "childArticles")]
     private ?Pack $currentLogisticUnit = null;
 
-    #[ORM\OneToMany(mappedBy: 'article', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $createdOnKioskAt = null;
+
+    #[ORM\OneToMany(mappedBy: "article", targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
     private Collection $projectHistoryRecords;
 
     public function __construct() {
@@ -165,6 +165,7 @@ class Article implements PairedEntity {
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
         $this->carts = new ArrayCollection();
+        $this->projectHistoryRecords = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -725,22 +726,20 @@ class Article implements PairedEntity {
         return $this;
     }
 
-    public function removeCart(Cart $cart): self {
-        if($this->carts->removeElement($cart)) {
-            $cart->removeArticle($this);
-        }
+    public function getCreatedOnKioskAt(): ?\DateTimeInterface {
+        return $this->createdOnKioskAt;
+    }
+
+    public function setCreatedOnKioskAt(?\DateTimeInterface $createdOnKioskAt): self {
+        $this->createdOnKioskAt = $createdOnKioskAt;
 
         return $this;
     }
 
-    public function getProject(): ?Project
-    {
-        return $this->project;
-    }
-
-    public function setProject(?Project $project): self
-    {
-        $this->project = $project;
+    public function removeCart(Cart $cart): self {
+        if($this->carts->removeElement($cart)) {
+            $cart->removeArticle($this);
+        }
 
         return $this;
     }
@@ -797,4 +796,5 @@ class Article implements PairedEntity {
 
         return $this;
     }
+
 }

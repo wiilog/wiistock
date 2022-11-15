@@ -153,7 +153,10 @@ class PackRepository extends EntityRepository
             ->groupBy('pack.id');
 
         if ($mode === self::PACKS_MODE) {
-            $queryBuilder->where('pack.groupIteration IS NULL');
+            $queryBuilder
+                ->leftJoin('pack.article', 'article')
+                ->andWhere('article.currentLogisticUnit IS NULL')
+                ->andWhere('pack.groupIteration IS NULL');
             $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
         }
         else if ($mode === self::GROUPS_MODE) {
@@ -229,12 +232,14 @@ class PackRepository extends EntityRepository
                         ->leftJoin('pack.nature', 'n2')
                         ->leftJoin('pack.arrivage', 'arrivage')
                         ->leftJoin('arrivage.type','arrival_type')
+                        ->leftJoin('pack.childArticles', 'child_articles_search')
                         ->andWhere("(
                             pack.code LIKE :value OR
                             e2.label LIKE :value OR
                             n2.label LIKE :value OR
                             arrivage.numeroArrivage LIKE :value OR
-                            arrival_type.label LIKE :value
+                            arrival_type.label LIKE :value OR
+                            child_articles_search.barCode LIKE :value
 						)")
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -609,15 +614,86 @@ class PackRepository extends EntityRepository
     }
 
     public function isInOngoingReception(Pack|int $pack): bool {
+        if(!$pack || !$pack->getId()) {
+            return false;
+        }
+
         return intval($this->createQueryBuilder("pack")
             ->select("COUNT(reception)")
             ->join(ReceptionLine::class, "reception_line", Join::WITH, "reception_line.pack = pack")
             ->join("reception_line.reception", "reception")
             ->join("reception.statut", "status")
             ->andWhere("status.code = :ongoing")
+            ->andWhere("pack.id = :pack")
+            ->setParameter("pack", $pack)
             ->setParameter("ongoing", Reception::STATUT_EN_ATTENTE)
             ->getQuery()
             ->getSingleScalarResult()) > 0;
+    }
+
+    public function getForSelectFromReception(?string $term, ?int $reception): array {
+        return $this->createQueryBuilder("pack")
+            ->select("pack.id AS id, pack.code AS text")
+            ->join(ReceptionLine::class, "reception_line", Join::WITH, "reception_line.pack = pack")
+            ->join("reception_line.reception",  "reception")
+            ->andWhere("pack.code LIKE :term")
+            ->andWhere("reception.id = :reception")
+            ->setParameters([
+                "term" => "%$term%",
+                "reception" => $reception
+            ])
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getOneArticleByBarCodeAndLocation(string $barCode, ?string $location) {
+        $result = $this->createQueryBuilder("pack")
+            ->addSelect("pack.id AS id")
+            ->addSelect("pack.code AS barCode")
+            ->addSelect("pack_location.label AS location")
+            ->addSelect("pack.quantity AS quantity")
+            ->addSelect("GROUP_CONCAT(child_articles.barCode SEPARATOR ';') AS articles")
+            ->addSelect("0 as is_ref")
+            ->addSelect("1 as is_lu")
+            ->join("pack.lastTracking", "last_tracking")
+            ->join("last_tracking.emplacement", "pack_location")
+            ->leftJoin("pack.childArticles", "child_articles")
+            ->andWhere("pack.code = :barcode")
+            ->andWhere("pack_location.label = :location")
+            ->andWhere("pack.groupIteration IS NULL")
+            ->groupBy("pack")
+            ->setParameter("barcode", $barCode)
+            ->setParameter("location", $location)
+            ->getQuery()
+            ->getArrayResult();
+
+        return !empty($result) ? $result[0] : null;
+    }
+
+    public function findOneByBarCodeAndLocation(string $barCode, ?string $location) {
+        return $this->createQueryBuilder("pack")
+            ->join("pack.lastTracking", "last_tracking")
+            ->join("last_tracking.emplacement", "pack_location")
+            ->leftJoin("pack.childArticles", "child_articles")
+            ->andWhere("pack.code = :barcode")
+            ->andWhere("pack_location.label = :location")
+            ->andWhere("pack.groupIteration IS NULL")
+            ->groupBy("pack")
+            ->setParameter("barcode", $barCode)
+            ->setParameter("location", $location)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findWithoutArticle(string $code): ?Pack {
+        return $this->createQueryBuilder("pack")
+            ->leftJoin("pack.article", "article")
+            ->andWhere("pack.article IS NULL")
+            ->andWhere("pack.code = :code")
+            ->setParameter("code", $code)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
 }

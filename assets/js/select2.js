@@ -5,6 +5,7 @@ const ROUTES = {
     handlingType: `ajax_select_handling_type`,
     deliveryType: `ajax_select_delivery_type`,
     collectType: `ajax_select_collect_type`,
+    referenceType: `ajax_select_reference_type`,
     dispatchType: `ajax_select_dispatch_type`,
     status: `ajax_select_status`,
     location: `ajax_select_locations`,
@@ -38,6 +39,7 @@ const ROUTES = {
     vehicles: 'ajax_select_vehicles',
     inventoryCategories: 'ajax_select_inventory_categories',
     project: 'ajax_select_project',
+    receptionLogisticUnits: 'ajax_select_reception_logistic_units',
 }
 
 const INSTANT_SELECT_TYPES = {

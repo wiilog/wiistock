@@ -267,8 +267,12 @@ class CartController extends AbstractController
             foreach ($ids as $id) {
                 $unit = $packRepository->findOneBy(["id" => $id]);
                 if ($unit) {
-                    $rightCartProject = $cartContentStream->every(fn(Article $article) => $article->getProject()?->getId() === $unit->getProject()?->getId());
-                    if ($rightCartProject) { // error
+                    $rightCartProject = $cartContentStream->isEmpty() || $cartContentStream->every(fn(Article $article) =>
+                        $article->getCurrentLogisticUnit()?->getProject()?->getId()
+                        === $unit->getProject()?->getId()
+                    );
+
+                    if (!$rightCartProject) { // error
                         $wrongProject[] = $unit->getCode();
                     }
                     else {
@@ -303,7 +307,7 @@ class CartController extends AbstractController
                 "success" => false,
                 "msg" => count($wrongProject) === 1
                     ? "L'unité logistique " . $wrongProject[0] . " ne peut pas être ajoutée au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
-                    : "Les unités logistiques  " . implode(", ", $wrongProject) . " ne peuvent pas être ajoutées au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
+                    : "Les unités logistiques  " . join(", ", $wrongProject) . " ne peuvent pas être ajoutées au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
             ];
         }
 
@@ -313,7 +317,7 @@ class CartController extends AbstractController
                 ->toArray();
 
             foreach ($unavailableArticlesGrouped as $unit => $articles) {
-                $articlesStr = implode($articles, ', ');
+                $articlesStr = join(', ', $articles);
                 $response[] = [
                     "success" => false,
                     "msg" => count($articles) === 1
@@ -328,7 +332,7 @@ class CartController extends AbstractController
                 "success" => false,
                 "msg" => count($alreadyInCart) === 1
                     ? "L'unité logistique " . $alreadyInCart[0] . " est déjà dans le panier"
-                    : "Les unités logistiques " . implode(", ", $alreadyInCart) . " sont déjà dans le panier"
+                    : "Les unités logistiques " . join(", ", $alreadyInCart) . " sont déjà dans le panier"
             ];
         }
 
@@ -336,13 +340,14 @@ class CartController extends AbstractController
             $addedArticlesGrouped = Stream::from($addedArticles)
                 ->keymap(fn($article) => [$article['unit'], $article['barCode']], true)
                 ->toArray();
+
             foreach ($addedArticlesGrouped as $unit => $articles) {
-                $articlesStr = implode($articles, ', ');
+                $articlesStr = join(", ", $articles);
                 $response[] = [
                     "success" => true,
                     "msg" => count($articles) === 1
-                        ? "L'unité logistique {$unit} ainsi que l'article {$articlesStr} contenu dedans a bien été ajouté au panier"
-                        : "L'unité logistique {$unit}  ainsi que les articles {$articlesStr} contenus dedans ont bien été ajoutés au panier"
+                        ? "L'unité logistique {$unit} et l'article contenu {$articlesStr} ont bien été ajoutés au panier"
+                        : "L'unité logistique {$unit} et les articles contenus {$articlesStr} ont bien été ajoutés au panier"
                 ];
             }
         }

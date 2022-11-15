@@ -120,6 +120,13 @@ function initPageModal(tableMvt) {
     let modalNewMvtTraca = $("#modalNewMvtTraca");
     let submitNewMvtTraca = $("#submitNewMvtTraca");
     let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
+
+    modalNewMvtTraca.on(`shown.bs.modal`, function() {
+        console.log("heeeee");
+
+        fillDatePickers('[name="datetime"]', 'YYYY-MM-DD', true);
+    })
+
     InitModal(
         modalNewMvtTraca,
         submitNewMvtTraca,
@@ -128,6 +135,35 @@ function initPageModal(tableMvt) {
             tables: [tableMvt],
             keepModal: Number($('#clearAndStayAfterNewMvt').val()),
             keepForm: true,
+            confirmMessage: $modal => {
+                return new Promise((resolve, reject) => {
+                    const pack = $modal.find(`[name="colis"]`).val();
+                    const type = $modal.find(`[name="type"] option:selected`).text().trim();
+
+                    if(type !== `prise`) {
+                        return resolve(true);
+                    }
+
+                    AJAX.route(`GET`, `tracking_movement_is_in_lu`, {barcode: pack})
+                        .json()
+                        .then(result => {
+                            if(result.in_logistic_unit) {
+                                Modal.confirm({
+                                    title: `Article dans unité logistique`,
+                                    message: `L'article ${pack} sera enlevé de l'unité logistique ${result.logistic_unit}`,
+                                    validateButton: {
+                                        color: 'success',
+                                        label: 'Continuer',
+                                        click: () => resolve(true)
+                                    },
+                                    cancelled: () => resolve(false),
+                                });
+                            } else {
+                                resolve(true)
+                            }
+                        })
+                })
+            },
             success: ({success, trackingMovementsCounter, group}) => {
                 if (group) {
                     displayConfirmationModal(group);
@@ -191,6 +227,9 @@ function resetNewModal($modal) {
 function switchMvtCreationType($input) {
     let pathToGetAppropriateHtml = Routing.generate("mouvement_traca_get_appropriate_html", true);
     let paramsToGetAppropriateHtml = $input.val();
+
+    $(`#submitNewMvtTraca`).prop(`disabled`, false);
+
     $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function (response) {
         if (response) {
             const $modal = $input.closest('.modal');

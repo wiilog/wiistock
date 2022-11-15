@@ -180,18 +180,25 @@ class DisputeController extends AbstractController
     {
         $rows = [];
         $typeRepository = $entityManager->getRepository(Type::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
         $disputeHistoryRecordRepository = $entityManager->getRepository(DisputeHistoryRecord::class);
         $disputeHistory = $disputeHistoryRecordRepository->findBy(['dispute' => $dispute]);
 
-        foreach ($disputeHistory as $record)
-        {
+        foreach ($disputeHistory as $record) {
+            $dispute = $record->getDispute();
+            $categoryStatus = match(true) {
+                $dispute->getArticles()->count() > 0 => CategorieStatut::LITIGE_RECEPT,
+                $dispute->getPacks()->count() > 0 => CategorieStatut::DISPUTE_ARR,
+                default => CategorieStatut::DISPUTE_ARR
+            };
+            $disputeStatus = $statusRepository->findOneByCategorieNameAndStatutCode($categoryStatus, $record->getStatusLabel());
             $disputeType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DISPUTE, $record->getTypeLabel());
             $rows[] = [
-                'user' => FormatHelper::user($record->getUser()),
-                'date' => FormatHelper::datetime($record->getDate(), "", false, $this->getUser()),
+                'user' => $this->getFormatter()->user($record->getUser()),
+                'date' => $this->getFormatter()->datetime($record->getDate()),
                 'commentaire' => nl2br($record->getComment()),
-                'status' => $record->getStatusLabel(),
-                'type' => $this->getFormatter()->type($disputeType)
+                'status' => $this->getFormatter()->status($disputeStatus) ?? $record->getStatusLabel(),
+                'type' => $this->getFormatter()->type($disputeType) ?? $record->getTypeLabel()
             ];
         }
         $data['data'] = $rows;

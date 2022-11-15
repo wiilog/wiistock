@@ -967,6 +967,25 @@ class RefArticleDataService {
         );
     }
 
+    public function sendMailEntryStock(ReferenceArticle $refArticle, $to, $message = '')
+    {
+        $supplierArticles = $refArticle->getArticlesFournisseur();
+
+        $this->mailerService->sendMail(
+            'FOLLOW GT // Entrée de stock',
+            $this->templating->render(
+                'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
+                [
+                    'title' => $message,
+                    'refArticle' => $refArticle,
+                    'supplierArticles' => $supplierArticles,
+                    'urlSuffix' => $this->router->generate("reference_article_show_page", ["id" => $refArticle->getId()])
+                ]
+            ),
+            $to
+        );
+    }
+
     private function extractIncomingPreparationsData(array $quantityByDatesWithEvents, array $preparations, ReferenceArticle $referenceArticle): array {
         foreach ($preparations as $preparation) {
             $reservedQuantity = Stream::from($preparation->getReferenceLines())

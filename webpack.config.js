@@ -19,6 +19,7 @@ Encore
     .addEntry('cart', './assets/js/pages/cart.js')
     .addEntry('settings-index', './assets/js/pages/settings/index.js')
     .addEntry('settings-data-imports', './assets/js/pages/settings/data/imports.js')
+    .addEntry('kiosk-settings', './assets/js/pages/settings/kiosk.js')
     .addEntry('settings-data-exports', './assets/js/pages/settings/data/exports.js')
     .addEntry('settings-data-inventories-imports', './assets/js/pages/settings/data/inventories-imports.js')
     .addEntry('settings-users-roles-form', './assets/js/pages/settings/users/roles/form.js')
@@ -40,6 +41,8 @@ Encore
     .addEntry('handling-edit', './assets/js/pages/handling/edit.js')
     .addEntry('register', './assets/js/pages/register/register.js')
     .addEntry('customer-index', './assets/js/pages/customer/index.js')
+    .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
+    .addEntry('kiosk', './assets/js/pages/kiosk.js')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.

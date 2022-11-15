@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Language;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
@@ -212,5 +213,33 @@ class TypeController extends AbstractController {
             'message' => 'Le type <strong>' . $typeLabel . '</strong> a bien été supprimé.'
         ]);
     }
+
+    /**
+     * @Route("/champs-libres/{type}", name="free_fields_by_type", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     */
+    public function freeFieldsByType(Type $type, EntityManagerInterface $entityManager): Response
+    {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $allFreeFields = $freeFieldRepository->findByType($type->getId());
+        $selectedFreeFieldId = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE);
+        $selectedFreeField = $selectedFreeFieldId ? $freeFieldRepository->find($selectedFreeFieldId) : null;
+
+        $freeFields = [($selectedFreeField && $selectedFreeField->getType()->getId() === $type->getId()) ? "<option value=''></option><option selected value='{$selectedFreeField->getId()}'>{$selectedFreeField->getLabel()}</option>" : "<option selected value=''></option>"];
+
+        $freeFields = array_merge($freeFields, Stream::from($allFreeFields)
+            ->map(function (FreeField $freeField) use ($selectedFreeField) {
+                if($freeField->getId() !== $selectedFreeField?->getId()){
+                    return "<option value='{$freeField->getId()}'>{$freeField->getLabel()}</option>";
+                }
+            })
+            ->toArray()) ;
+        return new JsonResponse([
+            'success' => true,
+            'freeFields' => $freeFields
+        ]);
+    }
+
+
 }
 

@@ -6,6 +6,7 @@ use App\Repository\ReceptionLineRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 
 #[ORM\Entity(repositoryClass: ReceptionLineRepository::class)]
@@ -20,6 +21,7 @@ class ReceptionLine {
     private ?Reception $reception = null;
 
     #[ORM\ManyToOne(targetEntity: Pack::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Pack $pack = null;
 
     #[ORM\OneToMany(mappedBy: 'receptionLine', targetEntity: ReceptionReferenceArticle::class)]
@@ -47,13 +49,17 @@ class ReceptionLine {
         return $this;
     }
 
-    public function getPack(): Pack {
+    public function getPack(): ?Pack {
         return $this->pack;
     }
 
     public function setPack(?Pack $pack): self {
         $this->pack = $pack;
         return $this;
+    }
+
+    public function hasPack(): bool {
+        return $this->pack !== null;
     }
 
     /**
@@ -84,4 +90,12 @@ class ReceptionLine {
         return $this;
     }
 
+    public function getReceptionReferenceArticle(?ReferenceArticle $referenceArticle,
+                                                 ?string $orderNumber): ?ReceptionReferenceArticle {
+        return Stream::from($this->receptionReferenceArticles->toArray())
+            ->find(fn(ReceptionReferenceArticle $receptionReferenceArticle) => (
+                $receptionReferenceArticle->getReferenceArticle()?->getId() === $referenceArticle?->getId()
+                && $receptionReferenceArticle->getCommande() === $orderNumber
+            ));
+    }
 }

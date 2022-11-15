@@ -17,8 +17,9 @@ const packsTableConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {data: 'actions', name: 'actions', title: '<div class="w-100 text-right"><span class="wii-icon wii-icon-cart add-all-cart pointer"></span></div>', className: 'noVis', orderable: false},
-        {data: 'pairing', name: 'pairing', title: '', className: 'pairing-row'},
+        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'cart', name: 'cart', title: '<span class="wii-icon wii-icon-cart add-all-cart pointer"></span>', className: 'cart-row', orderable: false},
+        {data: 'pairing', name: 'pairing', title: '<span class=\'wii-icon wii-icon-pairing black\'><span>', className: 'pairing-row'},
         {data: 'packNum', name: 'packNum', title: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
         {data: 'packNature', name: 'packNature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
         {data: `quantity`, name: 'quantity',  'title': Translation.of('Traçabilité', 'Général', 'Quantité')},
@@ -29,21 +30,23 @@ const packsTableConfig = {
     ],
     drawCallback: () => {
         toggleAddAllToCartButton();
+
+        //remove open logistic unit details pane
+        const $logisticUnitPane = $(`.logistic-unit-content`);
+        if($logisticUnitPane.exists()) {
+            const pack = $logisticUnitPane.data(`pack`);
+            const $number = $(`.logistic-unit-number[data-pack="${pack}"]`);
+            if(!$number.exists()) {
+                $logisticUnitPane.remove();
+                packsTable.columns.adjust();
+            } else {
+                $number.addClass(`active`);
+            }
+        }
+
         const codeUl = $('#lu-code').val();
         if(codeUl) {
-            const $icon = $(`.logistic-unit-number .wii-icon`).first();
-            const $container = $(`.packsTableContainer`);
-            const $number = $icon.closest(`.logistic-unit-number`);
-            $icon.trigger('mouseover');
-
-            AJAX.route(`GET`, `logistic_unit_content`, {pack: $number.data(`id`)})
-                .json()
-                .then(result => {
-                    $(`.logistic-unit-number`).removeClass(`.active`);
-                    $number.addClass(`active`);
-                    $container.append(result.html);
-                    packsTable.columns.adjust();
-                });
+            $(`.logistic-unit-number .wii-icon`).trigger(`mouseup`);
         }
     }
 };
@@ -106,7 +109,10 @@ $(function() {
     $(window).on("hashchange", switchPageBasedOnHash);
 
     $(document).arrive(`.add-cart`, function() {
-        $(this).on("click", function() {
+        $(this).on("mouseup", function(event) {
+            console.log("huh?");
+            event.stopPropagation();
+
             const id = [$(this).data(`id`)];
             addToCart(id);
         });
@@ -125,30 +131,52 @@ $(function() {
         const $icon = $(this);
         const $number = $icon.closest(`.logistic-unit-number`);
 
+        let isLoading = false;
+
         // register the event directly on the element through arrive
         // to get the event before action-on-click and be able to
         // cancel modal openning through event.stopPropagation
         $icon.on(`mouseup`, event => {
             event.stopPropagation();
+            if(isLoading) {
+                Flash.add(`info`, `Chargement du contenu de l'unité logistique en cours`)
+                return;
+            }
+
+            isLoading = true;
 
             const $container = $(`.packsTableContainer`);
-            $container.find(`.logistic-unit-content`).remove();
 
             if($number.is(`.active`)) {
                 $number.removeClass(`active`);
+                $container.find(`.logistic-unit-content`).remove();
                 packsTable.columns.adjust().draw();
             } else {
                 AJAX.route(`GET`, `logistic_unit_content`, {pack: $number.data(`id`)})
                     .json()
                     .then(result => {
-                        $(`.logistic-unit-number`).removeClass(`.active`);
+                        $container.find(`.logistic-unit-content`).remove();
+                        $(`.logistic-unit-number.active`).removeClass(`active`);
                         $number.addClass(`active`);
                         $container.append(result.html);
                         packsTable.columns.adjust();
+
+                        isLoading = false;
                     });
             }
         })
     });
+
+    $(document).on(`click`, `.logistic-unit-tab`, function() {
+        const $tab = $(this);
+        const $parent = $tab.closest(`.logistic-unit-content`);
+
+        $(`.logistic-unit-tab`).removeClass(`active`);
+        $tab.addClass(`active`);
+
+        $parent.find(`.content`).addClass(`d-none`);
+        $parent.find(`.content${$tab.data(`target`)}`).removeClass(`d-none`);
+    })
 });
 
 function addToCart(ids) {

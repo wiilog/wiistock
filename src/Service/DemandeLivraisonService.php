@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
@@ -14,9 +15,11 @@ use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
@@ -26,6 +29,8 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use App\Service\TranslationService;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -59,6 +64,9 @@ class DemandeLivraisonService
     public PreparationsManagerService $preparationsManager;
 
     #[Required]
+    public LivraisonsManagerService $livraisonsManager;
+
+    #[Required]
     public FreeFieldService $freeFieldService;
 
     #[Required]
@@ -75,6 +83,9 @@ class DemandeLivraisonService
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public Security $security;
 
     private ?array $freeFieldsConfig = null;
 
@@ -132,6 +143,7 @@ class DemandeLivraisonService
             'number' => $demande->getNumero() ?? '',
             'status' => FormatHelper::status($demande->getStatut()),
             'type' => FormatHelper::type($demande->getType()),
+            'project' => $demande?->getProject()?->getCode() ?? '',
             'actions' => $this->templating->render('demande/datatableDemandeRow.html.twig', [
                 'idDemande' => $idDemande,
                 'url' => $url,
@@ -248,6 +260,7 @@ class DemandeLivraisonService
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $receptionRepository = $entityManager->getRepository(Reception::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
         $isManual = $data['isManual'] ?? false;
 
@@ -274,6 +287,7 @@ class DemandeLivraisonService
         $date = new DateTime('now');
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
+        $project = $projectRepository->find(isset($data['project']) ? intval($data['project']) : -1);
         $number = $this->uniqueNumberService->create(
             $entityManager,
             Demande::NUMBER_PREFIX,
@@ -290,6 +304,7 @@ class DemandeLivraisonService
             ->setCreatedAt($date)
             ->setExpectedAt($expectedAt)
             ->setType($type)
+            ->setProject($project)
             ->setDestination($destination)
             ->setNumero($number)
             ->setManual($isManual)
@@ -419,28 +434,48 @@ class DemandeLivraisonService
         $response['success'] = true;
         $response['msg'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        // Creation d'une nouvelle preparation basée sur une selection de demandes
-        $preparation = new Preparation();
         $date = new DateTime('now');
 
-        $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
+        $preparedUponValidationSetting = $settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
+        if($preparedUponValidationSetting) {
+            $locations = [];
+            foreach($demande->getArticleLines() as $article) {
+                $locations[$article->getArticle()->getEmplacement()->getId()] = true;
+            }
 
+            foreach($demande->getReferenceLines() as $reference) {
+                $locations[$reference->getReference()->getEmplacement()->getId()] = true;
+            }
+
+            $preparedUponValidation = count($locations) === 1;
+        } else {
+            $preparedUponValidation = false;
+        }
+
+        $preparation = new Preparation();
         $preparation
             ->setExpectedAt($demande->getExpectedAt())
-            ->setNumero($preparationNumber)
+            ->setNumero($this->preparationsManager->generateNumber($date, $entityManager))
             ->setDate($date);
+
 
         if(!$demande->getValidatedAt()) {
             $demande->setValidatedAt($date);
         }
 
-        $statutP = $needsQuantitiesCheck
-            ? $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER)
-            : $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_VALIDATED);
-        $preparation->setStatut($statutP);
-        $entityManager->persist($preparation);
+        $preparationStatus = $statutRepository->findOneByCategorieNameAndStatutCode(
+            Preparation::CATEGORIE,
+            $needsQuantitiesCheck ? Preparation::STATUT_A_TRAITER : Preparation::STATUT_VALIDATED,
+        );
+
+        $preparation->setStatut($preparationStatus);
+
         $demande->addPreparation($preparation);
+        $entityManager->persist($preparation);
+
+
         $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $demande->setStatut($statutD);
 
@@ -530,6 +565,47 @@ class DemandeLivraisonService
             $response['msg'] = 'Votre demande de livraison a bien été validée';
             $response['demande'] = $demande;
         }
+
+        if($preparedUponValidation) {
+            foreach($preparation->getArticleLines() as $articleLine) {
+                $articleLine->setPickedQuantity($articleLine->getQuantityToPick());
+            }
+
+            foreach($preparation->getReferenceLines() as $referenceLine) {
+                $referenceLine->setPickedQuantity($referenceLine->getQuantityToPick());
+            }
+
+            $dateEnd = new DateTime('now');
+            $user = $this->security->getUser();
+            if($demande->getArticleLines()->count()) {
+                $locationEndPrepa = $demande->getArticleLines()->first()->getArticle()->getEmplacement();
+            } else if($demande->getReferenceLines()->count()) {
+                $locationEndPrepa = $demande->getReferenceLines()->first()->getReference()->getEmplacement();
+            } else {
+                throw new \RuntimeException("Invalid state");
+            }
+
+            $livraison = $this->livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
+
+            $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa, []);
+            $this->preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
+
+            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+
+            $entityManager->flush();
+            $this->preparationsManager->handlePreparationTreatMovements($mouvementRepository, $preparation, $livraison, $locationEndPrepa, $user);
+            $this->preparationsManager->updateRefArticlesQuantities($preparation);
+            $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
+                'demande' => $demande,
+                'modifiable' => false,
+                'showDetails' => $this->createHeaderDetailsConfig($demande)
+            ]);
+            $entityManager->flush();
+            if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
+                $this->notificationService->toTreat($livraison);
+            }
+        }
+
         return $response;
     }
 
@@ -552,6 +628,11 @@ class DemandeLivraisonService
                 'label' => 'Date attendue',
                 'value' => FormatHelper::date($demande->getExpectedAt()),
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
+            ],
+            [
+                'label' => 'Projet',
+                'value' => $demande?->getProject()?->getCode() ?? '',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT]
             ],
         ];
 
@@ -638,6 +719,7 @@ class DemandeLivraisonService
             ['title' => 'Numéro', 'name' => 'number'],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Type', 'name' => 'type'],
+            ['title' => 'Projet', 'name' => 'project'],
             ['title' => 'Destination', 'name' => 'destination'],
             ['title' => 'Commentaire', 'name' => 'comment', 'orderable' => false],
         ];

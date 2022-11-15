@@ -71,14 +71,7 @@
                             <div class="col-12 col-md-4 d-flex">
                                 <img src="{{ asset('svg/reference_article/threshold.svg') }}" alt="Icône anomalie" width="20px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Anomalie
-                                        <sup><img src="{{ asset('svg/information.svg') }}"
-                                                  alt="Icône information"
-                                                  width="10px"
-                                                  class="has-tooltip"
-                                                  title="A déterminer">
-                                        </sup>
-                                    </span>
+                                    <span class="wii-field-name">Anomalie</span>
                                     <span class="wii-body-text">{{ not article.conform ? 'Oui' : 'Non' }}</span>
                                 </label>
                             </div>
@@ -99,17 +92,15 @@
                                 <img src="{{ asset('svg/document.svg') }}" alt="Icône projet" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Projet</span>
-                                    <span class="wii-body-text">{{ article.project ? article.project.code : '-' }}</span>
+                                    <span class="wii-body-text">{{ article.currentLogisticUnit and article.projectHistoryRecords | length ? article.projectHistoryRecords.last.project.code : '-' }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 d-flex">
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône projet" width="20px">
-                                {% set lastRecord = article.projectHistoryRecords.last
-                                    ? article.projectHistoryRecords.last
-                                    : null %}
+                                {% set lastRecord = article.currentLogisticUnit ? article.projectHistoryRecords.last ?: null : null %}
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Assigné le</span>
-                                    <span class="wii-body-text">{{ article.project and lastRecord and lastRecord.project == article.project ? lastRecord.createdAt|format_helper('longDate', {time: true}) : '-' }}</span>
+                                    <span class="wii-body-text">{{ lastRecord ? lastRecord.createdAt | format_helper('longDate', {time: true}) : '-' }}</span>
                                 </label>
                             </div>
                         </div>

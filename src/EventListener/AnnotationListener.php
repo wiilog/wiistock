@@ -66,6 +66,11 @@ class AnnotationListener {
         }
 
         $annotation = $reader->getMethodAnnotation($method, HasPermission::class);
+        if($nativeAnnotations = $method->getAttributes(HasPermission::class)) {
+            $annotation = new HasPermission();
+            $annotation->value = $nativeAnnotations[0]->getArguments()[0];
+        }
+
         if ($annotation instanceof HasPermission) {
             $this->handleHasPermission($event, $annotation);
         }
