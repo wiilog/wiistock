@@ -37,6 +37,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
 use App\Helper\FormatHelper;
+use WiiCommon\Helper\StringHelper;
 
 
 /**
@@ -120,6 +121,7 @@ class DemandeController extends AbstractController
                          EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
+
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -151,7 +153,7 @@ class DemandeController extends AbstractController
                     ->setDestination($emplacement)
                     ->setExpectedAt($expectedAt)
                     ->setType($type)
-                    ->setCommentaire($data['commentaire']);
+                    ->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
                 $entityManager->flush();
                 $champLibreService->manageFreeFields($demande, $data, $entityManager);
                 $entityManager->flush();
@@ -184,6 +186,7 @@ class DemandeController extends AbstractController
                         FreeFieldService $champLibreService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
+            $data['commentaire'] = StringHelper::cleanedComment($data['commentaire']);
             $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
 
             if ($demande instanceof Demande) {

@@ -42,6 +42,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class RefArticleDataService {
 
@@ -375,7 +376,7 @@ class RefArticleDataService {
         }
 
         if(isset($data['commentaire'])) {
-            $refArticle->setCommentaire($data['commentaire']);
+            $refArticle->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
         }
 
         if(isset($data['mobileSync'])) {

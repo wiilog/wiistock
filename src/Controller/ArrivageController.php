@@ -55,6 +55,7 @@ use App\Service\TranslationService;
 use Throwable;
 use Twig\Environment as Twig_Environment;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/arrivage")
@@ -258,7 +259,7 @@ class ArrivageController extends AbstractController {
             ->setNumeroArrivage($numeroArrivage)
             ->setCustoms(isset($data['customs']) && $data['customs'] == 'true')
             ->setFrozen(isset($data['frozen']) && $data['frozen'] == 'true')
-            ->setCommentaire($data['commentaire'] ?? null)
+            ->setCommentaire(StringHelper::cleanedComment($data['commentaire']) ?? null)
             ->setType($typeRepository->find($data['type']));
 
         $status = !empty($data['status']) ? $statutRepository->find($data['status']) : null;
@@ -562,8 +563,10 @@ class ArrivageController extends AbstractController {
 
         $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
+        $validComment  = StringHelper::cleanedComment($post->get('commentaire'));
+
         $arrivage
-            ->setCommentaire($post->get('commentaire'))
+            ->setCommentaire(StringHelper::cleanedComment($validComment))
             ->setNoTracking(substr($post->get('noTracking'), 0, 64))
             ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
             ->setDropLocation($dropLocation)

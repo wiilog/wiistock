@@ -258,6 +258,9 @@ function createArrival(form = null) {
                         let newForm = JSON.parse(res.new_form);
                         $(`#arrivalForm`).val(res.new_form);
                         createArrival(newForm);
+                        if (res.success === false) {
+                            $submit.popLoader();
+                        }
 
                         arrivalCallback(
                             true,

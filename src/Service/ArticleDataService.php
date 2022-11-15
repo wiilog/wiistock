@@ -31,6 +31,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\StringHelper;
 
 class ArticleDataService
 {
@@ -213,7 +214,7 @@ class ArticleDataService
                         ->setConform(!$data['conform'])
                         ->setBatch($data['batch'] ?? null)
                         ->setExpiryDate($expiryDate ? $expiryDate : null)
-                        ->setCommentaire($data['commentaire']);
+                        ->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
 
                     if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
                         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);
@@ -283,7 +284,7 @@ class ArticleDataService
             ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
             ->setConform(!isset($data['conform']) || !$data['conform'])
             ->setStatut($statut)
-            ->setCommentaire($data['commentaire'] ?? null)
+            ->setCommentaire(StringHelper::cleanedComment($data['commentaire']) ?? null)
             ->setPrixUnitaire($price)
             ->setReference($refReferenceArticle . $formattedDate . $cpt)
             ->setQuantite($quantity)

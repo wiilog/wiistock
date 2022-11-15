@@ -173,7 +173,7 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
             dataType: 'json',
         })
         .then((data) => {
-            if (!keepLoading) {
+            if (data.invalidComment || !keepLoading) {
                 $submit.popLoader();
             }
 
@@ -436,10 +436,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
             } else if ($input.prev('label').text()){
                 missingInputNames.push($input.prev('label').text().replace('*', ''));
             }else if ($input.closest('label').find(`.wii-field-name`)){
-                console.log(label, $input.text());
-                missingInputNames.push(
-                    $input.closest('label').find(`.wii-field-name`).text().replace('*', '')
-                );
+                missingInputNames.push(label);
             } else if (label && missingInputNames.indexOf(label) === -1) {
                 missingInputNames.push(label);
             }
@@ -521,7 +518,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
             if ($editorContainer.length > 0) {
                 const maxLength = parseInt($input.attr('max'));
                 if (maxLength) {
-                    const $commentStrWithoutTag = $qlEditor.text();
+                const $commentStrWithoutTag = $qlEditor.text();
                     if ($commentStrWithoutTag.length > maxLength) {
                         errorMessages.push(Translation.of('Général', '', 'Modale', 'Le commentaire excède les {1} caractères maximum.',{1: maxLength}, false));
                     }

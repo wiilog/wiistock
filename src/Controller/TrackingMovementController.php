@@ -37,6 +37,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/mouvement-traca")
@@ -70,13 +71,13 @@ class TrackingMovementController extends AbstractController
         $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-        $clearAndStayAfterNewMvt = $settingRepository->getOneParamByLabel(Setting::CLEAR_AND_STAY_AFTER_NEW_MVT);
+        $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
 
         $request->request->add(['length' => 10]);
 
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-            'clearAndStayAfterNewMvt' => $clearAndStayAfterNewMvt,
+            'redirectAfterTrackingMovementCreation' => $redirectAfterTrackingMovementCreation,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'fields' => $fields,
             "initial_tracking_movements" => $this->api($request, $trackingMovementService)->getContent(),
@@ -425,7 +426,7 @@ class TrackingMovementController extends AbstractController
         $mvt
             ->setOperateur($operator)
             ->setQuantity($quantity)
-            ->setCommentaire($post->get('commentaire'));
+            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')));
 
         $entityManager->flush();
 
