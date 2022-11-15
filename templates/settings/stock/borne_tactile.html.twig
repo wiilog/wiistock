@@ -3,11 +3,17 @@
 <div class="wii-section-title">Général</div>
 <div class="wii-section touch-terminal">
     <div class="row">
-        <div class="col-12 mb-3">
-            <a class="btn btn-primary" href="{{ path('kiosk_index') }}">
+        <div class="col-4 mb-3">
+            <button class="btn btn-primary kiosk-link">
                 <i class="fas fa-external-link-alt mr-2"></i>
                 Lien vers l'application
-            </a>
+            </button>
+        </div>
+        <div class="col-8 mb-3">
+            <button class="btn btn-outline-primary kiosk-unlink d-flex align-items-center" {{ alreadyUnlinked ? 'disabled' }}>
+                <span class="wii-icon wii-icon-link-slash wii-icon-17px mr-2"></span>
+                Déconnecter la borne
+            </button>
         </div>
         <div class="form-group w-fit-content col-4">
             <div class="row">

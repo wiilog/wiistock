@@ -45,7 +45,7 @@ $(function() {
                             $modalInStockWarning.modal('show');
                             $modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
                         } else {
-                            window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
+                            window.location.href = Routing.generate('kiosk_form', {scannedReference});
                         }
                         scannedReference = '';
                     });

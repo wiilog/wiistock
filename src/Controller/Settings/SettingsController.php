@@ -18,6 +18,7 @@ use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
+use App\Entity\KioskToken;
 use App\Entity\Language;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
@@ -1012,6 +1013,9 @@ class SettingsController extends AbstractController {
                         "type" => $typeRepository->findOneByLabel(Type::LABEL_RECEPTION),
                     ],
                 ],
+                self::MENU_TOUCH_TERMINAL => fn() => [
+                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll())
+                ]
             ],
             self::CATEGORY_TRACING => [
                 self::MENU_DISPATCHES => [
