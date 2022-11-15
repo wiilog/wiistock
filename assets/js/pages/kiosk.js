@@ -35,7 +35,8 @@ $(function() {
         if ($('.page-content').hasClass('home')) {
             if (event.originalEvent.key === 'Enter') {
                 $modalWaiting.modal('show');
-                AJAX.route(GET, `reference_article_check_quantity`, {scannedReference})
+                const {token} = GetRequestQuery();
+                AJAX.route(GET, `reference_article_check_quantity`, {token, scannedReference})
                     .json()
                     .then(({exists, inStock}) => {
                         $modalWaiting.modal('hide');
@@ -45,7 +46,7 @@ $(function() {
                             $modalInStockWarning.modal('show');
                             $modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
                         } else {
-                            window.location.href = Routing.generate('kiosk_form', {scannedReference});
+                            window.location.href = Routing.generate('kiosk_form', {token, scannedReference});
                         }
                         scannedReference = '';
                     });
@@ -86,7 +87,8 @@ $(function() {
         if($current.find('.invalid').length === 0){
             if($($current.next()[0]).hasClass('summary-container')){
                 const $articleDataInput = $('input[name=reference-article-input]');
-                $.post(Routing.generate('check_article_is_valid'), {articleLabel: $articleDataInput.val()}, function(response){
+                const {token} = GetRequestQuery();
+                $.post(Routing.generate('check_article_is_valid'), {token, articleLabel: $articleDataInput.val()}, function(response){
                     if(response.success || !response.fromArticlePage){
                         $current.removeClass('active').addClass('d-none');
                         $($current.next()[0]).addClass('active').removeClass('d-none');
@@ -196,7 +198,8 @@ $(function() {
             $('.main-page-container').addClass('d-none');
 
             $('.go-home-button').on('click', function() {
-                window.location.href = Routing.generate('kiosk_index', true);
+                const {token} = GetRequestQuery();
+                window.location.href = Routing.generate('kiosk_index', {token}, true);
             })
 
             if(res.referenceExist){
@@ -212,23 +215,29 @@ $(function() {
             $successPage.find('.bookmark-icon').removeClass('d-none');
             $('#modal-waiting').modal('hide');
             setTimeout(() => {
-                window.location.href = Routing.generate('kiosk_index', true);
+                const {token} = GetRequestQuery();
+                window.location.href = Routing.generate('kiosk_index', {token}, true);
             }, 10000);
         }});
     });
 
     $('#submitGiveUpStockEntry').on('click', function() {
-        window.location.href = Routing.generate('kiosk_index', true);
+        const {token} = GetRequestQuery();
+        window.location.href = Routing.generate('kiosk_index', {token}, true);
     });
 
     $('.print-article').on('click', function() {
+        const {token} = GetRequestQuery();
         AJAX.route(GET, `print_article`, {
+            token,
             article: $(this).data('article'),
         }).json().then((response) => {});
     });
 
     $('.print-again-button').on('click', function() {
+        const {token} = GetRequestQuery();
         AJAX.route(GET, `print_article`, {
+            token,
             reprint : true
         }).json().then((response) => {});
     });

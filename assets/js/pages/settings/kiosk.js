@@ -58,7 +58,9 @@ export function initializeTouchTerminal($container){
 
         if (inputs.every(function (input) { return input.val() })) {
             $button.pushLoader(`white`);
+            const {token} = GetRequestQuery();
             AJAX.route(GET, `print_article`, {
+                token,
                 testPrint: true,
                 serialNumber: $serialNumber.val(),
                 labelWidth: $getLabelWidth.val(),

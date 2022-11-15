@@ -22,7 +22,7 @@
                 {{ setting_value('WELCOME_MESSAGE') }}
             </h1>
             <p>Follow GT met à disposition cette application de réception de production pour simplifier la mise à disposition du stock.</p>
-            <a href="{{ path('kiosk_form') }}" class="mt-5">
+            <a href="{{ path('kiosk_form', {token: app.request.get('token')}) }}" class="mt-5">
                 <img src="{{ asset('svg/ref-modif.svg') }}" height="100">
                 <span class="mt-3">Faire une entrée manuelle</span>
             </a>

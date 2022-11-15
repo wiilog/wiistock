@@ -245,6 +245,23 @@
                 min: 1
             }  ) }}
         </div>
+        <div class="form-group col-4">
+            {% set settingCollectRequestRequester = setting_value('COLLECT_REQUEST_REQUESTER', 'App\\Entity\\Utilisateur') %}
+            {{ form.select(setting('COLLECT_REQUEST_REQUESTER'), 'Demandeur', true, {
+                type: 'collectRequester',
+                placeholder: 'Sélectionnez un utilisateur',
+                search: true,
+                type: 'user',
+                value: settingCollectRequestRequester ? settingCollectRequestRequester.id : null,
+                items: settingCollectRequestRequester ? {
+                    0: {
+                        'value': settingCollectRequestRequester.id,
+                        'label':  settingCollectRequestRequester.username,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
     </div>
 </div>
 
