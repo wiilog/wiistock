@@ -22,7 +22,6 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
-use App\Helper\FormatHelper;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -190,8 +189,7 @@ class ArticleDataService
         ]);
     }
 
-    public function editArticle($data)
-    {
+    public function editArticle($data) {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
@@ -199,29 +197,30 @@ class ArticleDataService
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
-
-        $article = $articleRepository->find($data['article']);
+        $article = $articleRepository->find(intval($data['idArticle']));
         if ($article) {
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
 
                 $expiryDate = !empty($data['expiry']) ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null;
                 $price = max(0, $data['prix'] ?? 0);
-                if (isset($data['label'])) {
-                    $article
-                        ->setPrixUnitaire($price)
-                        ->setLabel($data['label'])
-                        ->setConform(!$data['conform'])
-                        ->setBatch($data['batch'] ?? null)
-                        ->setExpiryDate($expiryDate ? $expiryDate : null)
-                        ->setCommentaire($data['commentaire']);
 
-                    if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);
-                        if ($statut) {
-                            $article->setStatut($statut);
-                        }
+                $article
+                    ->setPrixUnitaire((float)$price)
+                    ->setBatch($data['batch'] ?? null)
+                    ->setExpiryDate($expiryDate ?: null)
+                    ->setCommentaire($data['commentaire']);
+
+                if (isset($data['conform'])) {
+                    $article->setConform($data['conform'] == 1);
+                }
+
+                if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
+                    $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);
+                    if ($statut) {
+                        $article->setStatut($statut);
                     }
                 }
+
             }
 
             $this->freeFieldService->manageFreeFields($article, $data, $this->entityManager);
@@ -298,7 +297,7 @@ class ArticleDataService
         }
 
         if (isset($data['expiry'])) {
-            $toInsert->setExpiryDate($data['expiry'] ? FormatHelper::parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+            $toInsert->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
         }
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
@@ -309,7 +308,7 @@ class ArticleDataService
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
         $articles = $ligne->getArticles();
-        $reception = $ligne->getReceptionLine()->getReception();
+        $reception = $ligne->getReceptionLine()?->getReception();
         $rows = [];
         foreach ($articles as $article) {
             $rows[] = $this->dataRowArticle($article, $reception);
@@ -406,7 +405,7 @@ class ArticleDataService
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $article->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
 
         return $row;
@@ -605,7 +604,7 @@ class ArticleDataService
         ];
 
         foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $line[] = FormatHelper::freeField($article['freeFields'][$freeFieldId] ?? '', $freeField);
+            $line[] = $this->formatService->freeField($article['freeFields'][$freeFieldId] ?? '', $freeField);
         }
 
         $this->CSVExportService->putLine($handle, $line);
