@@ -415,6 +415,7 @@ class TrackingMovementRepository extends EntityRepository
         return $this->createQueryBuilder('tracking_movement')
             ->join('tracking_movement.pack', 'join_pack')
             ->join('tracking_movement.type', 'join_type')
+            ->join('tracking_movement.mouvementStock', 'join_stock_movement')
             ->where('join_pack.code = :code')
             ->andWhere('join_type.code = :takingCode')
             ->andWhere('tracking_movement.finished = false')
