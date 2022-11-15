@@ -358,7 +358,7 @@ class ArrivageController extends AbstractController {
                 $supplierEmergencyAlert,
                 $arrivageDataService->createArrivalAlertConfig($arrivage, false)
             ]
-            : $arrivageDataService->processEmergenciesOnArrival($arrivage);
+            : $arrivageDataService->processEmergenciesOnArrival($entityManager, $arrivage);
 
         if ($isArrivalUrgent) {
             $arrivage->setIsUrgent(true);
@@ -378,7 +378,7 @@ class ArrivageController extends AbstractController {
         $entityManager->flush();
 
         if ($sendMail) {
-            $arrivageDataService->sendArrivalEmails($arrivage);
+            $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
         }
 
         $entityManager->flush();
@@ -479,7 +479,7 @@ class ArrivageController extends AbstractController {
         $success = !empty($urgencesMatching);
 
         if ($success) {
-            $arrivageDataService->setArrivalUrgent($arrival, $urgencesMatching);
+            $arrivageDataService->setArrivalUrgent($entityManager, $arrival, $urgencesMatching);
             $entityManager->flush();
         }
 
@@ -600,7 +600,7 @@ class ArrivageController extends AbstractController {
         }
         $entityManager->flush();
         if ($sendMail && $destinataireChanged) {
-            $arrivageDataService->sendArrivalEmails($arrivage);
+            $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
         }
 
         $listAttachmentIdToKeep = $post->all('files') ?? [];

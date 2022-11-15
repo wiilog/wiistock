@@ -19,6 +19,7 @@ use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -187,7 +188,7 @@ class ArrivageService {
         return $row;
     }
 
-    public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
+    public function sendArrivalEmails(EntityManager $entityManager, Arrivage $arrival, array $emergencies = []): void {
         /** @var Utilisateur $user */
         $user = $this->security->getUser();
 
@@ -221,6 +222,15 @@ class ArrivageService {
                 $this->security->getUser()
             );
 
+            $packsNatureNb = [];
+            $natures = $entityManager->getRepository(Nature::class)->findAll();
+            foreach ($natures as $nature) {
+                $packsNatureNb[$nature->getLabel()] = 0;
+            }
+            foreach ($arrival->getPacks() as $pack) {
+                $packsNatureNb[$pack->getNature()->getLabel()] += 1;
+            }
+
             $this->mailerService->sendMail(
                 ($isUrgentArrival
                     ? ['Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'FOLLOW GT // Arrivage urgent', false]
@@ -234,6 +244,7 @@ class ArrivageService {
                         'emergencies' => $emergencies,
                         'isUrgentArrival' => $isUrgentArrival,
                         'freeFields' => $freeFields,
+                        'packsNatureNb' => $packsNatureNb,
                         'urlSuffix' => $this->router->generate("arrivage_show", ["id" => $arrival->getId()]),
                     ]
                 ],
@@ -242,14 +253,14 @@ class ArrivageService {
         }
     }
 
-    public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void
+    public function setArrivalUrgent(EntityManager $entityManager, Arrivage $arrivage, array $emergencies): void
     {
         if (!empty($emergencies)) {
             $arrivage->setIsUrgent(true);
             foreach ($emergencies as $emergency) {
                 $emergency->setLastArrival($arrivage);
             }
-            $this->sendArrivalEmails($arrivage, $emergencies);
+            $this->sendArrivalEmails($entityManager, $arrivage, $emergencies);
         }
     }
 
@@ -331,7 +342,7 @@ class ArrivageService {
             : null;
     }
 
-    public function processEmergenciesOnArrival(Arrivage $arrival): array
+    public function processEmergenciesOnArrival(EntityManager $entityManager, Arrivage $arrival): array
     {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
@@ -352,7 +363,7 @@ class ArrivageService {
 
                 if (!empty($urgencesMatching)) {
                     if (!$isSEDCurrentClient) {
-                        $this->setArrivalUrgent($arrival, $urgencesMatching);
+                        $this->setArrivalUrgent($entityManager, $arrival, $urgencesMatching);
                         array_push($allMatchingEmergencies, ...$urgencesMatching);
                     } else {
                         $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $isSEDCurrentClient) {
