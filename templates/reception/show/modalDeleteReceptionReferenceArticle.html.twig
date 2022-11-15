@@ -1,4 +1,4 @@
-<div class="modal fade" id="modalDeleteLigneArticle" role="dialog" aria-hidden="true">
+<div class="modal fade" id="modalDeleteReceptionReferenceArticle" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
@@ -11,7 +11,7 @@
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'ligneArticle', id: 'submitDeleteLigneArticle'}
+                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'ligneArticle', id: 'submitDeleteReceptionReferenceArticle'}
                 ],
                 renderErrorContainer: false
             } %}

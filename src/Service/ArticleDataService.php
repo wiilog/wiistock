@@ -459,16 +459,16 @@ class ArticleDataService
         $labelArticle = $article->getLabel();
         $champLibreValue = $this->clIdWantedOnLabel ? $article->getFreeFieldValue($this->clIdWantedOnLabel) : '';
         $batchArticle = $article->getBatch() ?? '';
-        $expirationDateArticle = FormatHelper::date($article->getExpiryDate());
-        $stockEntryDateArticle = FormatHelper::date($article->getStockEntryDate());
+        $expirationDateArticle = $this->formatService->date($article->getExpiryDate());
+        $stockEntryDateArticle = $this->formatService->date($article->getStockEntryDate());
 
         $wantsRecipient = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
         $wantsRecipientDropzone = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
         $wantDestinationLocation = $settingRepository->getOneParamByLabel(Setting::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
 
         // Récupération du username & dropzone de l'utilisateur
-        $articleReception = $article->getReceptionReferenceArticle() ? $article->getReceptionReferenceArticle()->getReceptionLine()->getReception() : '';
-        $articleReceptionRecipient = $articleReception ? $articleReception->getUtilisateur() : '';
+        $articleReception = $article->getReceptionReferenceArticle()?->getReceptionLine()?->getReception() ?: '';
+        $articleReceptionRecipient = $articleReception?->getUtilisateur() ?: '';
         $articleReceptionRecipientUsername = ($articleReceptionRecipient && $wantsRecipient) ? $articleReceptionRecipient->getUsername() : '';
         $articleReceptionRecipientDropzone = $articleReceptionRecipient ? $articleReceptionRecipient->getDropzone() : '';
         $articleReceptionRecipientDropzoneLabel = ($articleReceptionRecipientDropzone && $wantsRecipientDropzone) ? $articleReceptionRecipientDropzone->getLabel() : '';
