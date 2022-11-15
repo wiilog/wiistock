@@ -209,11 +209,3 @@ function initDeliveryRequestModal() {
     InitModal($modal, $('#submitEditDemande'), Routing.generate('demande_edit', true));
     toggleLocationSelect($modal.find('[name="type"]'));
 }
-
-function dropdownMoreOfOne() {
-    const $dropdown = $('.dropdown-more-of-one');
-    if ($dropdown.find('.dropdown-item').length == 1) {
-        $dropdown.find('.dropdown-item').addClass('btn btn-primary').removeClass('dropdown-item');
-        $dropdown.removeClass().parent().find('.dropdown-toggle').remove();
-    }
-}
