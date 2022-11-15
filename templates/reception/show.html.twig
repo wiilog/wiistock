@@ -4,6 +4,10 @@
 {% block title_tooltip %}Ordre | Réception | Détails{% endblock %}
 {% block titleLink path('reception_index') %}
 
+{% block stylesheets %}
+    {{ encore_entry_link_tags('reception-show') }}
+{% endblock %}
+
 {% block page_content %}
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
     {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
@@ -130,5 +134,4 @@
     <script src="{{ asset('js/pages/delivery/request/common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/form-reference-article.js') }}?v={{ web_version }}"></script>
     {{ encore_entry_script_tags('reception-show') }}
-    {{ encore_entry_link_tags('reception-show') }}
 {% endblock %}

@@ -8,6 +8,7 @@ const MODE_ARRIVAL = `arrival`;
 const MODE_TRACKING = `tracking`;
 const MODE_DISPATCH = `dispatch`;
 const MODE_HANDLING = `handling`;
+const MODE_DELIVERY_REQUEST = `delivery_request`;
 
 const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);

@@ -1,5 +1,6 @@
 import '@styles/pages/kiosk.scss';
-import AJAX, {GET} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
+import Flash, {SUCCESS, ERROR} from "@app/flash";
 
 let scannedReference = '';
 const $modalInStockWarning = $("#modal-in-stock-warning");
@@ -31,34 +32,31 @@ $(function() {
     Select2Old.user($('[name=follower]'), '', 3);
 
     $(document).on('keypress', (event) => {
-        if(event.originalEvent.key === 'Enter') {
-            $modalWaiting.modal('show');
-            AJAX.route(GET, `reference_article_check_quantity`, {scannedReference})
-                .json()
-                .then(({exists, inStock}) => {
-                    $modalWaiting.modal('hide');
-                    if(exists && inStock) {
-                        let $errorMessage = $modalInStockWarning.find('#stock-error-message');
-                        $errorMessage.html(originalMessage.replace('@reference', `<span class="bold">${scannedReference}</span>`));
-                        $modalInStockWarning.modal('show');
-                        $modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
-                    }
-                    else {
-                        window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
-                    }
-                    scannedReference = '';
-                });
-        } else {
-            scannedReference += event.originalEvent.key;
+        if ($('.page-content').hasClass('home')) {
+            if (event.originalEvent.key === 'Enter') {
+                $modalWaiting.modal('show');
+                AJAX.route(GET, `reference_article_check_quantity`, {scannedReference})
+                    .json()
+                    .then(({exists, inStock}) => {
+                        $modalWaiting.modal('hide');
+                        if (exists && inStock) {
+                            let $errorMessage = $modalInStockWarning.find('#stock-error-message');
+                            $errorMessage.html(originalMessage.replace('@reference', `<span class="bold">${scannedReference}</span>`));
+                            $modalInStockWarning.modal('show');
+                            $modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
+                        } else {
+                            window.location.href = Routing.generate('kiosk_form', {scannedReference: scannedReference});
+                        }
+                        scannedReference = '';
+                    });
+            } else {
+                scannedReference += event.originalEvent.key;
+            }
         }
     });
 
-    $referenceRefInput.on('keypress keyup', function(event) {
-        if(event.originalEvent.key === 'Backspace' && event.type === 'keyup') {
-            $referenceLabelInput.val($referenceLabelInput.val().slice(0,-1));
-        } else if(event.originalEvent.key !== 'Enter' && event.originalEvent.key !== 'Backspace' && event.type === 'keypress'){
-            $referenceLabelInput.val($referenceLabelInput.val()+event.originalEvent.key);
-        }
+    $referenceRefInput.on('keypress keyup search', function(event) {
+        $referenceLabelInput.val($referenceRefInput.val());
     });
 
     $('.button-next').on('click', function (){
@@ -71,9 +69,9 @@ $(function() {
 
         $selects.each(function(){
             if($(this).find('option:selected').length === 0){
-                $buttonNextContainer.find('.select2-selection ').addClass('invalid');
+                $(this).parent().find('.select2-selection ').addClass('invalid');
             } else {
-                $buttonNextContainer.find('.select2-selection ').removeClass('invalid');
+                $(this).parent().find('.select2-selection ').removeClass('invalid');
             }
         });
 
@@ -117,7 +115,11 @@ $(function() {
                                     $applicantInput.text().concat(', ', $followerInput.text()) :
                                     $applicantInput.text());
                         }
-                        $('.reference-free-field').html();
+                        let $freeFieldLabel = $('.free-field-label');
+                        $('.reference-free-field').html(
+                            $freeFieldLabel.find('input').val()
+                            || $freeFieldLabel.find('textarea').val()
+                            || $freeFieldLabel.find('select').find('option:selected').text());
                         $('.reference-commentary').html($('input[name=reference-comment]').val());
                     } else {
                         $modalArticleIsNotValid.modal('show');
@@ -175,40 +177,44 @@ $(function() {
 
     $('.validate-stock-entry-button').on('click', function() {
         $('#modal-waiting').modal('show');
-        $.post(Routing.generate('entry_stock_validate'), {
+        let $freeFieldLabel = $('.free-field-label');
+        let freeFieldValue = $freeFieldLabel.find('input').val()
+            || $freeFieldLabel.find('textarea').val()
+            || $freeFieldLabel.find('select').find('option:selected').data('label');
+        let freeFieldId =  $('input[name=free-field-id]').val();
+        AJAX.route(GET, 'entry_stock_validate', {
             'reference': $('input[name=reference-ref-input]').val(),
             'label': $('input[name=reference-label-input]').val(),
-            'article': $('input[name=reference-article-input]').val(),
+            'article': $('input[name=reference-article-input]').val() || null,
             'applicant': $('select[name=applicant] option:selected').val(),
             'follower': $('select[name=follower] option:selected').val(),
             'comment': $('input[name=reference-comment]').val(),
-            // 'freeField': $('input[name=reference-ref-input]'),
-        }, function (res){
+            'freeField': freeFieldId && freeFieldValue ? [freeFieldId, freeFieldValue] : [],
+        }).json().then((res) => {
             if(res.success){
-                const $successPage =  $('.success-page-container');
-                $('.main-page-container').addClass('d-none');
+            const $successPage =  $('.success-page-container');
+            $('.main-page-container').addClass('d-none');
 
-                $('.go-home-button').on('click', function() {
-                    window.location.href = Routing.generate('kiosk_index', true);
-                })
+            $('.go-home-button').on('click', function() {
+                window.location.href = Routing.generate('kiosk_index', true);
+            })
 
-                if(res.referenceExist){
-                    $('.print-again-button').addClass('d-none');
-                    $('.article-entry-stock-success .field-success-page').html(res.successMessage);
-                    $('.article-entry-stock-success').removeClass('d-none');
-                } else {
-                    $('.ref-entry-stock-success .field-success-page').html(res.successMessage);
-                    $('.ref-entry-stock-success').removeClass('d-none');
-                }
-
-                $successPage.removeClass('d-none');
-                $successPage.find('.bookmark-icon').removeClass('d-none');
-                $('#modal-waiting').modal('hide');
-                setTimeout(() => {
-                    window.location.href = Routing.generate('kiosk_index', true);
-                }, 10000);
+            if(res.referenceExist){
+                $('.print-again-button').addClass('d-none');
+                $('.article-entry-stock-success .field-success-page').html(res.successMessage);
+                $('.article-entry-stock-success').removeClass('d-none');
+            } else {
+                $('.ref-entry-stock-success .field-success-page').html(res.successMessage);
+                $('.ref-entry-stock-success').removeClass('d-none');
             }
-        });
+
+            $successPage.removeClass('d-none');
+            $successPage.find('.bookmark-icon').removeClass('d-none');
+            $('#modal-waiting').modal('hide');
+            setTimeout(() => {
+                window.location.href = Routing.generate('kiosk_index', true);
+            }, 10000);
+        }});
     });
 
     $('#submitGiveUpStockEntry').on('click', function() {

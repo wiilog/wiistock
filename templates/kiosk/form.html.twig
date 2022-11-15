@@ -51,12 +51,12 @@
                     </div>
                     <div class="other-informations-container d-none">
                         <div class="d-flex justify-content-center">
-                            <label class="w-100 mr-3">
+                            <label class="w-100 mr-3 free-field-label">
                                 {% if freeField %}
                                     {{ freeField.label }}
                                     {% include 'free_field/freeFieldsEdit.html.twig' with {
                                         freeFields: [freeField],
-                                        freeFieldValues: [],
+                                        freeFieldValues: reference.freeFields,
                                         colType: 'col-12',
                                         requiredType: 'requiredEdit',
                                         actionType: 'edit',
@@ -64,9 +64,10 @@
                                     } %}
                                 {% endif %}
                             </label>
+                            <input hidden name="free-field-id" value="{{ freeField.id }}"/>
                             <label class="w-100 mr-3">
                                 Commentaire <span class="wii-small-text">(Facultatif)</span>
-                                <input type="search" class="data w-100" value="{{ reference.commentaire }}" name="reference-comment">
+                                <input type="search" class="data w-100" value="{{ reference.cleanedComment | striptags }}" name="reference-comment">
                             </label>
                         </div>
                     </div>
@@ -98,7 +99,7 @@
                         <div class="row">
                             <div class="col-12 flex-column">
                                 <div class="d-flex">
-                                    <div class="field-reference-title">Ref : <span class="reference-reference"></span> </div>
+                                    <div class="field-reference-title mr-3">Ref : <span class="reference-reference"></span> </div>
                                     <div class="field-article-title">Article : <span class="reference-article"></span></div>
                                 </div>
                                 <div class="mt-3">
@@ -113,15 +114,15 @@
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/quantity.svg') }}" alt="Icône quantité" width="35px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Quantité</span>
-                                    <span class="wii-body-text">1</span>
+                                    <span class="field-name">Quantité</span>
+                                    <span class="field-text">1</span>
                                 </label>
                             </div>
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="35px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Demandeur et suiveur</span>
-                                    <span class="wii-body-text reference-managers"></span>
+                                    <span class="field-name">Demandeur et suiveur</span>
+                                    <span class="field-text reference-managers"></span>
                                 </label>
                             </div>
                         </div>
@@ -129,16 +130,16 @@
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="35px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Emplacement</span>
-                                    <span class="wii-body-text">{{ setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement').label }}</span>
+                                    <span class="field-name">Emplacement</span>
+                                    <span class="field-text">{{ setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement').label }}</span>
                                 </label>
                             </div>
                             {% if freeField %}
                                 <div class="col-6 d-flex">
                                     <img src="{{ asset('svg/document.svg') }}" alt="Icône document" width="35px">
                                     <label class="box-item ml-3">
-                                        <span class="wii-field-name">{{ freeField.label }}</span>
-                                        <span class="wii-body-text reference-free-field"></span>
+                                        <span class="field-name">{{ freeField.label }}</span>
+                                        <span class="field-text reference-free-field"></span>
                                     </label>
                                 </div>
                             {% endif %}
@@ -147,8 +148,8 @@
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/commentary.svg') }}" alt="Icône commentaire" width="35px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Commentaire</span>
-                                    <span class="wii-body-text reference-commentary"></span>
+                                    <span class="field-name">Commentaire</span>
+                                    <span class="field-text reference-commentary"></span>
                                 </label>
                             </div>
                         </div>

@@ -910,13 +910,14 @@ class ReferenceArticleController extends AbstractController
         );
     }
 
-    #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["POST"])]
+    #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["GET|POST"])]
     public function validateEntryStock(Request $request,
                                   EntityManagerInterface $entityManager,
                                   ArticleFournisseurService $articleFournisseurService,
                                   ArticleDataService $articleDataService,
                                   RefArticleDataService $refArticleDataService,
-                                  KioskService $kioskService): Response {
+                                  KioskService $kioskService,
+                                  FreeFieldService $freeFieldService): Response {
         $refArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -925,34 +926,41 @@ class ReferenceArticleController extends AbstractController
         $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $data = $request->request->all();
+        $data = $request->query->all();
 
         $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
-        $inventoryCategory = $inventoryCategoryRepository->find($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE));
-        $visibilityGroup = $visibilityGroupRepository->find($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE));
         $applicant = $userRepository->find($data['applicant']);
         $follower = $userRepository->find($data['follower']);
         $articleSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
         $referenceSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
 
         $reference = $refArticleRepository->findOneBy(['reference' => $data['reference']]) ?? new ReferenceArticle();
-
         $referenceExist = isset($data['article']);
-
         $reference->setReference($data['reference'])
             ->setLibelle($data['label'])
             ->setType($type)
             ->addManager($applicant)
             ->addManager($follower)
             ->setStatut($status)
+            ->setCommentaire($data['comment'])
             ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE)
-            ->setVisibilityGroup($visibilityGroup)
-            ->setCategory($inventoryCategory)
-            ->setCreatedBy($userRepository->getKioskUser());
+            ->setCreatedBy($userRepository->getKioskUser())
+            ->setCreatedAt(new DateTime());
+        if(!$referenceExist){
+            $reference->setBarCode($refArticleDataService->generateBarCode());
+        }
+
+        if($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE)){
+            $visibilityGroup = $visibilityGroupRepository->find($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE));
+            $reference->setProperties(['visibilityGroup' => $visibilityGroup]);
+        }
+        if($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE)){
+            $inventoryCategory = $inventoryCategoryRepository->find($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE));
+            $reference->setCategory($inventoryCategory);
+        }
+
         $entityManager->persist($reference);
-        $visibilityGroup->addArticleReference($reference);
-        $entityManager->persist($visibilityGroup);
         try {
             $supplierArticle = $articleFournisseurService->createArticleFournisseur([
                 'fournisseur' => $settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_REFERENCE_CREATE),
@@ -972,16 +980,24 @@ class ReferenceArticleController extends AbstractController
             }
         }
 
+        if(!empty($data['freeField'])){
+            $freeFieldService->manageFreeFields($reference, [
+                $data['freeField'][0] => $data['freeField'][1]
+            ],  $entityManager);
+        }
+
         try {
+            $number = 'C-' . (new DateTime('now'))->format('YmdHis');
             $collecte = new Collecte();
             $collecte
-                ->setDemandeur($userRepository->find($data['applicant']))
+                ->setNumero($number)
+                ->setDemandeur($userRepository->getKioskUser())
                 ->setDate(new DateTime())
+                ->setValidationDate(new DateTime())
                 ->setType($typeRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_TYPE)))
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER))
                 ->setPointCollecte($emplacementRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT)))
                 ->setObjet($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_OBJECT))
-                ->setCommentaire($data['comment'])
                 ->setstockOrDestruct($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_DESTINATION));
 
             $collecteReference = new CollecteReference();
@@ -1001,6 +1017,7 @@ class ReferenceArticleController extends AbstractController
                 ->setNumero('C-' . $date->format('YmdHis'))
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER))
                 ->setDemandeCollecte($collecte);
+
             if(!$referenceExist){
                 $entityManager->flush();
                 $article = $articleDataService->newArticle([

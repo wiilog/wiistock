@@ -3,6 +3,7 @@
 namespace App\Controller\Kiosk;
 
 use App\Controller\AbstractController;
+use App\Entity\ArticleFournisseur;
 use App\Entity\FreeField;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
@@ -40,7 +41,7 @@ class KioskController extends AbstractController
         $scannedReference = $request->query->get('scannedReference');
 
         $freeField = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE) ? $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE)) : '';
-        $reference = $referenceArticleRepository->findOneBy(['reference' => $scannedReference]) ?? new ReferenceArticle();
+        $reference = $referenceArticleRepository->findOneBy(['barCode' => $scannedReference]) ?? new ReferenceArticle();
 
         return $this->render('kiosk/form.html.twig', [
             'reference' => $reference,
@@ -63,16 +64,32 @@ class KioskController extends AbstractController
     #[Route("/imprimer", name: "print_article", options: ["expose" => true], methods: ["GET"])]
     public function print(Request                $request,
                                   EntityManagerInterface $entityManager,
-                                  KioskService $kioskService): \Symfony\Component\HttpFoundation\JsonResponse
+                                  KioskService $kioskService): JsonResponse
     {
         $articleRepository = $entityManager->getRepository(Article::class);
 
         $articleId = $request->query->get('article');
         $reprint = $request->query->get('reprint');
+        $testPrint = $request->query->get('testPrint');
         if ($articleId) {
             $article = $articleRepository->find($request->query->get('article'));
         } elseif ($reprint) {
             $article = $articleRepository->getLatestsKioskPrint()[0];
+        } elseif ($testPrint) {
+            $refArticle = new ReferenceArticle();
+            $refArticle->setReference('Test')
+                ->setLibelle('Test')
+                ->setQuantiteStock(1);
+
+            $article = new Article();
+            $article->setLabel('Test')
+                ->setBarCode('Test')
+                ->setArticleFournisseur((new ArticleFournisseur())->setReferenceArticle($refArticle));
+
+            $options['serialNumber'] = $request->query->get('serialNumber');
+            $options['labelWidth'] = $request->query->get('labelWidth');
+            $options['labelHeight'] = $request->query->get('labelHeight');
+            $options['printerDPI'] = $request->query->get('printerDPI');
         } else {
             return $this->json(['success' => false]);
         }

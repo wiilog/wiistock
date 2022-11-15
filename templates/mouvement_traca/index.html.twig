@@ -84,8 +84,8 @@
     {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalEditMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalDeleteMvtTraca.html.twig" %}
-    <input type="text" hidden id="redirectAfterTrackingMovementCreation"
-           value="{{ redirectAfterTrackingMovementCreation }}">
+    <input type="text" hidden id="clearAndStayAfterNewMvt"
+           value="{{ clearAndStayAfterNewMvt }}">
 
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
