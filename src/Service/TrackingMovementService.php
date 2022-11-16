@@ -1097,7 +1097,6 @@ class TrackingMovementService extends AbstractController
                 if($movement["movement"] ?? null) {
                     $movement["movement"]->setLogisticUnitParent($packArticle->getCurrentLogisticUnit());
                 }
-
                 if($selectedType->getCode() === TrackingMovement::TYPE_PRISE && $packArticle?->getCurrentLogisticUnit()) {
                     $movement = $this->persistTrackingMovement(
                         $entityManager,
@@ -1242,8 +1241,11 @@ class TrackingMovementService extends AbstractController
                 TrackingMovement::TYPE_DEPOSE,
                 false,
                 $options,
-            )["movement"];
-
+            );
+            if (!$lastTracking['success']) {
+                return $lastTracking;
+            }
+            $lastTracking = $lastTracking['movement'];
             $movements[] = $lastTracking;
         }
 
