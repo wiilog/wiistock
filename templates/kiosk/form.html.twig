@@ -56,7 +56,7 @@
                                     {{ freeField.label }}
                                     {% include 'free_field/freeFieldsEdit.html.twig' with {
                                         freeFields: [freeField],
-                                        freeFieldValues: [],
+                                        freeFieldValues: reference.freeFields,
                                         colType: 'col-12',
                                         requiredType: 'requiredEdit',
                                         actionType: 'edit',
@@ -64,9 +64,10 @@
                                     } %}
                                 {% endif %}
                             </label>
+                            <input hidden name="free-field-id" value="{{ freeField.id }}"/>
                             <label class="w-100 mr-3">
                                 Commentaire <span class="wii-small-text">(Facultatif)</span>
-                                <input type="search" class="data w-100" value="{{ reference.commentaire }}" name="reference-comment">
+                                <input type="search" class="data w-100" value="{{ reference.cleanedComment | striptags }}" name="reference-comment">
                             </label>
                         </div>
                     </div>
@@ -98,7 +99,7 @@
                         <div class="row">
                             <div class="col-12 flex-column">
                                 <div class="d-flex">
-                                    <div class="field-reference-title">Ref : <span class="reference-reference"></span> </div>
+                                    <div class="field-reference-title mr-3">Ref : <span class="reference-reference"></span> </div>
                                     <div class="field-article-title">Article : <span class="reference-article"></span></div>
                                 </div>
                                 <div class="mt-3">

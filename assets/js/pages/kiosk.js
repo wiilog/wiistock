@@ -30,7 +30,7 @@ $(function() {
     Select2Old.user($('[name=follower]'), '', 3);
 
     $(document).on('keypress', function(event) {
-        if ($('.page-content').addClass('home')) {
+        if ($('.page-content').hasClass('home')) {
             if(event.originalEvent.key === 'Enter') {
                 modalWaiting.modal('show');
                 AJAX.route(GET, `reference_article_check_quantity`, {
@@ -57,13 +57,6 @@ $(function() {
     });
 
     $referenceRefInput.on('keypress keyup search', function(event) {
-        // if(event.originalEvent.key === 'Backspace' && event.type === 'keyup') {
-        //     $referenceLabelInput.val($referenceRefInput.val());
-        // } else if(event.originalEvent.key !== 'Enter' && event.originalEvent.key !== 'Backspace' && event.type === 'keypress'){
-        //     $referenceLabelInput.val($referenceLabelInput.val());
-        // } else if(event.originalEvent.type === 'search'){
-        //     $referenceLabelInput.val($referenceRefInput.val());
-        // }
         $referenceLabelInput.val($referenceRefInput.val());
     });
 
@@ -186,6 +179,11 @@ $(function() {
 
     $('.validate-stock-entry-button').on('click', function() {
         $('#modal-waiting').modal('show');
+        let $freeFieldLabel = $('.free-field-label');
+        let freeFieldValue = $freeFieldLabel.find('input').val()
+            || $freeFieldLabel.find('textarea').val()
+            || $freeFieldLabel.find('select').find('option:selected').data('label');
+        let freeFieldId =  $('input[name=free-field-id]').val();
         AJAX.route(GET, 'entry_stock_validate', {
             'reference': $('input[name=reference-ref-input]').val(),
             'label': $('input[name=reference-label-input]').val(),
@@ -193,7 +191,7 @@ $(function() {
             'applicant': $('select[name=applicant] option:selected').val(),
             'follower': $('select[name=follower] option:selected').val(),
             'comment': $('input[name=reference-comment]').val(),
-            // 'freeField': $('input[name=reference-ref-input]'),
+            'freeField': freeFieldId && freeFieldValue ? [freeFieldId, freeFieldValue] : [],
         }).json().then((res) => {
             if(res.success){
             const $successPage =  $('.success-page-container');
