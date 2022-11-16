@@ -1057,10 +1057,10 @@ class ReferenceArticleController extends AbstractController
 
         if($referenceExist) {
             $articleSuccessMessage = str_replace('@reference', $data['reference'], str_replace('@codearticle', '<span style="color: #3353D7;">'.$data['article'].'</span>', $articleSuccessMessage));
-            $refArticleDataService->sendMailEntryStock($reference, $recipients, str_replace('@reference', $data['reference'], str_replace('@codearticle', $data['article'], $articleSuccessMessage)));
+            $refArticleDataService->sendMailEntryStock($reference, $recipients, strip_tags(str_replace('@reference', $data['reference'], str_replace('@codearticle', $data['article'], $articleSuccessMessage))));
         } else {
             $referenceSuccessMessage = str_replace('@reference', '<span style="color: #3353D7;">'.$data['reference'].'</span>', $referenceSuccessMessage);
-            $refArticleDataService->sendMailEntryStock($reference, $recipients, str_replace('@reference', $data['reference'], $referenceSuccessMessage));
+            $refArticleDataService->sendMailEntryStock($reference, $recipients, strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage)));
         }
 
         return new JsonResponse([
