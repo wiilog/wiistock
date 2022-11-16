@@ -2174,7 +2174,9 @@ class ReceptionController extends AbstractController {
                 "lines" => $result["data"],
                 "total" => $result["total"],
                 "current" => $start,
-                "pageLength" => $listLength
+                "currentPage" => floor($start / $listLength),
+                "pageLength" => $listLength,
+                "pagesCount" => ceil($result["total"] / $listLength),
             ]),
         ]);
     }

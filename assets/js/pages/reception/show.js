@@ -871,8 +871,8 @@ function loadLogisticUnitPack({start, search} = {}) {
         () => (
             AJAX.route(GET, 'reception_lines_api', params)
                 .json()
-                .then(({html}) => {
-                    $logisticUnitsContainer.html(html);
+                .then(data => {
+                    $logisticUnitsContainer.html(data.html);
                     $logisticUnitsContainer.find('.articles-container table')
                         .each(function() {
                             const $table = $(this);

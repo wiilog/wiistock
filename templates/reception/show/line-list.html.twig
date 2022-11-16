@@ -35,14 +35,34 @@
     } %}
 {% endfor %}
 
-{% if pageLength < total %}
-    <div class="dataTables_wrapper">
+    <div class="dataTables_wrapper mt-2">
         <div class="datatable-paging">
             <div class="dataTables_paginate paging_simple_numbers">
                 <a class="paginate_button previous {{ current == 0 ? 'disabled' }}"
                    data-page="{{ current - pageLength }}">
                     {{ trans('Général', '', 'Zone liste', 'Précédent') }}
                 </a>
+                {% set lowest = max(0, currentPage - 2) %}
+                {% set highest = min(pagesCount - 1, currentPage + 2) %}
+
+                {% if lowest >= 1 %}
+                    <a class="paginate_button" data-page="{{ 1 * pageLength }}">1</a>
+                    {% if lowest != 1 %}
+                        <span class="ellipsis">…</span>
+                    {% endif %}
+                {% endif %}
+
+                {% for i in lowest..highest %}
+                    <a class="paginate_button {{ i * pageLength == current ? 'current' }}" data-page="{{ i * pageLength }}">{{ i + 1 }}</a>
+                {% endfor %}
+
+                {% if highest + 1 < pagesCount %}
+                    {% if highest + 2 != pagesCount %}
+                        <span class="ellipsis">…</span>
+                    {% endif %}
+                    <a class="paginate_button" data-page="{{ (pagesCount - 1) * pageLength }}">{{ pagesCount }}</a>
+                {% endif %}
+
                 <a class="paginate_button next {{ (current + pageLength >= total) ? 'disabled' }}"
                    data-page="{{ current + pageLength }}">
                     {{ trans('Général', '', 'Zone liste', 'Suivant') }}
@@ -50,4 +70,3 @@
             </div>
         </div>
     </div>
-{% endif %}
