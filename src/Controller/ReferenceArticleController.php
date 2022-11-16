@@ -34,6 +34,7 @@ use App\Service\AttachmentService;
 use App\Service\FreeFieldService;
 use App\Service\Kiosk\KioskService;
 use App\Service\MouvementStockService;
+use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
@@ -161,7 +162,6 @@ class ReferenceArticleController extends AbstractController
 
             if ($data['emplacement'] !== null) {
                 $emplacement = $emplacementRepository->find($data['emplacement']);
-                //$emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
@@ -896,11 +896,11 @@ class ReferenceArticleController extends AbstractController
     public function checkQuantity(Request                $request,
                                   EntityManagerInterface $entityManager): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $refArticle = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+        $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
 
-        return new JsonResponse([
-                'exist' => (bool)$refArticle,
-                'inStock' => $refArticle?->getQuantiteStock() > 0,
+        return $this->json([
+                'exists' => $reference !== null,
+                'inStock' => $reference?->getQuantiteStock() > 0,
             ]
         );
     }
@@ -912,7 +912,8 @@ class ReferenceArticleController extends AbstractController
                                   ArticleDataService $articleDataService,
                                   RefArticleDataService $refArticleDataService,
                                   KioskService $kioskService,
-                                  FreeFieldService $freeFieldService): Response {
+                                  FreeFieldService $freeFieldService,
+                                  NotificationService $notificationService): Response {
         $refArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -1018,11 +1019,15 @@ class ReferenceArticleController extends AbstractController
                 $article = $articleDataService->newArticle([
                     'statut' => Article::STATUT_INACTIF,
                     'refArticle' => $reference->getId(),
+                    'emplacement' => $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT),
                     'articleFournisseur' => $supplierArticle->getId(),
                     'libelle' => $reference->getLibelle(),
                     'quantite' => 1,
                 ], $entityManager);
-                $article->setCreatedOnKioskAt(new DateTime());
+                $article
+                    ->setReference($reference->getReference())
+                    ->setInactiveSince($date)
+                    ->setCreatedOnKioskAt($date);
                 $entityManager->persist($article);
 
                 $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
@@ -1030,15 +1035,11 @@ class ReferenceArticleController extends AbstractController
                 $kioskService->printLabel($options, $entityManager);
 
                 $ordreCollecte->addArticle($article);
-            }
 
-            $ordreCollecteReference = new OrdreCollecteReference();
-            $ordreCollecteReference
-                ->setOrdreCollecte($ordreCollecte)
-                ->setQuantite($collecteReference->getQuantite())
-                ->setReferenceArticle($collecteReference->getReferenceArticle());
-            $entityManager->persist($ordreCollecteReference);
-            $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
+                if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+                    $notificationService->toTreat($ordreCollecte);
+                }
+            }
 
             $entityManager->persist($ordreCollecte);
         } catch(Exception $exception) {
@@ -1051,13 +1052,15 @@ class ReferenceArticleController extends AbstractController
         $entityManager->flush();
 
         $to = Stream::from($reference->getManagers())->map(fn(Utilisateur $manager) => $manager->getEmail())->toArray();
+        $requester = $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER));
+        $recipients = array_merge($to, [$requester->getEmail()]);
 
         if($referenceExist) {
             $articleSuccessMessage = str_replace('@reference', $data['reference'], str_replace('@codearticle', '<span style="color: #3353D7;">'.$data['article'].'</span>', $articleSuccessMessage));
-            $refArticleDataService->sendMailEntryStock($reference, $to, str_replace('@reference', $data['reference'], str_replace('@codearticle', $data['article'], $articleSuccessMessage)));
+            $refArticleDataService->sendMailEntryStock($reference, $recipients, strip_tags(str_replace('@reference', $data['reference'], str_replace('@codearticle', $data['article'], $articleSuccessMessage))));
         } else {
             $referenceSuccessMessage = str_replace('@reference', '<span style="color: #3353D7;">'.$data['reference'].'</span>', $referenceSuccessMessage);
-            $refArticleDataService->sendMailEntryStock($reference, $to, str_replace('@reference', $data['reference'], $referenceSuccessMessage));
+            $refArticleDataService->sendMailEntryStock($reference, $recipients, strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage)));
         }
 
         return new JsonResponse([

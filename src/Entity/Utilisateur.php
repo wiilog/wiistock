@@ -287,6 +287,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: "boolean", nullable: false, options: ["default" => false])]
     private ?bool $kioskUser = false;
 
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
+    private ?KioskToken $kioskToken = null;
+
     public function __construct() {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
@@ -1919,6 +1922,28 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function setKioskUser(?bool $kioskUser): self {
         $this->kioskUser = $kioskUser;
+        return $this;
+    }
+
+    public function getKioskToken(): ?KioskToken
+    {
+        return $this->kioskToken;
+    }
+
+    public function setKioskToken(?KioskToken $kioskToken): self
+    {
+        // unset the owning side of the relation if necessary
+        if ($kioskToken === null && $this->kioskToken !== null) {
+            $this->kioskToken->setUser(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($kioskToken !== null && $kioskToken->getUser() !== $this) {
+            $kioskToken->setUser($this);
+        }
+
+        $this->kioskToken = $kioskToken;
+
         return $this;
     }
 }

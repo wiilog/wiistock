@@ -64,7 +64,7 @@
                                     } %}
                                 {% endif %}
                             </label>
-                            <input hidden name="free-field-id" value="{{ freeField.id }}"/>
+                            <input hidden name="free-field-id" value="{{ freeField ? freeField.id }}"/>
                             <label class="w-100 mr-3">
                                 Commentaire <span class="wii-small-text">(Facultatif)</span>
                                 <input type="search" class="data w-100" value="{{ reference.cleanedComment | striptags }}" name="reference-comment">
@@ -155,7 +155,7 @@
                         </div>
                     </div>
                     <div class="d-flex flex-row-reverse mt-5">
-                        <button class="button-next">
+                        <button class="button-next" data-loader-size="normal">
                             Suivant
                         </button>
                     </div>
@@ -167,7 +167,7 @@
                             <button class="outline edit-stock-entry-button">
                                 Modifier
                             </button>
-                            <button class="validate-stock-entry-button">
+                            <button class="validate-stock-entry-button" data-loader-size="normal">
                                 Valider
                             </button>
                         </div>
@@ -190,7 +190,7 @@
             <span class="field-success-page"></span>
         </div>
         <div class="d-flex justify-content-center redirect-button-container">
-            <button class="outline print-again-button">
+            <button class="outline print-again-button" data-loader-size="normal">
                 Réimprimer
             </button>
             <button class="go-home-button">

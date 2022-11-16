@@ -119,6 +119,7 @@ $icons: (
     'reference-article-location': "../../public/svg/reference_article/location.svg",
     'reference-article-stock': "../../public/svg/reference_article/stock.svg",
     'cross-grey': "../../public/svg/cross-grey.svg",
+    'link-slash': "../../public/svg/link-slash.svg",
 );
 
 @each $iconName, $iconPath in $icons {
