@@ -94,11 +94,12 @@ class AnnotationListener {
             return $annotation;
         }
 
-        if($nativeAnnotations = $method->getAttributes($class)) {
-            $annotation = $nativeAnnotations[0]->newInstance();
+        $nativeAnnotations = $method->getAttributes($class);
+        if($nativeAnnotations) {
+            return $nativeAnnotations[0]->newInstance();
         }
 
-        return $annotation;
+        return null;
     }
 
     private function handleRestAuthenticated(ControllerArgumentsEvent $event, AbstractController $controller) {
