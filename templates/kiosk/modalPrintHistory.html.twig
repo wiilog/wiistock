@@ -12,7 +12,7 @@
                                 <span class="field-text">{{ article.createdOnKioskAt|format_helper('datetime', "", false, app.user) }}</span>
                                 <span class="field-name mt-2">Référence : {{ article.label }}</span>
                             </div>
-                            <button class="print-article" data-article="{{ article.id }}">Réimprimer</button>
+                            <button class="print-article" data-article="{{ article.id }}" data-loader-size="normal">Réimprimer</button>
                         </div>
                     {% endfor %}
                 </div>
