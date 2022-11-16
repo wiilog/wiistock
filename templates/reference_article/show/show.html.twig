@@ -325,7 +325,7 @@
                         } %}
                     </div>
                 </div>
-                {% if hasRightEdit %}
+                {% if not showOnly and hasRightEdit %}
                     <div class="d-flex justify-content-end mt-4">
                         <a href="{{ path('reference_article_edit_page', {'reference': referenceArticle.id, 'from': 'show'}) }}" class="btn btn-success">
                             <span>Modifier</span>

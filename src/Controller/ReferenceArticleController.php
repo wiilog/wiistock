@@ -633,8 +633,9 @@ class ReferenceArticleController extends AbstractController
      * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
-    public function showPage(ReferenceArticle $referenceArticle, RefArticleDataService $refArticleDataService, EntityManagerInterface $manager): Response {
+    public function showPage(Request $request, ReferenceArticle $referenceArticle, RefArticleDataService $refArticleDataService, EntityManagerInterface $manager): Response {
         $type = $referenceArticle->getType();
+        $showOnly = $request->query->getBoolean('showOnly');
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
@@ -652,8 +653,7 @@ class ReferenceArticleController extends AbstractController
                                 ($article->getStatut() && $article->getStatut()?->getCode() === Article::STATUT_ACTIF)
                                     ? $carry + $article->getQuantite()
                                     : $carry
-                            ),
-                            0
+                            )
                         )
                 ];
                 return $carry;
@@ -663,6 +663,7 @@ class ReferenceArticleController extends AbstractController
             'referenceArticle' => $referenceArticle,
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
+            'showOnly' => $showOnly
         ]);
     }
 
