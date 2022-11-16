@@ -162,7 +162,6 @@ class ReferenceArticleController extends AbstractController
 
             if ($data['emplacement'] !== null) {
                 $emplacement = $emplacementRepository->find($data['emplacement']);
-                //$emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
@@ -1029,8 +1028,9 @@ class ReferenceArticleController extends AbstractController
                     'libelle' => $reference->getLibelle(),
                     'quantite' => 1,
                 ], $entityManager);
-                $article->setInactiveSince(new DateTime());
-                $article->setCreatedOnKioskAt(new DateTime());
+                $article
+                    ->setInactiveSince($date)
+                    ->setCreatedOnKioskAt($date);
                 $entityManager->persist($article);
 
                 $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
@@ -1043,14 +1043,6 @@ class ReferenceArticleController extends AbstractController
                     $notificationService->toTreat($ordreCollecte);
                 }
             }
-
-            $ordreCollecteReference = new OrdreCollecteReference();
-            $ordreCollecteReference
-                ->setOrdreCollecte($ordreCollecte)
-                ->setQuantite($collecteReference->getQuantite())
-                ->setReferenceArticle($collecteReference->getReferenceArticle());
-            $entityManager->persist($ordreCollecteReference);
-            $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
 
             $entityManager->persist($ordreCollecte);
         } catch(Exception $exception) {
