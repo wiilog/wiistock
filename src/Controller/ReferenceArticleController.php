@@ -34,6 +34,7 @@ use App\Service\AttachmentService;
 use App\Service\FreeFieldService;
 use App\Service\Kiosk\KioskService;
 use App\Service\MouvementStockService;
+use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
@@ -917,7 +918,8 @@ class ReferenceArticleController extends AbstractController
                                   ArticleDataService $articleDataService,
                                   RefArticleDataService $refArticleDataService,
                                   KioskService $kioskService,
-                                  FreeFieldService $freeFieldService): Response {
+                                  FreeFieldService $freeFieldService,
+                                  NotificationService $notificationService): Response {
         $refArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -1027,6 +1029,7 @@ class ReferenceArticleController extends AbstractController
                     'libelle' => $reference->getLibelle(),
                     'quantite' => 1,
                 ], $entityManager);
+                $article->setInactiveSince(new DateTime());
                 $article->setCreatedOnKioskAt(new DateTime());
                 $entityManager->persist($article);
 
@@ -1035,6 +1038,10 @@ class ReferenceArticleController extends AbstractController
                 $kioskService->printLabel($options, $entityManager);
 
                 $ordreCollecte->addArticle($article);
+
+                if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+                    $notificationService->toTreat($ordreCollecte);
+                }
             }
 
             $ordreCollecteReference = new OrdreCollecteReference();
