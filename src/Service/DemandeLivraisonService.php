@@ -144,7 +144,7 @@ class DemandeLivraisonService
             'status' => FormatHelper::status($demande->getStatut()),
             'type' => FormatHelper::type($demande->getType()),
             'expectedAt' => FormatHelper::date($demande->getExpectedAt()),
-            'project' => $demande?->getProject()?->getCode() ?? '',
+            'project' => $demande->getProject()?->getCode() ?? '',
             'actions' => $this->templating->render('demande/datatableDemandeRow.html.twig', [
                 'idDemande' => $idDemande,
                 'url' => $url,
