@@ -943,13 +943,15 @@ class ReferenceArticleController extends AbstractController
         $reference->setReference($data['reference'])
             ->setLibelle($data['label'])
             ->setType($type)
-            ->addManager($applicant)
-            ->addManager($follower)
             ->setStatut($status)
             ->setCommentaire($data['comment'])
             ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE)
             ->setCreatedBy($userRepository->getKioskUser())
             ->setCreatedAt(new DateTime());
+
+        foreach ([$applicant, $follower] as $user) {
+            $reference->addManager($user);
+        }
         if(!$referenceExist){
             $reference->setBarCode($refArticleDataService->generateBarCode());
         }
