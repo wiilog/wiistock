@@ -7,7 +7,6 @@
     <div class="form-group col-12">
         <label class="wii-field-name">Livreur</label>
         <select class="form-control data w-100" data-s2="user" name="deliverer"
-                data-other-params
                 data-other-params-deliverer-only="1">
             {% if vehicle.deliverer %}
                 <option value="{{ vehicle.deliverer.id }}">{{ vehicle.deliverer.username }}</option>

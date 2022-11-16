@@ -208,3 +208,51 @@ function initDeliveryRequestModal() {
     InitModal($modal, $('#submitEditDemande'), Routing.generate('demande_edit', true));
     toggleLocationSelect($modal.find('[name="type"]'));
 }
+
+function openAddLUModal() {
+    const $modal = $(`#modalAddLogisticUnit`);
+    const $details = $modal.find(`.modal-details`);
+    const $submit = $modal.find(`[type="submit"]`);
+    const $logisticUnit = $modal.find(`[name="logisticUnit"]`);
+
+    $logisticUnit.off(`change`);
+
+    //si y'a que val null ça marche pas je sais pas pourquoi me
+    //demandez pas de toute façon vous pouvez pas le suis parti
+    $logisticUnit.val(null).empty().trigger(`change`);
+    $details.html(``);
+    $submit.prop(`disabled`, true);
+
+    $modal.modal(`show`);
+
+    $logisticUnit.on(`change`, function() {
+        const logisticUnit = $logisticUnit.val();
+
+        if(logisticUnit) {
+            AJAX.route(`GET`, `delivery_logistic_unit_details`, {logisticUnit})
+                .json()
+                .then(({html}) => {
+                    $details.html(html);
+                    $submit.prop(`disabled`, false);
+                });
+        }
+    });
+
+    $submit.off(`click`).on(`click`, function() {
+        const delivery = $modal.data(`delivery`);
+        const logisticUnit = $logisticUnit.val();
+
+        AJAX.route(`POST`, `delivery_add_logistic_unit`, {delivery, logisticUnit})
+            .json()
+            .then(result => {
+                if(result.success) {
+                    $modal.modal(`hide`);
+                    tableArticle.ajax.reload();
+
+                    if(result.header) {
+                        $(`.zone-entete`).html(result.header);
+                    }
+                }
+            });
+    });
+}

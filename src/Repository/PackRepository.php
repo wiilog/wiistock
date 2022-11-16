@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
@@ -642,6 +644,39 @@ class PackRepository extends EntityRepository
                 "term" => "%$term%",
                 "reception" => $reception
             ])
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getForSelectFromDelivery(?string $term, ?int $delivery, bool $allowNoProject): array {
+        $qb = $this->createQueryBuilder("pack")
+            ->select("pack.id AS id, pack.code AS text")
+            ->leftJoin(DeliveryRequestArticleLine::class, "request_line", Join::WITH, "request_line.pack = pack")
+            ->leftJoin("request_line.request",  "request")
+            ->leftJoin("request.statut",  "request_status")
+            ->join("pack.childArticles", "pack_child_articles")
+            ->join(Demande::class, "edited_request", Join::WITH, "edited_request.id = :delivery")
+            ->andWhere("pack.code LIKE :term")
+            ->andWhere("request.id IS NULL OR request_status.code NOT IN (:ongoing_statuses)")
+            ->andWhere("edited_request.project IS NULL OR edited_request.project = pack.project")
+            ->groupBy("pack")
+            ->setParameters([
+                "term" => "%$term%",
+                "delivery" => $delivery,
+                "ongoing_statuses" => [
+                    Demande::STATUT_BROUILLON,
+                    Demande::STATUT_A_TRAITER,
+                    Demande::STATUT_PREPARE,
+                    Demande::STATUT_INCOMPLETE,
+                ]
+            ]);
+
+        if(!$allowNoProject) {
+            $qb->andWhere("pack.project IS NOT NULL");
+        }
+
+        return $qb
             ->setMaxResults(100)
             ->getQuery()
             ->getArrayResult();
