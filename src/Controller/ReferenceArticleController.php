@@ -1029,6 +1029,7 @@ class ReferenceArticleController extends AbstractController
                     'quantite' => 1,
                 ], $entityManager);
                 $article
+                    ->setReference($reference->getReference())
                     ->setInactiveSince($date)
                     ->setCreatedOnKioskAt($date);
                 $entityManager->persist($article);
