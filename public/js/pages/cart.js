@@ -329,11 +329,11 @@ function checkIfLogisticsUnit($requestType, $addOrCreate, $existingPurchase) {
         toggleSelectedPurchaseRequest($existingPurchase, requestType);
         loadLogisticUnitPack();
 
+        $requestType.attr("disabled", true);
+        $requestType.next(':not(:first)').addClass( "text-secondary" );
+        $addOrCreate.find('input[name="addOrCreate"][value=add]').attr("disabled", true).css( "border-color", "grey" ).siblings().addClass( "text-secondary" );
+        $addOrCreate.find('input[name="addOrCreate"][value="create"]').trigger("click");
     }
-    $requestType.attr("disabled", true);
-    $requestType.next(':not(:first)').addClass( "text-secondary" );
-    $addOrCreate.find('input[name="addOrCreate"][value=add]').attr("disabled", true).css( "border-color", "grey" ).siblings().addClass( "text-secondary" );
-    $addOrCreate.find('input[name="addOrCreate"][value="create"]').trigger("click");
 }
 
 function toggleSelectedPurchaseRequest($existingPurchase, requestType) {
