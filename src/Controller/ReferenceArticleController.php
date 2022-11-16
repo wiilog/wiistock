@@ -1024,11 +1024,13 @@ class ReferenceArticleController extends AbstractController
                 $article = $articleDataService->newArticle([
                     'statut' => Article::STATUT_INACTIF,
                     'refArticle' => $reference->getId(),
+                    'emplacement' => $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT),
                     'articleFournisseur' => $supplierArticle->getId(),
                     'libelle' => $reference->getLibelle(),
                     'quantite' => 1,
                 ], $entityManager);
                 $article
+                    ->setReference($reference->getReference())
                     ->setInactiveSince($date)
                     ->setCreatedOnKioskAt($date);
                 $entityManager->persist($article);
