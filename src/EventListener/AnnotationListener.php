@@ -95,7 +95,7 @@ class AnnotationListener {
         }
 
         $nativeAnnotations = $method->getAttributes($class);
-        if($nativeAnnotations) {
+        if(!empty($nativeAnnotations)) {
             return $nativeAnnotations[0]->newInstance();
         }
 
