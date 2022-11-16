@@ -14,6 +14,7 @@ use DateInterval;
 use DateTime;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
@@ -65,33 +66,40 @@ class AnnotationListener {
             throw new RuntimeException("Failed to read annotation");
         }
 
-        $annotation = $reader->getMethodAnnotation($method, RestVersionChecked::class);
+        $annotation = $this->getAnnotation($reader, $method, RestVersionChecked::class);
         if ($annotation instanceof RestVersionChecked) {
             $this->handleRestVersionChecked($event);
         }
 
-        $annotation = $reader->getMethodAnnotation($method, RestAuthenticated::class);
+        $annotation = $this->getAnnotation($reader, $method, RestAuthenticated::class);
         if ($annotation instanceof RestAuthenticated) {
             $this->handleRestAuthenticated($event, $controller);
         }
 
-        $annotation = $reader->getMethodAnnotation($method, HasPermission::class);
-        if($nativeAnnotations = $method->getAttributes(HasPermission::class)) {
-            $annotation = new HasPermission();
-            $annotation->value = $nativeAnnotations[0]->getArguments()[0];
-        }
+        $annotation = $this->getAnnotation($reader, $method, HasPermission::class, function(ReflectionAttribute $origin, HasPermission $destination) {
+            $destination->value = $origin->getArguments()[0];
+        });
 
         if ($annotation instanceof HasPermission) {
             $this->handleHasPermission($event, $annotation);
         }
 
-        $annotation = $reader->getMethodAnnotation($method, HasValidToken::class);
-        if ($method->getAttributes(HasValidToken::class)) {
-            $annotation = new HasValidToken();
-        }
+        $annotation = $this->getAnnotation($reader, $method, HasValidToken::class);
         if ($annotation instanceof HasValidToken) {
             $this->handleHasValidToken($event);
         }
+    }
+
+    private function getAnnotation(AnnotationReader $reader, mixed $method, string $class, ?callable $builder = null): mixed {
+        $annotation = $reader->getMethodAnnotation($method, $class);
+        if($nativeAnnotations = $method->getAttributes($class)) {
+            $annotation = new $class();
+            if($builder && count($nativeAnnotations)) {
+                $builder($nativeAnnotations[0], $annotation);
+            }
+        }
+
+        return $annotation;
     }
 
     private function handleRestAuthenticated(ControllerArgumentsEvent $event, AbstractController $controller) {
