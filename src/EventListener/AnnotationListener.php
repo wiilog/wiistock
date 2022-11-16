@@ -76,9 +76,7 @@ class AnnotationListener {
             $this->handleRestAuthenticated($event, $controller);
         }
 
-        $annotation = $this->getAnnotation($reader, $method, HasPermission::class, function(ReflectionAttribute $origin, HasPermission $destination) {
-            $destination->value = $origin->getArguments()[0];
-        });
+        $annotation = $this->getAnnotation($reader, $method, HasPermission::class);
 
         if ($annotation instanceof HasPermission) {
             $this->handleHasPermission($event, $annotation);
@@ -90,13 +88,14 @@ class AnnotationListener {
         }
     }
 
-    private function getAnnotation(AnnotationReader $reader, mixed $method, string $class, ?callable $builder = null): mixed {
+    private function getAnnotation(AnnotationReader $reader, mixed $method, string $class): mixed {
         $annotation = $reader->getMethodAnnotation($method, $class);
+        if($annotation) {
+            return $annotation;
+        }
+
         if($nativeAnnotations = $method->getAttributes($class)) {
-            $annotation = new $class();
-            if($builder && count($nativeAnnotations)) {
-                $builder($nativeAnnotations[0], $annotation);
-            }
+            $annotation = $nativeAnnotations[0]->newInstance();
         }
 
         return $annotation;
