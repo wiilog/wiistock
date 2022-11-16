@@ -3,7 +3,7 @@
          title="{{ (filter.fixedField ?? filter.freeField.label) | capitalize }} : {{ filter.value }}">
         <div class="row align-items-center">
             {% set fieldLabel = filter.fixedField ?? filter.freeField.label %}
-            {% if filter.freeField is defined and filter.freeField.typage == 'booleen' %}
+            {% if filter.freeField and filter.freeField is defined and filter.freeField.typage == 'booleen' %}
                 {% if (filter.value == 'on' or filter.value == '1') %}
                     {% set value = 'oui' %}
                 {% elseif (filter.value == '') %}

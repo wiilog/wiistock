@@ -322,7 +322,8 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect('(CASE WHEN tracking_movement.finished = 1 THEN 1 ELSE 0 END) AS finished')
             ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL OR join_pack.articleContainer = 1 THEN 1 ELSE 0 END) AS fromStock')
             ->addSelect('(CASE WHEN join_pack.groupIteration IS NOT NULL THEN 1 ELSE 0 END) AS isGroup')
-            ->addSelect('join_packParent.code AS packParent');
+            ->addSelect('join_packParent.code AS packParent')
+            ->addSelect("GROUP_CONCAT(join_pack_child_articles.barCode SEPARATOR ';') AS articles");
 
         if ($includeMovementId) {
             $queryBuilder->addSelect('tracking_movement.id');
@@ -343,6 +344,7 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_pack_nature')
             ->leftJoin('join_pack.article', 'join_pack_article')
+            ->leftJoin('join_pack.childArticles', 'join_pack_child_articles')
             ->leftJoin('tracking_movement.mouvementStock', 'join_stockMovement')
             ->leftJoin('tracking_movement.packParent', 'join_packParent')
             ->innerJoin('tracking_movement.linkedPackLastTracking', 'linkedPackLastTracking') // check if it's the last tracking pick
@@ -351,6 +353,7 @@ class TrackingMovementRepository extends EntityRepository
             ->andWhere('tracking_movement.finished = :finished')
             ->andWhere('join_pack_article.currentLogisticUnit IS NULL')
             ->andWhere($typeCondition)
+            ->groupBy("join_pack")
             ->setParameter('operator', $operator)
             ->setParameter('priseType', TrackingMovement::TYPE_PRISE)
             ->setParameter('finished', false);
