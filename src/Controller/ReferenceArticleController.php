@@ -13,6 +13,7 @@ use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
@@ -962,29 +963,23 @@ class ReferenceArticleController extends AbstractController
         }
 
         $entityManager->persist($reference);
-        try {
+        if(!$referenceExist) {
+            $provider = $entityManager->getRepository(Fournisseur::class)->find($settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_REFERENCE_CREATE));
             $supplierArticle = $articleFournisseurService->createArticleFournisseur([
-                'fournisseur' => $settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_REFERENCE_CREATE),
+                'fournisseur' => $provider,
                 'article-reference' => $reference,
-                'label' => $settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_LABEL_REFERENCE_CREATE) ?? '',
-                'reference' => $settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_REFERENCE_CREATE),
+                'label' => $provider->getNom(),
+                'reference' => $provider->getCodeReference(),
                 'visible' => $reference->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS
             ], true);
             $entityManager->persist($supplierArticle);
             $reference->addArticleFournisseur($supplierArticle);
-        } catch (Exception $exception) {
-            if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => "La référence ".$data['reference']." existe déjà pour un article fournisseur.",
-                ]);
-            }
         }
 
         if(!empty($data['freeField'])){
             $freeFieldService->manageFreeFields($reference, [
                 $data['freeField'][0] => $data['freeField'][1]
-            ],  $entityManager);
+            ], $entityManager);
         }
 
         try {
