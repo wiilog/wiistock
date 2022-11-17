@@ -7,7 +7,9 @@
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('cart') }}
+    {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
+
 {% macro reference_card(reference, index, quantityLabel, disabled = false, maxIsAvailableQuantity = false, showTargetLocationPicking = false) %}
     <div class="cart-reference-container"
          data-multiple-key="cart"
@@ -62,7 +64,7 @@
 {% endmacro %}
 
 {% block page_content %}
-    {% set emptyCart = app.user.cart.references is empty %}
+    {% set emptyCart = app.user.cart.references is empty and app.user.cart.articles is empty %}
     <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
         <div class="row wii-form wii-large-column">
             <div class="col-12 col-xl-4">
@@ -70,7 +72,7 @@
                     <div class="header wii-title">Demande</div>
                     <div class="content">
                         {{ form.switch('requestType', 'Type de demande', false, [
-                            {label: 'Livraison', value: 'delivery', wiiIcon: 'cart-delivery', checked: true},
+                            {label: 'Livraison', wiiIcon: 'cart-delivery', value: 'delivery', checked: true},
                             {label: 'Collecte', wiiIcon: 'cart-collect', value: 'collect'},
                             {label: 'Achat', wiiIcon: 'cart-purchase', value: 'purchase'},
                         ]) }}
@@ -140,6 +142,11 @@
                                         }) }}
                                     </div>
                                 {% endif %}
+                                <div class="col-md-6 col-12">
+                                    {{ form.input('project', 'Projet', fieldRequired, project ?? '', {
+                                        readonly: true,
+                                    }) }}
+                                </div>
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">
@@ -161,7 +168,6 @@
                                     {{ form.wysiwyg('comment', 'Commentaire', false) }}
                                 </div>
                             </div>
-
 
                             <input type="hidden" id="default-delivery-locations" value="{{ defaultDeliveryLocations | json_encode }}">
                         </div>
@@ -291,7 +297,7 @@
                 </div>
             </div>
             <div class="col-12 col-xl-8 cart-content d-none" data-request-type="delivery">
-                <div class="wii-box">
+                <div class="wii-box {{ emptyCart or app.user.cart.references is empty ? 'd-none' }}">
                     <div class="header wii-title">Références</div>
                     <div class="content cart-reference-list">
                         {% for reference in app.user.cart.references %}
@@ -299,6 +305,18 @@
                             {%  set buyerId = reference.buyer.id is defined ? reference.buyer.id : "null" %}
                             <input type="hidden" value="{{reference.id ~'/'~ buyerId }}" class="data" name="referenceBuyer"/>
                         {% endfor %}
+                    </div>
+                </div>
+                <div class="wii-box mt-0 {{ emptyCart or app.user.cart.articles is empty ? 'd-none' }}">
+                    <div class="header wii-title">Unités logistiques</div>
+                    <input type="hidden" value="{{ deliveryULs|length }}" class="data" name="numberUL"/>
+                    <div class="content">
+                        <div class="row">
+                            <div class="col-12 logistic-units-container my-3 wii-multiple-loading"
+                                 data-loader-color="primary"
+                                 data-loader-size="normal">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <button class="btn btn-success float-right mt-3" type="submit">

@@ -92,6 +92,17 @@ class CartController extends AbstractController
         $referencesByBuyer[] = array_shift($referencesByBuyer);
 
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($manager);
+        $deliveryULs = [];
+        $deliveryArticles = $currentUser->getCart()?->getArticles()?->getValues();
+        $project = null;
+        foreach ($deliveryArticles as $article) {
+            if ($article->getCurrentLogisticUnit()?->getProject()?->getCode() && !$project) {
+                $project = $article->getCurrentLogisticUnit()?->getProject()?->getCode();
+            }
+            if (!in_array($article->getCurrentLogisticUnit()?->getId(), $deliveryULs)) {
+                array_push($deliveryULs,$article->getCurrentLogisticUnit()?->getId());
+            }
+        }
         $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
             ->filter(fn(Demande $request) => $request->getType() && $request->getDestination())
             ->map(fn(Demande $request) => [
@@ -116,6 +127,8 @@ class CartController extends AbstractController
             ]);
 
         return $this->render("cart/index.html.twig", [
+            "project" => $project,
+            "deliveryULs" => $deliveryULs,
             "deliveryRequests" => $deliveryRequests,
             "collectRequests" => $collectRequests,
             "purchaseRequests" => $purchaseRequests,
@@ -357,5 +370,95 @@ class CartController extends AbstractController
             "messages" => $response,
             "cartQuantity" => $cart->getArticles()->count() ?? $cart->getReferences()->count()
         ]);
+    }
+
+
+    #[Route("/articles-logistics-unit-api", name: "articles_logistics_unit_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    //#[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
+    public function getLogisticsUnitAndArticlesApi(): JsonResponse {
+
+
+        $articlesInCart = $this->getUser()->getCart()->getArticles();
+        $logisticsUnits = [];
+        foreach ($articlesInCart as $article) {
+            if (!in_array($article->getCurrentLogisticUnit(), $logisticsUnits)) {
+                array_push($logisticsUnits, $article->getCurrentLogisticUnit());
+            }
+        }
+        foreach ($logisticsUnits as $logisticsUnit) {
+            $articles = [];
+            foreach ($articlesInCart as $article) {
+                if ($article->getCurrentLogisticUnit()?->getId() == $logisticsUnit->getId()) {
+                    array_push($articles,array(
+                        'id' => $article->getId(),
+                        'reference' => $article->getReference(),
+                        'barCode' => $article->getBarCode(),
+                        'label' => $article->getLabel(),
+                        'batch' => $article->getBatch(),
+                        'quantity' => $article->getQuantite(),
+                        'actions' => $this->renderView('cart/datatableRemoveArticle.html.twig', [
+                            'articleId' => $article->getId()
+                        ]),
+                    ));
+                }
+            }
+            $result[] = [
+                'pack' => [
+                    "packId" => $logisticsUnit->getId(),
+                    "code" => $logisticsUnit->getCode() ?? null,
+                    "location" => $logisticsUnit->getLastDrop()?->getEmplacement()?->getLabel() ?? null,
+                    "project" => $logisticsUnit->getProject()?->getCode() ?? null,
+                    "nature" => $logisticsUnit->getNature()?->getLabel() ?? null,
+                    "color" => $logisticsUnit->getNature()?->getColor() ?? null,
+                    "quantity" => $logisticsUnit->getQuantity() ?? null,
+                    "quantityArticleInLocation" => count($logisticsUnit->getChildArticles()) ?? null,
+                    "articles" => $articles ?? null,
+                ]
+            ];
+        }
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("cart/line-list.html.twig", [
+                "lines" => $result,
+            ]),
+        ]);
+    }
+
+    #[Route("/articles-remove-row-cart-api", name: "articles_remove_row_cart_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function deleteRow(EntityManagerInterface $entityManager, Request $request): Response {
+        try {
+            $type = $request->query->get('type');
+            $cart = $this->getUser()?->getCart();
+            if ($type == 'article') {
+                $articleId = $request->query->get('id');
+                $articleRepository = $entityManager->getRepository(Article::class);
+                $article = $articleRepository->find($articleId);
+                $cart->removeArticle($article);
+                $entityManager->flush();
+                return $this->json([
+                    "success" => true,
+                    "msg" => "L'article a bien été supprimé du panier",
+                ]);
+            }elseif ($type == 'ul') {
+                $packId = $request->query->get('id');
+                $articles = $cart->getArticles();
+                foreach ($articles as $article) {
+                    if ($article->getCurrentLogisticUnit()?->getId() == $packId) {
+                        $cart->removeArticle($article);
+                    }
+                }
+                $entityManager->flush();
+
+                return $this->json([
+                    "success" => true,
+                    "msg" => "L'unité logistique a bien été supprimé du panier",
+                ]);
+            }
+        } catch(Throwable $e) {
+            return $this->json([
+                "success" => false,
+                "msg" => $e->getMessage(),
+            ]);
+        }
     }
 }

@@ -289,15 +289,3 @@ function toExport() {
         );
     }
 }
-
-function toggleAddAllToCartButton() {
-    const $addAllCart = $('.add-all-cart').parent();
-    if ($('.add-cart').length === 0) {
-        console.log('== 1')
-        $addAllCart.addClass('d-none');
-    }
-    else {
-        console.log('== 2')
-        $addAllCart.removeClass('d-none');
-    }
-}
