@@ -1035,12 +1035,12 @@ class ReferenceArticleController extends AbstractController
                 $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
                 $options['barcode'] = $article->getBarCode();
                 $kioskService->printLabel($options, $entityManager);
-
-                if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
-                    $notificationService->toTreat($ordreCollecte);
-                }
             } else {
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
+            }
+
+            if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+                $notificationService->toTreat($ordreCollecte);
             }
 
             $ordreCollecte->addArticle($article);
