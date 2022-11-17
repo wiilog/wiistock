@@ -971,8 +971,8 @@ class ReferenceArticleController extends AbstractController
             $supplierArticle = $articleFournisseurService->createArticleFournisseur([
                 'fournisseur' => $provider,
                 'article-reference' => $reference,
-                'label' => $provider->getNom(),
-                'reference' => $provider->getCodeReference(),
+                'label' => $reference->getReference(),
+                'reference' => $reference->getReference(),
                 'visible' => $reference->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS
             ], true);
             $entityManager->persist($supplierArticle);

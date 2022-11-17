@@ -49,7 +49,7 @@ class KioskUserFixtures extends Fixture implements FixtureGroupInterface
             $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
             $noAccessRole = $roleRepository->findByLabel(Role::NO_ACCESS_USER);
-            $kioskEmail = 'kiosk';
+            $kioskEmail = 'borne';
 
             $existing = $userRepository->getKioskUser();
             if (empty($existing)) {
