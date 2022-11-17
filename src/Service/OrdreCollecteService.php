@@ -10,6 +10,7 @@ use App\Entity\FiltreSup;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\MouvementStock;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
@@ -113,6 +114,8 @@ class OrdreCollecteService
 		$em = $this->entityManager;
 
 		$statutRepository = $em->getRepository(Statut::class);
+		$settingRepository = $em->getRepository(Setting::class);
+        $userRepository = $em->getRepository(Utilisateur::class);
 		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
         $emplacementRepository = $em->getRepository(Emplacement::class);
         $referenceArticleRepository = $em->getRepository(ReferenceArticle::class);
@@ -287,6 +290,10 @@ class OrdreCollecteService
 
 		$partialCollect = !empty($rowsToRemove);
 
+        $to = $demandeCollecte->getDemandeur()->getId() === $userRepository->getKioskUser()->getId() ?
+            $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER)) :
+            $demandeCollecte->getDemandeur();
+
         $this->mailerService->sendMail(
             'FOLLOW GT // Collecte effectuée',
             $this->templating->render(
@@ -299,7 +306,7 @@ class OrdreCollecteService
                     'demande' => $demandeCollecte,
                 ]
             ),
-            $demandeCollecte->getDemandeur()
+            $to
         );
 
 		return $newCollecte ?? null;

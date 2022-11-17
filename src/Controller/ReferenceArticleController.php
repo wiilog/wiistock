@@ -939,14 +939,19 @@ class ReferenceArticleController extends AbstractController
 
         $reference = $refArticleRepository->findOneBy(['reference' => $data['reference']]) ?? new ReferenceArticle();
         $referenceExist = isset($data['article']);
-        $reference->setReference($data['reference'])
+        $reference
+            ->setReference($data['reference'])
             ->setLibelle($data['label'])
-            ->setType($type)
             ->setStatut($status)
             ->setCommentaire($data['comment'])
-            ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE)
             ->setCreatedBy($userRepository->getKioskUser())
             ->setCreatedAt(new DateTime());
+
+        if(!$referenceExist){
+            $reference
+                ->setType($type)
+                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);
+        }
 
         foreach ([$applicant, $follower] as $user) {
             $reference->addManager($user);
