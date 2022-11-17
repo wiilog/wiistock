@@ -1,0 +1,29 @@
+{% for line in lines %}
+    {% set logisticsUnit = line.pack ?? null %}
+    {% include 'pack/utils/packItemListTemplate.html.twig' with {
+        data: {
+            'line-id': logisticsUnit.packId
+        },
+        header: logisticsUnit
+        ? {
+            data: {
+                'pack-id': logisticsUnit.packId,
+            },
+            sideLabel: logisticsUnit.nature,
+            color: logisticsUnit.color,
+            content: [
+                {label: 'Unité logistique', value: logisticsUnit.code, bold: 'value'},
+                {label: 'Emplacement', value: logisticsUnit.location, bold: 'label'},
+                {label: 'Nombre d\'articles demandé', value: logisticsUnit.articles|length~'/'~logisticsUnit.quantityArticleInLocation, bold: 'label'}
+            ]
+        },
+        content: logisticsUnit.articles,
+        action: {
+            icon: "",
+            datatarget: "",
+            class: "d-none",
+            onclick: "",
+        }
+    } %}
+{% endfor %}
+

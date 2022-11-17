@@ -14,6 +14,7 @@ $(function () {
         columns: [
             {data: 'Actions', title: '', className: 'noVis', orderable: false},
             {data: 'reference', title: 'Référence'},
+            {data: 'barCode', title: 'Code barre'},
             {data: 'label', title: 'Libellé'},
             {data: 'location', title: 'Emplacement'},
             {data: 'quantity', title: 'Quantité'},
@@ -24,7 +25,48 @@ $(function () {
         order: [['reference', "asc"]]
     };
     initDataTable('tableArticle_id', tableArticleConfig);
+    loadLogisticUnitPack(deliveryId);
 });
+
+function loadLogisticUnitPack(deliveryId) {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    wrapLoadingOnActionButton(
+        $logisticUnitsContainer,
+        () => (
+            AJAX.route('POST', 'livraison_ul_api', {id: deliveryId})
+                .json()
+                .then(({html}) => {
+                    $logisticUnitsContainer.html(html);
+                    $logisticUnitsContainer.find('.articles-container table')
+                        .each(function() {
+                            const $table = $(this);
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                columns: [
+                                    {data: 'Actions', title: '', className: 'noVis', orderable: false},
+                                    {data: 'reference', title: 'Référence'},
+                                    {data: 'barCode', title: 'Code barre'},
+                                    {data: 'label', title: 'Libellé'},
+                                    {data: 'quantity', title: 'Quantité'},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                    needsColor: true,
+                                    dataToCheck: 'emergency',
+                                    color: 'danger',
+                                },
+                            })
+                        });
+                })
+        )
+    );
+}
 
 function endLivraison($button) {
     wrapLoadingOnActionButton(

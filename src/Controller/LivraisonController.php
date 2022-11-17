@@ -112,6 +112,61 @@ class LivraisonController extends AbstractController
     }
 
     /**
+     * @Route("/api-ul/{id}", name="livraison_ul_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR}, mode=HasPermission::IN_JSON)
+     */
+    public function apiUL(Livraison $livraison): Response
+    {
+        $preparation = $livraison->getPreparation();
+        if ($preparation) {
+            $logisticsUnits = [];
+            foreach ($preparation->getArticleLines() as $articleLine) {
+                $article = $articleLine->getArticle();
+                if ($article->getCurrentLogisticUnit() && !in_array($article->getCurrentLogisticUnit(), $logisticsUnits)) {
+                    array_push($logisticsUnits, $article->getCurrentLogisticUnit());
+                }
+            }
+            $result = [];
+            foreach ($logisticsUnits as $logisticsUnit) {
+                $articles = [];
+                foreach ($preparation->getArticleLines() as $articleLine) {
+                    $article = $articleLine->getArticle();
+                    if ($article->getCurrentLogisticUnit()?->getId() == $logisticsUnit->getId()) {
+                        array_push($articles, [
+                                "reference" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                                "barCode" => $article->getBarCode() ?: '',
+                                "label" => $article->getLabel() ?: '',
+                                "quantity" => $articleLine->getPickedQuantity(),
+                                "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                                    'id' => $article->getId(),
+                                ])
+                        ]);
+                    }
+                }
+                $result[] = [
+                    'pack' => [
+                        "packId" => $logisticsUnit->getId(),
+                        "code" => $logisticsUnit->getCode() ?? null,
+                        "location" => $logisticsUnit->getLastDrop()?->getEmplacement()?->getLabel() ?? null,
+                        "project" => $logisticsUnit->getProject()?->getCode() ?? null,
+                        "nature" => $logisticsUnit->getNature()?->getLabel() ?? null,
+                        "color" => $logisticsUnit->getNature()?->getColor() ?? null,
+                        "quantity" => $logisticsUnit->getQuantity() ?? null,
+                        "quantityArticleInLocation" => count($logisticsUnit->getChildArticles()) ?? null,
+                        "articles" => $articles ?? null,
+                    ]
+                ];
+            }
+        }
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("livraison/line-list.html.twig", [
+                "lines" => $result ?? [],
+            ]),
+        ]);
+    }
+
+    /**
      * @Route("/api-article/{id}", name="livraison_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR}, mode=HasPermission::IN_JSON)
      */
@@ -124,9 +179,10 @@ class LivraisonController extends AbstractController
             /** @var PreparationOrderArticleLine $articleLine */
             foreach ($preparation->getArticleLines() as $articleLine) {
                 $article = $articleLine->getArticle();
-                if ($articleLine->getQuantityToPick() !== 0 && $articleLine->getPickedQuantity() !== 0) {
+                if ($articleLine->getQuantityToPick() !== 0 && $articleLine->getPickedQuantity() !== 0 && !$article->getCurrentLogisticUnit()) {
                     $rows[] = [
                         "reference" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "barCode" => $article->getBarCode() ?: '',
                         "label" => $article->getLabel() ?: '',
                         "location" => FormatHelper::location($article->getEmplacement()),
                         "quantity" => $articleLine->getPickedQuantity(),
@@ -144,6 +200,7 @@ class LivraisonController extends AbstractController
                     $rows[] = [
                         "reference" => $reference->getReference(),
                         "label" => $reference->getLibelle(),
+                        "barCode" => $reference->getBarCode() ?: '',
                         "location" =>  FormatHelper::location($reference->getEmplacement()),
                         "quantity" => $referenceLine->getPickedQuantity(),
                         "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
@@ -185,6 +242,8 @@ class LivraisonController extends AbstractController
                 [ 'label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande) ],
                 [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],
                 [ 'label' => 'Date de livraison', 'value' => $dateLivraison ? $dateLivraison->format('d/m/Y') : '' ],
+                [ 'label' => 'Date attendue', 'value' => $demande ? $demande->getExpectedAt()?->format('d/m/Y') : '' ],
+                [ 'label' => 'Projet', 'value' => $demande ? $demande->getProject()?->getCode() : '' ],
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
