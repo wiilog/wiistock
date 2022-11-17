@@ -59,7 +59,7 @@ class ReceptionLine {
     }
 
     public function hasPack(): bool {
-        return $this->pack !== null;
+        return isset($this->pack);
     }
 
     /**

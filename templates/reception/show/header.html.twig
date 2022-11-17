@@ -1,6 +1,5 @@
 {% extends 'utils/show-header.html.twig' %}
 
-
 {% block showHiddenInputs %}
     <input id="receptionId" value="{{ reception.id }}" type="hidden"/>
 {% endblock %}
@@ -20,13 +19,6 @@
 
         {% if canReceive %}
             <button type="button"
-                    data-target='#modalNewLigneReception'
-                    data-toggle='modal'
-                    onclick="openModalLigneReception($(this))"
-                    class="btn btn-primary split-button" title="réception">
-                {{ trans('Ordre','Réceptions', 'réception', false) }}
-            </button>
-            <button type="button"
                     class="btn btn-primary d-flex align-items-center {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
                     onclick="finishReception({{ reception.id }}, false,$(this))"
                     id="finishReceptionButton">
@@ -35,20 +27,20 @@
             </button>
         {% endif %}
         {% if dropdownNeedsToBeDisplayed %}
-        <button type="button"
-                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false">
-            <span class="fa fa-angle-down"></span>
-        </button>
-        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            {% if canReceive %}
-                <a data-id='{{ reception.id }}'
-                   data-target='#modalEditReception'
-                   data-toggle='modal'
-                   class="dropdown-item pointer"
-                   onclick="editRow(
+            <button type="button"
+                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                <span class="fa fa-angle-down"></span>
+            </button>
+            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                {% if canReceive %}
+                    <a data-id='{{ reception.id }}'
+                       data-target='#modalEditReception'
+                       data-toggle='modal'
+                       class="dropdown-item pointer"
+                       onclick="editRow(
                            $(this),
                            Routing.generate('api_reception_edit', true),
                            $('#modalEditReception'),
@@ -56,47 +48,47 @@
                            false,
                            initEditReception
                        )">
-                    <i class="fa fa-edit mr-2"></i>Modifier
-                </a>
-            {% endif %}
-            {% if not modifiable %}
-                <a data-id='{{ reception.id }}'
-                   data-target='#modalCancelReception'
-                   data-toggle='modal'
-                   class="dropdown-item pointer d-flex align-items-center">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Annuler {{ trans('Ordre','Réceptions', 'cette réception', false) }}</a>
-            {% endif %}
-            {% if hasDemande %}
-                <a href="{{ path('demande_index', {'reception': reception.id }) }}"
-                   class="dropdown-item">
-                    <i class="mr-2 fas fa-external-link-alt"></i>Voir les demandes de livraison</a>
-            {% endif %}
-            {% if hasTransfer %}
-                <a href="{{ path('transfer_order_index', {'reception': reception.id }) }}"
-                   class="dropdown-item">
-                    <i class="mr-2 fas fa-external-link-alt"></i>Voir les ordres de transfert</a>
-            {% endif %}
-            {% if reception.purchaseRequestLines is not empty %}
-                {% set firstPurchaseRequestLine = reception.purchaseRequestLines|first %}
-                <a href="{{ path('purchase_request_show', {'id': firstPurchaseRequestLine.purchaseRequest.id }) }}"
-                   class="dropdown-item">
-                    <i class="mr-2 fas fa-external-link-alt"></i>Aller sur la demande d'achat</a>
-            {% endif %}
-            {% if canDelete %}
-                <a data-id='{{ reception.id }}'
-                   data-target='#modalDeleteReception'
-                   data-toggle='modal'
-                   class="dropdown-item pointer d-flex align-items-center"
-                   onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer</a>
-            {% endif %}
-            {% if hasArrival %}
-                <a href="{{ path('arrivage_show', {'id': reception.arrival.id}) }}"
-                   class="dropdown-item">
-                    <span class="wii-icon wii-icon-arrival wii-icon-17px-black mr-2"></span>{{ trans('Flux - Arrivages', 'Divers', 'Arrivage', false) }}
-                </a>
-            {% endif %}
-        </div>
+                        <i class="fa fa-edit mr-2"></i>Modifier
+                    </a>
+                {% endif %}
+                {% if not modifiable %}
+                    <a data-id='{{ reception.id }}'
+                       data-target='#modalCancelReception'
+                       data-toggle='modal'
+                       class="dropdown-item pointer d-flex align-items-center">
+                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Annuler {{ trans('Ordre','Réceptions', 'cette réception', false) }}</a>
+                {% endif %}
+                {% if hasDemande %}
+                    <a href="{{ path('demande_index', {'reception': reception.id }) }}"
+                       class="dropdown-item">
+                        <i class="mr-2 fas fa-external-link-alt"></i>Voir les demandes de livraison</a>
+                {% endif %}
+                {% if hasTransfer %}
+                    <a href="{{ path('transfer_order_index', {'reception': reception.id }) }}"
+                       class="dropdown-item">
+                        <i class="mr-2 fas fa-external-link-alt"></i>Voir les ordres de transfert</a>
+                {% endif %}
+                {% if reception.purchaseRequestLines is not empty %}
+                    {% set firstPurchaseRequestLine = reception.purchaseRequestLines|first %}
+                    <a href="{{ path('purchase_request_show', {'id': firstPurchaseRequestLine.purchaseRequest.id }) }}"
+                       class="dropdown-item">
+                        <i class="mr-2 fas fa-external-link-alt"></i>Aller sur la demande d'achat</a>
+                {% endif %}
+                {% if canDelete %}
+                    <a data-id='{{ reception.id }}'
+                       data-target='#modalDeleteReception'
+                       data-toggle='modal'
+                       class="dropdown-item pointer d-flex align-items-center"
+                       onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
+                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer</a>
+                {% endif %}
+                {% if hasArrival %}
+                    <a href="{{ path('arrivage_show', {'id': reception.arrival.id}) }}"
+                       class="dropdown-item">
+                        <span class="wii-icon wii-icon-arrival wii-icon-17px-black mr-2"></span>{{ trans('Flux - Arrivages', 'Divers', 'Arrivage', false) }}
+                    </a>
+                {% endif %}
+            </div>
         {% endif %}
     </div>
 {% endblock %}

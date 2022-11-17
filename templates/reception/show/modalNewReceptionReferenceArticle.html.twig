@@ -1,4 +1,4 @@
-<div id="modalAddLigneArticle" class="modal fade" role="dialog"
+<div id="modalNewReceptionReferenceArticle" class="modal fade" role="dialog"
       data-modal-type="new" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered"
          role="document">
@@ -33,7 +33,7 @@
                             {% endif %}
                         </div>
                     </div>
-                    {% if reception.arrival is not null %}
+                    {% if reception.hasPacks %}
                         <div class="form-group col-xl-6 col-12">
                             <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
                             <select class="ajax-autocomplete w-100 data form-control wii-field-text"
@@ -105,13 +105,13 @@
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler', event: "clearModal($(this).parents('#modalAddLigneArticle'))"},
-                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'addArticleLigneSubmit'},
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler', event: "clearModal($(this).parents('#modalNewReceptionReferenceArticle'))"},
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: "submit"},
                     {
                         classes: 'btn btn-success d-none',
                         text: 'Réceptionner les articles',
                         id: 'addArticleLigneSubmitAndRedirect',
-                        event: 'openModalLigneReception($(this))'
+                        event: 'openModalNewReceptionReferenceArticle($(this))'
                     },
                 ],
             } %}

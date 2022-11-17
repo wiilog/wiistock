@@ -12,6 +12,7 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
@@ -1118,33 +1119,33 @@ class ReferenceArticleRepository extends EntityRepository {
         return $queryBuilder;
     }
 
-    public function getRefTypeQtyArticleByReception($id, $reference = null, $commande = null)
+    public function getRefTypeQtyArticleByReception($id, ?ReceptionReferenceArticle $receptionReferenceArticle)
     {
 
         $queryBuilder = $this->createQueryBuilder('ra')
-            ->select('ra.reference as reference')
-            ->addSelect('rra.commande as commande')
-            ->join('ra.receptionReferenceArticles', 'rra')
-            ->join('rra.receptionLine', 'rl')
-            ->join('rl.reception', 'r')
-            ->andWhere('r.id = :id')
-            ->andWhere('(rra.quantiteAR > rra.quantite OR rra.quantite IS NULL)')
+            ->select('receptionReferenceArticle.id AS id')
+            ->addSelect('ra.reference AS reference')
+            ->addSelect('receptionReferenceArticle.commande AS commande')
+            ->addSelect('pack.code AS packCode')
+            ->addSelect('pack.id AS packId')
+            ->addSelect('project.code AS packProject')
+            ->join('ra.receptionReferenceArticles', 'receptionReferenceArticle')
+            ->join('receptionReferenceArticle.receptionLine', 'receptionLine')
+            ->leftJoin('receptionLine.pack', 'pack')
+            ->leftJoin('pack.project', 'project')
+            ->join('receptionLine.reception', 'reception')
+            ->andWhere('reception.id = :id')
+            ->andWhere('(receptionReferenceArticle.quantiteAR > receptionReferenceArticle.quantite OR receptionReferenceArticle.quantite IS NULL)')
             ->andWhere('ra.typeQuantite = :typeQty')
             ->setParameters([
                 'id' => $id,
                 'typeQty' => ReferenceArticle::QUANTITY_TYPE_ARTICLE
             ]);
 
-        if (!empty($reference)) {
+        if (!empty($receptionReferenceArticle)) {
             $queryBuilder
-                ->andWhere('ra.reference = :reference')
-                ->setParameter('reference', $reference);
-        }
-
-        if (!empty($commande)) {
-            $queryBuilder
-                ->andWhere('rra.commande = :commande')
-                ->setParameter('commande', $commande);
+                ->andWhere('receptionReferenceArticle = :receptionReferenceArticle_value')
+                ->setParameter('receptionReferenceArticle_value', $receptionReferenceArticle);
         }
 
         return $queryBuilder

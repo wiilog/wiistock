@@ -19,15 +19,17 @@
             {% if modifiable %}
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <div class="d-none">
-                        <div class="action-on-click" data-id='{{ ligneId }}' data-toggle='modal' data-target='#modalEditLigneArticle'
-                             onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle')),
-                                      clearModal('#modalEditLigneArticle')">
+                        <div class="action-on-click" data-id='{{ ligneId }}' data-toggle='modal' data-target='#modalEditReceptionReferenceArticle'
+                             onclick="editRow($(this), Routing.generate('reception_reference_article_edit_api', true), $('#modalEditReceptionReferenceArticle'), $('#submitEditLigneArticle')),
+                                      clearModal('#modalEditReceptionReferenceArticle')">
                             <i class='fas fa-pencil-alt'></i>
                         </div>
                     </div>
                     <div class="dropdown-item d-flex align-items-center"
-                         onclick="checkAndDeleteRow($(this), '#modalDeleteLigneArticle', 'ligne_recep_check_delete', '#submitDeleteLigneArticle')"
-                         data-id='{{ ligneId }}' data-target='#modalDeleteLigneArticle' data-toggle='modal'>
+                         onclick="checkAndDeleteRow($(this), '#modalDeleteReceptionReferenceArticle', 'reception_reference_article_check_delete', '#submitDeleteReceptionReferenceArticle')"
+                         data-id='{{ ligneId }}'
+                         data-target='#modalDeleteReceptionReferenceArticle'
+                         data-toggle='modal'>
                         <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
                     </div>
                 {% endif %}

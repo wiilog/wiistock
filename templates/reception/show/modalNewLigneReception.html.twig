@@ -5,10 +5,10 @@
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="nouvelle réception">' ~ trans('Ordre','Réceptions', 'nouvelle réception', false) ~ '</span>'
+                title: trans('Ordre','Réceptions', 'nouvelle réception')
             } %}
             <div class="modal-body">
-                <div class="row">
+                <div class="row reference-container">
                     <div class="form-group col-4">
                         <label class="wii-field-name">Référence</label>
                         <select id="referenceConditionnement"
@@ -19,9 +19,24 @@
                         <label class="wii-field-name">Référence fournisseur</label>
                         <select class="form-control data select2 w-100" name="articleFournisseurDefault"></select>
                     </div>
+                    {% if reception %}
+                        <div class="form-group col-4">
+                            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
+                            <select class="w-100 data form-control wii-field-text"
+                                    name="pack"
+                                    data-s2="receptionLogisticUnits"
+                                    data-other-params
+                                    data-other-params-reception="{{ reception.id }}">
+                            </select>
+                        </div>
+                    {% endif %}
                 </div>
 
-                <div class="row packing-container"></div>
+                <div class="row packing-container"
+                     data-form-id="packing-container-form"
+                     data-loader-color="primary"
+                     data-loader-size="normal">
+                </div>
 
                 <div class="wii-section-title d-none my-4">Génération d'articles</div>
                 <div class="articles-container mt-3"></div>
@@ -120,11 +135,7 @@
                         {% endfor %}
                     </div>
 
-                    <label class="wii-field-name">Commentaire</label>
-                    <input class="commentaire data"
-                           name="commentaire"
-                           type="hidden"/>
-                    <div class="editor-container" data-wysiwyg></div>
+                    {{ form.wysiwyg('commentaire', 'Commentaire', false) }}
                 </div>
             </div>
 
@@ -136,7 +147,7 @@
                 classes: 'd-none',
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
-                    {id: 'submitNewReceptionButton', classes: 'btn btn-success', text: 'Enregistrer'}
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: "submit"}
                 ]
             } %}
 
