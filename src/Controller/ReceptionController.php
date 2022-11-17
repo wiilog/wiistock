@@ -556,10 +556,10 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/add-reception-reference-article", name="reception_reference_article_add", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/new-reception-reference-article", name="reception_reference_article_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function addReceptionReferenceArticle(EntityManagerInterface $entityManager,
+    public function newReceptionReferenceArticle(EntityManagerInterface $entityManager,
                                                  ReceptionService       $receptionService,
                                                  ReceptionLineService   $receptionLineService,
                                                  Request                $request): Response {
@@ -712,6 +712,12 @@ class ReceptionController extends AbstractController {
                     $receptionLine = $newReceptionLine;
                     $receptionReferenceArticle->setReceptionLine($receptionLine);
                 }
+            }
+
+            /* Only reference by article in the reception's packs */
+            if (isset($pack)
+                && $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+                throw new FormException('Vous pouvez uniquement ajouter des références gérées par article aux unités logistiques et il s\'agit d\'une référence gérée par référence.');
             }
 
             $receivedQuantity = $receptionReferenceArticle->getQuantite();
@@ -1433,7 +1439,7 @@ class ReceptionController extends AbstractController {
 
 
     /**
-     * @Route("/{reception}/ligne-article/{ligneArticle}/etiquette", name="reception_ligne_article_bar_code_print", options={"expose"=true})
+     * @Route("/{reception}/ligne-article/{receptionReferenceArticle}/etiquette", name="reception_ligne_article_bar_code_print", options={"expose"=true})
      */
     public function getReceptionLigneArticleBarCode(Reception                 $reception,
                                                     ReceptionReferenceArticle $receptionReferenceArticle,
