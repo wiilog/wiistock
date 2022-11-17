@@ -901,10 +901,9 @@ class ReferenceArticleController extends AbstractController
         $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
 
         return $this->json([
-                'exists' => $reference !== null,
-                'inStock' => $reference?->getQuantiteStock() > 0,
-            ]
-        );
+            'exists' => $reference !== null,
+            'inStock' => $reference?->getQuantiteStock() > 0,
+        ]);
     }
 
     #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["GET|POST"])]
@@ -1032,13 +1031,14 @@ class ReferenceArticleController extends AbstractController
                 $options['barcode'] = $article->getBarCode();
                 $kioskService->printLabel($options, $entityManager);
 
-                $ordreCollecte->addArticle($article);
-
                 if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
                     $notificationService->toTreat($ordreCollecte);
                 }
+            } else {
+                $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
             }
 
+            $ordreCollecte->addArticle($article);
             $entityManager->persist($ordreCollecte);
         } catch(Exception $exception) {
             return new JsonResponse([
