@@ -906,10 +906,9 @@ class ReferenceArticleController extends AbstractController
         $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
 
         return $this->json([
-                'exists' => $reference !== null,
-                'inStock' => $reference?->getQuantiteStock() > 0,
-            ]
-        );
+            'exists' => $reference !== null,
+            'inStock' => $reference?->getQuantiteStock() > 0,
+        ]);
     }
 
     #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["GET|POST"])]

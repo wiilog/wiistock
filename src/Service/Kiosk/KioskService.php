@@ -48,7 +48,7 @@ class KioskService
         }
 
         if ($labelTypeIs128){
-            $code = BarCode128::create($this->convertLocation( $printerLabelWidth, 25), $this->convertLocation( $printerLabelHeight, 20))
+            $code = BarCode128::create($this->convertLocation($printerLabelWidth, 25), $this->convertLocation($printerLabelHeight, 20))
                 ->setContent($options['barcode'])
                 ->setAlignment(Align::CENTER)
                 ->setDisplayText(true)
