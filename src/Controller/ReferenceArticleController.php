@@ -13,6 +13,7 @@ use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
@@ -632,8 +633,9 @@ class ReferenceArticleController extends AbstractController
      * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
-    public function showPage(ReferenceArticle $referenceArticle, RefArticleDataService $refArticleDataService, EntityManagerInterface $manager): Response {
+    public function showPage(Request $request, ReferenceArticle $referenceArticle, RefArticleDataService $refArticleDataService, EntityManagerInterface $manager): Response {
         $type = $referenceArticle->getType();
+        $showOnly = $request->query->getBoolean('showOnly');
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
@@ -651,8 +653,7 @@ class ReferenceArticleController extends AbstractController
                                 ($article->getStatut() && $article->getStatut()?->getCode() === Article::STATUT_ACTIF)
                                     ? $carry + $article->getQuantite()
                                     : $carry
-                            ),
-                            0
+                            )
                         )
                 ];
                 return $carry;
@@ -662,6 +663,7 @@ class ReferenceArticleController extends AbstractController
             'referenceArticle' => $referenceArticle,
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
+            'showOnly' => $showOnly
         ]);
     }
 
@@ -936,13 +938,15 @@ class ReferenceArticleController extends AbstractController
         $reference->setReference($data['reference'])
             ->setLibelle($data['label'])
             ->setType($type)
-            ->addManager($applicant)
-            ->addManager($follower)
             ->setStatut($status)
             ->setCommentaire($data['comment'])
             ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE)
             ->setCreatedBy($userRepository->getKioskUser())
             ->setCreatedAt(new DateTime());
+
+        foreach ([$applicant, $follower] as $user) {
+            $reference->addManager($user);
+        }
         if(!$referenceExist){
             $reference->setBarCode($refArticleDataService->generateBarCode());
         }
@@ -957,29 +961,23 @@ class ReferenceArticleController extends AbstractController
         }
 
         $entityManager->persist($reference);
-        try {
+        if(!$referenceExist) {
+            $provider = $entityManager->getRepository(Fournisseur::class)->find($settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_REFERENCE_CREATE));
             $supplierArticle = $articleFournisseurService->createArticleFournisseur([
-                'fournisseur' => $settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_REFERENCE_CREATE),
+                'fournisseur' => $provider,
                 'article-reference' => $reference,
-                'label' => $settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_LABEL_REFERENCE_CREATE) ?? '',
-                'reference' => $settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_REFERENCE_CREATE),
+                'label' => $reference->getReference(),
+                'reference' => $reference->getReference(),
                 'visible' => $reference->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS
             ], true);
             $entityManager->persist($supplierArticle);
             $reference->addArticleFournisseur($supplierArticle);
-        } catch (Exception $exception) {
-            if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => "La référence ".$data['reference']." existe déjà pour un article fournisseur.",
-                ]);
-            }
         }
 
         if(!empty($data['freeField'])){
             $freeFieldService->manageFreeFields($reference, [
                 $data['freeField'][0] => $data['freeField'][1]
-            ],  $entityManager);
+            ], $entityManager);
         }
 
         try {

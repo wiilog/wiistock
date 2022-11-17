@@ -181,49 +181,57 @@ $(function () {
     });
 
     $('.validate-stock-entry-button').on('click', function () {
-        $modalWaiting.modal('show');
-        let $freeFieldLabel = $('.free-field-label');
-        let freeFieldValue = $freeFieldLabel.find('input').val()
-            || $freeFieldLabel.find('textarea').val()
-            || $freeFieldLabel.find('select').find('option:selected').data('label');
-        let freeFieldId = $('input[name=free-field-id]').val();
-        wrapLoadingOnActionButton($(this), () => (
-            AJAX.route(GET, 'entry_stock_validate', {
-                reference: $('input[name=reference-ref-input]').val(),
-                label: $('input[name=reference-label-input]').val(),
-                article: $('input[name=reference-article-input]').val() || null,
-                applicant: $('select[name=applicant] option:selected').val(),
-                follower: $('select[name=follower] option:selected').val(),
-                comment: $('input[name=reference-comment]').val(),
-                freeField: freeFieldId && freeFieldValue ? [freeFieldId, freeFieldValue] : [],
-            }).json().then(({success, referenceExist, successMessage}) => {
-                $modalWaiting.modal('hide');
-                if (success) {
-                    const $successPage = $('.success-page-container');
-                    $('.main-page-container').addClass('d-none');
+        const $entryStockContainer = $(this).closest(`.entry-stock-container`);
+        const {success} = ProcessForm($entryStockContainer);
+        if(success) {
+            $modalWaiting.modal('show');
+            const $freeFieldLabel = $('.free-field-label');
+            const freeFieldValue = $freeFieldLabel.find('input').val()
+                || $freeFieldLabel.find('textarea').val()
+                || $freeFieldLabel.find('select').find('option:selected').data('label');
+            const freeFieldId = $('input[name=free-field-id]').val();
+            wrapLoadingOnActionButton($(this), () => (
+                AJAX.route(GET, 'entry_stock_validate', {
+                    reference: $('input[name=reference-ref-input]').val(),
+                    label: $('input[name=reference-label-input]').val(),
+                    article: $('input[name=reference-article-input]').val() || null,
+                    applicant: $('select[name=applicant] option:selected').val(),
+                    follower: $('select[name=follower] option:selected').val(),
+                    comment: $('input[name=reference-comment]').val(),
+                    freeField: freeFieldId && freeFieldValue ? [freeFieldId, freeFieldValue] : [],
+                }).json().then(({success, referenceExist, successMessage}) => {
+                    $modalWaiting.modal('hide');
+                    if (success) {
+                        const $successPage = $('.success-page-container');
+                        $('.main-page-container').addClass('d-none');
 
-                    $('.go-home-button').on('click', function () {
-                        const {token} = GetRequestQuery();
-                        window.location.href = Routing.generate('kiosk_index', {token}, true);
-                    });
+                        $('.go-home-button').on('click', function () {
+                            const {token} = GetRequestQuery();
+                            window.location.href = Routing.generate('kiosk_index', {token}, true);
+                        });
 
-                    if (referenceExist) {
-                        $('.print-again-button').addClass('d-none');
-                        $('.article-entry-stock-success .field-success-page').html(successMessage);
-                        $('.article-entry-stock-success').removeClass('d-none');
-                    } else {
-                        $('.ref-entry-stock-success .field-success-page').html(successMessage);
-                        $('.ref-entry-stock-success').removeClass('d-none');
+                        if (referenceExist) {
+                            $('.print-again-button').addClass('d-none');
+                            $('.article-entry-stock-success .field-success-page').html(successMessage);
+                            $('.article-entry-stock-success').removeClass('d-none');
+                        } else {
+                            $('.ref-entry-stock-success .field-success-page').html(successMessage);
+                            $('.ref-entry-stock-success').removeClass('d-none');
+                        }
+
+                        $successPage.removeClass('d-none');
+                        $successPage.find('.bookmark-icon').removeClass('d-none');
+                        setTimeout(() => {
+                            const {token} = GetRequestQuery();
+                            window.location.href = Routing.generate('kiosk_index', {token}, true);
+                        }, 10000);
                     }
-
-                    $successPage.removeClass('d-none');
-                    $successPage.find('.bookmark-icon').removeClass('d-none');
-                    setTimeout(() => {
-                        const {token} = GetRequestQuery();
-                        window.location.href = Routing.generate('kiosk_index', {token}, true);
-                    }, 10000);
-                }
-            })));
+                })));
+        } else {
+            const $modalMissingRequiredFields = $(`#modal-missing-required-fields`);
+            $modalMissingRequiredFields.modal(`show`);
+            $modalMissingRequiredFields.find(`.bookmark-warning`).removeClass(`d-none`);
+        }
     });
 
     $('#submitGiveUpStockEntry').on('click', function () {
