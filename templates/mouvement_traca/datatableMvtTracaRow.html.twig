@@ -1,11 +1,10 @@
 <div class="d-flex">
     <div class="dropdown dropright">
         <div class="d-flex">
-            {% include "utils/action-buttons.html.twig" with {
-                noButton: true,
+            {% include "utils/action-buttons/header-buttons.html.twig" with {
                 actions: [
                     {
-                        title: trans('Général', '', 'Modale', 'Détails', false),
+                        title: trans('Général', '', 'Modale', 'Détails'),
                         icon: "fas fa-eye",
                         attributes: {
                             "data-id": mvt.id,
@@ -16,7 +15,7 @@
                     },
                     {
                         hasRight: hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')),
-                        title: trans('Général', '', 'Modale', 'Modifier', false),
+                        title: trans('Général', '', 'Modale', 'Modifier'),
                         icon: "fas fa-pencil-alt",
                         class: "d-none action-on-click",
                         attributes: {
@@ -28,8 +27,8 @@
                     },
                     {
                         hasRight: hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')),
-                        title : trans('Général', '', 'Modale', 'Supprimer', false),
-                        icon : "wii-icon wii-icon-trash-black",
+                        title: trans('Général', '', 'Modale', 'Supprimer'),
+                        icon: "wii-icon wii-icon-trash-black",
                         attributes: {
                             "data-id": mvt.id,
                             "data-target": "#modalDeleteMvtTraca",

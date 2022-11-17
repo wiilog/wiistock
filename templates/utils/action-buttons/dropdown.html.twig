@@ -1,0 +1,31 @@
+{#
+How to use :
+
+{% include "utils/action-buttons/dropdown.html.twig" with {
+    icon: string, // class of the toggle icon of the dropdown
+    dropdownDirection: string, // direction of the dropdown-menu
+    actions: [
+        Objects defined as dropdownItem options (macro in common.html.twig)
+            + hasRight boolean
+    ],
+} %}
+#}
+
+{% import 'utils/action-buttons/common.html.twig' as common %}
+
+{#keep only action where user have the right#}
+{% set actionsFiltered = actions|filter(action => action.hasRight is not defined or action.hasRight) %}
+{% set dropdownDirection = dropdownDirection ?? null %}
+
+{% if actionsFiltered|length >= 1 %}
+    <div class="dropdown">
+        <a class="d-flex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="{{ icon is defined ? icon : 'wii-icon wii-icon-dots wii-icon-20px bg-black' }}"></i>
+        </a>
+        <div class="dropdown-menu dropdown-follow-gt pointer {{ dropdownDirection }}">
+            {% for action in actionsFiltered %}
+                {{ common.dropdownItem(action) }}
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
