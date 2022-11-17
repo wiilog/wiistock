@@ -290,6 +290,10 @@ class OrdreCollecteService
 
 		$partialCollect = !empty($rowsToRemove);
 
+        $to = $demandeCollecte->getDemandeur()->getId() === $userRepository->getKioskUser()->getId() ?
+            $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER)) :
+            $demandeCollecte->getDemandeur();
+
         $this->mailerService->sendMail(
             'FOLLOW GT // Collecte effectuée',
             $this->templating->render(
@@ -302,9 +306,7 @@ class OrdreCollecteService
                     'demande' => $demandeCollecte,
                 ]
             ),
-            $demandeCollecte->getDemandeur()->getId() === $userRepository->getKioskUser()->getId() ?
-                $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER)) :
-                $demandeCollecte->getDemandeur()
+            $to
         );
 
 		return $newCollecte ?? null;
