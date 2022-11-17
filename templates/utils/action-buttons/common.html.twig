@@ -1,0 +1,79 @@
+{#
+    Generate html attribute with the given associative array
+#}
+{% macro attributes(data) %}
+    {% for key, value in data %}
+        {% if value is same as true %}
+            {{ key }}
+        {% else %}
+            {{ key }}="{{ value }}"
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
+{#
+Macro which generate a item dropdown
+option parameter is a setting object
+format:
+    - id (string) id of the generated element
+    - href (string) redirect of the generated link, if null then the generated element is a div
+    - class (string) custom classes of the generated element is a div
+    - attributes (object) html attributes of the generated element
+    - actionOnClick (boolean) if true then we add "d-none action-on-click" to html classes of the generated element
+    - icon (string) HTML classes of the icon in the dropdown-item, if undefined then there is no icon
+    - title (string) Label of the dropdown-item
+#}
+{% macro dropdownItem(option) %}
+    {% set tag = (option.href ?? null) ? 'a' : 'div' %}
+    {% set attributes = option.attributes ?? {} %}
+    {% if option.id ?? null %}
+        {% set attributes = attributes|merge({id: option.id}) %}
+    {% endif %}
+    {% if option.href ?? null %}
+        {% set attributes = attributes|merge({href: option.href}) %}
+    {% endif %}
+
+    {% set class = (
+        ((option.actionOnClick ?? false) ? 'd-none action-on-click ' : 'dropdown-item d-flex align-items-center pointer ')
+        ~ (option.class is defined ? option.class)
+    ) %}
+
+    <{{ tag }} class="{{ class }}" {{ _self.attributes(attributes) }}>
+        {% if option.icon is defined %}
+            <i class="{{ option.icon }} mr-2"></i>
+        {% endif %}
+        {{ option.title|raw }}
+    </{{ tag }}>
+{% endmacro %}
+
+{#
+Macro which generate an action button
+option parameter is a setting object
+format:
+    - id (string) id of the generated element
+    - href (string) redirect of the generated link, if null then the generated element is a div
+    - class (string) custom classes of the generated element is a div
+    - buttonClass (string) custom classes of the generated element is a div
+    - attributes (object) html attributes of the generated element
+    - icon (string) HTML classes of the icon in the dropdown-item, if undefined then there is no icon
+    - title (string) Label of the dropdown-item
+#}
+{% macro button(option) %}
+    {% set tag = (option.href ?? null) ? 'a' : 'button' %}
+    {% set attributes = option.attributes ?? {} %}
+    {% if option.id ?? null %}
+        {% set attributes = attributes|merge({id: option.id}) %}
+    {% endif %}
+    {% if option.href ?? null %}
+        {% set attributes = attributes|merge({href: option.href}) %}
+    {% endif %}
+
+    <{{ tag }}
+            class="btn btn-primary d-flex align-items-center pointer {{ option.class is defined ? option.class}} {{ option.buttonClass is defined ? option.buttonClass }}"
+            {{ _self.attributes(attributes ?? {}) }}>
+        {% if option.icon is defined %}
+            <i class="{{ option.icon }} mr-2"></i>
+        {% endif %}
+        {{ option.title|raw }}
+    </{{ tag }}>
+{% endmacro %}
