@@ -620,8 +620,29 @@ class SelectController extends AbstractController {
      * @Route("/select/reception-logistic-units", name="ajax_select_reception_logistic_units", options={"expose"=true})
      */
     public function receptionLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
-        $results = $entityManager->getRepository(Pack::class)
-            ->getForSelectFromReception($request->query->get("term"), $request->query->get("reception"));
+        $results = $entityManager->getRepository(Pack::class)->getForSelectFromReception(
+            $request->query->get("term"),
+            $request->query->get("reception"),
+        );
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/delivery-logistic-units", name="ajax_select_delivery_logistic_units", options={"expose"=true})
+     */
+    public function deliveryLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_PROJECT);
+
+        $results = $entityManager->getRepository(Pack::class)->getForSelectFromDelivery(
+            $request->query->get("term"),
+            $request->query->get("delivery"),
+            (!$projectField->isDisplayedCreate() || !$projectField->isRequiredCreate())
+            && (!$projectField->isDisplayedEdit() || !$projectField->isRequiredEdit())
+        );
 
         return $this->json([
             "results" => $results

@@ -1,0 +1,31 @@
+<div class="modal fade" id="modalAddLogisticUnit" role="dialog" data-delivery="{{ demande.id }}">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Ajouter une unité logistique"
+            } %}
+
+            <div class="modal-body modal-input">
+                <form class="row">
+                    <label class="wii-field-name col-12">Unité logistique*</label>
+                    <div class="form-group col-12">
+                        <select class="ajax-autocomplete data w-100 form-control"
+                                data-s2="deliveryLogisticUnits"
+                                data-other-params-delivery="{{ demande.id }}"
+                                name="logisticUnit">
+                        </select>
+                    </div>
+                    <div class="modal-details w-100">
+
+                    </div>
+                </form>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', type: 'submit', text: 'Ajouter'}
+                ],
+            } %}
+        </div>
+    </div>
+</div>

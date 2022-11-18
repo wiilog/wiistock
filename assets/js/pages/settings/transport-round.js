@@ -25,7 +25,6 @@ export function initializeTransportRound($container, canEdit) {
                         data-parent="body"
                         class='form-control data'
                         data-global-error='Livreur(s)'
-                        data-other-params
                         data-other-params-deliverer-only="1"
                         multiple='multiple'/></select>`,
         },
