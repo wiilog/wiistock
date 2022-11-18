@@ -1,5 +1,9 @@
 {% import 'form.html.twig' as form %}
 
+{% set receptionLine = receptionReferenceArticle.receptionLine %}
+{% set pack = receptionLine.pack ?? selectedPack %}
+{% set packProject = pack ? pack.project %}
+
 <div class="col-2">
     <div class="d-flex flex-column justify-content-center dark-background quantity-to-receive">
         {{ form.input('quantityToReceive', 'Article(s)', true, 1, {
@@ -12,7 +16,10 @@
     <div class="values">
         <div class="d-flex">
             <div class="col-2 form-group mt-2">
-                {{ form.number('quantity', 'Quantité', true, receptionReferenceArticle.quantiteAR, {
+                {% set receivedQuantity = receptionReferenceArticle.quantite ?? 0 %}
+                {% set quantityToReceived = receptionReferenceArticle.quantiteAR ?? 0 %}
+                {% set quantity = quantityToReceived - receivedQuantity %}
+                {{ form.number('quantity', 'Quantité', true, quantity ? quantity : null, {
                     buttons: false,
                     min: 1,
                 }) }}
@@ -23,6 +30,12 @@
             <div class="col-3 form-group mt-2">
                 {{ form.input('expiry', 'Date de péremption', false, '', {type: 'date'}) }}
             </div>
+            {% if pack %}
+                <div class="col-2 form-group mt-2">
+                    <label class="wii-field-name">Projet</label>
+                    <span class="wii-body-text">{{ packProject }}</span>
+                </div>
+            {% endif %}
         </div>
         {% include 'free_field/freeFieldsEdit.html.twig' with {
             freeFields: freeFields|sort((a, b) => b.typage <=> a.typage),
@@ -34,11 +47,14 @@
         } %}
     </div>
 </div>
-<input type="hidden" class="data" name="reference" value="{{ receptionReferenceArticle.referenceArticle.id }}">
+<input type="hidden" class="data" name="receptionReferenceArticle" value="{{ receptionReferenceArticle.id }}">
 <input type="hidden" class="data" name="supplierReference" value="{{ supplierReference ? supplierReference.reference }}">
-<input type="hidden" class="data" name="orderNumber" value="{{ orderNumber }}">
+{% if pack %}
+    <input type="hidden" class="data" name="pack" value="{{ pack.id }}">
+{% endif %}
+
 <div class="col-12 d-flex justify-content-end mt-3">
-    <button type="submit" class="btn btn-primary d-flex align-items-center add-articles">
+    <button class="btn btn-primary d-flex align-items-center add-packing-lines">
         <span class='wii-icon wii-icon-plus mr-2'></span>
         Ajouter des articles
     </button>

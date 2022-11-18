@@ -91,7 +91,6 @@ class KioskController extends AbstractController
     }
 
     #[Route("/imprimer", name: "print_article", options: ["expose" => true], methods: ["GET"])]
-    #[HasValidToken]
     public function print(Request                $request,
                                   EntityManagerInterface $entityManager,
                                   KioskService $kioskService): JsonResponse

@@ -208,6 +208,10 @@
     {% include 'kiosk/modalWaiting.html.twig' with {
         'message': 'Veuillez patienter un instant. Votre demande est en cours de traitement.'
     }%}
+    {% include 'kiosk/modalWarning.html.twig' with {
+        message: "Des champs obligatoires n'ont pas été renseignés, impossible de valider l'entrée de stock.",
+        id: 'modal-missing-required-fields',
+    }%}
 {% endblock %}
 
 {% block javascripts %}

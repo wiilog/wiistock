@@ -488,4 +488,9 @@ class Reception {
         return Stream::from($this->getLines()->toArray())
             ->find(fn(ReceptionLine $line) => $line->getPack()?->getId() === $pack?->getId());
     }
+
+    public function hasPacks(): bool {
+        return Stream::from($this->getLines())
+            ->some(fn(ReceptionLine $line) => $line->hasPack());
+    }
 }

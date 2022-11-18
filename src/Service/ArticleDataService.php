@@ -466,8 +466,8 @@ class ArticleDataService
         $wantDestinationLocation = $settingRepository->getOneParamByLabel(Setting::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
 
         // Récupération du username & dropzone de l'utilisateur
-        $articleReception = $article->getReceptionReferenceArticle() ? $article->getReceptionReferenceArticle()->getReceptionLine()->getReception() : '';
-        $articleReceptionRecipient = $articleReception ? $articleReception->getUtilisateur() : '';
+        $articleReception = $article->getReceptionReferenceArticle()?->getReceptionLine()?->getReception() ?: '';
+        $articleReceptionRecipient = $articleReception?->getUtilisateur() ?: '';
         $articleReceptionRecipientUsername = ($articleReceptionRecipient && $wantsRecipient) ? $articleReceptionRecipient->getUsername() : '';
         $articleReceptionRecipientDropzone = $articleReceptionRecipient ? $articleReceptionRecipient->getDropzone() : '';
         $articleReceptionRecipientDropzoneLabel = ($articleReceptionRecipientDropzone && $wantsRecipientDropzone) ? $articleReceptionRecipientDropzone->getLabel() : '';

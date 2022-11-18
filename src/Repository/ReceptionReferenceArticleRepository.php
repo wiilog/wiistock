@@ -19,23 +19,6 @@ use WiiCommon\Helper\Stream;
 class ReceptionReferenceArticleRepository extends EntityRepository
 {
 
-	/**
-	 * @param Reception $reception
-	 * @return ReceptionReferenceArticle[]|null
-	 */
-    public function findByReception($reception)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a
-            FROM App\Entity\ReceptionReferenceArticle a
-            JOIN a.receptionLine line
-            JOIN line.reception reception
-            WHERE reception = :reception'
-        )->setParameter('reception', $reception);;
-        return $query->execute();
-    }
-
     public function countNotConformByReception($reception)
     {
         $entityManager = $this->getEntityManager();
@@ -51,28 +34,6 @@ class ReceptionReferenceArticleRepository extends EntityRepository
         ]);
         return $query->getSingleScalarResult();
     }
-
-	/**
-	 * @return ReceptionReferenceArticle[]
-	 */
-	public function findByReceptionAndCommandeAndRefArticleId(Reception $reception,
-                                                              ?string $orderNumber,
-                                                              ?int $refArticleId): array {
-        return $this->createQueryBuilder('reception_reference_article')
-            ->join('reception_reference_article.referenceArticle', 'referenceArticle')
-            ->join('reception_reference_article.receptionLine', 'reception_line')
-            ->join('reception_line.reception', 'reception')
-            ->andWhere('reception = :reception')
-            ->andWhere('reception_reference_article.commande = :orderNumber')
-            ->andWhere('referenceArticle.id = :refArticleId')
-            ->setParameters([
-                'reception' => $reception,
-                'orderNumber' => $orderNumber,
-                'refArticleId' => $refArticleId
-            ])
-            ->getQuery()
-            ->getResult();
-	}
 
 	public function findByReferenceArticleAndReceptionStatus(ReferenceArticle $referenceArticle, array $statuses, ?Reception $ignored = null) {
 	    $queryBuilder = $this->createQueryBuilder('reception_reference_article');
