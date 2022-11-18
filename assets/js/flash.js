@@ -11,6 +11,9 @@ export const LABELS = {
 };
 
 export default class Flash {
+    static INFO = `info`;
+    static SUCCESS = `success`;
+    static ERROR = `danger`;
 
     static serverError(error = null, unique = false) {
         if(error) {

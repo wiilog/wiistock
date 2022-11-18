@@ -81,6 +81,7 @@
                     &.sub-articles-wrapper {
                         border-left: 1px solid $medium-grey;
                         border-right: 1px solid $medium-grey;
+                        border-bottom: 1px solid $medium-grey;
                         border-bottom-left-radius: 0.35rem;
                         border-bottom-right-radius: 0.35rem;
 
@@ -89,17 +90,11 @@
                         }
 
                         tr:last-child {
-                            border-bottom-left-radius: 0.35rem;
-                            border-bottom-right-radius: 0.35rem;
-                            td {
-                                &:first-child {
-                                    border-bottom-left-radius: 0.35rem;
-                                }
-                                &:last-child {
-                                    border-bottom-right-radius: 0.35rem;
-                                }
+                            &, & td {
+                                border-bottom-left-radius: 0.35rem;
+                                border-bottom-right-radius: 0.35rem;
+                                border-bottom: none !important;
                             }
-
                         }
                     }
                 }

@@ -92,17 +92,10 @@ class CartController extends AbstractController
         $referencesByBuyer[] = array_shift($referencesByBuyer);
 
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($manager);
-        $deliveryULs = [];
-        $deliveryArticles = $currentUser->getCart()?->getArticles()?->getValues();
-        $project = null;
-        foreach ($deliveryArticles as $article) {
-            if ($article->getCurrentLogisticUnit()?->getProject()?->getCode() && !$project) {
-                $project = $article->getCurrentLogisticUnit()?->getProject()?->getCode();
-            }
-            if (!in_array($article->getCurrentLogisticUnit()?->getId(), $deliveryULs)) {
-                array_push($deliveryULs,$article->getCurrentLogisticUnit()?->getId());
-            }
-        }
+
+        $firstArticle = $currentUser->getCart()?->getArticles()?->first() ?: null;
+        $project = $firstArticle?->getCurrentLogisticUnit()?->getProject()?->getCode();
+
         $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
             ->filter(fn(Demande $request) => $request->getType() && $request->getDestination())
             ->map(fn(Demande $request) => [
@@ -128,7 +121,6 @@ class CartController extends AbstractController
 
         return $this->render("cart/index.html.twig", [
             "project" => $project,
-            "deliveryULs" => $deliveryULs,
             "deliveryRequests" => $deliveryRequests,
             "collectRequests" => $collectRequests,
             "purchaseRequests" => $purchaseRequests,
@@ -426,39 +418,32 @@ class CartController extends AbstractController
 
     #[Route("/articles-remove-row-cart-api", name: "articles_remove_row_cart_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     public function deleteRow(EntityManagerInterface $entityManager, Request $request): Response {
-        try {
-            $type = $request->query->get('type');
-            $cart = $this->getUser()?->getCart();
-            if ($type == 'article') {
-                $articleId = $request->query->get('id');
-                $articleRepository = $entityManager->getRepository(Article::class);
-                $article = $articleRepository->find($articleId);
-                $cart->removeArticle($article);
-                $entityManager->flush();
-                return $this->json([
-                    "success" => true,
-                    "msg" => "L'article a bien été supprimé du panier",
-                ]);
-            }elseif ($type == 'ul') {
-                $packId = $request->query->get('id');
-                $articles = $cart->getArticles();
-                foreach ($articles as $article) {
-                    if ($article->getCurrentLogisticUnit()?->getId() == $packId) {
-                        $cart->removeArticle($article);
-                    }
+        $type = $request->query->get('type');
+        $cart = $this->getUser()?->getCart();
+        if ($type == 'article') {
+            $articleId = $request->query->get('id');
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $article = $articleRepository->find($articleId);
+            $cart->removeArticle($article);
+            $entityManager->flush();
+            $message = "L'article a bien été supprimé du panier";
+        }elseif ($type == 'unit') {
+            $packId = $request->query->get('id');
+            $articles = $cart->getArticles();
+            foreach ($articles as $article) {
+                if ($article->getCurrentLogisticUnit()?->getId() == $packId) {
+                    $cart->removeArticle($article);
                 }
-                $entityManager->flush();
-
-                return $this->json([
-                    "success" => true,
-                    "msg" => "L'unité logistique a bien été supprimé du panier",
-                ]);
             }
-        } catch(Throwable $e) {
-            return $this->json([
-                "success" => false,
-                "msg" => $e->getMessage(),
-            ]);
+            $entityManager->flush();
+
+            $message = "L'unité logistique a bien été supprimée du panier";
         }
+
+        return $this->json([
+            "success" => true,
+            "msg" => $message ?? "",
+            "emptyCart" => $cart->isEmpty()
+        ]);
     }
 }

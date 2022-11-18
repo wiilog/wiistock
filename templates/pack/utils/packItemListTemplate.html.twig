@@ -41,20 +41,11 @@
                 <td>
                     <button type="button"
                             data-toggle="modal"
-                            data-target="#modalNewReceptionReferenceArticle"
+                            data-target="{{ action.datatarget }}"
                             class="btn btn-outline-primary ml-2 h-100 p-1"
-                            onclick="initNewArticleEditor('#modalNewReceptionReferenceArticle', { unitId : {{ header.data['pack-id'] }}, unitCode : '{{ header.content[0].value }}' })">
-                        <span class="wii-icon wii-icon-new-article"></span>
+                            onclick="{{ action.onclick }}">
+                        <i class="{{ action.icon }}"></i>
                     </button>
-{#
-<button type="button"
-        data-toggle="modal"
-        data-target="{{ action.datatarget }}"
-        class="{{ action.class }}"
-        onclick="{{ action.onclick }}">
-    <span class="wii-icon wii-icon-{{ action.icon }}"></span>
-</button>
-#}
                 </td>
             </tr>
         {% endif %}

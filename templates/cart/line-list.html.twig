@@ -19,10 +19,9 @@
             },
             content: logisticsUnit.articles,
             action: {
-                icon: 'trash-black',
+                icon: 'wii-icon wii-icon-trash-black',
                 datatarget: "#modalDeleteArticle",
-                class: "btn btn-outline-dark ml-2 h-100 p-1",
-                onclick: "deleteArticleOrUlRow("~logisticsUnit.packId~", 'ul')",
+                onclick: "removeLogisticUnitRow(" ~ logisticsUnit.packId ~ ", 'unit')",
             }
         } %}
 {% endfor %}

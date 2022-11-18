@@ -79,4 +79,11 @@ class Cart {
 
         return $this;
     }
+
+    public function isEmpty(): bool {
+        return (
+            $this?->getArticles()?->isEmpty() !== false
+            && $this?->getReferences()?->isEmpty() !== false
+        );
+    }
 }

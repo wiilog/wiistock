@@ -783,7 +783,7 @@ function loadReceptionLines({start, search} = {}) {
                                 domConfig: {
                                     removeInfo: true,
                                     needsPaginationRemoval: true,
-                                    removeLength: true
+                                    removeLength: true,
                                 },
                                 rowConfig: {
                                     needsRowClickAction: true,
