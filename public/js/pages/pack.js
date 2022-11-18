@@ -110,7 +110,6 @@ $(function() {
 
     $(document).arrive(`.add-cart`, function() {
         $(this).on("mouseup", function(event) {
-            console.log("huh?");
             event.stopPropagation();
 
             const id = [$(this).data(`id`)];
