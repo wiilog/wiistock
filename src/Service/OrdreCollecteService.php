@@ -27,6 +27,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class OrdreCollecteService
 {
@@ -69,6 +70,9 @@ class OrdreCollecteService
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public SpecificService $specificService;
 
     public function __construct(RouterInterface $router,
                                 TokenStorageInterface $tokenStorage,
@@ -290,9 +294,17 @@ class OrdreCollecteService
 
 		$partialCollect = !empty($rowsToRemove);
 
-        $to = $demandeCollecte->getDemandeur()->getId() === $userRepository->getKioskUser()->getId() ?
-            $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER)) :
-            $demandeCollecte->getDemandeur();
+        $kioskUser = $demandeCollecte->getDemandeur()->isKioskUser();
+        $to = $kioskUser
+            ? $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER))
+            : $demandeCollecte->getDemandeur();
+
+        if($kioskUser && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+            $managers = Stream::from($demandeCollecte->getCollecteReferences()->first()->getReferenceArticle()->getManagers())
+                ->map(fn(Utilisateur $manager) => $manager->getEmail())
+                ->toArray();
+            $to = array_merge([$to], $managers);
+        }
 
         $this->mailerService->sendMail(
             'FOLLOW GT // Collecte effectuée',

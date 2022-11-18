@@ -1061,17 +1061,18 @@ class ReferenceArticleController extends AbstractController
             $notificationService->toTreat($ordreCollecte);
         }
 
-        $to = Stream::from($reference->getManagers())->map(fn(Utilisateur $manager) => $manager->getEmail())->toArray();
-        $requester = $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER));
-        $recipients = array_merge($to, [$requester->getEmail()]);
+        $to = Stream::from($reference->getManagers())
+            ->map(fn(Utilisateur $manager) => $manager->getEmail())
+            ->toArray();
 
         if($referenceExist) {
             $articleSuccessMessage = str_replace('@reference', $data['reference'], str_replace('@codearticle', '<span style="color: #3353D7;">'.$data['article'].'</span>', $articleSuccessMessage));
-            $refArticleDataService->sendMailEntryStock($reference, $recipients, strip_tags(str_replace('@reference', $data['reference'], str_replace('@codearticle', $data['article'], $articleSuccessMessage))));
+            $message = strip_tags(str_replace('@reference', $data['reference'], str_replace('@codearticle', $data['article'], $articleSuccessMessage)));
         } else {
             $referenceSuccessMessage = str_replace('@reference', '<span style="color: #3353D7;">'.$data['reference'].'</span>', $referenceSuccessMessage);
-            $refArticleDataService->sendMailEntryStock($reference, $recipients, strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage)));
+            $message = strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage));
         }
+        $refArticleDataService->sendMailEntryStock($reference, $to, $message);
 
         return new JsonResponse([
                 'success' => true,
