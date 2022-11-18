@@ -106,7 +106,7 @@
                                     <span class="reference-label field-small"></span>
                                 </div>
                                 <div class="mt-2">
-                                    <span class="reference-type field-name">{{ setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type').label }}</span>
+                                    <span class="reference-type field-name">{{ reference.type.label ?? setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type').label }}</span>
                                 </div>
                             </div>
                         </div>

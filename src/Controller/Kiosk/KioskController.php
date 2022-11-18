@@ -68,13 +68,13 @@ class KioskController extends AbstractController
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $scannedReference = $request->query->get('scannedReference');
 
-        $freeField = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE) ? $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE)) : '';
         $reference = $referenceArticleRepository->findOneBy(['barCode' => $scannedReference]) ?? new ReferenceArticle();
+        $freeField = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE) ? $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE)) : '';
 
         return $this->render('kiosk/form.html.twig', [
             'reference' => $reference,
             'scannedReference' => $scannedReference,
-            'freeField' => $freeField,
+            'freeField' => $reference?->getType()->getId() === $freeField->getType()->getId() ? $freeField : null,
             'inStock' => $reference?->getQuantiteStock() > 0,
         ]);
     }
