@@ -32,7 +32,6 @@ How to use :
             {{ common.button(firstAction) }}
         {% endif %}
         {% if actionsFiltered|length > 1
-              or not forceActionButton
               or not firstAction %}
             <button type="button"
                     class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"

@@ -40,6 +40,7 @@ const ROUTES = {
     inventoryCategories: 'ajax_select_inventory_categories',
     project: 'ajax_select_project',
     receptionLogisticUnits: 'ajax_select_reception_logistic_units',
+    deliveryLogisticUnits: 'ajax_select_delivery_logistic_units',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -242,21 +243,21 @@ export default class Select2 {
     }
 
     static includeParams($element, params) {
-        if ($element.is('[data-other-params]')) {
-            const attributes = $element.attr();
-            const otherParams = Object.keys(attributes)
-                .reduce((carry, key) => {
-                    const [_, keyWithoutPrefix] = key.match(/other-params-(.+)/) || [];
-                    if (keyWithoutPrefix) {
-                        carry[keyWithoutPrefix] = attributes[key];
-                    }
-                    return carry;
-                }, {});
-            params = {
-                ...params,
-                ...otherParams,
-            };
-        }
+        //check for other params
+        const attributes = $element.attr();
+        const otherParams = Object.keys(attributes)
+            .reduce((carry, key) => {
+                const [_, keyWithoutPrefix] = key.match(/other-params-(.+)/) || [];
+                if (keyWithoutPrefix) {
+                    carry[keyWithoutPrefix] = attributes[key];
+                }
+                return carry;
+            }, {});
+
+        params = {
+            ...params,
+            ...otherParams,
+        };
 
         if ($element.is('[data-search-prefix]')) {
             const searchPrefix = $element.data('search-prefix');
