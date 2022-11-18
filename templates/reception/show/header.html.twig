@@ -15,81 +15,99 @@
         {% set hasDemande = (hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) and reception.demandes|length > 0) %}
         {% set hasTransfer = (hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_TRANS')) and reception.transferRequest|length > 0) %}
         {% set hasArrival = (hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_ARRI')) and reception.arrival is not null) %}
-        {% set dropdownNeedsToBeDisplayed = (not modifiable) or canReceive or hasDemande or canDelete or hasArrival %}
 
-        {% if canReceive %}
-            <button type="button"
-                    class="btn btn-primary d-flex align-items-center {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
-                    onclick="finishReception({{ reception.id }}, false,$(this))"
-                    id="finishReceptionButton">
-                <span class="wii-icon wii-icon-check-white mr-2"></span>
-                Finir la {{ trans('Ordre','Réceptions', 'réception', false) }}
-            </button>
-        {% endif %}
-        {% if dropdownNeedsToBeDisplayed %}
-            <button type="button"
-                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-                <span class="fa fa-angle-down"></span>
-            </button>
-            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                {% if canReceive %}
-                    <a data-id='{{ reception.id }}'
-                       data-target='#modalEditReception'
-                       data-toggle='modal'
-                       class="dropdown-item pointer"
-                       onclick="editRow(
+        {% include 'utils/action-buttons/header-buttons.html.twig' with {
+            actions: [
+                {
+                    id: "finishReceptionButton",
+                    title: "Finir la " ~ trans('Ordre','Réceptions', 'réception', false),
+                    icon: "wii-icon wii-icon-check-white",
+                    class: "d-flex align-items-center",
+                    buttonClass: "btn btn-primary",
+                    hasRight: false,
+                    attributes: {
+                        onclick: "finishReception(" ~ reception.id ~ ", false, $(this))",
+                    },
+                },
+                {
+                    title: "Modifier",
+                    icon: "fa fa-edit",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: canReceive,
+                    attributes: {
+                        "data-id": reception.id,
+                        "data-target": "#modalEditReception",
+                        "data-toggle": "modal",
+                        onclick: "editRow(
                            $(this),
                            Routing.generate('api_reception_edit', true),
                            $('#modalEditReception'),
                            $('#submitEditReception'),
                            false,
                            initEditReception
-                       )">
-                        <i class="fa fa-edit mr-2"></i>Modifier
-                    </a>
-                {% endif %}
-                {% if not modifiable %}
-                    <a data-id='{{ reception.id }}'
-                       data-target='#modalCancelReception'
-                       data-toggle='modal'
-                       class="dropdown-item pointer d-flex align-items-center">
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Annuler {{ trans('Ordre','Réceptions', 'cette réception', false) }}</a>
-                {% endif %}
-                {% if hasDemande %}
-                    <a href="{{ path('demande_index', {'reception': reception.id }) }}"
-                       class="dropdown-item">
-                        <i class="mr-2 fas fa-external-link-alt"></i>Voir les demandes de livraison</a>
-                {% endif %}
-                {% if hasTransfer %}
-                    <a href="{{ path('transfer_order_index', {'reception': reception.id }) }}"
-                       class="dropdown-item">
-                        <i class="mr-2 fas fa-external-link-alt"></i>Voir les ordres de transfert</a>
-                {% endif %}
-                {% if reception.purchaseRequestLines is not empty %}
-                    {% set firstPurchaseRequestLine = reception.purchaseRequestLines|first %}
-                    <a href="{{ path('purchase_request_show', {'id': firstPurchaseRequestLine.purchaseRequest.id }) }}"
-                       class="dropdown-item">
-                        <i class="mr-2 fas fa-external-link-alt"></i>Aller sur la demande d'achat</a>
-                {% endif %}
-                {% if canDelete %}
-                    <a data-id='{{ reception.id }}'
-                       data-target='#modalDeleteReception'
-                       data-toggle='modal'
-                       class="dropdown-item pointer d-flex align-items-center"
-                       onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer</a>
-                {% endif %}
-                {% if hasArrival %}
-                    <a href="{{ path('arrivage_show', {'id': reception.arrival.id}) }}"
-                       class="dropdown-item">
-                        <span class="wii-icon wii-icon-arrival wii-icon-17px-black mr-2"></span>{{ trans('Flux - Arrivages', 'Divers', 'Arrivage', false) }}
-                    </a>
-                {% endif %}
-            </div>
-        {% endif %}
+                       )",
+                    },
+                },
+                {
+                    title: "Annuler " ~ trans('Ordre', 'Réceptions', 'cette réception'),
+                    icon: "wii-icon wii-icon-trash-black",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: not modifiable,
+                    attributes: {
+                        "data-id": reception.id,
+                        "data-target": "#modalCancelReception",
+                        "data-toggle": "modal",
+                    },
+                },
+                {
+                    title: "Voir les demandes de livraison",
+                    icon: "fas fa-external-link-alt",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: hasDemande,
+                    href: path('demande_index', {reception: reception.id }),
+                },
+                {
+                    title: "Voir les ordres de transfert",
+                    icon: "fas fa-external-link-alt",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: hasTransfer,
+                    href: path('transfer_order_index', {reception: reception.id }),
+                },
+                {
+                    title: "Aller sur la demande d'achat",
+                    icon: "fas fa-external-link-alt",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: reception.purchaseRequestLines is not empty,
+                    href: reception.purchaseRequestLines is not empty ? path('purchase_request_show', {id: (reception.purchaseRequestLines|first).purchaseRequest.id }) : null,
+                },
+                {
+                    title: "Supprimer",
+                    icon: "wii-icon wii-icon-trash-black",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: canDelete,
+                    attributes: {
+                        "data-id": reception.id,
+                        "data-target": "#modalDeleteReception",
+                        "data-toggle": "modal",
+                        onclick: "checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')"
+                    },
+                },
+                {
+                    title: trans('Flux - Arrivages', 'Divers', 'Arrivage'),
+                    icon: "wii-icon wii-icon-arrival wii-icon-17px-black",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: hasArrival,
+                    href: path('arrivage_show', {id: reception.arrival.id}),
+                },
+            ]
+        } %}
     </div>
 {% endblock %}
 

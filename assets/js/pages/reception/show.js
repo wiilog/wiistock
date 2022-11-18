@@ -1,7 +1,7 @@
 import '@styles/pages/reception/show.scss';
 import AJAX, {GET, POST} from "@app/ajax";
 import Select2 from "@app/select2";
-import Flash, {ERROR, SUCCESS} from "@app/flash";
+import Flash, {ERROR} from "@app/flash";
 
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
@@ -41,7 +41,7 @@ $(function () {
 
     const $refArticleCommande = $modalNewLigneReception.find(`select[name=refArticleCommande]`);
     $refArticleCommande.on(`change`, function () {
-        prefillPackingModal();
+        onReceptionReferenceArticleChange();
     });
 
     $modalNewLigneReception.find('select[name=articleFournisseurDefault], select[name=pack]')
@@ -116,7 +116,7 @@ function initPageModals() {
     let $modalNewReceptionReferenceArticle = $("#modalNewReceptionReferenceArticle");
     let $submitAddLigneArticle = $modalNewReceptionReferenceArticle.find("[type=submit]");
     let $submitAndRedirectLigneArticle = $('#addArticleLigneSubmitAndRedirect');
-    let urlAddLigneArticle = Routing.generate('reception_reference_article_add', true);
+    let urlAddLigneArticle = Routing.generate('reception_reference_article_new', true);
     InitModal($modalNewReceptionReferenceArticle, $submitAddLigneArticle, urlAddLigneArticle, {
         success: () => {
             loadReceptionLines();
@@ -558,15 +558,12 @@ function initNewLigneReception() {
                 () => AJAX
                     .route(POST, `reception_new_with_packing`, { reception })
                     .json(data)
-                    .then(({success, articleIds, msg}) => {
+                    .then(({success, articleIds}) => {
                         if (success) {
-                            const $printButton = $('#buttonPrintMultipleBarcodes');
-                            if ($printButton.length > 0) {
-                                window.location.href = Routing.generate('reception_bar_codes_print', {
-                                    reception,
-                                    articleIds
-                                }, true);
-                            }
+                            window.location.href = Routing.generate('reception_bar_codes_print', {
+                                reception,
+                                articleIds
+                            }, true);
                             loadReceptionLines();
                             $modalNewLigneReception.modal('hide');
                         }
@@ -617,7 +614,7 @@ function createHandlerAddLigneArticleResponseAndRedirect($modal) {
                     if (results && results.length > 0) {
                         const [selected] = results;
                         if (selected) {
-                            const $pickingSelect = $('#modalNewLigneReception').find('#referenceConditionnement');
+                            const $pickingSelect = $('#modalNewLigneReception').find('[name=refArticleCommande]');
                             let newOption = new Option(selected.text, selected.id, true, true);
                             $pickingSelect
                                 .append(newOption)
@@ -671,7 +668,7 @@ function toggleForm($content, $input, force = false) {
     }
 }
 
-function prefillPackingModal() {
+function onReceptionReferenceArticleChange() {
     const $modal = $('#modalNewLigneReception');
     const $firstStepForm = $modal.find('.reference-container');
     const $selectRefArticle = $firstStepForm.find('[name="refArticleCommande"]');
@@ -684,7 +681,7 @@ function prefillPackingModal() {
     const $selectPackFormGroup = $selectPack.closest('.form-group');
 
     if (referenceArticle) {
-        const {reference, defaultArticleFournisseur, packCode, packId} = referenceArticle;
+        const {reference, defaultArticleFournisseur, packCode, packId, packDisabled} = referenceArticle;
         $selectArticleFournisseur
             .val(null)
             .html('')
@@ -705,10 +702,12 @@ function prefillPackingModal() {
         $selectArticleFournisseurFormGroup.removeClass('d-none');
         $selectPackFormGroup.removeClass('d-none');
 
-        if (packCode && packId) {
-            $selectPack
-                .append(new Option(packCode, packId, true, true))
-                .prop('disabled', true);
+        if (packDisabled
+            || (packCode && packId)) {
+            $selectPack.prop('disabled', true);
+            if (packCode && packId) {
+                $selectPack.append(new Option(packCode, packId, true, true))
+            }
         }
         else {
             $selectPack

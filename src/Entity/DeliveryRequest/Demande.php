@@ -184,11 +184,9 @@ class Demande implements PairedEntity {
      * @return Livraison[]|Collection
      */
     public function getLivraisons(): Collection {
-        return $this->getPreparations()->map(function(Preparation $preparation) {
-            return $preparation->getLivraison();
-        })->filter(function(?Livraison $livraison) {
-            return isset($livraison);
-        });
+        return $this->getPreparations()
+            ->map(fn(Preparation $preparation) => $preparation->getLivraison())
+            ->filter(fn(?Livraison $livraison) => isset($livraison));
     }
 
     public function getStatut(): ?Statut {
