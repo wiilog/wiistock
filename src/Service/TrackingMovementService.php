@@ -1040,7 +1040,7 @@ class TrackingMovementService extends AbstractController
         $movementType = $movement->getType();
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
-        if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && !$location->ableToBeDropOff($movement->getPack())) {
+        if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && ($location && !$location->ableToBeDropOff($movement->getPack()))) {
             $packTranslation = $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false);
             $natureTranslation = $this->translation->translate('Traçabilité', 'Mouvements', 'natures requises', false);
             $packCode = $movement->getPack()->getCode();

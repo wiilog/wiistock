@@ -432,7 +432,7 @@ class TrackingMovementController extends AbstractController
         $newCode = $post->get('pack');
 
         $hasChanged = (
-            $mvt->getEmplacement()->getLabel() !== $newLocation->getLabel()
+            $mvt->getEmplacement()?->getLabel() !== $newLocation?->getLabel()
             || $mvt->getDatetime() != $newDate // required != comparison
             || $pack->getCode() !== $newCode
         );
