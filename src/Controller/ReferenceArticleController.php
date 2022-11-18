@@ -1044,9 +1044,7 @@ class ReferenceArticleController extends AbstractController
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
             }
 
-            if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
-                $notificationService->toTreat($ordreCollecte);
-            }
+
 
             $ordreCollecte->addArticle($article);
             $entityManager->persist($ordreCollecte);
@@ -1058,6 +1056,10 @@ class ReferenceArticleController extends AbstractController
         }
 
         $entityManager->flush();
+
+        if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+            $notificationService->toTreat($ordreCollecte);
+        }
 
         $to = Stream::from($reference->getManagers())->map(fn(Utilisateur $manager) => $manager->getEmail())->toArray();
         $requester = $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER));
