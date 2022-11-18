@@ -32,11 +32,12 @@
                 }
             )
         })),
-        action: {
-            icon: 'wii-icon wii-icon-new-article',
-            datatarget: "#modalNewReceptionReferenceArticle",
-            onclick: "initNewArticleEditor('#modalNewReceptionReferenceArticle', { unitId : " ~ header.data['pack-id'] ~ ", unitCode : '" ~ header.content[0].value ~ "' })",
-        }
+        action: pack
+            ? {
+                icon: 'wii-icon wii-icon-new-article',
+                datatarget: "#modalNewReceptionReferenceArticle",
+                onclick: "initNewArticleEditor('#modalNewReceptionReferenceArticle', { unitId : " ~ pack.id ~ ", unitCode : '" ~ pack.code ~ "' })",
+            }
     } %}
 {% endfor %}
 

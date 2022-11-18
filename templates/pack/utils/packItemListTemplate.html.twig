@@ -39,13 +39,15 @@
                     </div>
                 </td>
                 <td>
-                    <button type="button"
-                            data-toggle="modal"
-                            data-target="{{ action.datatarget }}"
-                            class="btn btn-outline-primary ml-2 h-100 p-1"
-                            onclick="{{ action.onclick }}">
-                        <i class="{{ action.icon }}"></i>
-                    </button>
+                    {% if action %}
+                        <button type="button"
+                                data-toggle="modal"
+                                data-target="{{ action.datatarget }}"
+                                class="btn btn-outline-primary ml-2 h-100 p-1"
+                                onclick="{{ action.onclick }}">
+                            <i class="{{ action.icon }}"></i>
+                        </button>
+                    {% endif %}
                 </td>
             </tr>
         {% endif %}
