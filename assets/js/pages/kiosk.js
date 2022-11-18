@@ -38,11 +38,11 @@ $(function () {
                 const {token} = GetRequestQuery();
                 AJAX.route(GET, `reference_article_check_quantity`, {token, scannedReference})
                     .json()
-                    .then(({exists, inStock}) => {
+                    .then(({exists, inStock, referenceForErrorModal}) => {
                         $modalWaiting.modal('hide');
                         if (exists && inStock) {
                             let $errorMessage = $modalInStockWarning.find('#stock-error-message');
-                            $errorMessage.html(originalMessage.replace('@reference', `<span class="bold">${scannedReference}</span>`));
+                            $errorMessage.html(originalMessage.replace('@reference', `<span class="bold">${referenceForErrorModal}</span>`));
                             $modalInStockWarning.modal('show');
                             $modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
                         } else {
@@ -91,8 +91,8 @@ $(function () {
                 wrapLoadingOnActionButton($(this), () => (
                     AJAX.route(POST, 'check_article_is_valid', {token, articleLabel: $articleDataInput.val()})
                         .json()
-                        .then(({success, formArticlePage}) => {
-                            if (success || !formArticlePage) {
+                        .then(({success, fromArticlePage}) => {
+                            if (success || !fromArticlePage) {
                                 $current.removeClass('active').addClass('d-none');
                                 $($current.next()[0]).addClass('active').removeClass('d-none');
                                 $currentTimelineEvent.removeClass('current');

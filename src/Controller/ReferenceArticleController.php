@@ -903,9 +903,17 @@ class ReferenceArticleController extends AbstractController
     public function checkQuantity(Request                $request,
                                   EntityManagerInterface $entityManager): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
+        if(str_starts_with($request->query->get('scannedReference'), 'ART')){
+            $article = $articleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+            $reference = $article->getArticleFournisseur()->getReferenceArticle();
+        } else {
+            $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+        }
 
         return $this->json([
+            'referenceForErrorModal' => $reference->getBarCode(),
             'exists' => $reference !== null,
             'inStock' => $reference?->getQuantiteStock() > 0,
         ]);
