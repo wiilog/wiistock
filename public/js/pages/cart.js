@@ -381,6 +381,7 @@ function loadLogisticUnitPack() {
                                     removeInfo: true,
                                     needsPaginationRemoval: true,
                                     removeLength: true,
+                                    removeTableHeader: true,
                                 },
                             })
                         });

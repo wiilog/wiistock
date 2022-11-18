@@ -784,6 +784,7 @@ function loadReceptionLines({start, search} = {}) {
                                     removeInfo: true,
                                     needsPaginationRemoval: true,
                                     removeLength: true,
+                                    removeTableHeader: true,
                                 },
                                 rowConfig: {
                                     needsRowClickAction: true,
