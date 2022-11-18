@@ -909,11 +909,13 @@ class ReferenceArticleController extends AbstractController
             $article = $articleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
             $reference = $article->getArticleFournisseur()->getReferenceArticle();
         } else {
+            $article = null;
             $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
         }
 
         return $this->json([
             'referenceForErrorModal' => $reference->getBarCode(),
+            'codeArticle' => $article ? $article->getBarCode() : 'Non défini',
             'exists' => $reference !== null,
             'inStock' => $reference?->getQuantiteStock() > 0,
         ]);

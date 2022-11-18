@@ -38,11 +38,14 @@ $(function () {
                 const {token} = GetRequestQuery();
                 AJAX.route(GET, `reference_article_check_quantity`, {token, scannedReference})
                     .json()
-                    .then(({exists, inStock, referenceForErrorModal}) => {
+                    .then(({exists, inStock, referenceForErrorModal, codeArticle}) => {
                         $modalWaiting.modal('hide');
                         if (exists && inStock) {
                             let $errorMessage = $modalInStockWarning.find('#stock-error-message');
-                            $errorMessage.html(originalMessage.replace('@reference', `<span class="bold">${referenceForErrorModal}</span>`));
+                            $errorMessage.html(originalMessage
+                                .replace('@reference', `<span class="bold">${referenceForErrorModal}</span>`)
+                                .replace('@codearticle', `<span class="bold">${codeArticle}</span>`)
+                            );
                             $modalInStockWarning.modal('show');
                             $modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
                         } else {
