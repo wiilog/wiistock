@@ -1,21 +1,30 @@
-{% set packCode = ligneArticle.receptionLine and ligneArticle.receptionLine.pack ? ligneArticle.receptionLine.pack.code %}
-{% set isReferenceAttachedToUnit = reception.arrival is not null and packCode %}
+{% set receptionLine = receptionReferenceArticle.receptionLine %}
 <div class="row">
-    <div class="form-group {{ isReferenceAttachedToUnit ? 'col-xl-6' }} col-12  w-100 mb-3">
-        <label for="reference" title="référence" class="wii-field-name">
-            {{ trans('Stock', 'Références', 'référence', false) }}*
+    <div class="form-group {{ reception.hasPacks ? 'col-xl-6' }} col-12  w-100 mb-3">
+        <label for="reference" class="wii-field-name">
+            {{ trans('Stock', 'Références', 'référence') }}*
         </label>
-        {% set isLigneArticleEditable = ligneArticle.quantite is empty or ligneArticle.quantite == 0 %}
+        {% set isLigneArticleEditable = receptionReferenceArticle.quantite is empty or receptionReferenceArticle.quantite == 0 %}
         <select class="{{ isLigneArticleEditable ? 'ajax-autocomplete-edit' }} data form-control needed"
                 name="referenceArticle"
                 {{ not isLigneArticleEditable ? 'disabled' }}>
-            <option value="{{ligneArticle.referenceArticle.id}}">{{ligneArticle.referenceArticle.reference}}</option>
+            <option value="{{receptionReferenceArticle.referenceArticle.id}}">{{receptionReferenceArticle.referenceArticle.reference}}</option>
         </select>
     </div>
-    {% if isReferenceAttachedToUnit %}
+    {% if reception.hasPacks %}
         <div class="form-group col-xl-6 col-12">
             <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
-            <input class="form-control" disabled type="text" name="logisticUnit" value="{{ packCode }}">
+            {% if not receptionLine.pack %}
+                <select class="ajax-autocomplete w-100 data form-control wii-field-text"
+                        name="pack"
+                        data-s2="receptionLogisticUnits"
+                        data-other-params
+                        data-other-params-reception="{{ reception.id }}">
+                </select>
+            {% else %}
+                {% set pack = receptionLine.pack %}
+                <input class="form-control" disabled type="text" name="logisticUnit" value="{{ pack.code }}">
+            {% endif %}
         </div>
     {% endif %}
     <div class="form-group col-6">
@@ -24,7 +33,7 @@
             <select name="commande"
                     class="form-control needed w-100 data">
                 {% for orderNumber in reception.orderNumber %}
-                    <option {{ ligneArticle.commande == orderNumber ? 'selected' }}
+                    <option {{ receptionReferenceArticle.commande == orderNumber ? 'selected' }}
                             value="{{ orderNumber }}">
                         {{ orderNumber }}
                     </option>
@@ -34,14 +43,14 @@
             <input type="text"
                    class="form-control data needed wii-field-text"
                    name="commande"
-                   value="{{ligneArticle.commande}}">
+                   value="{{receptionReferenceArticle.commande}}">
         {% endif %}
     </div>
     <div class="form-group col-6">
         <label class="wii-field-name">Quantité à recevoir*</label>
         <input type="number"
                class="form-control data needed"
-               value="{{ligneArticle.quantiteAR}}"
+               value="{{receptionReferenceArticle.quantiteAR}}"
                name="quantiteAR"
                min="{{ minValue }}"
                onchange="updateQuantityToReceive($(this));"/>
@@ -52,21 +61,21 @@
             <input type="number"
                    class="form-control data needed"
                    name="quantite"
-                   value="{{ ligneArticle.quantite is not empty ? ligneArticle.quantite : 0 }}"
+                   value="{{ receptionReferenceArticle.quantite is not empty ? receptionReferenceArticle.quantite : 0 }}"
                    min=0
-                   max="{{ ligneArticle.quantiteAR }}">
+                   max="{{ receptionReferenceArticle.quantiteAR }}">
         </div>
     {% endif %}
     <div class="form-group col-6">
         <label class="wii-field-text">Anomalie</label>
         <label class="switch">
-            <input class="checkbox" type="checkbox" name="anomalie" {{ ligneArticle.anomalie == 'true' ? 'checked': ''}}>
+            <input class="checkbox" type="checkbox" name="anomalie" {{ receptionReferenceArticle.anomalie == 'true' ? 'checked': ''}}>
             <span class="slider round"></span>
         </label>
     </div>
     <div class="form-group col-12">
         <label class="wii-field-name">Commentaire</label>
         <input id='commentaire' class="form-control data" name="commentaire" type="hidden">
-        <div class="editor-container-article" data-wysiwyg>{{ligneArticle.commentaire | raw}}</div>
+        <div class="editor-container-article" data-wysiwyg>{{receptionReferenceArticle.commentaire | raw}}</div>
     </div>
 </div>

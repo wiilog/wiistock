@@ -457,14 +457,14 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/remove-reception-reference-article", name="reception_reference_article_remove",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function removeArticle(EntityManagerInterface $entityManager,
-                                  ReceptionService $receptionService,
-                                  MouvementStockService $mouvementStockService,
-                                  RefArticleDataService $refArticleDataService,
-                                  Request $request): Response {
+    public function removeReceptionReferenceArticle(EntityManagerInterface $entityManager,
+                                                    ReceptionService       $receptionService,
+                                                    MouvementStockService  $mouvementStockService,
+                                                    RefArticleDataService  $refArticleDataService,
+                                                    Request                $request): Response {
         if($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
@@ -518,7 +518,6 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
             $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
 
-            // TODO adrien
             $nbArticleNotConform = $receptionReferenceArticleRepository->countNotConformByReception($reception);
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
@@ -557,14 +556,14 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/new-reception-reference-article", name="reception_reference_article_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function addArticle(EntityManagerInterface $entityManager,
-                               ReceptionService $receptionService,
-                               ReceptionLineService $receptionLineService,
-                               Request $request): Response {
-        if($contentData = json_decode($request->getContent(), true)) {
+    public function newReceptionReferenceArticle(EntityManagerInterface $entityManager,
+                                                 ReceptionService       $receptionService,
+                                                 ReceptionLineService   $receptionLineService,
+                                                 Request                $request): Response {
+        if ($contentData = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
@@ -647,6 +646,7 @@ class ReceptionController extends AbstractController {
                 $json = [
                     'success' => true,
                     'msg' => 'La référence <strong>' . $refArticle->getReference() . '</strong> a bien été ajoutée.',
+                    'receptionReferenceArticle' => $receptionReferenceArticle->getId(),
                     'entete' => $this->renderView('reception/show/header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,
@@ -660,25 +660,25 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier-article", name="reception_article_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/api-edit-reception-reference-article", name="reception_reference_article_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function apiEditArticle(EntityManagerInterface $entityManager,
-                                   Request $request): Response {
-        if($data = json_decode($request->getContent(), true)) {
+    public function apiEditReceptionReferenceArticle(EntityManagerInterface $entityManager,
+                                                     Request                $request): Response {
+        if ($data = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
-            $ligneArticle = $receptionReferenceArticleRepository->find($data['id']);
-            $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
-            $reception = $ligneArticle->getReceptionLine()->getReception();
+            $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['id']);
+            $canUpdateQuantity = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
+            $reception = $receptionReferenceArticle->getReceptionLine()->getReception();
 
             $json = $this->renderView(
-                'reception/show/modalEditLigneArticleContent.html.twig',
+                'reception/show/modalEditReceptionReferenceArticleContent.html.twig',
                 [
-                    'ligneArticle' => $ligneArticle,
+                    'receptionReferenceArticle' => $receptionReferenceArticle,
                     'reception' => $reception,
                     'canUpdateQuantity' => $canUpdateQuantity,
-                    'minValue' => $ligneArticle->getQuantite() ?? 0,
+                    'minValue' => $receptionReferenceArticle->getQuantite() ?? 0,
                 ]
             );
             return new JsonResponse($json);
@@ -686,25 +686,47 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier-article", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editArticle(EntityManagerInterface $entityManager,
-                                ReceptionService $receptionService,
-                                Request $request,
-                                MouvementStockService $mouvementStockService,
-                                TrackingMovementService $trackingMovementService): Response {
-        if($data = json_decode($request->getContent(), true)) {
+    #[Route("/edit-reception-reference-article", name: "reception_reference_article_edit", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function editReceptionReferenceArticle(EntityManagerInterface  $entityManager,
+                                                  ReceptionService        $receptionService,
+                                                  Request                 $request,
+                                                  MouvementStockService   $mouvementStockService,
+                                                  TrackingMovementService $trackingMovementService): Response {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $packRepository = $entityManager->getRepository(Pack::class);
 
             /** @var ReceptionReferenceArticle $receptionReferenceArticle */
             $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
-            $reception = $receptionReferenceArticle->getReceptionLine()->getReception();
+
+            $receptionLine = $receptionReferenceArticle->getReceptionLine();
+            $reception = $receptionLine->getReception();
+
+            if (isset($data['pack'])) {
+                $pack = $packRepository->find($data['pack']);
+                $newReceptionLine = $reception->getLine($pack);
+                if ($newReceptionLine) {
+                    $receptionLine = $newReceptionLine;
+                    $receptionReferenceArticle->setReceptionLine($receptionLine);
+                }
+            }
+
+            /* Only reference by article in the reception's packs */
+            if (isset($pack)
+                && $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+                throw new FormException('Vous pouvez uniquement ajouter des références gérées par article aux unités logistiques et il s\'agit d\'une référence gérée par référence.');
+            }
 
             $receivedQuantity = $receptionReferenceArticle->getQuantite();
+
+            $receptionReferenceArticleMatching = $receptionLine->getReceptionReferenceArticle($receptionReferenceArticle->getReferenceArticle(), $data['commande']);
+            if ($receptionReferenceArticleMatching
+                && $receptionReferenceArticleMatching->getId() !== $receptionReferenceArticle->getId()) {
+                throw new FormException("L'association de cette référence avec ce numéro de commande existe déjà dans la réception");
+            }
 
             if(empty($receivedQuantity)) {
                 $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
@@ -904,11 +926,14 @@ class ReceptionController extends AbstractController {
                                          EntityManagerInterface $entityManager,
                                          RefArticleDataService $refArticleDataService) {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
         $articlesFournisseurArrays = [];
 
-        $selectedReference = $request->query->get('reference');
-        $selectedCommande = $request->query->get('commande');
+        $receptionReferenceArticleId = $request->query->get('id');
+        $receptionReferenceArticle = $receptionReferenceArticleId
+            ? $receptionReferenceArticleRepository->find($receptionReferenceArticleId)
+            : null;
 
         $ref = array_map(
             function($item) use ($articleFournisseurRepository, &$articlesFournisseurArrays, $refArticleDataService) {
@@ -916,19 +941,22 @@ class ReceptionController extends AbstractController {
                     $articlesFournisseurArrays[$item['reference']] = $articleFournisseurRepository->getIdAndLibelleByRefRef($item['reference']);
                 }
                 return [
-                    'id' => "{$item['reference']}_{$item['commande']}",
+                    'id' => $item['id'],
                     'reference' => $item['reference'],
                     'commande' => $item['commande'],
+                    'packCode' => $item['packCode'],
+                    'packId' => $item['packId'],
+                    'packProject' => $item['packProject'],
                     'defaultArticleFournisseur' => count($articlesFournisseurArrays[$item['reference']]) === 1
                         ? [
                             'text' => $articlesFournisseurArrays[$item['reference']][0]['reference'],
                             'value' => $articlesFournisseurArrays[$item['reference']][0]['id'],
                         ]
                         : null,
-                    'text' => "{$item['reference']} – {$item['commande']}",
+                    'text' => "{$item['reference']} – {$item['commande']}" . ($item['packCode'] ? " – {$item['packCode']}" : ''),
                 ];
             },
-            $referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId(), $selectedReference, $selectedCommande)
+            $referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId(), $receptionReferenceArticle)
         );
 
         return new JsonResponse(['results' => $ref]);
@@ -1318,12 +1346,12 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/verif-avant-suppression", name="ligne_recep_check_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/verif-avant-suppression", name="reception_reference_article_check_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      */
-    public function checkBeforeLigneDelete(EntityManagerInterface $entityManager,
-                                           TranslationService $translationService,
-                                           Request $request) {
-        if($id = json_decode($request->getContent(), true)) {
+    public function checkBeforeReceptionReferenceArticleDelete(EntityManagerInterface $entityManager,
+                                                               TranslationService     $translationService,
+                                                               Request                $request) {
+        if ($id = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $ligneArticle = $receptionReferenceArticleRepository->find($id);
             $nbArticles = $ligneArticle->getArticles()->count();
@@ -1411,7 +1439,7 @@ class ReceptionController extends AbstractController {
 
 
     /**
-     * @Route("/{reception}/ligne-article/{ligneArticle}/etiquette", name="reception_ligne_article_bar_code_print", options={"expose"=true})
+     * @Route("/{reception}/ligne-article/{receptionReferenceArticle}/etiquette", name="reception_ligne_article_bar_code_print", options={"expose"=true})
      */
     public function getReceptionLigneArticleBarCode(Reception                 $reception,
                                                     ReceptionReferenceArticle $receptionReferenceArticle,
@@ -1600,351 +1628,399 @@ class ReceptionController extends AbstractController {
         ];
     }
 
-    /**
-     * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function newWithPacking(Request                 $request,
-                                   MailerService           $mailerService,
-                                   TransferRequestService  $transferRequestService,
-                                   TransferOrderService    $transferOrderService,
-                                   DemandeLivraisonService $demandeLivraisonService,
-                                   TranslationService      $translation,
-                                   EntityManagerInterface  $entityManager,
-                                   Reception               $reception,
-                                   ArticleDataService      $articleDataService,
-                                   FreeFieldService        $champLibreService,
-                                   TrackingMovementService $trackingMovementService,
-                                   MouvementStockService $mouvementStockService,
+    #[Route("/avec-conditionnement/{reception}", name: "reception_new_with_packing", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function newWithPacking(Request                    $request,
+                                   MailerService              $mailerService,
+                                   TransferRequestService     $transferRequestService,
+                                   TransferOrderService       $transferOrderService,
+                                   DemandeLivraisonService    $demandeLivraisonService,
+                                   TranslationService         $translation,
+                                   EntityManagerInterface     $entityManager,
+                                   Reception                  $reception,
+                                   ArticleDataService         $articleDataService,
+                                   FreeFieldService           $champLibreService,
+                                   TrackingMovementService    $trackingMovementService,
+                                   MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
-                                   LivraisonsManagerService $livraisonsManagerService): Response {
+                                   LivraisonsManagerService   $livraisonsManagerService): Response {
 
         $now = new DateTime('now');
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        if($data = json_decode($request->getContent(), true)) {
-            $articles = json_decode($data['packingArticles'], true);
-            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $paramGlobalRepository = $entityManager->getRepository(Setting::class);
+        $articles = json_decode($request->request->get('packingArticles'), true);
+        $data = $request->request->all();
 
-            $totalQuantities = [];
-            foreach($articles as $article) {
-                // TODO WIIS-7811 ajouter UL
-                $receptionReferenceArticles = $receptionReferenceArticleRepository->findByReceptionAndCommandeAndRefArticleId(
-                    $reception,
-                    $article['noCommande'],
-                    $article['refArticle']
-                );
+        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $paramGlobalRepository = $entityManager->getRepository(Setting::class);
 
-                if (count($receptionReferenceArticles) > 1) {
-                    return $this->json([
-                        'success' => false,
-                        'msg' => 'Erreur : La référence avec le même numéro de commande est présente plusieurs fois dans la réception',
-                    ]);
-                }
+        $transferRequest = null;
+        $demande = null;
 
-                $receptionReferenceArticle = $receptionReferenceArticles[0] ?? null;
+        $totalQuantities = [];
+        $cache = [
+            'receptionReferenceArticles' => [],
+            'packs' => [],
+        ];
 
-                if(!isset($totalQuantities[$receptionReferenceArticle->getId()])) {
-                    $totalQuantities[$receptionReferenceArticle->getId()] = ($receptionReferenceArticle->getQuantite() ?? 0);
-                }
-                $totalQuantities[$receptionReferenceArticle->getId()] += max($article['quantite'] * $article['articleQuantity'], 0);
+        //checking values and retrieves entities
+        foreach($articles as &$articleArray) {
+            $receptionReferenceArticleId = $articleArray['receptionReferenceArticle'];
+            $packId = $articleArray['pack'] ?? null;
+
+            if (!isset($cache['packs'][$packId]) && $packId) {
+                $pack = $packRepository->find($packId);
+                $cache['packs'][$packId] = $pack;
+            }
+            else {
+                $pack = $cache['packs'][$packId] ?? null;
             }
 
-            foreach($totalQuantities as $rraId => $totalQuantity) {
-                $receptionReferenceArticle = $receptionReferenceArticleRepository->find($rraId);
-
-                // protection quantité reçue <= quantité à recevoir
-                if($totalQuantity > $receptionReferenceArticle->getQuantiteAR() || $totalQuantity < 0) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'Erreur, la quantité reçue doit être inférieure ou égale à la quantité à recevoir.',
-                    ]);
-                }
-                $receptionReferenceArticle->setQuantite($totalQuantity);
+            if (!isset($cache['receptionReferenceArticles'][$receptionReferenceArticleId])) {
+                $receptionReferenceArticle = $receptionReferenceArticleRepository->find($receptionReferenceArticleId);
+                $cache['receptionReferenceArticles'][$receptionReferenceArticleId] = $receptionReferenceArticle;
+            }
+            else {
+                $receptionReferenceArticle = $cache['receptionReferenceArticles'][$receptionReferenceArticleId];
             }
 
-            if(isset($data['requestType'])) {
-                // optionnel : crée la demande de livraison
-                $needCreateLivraison = $data['requestType'] === 'delivery';
-                $needCreateTransfer = $data['requestType'] === 'transfer';
+            $articleArray['receptionReferenceArticle'] = $receptionReferenceArticle;
+            $articleArray['refArticle'] = $receptionReferenceArticle->getReferenceArticle();
+            $articleArray['pack'] = $pack;
 
-                $transferRequest = null;
-                $demande = null;
-                $createDirectDelivery = $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DIRECT_DELIVERY);
+            $receptionLinePack = $receptionReferenceArticle->getReceptionLine()->getPack();
 
-                if ($needCreateLivraison) {
-                    // optionnel : crée l'ordre de prépa
-                    $paramCreatePrepa = $paramGlobalRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
-                    $needCreatePrepa = $paramCreatePrepa && $paramCreatePrepa->getValue();
-                    $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
+            if ($receptionLinePack?->getId() !== $pack?->getId()) {
+                if ($receptionLinePack) {
+                    throw new FormException("Vous ne pouvez pas changer l'unité logistique de cette référence");
+                }
+                else {
+                    $receptionLine = $reception->getLine($pack);
+                    if (!$receptionLine) {
+                        throw new FormException("L'unité logistique n'est pas présente dans la réception");
+                    }
+                    else if ($receptionLine->getReceptionReferenceArticle($receptionReferenceArticle->getReferenceArticle(), $receptionReferenceArticle->getCommande())) {
+                        throw new FormException("La référence et le numéro de commande sont déjà associés à l'unité logistique sélectionnée");
+                    }
+                }
+                $articleArray['receptionLineChanged'] = true;
+            }
 
-                    $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
-                    if ($demande instanceof Demande) {
-                        $entityManager->persist($demande);
+            if(!isset($totalQuantities[$receptionReferenceArticle->getId()])) {
+                $totalQuantities[$receptionReferenceArticle->getId()] = [
+                    "receptionReferenceArticle" => $receptionReferenceArticle,
+                    "count" => $receptionReferenceArticle->getQuantite() ?? 0
+                ];
+            }
+            $totalQuantities[$receptionReferenceArticle->getId()]["count"] += max($articleArray['quantityToReceive'] * $articleArray['quantite'], 0);
+        }
 
-                        if ($createDirectDelivery) {
-                            $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, true, ['sendNotification' => false]);
-                            if ($validateResponse['success']) {
-                                $preparation = $demande->getPreparations()->first();
+        $wrongQuantitiesReference = Stream::from($totalQuantities)
+            ->find(fn (array $quantities) => (
+                $quantities["count"] > $quantities["receptionReferenceArticle"]->getQuantiteAR()
+                || $quantities["count"] < 0
+            ));
 
-                                /** @var Utilisateur $currentUser */
-                                $currentUser = $this->getUser();
-                                $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
+        if ($wrongQuantitiesReference) {
+            /** @var ReceptionReferenceArticle $receptionReferenceArticle */
+            $receptionReferenceArticle = $wrongQuantitiesReference['receptionReferenceArticle'];
+            $quantityToReceive = $receptionReferenceArticle->getQuantiteAR();
+            $reference = $receptionReferenceArticle->getReferenceArticle()->getReference();
+            $orderNumber = $receptionReferenceArticle->getCommande();
+            $plural = $quantityToReceive > 1 ? 's' : '';
+            throw new FormException("Vous ne pouvez pas conditionner plus de <strong>{$quantityToReceive}</strong> article{$plural} pour la référence <strong>{$reference} - {$orderNumber}</strong>");
+        }
 
-                                $dateEnd = new DateTime('now');
-                                $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
+        foreach ($totalQuantities as $total) {
+            /** @var ReceptionReferenceArticle $receptionReferenceArticle */
+            $receptionReferenceArticle = $total["receptionReferenceArticle"];
+            $receptionReferenceArticle->setQuantite($total["count"]);
+        }
 
-                                $locationEndPreparation = $demande->getDestination();
+        if(isset($data['requestType']) && $data['requestType'] !== 'none') {
+            // optionnel : crée la demande de livraison
+            $needCreateLivraison = $data['requestType'] === 'delivery';
+            $needCreateTransfer = $data['requestType'] === 'transfer';
 
-                                $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
-                                $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
+            $createDirectDelivery = $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DIRECT_DELIVERY);
 
-                                $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-                                $mouvements = $mouvementRepository->findByPreparation($preparation);
+            if ($needCreateLivraison) {
+                // optionnel : crée l'ordre de prépa
+                $paramCreatePrepa = $paramGlobalRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
+                $needCreatePrepa = $paramCreatePrepa && $paramCreatePrepa->getValue();
+                $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
-                                try {
-                                    $entityManager->flush();
-                                    if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
-                                        $this->notificationService->toTreat($delivery);
-                                    }
-                                } /** @noinspection PhpRedundantCatchClauseInspection */
-                                catch (UniqueConstraintViolationException $e) {
-                                    return new JsonResponse([
-                                        'success' => false,
-                                        'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.',
-                                    ]);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
+                if ($demande instanceof Demande) {
+                    $entityManager->persist($demande);
+
+                    if ($createDirectDelivery) {
+                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, true, ['sendNotification' => false]);
+                        if ($validateResponse['success']) {
+                            $preparation = $demande->getPreparations()->first();
+
+                            /** @var Utilisateur $currentUser */
+                            $currentUser = $this->getUser();
+                            $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
+
+                            $dateEnd = new DateTime('now');
+                            $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
+
+                            $locationEndPreparation = $demande->getDestination();
+
+                            $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
+                            $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
+
+                            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+                            $mouvements = $mouvementRepository->findByPreparation($preparation);
+
+                            try {
+                                $entityManager->flush();
+                                if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                    $this->notificationService->toTreat($delivery);
                                 }
-                                foreach ($mouvements as $mouvement) {
-                                    $preparationsManagerService->createMouvementLivraison(
-                                        $mouvement->getQuantity(),
-                                        $currentUser,
-                                        $delivery,
-                                        !empty($mouvement->getRefArticle()),
-                                        $mouvement->getRefArticle() ?? $mouvement->getArticle(),
-                                        $preparation,
-                                        false,
-                                        $locationEndPreparation
-                                    );
-                                }
+                            } /** @noinspection PhpRedundantCatchClauseInspection */
+                            catch (UniqueConstraintViolationException $e) {
+                                return new JsonResponse([
+                                    'success' => false,
+                                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.',
+                                ]);
+                            }
+                            foreach ($mouvements as $mouvement) {
+                                $preparationsManagerService->createMouvementLivraison(
+                                    $mouvement->getQuantity(),
+                                    $currentUser,
+                                    $delivery,
+                                    !empty($mouvement->getRefArticle()),
+                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                    $preparation,
+                                    false,
+                                    $locationEndPreparation
+                                );
                             }
                         }
                     }
-
-                    if (!isset($demande)
-                        || !($demande instanceof Demande)) {
-                        if (isset($demande)
-                            && is_array($demande)) {
-                            $demande = $demande['demande'];
-                        }
-                        else {
-                            return new JsonResponse([
-                                'success' => false,
-                                'msg' => 'Erreur lors de la création de la demande de livraison.',
-                            ]);
-                        }
-                    }
                 }
-                else if ($needCreateTransfer) {
-                    $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
-                    $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
-                    $origin = $emplacementRepository->find($data['origin']);
-                    $destination = $emplacementRepository->find($data['storage']);
 
-                    /** @var Utilisateur $requester */
-                    $requester = $this->getUser();
-                    $transferRequest = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
-
-                    $transferRequest
-                        ->setReception($reception)
-                        ->setValidationDate($now);
-
-                    $order = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);;
-
-                    $entityManager->persist($transferRequest);
-                    $entityManager->persist($order);
-
-                    try {
-                        $entityManager->flush();
-                        if ($transferRequest->getType()->isNotificationsEnabled()) {
-                            $this->notificationService->toTreat($order);
-                        }
-                    } /** @noinspection PhpRedundantCatchClauseInspection */
-                    catch (UniqueConstraintViolationException $e) {
+                if (!isset($demande)
+                    || !($demande instanceof Demande)) {
+                    if (isset($demande)
+                        && is_array($demande)) {
+                        $demande = $demande['demande'];
+                    }
+                    else {
                         return new JsonResponse([
                             'success' => false,
-                            'msg' => 'Une autre demande de transfert est en cours de création, veuillez réessayer.',
+                            'msg' => 'Erreur lors de la création de la demande de livraison.',
                         ]);
                     }
                 }
             }
+            else if ($needCreateTransfer) {
+                $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
+                $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
+                $origin = $emplacementRepository->find($data['origin']);
+                $destination = $emplacementRepository->find($data['storage']);
 
-            $receptionLocation = $reception->getLocation();
-            // crée les articles et les ajoute à la demande, à la réception, crée les urgences
-            $receptionLocationId = $receptionLocation?->getId();
-            $emergencies = [];
+                /** @var Utilisateur $requester */
+                $requester = $this->getUser();
+                $transferRequest = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
 
-            $articleIds = [];
-            foreach($articles as $articleArray) {
-                $quantity = $articleArray['quantite'];
-                if(isset($receptionLocationId)) {
-                    $articleArray['emplacement'] = $receptionLocationId;
-                }
+                $transferRequest
+                    ->setReception($reception)
+                    ->setValidationDate($now);
 
-                $noCommande = $articleArray['noCommande'] ?? null;
-                if ($transferRequest) {
-                    $articleArray['statut'] = Article::STATUT_EN_TRANSIT;
-                }
+                $order = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);;
 
-                $articleArray['quantite'] = intval($articleArray['articleQuantity']);
-                for($i = 0; $i < $quantity; $i++) {
-                    $article = $articleDataService->newArticle($articleArray, $entityManager);
+                $entityManager->persist($transferRequest);
+                $entityManager->persist($order);
 
-                    if ($demande) {
-                        $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, $article->getQuantite());
-                        $entityManager->persist($deliveryArticleLine);
-
-                        /** @var Preparation $preparation */
-                        $preparation = $demande->getPreparations()->first();
-                        if ($preparation) {
-                            $preparationArticleLine = $preparationsManagerService->createArticleLine(
-                                $article,
-                                $preparation,
-                                $article->getQuantite(),
-                                $preparation->getStatut()->getCode() === Preparation::STATUT_PREPARE ? $article->getQuantite() : 0
-                            );
-                            $entityManager->persist($preparationArticleLine);
-
-                            $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                        }
-                    }
-
-                    if ($transferRequest) {
-                        $transferRequest->addArticle($article);
-                    }
-
-                    $ref = $article->getArticleFournisseur()->getReferenceArticle();
-
-                    // TODO WIIS-7811 ajouter UL
-                    $receptionReferenceArticles = $receptionReferenceArticleRepository->findByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
-                    $receptionReferenceArticle = $receptionReferenceArticles[0] ?? null;
-                    $article->setReceptionReferenceArticle($receptionReferenceArticle);
-                    $ref = $receptionReferenceArticle->getReferenceArticle();
-                    if($ref->getIsUrgent()) {
-                        $emergencies[] = $article;
-                    }
-
-                    $mouvementStock = $mouvementStockService->createMouvementStock(
-                        $currentUser,
-                        null,
-                        $article->getQuantite(),
-                        $article,
-                        MouvementStock::TYPE_ENTREE
-                    );
-                    $mouvementStock->setReceptionOrder($reception);
-
-                    $mouvementStockService->finishMouvementStock(
-                        $mouvementStock,
-                        $now,
-                        $receptionLocation
-                    );
-
-                    $entityManager->persist($mouvementStock);
-
-                    $createdMvt = $trackingMovementService->createTrackingMovement(
-                        $article->getBarCode(),
-                        $receptionLocation,
-                        $currentUser,
-                        $now,
-                        false,
-                        true,
-                        TrackingMovement::TYPE_DEPOSE,
-                        [
-                            'mouvementStock' => $mouvementStock,
-                            'quantity' => $mouvementStock->getQuantity(),
-                            'from' => $reception,
-                        ]
-                    );
-
-                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                    $entityManager->persist($createdMvt);
+                try {
                     $entityManager->flush();
-                    $articleIds[] = $article->getId();
+                    if ($transferRequest->getType()->isNotificationsEnabled()) {
+                        $this->notificationService->toTreat($order);
+                    }
+                } /** @noinspection PhpRedundantCatchClauseInspection */
+                catch (UniqueConstraintViolationException $e) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Une autre demande de transfert est en cours de création, veuillez réessayer.',
+                    ]);
                 }
             }
+        }
 
-            foreach($emergencies as $article) {
-                $ref = $article->getReceptionReferenceArticle()->getReferenceArticle();
+        $receptionLocation = $reception->getLocation();
+        // crée les articles et les ajoute à la demande, à la réception, crée les urgences
+        $receptionLocationId = $receptionLocation?->getId();
+        $emergencies = [];
 
-                $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
-                    'emergency' => $ref->getEmergencyComment(),
-                    'article' => $article,
-                    'title' => 'Votre article urgent a bien été réceptionné.',
-                ]);
+        $articleIds = [];
+        foreach($articles as &$articleArray) {
+            /** @var ReceptionReferenceArticle $receptionReferenceArticle */
+            $receptionReferenceArticle = $articleArray['receptionReferenceArticle'];
+            /** @var Pack|null $pack */
+            $pack = $articleArray['pack'];
+            /** @var ReferenceArticle $referenceArticle */
+            $referenceArticle = $articleArray['refArticle'];
 
-                $destinataires = '';
-                $userThatTriggeredEmergency = $ref->getUserThatTriggeredEmergency();
-                if($userThatTriggeredEmergency) {
-                    if(isset($demande) && $demande->getUtilisateur()) {
-                        $destinataires = [
-                            $userThatTriggeredEmergency,
-                            $demande->getUtilisateur(),
-                        ];
-                    } else {
-                        $destinataires = [$userThatTriggeredEmergency];
+            if ($articleArray['receptionLineChanged'] ?? false) {
+                $receptionLine = $reception->getLine($pack);
+                $receptionReferenceArticle->setReceptionLine($receptionLine);
+            }
+
+            if(isset($receptionLocationId)) {
+                $articleArray['emplacement'] = $receptionLocationId;
+            }
+
+            if ($transferRequest ?? false) {
+                $articleArray['statut'] = Article::STATUT_EN_TRANSIT;
+            }
+
+            $quantityToReceive = intval($articleArray['quantityToReceive']);
+            unset($articleArray['quantityToReceive']);
+            for($i = 0; $i < $quantityToReceive; $i++) {
+                $article = $articleDataService->newArticle($articleArray, $entityManager);
+
+                if ($demande ?? false) {
+                    $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, $article->getQuantite());
+                    $entityManager->persist($deliveryArticleLine);
+
+                    /** @var Preparation $preparation */
+                    $preparation = $demande->getPreparations()->first();
+                    if ($preparation) {
+                        $preparationArticleLine = $preparationsManagerService->createArticleLine(
+                            $article,
+                            $preparation,
+                            $article->getQuantite(),
+                            $preparation->getStatut()->getCode() === Preparation::STATUT_PREPARE ? $article->getQuantite() : 0
+                        );
+                        $entityManager->persist($preparationArticleLine);
+
+                        $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                     }
+                }
+
+                if ($transferRequest) {
+                    $transferRequest->addArticle($article);
+                }
+
+                $article->setReceptionReferenceArticle($receptionReferenceArticle);
+
+                if($referenceArticle->getIsUrgent()) {
+                    $emergencies[] = $article;
+                }
+
+                $mouvementStock = $mouvementStockService->createMouvementStock(
+                    $currentUser,
+                    null,
+                    $article->getQuantite(),
+                    $article,
+                    MouvementStock::TYPE_ENTREE
+                );
+                $mouvementStock->setReceptionOrder($reception);
+
+                $mouvementStockService->finishMouvementStock(
+                    $mouvementStock,
+                    $now,
+                    $receptionLocation
+                );
+
+                $entityManager->persist($mouvementStock);
+
+                $createdMvt = $trackingMovementService->createTrackingMovement(
+                    $article->getBarCode(),
+                    $receptionLocation,
+                    $currentUser,
+                    $now,
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'mouvementStock' => $mouvementStock,
+                        'quantity' => $mouvementStock->getQuantity(),
+                        'from' => $reception,
+                    ]
+                );
+
+                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                $entityManager->persist($createdMvt);
+                $entityManager->flush();
+                $articleIds[] = $article->getId();
+            }
+        }
+
+        foreach($emergencies as $article) {
+            $referenceArticle = $article->getReceptionReferenceArticle()->getReferenceArticle();
+
+            $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
+                'emergency' => $referenceArticle->getEmergencyComment(),
+                'article' => $article,
+                'title' => 'Votre article urgent a bien été réceptionné.',
+            ]);
+
+            $destinataires = '';
+            $userThatTriggeredEmergency = $referenceArticle->getUserThatTriggeredEmergency();
+            if($userThatTriggeredEmergency) {
+                if(isset($demande) && $demande->getUtilisateur()) {
+                    $destinataires = [
+                        $userThatTriggeredEmergency,
+                        $demande->getUtilisateur(),
+                    ];
                 } else {
-                    if(isset($demande) && $demande->getUtilisateur()) {
-                        $destinataires = [$demande->getUtilisateur()];
-                    }
+                    $destinataires = [$userThatTriggeredEmergency];
                 }
-
-                if(!empty($destinataires)) {
-                    // on envoie un mail aux demandeurs
-                    $mailerService->sendMail(
-                        'FOLLOW GT // Article urgent réceptionné', $mailContent,
-                        $destinataires
-                    );
+            } else {
+                if(isset($demande) && $demande->getUtilisateur()) {
+                    $destinataires = [$demande->getUtilisateur()];
                 }
-
-                $ref
-                    ->setIsUrgent(false)
-                    ->setUserThatTriggeredEmergency(null)
-                    ->setEmergencyComment('');
             }
 
-            if(isset($demande) && $demande->getType()->getSendMail()) {
-                $nowDate = new DateTime('now');
+            if(!empty($destinataires)) {
+                // on envoie un mail aux demandeurs
                 $mailerService->sendMail(
-                    'FOLLOW GT // Réception d\'un colis ' . 'de type «' . $demande->getType()->getLabel() . '».',
-                    $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
-                        'demande' => $demande,
-                        'fournisseur' => $reception->getFournisseur(),
-                        'isReception' => true,
-                        'reception' => $reception,
-                        'title' => 'Une ' . $translation->translate('Ordre', 'Réception', 'réception', false)
-                            . ' '
-                            . $reception->getNumber()
-                            . ' de type «'
-                            . $demande->getType()->getLabel()
-                            . '» a été réceptionnée le '
-                            . $nowDate->format('d/m/Y \à H:i')
-                            . '.',
-                    ]),
-                    $demande->getUtilisateur()
+                    'FOLLOW GT // Article urgent réceptionné', $mailContent,
+                    $destinataires
                 );
             }
-            $entityManager->flush();
 
-            return new JsonResponse([
-                'success' => true,
-                'msg' => 'La réception a bien été effectuée.',
-                'articleIds' => json_encode($articleIds),
-            ]);
+            $referenceArticle
+                ->setIsUrgent(false)
+                ->setUserThatTriggeredEmergency(null)
+                ->setEmergencyComment('');
         }
-        throw new BadRequestHttpException();
+
+        if(isset($demande) && $demande->getType()->getSendMail()) {
+            $nowDate = new DateTime('now');
+            $mailerService->sendMail(
+                'FOLLOW GT // Réception d\'un colis ' . 'de type «' . $demande->getType()->getLabel() . '».',
+                $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
+                    'demande' => $demande,
+                    'fournisseur' => $reception->getFournisseur(),
+                    'isReception' => true,
+                    'reception' => $reception,
+                    'title' => 'Une ' . $translation->translate('Ordre', 'Réception', 'réception', false)
+                        . ' '
+                        . $reception->getNumber()
+                        . ' de type «'
+                        . $demande->getType()->getLabel()
+                        . '» a été réceptionnée le '
+                        . $nowDate->format('d/m/Y \à H:i')
+                        . '.',
+                ]),
+                $demande->getUtilisateur()
+            );
+        }
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'La réception a bien été effectuée.',
+            'articleIds' => json_encode($articleIds),
+        ]);
     }
 
     private function addArticleIntoDispute(EntityManagerInterface $entityManager,
@@ -2023,53 +2099,51 @@ class ReceptionController extends AbstractController {
     }
 
     #[Route("/packing-template", name: "packing_template", options: ['expose' => true], methods: "GET")]
-    public function packingTemplate(Request $request, EntityManagerInterface $manager): Response {
-        $query = $request->query;
-        $reference = $query->get('reference');
-        $orderNumber = $query->get('orderNumber');
-        $reception = $query->get('reception');
-        $supplierReference = $query->get('supplierReference');
+    public function packingTemplate(Request                $request,
+                                    EntityManagerInterface $manager): Response {
+        $receptionReferenceArticleId = $request->query->get('receptionReferenceArticle');
+        $packId = $request->query->get('pack');
+        $supplierReference = $request->query->get('supplierReference');
 
         $freeFieldRepository = $manager->getRepository(FreeField::class);
-        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
         $supplierReferenceRepository = $manager->getRepository(ArticleFournisseur::class);
-        $receptionRepository = $manager->getRepository(Reception::class);
+        $receptionReferenceArticleRepository = $manager->getRepository(ReceptionReferenceArticle::class);
+        $packRepository = $manager->getRepository(Pack::class);
 
-        $reception = $receptionRepository->find($reception);
-        $reference = $referenceArticleRepository->findOneBy(['reference' => $reference]);
+        $pack = $packId ? $packRepository->find($packId) : null;
+        $receptionReferenceArticle = $receptionReferenceArticleRepository->find($receptionReferenceArticleId);
         $supplierReference = $supplierReferenceRepository->find($supplierReference);
+
+        $reference = $receptionReferenceArticle->getReferenceArticle();
         $type = $reference->getType();
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-        $receptionReferenceArticle = Stream::from($reception->getLines())
-            ->reduce(function(array $carry, ReceptionLine $line) use ($orderNumber, $reference) {
-                $receptionReferenceArticles = $line->getReceptionReferenceArticles();
-                foreach ($receptionReferenceArticles as $receptionReferenceArticle) {
-                    if ($receptionReferenceArticle->getCommande() === $orderNumber
-                        && $receptionReferenceArticle->getReferenceArticle()->getId() === $reference->getId()
-                        && empty($carry)) {
-                        $carry[] = $receptionReferenceArticle;
-                    }
-                }
-                return $carry;
-            }, [])[0];
 
         return $this->json([
             'template' => $this->renderView('reception/show/packing_content.html.twig', [
                 'freeFields' => $freeFields,
                 'receptionReferenceArticle' => $receptionReferenceArticle,
+                'selectedPack' => $pack,
                 'supplierReference' => $supplierReference,
-                'orderNumber' => $orderNumber,
             ]),
         ]);
     }
 
-    #[Route("/add-articles", name: "add_articles", options: ['expose' => true], methods: "GET")]
-    public function addArticles(Request $request, EntityManagerInterface $manager): Response {
+    #[Route("/packing-articles-template", name: "get_packing_article_template", options: ['expose' => true], methods: "GET")]
+    public function getPackingArticlesTemplate(Request $request, EntityManagerInterface $manager): Response {
         $data = json_decode($request->query->get('params'), true);
+
         $freeFieldRepository = $manager->getRepository(FreeField::class);
-        $reference = $manager->find(ReferenceArticle::class, $data['reference']);
+        $supplierArticleRepository = $manager->getRepository(ArticleFournisseur::class);
+        $receptionReferenceArticleRepository = $manager->getRepository(ReceptionReferenceArticle::class);
+        $packRepository = $manager->getRepository(Pack::class);
+
+        $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['receptionReferenceArticle']);
+        $receptionLine = $receptionReferenceArticle->getReceptionLine();
+        $pack = $receptionLine->getPack()
+            ?? (!empty($data['pack']) ? $packRepository->find($data['pack']) : null);
+
         $supplierReference = isset($data['supplierReference'])
-            ? $manager->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['supplierReference']])
+            ? $supplierArticleRepository->findOneBy(['reference' => $data['supplierReference']])
             : '';
 
         $expiryDate = isset($data['expiry']) ? DateTime::createFromFormat('Y-m-d', $data['expiry']) : '';
@@ -2091,48 +2165,37 @@ class ReceptionController extends AbstractController {
             'quantity' => $data['quantity'],
             'batch' => $data['batch'] ?? '',
             'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
-            'referenceId' => $reference->getId(),
+            'receptionReferenceArticle' => $receptionReferenceArticle->getId(),
+            'pack' => $pack?->getId(),
             'supplierReferenceId' => $supplierReference ? $supplierReference->getId() : '',
-            'orderNumber' => $data['orderNumber'],
             'freeFields' => $freeFieldsValues,
         ];
 
         return $this->json([
-           'template' => $this->renderView('reception/show/add_articles.html.twig', [
-               'reference' => $reference,
+           'template' => $this->renderView('reception/show/packing_article_template.html.twig', [
+               'pack' => $pack,
+               'receptionReferenceArticle' => $receptionReferenceArticle,
                'quantityToReceive' => $data['quantityToReceive'],
                'supplierReferenceId' => $supplierReference ? $supplierReference->getId() : '',
                'supplierReferenceLabel' => $supplierReference ? $supplierReference->getReference() : '',
                'batch' => $data['batch'] ?? '',
                'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
                'quantity' => $data['quantity'],
-               'referenceId' => $reference->getId(),
                'freeFields' => $freeFields,
+               'data' => array_merge(
+                   [
+                       'quantityToReceive' => $data['quantityToReceive'],
+                       'quantite' => $data['quantity'],
+                       'batch' => $data['batch'] ?? '',
+                       'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
+                       'receptionReferenceArticle' => $receptionReferenceArticle->getId(),
+                       'pack' => $pack?->getId(),
+                       'articleFournisseur' => $supplierReference ? $supplierReference->getId() : '',
+                   ],
+                   $freeFieldsValues
+               )
            ]),
            'values' => $values,
-        ]);
-    }
-
-    #[Route("/can-be-packed", name: "can_be_packed", options: ['expose' => true], methods: "GET")]
-    public function canBePacked(Request $request, EntityManagerInterface $manager): Response {
-        $data = $request->query->all();
-        $orderNumber = $data['orderNumber'];
-
-        $reception = $manager->find(Reception::class, $data['reception']);
-        $reference = $manager->getRepository(ReferenceArticle::class)->findOneBy([
-            'reference' => $data['reference'],
-        ]);
-
-        $receptionLine = $manager->getRepository(ReceptionReferenceArticle::class)
-            ->findByReceptionAndCommandeAndRefArticleId($reception, $orderNumber, $reference->getId());
-        $receptionReferenceArticle = $receptionLine[0] ?? null;
-
-        $success = $data['cumulatedQuantities'] <= ($receptionReferenceArticle->getQuantiteAR() - $receptionReferenceArticle->getQuantite());
-        return $this->json([
-            'success' => $success,
-            'reference' => $reference->getReference(),
-            'orderNumber' => $orderNumber,
-            'expectedQuantity' => $receptionReferenceArticle->getQuantiteAR(),
         ]);
     }
 
@@ -2174,7 +2237,9 @@ class ReceptionController extends AbstractController {
                 "lines" => $result["data"],
                 "total" => $result["total"],
                 "current" => $start,
-                "pageLength" => $listLength
+                "currentPage" => floor($start / $listLength),
+                "pageLength" => $listLength,
+                "pagesCount" => ceil($result["total"] / $listLength),
             ]),
         ]);
     }

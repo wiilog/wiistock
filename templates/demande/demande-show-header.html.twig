@@ -4,86 +4,102 @@
 {% block showSubtitle ('n°' ~ demande.numero) %}
 
 {% block showActions %}
-    <div class="btn-group">
-        {% if modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) %}
-            <button type="button"
-                    data-id='{{ demande.id }}'
-                    onclick="validateLivraison({{ demande.id }}, $(this))"
-                    class="btn btn-primary split-button  d-flex align-items-center">
-                <span class="wii-icon wii-icon-check-white mr-2"></span>
-                Valider
-            </button>
-        {% endif %}
-        <button type="button"
-                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false">
-            <span class="fa fa-angle-down"></span>
-        </button>
-        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            {% if demande.reception is not empty and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_RECE')) %}
-                <a href="{{ path('reception_show', {'id': demande.reception.id }) }}"
-                   class="dropdown-item">
-                    <i class="mr-2 fas fa-external-link-alt"></i>Aller vers la réception
-                </a>
-            {% endif %}
-            {% if demande.preparations is not empty and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')) %}
-                {% if demande.preparations|length > 1 %}
-                    <a href="{{ path('preparation_index', {'demandId': demande.id }) }}"
-                       class="dropdown-item">
-                        <i class="mr-2 fas fa-external-link-alt"></i>Aller vers les ordres de préparations
-                    </a>
-                {% else %}
-                    <a href="{{ path('preparation_show', {'id': demande.preparations[0].id }) }}"
-                       class="dropdown-item">
-                        <i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de préparation
-                    </a>
-                {% endif %}
-            {% endif %}
-            {% if demande.livraisons is not empty and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) %}
-                {# Si on a plusieurs prerations, on affiche une liste pour les livraisons #}
-                {% if demande.preparations|length > 1 %}
-                    <a href="{{ path('livraison_index', {'demandId': demande.id }) }}"
-                       class="dropdown-item">
-                        <i class="mr-2 fas fa-external-link-alt"></i>Aller vers les ordres de livraison
-                    </a>
-                {% else %}
-                    <a href="{{ path('livraison_show', {'id': demande.livraisons[0].id }) }}"
-                       class="dropdown-item">
-                        <i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de livraison
-                    </a>
-                {% endif %}
-            {% endif %}
-            {% if (demande.preparations|filter(p=>p.pairings|length > 0)|length >= 1)
-                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
-                <a class="dropdown-item"
-                   href="{{ path('show_data_history', {id: demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}) }}">
-                    <span class="wii-icon wii-icon-pairing"></span>
-                    Historique des données
-                </a>
-            {% endif %}
-            {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                <a onclick="
-                        editRow($(this),
+    {% include 'utils/action-buttons/header-buttons.html.twig' with {
+        forceActionButton: true,
+        actions: [
+            {
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')),
+                buttonClass: "btn btn-primary",
+                icon: "wii-icon wii-icon-check-white",
+                title: "Valider",
+                attributes: {
+                    "data-id": demande.id,
+                    "onclick": "validateLivraison(" ~ demande.id ~ ", $(this))"
+                }
+            },
+            {
+                hasRight: demande.reception is not empty and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_RECE')),
+                buttonClass: "btn btn-primary",
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers la réception",
+                dropdownOnly: true,
+                href: path('reception_show', {'id': demande.reception.id }),
+            },
+            {
+                hasRight: demande.preparations|length > 1 and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')),
+                buttonClass: "btn btn-primary",
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers les ordres de préparations",
+                dropdownOnly: true,
+                href: path('preparation_index', {'demandId': demande.id }),
+            },
+            {
+                hasRight: demande.preparations|length == 1 and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')),
+                buttonClass: "btn btn-primary",
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers l'ordre de préparation",
+                dropdownOnly: true,
+                href: demande.preparations is not empty ? path('preparation_show', {'id': demande.preparations[0].id }),
+            },
+            {
+                hasRight: demande.livraisons|length > 1 and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')),
+                buttonClass: "btn btn-primary",
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers les ordres de livraison",
+                dropdownOnly: true,
+                href: path('livraison_index', {'demandId': demande.id }),
+            },
+            {
+                hasRight: demande.livraisons|length == 1 and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')),
+                buttonClass: "btn btn-primary",
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers l'ordre de livraison",
+                dropdownOnly: true,
+                href: demande.livraisons is not empty ? path('livraison_show', {'id': demande.livraisons[0].id }),
+            },
+            {
+                hasRight: (
+                    (demande.preparations|filter(p => p.pairings|length > 0)|length >= 1)
+                    and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR'))
+                ),
+                buttonClass: "btn btn-primary",
+                icon: "wii-icon wii-icon-pairing",
+                title: "Historique des données",
+                dropdownOnly: true,
+                href: path('show_data_history', {id: demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}),
+            },
+            {
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')),
+                buttonClass: "btn btn-primary",
+                icon: "fas fa-pencil-alt",
+                title: "Modifier",
+                class: 'edit-button',
+                dropdownOnly: true,
+                attributes: {
+                    onclick: "editRow(
+                        $(this),
                         Routing.generate('demandeLivraison_api_edit', true),
                         $('#modalEditDemande'),
                         $('#submitEditdemande'), false,
                         () => initDeliveryRequestModal()
-                );"
-                   data-id='{{ demande.id }}'
-                   data-target='#modalEditDemande'
-                   data-toggle='modal'
-                   class="dropdown-item pointer edit-button">
-                    <i class="fas fa-pencil-alt mr-2" aria-hidden="true"></i>Modifier
-                </a>
-            {% endif %}
-            {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
-                <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
-                    class="dropdown-item d-flex align-items-center">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
-                </a>
-            {% endif %}
-        </div>
-    </div>
+                    );",
+                    "data-id": demande.id,
+                    "data-target": "#modalEditDemande",
+                    "data-toggle": "modal",
+                },
+            },
+            {
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')),
+                buttonClass: "btn btn-primary",
+                icon: "wii-icon wii-icon-trash-black",
+                title: "Supprimer",
+                dropdownOnly: true,
+                attributes: {
+                    "data-id": demande.id,
+                    "data-target": "#modalDeleteDemande",
+                    "data-toggle": "modal",
+                },
+            },
+        ]
+    } %}
 {% endblock %}

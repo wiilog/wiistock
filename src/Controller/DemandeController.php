@@ -14,6 +14,7 @@ use App\Entity\Emplacement;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Menu;
+use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\Setting;
 use App\Entity\PreparationOrder\Preparation;
@@ -564,6 +565,7 @@ class DemandeController extends AbstractController
                     'date de validation',
                     'numéro',
                     'type demande',
+                    'date attendue',
                     'projet',
                     'code(s) préparation(s)',
                     'code(s) livraison(s)',
@@ -665,6 +667,7 @@ class DemandeController extends AbstractController
             FormatHelper::datetime($demande->getValidatedAt()),
             $demande->getNumero(),
             FormatHelper::type($demande->getType()),
+            FormatHelper::date($demande->getExpectedAt()),
             $demande?->getProject()?->getCode(),
             !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',
             !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND',
@@ -733,6 +736,64 @@ class DemandeController extends AbstractController
         return $this->json([
             'success' => true,
             'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+        ]);
+    }
+
+    #[Route("/{delivery}/ajouter-ul/{logisticUnit}", name: "delivery_add_logistic_unit", options: ["expose" => true], methods: "POST")]
+    public function addLogisticUnit(EntityManagerInterface $manager, DemandeLivraisonService $demandeLivraisonService, Demande $delivery, Pack $logisticUnit): JsonResponse {
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_PROJECT);
+
+        $projectRequired = $projectField->isDisplayedCreate() && $projectField->isRequiredCreate()
+            || $projectField->isDisplayedEdit() && $projectField->isRequiredEdit();
+
+        if(!$logisticUnit->getProject() && $projectRequired) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Le projet est obligatoire pour les demandes de livraison, l'unité logistique n'en a pas et ne peut pas être ajoutée",
+            ]);
+        }
+
+        if($delivery->getProject() && $logisticUnit?->getProject()?->getId() != $delivery->getProject()->getId()) {
+            return $this->json([
+                "success" => false,
+                "msg" => "L'unité logistique n'a pas le même projet que la demande",
+            ]);
+        }
+
+        $delivery->setProject($logisticUnit->getProject());
+
+        foreach($logisticUnit->getChildArticles() as $article) {
+            $line = (new DeliveryRequestArticleLine())
+                ->setArticle($article)
+                ->setPack($logisticUnit)
+                ->setQuantityToPick($article->getQuantite())
+                ->setTargetLocationPicking($article->getEmplacement());
+
+            $delivery->addArticleLine($line);
+            $manager->persist($line);
+        }
+
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "L'unité logistique <b>{$logisticUnit->getCode()}</b> a été ajoutée a la demande",
+            "header" => $this->renderView('demande/demande-show-header.html.twig', [
+                "demande" => $delivery,
+                "modifiable" => $delivery->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
+                "showDetails" => $demandeLivraisonService->createHeaderDetailsConfig($delivery)
+            ]),
+        ]);
+    }
+
+    #[Route("/details-ul/{logisticUnit}", name: "delivery_logistic_unit_details", options: ["expose" => true], methods: "GET")]
+    public function logisticUnitDetails(Pack $logisticUnit): JsonResponse {
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("demande/logisticUnitDetails.html.twig", [
+                "logisticUnit" => $logisticUnit,
+            ])
         ]);
     }
 

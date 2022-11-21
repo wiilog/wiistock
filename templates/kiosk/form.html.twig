@@ -56,7 +56,7 @@
                                     {{ freeField.label }}
                                     {% include 'free_field/freeFieldsEdit.html.twig' with {
                                         freeFields: [freeField],
-                                        freeFieldValues: [],
+                                        freeFieldValues: reference.freeFields,
                                         colType: 'col-12',
                                         requiredType: 'requiredEdit',
                                         actionType: 'edit',
@@ -64,9 +64,10 @@
                                     } %}
                                 {% endif %}
                             </label>
+                            <input hidden name="free-field-id" value="{{ freeField ? freeField.id }}"/>
                             <label class="w-100 mr-3">
                                 Commentaire <span class="wii-small-text">(Facultatif)</span>
-                                <input type="search" class="data w-100" value="{{ reference.commentaire }}" name="reference-comment">
+                                <input type="search" class="data w-100" value="{{ reference.cleanedComment | striptags }}" name="reference-comment">
                             </label>
                         </div>
                     </div>
@@ -98,7 +99,7 @@
                         <div class="row">
                             <div class="col-12 flex-column">
                                 <div class="d-flex">
-                                    <div class="field-reference-title">Ref : <span class="reference-reference"></span> </div>
+                                    <div class="field-reference-title mr-3">Ref : <span class="reference-reference"></span> </div>
                                     <div class="field-article-title">Article : <span class="reference-article"></span></div>
                                 </div>
                                 <div class="mt-3">
@@ -154,7 +155,7 @@
                         </div>
                     </div>
                     <div class="d-flex flex-row-reverse mt-5">
-                        <button class="button-next">
+                        <button class="button-next" data-loader-size="normal">
                             Suivant
                         </button>
                     </div>
@@ -166,7 +167,7 @@
                             <button class="outline edit-stock-entry-button">
                                 Modifier
                             </button>
-                            <button class="validate-stock-entry-button">
+                            <button class="validate-stock-entry-button" data-loader-size="normal">
                                 Valider
                             </button>
                         </div>
@@ -189,7 +190,7 @@
             <span class="field-success-page"></span>
         </div>
         <div class="d-flex justify-content-center redirect-button-container">
-            <button class="outline print-again-button">
+            <button class="outline print-again-button" data-loader-size="normal">
                 Réimprimer
             </button>
             <button class="go-home-button">
@@ -206,6 +207,10 @@
     {% include 'kiosk/modalArticleIsNotValid.html.twig' %}
     {% include 'kiosk/modalWaiting.html.twig' with {
         'message': 'Veuillez patienter un instant. Votre demande est en cours de traitement.'
+    }%}
+    {% include 'kiosk/modalWarning.html.twig' with {
+        message: "Des champs obligatoires n'ont pas été renseignés, impossible de valider l'entrée de stock.",
+        id: 'modal-missing-required-fields',
     }%}
 {% endblock %}
 

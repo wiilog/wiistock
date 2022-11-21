@@ -92,6 +92,10 @@ class CartController extends AbstractController
         $referencesByBuyer[] = array_shift($referencesByBuyer);
 
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($manager);
+
+        $firstArticle = $currentUser->getCart()?->getArticles()?->first() ?: null;
+        $project = $firstArticle?->getCurrentLogisticUnit()?->getProject()?->getCode();
+
         $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
             ->filter(fn(Demande $request) => $request->getType() && $request->getDestination())
             ->map(fn(Demande $request) => [
@@ -116,6 +120,7 @@ class CartController extends AbstractController
             ]);
 
         return $this->render("cart/index.html.twig", [
+            "project" => $project,
             "deliveryRequests" => $deliveryRequests,
             "collectRequests" => $collectRequests,
             "purchaseRequests" => $purchaseRequests,
@@ -356,6 +361,87 @@ class CartController extends AbstractController
         return $this->json([
             "messages" => $response,
             "cartQuantity" => $cart->getArticles()->count() ?? $cart->getReferences()->count()
+        ]);
+    }
+
+
+    #[Route("/articles-logistics-unit-api", name: "articles_logistics_unit_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    //#[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
+    public function getLogisticsUnitAndArticlesApi(): JsonResponse {
+        $articlesInCart = $this->getUser()->getCart()->getArticles();
+        $articles = Stream::from($articlesInCart)
+            ->keymap(fn(Article $article) => [
+                $article->getCurrentLogisticUnit()?->getId() ?: 0,
+                [
+                    'id' => $article->getId(),
+                    'reference' => $article->getReference(),
+                    'barCode' => $article->getBarCode(),
+                    'label' => $article->getLabel(),
+                    'batch' => $article->getBatch(),
+                    'quantity' => $article->getQuantite(),
+                    'actions' => $this->renderView('cart/datatableRemoveArticle.html.twig', [
+                        'articleId' => $article->getId()
+                    ]),
+                ]
+            ], true)
+            ->toArray();
+        $logisticsUnits = Stream::from($articlesInCart)
+            ->keymap(fn(Article $article) => [
+                $article->getCurrentLogisticUnit()?->getId() ?: 0,
+                $article->getCurrentLogisticUnit()
+                    ? [
+                        "packId" => $article->getCurrentLogisticUnit()?->getId(),
+                        "code" => $article->getCurrentLogisticUnit()?->getCode() ?? null,
+                        "location" => $article->getCurrentLogisticUnit()?->getLastDrop()?->getEmplacement()?->getLabel() ?? null,
+                        "project" => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? null,
+                        "nature" => $article->getCurrentLogisticUnit()?->getNature()?->getLabel() ?? null,
+                        "color" => $article->getCurrentLogisticUnit()?->getNature()?->getColor() ?? null,
+                        "quantity" => $article->getCurrentLogisticUnit()?->getQuantity() ?? null,
+                        "quantityArticleInLocation" => $article->getCurrentLogisticUnit()?->getChildArticles()?->count() ?: 0,
+                    ]
+                    : null
+            ])
+            ->toArray();
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("cart/line-list.html.twig", [
+                "lines" => Stream::from($articles)
+                    ->map(fn(array $articles, int $logisticUnitId) => [
+                        'pack' => $logisticsUnits[$logisticUnitId] ?? null,
+                        'articles' => $articles
+                    ]),
+            ]),
+        ]);
+    }
+
+    #[Route("/articles-remove-row-cart-api", name: "articles_remove_row_cart_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function deleteRow(EntityManagerInterface $entityManager, Request $request): Response {
+        $type = $request->query->get('type');
+        $cart = $this->getUser()?->getCart();
+        if ($type == 'article') {
+            $articleId = $request->query->get('id');
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $article = $articleRepository->find($articleId);
+            $cart->removeArticle($article);
+            $entityManager->flush();
+            $message = "L'article a bien été supprimé du panier";
+        }elseif ($type == 'unit') {
+            $packId = $request->query->get('id');
+            $articles = $cart->getArticles();
+            foreach ($articles as $article) {
+                if ($article->getCurrentLogisticUnit()?->getId() == $packId) {
+                    $cart->removeArticle($article);
+                }
+            }
+            $entityManager->flush();
+
+            $message = "L'unité logistique a bien été supprimée du panier";
+        }
+
+        return $this->json([
+            "success" => true,
+            "msg" => $message ?? "",
+            "emptyCart" => $cart->isEmpty()
         ]);
     }
 }

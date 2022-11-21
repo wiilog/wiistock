@@ -30,40 +30,38 @@
                     <div class="header wii-title">Liste des articles</div>
                     <div class="content">
                         <div class="row wii-page-card-header">
-                            <div class="col-auto">
+                            <div class="col-auto mb-3">
                                 <div class="dataTables_filter">
                                     <label>{{ trans('Général', '', 'Zone liste', 'Rechercher : ') }} <input type="search"/></label>
                                 </div>
                             </div>
-                            <div class="col-auto ml-auto">
-                                <div class="btn-group">
-                                    {% if modifiable %}
-                                        {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                                            <button type="button"
-                                                    data-toggle="modal"
-                                                    data-target="#modalAddLigneArticle"
-                                                    class="btn btn-primary split-button d-flex align-items-center"
-                                                    onclick="initNewArticleEditor('#modalAddLigneArticle')">
-                                                <span class="wii-icon wii-icon-new-article mr-2"></span>
-                                                Ajouter une référence
-                                            </button>
-                                        {% endif %}
-                                    {% endif %}
-                                    <button type="button"
-                                            class="btn btn-outline-primary d-none print dropdown-toggle dropdown-toggle-split"
-                                            data-toggle="dropdown"
-                                            aria-haspopup="true"
-                                            aria-expanded="false">
-                                        <span class="fa fa-angle-down"></span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                        <a href="{{ path('reception_bar_codes_print', {reception: reception.id}) }}"
-                                           id="buttonPrintMultipleBarcodes"
-                                           class="dropdown-item d-none print d-flex align-items-center">
-                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>Générer les étiquettes
-                                        </a>
-                                    </div>
-                                </div>
+                            <div class="col-auto ml-auto mb-3">
+                                {% include 'utils/action-buttons/header-buttons.html.twig' with {
+                                    actions: [{
+                                        buttonClass: "btn btn-outline-primary mr-2",
+                                        title: trans('Ordre','Réceptions', 'réception'),
+                                        hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')),
+                                        attributes: {
+                                            "data-target": "#modalNewLigneReception",
+                                            "data-toggle": "modal",
+                                            onclick: "openModalNewReceptionReferenceArticle($(this))",
+                                        },
+                                    }]
+                                } %}
+
+                                {% include 'utils/action-buttons/header-buttons.html.twig' with {
+                                    actions: [{
+                                        buttonClass: "btn btn-primary",
+                                        title: "Ajouter une référence",
+                                        hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')),
+                                        icon: "wii-icon wii-icon-new-article",
+                                        attributes: {
+                                            "data-target": "#modalNewReceptionReferenceArticle",
+                                            "data-toggle": "modal",
+                                            onclick: "initNewArticleEditor('#modalNewReceptionReferenceArticle')",
+                                        },
+                                    }]
+                                } %}
                             </div>
                         </div>
                         <div class="row">
@@ -82,16 +80,20 @@
                         <div class="content">
                             {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
                                 <div class="row wii-page-card-header">
-                                    <div class="col-auto ml-auto">
-                                        <button type="button"
-                                                data-id='{{ reception.id }}'
-                                                data-target='#modalNewLitige'
-                                                data-toggle='modal'
-                                                class="btn btn-primary d-flex align-items-center"
-                                                onclick="openNewLitigeModal($(this))">
-                                            <span class="wii-icon wii-icon-plus mr-2"></span>
-                                            Nouveau litige
-                                        </button>
+                                    <div class="col-auto ml-auto mb-3">
+                                        {% include 'utils/action-buttons/header-buttons.html.twig' with {
+                                            actions: [{
+                                                buttonClass: "btn btn-primary",
+                                                title: "Nouveau litige",
+                                                hasRight: hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')),
+                                                icon: "wii-icon wii-icon-plus",
+                                                attributes: {
+                                                    "data-target": "#modalNewLitige",
+                                                    "data-toggle": "modal",
+                                                    onclick: "openNewLitigeModal($(this))",
+                                                },
+                                            }]
+                                        } %}
                                     </div>
                                 </div>
                             {% endif %}
@@ -115,9 +117,9 @@
 
     {% include "reception/show/modalDeleteReception.html.twig" %}
     {% include "reception/show/modalEditReception.html.twig" %}
-    {% include "reception/show/modalEditLigneArticle.html.twig" %}
-    {% include "reception/show/modalDeleteLigneArticle.html.twig" %}
-    {% include "reception/show/modalAddLigneArticle.html.twig" %}
+    {% include "reception/show/modalEditReceptionReferenceArticle.html.twig" %}
+    {% include "reception/show/modalDeleteReceptionReferenceArticle.html.twig" %}
+    {% include "reception/show/modalNewReceptionReferenceArticle.html.twig" %}
     {% include "reception/show/modalChooseConditionnement.html.twig" %}
     {% include "article/modalDeleteArticle.html.twig" %}
     {% include 'reception/show/modalNewLitige.html.twig' %}
@@ -125,7 +127,8 @@
     {% include 'reception/show/modalNewLigneReception.html.twig' with {
         precheckedDelivery,
         deliverySwitchLabel,
-        restrictedLocations
+        restrictedLocations,
+        reception
     } %}
     {% include 'reception/show/modalDeleteLitige.html.twig' %}
     {% include 'reception/show/modalFinishReception.html.twig' %}

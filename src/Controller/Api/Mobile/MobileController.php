@@ -599,7 +599,6 @@ class MobileController extends AbstractApiController
                 } else if ($throwable->getMessage() === Pack::PACK_IS_GROUP) {
                     $successData['data']['errors'][$mvt['ref_article']] = 'Le colis scanné est un groupe';
                 } else {
-                    throw $throwable;
                     $exceptionLoggerService->sendLog($throwable, $request);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
                 }

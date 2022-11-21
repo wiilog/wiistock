@@ -32,28 +32,50 @@
                 }
             )
         })),
-        action: {
-            icon: "new-article",
-            datatarget: "#modalAddLigneArticle",
-            class: "btn btn-outline-primary ml-2 h-100 p-1",
-            onclick: "initNewArticleEditor('#modalAddLigneArticle', { unitId : {{ header.data['pack-id'] }}, unitCode : '{{ header.content[0].value }}' })",
-        }
+        action: pack
+            ? {
+                icon: 'wii-icon wii-icon-new-article',
+                datatarget: "#modalNewReceptionReferenceArticle",
+                onclick: "initNewArticleEditor('#modalNewReceptionReferenceArticle', { unitId : " ~ pack.id ~ ", unitCode : '" ~ pack.code ~ "' })",
+            }
     } %}
 {% endfor %}
 
-{% if pageLength < total %}
-    <div class="dataTables_wrapper">
-        <div class="datatable-paging">
-            <div class="dataTables_paginate paging_simple_numbers">
-                <a class="paginate_button previous {{ current == 0 ? 'disabled' }}"
-                   data-page="{{ current - pageLength }}">
-                    {{ trans('Général', '', 'Zone liste', 'Précédent') }}
+<div class="dataTables_wrapper mt-2">
+    <div class="datatable-paging">
+        <div class="dataTables_paginate paging_simple_numbers">
+            <a class="paginate_button previous {{ current == 0 ? 'disabled' }}"
+               data-page="{{ current - pageLength }}">
+                {{ trans('Général', '', 'Zone liste', 'Précédent') }}
+            </a>
+            {% set lowest = max(0, currentPage - 2) %}
+            {% set highest = min(pagesCount - 1, currentPage + 2) %}
+
+            {% if lowest >= 1 %}
+                <a class="paginate_button" data-page="0">1</a>
+                {% if lowest > 1 %}
+                    <span class="ellipsis">…</span>
+                {% endif %}
+            {% endif %}
+
+            {% for i in lowest..highest %}
+                <a class="paginate_button {{ i * pageLength == current ? 'current' }} {{ pageLength >= total ? 'disabled' }}"
+                   data-page="{{ i * pageLength }}">
+                    {{ i + 1 }}
                 </a>
-                <a class="paginate_button next {{ (current + pageLength >= total) ? 'disabled' }}"
-                   data-page="{{ current + pageLength }}">
-                    {{ trans('Général', '', 'Zone liste', 'Suivant') }}
-                </a>
-            </div>
+            {% endfor %}
+
+            {% if highest + 1 < pagesCount %}
+                {% if highest + 2 != pagesCount %}
+                    <span class="ellipsis">…</span>
+                {% endif %}
+                <a class="paginate_button" data-page="{{ (pagesCount - 1) * pageLength }}">{{ pagesCount }}</a>
+            {% endif %}
+
+            <a class="paginate_button next {{ (current + pageLength >= total) ? 'disabled' }}"
+               data-page="{{ current + pageLength }}">
+                {{ trans('Général', '', 'Zone liste', 'Suivant') }}
+            </a>
         </div>
     </div>
-{% endif %}
+</div>

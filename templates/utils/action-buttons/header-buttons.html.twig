@@ -1,0 +1,52 @@
+{#
+How to use :
+
+{% include "utils/action-buttons/header-buttons.html.twig" with {
+    icon: string, // class of the toggle icon of the dropdown
+    dropdownDirection: string, // direction of the dropdown-menu
+    forceActionButton: boolean, // if true and there is just one item in the dropdown then we display the action button
+    actions: [
+        Objects defined as buttons options (macro in common.html.twig)
+            + hasRight boolean
+            + dropdownOnly boolean object which define only
+    ],
+} %}
+
+#}
+
+{% import 'utils/action-buttons/common.html.twig' as common %}
+
+{#keep only action where user have the right#}
+{% set actionsFiltered = actions|filter(action => action.hasRight is not defined or action.hasRight) %}
+{% set forceActionButton = forceActionButton ?? false %}
+
+{% if actionsFiltered|length > 0 %}
+    {% set mainActionsFiltered = actionsFiltered|filter((action) => action.dropdownOnly is not defined or not action.dropdownOnly) %}
+    {% set firstAction = (forceActionButton and actionsFiltered|length == 1)
+        ? actionsFiltered|first
+        : mainActionsFiltered|first
+    %}
+
+    <div class="btn-group">
+        {% if firstAction %}
+            {{ common.button(firstAction) }}
+        {% endif %}
+        {% if actionsFiltered|length > 1
+              or not firstAction %}
+            <button type="button"
+                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                    <i class="fa fa-angle-down"></i>
+            </button>
+            <div class="dropdown-menu dropdown-follow-gt {{ dropdownDirection is defined and dropdownDirection ? dropdownDirection : 'dropdown-menu-right' }}">
+                {% for action in actionsFiltered %}
+                    {% if action != firstAction %}
+                        {{ common.dropdownItem(action) }}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endif %}

@@ -151,7 +151,7 @@
                     {{ (item.disabled ?? false) ? 'disabled' }}
                     {{ (item.checked ?? false) ? 'checked' }} />
 
-                <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}-{{ item.id ?? '' }}">
+                <label class="{{ options.labelClass ?? '' }} d-inline-flex align-items-center" for="radio-{{ id }}-{{ item.id ?? '' }}">
                     {% if item.iconUrl ?? false %}
                         <img src="{{ item.iconUrl }}" alt="" width="20px" class="mr-2 {{ options.iconClass }}">
                     {% endif %}

@@ -3,11 +3,17 @@
 <div class="wii-section-title">Général</div>
 <div class="wii-section touch-terminal">
     <div class="row">
-        <div class="col-12 mb-3">
-            <a class="btn btn-primary" href="{{ path('kiosk_index') }}">
+        <div class="col-4 mb-3">
+            <button class="btn btn-primary kiosk-link">
                 <i class="fas fa-external-link-alt mr-2"></i>
                 Lien vers l'application
-            </a>
+            </button>
+        </div>
+        <div class="col-8 mb-3">
+            <button class="btn btn-outline-primary kiosk-unlink d-flex align-items-center" {{ alreadyUnlinked ? 'disabled' }}>
+                <span class="wii-icon wii-icon-link-slash wii-icon-17px mr-2"></span>
+                Déconnecter la borne
+            </button>
         </div>
         <div class="form-group w-fit-content col-4">
             <div class="row">
@@ -238,6 +244,23 @@
                 type: 'number',
                 min: 1
             }  ) }}
+        </div>
+        <div class="form-group col-4">
+            {% set settingCollectRequestRequester = setting_value('COLLECT_REQUEST_REQUESTER', 'App\\Entity\\Utilisateur') %}
+            {{ form.select(setting('COLLECT_REQUEST_REQUESTER'), 'Demandeur', true, {
+                type: 'collectRequester',
+                placeholder: 'Sélectionnez un utilisateur',
+                search: true,
+                type: 'user',
+                value: settingCollectRequestRequester ? settingCollectRequestRequester.id : null,
+                items: settingCollectRequestRequester ? {
+                    0: {
+                        'value': settingCollectRequestRequester.id,
+                        'label':  settingCollectRequestRequester.username,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
         </div>
     </div>
 </div>

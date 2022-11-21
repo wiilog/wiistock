@@ -23,10 +23,19 @@ $(document).ready(() => {
     const $createPurchase = $(`.create-purchase`);
 
     const $requestTypeRadio = $(`[name="requestType"]`);
-    handleRequestTypeChange($requestTypeRadio, $addOrCreate, $existingPurchase)
-    $requestTypeRadio.on(`change`, function() {
-        handleRequestTypeChange($(this), $addOrCreate, $existingPurchase);
-    });
+
+    const requestType = $requestTypeRadio.val();
+    const $cartContentContainers = $('.wii-form > .cart-content');
+    const $cartContentToShow = $cartContentContainers.filter(`[data-request-type="${requestType}"]`);
+    if (containsLogisticsUnit($cartContentToShow)) {
+        loadLogisticUnitsCartForm($requestTypeRadio, $addOrCreate, $existingPurchase);
+    }
+    else {
+        handleRequestTypeChange($requestTypeRadio, $addOrCreate, $existingPurchase);
+        $requestTypeRadio.on(`change`, function () {
+            handleRequestTypeChange($(this), $addOrCreate, $existingPurchase);
+        });
+    }
 
     $(`input[name="addOrCreate"][value="add"]`).on(`click`, function() {
         $(`.sub-form`).addClass(`d-none`);
@@ -259,7 +268,6 @@ function onCollectChanged($select) {
     }
 }
 function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) {
-
     const $cartContentContainers = $('.wii-form > .cart-content');
     $cartContentContainers.addClass('d-none');
 
@@ -299,6 +307,36 @@ function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) 
     }
 }
 
+function loadLogisticUnitsCartForm($requestType, $addOrCreate, $existingPurchase) {
+    const $cartContentContainers = $('.wii-form > .cart-content');
+    const requestType = $requestType.val();
+
+    const $cartContentToShow = $cartContentContainers.filter(`[data-request-type="${requestType}"]`);
+
+    if (containsLogisticsUnit($cartContentToShow)) {
+        $cartContentToShow.removeClass('d-none');
+        $cartContentToShow
+            .find('.data-save')
+            .removeClass("data-save")
+            .addClass('data');
+
+        $('.cart-content[data-request-type=purchase] input[type="number"]').each(function(){
+            $(this).prop('required', !$(this).is(':disabled'));
+        })
+
+        if (requestType === "delivery" || requestType === "collect") {
+            $addOrCreate.removeClass('d-none');
+        } else if (requestType === "purchase") {
+            $addOrCreate.addClass('d-none');
+        }
+
+        $('.target-location-picking-container').toggleClass('d-none', requestType !== "delivery")
+
+        toggleSelectedPurchaseRequest($existingPurchase, requestType);
+        loadLogisticUnitPack();
+    }
+}
+
 function toggleSelectedPurchaseRequest($existingPurchase, requestType) {
     $existingPurchase.toggleClass(`d-none`, (requestType !== "purchase") || ($('.selected-purchase-requests').children().length === 0));
 }
@@ -306,4 +344,68 @@ function toggleSelectedPurchaseRequest($existingPurchase, requestType) {
 function containsReferences($container) {
     const $cartReferenceContainers = $container.find(`.cart-reference-container`);
     return ($cartReferenceContainers.length > 0);
+}
+
+function containsLogisticsUnit($container) {
+    const $numberUL = $container.find(`input[name=articlesInCart]`).val();
+    return ($numberUL > 0);
+}
+
+
+function loadLogisticUnitPack() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    wrapLoadingOnActionButton(
+        $logisticUnitsContainer,
+        () => (
+            AJAX.route('POST', 'articles_logistics_unit_api', {})
+                .json()
+                .then(({html}) => {
+                    $logisticUnitsContainer.html(html);
+                    $logisticUnitsContainer.find('.articles-container table')
+                        .each(function() {
+                            const $table = $(this);
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                columns: [
+                                    { data: 'actions', title: '', class:'noVis hideOrder sorting_disabled', orderable: false },
+                                    { data: 'reference', title: 'Référence'},
+                                    { data: 'barCode', title: 'Code barre'},
+                                    { data: 'label', title: 'Libellé'},
+                                    { data: 'batch', title: 'Lot'},
+                                    { data: 'quantity', title: 'Quantité'},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                    needsPaginationRemoval: true,
+                                    removeLength: true,
+                                    removeTableHeader: true,
+                                },
+                            })
+                        });
+                })
+        )
+    )
+}
+
+function removeLogisticUnitRow(id, type) {
+    AJAX.route('POST', 'articles_remove_row_cart_api', {id, type})
+        .json()
+        .then(({success, emptyCart}) => {
+            if (success) {
+                if (emptyCart) {
+                    location.reload();
+                }
+                else {
+                    loadLogisticUnitPack();
+                }
+            }
+        })
+}
+
+function clearLogisticUnitsContainer() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    $logisticUnitsContainer.empty();
 }

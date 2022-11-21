@@ -1528,22 +1528,6 @@ label.required:after {
         }
     }
 
-    .logistic-unit-card {
-        background: white;
-        border-radius: 4px;
-        margin-top: 10px;
-        padding: 7px;
-        box-shadow: 2px 0 4px rgba($black, 0.05);
-
-        .article-code {
-            display: flex;
-            align-items: center;
-            color: $primary;
-            font-weight: bold;
-            font-size: 16px;
-        }
-    }
-
     .logistic-unit-history-interstice {
         display: flex;
         align-items: center;
@@ -1588,6 +1572,22 @@ label.required:after {
                 opacity: 45%;
             }
         }
+    }
+}
+
+.logistic-unit-card {
+    background: white;
+    border-radius: 4px;
+    margin-top: 10px;
+    padding: 7px;
+    box-shadow: 0 0 4px rgba($black, 0.1);
+
+    .article-code {
+        display: flex;
+        align-items: center;
+        color: $primary;
+        font-weight: bold;
+        font-size: 16px;
     }
 }
 

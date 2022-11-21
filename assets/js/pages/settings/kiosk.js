@@ -1,5 +1,28 @@
-import AJAX, {GET} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
+
+$(function () {
+    $(`.kiosk-link`).on(`click`, function() {
+        const $settingsContent = $(this).closest('.settings-content');
+        if(Form.process($settingsContent)){
+            wrapLoadingOnActionButton($(this), () => {
+                return AJAX.route(GET, `generate_kiosk_token`)
+                    .json()
+                    .then(({token}) => window.open(Routing.generate(`kiosk_index`, {token}, true), `_blank`));
+            });
+        } else {
+            Flash.add('danger', 'Tous les paramètres obligatoires doivent être renseignés.')
+        }
+    });
+
+    $(`.kiosk-unlink`).on(`click`, function () {
+        wrapLoadingOnActionButton($(this), () => {
+            return AJAX.route(POST, `kiosk_unlink`)
+                .json()
+                .then(() => $(this).prop(`disabled`, true));
+        });
+    });
+});
 
 export function initializeTouchTerminal($container){
     Select2Old.init($container.find('select[name=referenceType]'));
@@ -40,7 +63,9 @@ export function initializeTouchTerminal($container){
 
         if (inputs.every(function (input) { return input.val() })) {
             $button.pushLoader(`white`);
+            const {token} = GetRequestQuery();
             AJAX.route(GET, `print_article`, {
+                token,
                 testPrint: true,
                 serialNumber: $serialNumber.val(),
                 labelWidth: $getLabelWidth.val(),

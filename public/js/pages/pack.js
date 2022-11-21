@@ -19,7 +19,7 @@ const packsTableConfig = {
     columns: [
         {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
         {data: 'cart', name: 'cart', title: '<span class="wii-icon wii-icon-cart add-all-cart pointer"></span>', className: 'cart-row', orderable: false},
-        {data: 'pairing', name: 'pairing', title: '<span class=\'wii-icon wii-icon-pairing black\'><span>', className: 'pairing-row'},
+        {data: 'pairing', name: 'pairing', title: '<span class="wii-icon wii-icon-pairing black"><span>', className: 'pairing-row'},
         {data: 'packNum', name: 'packNum', title: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
         {data: 'packNature', name: 'packNature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
         {data: `quantity`, name: 'quantity',  'title': Translation.of('Traçabilité', 'Général', 'Quantité')},
@@ -110,7 +110,6 @@ $(function() {
 
     $(document).arrive(`.add-cart`, function() {
         $(this).on("mouseup", function(event) {
-            console.log("huh?");
             event.stopPropagation();
 
             const id = [$(this).data(`id`)];
@@ -291,13 +290,11 @@ function toExport() {
 }
 
 function toggleAddAllToCartButton() {
-    const $addAllCart = $('.add-all-cart').parent();
+    const $addAllCart = $('.add-all-cart');
     if ($('.add-cart').length === 0) {
-        console.log('== 1')
-        $addAllCart.addClass('d-none');
+        $addAllCart.addClass(`d-none`);
     }
     else {
-        console.log('== 2')
-        $addAllCart.removeClass('d-none');
+        $addAllCart.removeClass(`d-none`);
     }
 }

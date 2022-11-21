@@ -141,17 +141,22 @@ function createDatatableDomFooter({information, length, pagination}) {
         : ''
 }
 
-function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo, removeLength}) {
+function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo, removeLength, removeTableHeader}) {
 
+    const domHeader = removeTableHeader
+        ? ''
+        : (
+            '<"row mb-2"' +
+                '<"col-auto d-none"f>' +
+            '>'
+        );
     const domFooter = createDatatableDomFooter({
         information: !removeInfo,
         length: !removeLength,
         pagination: !needsPaginationRemoval
     });
     let dtDefaultValue = (
-        '<"row mb-2"' +
-        '<"col-auto d-none"f>' +
-        '>' +
+        domHeader +
         't' +
         domFooter +
         'r'
