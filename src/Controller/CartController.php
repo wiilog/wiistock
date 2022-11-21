@@ -368,50 +368,48 @@ class CartController extends AbstractController
     #[Route("/articles-logistics-unit-api", name: "articles_logistics_unit_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     //#[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function getLogisticsUnitAndArticlesApi(): JsonResponse {
-
-
         $articlesInCart = $this->getUser()->getCart()->getArticles();
-        $logisticsUnits = [];
-        foreach ($articlesInCart as $article) {
-            if (!in_array($article->getCurrentLogisticUnit(), $logisticsUnits)) {
-                array_push($logisticsUnits, $article->getCurrentLogisticUnit());
-            }
-        }
-        foreach ($logisticsUnits as $logisticsUnit) {
-            $articles = [];
-            foreach ($articlesInCart as $article) {
-                if ($article->getCurrentLogisticUnit()?->getId() == $logisticsUnit->getId()) {
-                    array_push($articles,array(
-                        'id' => $article->getId(),
-                        'reference' => $article->getReference(),
-                        'barCode' => $article->getBarCode(),
-                        'label' => $article->getLabel(),
-                        'batch' => $article->getBatch(),
-                        'quantity' => $article->getQuantite(),
-                        'actions' => $this->renderView('cart/datatableRemoveArticle.html.twig', [
-                            'articleId' => $article->getId()
-                        ]),
-                    ));
-                }
-            }
-            $result[] = [
-                'pack' => [
-                    "packId" => $logisticsUnit->getId(),
-                    "code" => $logisticsUnit->getCode() ?? null,
-                    "location" => $logisticsUnit->getLastDrop()?->getEmplacement()?->getLabel() ?? null,
-                    "project" => $logisticsUnit->getProject()?->getCode() ?? null,
-                    "nature" => $logisticsUnit->getNature()?->getLabel() ?? null,
-                    "color" => $logisticsUnit->getNature()?->getColor() ?? null,
-                    "quantity" => $logisticsUnit->getQuantity() ?? null,
-                    "quantityArticleInLocation" => count($logisticsUnit->getChildArticles()) ?? null,
-                    "articles" => $articles ?? null,
+        $articles = Stream::from($articlesInCart)
+            ->keymap(fn(Article $article) => [
+                $article->getCurrentLogisticUnit()?->getId() ?: 0,
+                [
+                    'id' => $article->getId(),
+                    'reference' => $article->getReference(),
+                    'barCode' => $article->getBarCode(),
+                    'label' => $article->getLabel(),
+                    'batch' => $article->getBatch(),
+                    'quantity' => $article->getQuantite(),
+                    'actions' => $this->renderView('cart/datatableRemoveArticle.html.twig', [
+                        'articleId' => $article->getId()
+                    ]),
                 ]
-            ];
-        }
+            ], true)
+            ->toArray();
+        $logisticsUnits = Stream::from($articlesInCart)
+            ->keymap(fn(Article $article) => [
+                $article->getCurrentLogisticUnit()?->getId() ?: 0,
+                $article->getCurrentLogisticUnit()
+                    ? [
+                        "packId" => $article->getCurrentLogisticUnit()?->getId(),
+                        "code" => $article->getCurrentLogisticUnit()?->getCode() ?? null,
+                        "location" => $article->getCurrentLogisticUnit()?->getLastDrop()?->getEmplacement()?->getLabel() ?? null,
+                        "project" => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? null,
+                        "nature" => $article->getCurrentLogisticUnit()?->getNature()?->getLabel() ?? null,
+                        "color" => $article->getCurrentLogisticUnit()?->getNature()?->getColor() ?? null,
+                        "quantity" => $article->getCurrentLogisticUnit()?->getQuantity() ?? null,
+                        "quantityArticleInLocation" => $article->getCurrentLogisticUnit()?->getChildArticles()?->count() ?: 0,
+                    ]
+                    : null
+            ])
+            ->toArray();
         return $this->json([
             "success" => true,
             "html" => $this->renderView("cart/line-list.html.twig", [
-                "lines" => $result,
+                "lines" => Stream::from($articles)
+                    ->map(fn(array $articles, int $logisticUnitId) => [
+                        'pack' => $logisticsUnits[$logisticUnitId] ?? null,
+                        'articles' => $articles
+                    ]),
             ]),
         ]);
     }

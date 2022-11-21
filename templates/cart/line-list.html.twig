@@ -1,10 +1,7 @@
 {% for line in lines %}
     {% set logisticsUnit = line.pack ?? null %}
-        {% include 'pack/utils/packItemListTemplate.html.twig' with {
-            data: {
-                'line-id': logisticsUnit.packId
-            },
-            header: logisticsUnit
+    {% include 'pack/utils/packItemListTemplate.html.twig' with {
+        header: logisticsUnit
             ? {
                 data: {
                     'pack-id': logisticsUnit.packId,
@@ -14,14 +11,16 @@
                 content: [
                     {label: 'Unité logistique', value: logisticsUnit.code, bold: 'value'},
                     {label: 'Emplacement', value: logisticsUnit.location, bold: 'label'},
-                    {label: 'Nombre d\'articles demandé', value: logisticsUnit.articles|length~'/'~logisticsUnit.quantityArticleInLocation, bold: 'label'}
+                    {label: 'Nombre d\'articles demandé', value: line.articles|length ~ '/' ~ logisticsUnit.quantityArticleInLocation, bold: 'label'}
                 ]
-            },
-            content: logisticsUnit.articles,
-            action: {
+            }
+            : null,
+        content: line.articles,
+        action: logisticsUnit
+            ? {
                 icon: 'wii-icon wii-icon-trash-black',
                 datatarget: "#modalDeleteArticle",
                 onclick: "removeLogisticUnitRow(" ~ logisticsUnit.packId ~ ", 'unit')",
             }
-        } %}
+    } %}
 {% endfor %}
