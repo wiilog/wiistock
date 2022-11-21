@@ -666,16 +666,22 @@ class DemandeLivraisonService
 
     public function createArticleLine(Article $article,
                                       Demande $request,
-                                      int     $quantityToPick = 0,
-                                      int     $pickedQuantity = 0): DeliveryRequestArticleLine
-    {
+                                      array $options = []): DeliveryRequestArticleLine {
+        $quantityToPick = $options['quantityToPick'] ?? 0;
+        $pickedQuantity = $options['pickedQuantity'] ?? 0;
+        $targetLocationPicking = $options['targetLocationPicking'] ?? null;
+        $pack = $options['pack']
+            ?? $article->getCurrentLogisticUnit(); // by default we copy of the current logistic unit in line;
 
         $articleLine = new DeliveryRequestArticleLine();
         $articleLine
             ->setQuantityToPick($quantityToPick)
             ->setPickedQuantity($pickedQuantity)
+            ->setTargetLocationPicking($targetLocationPicking)
+            ->setPack($pack)
             ->setArticle($article)
             ->setRequest($request);
+
         return $articleLine;
     }
 

@@ -1552,7 +1552,7 @@ class ReceptionController extends AbstractController {
                 'type',
                 'code-barre reference',
                 'code-barre article',
-                'unité logistique'
+                'unité logistique',
             ];
             $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");
             $addedRefs = [];
@@ -1712,7 +1712,7 @@ class ReceptionController extends AbstractController {
             if(!isset($totalQuantities[$receptionReferenceArticle->getId()])) {
                 $totalQuantities[$receptionReferenceArticle->getId()] = [
                     "receptionReferenceArticle" => $receptionReferenceArticle,
-                    "count" => $receptionReferenceArticle->getQuantite() ?? 0
+                    "count" => $receptionReferenceArticle->getQuantite() ?? 0,
                 ];
             }
             $totalQuantities[$receptionReferenceArticle->getId()]["count"] += max($articleArray['quantityToReceive'] * $articleArray['quantite'], 0);
@@ -1858,7 +1858,7 @@ class ReceptionController extends AbstractController {
         $receptionLocationId = $receptionLocation?->getId();
         $emergencies = [];
 
-        $articleIds = [];
+        $createdArticles = [];
         foreach($articles as &$articleArray) {
             /** @var ReceptionReferenceArticle $receptionReferenceArticle */
             $receptionReferenceArticle = $articleArray['receptionReferenceArticle'];
@@ -1882,11 +1882,16 @@ class ReceptionController extends AbstractController {
 
             $quantityToReceive = intval($articleArray['quantityToReceive']);
             unset($articleArray['quantityToReceive']);
+
+            // we create articles
             for($i = 0; $i < $quantityToReceive; $i++) {
                 $article = $articleDataService->newArticle($articleArray, $entityManager);
 
                 if ($demande ?? false) {
-                    $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, $article->getQuantite());
+                    $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, [
+                        'quantityToPick' => $article->getQuantite(),
+                        'pack' => $pack
+                    ]);
                     $entityManager->persist($deliveryArticleLine);
 
                     /** @var Preparation $preparation */
@@ -1948,9 +1953,24 @@ class ReceptionController extends AbstractController {
 
                 $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
-                $entityManager->flush();
-                $articleIds[] = $article->getId();
+                $createdArticles[] = $article;
             }
+
+            if ($pack && $pack->getLastDrop()?->getEmplacement()) {
+                $receptionLocationDiff = $pack->getLastDrop()?->getEmplacement()?->getId() !== $receptionLocation?->getId();
+                $trackingMovementService->persistLogisticUnitMovements(
+                    $entityManager,
+                    $pack,
+                    $pack->getLastDrop()?->getEmplacement(),
+                    $createdArticles,
+                    $currentUser,
+                    [
+                        'createTracking' => $receptionLocationDiff, // we create picking and drop with "depose dans UL" if location are different
+                        'from' => $reception,
+                    ]
+                );
+            }
+            $entityManager->flush();
         }
 
         foreach($emergencies as $article) {
@@ -2019,7 +2039,9 @@ class ReceptionController extends AbstractController {
         return new JsonResponse([
             'success' => true,
             'msg' => 'La réception a bien été effectuée.',
-            'articleIds' => json_encode($articleIds),
+            'articleIds' => Stream::from($createdArticles)
+                ->map(fn(Article $article) => $article->getId())
+                ->json(),
         ]);
     }
 
@@ -2129,7 +2151,8 @@ class ReceptionController extends AbstractController {
     }
 
     #[Route("/packing-articles-template", name: "get_packing_article_template", options: ['expose' => true], methods: "GET")]
-    public function getPackingArticlesTemplate(Request $request, EntityManagerInterface $manager): Response {
+    public function getPackingArticlesTemplate(Request                $request,
+                                               EntityManagerInterface $manager): Response {
         $data = json_decode($request->query->get('params'), true);
 
         $freeFieldRepository = $manager->getRepository(FreeField::class);
@@ -2139,6 +2162,8 @@ class ReceptionController extends AbstractController {
 
         $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['receptionReferenceArticle']);
         $receptionLine = $receptionReferenceArticle->getReceptionLine();
+        $reception = $receptionLine->getReception();
+
         $pack = $receptionLine->getPack()
             ?? (!empty($data['pack']) ? $packRepository->find($data['pack']) : null);
 
@@ -2161,15 +2186,8 @@ class ReceptionController extends AbstractController {
             })
             ->toArray();
 
-        $values = [
-            'quantity' => $data['quantity'],
-            'batch' => $data['batch'] ?? '',
-            'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
-            'receptionReferenceArticle' => $receptionReferenceArticle->getId(),
-            'pack' => $pack?->getId(),
-            'supplierReferenceId' => $supplierReference ? $supplierReference->getId() : '',
-            'freeFields' => $freeFieldsValues,
-        ];
+        $receptionLocation = $reception->getLocation()?->getId();
+        $packLocation = $pack?->getLastDrop()?->getEmplacement()?->getId();
 
         return $this->json([
            'template' => $this->renderView('reception/show/packing_article_template.html.twig', [
@@ -2182,6 +2200,7 @@ class ReceptionController extends AbstractController {
                'expiry' => $expiryDate ? $expiryDate->format('d/m/Y') : null,
                'quantity' => $data['quantity'],
                'freeFields' => $freeFields,
+               'dropLocationIsReceptionLocation' => !$pack || $receptionLocation === $packLocation,
                'data' => array_merge(
                    [
                        'quantityToReceive' => $data['quantityToReceive'],
@@ -2193,9 +2212,8 @@ class ReceptionController extends AbstractController {
                        'articleFournisseur' => $supplierReference ? $supplierReference->getId() : '',
                    ],
                    $freeFieldsValues
-               )
+               ),
            ]),
-           'values' => $values,
         ]);
     }
 
@@ -2226,7 +2244,7 @@ class ReceptionController extends AbstractController {
             "start" => $start,
             "length" => $listLength,
             "paginationMode" => $receptionWithoutUnits ? "references" : "units",
-            "search" => $search
+            "search" => $search,
         ]);
 
         return $this->json([
