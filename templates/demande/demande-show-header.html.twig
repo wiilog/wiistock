@@ -23,7 +23,7 @@
                 icon: "fas fa-external-link-alt",
                 title: "Aller vers la réception",
                 dropdownOnly: true,
-                href: demande.reception ? path('reception_show', {'id': demande.reception.id  }) : '',
+                href: demande.reception ? path('reception_show', {'id': demande.reception.id  }),
             },
             {
                 hasRight: demande.preparations|length > 1 and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')),
