@@ -1053,9 +1053,6 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
             }
-
-
-
             $ordreCollecte->addArticle($article);
             $entityManager->persist($ordreCollecte);
         } catch(Exception $exception) {

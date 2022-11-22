@@ -46,7 +46,7 @@ class KioskService
         if ($logo) {
             $logo = Image::fromPath(0, 0, $logo)
                 ->setAlignment(Align::LEFT)
-                ->setHeight($this->convertLocation($printerLabelHeight, 25));
+                ->setHeight(15);
         }
 
         if ($labelTypeIs128) {
@@ -55,9 +55,9 @@ class KioskService
                 'type' => 'c128',
                 'format' => 'png',
                 'height' => 70,
-                'width' => 5
+                'width' => 3
             ]);
-            $code = Image::fromString(10, 20, base64_decode($image));
+            $code = Image::fromString(0, 20, base64_decode($image));
         }
         else {
             $code = QrCode::create(32, 0)
@@ -67,7 +67,7 @@ class KioskService
                 ->setErrorCorrection(QrCode::EC_HIGHEST);
         }
 
-        $text = Text::create(10, 45)
+        $text = Text::create(0, 45)
             ->setText($options['text'])
             ->setAlignment(Align::CENTER)
             ->setSpacing(10)
@@ -100,17 +100,10 @@ class KioskService
 
         $referenceArticle = $article->getReferenceArticle();
 
-        $showQuantity = $settingRepository->getOneParamByLabel('INCLURE_QTT_SUR_ETIQUETTE');
-        $showEntryDate = $settingRepository->getOneParamByLabel('INCLURE_DATE_EXPIRATION_SUR_ETIQUETTE_ARTICLE_RECEPTION');
-        $showBatchNumber = $settingRepository->getOneParamByLabel('INCLURE_NUMERO_DE_LOT_SUR_ETIQUETTE_ARTICLE_RECEPTION');
-
         $labelText = $article->getBarCode() ? $article->getBarCode() . '\&' : '';
         $labelText .= $referenceArticle?->getLibelle() ? ' L/R :' . $referenceArticle?->getLibelle() . '\&' : '';
         $labelText .= $article->getReference() ? 'C/R :' . $article->getReference() . '\&' : '';
         $labelText .= $article->getLabel() ? 'L/A :' . $article->getLabel() . '\&' : '';
-        $labelText .= $showQuantity && $article->getQuantite() ? 'Qte :' . $article->getQuantite() . '\&' : '';
-        $labelText .= $showEntryDate && $article->getStockEntryDate() ? 'Date d\'entrée :' . $article->getStockEntryDate()?->format('d/m/Y') . '\&' : '';
-        $labelText .= $showBatchNumber && $article->getBatch() ? 'N° lot :' . $article->getBatch() . '\&' : '';
 
         return str_replace('_', '_5F', $labelText);
     }
