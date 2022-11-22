@@ -115,14 +115,10 @@ class LivraisonController extends AbstractController {
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR], mode: HasPermission::IN_JSON)]
     public function logisticUnitApi(Request $request, EntityManagerInterface $manager): Response {
         $deliveryOrder = $manager->find(Livraison::class, $request->query->get('id'));
-        $logisticsUnits = [];
         $preparationOrder = $deliveryOrder->getPreparation();
-        foreach ($preparationOrder->getArticleLines() as $articleLine) {
-            $article = $articleLine->getArticle();
-            if ($article->getCurrentLogisticUnit() && !in_array($article->getCurrentLogisticUnit(), $logisticsUnits)) {
-                $logisticsUnits[] = $article->getCurrentLogisticUnit();
-            }
-        }
+        $logisticsUnits = Stream::from($preparationOrder->getArticleLines())
+            ->filterMap(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack())
+            ->unique();
 
         $lines = Stream::from($logisticsUnits)
             ->map(fn(Pack $logisticUnit) => [

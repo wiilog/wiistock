@@ -397,7 +397,10 @@ class PreparationsManagerService
             $articleLine = $preparation->getArticleLine($article);
 
             if (!isset($articleLine)) {
-                $articleLine = $this->createArticleLine($article, $preparation);
+                $articleLine = new PreparationOrderArticleLine();
+                $articleLine
+                    ->setArticle($article)
+                    ->setPreparation($preparation);
                 $entityManager->persist($articleLine);
             }
 
@@ -463,9 +466,11 @@ class PreparationsManagerService
 
                         $insertedArticle = $this->articleDataService->newArticle($newArticle, $entityManager);
                         if ($selected) {
-                            $newArticleLine = $this->createArticleLine($insertedArticle, $preparation);
-                            $newArticleLine->setQuantityToPick($line->getPickedQuantity());
-                            $newArticleLine->setPickedQuantity($line->getPickedQuantity());
+                            $newArticleLine = $line->clone()
+                                ->setPreparation($line->getPreparation())
+                                ->setQuantityToPick($line->getPickedQuantity())
+                                ->setPickedQuantity($line->getPickedQuantity());
+
                             $entityManager->persist($newArticleLine);
                             if ($line->getQuantityToPick() > $line->getPickedQuantity()) {
                                 $line->setQuantityToPick($line->getQuantityToPick() - $line->getPickedQuantity());
@@ -770,18 +775,5 @@ class PreparationsManagerService
             ->setActive(true);
 
         return $pairing;
-    }
-
-    public function createArticleLine(Article $article,
-                                      Preparation $preparation,
-                                      int $quantityToPick = 0,
-                                      int $pickedQuantity = 0): PreparationOrderArticleLine {
-        $articleLine = new PreparationOrderArticleLine();
-        $articleLine
-            ->setQuantityToPick($quantityToPick)
-            ->setPickedQuantity($pickedQuantity)
-            ->setArticle($article)
-            ->setPreparation($preparation);
-        return $articleLine;
     }
 }
