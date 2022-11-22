@@ -18,7 +18,7 @@ class Indicator {
     #[ORM\Column(type: 'integer')]
     private $count;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $subtitle;
 
     #[ORM\Column(type: 'bigint', nullable: true)]

@@ -2103,7 +2103,7 @@ class MobileController extends AbstractApiController
         $trackingMovementService->persistLogisticUnitMovements(
             $entityManager,
             $luToDropIn,
-            $locationRepository->findOneBy(['label' => 'A DETERMINER']),
+            $locationRepository->findOneBy(['label' => $location]),
             $articlesEntites,
             $this->getUser(),
             [
