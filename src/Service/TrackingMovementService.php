@@ -1097,6 +1097,13 @@ class TrackingMovementService extends AbstractController
                 if($movement["movement"] ?? null) {
                     $movement["movement"]->setLogisticUnitParent($packArticle?->getCurrentLogisticUnit());
                 }
+
+                if($movement["success"]) {
+                    $newMovements[] = $movement["movement"];
+                } else {
+                    return $movement;
+                }
+
                 if($selectedType->getCode() === TrackingMovement::TYPE_PRISE && $packArticle?->getCurrentLogisticUnit()) {
                     $movement = $this->persistTrackingMovement(
                         $entityManager,
@@ -1111,7 +1118,7 @@ class TrackingMovementService extends AbstractController
                     );
 
                     if($movement["movement"] ?? null) {
-                        $movement["movement"]->setLogisticUnitParent($packArticle->getCurrentLogisticUnit());
+                        $movement["movement"]->setLogisticUnitParent($packArticle?->getCurrentLogisticUnit());
                     }
 
                     $packArticle->setCurrentLogisticUnit(null);
@@ -1121,11 +1128,12 @@ class TrackingMovementService extends AbstractController
                     } else {
                         return $movement;
                     }
-                } else if(in_array($selectedType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]) && $pack->getChildArticles()->count()) {
+                }
+                else if(in_array($selectedType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]) && $pack->getChildArticles()->count()) {
                     foreach($pack->getChildArticles() as $childArticle) {
                         $movement = $this->persistTrackingMovement(
                             $entityManager,
-                            $childArticle->getBarCode(),
+                            $childArticle->getTrackingPack() ?? $childArticle->getBarCode(),
                             $location,
                             $operator,
                             $date,
@@ -1141,12 +1149,6 @@ class TrackingMovementService extends AbstractController
                             return $movement;
                         }
                     }
-                }
-
-                if($movement["success"]) {
-                    $newMovements[] = $movement["movement"];
-                } else {
-                    return $movement;
                 }
 
                 if(count($newMovements) > 1) {
