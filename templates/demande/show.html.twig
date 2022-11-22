@@ -29,13 +29,14 @@
                                 <div class="row wii-page-card-header" id="boutonCollecteInf">
                                     <div class="col-auto ml-auto">
                                         <div class="btn-group">
-                                            <button
-                                                onclick="redirectToArticlesList()"
+                                            <a
+                                                href="{{ path('reference_article_index') }}"
+                                                target="_blank"
                                                 class="btn btn-primary split-button"
                                                 title="Chercher une référence">
                                             <i class="fa fa-search mr-2"></i>
                                             Chercher une {{ trans('Stock', 'Références', 'référence', false) }}
-                                        </button>
+                                        </a>
                                         <button type="button"
                                                 class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
                                                 data-toggle="dropdown"
