@@ -47,6 +47,9 @@ services:
     App\Twig\BarcodeExtension:
         arguments:
             $barcodeGenerator: '@sgk_barcode.generator'
+    App\Service\Kiosk\KioskService:
+        arguments:
+            $barcodeGenerator: '@sgk_barcode.generator'
     App\Service\PDFGeneratorService:
         arguments:
             $PDFGenerator: '@knp_snappy.pdf'
