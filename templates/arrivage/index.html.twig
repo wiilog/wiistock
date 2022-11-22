@@ -100,7 +100,7 @@
     <input id="redirect" value="{{ redirect }}" hidden>
     <input id="pageLengthForArrivage" value="{{ pageLengthForArrivage }}" hidden>
     <input id="arrivalFilters" value="{{ initial_filters }}" hidden>
-    <input id="arrivalForm" value="{{ initial_form }}" hidden>
+    <input id="arrivalForm" value="{{ initial_form|json_encode }}" hidden>
 
     {% include "arrivage/modalListColis.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {
