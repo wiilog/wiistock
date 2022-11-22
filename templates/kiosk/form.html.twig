@@ -89,7 +89,7 @@
                                 <div class="col-6">
                                     <label class="w-100">
                                         Article
-                                        <input type="search" class="data w-100" required autofocus value="" name="reference-article-input">
+                                        <input type="search" class="data w-100" required autofocus name="reference-article-input" value="{{ article ? article.barCode }}">
                                     </label>
                                 </div>
                             </div>
@@ -106,7 +106,7 @@
                                     <span class="reference-label field-small"></span>
                                 </div>
                                 <div class="mt-2">
-                                    <span class="reference-type field-name">{{ setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type').label }}</span>
+                                    <span class="reference-type field-name">{{ reference.type.label ?? setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type').label }}</span>
                                 </div>
                             </div>
                         </div>
