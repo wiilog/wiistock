@@ -106,7 +106,7 @@ function switchPacks() {
         let modalDeletePack = $("#modalDeletePack");
         let SubmitDeletePack = $("#submitDeletePack");
         let urlDeletePack = Routing.generate('pack_delete', true);
-        InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packsTable], clearOnClose: true});
+        InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packsTable], clearOnClose: true, keepModal: false});
     } else {
         packsTable.ajax.reload();
     }
