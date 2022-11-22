@@ -1,0 +1,29 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-small-text">
+            Personnalisez la couleur des en-têtes des livraisons en fonctions de la date attendue afin de vous rendre compte rapidement des livraisons à traiter en priorité.
+        </div>
+    </div>
+    <table>
+        <tr>
+            <td class="p-2" style="vertical-align: middle"><span class="wii-field-name mr-5">Date attendue +1 jour</span></td>
+            <td class="p-2">
+                {{ form.color(setting('DELIVERIES_EXPECTED_DATE_COLOR_AFTER'), null, false, setting_value('DELIVERIES_EXPECTED_DATE_COLOR_AFTER')) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="p-2" style="vertical-align: middle"><span class="wii-field-name mr-5">Date attendue jour J</span></td>
+            <td class="p-2">
+                {{ form.color(setting('DELIVERIES_EXPECTED_DATE_COLOR_D_DAY'), null, false, setting_value('DELIVERIES_EXPECTED_DATE_COLOR_D_DAY')) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="p-2" style="vertical-align: middle"><span class="wii-field-name mr-5">Date attendue -1 jour</span></td>
+            <td class="p-2">
+                {{ form.color(setting('DELIVERIES_EXPECTED_DATE_COLOR_BEFORE'), null, false, setting_value('DELIVERIES_EXPECTED_DATE_COLOR_BEFORE')) }}
+            </td>
+        </tr>
+    </table>
+</div>
