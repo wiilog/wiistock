@@ -1935,24 +1935,26 @@ class ReceptionController extends AbstractController {
                 );
 
                 $entityManager->persist($mouvementStock);
+                if ($receptionLocation) {
+                    $createdMvt = $trackingMovementService->createTrackingMovement(
+                        $article->getBarCode(),
+                        $receptionLocation,
+                        $currentUser,
+                        $now,
+                        false,
+                        true,
+                        TrackingMovement::TYPE_DEPOSE,
+                        [
+                            'mouvementStock' => $mouvementStock,
+                            'quantity' => $mouvementStock->getQuantity(),
+                            'from' => $reception,
+                        ]
+                    );
 
-                $createdMvt = $trackingMovementService->createTrackingMovement(
-                    $article->getBarCode(),
-                    $receptionLocation,
-                    $currentUser,
-                    $now,
-                    false,
-                    true,
-                    TrackingMovement::TYPE_DEPOSE,
-                    [
-                        'mouvementStock' => $mouvementStock,
-                        'quantity' => $mouvementStock->getQuantity(),
-                        'from' => $reception,
-                    ]
-                );
+                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                    $entityManager->persist($createdMvt);
+                }
 
-                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                $entityManager->persist($createdMvt);
                 $createdArticles[] = $article;
             }
 
