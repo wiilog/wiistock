@@ -2086,12 +2086,36 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function postDropInLu(Request $request, EntityManagerInterface $entityManager): Response
+    public function postDropInLu(Request $request, EntityManagerInterface $entityManager, TrackingMovementService $trackingMovementService): Response
     {
+        $articlesRepository = $entityManager->getRepository(Article::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
+        $articles = json_decode($request->request->get('articles'));
 
+        $articlesEntites = Stream::from($articles)
+            ->map(fn(string $barCode) => $articlesRepository->findOneBy(['barCode' => $barCode]))
+            ->toArray();
 
-        return new JsonResponse([], Response::HTTP_OK);
+        $luToDropIn = $request->request->get('lu');
+        $location = $request->request->get('location');
+
+        $trackingMovementService->persistLogisticUnitMovements(
+            $entityManager,
+            $luToDropIn,
+            $locationRepository->findOneBy(['label' => 'A DETERMINER']),
+            $articlesEntites,
+            $this->getUser(),
+            [
+                'entityManager' => $entityManager
+            ]
+        );
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
     }
     /**
      * @Rest\Get("/api/tracking-drops", name="api-get-tracking-drops-on-location", condition="request.isXmlHttpRequest()")

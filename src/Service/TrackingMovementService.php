@@ -1223,7 +1223,7 @@ class TrackingMovementService extends AbstractController
         }
     }
 
-    private function persistLogisticUnitMovements(EntityManagerInterface $manager, Pack|string $pack, Emplacement $location, ?array $articles, ?Utilisateur $user, array $options) {
+    public function persistLogisticUnitMovements(EntityManagerInterface $manager, Pack|string $pack, Emplacement $location, ?array $articles, ?Utilisateur $user, array $options) {
         $packRepository = $manager->getRepository(Pack::class);
 
         $movements = [];
