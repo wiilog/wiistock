@@ -671,7 +671,7 @@ class DemandeLivraisonService
         $pickedQuantity = $options['pickedQuantity'] ?? 0;
         $targetLocationPicking = $options['targetLocationPicking'] ?? null;
         $pack = $options['pack']
-            ?? $article->getCurrentLogisticUnit(); // by default we copy of the current logistic unit in line;
+            ?? $article->getCurrentLogisticUnit(); // by default, we copy of the current logistic unit in line;
 
         $articleLine = new DeliveryRequestArticleLine();
         $articleLine
