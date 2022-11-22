@@ -183,7 +183,7 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
                 displayFormErrors($modal, {
                     $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
                     errorMessages: errorMessage ? [errorMessage] : undefined,
-                    keepModal: keepModal ? [keepModal] : undefined
+                    keepModal
                 });
                 if (error) {
                     error(data);
