@@ -266,6 +266,7 @@ class PreparationController extends AbstractController
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
                 ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
                 ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => FormatHelper::date($demande->getExpectedAt())]] : []),
+                ...($demande->getProject() ? [['label' => 'Projet', 'value' => $demande->getProject()->getCode() ]] : []),
                 ...($preparation->getExpectedAt() ? [['label' => 'Date de préparation', 'value' => FormatHelper::date($preparation->getExpectedAt())]] : []),
                 [
                     'label' => 'Commentaire',

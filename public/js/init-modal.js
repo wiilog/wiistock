@@ -152,7 +152,8 @@ function processSubmitAction($modal,
     else {
         displayFormErrors($modal, {
             $isInvalidElements,
-            errorMessages
+            errorMessages,
+            keepModal
         });
 
         return new Promise((_, reject) => {
@@ -181,7 +182,8 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
                 const errorMessage = data.msg || data.message;
                 displayFormErrors($modal, {
                     $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
-                    errorMessages: errorMessage ? [errorMessage] : undefined
+                    errorMessages: errorMessage ? [errorMessage] : undefined,
+                    keepModal
                 });
                 if (error) {
                     error(data);
@@ -823,9 +825,9 @@ function isBarcodeValid($input) {
 /**
  * Display error message and error put field in error
  * @param {*} $modal jQuery element of the modal
- * @param {{$isInvalidElements: *|undefined, errorMessages: string[]|undefined}} options jQuery elements in error, errorMessages error messages
+ * @param {{$isInvalidElements: *|undefined, errorMessages: string[]|undefined, keepModal: boolean|undefined}} options jQuery elements in error, errorMessages error messages
  */
-function displayFormErrors($modal, {$isInvalidElements, errorMessages} = {}) {
+function displayFormErrors($modal, {$isInvalidElements, errorMessages, keepModal} = {}) {
     if ($isInvalidElements) {
         $isInvalidElements.forEach(($field) => {
             $field.addClass(FORM_INVALID_CLASS);
@@ -841,6 +843,9 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages} = {}) {
             $innerModalMessageError.html($message);
         } else {
             showBSAlert($message, 'danger');
+            if (!keepModal) {
+                $modal.modal('hide');
+            }
         }
     }
 }

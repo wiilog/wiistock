@@ -305,7 +305,7 @@ class TrackingMovementController extends AbstractController
                 ]);
             } else {
                 // uncomment following line to debug
-                throw $exception;
+                // throw $exception;
 
                 return $this->json([
                     "success" => false,
@@ -438,8 +438,6 @@ class TrackingMovementController extends AbstractController
         );
 
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
-            /** @var TrackingMovement $new */
-
             $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
                 $post->get('pack'),
@@ -451,6 +449,7 @@ class TrackingMovementController extends AbstractController
                 false,
             );
             if ($response['success']) {
+                /** @var TrackingMovement $new */
                 $new = $response['movement'];
                 $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
 

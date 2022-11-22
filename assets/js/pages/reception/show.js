@@ -1,6 +1,9 @@
 import '@styles/pages/reception/show.scss';
+
+import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import AJAX, {GET, POST} from "@app/ajax";
 import Select2 from "@app/select2";
+import Modal from "@app/modal";
 import Flash, {ERROR} from "@app/flash";
 
 let modalNewLigneReception = "#modalNewLigneReception";
@@ -51,7 +54,7 @@ $(function () {
 
     $(document).on(`click`, `.add-packing-lines`, function (e) {
         e.preventDefault();
-        addPackingLines($modalNewLigneReception);
+        addPackingLines($(this));
     });
 
     $(document).on(`click`, `.remove-article-line`, function () {
@@ -550,25 +553,35 @@ function initNewLigneReception() {
     Form.create($modalNewLigneReception)
         .onSubmit((data, form) => {
             const reception = form.element.find('input[name="reception"]').val();
-            const packingArticlesValues = form.element.find(`.article-line`)
+            const $articleLines = form.element.find(`.article-line`);
+            const packingArticlesValues = $articleLines
                 .map((index, line) => $(line).data('value'))
                 .toArray();
+            const showLocationAlertMessage = $articleLines
+                .map((index, line) => $(line).data('drop-location-is-reception-location'))
+                .toArray()
+                .some((dropLocationIsReceptionLocation) => dropLocationIsReceptionLocation === 0);
+
             data.append('packingArticles', JSON.stringify(packingArticlesValues))
-            form.loading(
-                () => AJAX
-                    .route(POST, `reception_new_with_packing`, { reception })
-                    .json(data)
-                    .then(({success, articleIds}) => {
-                        if (success) {
-                            window.location.href = Routing.generate('reception_bar_codes_print', {
-                                reception,
-                                articleIds
-                            }, true);
-                            loadReceptionLines();
-                            $modalNewLigneReception.modal('hide');
+
+            if (showLocationAlertMessage) {
+                Modal.confirm({
+                    message: `
+                        <p class="mb-2 text-center">L'emplacement de réception est différent de l'emplacement de l'unité logistique.</p>
+                        <p class="text-center">Les articles seront déposés sur l'emplacement de réception puis déplacés sur l'emplacement de l'unité logistique.</p>
+                    `,
+                    validateButton: {
+                        color: 'success',
+                        label: 'Continuer',
+                        click: () => {
+                            form.loading(() => submitPackingForm({reception, data, $modalNewLigneReception}));
                         }
-                    })
-            );
+                    },
+                });
+            }
+            else {
+                form.loading(() => submitPackingForm({reception, data, $modalNewLigneReception}));
+            }
         });
 
     const $select = $modalNewLigneReception.find('.demande-form [name="type"]');
@@ -865,7 +878,8 @@ function loadPackingTemplate($modal) {
     }
 }
 
-function addPackingLines($modal) {
+function addPackingLines($button) {
+    const $modal = $button.closest('.modal');
     const $packingContainer = $modal.find('.packing-container');
 
     if (!($packingContainer.html() || '').trim()) {
@@ -895,7 +909,7 @@ function addPackingLines($modal) {
 
     if (data) {
         const params = JSON.stringify(data.asObject());
-        wrapLoadingOnActionButton($(this), () => (
+        wrapLoadingOnActionButton($button, () => (
             AJAX.route(GET, `get_packing_article_template`, {params})
                 .json()
                 .then(({template}) => {
@@ -909,4 +923,20 @@ function addPackingLines($modal) {
                 })
         ));
     }
+}
+
+function submitPackingForm({reception, data, $modalNewLigneReception}) {
+    return AJAX
+        .route(POST, `reception_new_with_packing`, { reception })
+        .json(data)
+        .then(({success, articleIds}) => {
+            if (success) {
+                window.location.href = Routing.generate('reception_bar_codes_print', {
+                    reception,
+                    articleIds
+                }, true);
+                loadReceptionLines();
+                $modalNewLigneReception.modal('hide');
+            }
+        });
 }

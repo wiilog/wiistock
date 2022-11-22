@@ -1400,7 +1400,10 @@ class MobileController extends AbstractApiController
                 'barCode' => $article['barCode']
             ]);
 
-            $line = $demandeLivraisonService->createArticleLine($article, $request, $article->getQuantite(), $article->getQuantite());
+            $line = $demandeLivraisonService->createArticleLine($article, $request, [
+                'quantityToPick' => $article->getQuantite(),
+                'pickedQuantity' => $article->getQuantite(),
+            ]);
             $entityManager->persist($line);
         }
         $entityManager->flush();

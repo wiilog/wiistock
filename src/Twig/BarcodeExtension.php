@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: c.gazaniol
- * Date: 12/04/2019
- * Time: 10:37
- */
 
 namespace App\Twig;
 

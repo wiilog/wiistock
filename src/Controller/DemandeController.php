@@ -740,7 +740,10 @@ class DemandeController extends AbstractController
     }
 
     #[Route("/{delivery}/ajouter-ul/{logisticUnit}", name: "delivery_add_logistic_unit", options: ["expose" => true], methods: "POST")]
-    public function addLogisticUnit(EntityManagerInterface $manager, DemandeLivraisonService $demandeLivraisonService, Demande $delivery, Pack $logisticUnit): JsonResponse {
+    public function addLogisticUnit(EntityManagerInterface $manager,
+                                    DemandeLivraisonService $demandeLivraisonService,
+                                    Demande $delivery,
+                                    Pack $logisticUnit): JsonResponse {
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
         $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_PROJECT);
 
@@ -764,11 +767,10 @@ class DemandeController extends AbstractController
         $delivery->setProject($logisticUnit->getProject());
 
         foreach($logisticUnit->getChildArticles() as $article) {
-            $line = (new DeliveryRequestArticleLine())
-                ->setArticle($article)
-                ->setPack($logisticUnit)
-                ->setQuantityToPick($article->getQuantite())
-                ->setTargetLocationPicking($article->getEmplacement());
+            $line = $demandeLivraisonService->createArticleLine($article, $delivery, [
+                'quantityToPick' => $article->getQuantite(),
+                'targetLocationPicking' => $article->getEmplacement()
+            ]);
 
             $delivery->addArticleLine($line);
             $manager->persist($line);

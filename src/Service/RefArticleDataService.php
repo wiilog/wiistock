@@ -131,6 +131,9 @@ class RefArticleDataService {
     #[Required]
     public TranslationService $translationService;
 
+    #[Required]
+    public DemandeLivraisonService $demandeLivraisonService;
+
     private ?array $freeFieldsConfig = null;
 
     public function __construct(TokenStorageInterface $tokenStorage,
@@ -627,13 +630,14 @@ class RefArticleDataService {
                 }
             } else {
                 $article = $articleRepository->find($data['article']);
-                $line = new DeliveryRequestArticleLine();
-                $line
-                    ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
-                    ->setArticle($article)
-                    ->setRequest($demande)
-                    ->setTargetLocationPicking($targetLocationPicking);
+
+                $line = $this->demandeLivraisonService->createArticleLine($article, $demande, [
+                    'quantityToPick' => max($data["quantity-to-pick"], 0), // protection contre quantités négatives
+                    'targetLocationPicking' => $targetLocationPicking
+                ]);
+
                 $entityManager->persist($line);
+
                 $resp = 'article';
             }
         } else {
