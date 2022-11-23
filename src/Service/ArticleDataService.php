@@ -305,7 +305,7 @@ class ArticleDataService
         return $toInsert;
     }
 
-    public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
+    public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne): array
     {
         $articles = $ligne->getArticles();
         $reception = $ligne->getReceptionLine()?->getReception();
@@ -313,7 +313,10 @@ class ArticleDataService
         foreach ($articles as $article) {
             $rows[] = $this->dataRowArticle($article, $reception);
         }
-        return ['data' => $rows];
+
+        return [
+            'data' => $rows
+        ];
     }
 
     public function getArticleDataByParams(InputBag $params, Utilisateur $user) {
@@ -390,7 +393,8 @@ class ArticleDataService
                 'articleFilter' => $article->getBarCode(),
                 'fromReception' => isset($reception),
                 'receptionId' => $reception ? $reception->getId() : null,
-                'hasPairing' => $hasPairing
+                'hasPairing' => $hasPairing,
+                'targetBlank' => $reception !== null
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,

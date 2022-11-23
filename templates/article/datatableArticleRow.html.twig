@@ -4,7 +4,7 @@
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             <div class="d-none">
-                <a href="{{ path('article_show_page', {id: articleId}) }}" class="btn btn-col-action action-on-click"></a>
+                <a href="{{ path('article_show_page', {id: articleId}) }}" class="btn btn-col-action action-on-click" {{ targetBlank ?? false ? 'target="_blank"' }}></a>
             </div>
             {% if fromReception %}
                 <a class="dropdown-item  d-flex align-items-center"
