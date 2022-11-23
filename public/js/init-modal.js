@@ -174,11 +174,11 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
             dataType: 'json',
         })
         .then((data) => {
-            if (!keepLoading) {
-                $submit.popLoader();
-            }
-
             if (data.success === false) {
+                if (!keepLoading) {
+                    $submit.popLoader();
+                }
+
                 const errorMessage = data.msg || data.message;
                 displayFormErrors($modal, {
                     $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
@@ -190,7 +190,7 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
                 }
             }
             else {
-                const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
+                const res = treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable);
                 if (!res) {
                     return;
                 }
@@ -227,11 +227,15 @@ function clearFormErrors($modal) {
         .empty();
 }
 
-function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable) {
+function treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable) {
     resetDroppedFiles();
+
     if (data.redirect && !keepModal) {
         window.location.href = data.redirect;
         return;
+    }
+    else if (!keepLoading) {
+        $submit.popLoader();
     }
 
     if (data.nextModal) {
