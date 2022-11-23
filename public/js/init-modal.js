@@ -190,7 +190,7 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
                 }
             }
             else {
-                const res = treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
+                const res = treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable);
                 if (!res) {
                     return;
                 }
@@ -227,7 +227,7 @@ function clearFormErrors($modal) {
         .empty();
 }
 
-function treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, headerCallback, waitDatatable) {
+function treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable) {
     resetDroppedFiles();
 
     if (data.redirect && !keepModal) {
