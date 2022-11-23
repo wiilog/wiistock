@@ -1955,6 +1955,7 @@ class ReceptionController extends AbstractController {
                     $entityManager->persist($createdMvt);
                 }
 
+                $entityManager->flush();
                 $createdArticles[] = $article;
             }
 

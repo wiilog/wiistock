@@ -200,7 +200,7 @@ class PackController extends AbstractController
             $deliveryRequestArticleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
             $projectRepository = $entityManager->getRepository(Project::class);
-            $statusRepository = $entityManager->getRepository(Statut::class);
+
             $pack = $packRepository->find($data['id']);
             $projects = Stream::from($projectRepository->findActive())
                 ->map(fn(Project $project) => [

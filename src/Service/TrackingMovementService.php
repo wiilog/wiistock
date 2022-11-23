@@ -182,7 +182,7 @@ class TrackingMovementService extends AbstractController
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getPackArticle()
                     ? $movement->getPackArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getArticleFournisseur()?->getReferenceArticle()?->getLibelle()),
+                    : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getArticleFournisseur()?->getReferenceArticle()?->getReference()),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getPackArticle()
@@ -1327,23 +1327,6 @@ class TrackingMovementService extends AbstractController
             //now the pick LU movement is done, set the logistic unit
             $article->setCurrentLogisticUnit($pack);
 
-            //generate drop in LU movements
-            $luDrop = $this->persistTrackingMovement(
-                $manager,
-                $article->getTrackingPack(),
-                $location,
-                $user,
-                $now,
-                true,
-                TrackingMovement::TYPE_DROP_LU,
-                false,
-                $options,
-            )["movement"];
-
-            $luDrop->setLogisticUnitParent($pack);
-
-            $movements[] = $luDrop;
-
             if ($createTracking) {
                 //generate drop movements
                 /** @var TrackingMovement $drop */
@@ -1359,9 +1342,26 @@ class TrackingMovementService extends AbstractController
                     $options,
                 )["movement"];
 
-                $drop->setLogisticUnitParent($article->getCurrentLogisticUnit());
                 $movements[] = $drop;
+            }
 
+            //generate drop in LU movements
+            $luDrop = $this->persistTrackingMovement(
+                $manager,
+                $article->getTrackingPack(),
+                $location,
+                $user,
+                $now,
+                true,
+                TrackingMovement::TYPE_DROP_LU,
+                false,
+                $options,
+            )["movement"];
+
+            $luDrop->setLogisticUnitParent($pack);
+            $movements[] = $luDrop;
+
+            if ($trackingPack) {
                 $stockMovement = $this->stockMovementService->createMouvementStock(
                     $user,
                     $article->getEmplacement(),
@@ -1373,7 +1373,9 @@ class TrackingMovementService extends AbstractController
                 $this->stockMovementService->finishMouvementStock($stockMovement, $now, $location);
                 $article->setEmplacement($location);
 
-                $drop->setMouvementStock($stockMovement);
+                if (isset($drop)) {
+                    $drop->setMouvementStock($stockMovement);
+                }
                 $manager->persist($stockMovement);
             }
         }
@@ -1381,7 +1383,7 @@ class TrackingMovementService extends AbstractController
         if ($oldCurrentLogisticUnit ?? null) {
             $this->updatePackQuantity($oldCurrentLogisticUnit ?? null);
         }
-        
+
         if ($pack) {
             $this->updatePackQuantity($pack);
         }
