@@ -39,7 +39,7 @@
                                 {% include 'utils/action-buttons/header-buttons.html.twig' with {
                                     actions: [{
                                         buttonClass: "btn btn-outline-primary mr-2",
-                                        title: trans('Ordre','Réceptions', 'réception'),
+                                        title: trans('Ordre', 'Réceptions', 'Réception'),
                                         hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')),
                                         attributes: {
                                             "data-target": "#modalNewLigneReception",
