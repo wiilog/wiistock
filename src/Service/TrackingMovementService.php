@@ -311,11 +311,7 @@ class TrackingMovementService extends AbstractController
         $entityManager = $options['entityManager'] ?? $this->entityManager;
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $type = ($trackingType instanceof Statut)
-            ? $trackingType
-            : (is_string($trackingType)
-                ? $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $trackingType)
-                : $statutRepository->find($trackingType));
+        $type = $this->getTrackingType($entityManager, $trackingType);
 
         if (!isset($type)) {
             throw new Exception('Le type de mouvement traca donné est invalide');
@@ -365,7 +361,7 @@ class TrackingMovementService extends AbstractController
 
         if (!$disableUngrouping
              && $pack->getParent()
-             && in_array($type?->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
+             && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
 
             $trackingUngroup = new TrackingMovement();
@@ -1070,6 +1066,7 @@ class TrackingMovementService extends AbstractController
                                                           bool                   $forced,
                                                           array                  $options = []): array {
         $packRepository = $entityManager->getRepository(Pack::class);
+
         $pack = $packOrCode instanceof Pack
             ? $packOrCode
             : $packRepository->findOneBy(['code' => $packOrCode]);
@@ -1079,7 +1076,7 @@ class TrackingMovementService extends AbstractController
                 return $this->persistLogisticUnitMovements($entityManager, $packOrCode, $location, $options["articles"], $operator, $options);
             } else {
                 $newMovements = [];
-                $selectedType = $entityManager->find(Statut::class, $trackingType);
+                $trackingType = $this->getTrackingType($entityManager, $trackingType);
                 $packArticle = $pack?->getArticle();
 
                 $movement = $this->persistTrackingMovement(
@@ -1104,7 +1101,7 @@ class TrackingMovementService extends AbstractController
                     return $movement;
                 }
 
-                if($selectedType->getCode() === TrackingMovement::TYPE_PRISE && $packArticle?->getCurrentLogisticUnit()) {
+                if($trackingType->getCode() === TrackingMovement::TYPE_PRISE && $packArticle?->getCurrentLogisticUnit()) {
                     $movement = $this->persistTrackingMovement(
                         $entityManager,
                         $pack ?? $packOrCode,
@@ -1129,7 +1126,7 @@ class TrackingMovementService extends AbstractController
                         return $movement;
                     }
                 }
-                else if(in_array($selectedType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]) && $pack->getChildArticles()->count()) {
+                else if(in_array($trackingType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]) && $pack->getChildArticles()->count()) {
                     foreach($pack->getChildArticles() as $childArticle) {
                         $movement = $this->persistTrackingMovement(
                             $entityManager,
@@ -1262,14 +1259,14 @@ class TrackingMovementService extends AbstractController
 
         /** @var Article $article */
         foreach($articles as $article) {
-            if(!$article->getTrackingPack()) {
-                $trackingPack = $packRepository->findOneBy(["code" => $article->getBarCode()]);
-                if($trackingPack) {
-                    $article->setTrackingPack($trackingPack);
-                } else {
-                    $article->setTrackingPack($this->persistPack($manager, $article->getBarCode(), $article->getQuantite()));
-                }
-            }
+            $options['quantity'] = $article->getQuantite();
+
+            $trackingPack = $article->getTrackingPack()
+                ?? $packRepository->findOneBy(["code" => $article->getBarCode()])
+                ?? $this->persistPack($manager, $article->getBarCode(), $article->getQuantite());
+
+            $article->setTrackingPack($trackingPack);
+
             if($packRepository->isInOngoingReception($article->getTrackingPack())) {
                 return [
                     "success" => false,
@@ -1322,7 +1319,8 @@ class TrackingMovementService extends AbstractController
                     $options,
                 )["movement"];
 
-                $luPick->setLogisticUnitParent($article->getCurrentLogisticUnit());
+                $oldCurrentLogisticUnit = $article->getCurrentLogisticUnit();
+                $luPick->setLogisticUnitParent($oldCurrentLogisticUnit);
                 $movements[] = $luPick;
             }
 
@@ -1380,6 +1378,14 @@ class TrackingMovementService extends AbstractController
             }
         }
 
+        if ($oldCurrentLogisticUnit ?? null) {
+            $this->updatePackQuantity($oldCurrentLogisticUnit ?? null);
+        }
+        
+        if ($pack) {
+            $this->updatePackQuantity($pack);
+        }
+
         //add all new articles
         if($inCarts) {
             /** @var Cart $cart */
@@ -1395,5 +1401,22 @@ class TrackingMovementService extends AbstractController
             "multiple" => true,
             "movements" => $movements,
         ];
+    }
+
+    public function getTrackingType(EntityManagerInterface $entityManager,
+                                    Statut|int|string      $type): Statut|null {
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        return ($type instanceof Statut)
+            ? $type
+            : (is_string($type)
+                ? $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $type)
+                : $statusRepository->find($type));
+    }
+
+    private function updatePackQuantity(Pack $pack): void {
+        $newQuantity = Stream::from($pack->getChildArticles())
+            ->map(fn(Article $article) => $article->getQuantite())
+            ->sum();
+        $pack->setQuantity(max($newQuantity, 1));
     }
 }
