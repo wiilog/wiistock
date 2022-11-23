@@ -12,8 +12,8 @@ class PreparationOrderArticleLineRepository extends EntityRepository {
             ->leftJoin('preparation_order_article_line.pack', 'pack')
             ->leftJoin('preparation_order_article_line.preparation', 'preparation')
             ->leftJoin('preparation.statut', 'status')
-            ->where('pack.id = :packId')
-            ->andWhere('status.id IN (:statuses)')
+            ->andWhere('pack.id = :packId')
+            ->andWhere('status.code IN (:statuses)')
             ->setParameters([
                 'packId' => $pack->getId(),
                 'statuses' => $statuses

@@ -25,7 +25,7 @@ class DeliveryRequestArticleLineRepository extends EntityRepository
             ->toArray();
     }
 
-    public function isOngoingAndUsingPack(Pack|int $pack): bool{
+    public function isOngoingAndUsingPack(Pack|int $pack): bool {
         return $this->createQueryBuilder("line")
                 ->select("COUNT(line)")
                 ->join("line.request", "request")

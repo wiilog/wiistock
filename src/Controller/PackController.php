@@ -208,19 +208,17 @@ class PackController extends AbstractController
                     "value" => $project->getId(),
                     "selected" => $pack->getProject() === $project
                 ]);
-            $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER);
+
             $disabledProject = (
-                $preparationOrderArticleLineRepository->getPreparationOrderArticleLine($pack, [$status->getId()])
+                $preparationOrderArticleLineRepository->getPreparationOrderArticleLine($pack, [Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION])
                 || $deliveryRequestArticleLineRepository->isOngoingAndUsingPack($pack)
                 || Stream::from($pack->getChildArticles())->some(fn(Article $article) => $article->getCarts()->count())
             );
-            $articlesQuantity = Stream::from($pack->getChildArticles())->reduce(fn(int $carry, Article $article) => $carry + $article->getQuantite());
+
             $html = $this->renderView('pack/modalEditPackContent.html.twig', [
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
                 'pack' => $pack,
                 'projects' => $projects,
-                'containsArticle' => $pack->getChildArticles()->isEmpty(),
-                'articlesQuantity' => $articlesQuantity,
                 'disabledProject' => !empty($disabledProject)
             ]);
 
