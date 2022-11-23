@@ -142,9 +142,10 @@
                                     </div>
                                 {% endif %}
                                 <div class="col-md-6 col-12">
-                                    {{ form.input('project', 'Projet', false, project ?? '', {
-                                        readonly: true,
-                                    }) }}
+                                    <label class="box-item">
+                                        <span class="wii-field-name">Projet</span>
+                                        <span class="wii-body-text">{{ project ?? '' }}</span>
+                                    </label>
                                 </div>
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
