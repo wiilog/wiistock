@@ -40,21 +40,23 @@ function loadLULocation($input) {
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
     const code = $input.val();
 
-    AJAX.route(`GET`, `tracking_movement_lu_location`, {code}).json().then(response => {
-        $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
-        if(response.error) {
-            Flash.add(`danger`, response.error);
-        }
+    AJAX.route(`GET`, `tracking_movement_logistic_unit_location`, {code})
+        .json()
+        .then(response => {
+            $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+            if (response.error) {
+                Flash.add(`danger`, response.error);
+            }
 
-        const $location = $modalNewMvtTraca.find(`[name="emplacement"]`);
-        if(response.location) {
-            $location.append(new Option(response.location.label, response.location.id, true, true))
-        } else {
-            $location.val(null);
-        }
+            const $location = $modalNewMvtTraca.find(`[name="emplacement"]`);
+            if (response.location) {
+                $location.append(new Option(response.location.label, response.location.id, true, true))
+            } else {
+                $location.val(null);
+            }
 
-        $location.prop(`disabled`, !!response.location).trigger(`change`);
-    });
+            $location.prop(`disabled`, !!response.location).trigger(`change`);
+        });
 }
 
 function initTrackingMovementTable(columns) {
