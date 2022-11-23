@@ -369,6 +369,11 @@ class SettingsController extends AbstractController {
                     "right" => Action::SETTINGS_DISPLAY_PREPA,
                     "save" => true,
                 ],
+                self::MENU_PREPARATIONS_DELIVERIES => [
+                    "label" => "Préparations / Livraisons ",
+                    "right" => Action::SETTINGS_DISPLAY_PREPA_DELIV,
+                    "save" => true,
+                ],
                 self::MENU_VALIDATION => [
                     "label" => "Gestion des validations",
                     "right" => Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS,
@@ -521,6 +526,7 @@ class SettingsController extends AbstractController {
     public const MENU_PURCHASE_STATUSES = "statuts_achats";
 
     public const MENU_PREPARATIONS = "preparations";
+    public const MENU_PREPARATIONS_DELIVERIES = "preparations_livraisons";
     public const MENU_VALIDATION = "validation";
     public const MENU_TRANSFERS = "transferts";
 
