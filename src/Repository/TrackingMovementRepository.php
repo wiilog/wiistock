@@ -322,7 +322,7 @@ class TrackingMovementRepository extends EntityRepository
             ->execute();
     }
 
-    public function countDropsOnLocationsOn(DateTime $dateTime, array $locations)
+    public function countDropsOnLocationsOn(DateTime $dateTime, array $locations): int
     {
         $qb = $this->createQueryBuilder('tracking_movement');
         $start = clone $dateTime;
@@ -333,9 +333,11 @@ class TrackingMovementRepository extends EntityRepository
             ->select('COUNT(DISTINCT pack.id)')
             ->join('tracking_movement.emplacement', 'join_location')
             ->join('tracking_movement.pack', 'pack')
-            ->where('join_location.id IN (:locations)')
+            ->join('tracking_movement.type', 'type')
             ->andWhere('join_location.id IN (:locations)')
             ->andWhere('tracking_movement.datetime BETWEEN :start AND :end')
+            ->andWhere('type.nom = :drop')
+            ->setParameter('drop', TrackingMovement::TYPE_DEPOSE)
             ->setParameter('locations', $locations)
             ->setParameter('start', $start)
             ->setParameter('end', $end);

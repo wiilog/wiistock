@@ -490,7 +490,7 @@ class DashboardService {
         $config = $component->getConfig();
         $config['legends'] = [];
         $countLegend = 1;
-        foreach($config['chartColors'] as $key => $legend){
+        foreach($config['chartColors'] ?? [] as $key => $legend){
             $config['legends'][$key] = [];
             Stream::from($config)
                 ->each(function($conf, $arrayKey) use ($countLegend, $key, &$config) {
