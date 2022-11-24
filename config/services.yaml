@@ -5,7 +5,7 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '6.14.0#3'
+    web_version: '6.14.0#4'
     nomade_version: '=6.14.0#2'
     nomade_apk: 'https://wiilog.fr/dl/wiistock/app-current.apk'
     client: '%env(APP_CLIENT)%'
