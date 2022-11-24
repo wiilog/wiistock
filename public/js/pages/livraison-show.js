@@ -24,6 +24,17 @@ $(function () {
         order: [['reference', "asc"]]
     };
     initDataTable('tableArticle_id', tableArticleConfig);
+
+    let $modalPrintWaybill = $('#modalPrintWaybill');
+    let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
+    let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: getDeliveryId()}, true);
+    InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
+        success: () => {
+            window.location.href = Routing.generate('print_waybill_dispatch', {
+                dispatch: getDeliveryId(),
+            });
+        },
+    });
 });
 
 function endLivraison($button) {
@@ -99,4 +110,19 @@ function clearDeleteDeliveryModal() {
 
 function getDeliveryId() {
     return $('input[type="hidden"][name="delivery-id"]').val();
+}
+
+function openDeliveryNoteModal($button) {
+    const livraisonId = getDeliveryId();
+    $.get(Routing.generate('api_delivery_note_livraison', {livraison: livraisonId}))
+        .then((result) => {
+            if(result.success) {
+                const $modal = $('#modalPrintDeliveryNote');
+                const $modalBody = $modal.find('.modal-body');
+                $modalBody.html(result.html);
+                $modal.modal('show');
+            } else {
+                showBSAlert(result.msg, "danger");
+            }
+        });
 }

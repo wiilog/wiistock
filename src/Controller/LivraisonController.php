@@ -21,6 +21,7 @@ use App\Service\CSVExportService;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
+use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,6 +30,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Throwable;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -304,5 +306,77 @@ class LivraisonController extends AbstractController
         else {
             throw new NotFoundHttpException('404');
         }
+    }
+
+    /**
+     * @Route("/{livraison}/api-delivery-note", name="api_delivery_note_livraison", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param Livraison $deliveryOrder
+     * @return JsonResponse
+     */
+    public function apiDeliveryNote(Request $request,
+                                    EntityManagerInterface $manager,
+                                    Livraison $deliveryOrder): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+        $maxNumberOfPacks = 10;
+
+        $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
+        $deliveryOrderHasPacks = Stream::from($preparationArticleLines)
+            ->some(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack());
+
+        if($deliveryOrderHasPacks) {
+            return $this->json([
+                "success" => false,
+                "msg" => 'Des unités logistiques sont nécessaires pour générer un bon de livraison'
+            ]);
+        }
+
+        $preparationPacks = Stream::from($preparationArticleLines)
+            ->map(fn(PreparationOrderArticleLine $articleLine) => )
+        $packs = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
+        $packs = array_map(function(DispatchPack $dispatchPack) {
+            return [
+                "code" => $dispatchPack->getPack()->getCode(),
+                "quantity" => $dispatchPack->getQuantity(),
+                "comment" => $dispatchPack->getPack()->getComment(),
+            ];
+        }, $packs);
+
+        $userSavedData = $loggedUser->getSavedDispatchDeliveryNoteData();
+        $dispatchSavedData = $dispatch->getDeliveryNoteData();
+        $defaultData = [
+            'deliveryNumber' => $dispatch->getNumber(),
+            'projectNumber' => $dispatch->getProjectNumber(),
+            'username' => $loggedUser->getUsername(),
+            'userPhone' => $loggedUser->getPhone(),
+            'packs' => $packs,
+            'dispatchEmergency' => $dispatch->getEmergency()
+        ];
+        $deliveryNoteData = array_reduce(
+            array_keys(Dispatch::DELIVERY_NOTE_DATA),
+            function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
+                $carry[$dataKey] = (
+                    $dispatchSavedData[$dataKey]
+                    ?? ($userSavedData[$dataKey]
+                        ?? ($defaultData[$dataKey]
+                            ?? null))
+                );
+
+                return $carry;
+            },
+            []
+        );
+
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+
+        $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
+            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+        ]));
+
+        return $this->json([
+            "success" => true,
+            "html" => $html
+        ]);
     }
 }
