@@ -8,7 +8,7 @@ $(function () {
             wrapLoadingOnActionButton($(this), () => {
                 return AJAX.route(GET, `generate_kiosk_token`)
                     .json()
-                    .then(({token}) => window.open(Routing.generate(`kiosk_index`, {token}, true), `_blank`));
+                    .then(({token}) => window.location.href = Routing.generate(`kiosk_index`, {token}, true));
             });
         } else {
             Flash.add('danger', 'Tous les paramètres obligatoires doivent être renseignés.')
