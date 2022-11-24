@@ -179,25 +179,17 @@ $(function() {
 });
 
 function addToCart(ids) {
-    const path = Routing.generate('cart_add_logistic_units',true);
-    $.post(
-        path,
-        JSON.stringify({id : ids}),
-        function (data) {
-            data.messages.forEach((response) => {
-                if (response.success) {
-                    Flash.add('success', response.msg);
-                }
-                else {
-                    Flash.add('danger', response.msg);
-                }
+    AJAX.route(`POST`, `cart_add_logistic_units`, {ids: ids.join(`,`)})
+        .json()
+        .then(({messages, cartQuantity}) => {
+            messages.forEach(({success, msg}) => {
+                Flash.add(success ? `success` : `danger`, msg);
             });
 
-            if (data.cartQuantity !== undefined) {
-                $('.header-icon.cart .icon-figure.small').removeClass(`d-none`).text(data.cartQuantity);
+            if (cartQuantity !== undefined) {
+                $('.header-icon.cart .icon-figure.small').removeClass(`d-none`).text(cartQuantity);
             }
-        }
-    );
+        });
 }
 
 function switchPageBasedOnHash() {

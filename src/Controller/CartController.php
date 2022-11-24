@@ -12,7 +12,6 @@ use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Menu;
-use App\Entity\Cart;
 use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
@@ -246,8 +245,8 @@ class CartController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
     public function addLogisticUnitsToCart(Request                $request,
                                            EntityManagerInterface $entityManager): Response {
-        $data = json_decode($request->getContent(), true);
-        $ids = $data["id"];
+        $data = $request->query->all();
+        $ids = explode(",", $data["ids"]);
         $response = [];
         $wrongProject = [];
         $alreadyInCart = [];
@@ -269,37 +268,35 @@ class CartController extends AbstractController
         else {
             $cartContent = $cart->getArticles()->toArray();
             $cartContentStream = Stream::from($cartContent);
-            foreach ($ids as $id) {
-                $unit = $packRepository->findOneBy(["id" => $id]);
-                if ($unit) {
-                    $rightCartProject = $cartContentStream->isEmpty() || $cartContentStream->every(fn(Article $article) =>
-                        $article->getCurrentLogisticUnit()?->getProject()?->getId()
-                        === $unit->getProject()?->getId()
-                    );
+            $logisticUnits = $packRepository->findBy(['id' => $ids]);
+            foreach ($logisticUnits as $unit) {
+                $rightCartProject = $cartContentStream->isEmpty() || $cartContentStream->every(fn(Article $article) =>
+                    $article->getCurrentLogisticUnit()?->getProject()?->getId()
+                    === $unit->getProject()?->getId()
+                );
 
-                    if (!$rightCartProject) { // error
-                        $wrongProject[] = $unit->getCode();
+                if (!$rightCartProject) { // error
+                    $wrongProject[] = $unit->getCode();
+                }
+                else {
+                    $unitAlreadyInProject = $cartContentStream->some(fn(Article $article) => $article->getCurrentLogisticUnit()?->getId() === $unit->getId());
+                    if ($unitAlreadyInProject) { // error
+                        $alreadyInCart[] = $unit->getCode();
                     }
                     else {
-                        $unitAlreadyInProject = $cartContentStream->some(fn(Article $article) => $article->getCurrentLogisticUnit()?->getId() === $unit->getId());
-                        if ($unitAlreadyInProject) { // error
-                            $alreadyInCart[] = $unit->getCode();
-                        }
-                        else {
-                            foreach ($unit->getChildArticles() as $article) {
-                                if ($article->getStatut()?->getCode() !== Article::STATUT_ACTIF) { // error
-                                    $unavailableArticles[] = [
-                                        'barCode' => $article->getBarCode(),
-                                        'unit' => $unit->getCode()
-                                    ];
-                                }
-                                else { // success
-                                    $cart->addArticle($article);
-                                    $addedArticles[] = [
-                                        'barCode' => $article->getBarCode(),
-                                        'unit' => $unit->getCode()
-                                    ];
-                                }
+                        foreach ($unit->getChildArticles() as $article) {
+                            if ($article->getStatut()?->getCode() !== Article::STATUT_ACTIF) { // error
+                                $unavailableArticles[] = [
+                                    'barCode' => $article->getBarCode(),
+                                    'unit' => $unit->getCode()
+                                ];
+                            }
+                            else { // success
+                                $cart->addArticle($article);
+                                $addedArticles[] = [
+                                    'barCode' => $article->getBarCode(),
+                                    'unit' => $unit->getCode()
+                                ];
                             }
                         }
                     }
@@ -358,9 +355,13 @@ class CartController extends AbstractController
         }
 
         $entityManager->flush();
+        $logisticUnitsQuantity = Stream::from($cart->getArticles())
+            ->map(fn(Article $article) => $article->getCurrentLogisticUnit())
+            ->unique()
+            ->count();
         return $this->json([
             "messages" => $response,
-            "cartQuantity" => $cart->getArticles()->count() ?? $cart->getReferences()->count()
+            "cartQuantity" => $logisticUnitsQuantity ?? $cart->getArticles()->count() ?? $cart->getReferences()->count()
         ]);
     }
 

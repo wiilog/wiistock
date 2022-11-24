@@ -85,8 +85,14 @@
                         <a class="header-icon cart" href="{{ path('cart') }}">
                             {% set referencesQuantity = app.user.cart.references|length %}
                             {% set articlesQuantity = app.user.cart.articles|length %}
-                            <div class="icon-figure small {{ not app.user.cart or not (referencesQuantity != 0 or articlesQuantity != 0) ? 'd-none' }}">
-                                {{ referencesQuantity != 0  ? referencesQuantity != 0 : articlesQuantity }}
+                            {% set logisticUnitsQuantity = app.user.cart.articles|map(article => article.currentLogisticUnit.id)|unique|length %}
+                            <div class="icon-figure small {{ not (referencesQuantity != 0 or articlesQuantity != 0 or logisticUnitsQuantity != 0) ? 'd-none' }}">
+                                {{ referencesQuantity != 0
+                                    ? referencesQuantity
+                                    : logisticUnitsQuantity != 0
+                                        ? logisticUnitsQuantity
+                                        : articlesQuantity
+                                }}
                             </div>
                         </a>
                     </div>
