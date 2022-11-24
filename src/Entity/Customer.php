@@ -96,7 +96,7 @@ class Customer
     public function serialize(): array {
         return [
             "name" => $this->getName(),
-            "address" => $this->getAddress(),
+            "address" => str_replace(["\r", "\n"], '', $this->getAddress()),
             "phone" => $this->getPhoneNumber(),
             "email" => $this->getEmail(),
             "fax" => $this->getFax(),
