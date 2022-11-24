@@ -144,7 +144,7 @@ class ProjectController extends AbstractController
         return $this->json([
             'delete' => empty($logisticUnitCount) && empty($projectHistoryRecordCount),
             'html' => match(true) {
-                $logisticUnitCount > 0         => '<span>Ce projet est lié à une ou plusieurs unités logistiques, vous ne pouvez pas le supprimer</span>',
+                $logisticUnitCount > 0         => '<span>Ce projet est lié à une ou plusieurs unités logistiques ou articles, vous ne pouvez pas le supprimer</span>',
                 $projectHistoryRecordCount > 0 => '<span>Ce projet est lié à un ou plusieurs historiques de projet, vous ne pouvez pas le supprimer</span>',
                 default                        => '<span>Voulez-vous réellement supprimer ce projet ?</span>'
             }
