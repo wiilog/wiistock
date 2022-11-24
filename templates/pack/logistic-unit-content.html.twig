@@ -31,7 +31,7 @@
                     {% elseif movement.type.code == constant('App\\Entity\\TrackingMovement::TYPE_PICK_LU') %}
                         <div class="logistic-unit-exit">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Sortie') }}</div>
                     {% endif %}
-                    <span class="wii-small-text">Ven 04 avril 2022 08:45</span>
+                    <span class="wii-small-text">{{ movement.datetime|format_helper('longDate', {short: true, time: true}) }}</span>
                 </div>
                 <div class="logistic-unit-card m-0">
                     <div class="row">
