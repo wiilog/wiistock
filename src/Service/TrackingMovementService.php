@@ -1126,7 +1126,7 @@ class TrackingMovementService extends AbstractController
                         return $movement;
                     }
                 }
-                else if(in_array($trackingType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]) && $pack->getChildArticles()->count()) {
+                else if($pack && in_array($trackingType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]) && $pack->getChildArticles()->count()) {
                     foreach($pack->getChildArticles() as $childArticle) {
                         /** @var TrackingMovement $movement */
                         $movement = $this->persistTrackingMovement(
