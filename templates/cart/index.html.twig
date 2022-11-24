@@ -141,12 +141,15 @@
                                         }) }}
                                     </div>
                                 {% endif %}
-                                <div class="col-md-6 col-12">
-                                    <label class="box-item">
-                                        <span class="wii-field-name">Projet</span>
-                                        <span class="wii-body-text">{{ project ?? '' }}</span>
-                                    </label>
-                                </div>
+                                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT') %}
+                                {% if deliveryFieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                                    <div class="col-md-6 col-12">
+                                        <label class="box-item">
+                                            <span class="wii-field-name">Projet</span>
+                                            <span class="wii-body-text">{{ project ?? '' }}</span>
+                                        </label>
+                                    </div>
+                                {% endif %}
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">
