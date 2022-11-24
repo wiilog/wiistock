@@ -1128,6 +1128,7 @@ class TrackingMovementService extends AbstractController
                 }
                 else if(in_array($trackingType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]) && $pack->getChildArticles()->count()) {
                     foreach($pack->getChildArticles() as $childArticle) {
+                        /** @var TrackingMovement $movement */
                         $movement = $this->persistTrackingMovement(
                             $entityManager,
                             $childArticle->getTrackingPack() ?? $childArticle->getBarCode(),
@@ -1141,6 +1142,7 @@ class TrackingMovementService extends AbstractController
                         );
 
                         if($movement["success"]) {
+                            $movement["movement"]->setLogisticUnitParent($pack);
                             $newMovements[] = $movement["movement"];
                         } else {
                             return $movement;
