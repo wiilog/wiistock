@@ -2181,11 +2181,18 @@ class ReceptionController extends AbstractController {
             ->toArray();
 
         $freeFields = Stream::from($freeFieldsValues)
-            ->filter(fn($freeField) => $freeField)
+            ->filter(fn($freeField) => $freeField !== null)
             ->keymap(function(?string $value, int $key) use ($freeFieldRepository) {
+                $freeField = $freeFieldRepository->find($key);
                 $value = DateTime::createFromFormat('Y-m-d', $value) ?: $value;
-                $formattedValue = $value instanceof DateTime ? $value->format('d/m/Y') : $value;
-                return [$freeFieldRepository->find($key)->getLabel(), $formattedValue];
+                $formattedValue = ($value instanceof DateTime
+                    ? $value->format('d/m/Y')
+                    : ($freeField->getTypage() === FreeField::TYPE_BOOL && $value == 1
+                        ? 'oui'
+                        : (FreeField::TYPE_BOOL && $value == 0
+                            ? 'non'
+                            : $value)));
+                return [$freeField->getLabel(), $formattedValue];
             })
             ->toArray();
 
