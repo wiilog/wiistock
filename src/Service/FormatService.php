@@ -14,6 +14,7 @@ use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Statut;
@@ -138,6 +139,10 @@ class FormatService
     public function datetime(?DateTimeInterface $date, $else = "", $addAt = false, ?Utilisateur $user = null) {
         $prefix = $this->getUser($user)?->getDateFormat() ?: Utilisateur::DEFAULT_DATE_FORMAT;
         return $date ? $date->format($addAt ? "$prefix à H:i" : "$prefix H:i") : $else;
+    }
+
+    public function project(?Project $project, $else = "") {
+        return $project ? $project->getCode() : $else;
     }
 
     public function time(?DateTimeInterface $date, $else = "") {
