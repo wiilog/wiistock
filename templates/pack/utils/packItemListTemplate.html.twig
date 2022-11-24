@@ -11,11 +11,12 @@
      {{ _self.dataAttributes(data ?? []) }}>
     <table>
         {% if header %}
+            {% set sideLabel = header.sideLabel ?? '' %}
             <tr class="ul"
                 style="--row-color: {{ header.color ?? 'var(--primary)' }};"
                 {{ _self.dataAttributes(header.data ?? []) }}>
                 <td class="side-unit-label">
-                    <div>{{ header.sideLabel ?? '' }}</div>
+                    <div title="{{ sideLabel }}">{{ sideLabel }}</div>
                 </td>
                 <td>
                     <div class="col-12 h-100">

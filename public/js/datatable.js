@@ -70,10 +70,10 @@ function initActionOnRow(row) {
                 let $anchor = $(row).find('.action-on-click');
                 const href = $anchor.attr('href');
                 if (href) {
-                    if (which === 1) {
-                        window.location.href = href;
-                    } else if (which === 2) {
+                    if($anchor.attr(`target`) === `_blank` || which === 2) {
                         window.open(href, '_blank');
+                    } else if(which === 1) {
+                        window.location.href = href;
                     }
                 } else {
                     if (which === 1) {

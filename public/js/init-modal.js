@@ -152,7 +152,8 @@ function processSubmitAction($modal,
     else {
         displayFormErrors($modal, {
             $isInvalidElements,
-            errorMessages
+            errorMessages,
+            keepModal
         });
 
         return new Promise((_, reject) => {
@@ -173,22 +174,23 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
             dataType: 'json',
         })
         .then((data) => {
-            if (!keepLoading) {
-                $submit.popLoader();
-            }
-
             if (data.success === false) {
+                if (!keepLoading) {
+                    $submit.popLoader();
+                }
+
                 const errorMessage = data.msg || data.message;
                 displayFormErrors($modal, {
                     $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
-                    errorMessages: errorMessage ? [errorMessage] : undefined
+                    errorMessages: errorMessage ? [errorMessage] : undefined,
+                    keepModal
                 });
                 if (error) {
                     error(data);
                 }
             }
             else {
-                const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
+                const res = treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable);
                 if (!res) {
                     return;
                 }
@@ -225,11 +227,15 @@ function clearFormErrors($modal) {
         .empty();
 }
 
-function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable) {
+function treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable) {
     resetDroppedFiles();
+
     if (data.redirect && !keepModal) {
         window.location.href = data.redirect;
         return;
+    }
+    else if (!keepLoading) {
+        $submit.popLoader();
     }
 
     if (data.nextModal) {
@@ -823,9 +829,9 @@ function isBarcodeValid($input) {
 /**
  * Display error message and error put field in error
  * @param {*} $modal jQuery element of the modal
- * @param {{$isInvalidElements: *|undefined, errorMessages: string[]|undefined}} options jQuery elements in error, errorMessages error messages
+ * @param {{$isInvalidElements: *|undefined, errorMessages: string[]|undefined, keepModal: boolean|undefined}} options jQuery elements in error, errorMessages error messages
  */
-function displayFormErrors($modal, {$isInvalidElements, errorMessages} = {}) {
+function displayFormErrors($modal, {$isInvalidElements, errorMessages, keepModal} = {}) {
     if ($isInvalidElements) {
         $isInvalidElements.forEach(($field) => {
             $field.addClass(FORM_INVALID_CLASS);
@@ -841,6 +847,9 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages} = {}) {
             $innerModalMessageError.html($message);
         } else {
             showBSAlert($message, 'danger');
+            if (!keepModal) {
+                $modal.modal('hide');
+            }
         }
     }
 }

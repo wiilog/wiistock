@@ -64,18 +64,25 @@ class KioskController extends AbstractController
     #[HasValidToken]
     public function form(Request $request, EntityManagerInterface $entityManager): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $scannedReference = $request->query->get('scannedReference');
 
+        if(str_starts_with($scannedReference, 'ART')){
+            $article = $articleRepository->findOneBy(['barCode' => $scannedReference]);
+            $reference = $article->getArticleFournisseur()->getReferenceArticle();
+        } else {
+            $reference = $referenceArticleRepository->findOneBy(['barCode' => $scannedReference]) ?? new ReferenceArticle();
+        }
         $freeField = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE) ? $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE)) : '';
-        $reference = $referenceArticleRepository->findOneBy(['barCode' => $scannedReference]) ?? new ReferenceArticle();
 
         return $this->render('kiosk/form.html.twig', [
             'reference' => $reference,
             'scannedReference' => $scannedReference,
-            'freeField' => $freeField,
+            'freeField' => $reference?->getType() ? ($reference?->getType()?->getId() === $freeField?->getType()?->getId() ? $freeField : null) : $freeField,
             'inStock' => $reference?->getQuantiteStock() > 0,
+            'article' => $article ?? null
         ]);
     }
 
@@ -83,10 +90,10 @@ class KioskController extends AbstractController
     #[HasValidToken]
     public function getArticleExistAndNotActive(Request $request, EntityManagerInterface $entityManager): Response {
         $articleRepository = $entityManager->getRepository(Article::class);
-        $article = $articleRepository->findOneBy(['barCode' => $request->request->get('articleLabel')]);
+        $article = $articleRepository->findOneBy(['barCode' => $request->query->get('articleLabel')]);
         return new JsonResponse([
             'success' => $article && $article->getStatut()->getCode() === Article::STATUT_INACTIF,
-            'fromArticlePage' => $request->request->get('articleLabel') !== null
+            'fromArticlePage' => $request->query->get('articleLabel') !== null
         ]);
     }
 

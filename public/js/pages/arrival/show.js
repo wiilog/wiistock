@@ -81,6 +81,23 @@ $(function () {
                 }
             }
         });
+
+        //édition de colis
+        const $modalEditPack = $('#modalEditPack');
+        const $submitEditPack = $('#submitEditPack');
+        const urlEditPack = Routing.generate('pack_edit', true);
+        InitModal($modalEditPack, $submitEditPack, urlEditPack, {
+            tables: [tableColis],
+            waitForUserAction: () => {
+                return checkPossibleCustoms($modalEditPack);
+            },
+        });
+
+        //suppression de colis
+        let modalDeletePack = $("#modalDeletePack");
+        let SubmitDeletePack = $("#submitDeletePack");
+        let urlDeletePack = Routing.generate('pack_delete', true);
+        InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [tableColis], clearOnClose: true});
     });
 
     let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
@@ -143,23 +160,6 @@ $(function () {
     let urlDispatchNewWithBL = Routing.generate('dispatch_new', {printDeliveryNote: 1}, true);
     InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
     InitModal($modalNewDispatch, $submitNewDispatchWithBL, urlDispatchNewWithBL);
-
-    //édition de colis
-    const $modalEditPack = $('#modalEditPack');
-    const $submitEditPack = $('#submitEditPack');
-    const urlEditPack = Routing.generate('pack_edit', true);
-    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
-        tables: [tableColis],
-        waitForUserAction: () => {
-            return checkPossibleCustoms($modalEditPack);
-        },
-    });
-
-    //suppression de colis
-    let modalDeletePack = $("#modalDeletePack");
-    let SubmitDeletePack = $("#submitDeletePack");
-    let urlDeletePack = Routing.generate('pack_delete', true);
-    InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [tableColis], clearOnClose: true});
 
     $(`.new-dispute-modal`).on(`click`, function () {
         getNewDisputeModalContent($(this));

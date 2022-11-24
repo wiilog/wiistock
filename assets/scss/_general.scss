@@ -1389,6 +1389,14 @@ label.required:after {
     max-width: 50%;
 }
 
+.capitalize {
+    display: inline-block;
+
+    &:first-letter {
+        text-transform: uppercase;
+    }
+}
+
 .frequencies {
     border: $medium-grey solid 1px;
     border-radius: 5px;

@@ -1,5 +1,7 @@
 {% import 'form.html.twig' as form %}
 
+{% set disableQuantity = pack.childArticles is not empty %}
+
 <form>
     <div class="row">
         <div class="form-group col-md-6 col-12">
@@ -26,19 +28,19 @@
             <label class="wii-field-name" style="margin-bottom:5px">{{ trans('Traçabilité', 'Général', 'Quantité') }}</label>
             <input type="number"
                    class="form-control data needed"
-                   value="{{ articlesQuantity > 0 ? articlesQuantity : pack.quantity }}"
+                   value="{{ pack.quantity }}"
                    name="quantity"
                    min="1"
                    step="1"
                    title="{{ trans('Traçabilité', 'Général', 'Quantité', false) }}"
-                   {{ articlesQuantity > 0 ? 'disabled' }}/>
+                   {{ disableQuantity ? 'disabled' }}/>
         </div>
         <div class="form-group col-md-6 col-12">
             {{ form.select('projects', 'Projet', false, {
                 items: projects,
                 placeholder: 'Sélectionnez un projet',
-                disabled: false,
-                tooltip: 'Le projet ne peut pas être modifié car le colis est dans une réception en cours, une livraison en cours ou un panier'
+                disabled: disabledProject,
+                tooltip: disabledProject ? 'Le projet ne peut pas être modifié car le colis est dans une réception en cours, une livraison en cours ou un panier' : null
             }) }}
         </div>
         <div class="form-group col-md-6 col-12">

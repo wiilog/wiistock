@@ -1528,13 +1528,12 @@ class ImportService
                         $existing = Stream::from($request->getArticleLines())
                             ->some(fn(DeliveryRequestArticleLine $line) => $line->getArticle()->getId() === $article->getId());
                         if (!$existing) {
-                            $line = new DeliveryRequestArticleLine();
-                            $line
-                                ->setArticle($article)
-                                ->setQuantityToPick(intval($quantityDelivery))
-                                ->setTargetLocationPicking($targetLocationPicking);
+                            $line = $this->demandeLivraisonService->createArticleLine($article, $request, [
+                                'quantityToPick' => intval($quantityDelivery),
+                                'targetLocationPicking' => $targetLocationPicking
+                            ]);
                             $this->entityManager->persist($line);
-                            $request->addArticleLine($line);
+
                             if (!$request->getPreparations()->isEmpty()) {
                                 $preparation = $request->getPreparations()->first();
                                 $article->setStatut($statusRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));

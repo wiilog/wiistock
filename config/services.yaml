@@ -5,9 +5,9 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '6.14.2#terega'
-    nomade_version: '=6.14.1#terega'
-    nomade_apk: 'https://wiilog.fr/dl/wiistock/recette/app-6-14-1#terega.apk'
+    web_version: '6.15.2#terega'
+    nomade_version: '=6.15.0#terega'
+    nomade_apk: 'https://ftp.wiilog.fr/wiistock/recette/6-15-0#terega.apk'
     client: '%env(APP_CLIENT)%'
     appLocale: '%env(APP_LOCALE)%'
 
@@ -20,7 +20,7 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         public: false       # Allows optimizing the container by removing unused services; this also means
-          # fetching services directly from the container via $container->get() won't work.
+        # fetching services directly from the container via $container->get() won't work.
         # The best practice is to be explicit about your dependencies anyway.
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -45,6 +45,9 @@ services:
         arguments:
             $targetDirectory: '%cards_directory%'
     App\Twig\BarcodeExtension:
+        arguments:
+            $barcodeGenerator: '@sgk_barcode.generator'
+    App\Service\Kiosk\KioskService:
         arguments:
             $barcodeGenerator: '@sgk_barcode.generator'
     App\Service\PDFGeneratorService:

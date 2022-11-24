@@ -898,9 +898,19 @@ class ReferenceArticleController extends AbstractController
     public function checkQuantity(Request                $request,
                                   EntityManagerInterface $entityManager): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
+        if(str_starts_with($request->query->get('scannedReference'), 'ART')){
+            $article = $articleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+            $reference = $article->getArticleFournisseur()->getReferenceArticle();
+        } else {
+            $article = null;
+            $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+        }
 
         return $this->json([
+            'referenceForErrorModal' => $reference->getBarCode(),
+            'codeArticle' => $article ? $article->getBarCode() : 'Non défini',
             'exists' => $reference !== null,
             'inStock' => $reference?->getQuantiteStock() > 0,
         ]);
@@ -934,14 +944,19 @@ class ReferenceArticleController extends AbstractController
 
         $reference = $refArticleRepository->findOneBy(['reference' => $data['reference']]) ?? new ReferenceArticle();
         $referenceExist = isset($data['article']);
-        $reference->setReference($data['reference'])
+        $reference
+            ->setReference($data['reference'])
             ->setLibelle($data['label'])
-            ->setType($type)
             ->setStatut($status)
             ->setCommentaire($data['comment'])
-            ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE)
             ->setCreatedBy($userRepository->getKioskUser())
             ->setCreatedAt(new DateTime());
+
+        if(!$referenceExist){
+            $reference
+                ->setType($type)
+                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);
+        }
 
         foreach ([$applicant, $follower] as $user) {
             $reference->addManager($user);
@@ -1030,14 +1045,9 @@ class ReferenceArticleController extends AbstractController
                 $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
                 $options['barcode'] = $article->getBarCode();
                 $kioskService->printLabel($options, $entityManager);
-
-                if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
-                    $notificationService->toTreat($ordreCollecte);
-                }
             } else {
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
             }
-
             $ordreCollecte->addArticle($article);
             $entityManager->persist($ordreCollecte);
         } catch(Exception $exception) {
@@ -1049,17 +1059,22 @@ class ReferenceArticleController extends AbstractController
 
         $entityManager->flush();
 
-        $to = Stream::from($reference->getManagers())->map(fn(Utilisateur $manager) => $manager->getEmail())->toArray();
-        $requester = $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER));
-        $recipients = array_merge($to, [$requester->getEmail()]);
+        if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+            $notificationService->toTreat($ordreCollecte);
+        }
+
+        $to = Stream::from($reference->getManagers())
+            ->map(fn(Utilisateur $manager) => $manager->getEmail())
+            ->toArray();
 
         if($referenceExist) {
             $articleSuccessMessage = str_replace('@reference', $data['reference'], str_replace('@codearticle', '<span style="color: #3353D7;">'.$data['article'].'</span>', $articleSuccessMessage));
-            $refArticleDataService->sendMailEntryStock($reference, $recipients, strip_tags(str_replace('@reference', $data['reference'], str_replace('@codearticle', $data['article'], $articleSuccessMessage))));
+            $message = strip_tags(str_replace('@reference', $data['reference'], str_replace('@codearticle', $data['article'], $articleSuccessMessage)));
         } else {
             $referenceSuccessMessage = str_replace('@reference', '<span style="color: #3353D7;">'.$data['reference'].'</span>', $referenceSuccessMessage);
-            $refArticleDataService->sendMailEntryStock($reference, $recipients, strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage)));
+            $message = strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage));
         }
+        $refArticleDataService->sendMailEntryStock($reference, $to, $message);
 
         return new JsonResponse([
                 'success' => true,

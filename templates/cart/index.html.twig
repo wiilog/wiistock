@@ -142,9 +142,10 @@
                                     </div>
                                 {% endif %}
                                 <div class="col-md-6 col-12">
-                                    {{ form.input('project', 'Projet', fieldRequired, project ?? '', {
-                                        readonly: true,
-                                    }) }}
+                                    <label class="box-item">
+                                        <span class="wii-field-name">Projet</span>
+                                        <span class="wii-body-text">{{ project ?? '' }}</span>
+                                    </label>
                                 </div>
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
@@ -306,7 +307,7 @@
                         {% endfor %}
                     </div>
                 </div>
-                <div class="wii-box mt-0 {{ app.user.cart.empty or app.user.cart.articles is empty ? 'd-none' }}">
+                <div class="wii-box {{ app.user.cart.empty or app.user.cart.articles is empty ? 'd-none' }}">
                     <div class="header wii-title">Unités logistiques</div>
                     <input type="hidden" value="{{ app.user.cart.articles|length }}" class="data" name="articlesInCart"/>
                     <div class="content">

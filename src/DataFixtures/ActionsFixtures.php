@@ -295,6 +295,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_MOBILE_HAND,
                 Action::SETTINGS_DISPLAY_TRANSFER_TO_TREAT,
                 Action::SETTINGS_DISPLAY_PREPA,
+                Action::SETTINGS_DISPLAY_PREPA_DELIV,
                 Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS
             ],
             self::SUB_MENU_DASHBOARD => [

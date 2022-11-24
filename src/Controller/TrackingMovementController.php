@@ -305,7 +305,7 @@ class TrackingMovementController extends AbstractController
                 ]);
             } else {
                 // uncomment following line to debug
-                throw $exception;
+                // throw $exception;
 
                 return $this->json([
                     "success" => false,
@@ -438,8 +438,6 @@ class TrackingMovementController extends AbstractController
         );
 
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
-            /** @var TrackingMovement $new */
-
             $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
                 $post->get('pack'),
@@ -451,6 +449,7 @@ class TrackingMovementController extends AbstractController
                 false,
             );
             if ($response['success']) {
+                /** @var TrackingMovement $new */
                 $new = $response['movement'];
                 $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
 
@@ -626,14 +625,13 @@ class TrackingMovementController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/emplacement-ul/{code}", name="tracking_movement_lu_location", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
-     */
-    public function getLULocation(EntityManagerInterface $entityManager, TranslationService $translationService, string $code): Response
+    #[Route("/tracking-movement-logistic-unit-location", name: "tracking_movement_logistic_unit_location", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
+    public function getLULocation(EntityManagerInterface $entityManager, TranslationService $translationService, Request $request): Response
     {
         $packRepository = $entityManager->getRepository(Pack::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+        $code = $request->query->get('code');
 
         /** @var Pack $pack */
         $pack = $packRepository->findOneBy(["code" => $code]);

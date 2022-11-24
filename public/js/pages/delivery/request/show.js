@@ -31,7 +31,6 @@ $(function () {
         clearModal('#modalNewArticle');
         $(this).find('#reference').select2("open");
     });
-    dropdownMoreOfOne();
 });
 
 function getCompareStock(submit) {

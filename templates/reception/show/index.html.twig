@@ -39,7 +39,7 @@
                                 {% include 'utils/action-buttons/header-buttons.html.twig' with {
                                     actions: [{
                                         buttonClass: "btn btn-outline-primary mr-2",
-                                        title: trans('Ordre','Réceptions', 'réception'),
+                                        title: trans('Ordre', 'Réceptions', 'Réception'),
                                         hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')),
                                         attributes: {
                                             "data-target": "#modalNewLigneReception",
@@ -64,8 +64,8 @@
                                 } %}
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-12 logistic-units-container my-3 wii-multiple-loading"
+                        <div class="row mt-2">
+                            <div class="col-12 logistic-units-container wii-multiple-loading"
                                  data-loader-color="primary"
                                  data-loader-size="normal">
                             </div>

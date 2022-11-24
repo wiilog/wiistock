@@ -3,26 +3,28 @@
 namespace App\Service\Kiosk;
 
 use App\Entity\Article;
-use App\Entity\FiltreRef;
-use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
-use App\Entity\Utilisateur;
-use App\Service\PDFGeneratorService;
-use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
+use SGK\BarcodeBundle\Generator\Generator as BarcodeGenerator;
 use ZplGenerator\Client\CloudClient;
-use ZplGenerator\Client\SocketClient;
-use ZplGenerator\Elements\Codes\BarCode128;
 use ZplGenerator\Elements\Codes\QrCode;
 use ZplGenerator\Elements\Common\Align;
-use ZplGenerator\Elements\Container;
 use ZplGenerator\Elements\Image;
 use ZplGenerator\Elements\Text\Text;
-use ZplGenerator\Elements\Text\TextConfig;
 use ZplGenerator\Printer\Printer;
 
 class KioskService
 {
+
+//    #[Required]
+//    public Generator $barcodeGenerator;
+
+    private $barcodeGenerator;
+
+    public function __construct(BarcodeGenerator $barcodeGenerator) {
+        $this->barcodeGenerator = $barcodeGenerator;
+    }
+
     public function printLabel($options, EntityManagerInterface $entityManager): void
     {
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -44,31 +46,30 @@ class KioskService
         if ($logo) {
             $logo = Image::fromPath(0, 0, $logo)
                 ->setAlignment(Align::LEFT)
-                ->setHeight($this->convertLocation($printerLabelHeight, 15));
+                ->setHeight(15);
         }
 
-        if ($labelTypeIs128){
-            $code = BarCode128::create($this->convertLocation($printerLabelWidth, 25), $this->convertLocation($printerLabelHeight, 20))
-                ->setContent($options['barcode'])
-                ->setAlignment(Align::CENTER)
-                ->setDisplayText(true)
-                ->setTextConfig(new TextConfig(null, 4, null))
-                ->setTextPosition(false)
-                ->setWidth($this->convertLocation($printerLabelWidth, 100))
-                ->setHeight($this->convertLocation($printerLabelHeight, 100));
+        if ($labelTypeIs128) {
+            $image = $this->printBarcodeFunction([
+                'code' => $options['barcode'],
+                'type' => 'c128',
+                'format' => 'png',
+                'height' => 70,
+                'width' => 3
+            ]);
+            $code = Image::fromString(0, 20, base64_decode($image));
         }
         else {
-            $code = QrCode::create(0,  $this->convertLocation($printerLabelHeight, 20))
+            $code = QrCode::create(32, 0)
                 ->setContent($options['barcode'])
-                ->setSize(10)
-                ->setAlignment(Align::CENTER)
+                ->setSize(6)
+                ->setAlignment(Align::LEFT)
                 ->setErrorCorrection(QrCode::EC_HIGHEST);
         }
 
-        $text = Text::create(0, 50)
+        $text = Text::create(0, 45)
             ->setText($options['text'])
             ->setAlignment(Align::CENTER)
-            ->setWidth(100)
             ->setSpacing(10)
             ->setMaxLines(1000);
 
@@ -99,18 +100,15 @@ class KioskService
 
         $referenceArticle = $article->getReferenceArticle();
 
-        $showQuantity = $settingRepository->getOneParamByLabel('INCLURE_QTT_SUR_ETIQUETTE');
-        $showEntryDate = $settingRepository->getOneParamByLabel('INCLURE_DATE_EXPIRATION_SUR_ETIQUETTE_ARTICLE_RECEPTION');
-        $showBatchNumber = $settingRepository->getOneParamByLabel('INCLURE_NUMERO_DE_LOT_SUR_ETIQUETTE_ARTICLE_RECEPTION');
-
         $labelText = $article->getBarCode() ? $article->getBarCode() . '\&' : '';
         $labelText .= $referenceArticle?->getLibelle() ? ' L/R :' . $referenceArticle?->getLibelle() . '\&' : '';
         $labelText .= $article->getReference() ? 'C/R :' . $article->getReference() . '\&' : '';
         $labelText .= $article->getLabel() ? 'L/A :' . $article->getLabel() . '\&' : '';
-        $labelText .= $showQuantity && $article->getQuantite() ? 'Qte :' . $article->getQuantite() . '\&' : '';
-        $labelText .= $showEntryDate && $article->getStockEntryDate() ? 'Date d\'entrée :' . $article->getStockEntryDate()?->format('d/m/Y') . '\&' : '';
-        $labelText .= $showBatchNumber && $article->getBatch() ? 'N° lot :' . $article->getBatch() . '\&' : '';
 
         return str_replace('_', '_5F', $labelText);
+    }
+
+    public function printBarcodeFunction($options = []): string {
+        return $this->barcodeGenerator->generate($options);
     }
 }

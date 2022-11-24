@@ -13,13 +13,13 @@ class Indicator {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'integer')]
-    private $count;
+    private ?int $count = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $subtitle;
+    private ?string $subtitle = null;
 
     #[ORM\Column(type: 'bigint', nullable: true)]
     private ?int $delay;
@@ -27,11 +27,8 @@ class Indicator {
     #[ORM\Column(type: 'json', nullable: false)]
     private array $subCounts = [];
 
-    /**
-     * @var Dashboard\Component
-     */
-    #[ORM\OneToOne(targetEntity: Dashboard\Component::class, inversedBy: 'indicatorMeter')]
-    private $component;
+    #[ORM\OneToOne(inversedBy: 'indicatorMeter', targetEntity: Dashboard\Component::class)]
+    private ?Dashboard\Component $component = null;
 
     public function getId(): ?int {
         return $this->id;

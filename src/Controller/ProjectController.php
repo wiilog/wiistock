@@ -92,7 +92,7 @@ class ProjectController extends AbstractController
 
     #[Route('/edit', name: 'project_edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function edit(Request $request, EntityManagerInterface $manager)
+    public function edit(Request $request, EntityManagerInterface $manager): Response
     {
         $data = $request->request->all();
         $project = $manager->find(Project::class, $data['id']);
@@ -134,19 +134,16 @@ class ProjectController extends AbstractController
     {
         $id = json_decode($request->getContent(), true);
         $projectRepository = $manager->getRepository(Project::class);
-        $articleRepository = $manager->getRepository(Article::class);
         $packRepository = $manager->getRepository(Pack::class);
         $projectHistoryRecordRepository = $manager->getRepository(ProjectHistoryRecord::class);
 
         $project = $projectRepository->find($id);
-        $articleCount = $articleRepository->count(['project' => $project]);
         $logisticUnitCount = $packRepository->count(['project' => $project]);
         $projectHistoryRecordCount = $projectHistoryRecordRepository->count(['project' => $project]);
 
         return $this->json([
-            'delete' => empty($articleCount) && empty($logisticUnitCount) && empty($projectHistoryRecordCount),
+            'delete' => empty($logisticUnitCount) && empty($projectHistoryRecordCount),
             'html' => match(true) {
-                $articleCount > 0              => '<span>Ce projet est lié à un ou plusieurs articles, vous ne pouvez pas le supprimer</span>',
                 $logisticUnitCount > 0         => '<span>Ce projet est lié à une ou plusieurs unités logistiques, vous ne pouvez pas le supprimer</span>',
                 $projectHistoryRecordCount > 0 => '<span>Ce projet est lié à un ou plusieurs historiques de projet, vous ne pouvez pas le supprimer</span>',
                 default                        => '<span>Voulez-vous réellement supprimer ce projet ?</span>'

@@ -32,8 +32,10 @@
             </div>
             {% if pack %}
                 <div class="col-2 form-group mt-2">
-                    <label class="wii-field-name">Projet</label>
-                    <span class="wii-body-text">{{ packProject }}</span>
+                    <div class="d-flex flex-column h-100">
+                        <label class="wii-field-name">Projet</label>
+                        <span class="wii-body-text my-auto">{{ packProject ? packProject.code : '-' }}</span>
+                    </div>
                 </div>
             {% endif %}
         </div>

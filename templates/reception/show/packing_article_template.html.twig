@@ -1,5 +1,6 @@
 {% set referenceArticle = receptionReferenceArticle.referenceArticle %}
 <div class="row article-line mb-3"
+     data-drop-location-is-reception-location="{{ dropLocationIsReceptionLocation ? 1 : 0 }}"
      data-value="{{ data|json_encode }}">
     <input type="hidden" class="data" name="receptionReferenceArticle" value="{{ receptionReferenceArticle.id }}"/>
     {% if pack %}

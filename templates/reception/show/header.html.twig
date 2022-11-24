@@ -24,7 +24,7 @@
                     icon: "wii-icon wii-icon-check-white",
                     class: "d-flex align-items-center",
                     buttonClass: "btn btn-primary",
-                    hasRight: false,
+                    hasRight: canReceive,
                     attributes: {
                         onclick: "finishReception(" ~ reception.id ~ ", false, $(this))",
                     },
@@ -104,7 +104,7 @@
                     class: "d-flex align-items-center",
                     dropdownOnly: true,
                     hasRight: hasArrival,
-                    href: path('arrivage_show', {id: reception.arrival.id}),
+                    href: reception.arrival ? path('arrivage_show', {id: reception.arrival.id}),
                 },
             ]
         } %}

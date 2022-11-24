@@ -146,6 +146,7 @@ class Action {
     const SETTINGS_DISPLAY_MOBILE_HAND = 'afficher services mobile';
     const SETTINGS_DISPLAY_TRANSFER_TO_TREAT = 'afficher transferts à traiter';
     const SETTINGS_DISPLAY_PREPA = 'afficher préparations';
+    const SETTINGS_DISPLAY_PREPA_DELIV = 'afficher préparations / livraisons';
     const SETTINGS_DISPLAY_MANAGE_VALIDATIONS = 'afficher gestion des validations';
 
     const SETTINGS_DISPLAY_DASHBOARD = 'afficher Dashboard';

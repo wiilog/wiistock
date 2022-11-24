@@ -91,11 +91,6 @@ $(function () {
     $("select[name='user_dateFormat']").on('change', function() {
         changeUserLanguageDateFormat();
     });
-    if ($('.dropdown-follow-gt').exists()) {
-        $('.dropdown-follow-gt').each(function() {
-            dropdownMoreOfOne($(this));
-        });
-    }
 });
 
 function changeUserLanguageDateFormat() {
@@ -1244,11 +1239,4 @@ function registerEasterEgg() {
     $modalEasterEgg.on('hidden.bs.modal', () => {
         count = 0;
     })
-}
-
-function dropdownMoreOfOne($dropdown) {
-    if ($dropdown.find('.dropdown-item').length == 1) {
-        $dropdown.find('.dropdown-item').addClass('btn btn-primary').removeClass('dropdown-item');
-        $dropdown.removeClass().parent().find('.dropdown-toggle').remove();
-    }
 }

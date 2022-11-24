@@ -1400,7 +1400,10 @@ class MobileController extends AbstractApiController
                 'barCode' => $article['barCode']
             ]);
 
-            $line = $demandeLivraisonService->createArticleLine($article, $request, $article->getQuantite(), $article->getQuantite());
+            $line = $demandeLivraisonService->createArticleLine($article, $request, [
+                'quantityToPick' => $article->getQuantite(),
+                'pickedQuantity' => $article->getQuantite(),
+            ]);
             $entityManager->persist($line);
         }
         $entityManager->flush();
@@ -1688,8 +1691,17 @@ class MobileController extends AbstractApiController
 
         if ($rights['stock']) {
             // livraisons
+            $deliveriesExpectedDateColors = [
+                'after' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_AFTER),
+                'DDay' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_D_DAY),
+                'before' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE),
+            ];
             $livraisons = Stream::from($livraisonRepository->getMobileDelivery($user))
-                ->map(function ($deliveryArray) {
+                ->map(function ($deliveryArray) use ($deliveriesExpectedDateColors) {
+                    $deliveryArray['color'] = $this->mobileApiService->expectedDateColor($deliveryArray['expectedAt'], $deliveriesExpectedDateColors);
+                    $deliveryArray['expectedAt'] = $deliveryArray['expectedAt']
+                        ? $deliveryArray['expectedAt']->format('d/m/Y')
+                        : null;
                     if (!empty($deliveryArray['comment'])) {
                         $deliveryArray['comment'] = substr(strip_tags($deliveryArray['comment']), 0, 200);
                     }
