@@ -10,6 +10,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\Menu;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Statut;
@@ -333,26 +334,26 @@ class LivraisonController extends AbstractController
         }
 
         $preparationPacks = Stream::from($preparationArticleLines)
-            ->map(fn(PreparationOrderArticleLine $articleLine) => )
-        $packs = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
-        $packs = array_map(function(DispatchPack $dispatchPack) {
+            ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack())->toArray();
+
+        $packs = array_slice($preparationPacks, 0, $maxNumberOfPacks);
+        $packs = array_map(function(Pack $pack) {
             return [
-                "code" => $dispatchPack->getPack()->getCode(),
-                "quantity" => $dispatchPack->getQuantity(),
-                "comment" => $dispatchPack->getPack()->getComment(),
+                "code" => $pack->getPack()->getCode(),
+                "quantity" => $pack->getQuantity(),
+                "comment" => $pack->getPack()->getComment(),
             ];
         }, $packs);
 
-        $userSavedData = $loggedUser->getSavedDispatchDeliveryNoteData();
-        $dispatchSavedData = $dispatch->getDeliveryNoteData();
+        $userSavedData = $loggedUser->getSavedDeliveryOrderDeliveryNoteData();
+        $dispatchSavedData = $deliveryOrder->getDeliveryNoteData();
         $defaultData = [
-            'deliveryNumber' => $dispatch->getNumber(),
-            'projectNumber' => $dispatch->getProjectNumber(),
+            'deliveryNumber' => $deliveryOrder->getNumero(),
             'username' => $loggedUser->getUsername(),
             'userPhone' => $loggedUser->getPhone(),
             'packs' => $packs,
-            'dispatchEmergency' => $dispatch->getEmergency()
         ];
+
         $deliveryNoteData = array_reduce(
             array_keys(Dispatch::DELIVERY_NOTE_DATA),
             function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {

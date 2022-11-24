@@ -49,8 +49,15 @@ class Livraison {
     #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'livraisonOrder')]
     private $mouvements;
 
+    /**
+     * @var array|null
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $deliveryNoteData;
+
     public function __construct() {
         $this->mouvements = new ArrayCollection();
+        $this->deliveryNoteData = [];
     }
 
     public function getId(): ?int {
@@ -170,4 +177,19 @@ class Livraison {
         );
     }
 
+    /**
+     * @return array
+     */
+    public function getDeliveryNoteData(): array {
+        return $this->deliveryNoteData ?? [];
+    }
+
+    /**
+     * @param array $deliveryNoteData
+     * @return self
+     */
+    public function setDeliveryNoteData(array $deliveryNoteData): self {
+        $this->deliveryNoteData = $deliveryNoteData;
+        return $this;
+    }
 }

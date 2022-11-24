@@ -197,6 +197,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private ?array $savedDispatchDeliveryNoteData = [];
 
     #[ORM\Column(type: 'json')]
+    private ?array $savedDeliveryOrderDeliveryNoteData = [];
+
+    #[ORM\Column(type: 'json')]
     private ?array $savedDispatchWaybillData = [];
 
     #[ORM\Column(type: 'string', nullable: true)]
@@ -1944,6 +1947,22 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
         $this->kioskToken = $kioskToken;
 
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getSavedDeliveryOrderDeliveryNoteData(): array {
+        return $this->savedDeliveryOrderDeliveryNoteData ?? [];
+    }
+
+    /**
+     * @param array|null $savedDeliveryOrderDeliveryNoteData
+     * @return self
+     */
+    public function setSavedDeliveryOrderDeliveryNoteData(array $savedDeliveryOrderDeliveryNoteData): self {
+        $this->savedDeliveryOrderDeliveryNoteData = $savedDeliveryOrderDeliveryNoteData;
         return $this;
     }
 }
