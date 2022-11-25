@@ -217,7 +217,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="preparation_show", methods="GET|POST")
+     * @Route("/voir/{id}", name="preparation_show", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
      */
     public function show(Preparation            $preparation,

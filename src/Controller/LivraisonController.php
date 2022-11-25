@@ -78,7 +78,8 @@ class LivraisonController extends AbstractController
                     $user,
                     $livraison,
                     $dateEnd,
-                    $livraison->getDemande()->getDestination()
+                    $livraison->getDemande()->getDestination(),
+                    false,
                 );
                 $entityManager->flush();
             }
@@ -161,7 +162,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"})
+     * @Route("/voir/{id}", name="livraison_show", options={"expose"=true}, methods={"GET","POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
     public function show(Livraison $livraison, EntityManagerInterface $manager): Response

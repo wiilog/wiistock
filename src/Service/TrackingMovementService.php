@@ -137,6 +137,16 @@ class TrackingMovementService extends AbstractController
                 $data ['fromLabel'] = 'Transfert de stock';
                 $data ['entityId'] = $movement->getMouvementStock()->getTransferOrder()->getId();
                 $data ['from'] = $movement->getMouvementStock()->getTransferOrder()->getNumber();
+            } else if ($movement->getPreparation()) {
+                $data ['entityPath'] = 'preparation_show';
+                $data ['fromLabel'] = 'Preparation';
+                $data ['entityId'] = $movement->getPreparation()->getId();
+                $data ['from'] = $movement->getPreparation()->getNumero();
+            } else if ($movement->getLivraison()) {
+                $data ['entityPath'] = 'livraison_show';
+                $data ['fromLabel'] = 'Livraison';
+                $data ['entityId'] = $movement->getLivraison()->getId();
+                $data ['from'] = $movement->getLivraison()->getNumero();
             }
         }
         return $data;

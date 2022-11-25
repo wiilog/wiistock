@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\TrackingMovement;
 use App\Repository\LivraisonRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -48,6 +49,9 @@ class Livraison {
 
     #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'livraisonOrder')]
     private $mouvements;
+
+    #[ORM\OneToMany(targetEntity: TrackingMovement::class, mappedBy: 'livraison')]
+    private Collection $trackingMovements;
 
     public function __construct() {
         $this->mouvements = new ArrayCollection();
@@ -168,6 +172,34 @@ class Livraison {
             isset($this->statut)
             && in_array($this->statut->getCode(), [Livraison::STATUT_LIVRE, Livraison::STATUT_INCOMPLETE])
         );
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getTrackingMovements(): Collection {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self {
+        if(!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setLivraison($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
+        if($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
+            // set the owning side to null (unless already changed)
+            if($trackingMovement->getLivraison() === $this) {
+                $trackingMovement->setLivraison(null);
+            }
+        }
+
+        return $this;
     }
 
 }

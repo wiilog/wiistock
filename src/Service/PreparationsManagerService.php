@@ -16,6 +16,7 @@ use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
 use App\Repository\MouvementStockRepository;
@@ -67,6 +68,9 @@ class PreparationsManagerService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
     public function __construct(Security $security,
                                 CSVExportService $CSVExportService,
                                 RouterInterface $router,
@@ -108,23 +112,51 @@ class PreparationsManagerService
     }
 
     public function handlePreparationTreatMovements(MouvementStockRepository $mouvementStockRepository,
-                                                    Preparation $preparation,
-                                                    Livraison $livraison,
-                                                    ?Emplacement $locationEndPrepa,
-                                                    Utilisateur $user) {
-        $mouvements = $mouvementStockRepository->findByPreparation($preparation);
-        foreach ($mouvements as $mouvement) {
-            if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
-                $this->createMouvementLivraison(
-                    $mouvement->getQuantity(),
+                                                    Preparation              $preparation,
+                                                    Livraison                $livraison,
+                                                    ?Emplacement             $locationEndPrepa,
+                                                    Utilisateur              $user) {
+        $movements = $mouvementStockRepository->findByPreparation($preparation);
+        foreach ($movements as $movement) {
+            if ($movement->getType() === MouvementStock::TYPE_TRANSFER) {
+                $this->createMovementLivraison(
+                    $movement->getQuantity(),
                     $user,
                     $livraison,
-                    !empty($mouvement->getRefArticle()),
-                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                    !empty($movement->getRefArticle()),
+                    $movement->getRefArticle() ?? $movement->getArticle(),
                     $preparation,
                     false,
                     $locationEndPrepa
                 );
+
+                $trackingMovementPrise = $this->trackingMovementService->createTrackingMovement(
+                    $movement->getRefArticle() ?? $movement->getArticle(),
+                    $movement->getEmplacementFrom(),
+                    $user,
+                    new DateTime('now'),
+                    false,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    [],
+                );
+                $trackingMovementPrise->setPreparation($preparation);
+                $this->entityManager->persist($trackingMovementPrise);
+
+                $trackingMovementDepose = $this->trackingMovementService->createTrackingMovement(
+                    $movement->getRefArticle() ?? $movement->getArticle(),
+                    $movement->getEmplacementTo(),
+                    $user,
+                    new DateTime('now'),
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [],
+                );
+                $trackingMovementDepose->setPreparation($preparation);
+                $this->entityManager->persist($trackingMovementDepose);
+
+                $this->entityManager->flush();
             }
         }
     }
@@ -264,30 +296,30 @@ class PreparationsManagerService
         return $newPreparation;
     }
 
-    public function createMouvementLivraison(int $quantity,
-                                             Utilisateur $userNomade,
-                                             Livraison $livraison,
-                                             bool $isRef,
-                                             $article,
-                                             Preparation $preparation,
-                                             bool $isSelectedByArticle,
-                                             Emplacement $emplacementFrom = null)
+    public function createMovementLivraison(int         $quantity,
+                                            Utilisateur $userNomade,
+                                            Livraison   $livraison,
+                                            bool        $isRef,
+                                                        $article,
+                                            Preparation $preparation,
+                                            bool        $isSelectedByArticle,
+                                            Emplacement $emplacementFrom = null)
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
 
-        $mouvement = new MouvementStock();
-        $mouvement
+        $movement = new MouvementStock();
+        $movement
             ->setUser($userNomade)
             ->setQuantity($quantity)
             ->setType(MouvementStock::TYPE_SORTIE)
             ->setLivraisonOrder($livraison);
 
         if (isset($emplacementFrom)) {
-            $mouvement->setEmplacementFrom($emplacementFrom);
+            $movement->setEmplacementFrom($emplacementFrom);
         }
 
-        $this->entityManager->persist($mouvement);
+        $this->entityManager->persist($movement);
 
         if ($isRef) {
             $refArticle = ($article instanceof ReferenceArticle)
@@ -296,7 +328,7 @@ class PreparationsManagerService
             if ($refArticle) {
                 /** @var MouvementStock $preparationMovement */
                 $preparationMovement = $preparation->getReferenceArticleMovement($refArticle);
-                $mouvement
+                $movement
                     ->setRefArticle($refArticle)
                     ->setQuantity($preparationMovement->getQuantity());
             }
@@ -317,16 +349,16 @@ class PreparationsManagerService
                 // si c'est un article sélectionné par l'utilisateur :
                 // on prend la quantité donnée dans le mouvement
                 // sinon on prend la quantité spécifiée dans le mouvement de transfert (créé dans beginPrepa)
-                $mouvementQuantity = ($isSelectedByArticle || !isset($stockMovement))
+                $movementQuantity = ($isSelectedByArticle || !isset($stockMovement))
                     ? $quantity
                     : $stockMovement->getQuantity();
 
-                $mouvement
+                $movement
                     ->setArticle($article)
-                    ->setQuantity($mouvementQuantity);
+                    ->setQuantity($movementQuantity);
             }
         }
-        return $mouvement;
+        return $movement;
     }
 
     public function deleteLigneRefOrNot(?PreparationOrderReferenceLine $ligne, Preparation $preparation, EntityManagerInterface $entityManager)
@@ -685,6 +717,10 @@ class PreparationsManagerService
     public function managePreRemovePreparation(Preparation $preparation, EntityManagerInterface $entityManager): array {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $demande = $preparation->getDemande();
+        $trackingMovements = $preparation->getTrackingMovements();
+        foreach ($trackingMovements as $movement) {
+            $preparation->removeTrackingMovement($movement);
+        }
 
         $requestStatusDraft = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $statutActifArticle = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);

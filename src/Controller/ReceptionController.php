@@ -1680,7 +1680,7 @@ class ReceptionController extends AbstractController {
                                     ]);
                                 }
                                 foreach ($mouvements as $mouvement) {
-                                    $preparationsManagerService->createMouvementLivraison(
+                                    $preparationsManagerService->createMovementLivraison(
                                         $mouvement->getQuantity(),
                                         $currentUser,
                                         $delivery,

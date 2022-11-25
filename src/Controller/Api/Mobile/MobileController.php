@@ -84,6 +84,9 @@ class MobileController extends AbstractApiController
     /** @Required */
     public MobileApiService $mobileApiService;
 
+    /** @Required */
+    public TrackingMovementService $trackingMovementService;
+
     /**
      * @Rest\Post("/api/api-key", condition="request.isXmlHttpRequest()")
      * @Rest\View()
@@ -649,21 +652,49 @@ class MobileController extends AbstractApiController
                         }
 
                         $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
-                        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-                        $mouvements = $mouvementRepository->findByPreparation($preparation);
+                        $movementRepository = $entityManager->getRepository(MouvementStock::class);
+                        $movements = $movementRepository->findByPreparation($preparation);
 
-                        foreach ($mouvements as $mouvement) {
-                            if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
-                                $preparationsManager->createMouvementLivraison(
-                                    $mouvement->getQuantity(),
+                        foreach ($movements as $movement) {
+                            if ($movement->getType() === MouvementStock::TYPE_TRANSFER) {
+                                $preparationsManager->createMovementLivraison(
+                                    $movement->getQuantity(),
                                     $nomadUser,
                                     $livraison,
-                                    !empty($mouvement->getRefArticle()),
-                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                    !empty($movement->getRefArticle()),
+                                    $movement->getRefArticle() ?? $movement->getArticle(),
                                     $preparation,
                                     false,
                                     $emplacementPrepa
                                 );
+
+                                $trackingMovementPrise = $this->trackingMovementService->createTrackingMovement(
+                                    $movement->getRefArticle() ?? $movement->getArticle(),
+                                    $movement->getEmplacementFrom(),
+                                    $nomadUser,
+                                    new DateTime('now'),
+                                    true,
+                                    true,
+                                    TrackingMovement::TYPE_PRISE,
+                                    [],
+                                );
+                                $trackingMovementPrise->setPreparation($preparation);
+                                $entityManager->persist($trackingMovementPrise);
+
+                                $trackingMovementDepose = $this->trackingMovementService->createTrackingMovement(
+                                    $movement->getRefArticle() ?? $movement->getArticle(),
+                                    $movement->getEmplacementTo(),
+                                    $nomadUser,
+                                    new DateTime('now'),
+                                    true,
+                                    true,
+                                    TrackingMovement::TYPE_DEPOSE,
+                                    [],
+                                );
+                                $trackingMovementDepose->setPreparation($preparation);
+                                $entityManager->persist($trackingMovementDepose);
+
+                                $entityManager->flush();
                             }
                         }
 
@@ -942,7 +973,7 @@ class MobileController extends AbstractApiController
                         // flush auto at the end
                         $entityManager->transactional(function () use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $location) {
                             $livraisonsManager->setEntityManager($entityManager);
-                            $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location);
+                            $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location, true);
                             $entityManager->flush();
                         });
 
@@ -1353,10 +1384,12 @@ class MobileController extends AbstractApiController
 
         foreach ($request->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
-            $outMovement = $preparationsManagerService->createMouvementLivraison(
+            $outMovement = $preparationsManagerService->createMovementLivraison(
                 $article->getQuantite(),
-                $nomadUser, $order,
-                false, $article,
+                $nomadUser,
+                $order,
+                false,
+                $article,
                 $preparation,
                 true,
                 $article->getEmplacement()
