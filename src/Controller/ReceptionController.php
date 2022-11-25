@@ -1860,6 +1860,8 @@ class ReceptionController extends AbstractController {
 
         $createdArticles = [];
         foreach($articles as &$articleArray) {
+            $createdLoopArticles = [];
+
             /** @var ReceptionReferenceArticle $receptionReferenceArticle */
             $receptionReferenceArticle = $articleArray['receptionReferenceArticle'];
             /** @var Pack|null $pack */
@@ -1957,20 +1959,17 @@ class ReceptionController extends AbstractController {
 
                 $entityManager->flush();
                 $createdArticles[] = $article;
+                $createdLoopArticles[] = $article;
             }
 
             if ($pack && $pack->getLastDrop()?->getEmplacement()) {
-                $receptionLocationDiff = $pack->getLastDrop()?->getEmplacement()?->getId() !== $receptionLocation?->getId();
                 $trackingMovementService->persistLogisticUnitMovements(
                     $entityManager,
                     $pack,
                     $pack->getLastDrop()?->getEmplacement(),
-                    $createdArticles,
+                    $createdLoopArticles,
                     $currentUser,
-                    [
-                        'createTracking' => $receptionLocationDiff, // we create picking and drop with "depose dans UL" if location are different
-                        'from' => $reception,
-                    ]
+                    ['from' => $reception,]
                 );
             }
             $entityManager->flush();
