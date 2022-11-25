@@ -52,6 +52,7 @@ use App\Service\MouvementStockService;
 use App\Service\NatureService;
 use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
+use App\Service\PackService;
 use App\Service\PreparationsManagerService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
@@ -502,7 +503,6 @@ class MobileController extends AbstractApiController
                             );
                             $trackingMovementService->manageTrackingMovementsForLU(
                                 $pack,
-                                $packRepository,
                                 $entityManager,
                                 $mouvementStockService,
                                 $mvt,
@@ -2212,6 +2212,7 @@ class MobileController extends AbstractApiController
      * @Wii\RestVersionChecked()
      */
     public function group(Request $request,
+                          PackService $packService,
                           EntityManagerInterface $entityManager,
                           GroupService $groupService,
                           TrackingMovementService $trackingMovementService): Response {
@@ -2258,7 +2259,7 @@ class MobileController extends AbstractApiController
         }
 
         foreach ($packs as $data) {
-            $pack = $trackingMovementService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"]);
+            $pack = $packService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"]);
             if (!$pack->getParent()) {
                 $pack->setParent($parentPack);
 

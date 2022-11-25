@@ -4,11 +4,11 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Pack;
 use App\Entity\Project;
-use App\Entity\ProjectHistoryRecord;
 use App\Entity\Reception;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
@@ -16,13 +16,11 @@ use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
-use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
-use App\Repository\ProjectHistoryRecordRepository;
-use App\Repository\ProjectRepository;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use RuntimeException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -30,6 +28,9 @@ use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class PackService {
+
+    #[Required]
+    public ProjectHistoryRecordService $projectHistoryRecordService;
 
     #[Required]
     public EntityManagerInterface $entityManager;
@@ -110,25 +111,6 @@ class PackService {
         ];
     }
 
-    public function getProjectHistoryForDatatable($pack, $params) {
-        $projectHistoryRecordRepository = $this->entityManager->getRepository(ProjectHistoryRecord::class);
-
-        $queryResult = $projectHistoryRecordRepository->findLineForProjectHistory($pack, $params);
-
-        $lines = $queryResult["data"];
-
-        $rows = [];
-        foreach ($lines as $line) {
-            $rows[] = $this->dataRowProjectHistory($line);
-        }
-
-        return [
-            "data" => $rows,
-            "recordsFiltered" => $queryResult['filtered'],
-            "recordsTotal" => $queryResult['total'],
-        ];
-    }
-
     public function dataRowPack(Pack $pack)
     {
         $firstMovement = $pack->getTrackingMovements('ASC')->first();
@@ -183,13 +165,6 @@ class PackService {
         ];
     }
 
-    public function dataRowProjectHistory(ProjectHistoryRecord $projectHistoryRecord) {
-        return [
-            'project' => $projectHistoryRecord->getProject() ? $projectHistoryRecord->getProject()->getCode() : '',
-            'createdAt' => $this->formatService->datetime($projectHistoryRecord->getCreatedAt()),
-        ];
-    }
-
     public function checkPackDataBeforeEdition(array $data): array
     {
         $quantity = $data['quantity'] ?? null;
@@ -223,8 +198,12 @@ class PackService {
         ];
     }
 
-    public function editPack(array $data, NatureRepository $natureRepository, ProjectRepository $projectRepository, Pack $pack)
-    {
+    public function editPack(EntityManagerInterface $entityManager,
+                             array                  $data,
+                             Pack                   $pack): void {
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
+
         $natureId = $data['nature'] ?? null;
         $projectId = $data['projects'] ?? null;
         $quantity = $data['quantity'] ?? null;
@@ -239,20 +218,11 @@ class PackService {
 
         $project = $projectRepository->findOneBy(["id" => $projectId]);
         if (!empty($project)) {
-            $packRecord = (new ProjectHistoryRecord())
-                ->setProject($project)
-                ->setCreatedAt(new DateTime());
-
-            $pack->setProject($project);
-            $pack->addProjectHistoryRecord($packRecord);
+            $recordDate = new DateTime();
+            $this->projectHistoryRecordService->changeProject($entityManager, $pack, $project, $recordDate);
 
             foreach($pack->getChildArticles() as $article) {
-                $articleRecord = (new ProjectHistoryRecord())
-                    ->setArticle($article)
-                    ->setProject($project)
-                    ->setCreatedAt(new DateTime());
-
-                $this->entityManager->persist($articleRecord);
+                $this->projectHistoryRecordService->changeProject($entityManager, $article, $project, $recordDate);
             }
         }
 
@@ -285,8 +255,7 @@ class PackService {
                 $code = (($nature->getPrefix() ?? '') . $arrivalNum . $counterStr ?? '');
                 $pack = $this
                     ->createPackWithCode($code)
-                    ->setNature($nature)
-                    ->setProject($project);
+                    ->setNature($nature);
                 if (isset($options['reception'])) {
                     /** @var Reception $reception */
                     $reception = $options['reception'];
@@ -312,8 +281,7 @@ class PackService {
                 $code = $naturePrefix . $requestNumber . $counterStr;
                 $pack = $this
                     ->createPackWithCode($code)
-                    ->setNature($nature)
-                    ->setProject($project);
+                    ->setNature($nature);
 
                 $orderLine->setPack($pack);
             }
@@ -321,21 +289,12 @@ class PackService {
                 throw new RuntimeException('Unhandled pack configuration');
             }
 
-            if ($pack->getProject()) {
-                $packRecord = (new ProjectHistoryRecord())
-                    ->setProject($project)
-                    ->setCreatedAt(new DateTime());
-
-                $pack->setProject($project);
-                $pack->addProjectHistoryRecord($packRecord);
+            if ($project) {
+                $recordDate = new DateTime();
+                $this->projectHistoryRecordService->changeProject($entityManager, $pack, $project, $recordDate);
 
                 foreach($pack->getChildArticles() as $article) {
-                    $articleRecord = (new ProjectHistoryRecord())
-                        ->setArticle($article)
-                        ->setProject($project)
-                        ->setCreatedAt(new DateTime());
-
-                    $this->entityManager->persist($articleRecord);
+                    $this->projectHistoryRecordService->changeProject($entityManager, $article, $project, $recordDate);
                 }
             }
         }
@@ -346,6 +305,41 @@ class PackService {
     {
         $pack = new Pack();
         $pack->setCode(str_replace("    ", " ", $code));
+        return $pack;
+    }
+
+    public function persistPack(EntityManagerInterface $entityManager,
+                                                       $packOrCode,
+                                                       $quantity,
+                                                       $natureId = null,
+                                bool                   $onlyPack = false): Pack {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
+
+        $pack = ($packOrCode instanceof Pack)
+            ? $packOrCode
+            : $packRepository->findOneBy(['code' => $packOrCode]);
+
+        if ($onlyPack && $pack && $pack->isGroup()) {
+            throw new Exception(Pack::PACK_IS_GROUP);
+        }
+
+        if (!isset($pack)) {
+            $pack = $this->createPackWithCode($codePack);
+            $pack->setQuantity($quantity);
+            $entityManager->persist($pack);
+        }
+
+        if (!empty($natureId)) {
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $nature = $natureRepository->find($natureId);
+
+            if (!empty($nature)) {
+                $pack->setNature($nature);
+            }
+        }
+
         return $pack;
     }
 
@@ -452,5 +446,17 @@ class PackService {
             [],
             $columnsVisible
         );
+    }
+
+    public function updateArticlePack(EntityManagerInterface $entityManager,
+                                      Article                $article): Pack {
+        $trackingPack = $article->getTrackingPack();
+        if(!isset($trackingPack)) {
+            $packRepository = $entityManager->getRepository(Pack::class);
+            $trackingPack = $packRepository->findOneBy(["code" => $article->getBarCode()])
+                ?? $this->persistPack($entityManager, $article->getBarCode(), $article->getQuantite());
+            $article->setTrackingPack($trackingPack);
+        }
+        return $trackingPack;
     }
 }

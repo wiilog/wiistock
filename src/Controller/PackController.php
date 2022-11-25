@@ -6,7 +6,6 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Article;
-use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Language;
@@ -18,7 +17,6 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
 use App\Entity\ReceptionLine;
-use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -26,6 +24,7 @@ use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PackService;
+use App\Service\ProjectHistoryRecordService;
 use App\Service\TrackingMovementService;
 
 use App\Service\VisibleColumnService;
@@ -37,7 +36,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use App\Service\TranslationService;
-use Symfony\Component\Security\Core\Authentication\Token\PreAuthenticatedToken;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -239,13 +237,11 @@ class PackController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $response = [];
         $packRepository = $entityManager->getRepository(Pack::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $projectRepository = $entityManager->getRepository(Project::class);
 
         $pack = $packRepository->find($data['id']);
         $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
         if (!empty($pack) && $packDataIsValid['success']) {
-            $packService->editPack($data, $natureRepository, $projectRepository, $pack);
+            $packService->editPack($entityManager, $data, $pack);
 
             $entityManager->flush();
             $response = [
@@ -354,13 +350,13 @@ class PackController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
-    public function projectHistory(Request $request, PackService $packService, $pack): Response {
-        if ($request->isXmlHttpRequest()) {
-            $data = $packService->getProjectHistoryForDatatable($pack, $request->request);
-            return $this->json($data);
-        }
-        throw new BadRequestHttpException();
+    #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function projectHistory(Request                     $request,
+                                   EntityManagerInterface      $entityManager,
+                                   ProjectHistoryRecordService $projectHistoryRecordService,
+                                   Pack                        $pack): Response {
+        $data = $projectHistoryRecordService->getProjectHistoryForDatatable($entityManager, $pack, $request->request);
+        return $this->json($data);
     }
 
     #[Route("/colonne-visible", name: "save_column_visible_for_pack", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]

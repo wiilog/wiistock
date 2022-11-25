@@ -113,13 +113,13 @@ class KioskController extends AbstractController
             $article = $articleRepository->getLatestsKioskPrint()[0];
         } elseif ($testPrint) {
             $refArticle = new ReferenceArticle();
-            $refArticle->setReference('Test')
-                ->setLibelle('Test')
+            $refArticle->setReference('REFTESTIMPRESSION')
+                ->setLibelle('REFTESTIMPRESSION')
                 ->setQuantiteStock(1);
 
             $article = new Article();
-            $article->setLabel('Test')
-                ->setBarCode('Test')
+            $article->setLabel('TESTIMPRESSION')
+                ->setBarCode('TEST-00000000')
                 ->setArticleFournisseur((new ArticleFournisseur())->setReferenceArticle($refArticle));
 
             $options['serialNumber'] = $request->query->get('serialNumber');

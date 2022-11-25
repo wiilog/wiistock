@@ -26,6 +26,19 @@
         }
     } %}
     {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+
+    {% set projectHistoryRecords = (article.trackingPack ? article.trackingPack.projectHistoryRecords : [])
+        | sort((record1, record2) => record1.createdAt <=> record2.createdAt)
+        | reverse
+    %}
+    {% set firstProjectHistoryRecord = projectHistoryRecords|first %}
+    {% set currentProject = article.trackingPack ? article.trackingPack.project : null %}
+
+    {% set currentProjectCode = (firstProjectHistoryRecord and firstProjectHistoryRecord.project == currentProject and currentProject) ? currentProject.code %}
+    {% set currentProjectDate = (firstProjectHistoryRecord and firstProjectHistoryRecord.project == currentProject) ? firstProjectHistoryRecord.createdAt %}
+    {% set projectHistory = (firstProjectHistoryRecord and firstProjectHistoryRecord.project == currentProject) ? projectHistoryRecords[1:] : projectHistoryRecords %}
+
+
     <input type="hidden" name="article-id" value="{{ article.id }}">
     <div class="details-page-container d-flex justify-content-center align-content-center">
         <div class="row wii-column">
@@ -92,33 +105,32 @@
                                 <img src="{{ asset('svg/document.svg') }}" alt="Icône projet" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Projet</span>
-                                    <span class="wii-body-text">{{ article.currentLogisticUnit and article.projectHistoryRecords | length ? article.projectHistoryRecords.last.project.code : '-' }}</span>
+                                    <span class="wii-body-text">{{ currentProjectCode ?: '-' }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 d-flex">
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône projet" width="20px">
-                                {% set lastRecord = article.currentLogisticUnit ? article.projectHistoryRecords.last ?: null : null %}
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Assigné le</span>
-                                    <span class="wii-body-text">{{ lastRecord ? lastRecord.createdAt | format_helper('longDate', {time: true}) : '-' }}</span>
+                                    <span class="wii-body-text">{{ currentProjectDate ? currentProjectDate | format_helper('longDate', {time: true}) : '-' }}</span>
                                 </label>
                             </div>
                         </div>
-                        {% if projectHistoryRecords is not empty %}
+                        {% if projectHistory is not empty %}
                             <table class="table mt-2">
                                 <thead>
-                                <tr>
-                                    <th scope="col" class="wii-field-name">Ancien projet</th>
-                                    <th scope="col" class="wii-field-name">Assigné le</th>
-                                </tr>
+                                    <tr>
+                                        <th scope="col" class="wii-field-name">Ancien projet</th>
+                                        <th scope="col" class="wii-field-name">Assigné le</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                {% for record in projectHistoryRecords %}
-                                    <tr>
-                                        <td class="wii-body-text">{{ record.project.code }}</td>
-                                        <td class="wii-body-text">{{ record.createdAt|format_helper('longDate', {time: true}) }}</td>
-                                    </tr>
-                                {% endfor %}
+                                    {% for record in projectHistory %}
+                                        <tr>
+                                            <td class="wii-body-text">{{ record.project ? record.project.code : '-' }}</td>
+                                            <td class="wii-body-text">{{ record.createdAt|format_helper('longDate', {time: true}) }}</td>
+                                        </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         {% endif %}
