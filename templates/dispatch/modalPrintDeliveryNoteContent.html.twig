@@ -1,3 +1,48 @@
+{% import 'form.html.twig' as form %}
+
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="w-100 col-12">
+                {{ form.select('buyer', trans('Demande', 'Acheminements', 'Bon de livraison', 'Client acheteur'), true, {
+                    type: 'customers',
+                    items: [{label: buyer, value: buyer, selected: true}]
+                }) }}
+            </label>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Téléphone') }}</label>
+            </div>
+            <div class="col-12">
+                <input class="form-control data forbidden-phone-numbers"
+                       name="buyerPhone"
+                       maxlength="50"
+                       value="{{ buyerPhone }}"
+                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Téléphone', false) }}"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax') }}</label>
+            </div>
+            <div class="col-12">
+                <input class="form-control data forbidden-phone-numbers"
+                       name="buyerFax"
+                       maxlength="50"
+                       value="{{ buyerFax }}"
+                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax', false) }}"/>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
@@ -214,53 +259,6 @@
                        name="userFax"
                        maxlength="50"
                        value="{{ userFax }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax') }}"/>
-            </div>
-        </div>
-    </div>
-</div>
-<hr class="mb-4"/>
-<div class="row">
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Client acheteur') }}</label>
-            </div>
-            <div class="col-12">
-                <input class="form-control data"
-                       name="buyer"
-                       maxlength="50"
-                       value="{{ buyer }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Client acheteur') }}"/>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Téléphone') }}</label>
-            </div>
-            <div class="col-12">
-                <input class="form-control data forbidden-phone-numbers"
-                       name="buyerPhone"
-                       maxlength="50"
-                       value="{{ buyerPhone }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Téléphone') }}"/>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax') }}</label>
-            </div>
-            <div class="col-12">
-                <input class="form-control data forbidden-phone-numbers"
-                       name="buyerFax"
-                       maxlength="50"
-                       value="{{ buyerFax }}"
                        title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax') }}"/>
             </div>
         </div>

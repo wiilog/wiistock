@@ -4,15 +4,18 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -21,13 +24,19 @@ use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
+use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
+use App\Service\SpecificService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Throwable;
@@ -310,7 +319,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/{livraison}/api-delivery-note", name="api_delivery_note_livraison", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @Route("/{deliveryOrder}/api-delivery-note", name="api_delivery_note_livraison", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param Livraison $deliveryOrder
      * @return JsonResponse
@@ -322,11 +331,13 @@ class LivraisonController extends AbstractController
         $loggedUser = $this->getUser();
         $maxNumberOfPacks = 10;
 
+        $settingRepository = $manager->getRepository(Setting::class);
+
         $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
         $deliveryOrderHasPacks = Stream::from($preparationArticleLines)
             ->some(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack());
 
-        if($deliveryOrderHasPacks) {
+        if(!$deliveryOrderHasPacks) {
             return $this->json([
                 "success" => false,
                 "msg" => 'Des unités logistiques sont nécessaires pour générer un bon de livraison'
@@ -339,9 +350,9 @@ class LivraisonController extends AbstractController
         $packs = array_slice($preparationPacks, 0, $maxNumberOfPacks);
         $packs = array_map(function(Pack $pack) {
             return [
-                "code" => $pack->getPack()->getCode(),
+                "code" => $pack->getCode(),
                 "quantity" => $pack->getQuantity(),
-                "comment" => $pack->getPack()->getComment(),
+                "comment" => $pack->getComment(),
             ];
         }, $packs);
 
@@ -350,12 +361,14 @@ class LivraisonController extends AbstractController
         $defaultData = [
             'deliveryNumber' => $deliveryOrder->getNumero(),
             'username' => $loggedUser->getUsername(),
-            'userPhone' => $loggedUser->getPhone(),
             'packs' => $packs,
+            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'consignor2' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'userPhone' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
         ];
 
         $deliveryNoteData = array_reduce(
-            array_keys(Dispatch::DELIVERY_NOTE_DATA),
+            array_keys(Livraison::DELIVERY_NOTE_DATA),
             function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
                 $carry[$dataKey] = (
                     $dispatchSavedData[$dataKey]
@@ -372,12 +385,102 @@ class LivraisonController extends AbstractController
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
-            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EMERGENCY),
         ]));
 
         return $this->json([
             "success" => true,
             "html" => $html
         ]);
+    }
+
+    /**
+     * @Route("/{deliveryOrder}/delivery-note", name="delivery_note_delivery_order", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param EntityManagerInterface $entityManager
+     * @param Livraison $deliveryOrder
+     * @param PDFGeneratorService $pdf
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postDeliveryNoteDeliveryOrder(EntityManagerInterface $entityManager,
+                                     Livraison $deliveryOrder,
+                                     PDFGeneratorService $pdf,
+                                     Request $request,
+                                     SpecificService $specificService): JsonResponse {
+
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $data = json_decode($request->getContent(), true);
+
+        $userDataToSave = [];
+        $dispatchDataToSave = [];
+
+        // force dispatch number
+        $data['deliveryNumber'] = $deliveryOrder->getNumero();
+
+        foreach(array_keys(Livraison::DELIVERY_NOTE_DATA) as $deliveryNoteKey) {
+            if(isset(Livraison::DELIVERY_NOTE_DATA[$deliveryNoteKey])) {
+                $value = $data[$deliveryNoteKey] ?? null;
+                $dispatchDataToSave[$deliveryNoteKey] = $value;
+                if(Livraison::DELIVERY_NOTE_DATA[$deliveryNoteKey]) {
+                    $userDataToSave[$deliveryNoteKey] = $value;
+                }
+            }
+        }
+
+        $loggedUser->setSavedDispatchDeliveryNoteData($userDataToSave);
+        $deliveryOrder->setDeliveryNoteData($dispatchDataToSave);
+
+        $entityManager->flush();
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
+
+        $nowDate = new DateTime('now');
+        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+
+        $documentTitle = "BL - {$deliveryOrder->getNumero()} - {$client} - {$nowDate->format('dmYHis')}";
+
+        $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $deliveryOrder);
+
+        $deliveryNoteAttachment = new Attachment();
+        $deliveryNoteAttachment
+            ->setDeliveryOrder($deliveryOrder)
+            ->setFileName($fileName)
+            ->setOriginalName($documentTitle . '.pdf');
+
+        $entityManager->persist($deliveryNoteAttachment);
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le téléchargement de votre bon de livraison va commencer...',
+            'attachmentId' => $deliveryNoteAttachment->getId()
+        ]);
+    }
+
+    /**
+     * @Route("/{deliveryOrder}/delivery-note/{attachment}", name="print_delivery_note_delivery_order", options={"expose"=true}, methods="GET")
+     * @param Livraison $deliveryOrder
+     * @param KernelInterface $kernel
+     * @param Attachment $attachment
+     * @return PdfResponse
+     */
+    public function printDeliveryNote(Livraison $deliveryOrder,
+                                      KernelInterface $kernel,
+                                      Attachment $attachment): Response {
+        if(!$deliveryOrder->getDeliveryNoteData()) {
+            return $this->json([
+                "success" => false,
+                "msg" => 'Le bon de livraison n\'existe pas pour cette ordre de livraison'
+            ]);
+        }
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
+
+        return $response;
     }
 }

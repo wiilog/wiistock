@@ -17,6 +17,38 @@ class Livraison {
     const STATUT_LIVRE = 'livré';
     const STATUT_INCOMPLETE = 'partiellement livré';
 
+    const DELIVERY_NOTE_DATA = [
+        'consignor' => true,
+        'deliveryAddress' => false,
+        'deliveryNumber' => false,
+        'deliveryDate' => false,
+        'dispatchEmergency' => false,
+        'packs' => false,
+        'salesOrderNumber' => false,
+        'wayBill' => false,
+        'customerPONumber' => false,
+        'customerPODate' => false,
+        'respOrderNb' => false,
+        'projectNumber' => false,
+        'username' => false,
+        'userPhone' => false,
+        'userFax' => false,
+        'buyer' => false,
+        'buyerPhone' => false,
+        'buyerFax' => false,
+        'invoiceNumber' => false,
+        'soldNumber' => false,
+        'invoiceTo' => false,
+        'soldTo' => false,
+        'endUserNo' => false,
+        'deliverNo' => false,
+        'endUser' => false,
+        'deliverTo' => false,
+        'consignor2' => true,
+        'date' => false,
+        'notes' => true,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -49,11 +81,11 @@ class Livraison {
     #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'livraisonOrder')]
     private $mouvements;
 
-    /**
-     * @var array|null
-     */
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $deliveryNoteData;
+
+    #[ORM\OneToMany(targetEntity: Attachment::class, mappedBy: 'deliveryOrder')]
+    private Collection $attachements;
 
     public function __construct() {
         $this->mouvements = new ArrayCollection();
@@ -190,6 +222,34 @@ class Livraison {
      */
     public function setDeliveryNoteData(array $deliveryNoteData): self {
         $this->deliveryNoteData = $deliveryNoteData;
+        return $this;
+    }
+
+    /**
+     * @return Collection|Attachment[]
+     */
+    public function getAttachments(): Collection {
+        return $this->attachements;
+    }
+
+    public function addAttachment(Attachment $attachment): self {
+        if(!$this->attachements->contains($attachment)) {
+            $this->attachements[] = $attachment;
+            $attachment->setDeliveryOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachment(Attachment $attachment): self {
+        if($this->attachements->contains($attachment)) {
+            $this->attachements->removeElement($attachment);
+            // set the owning side to null (unless already changed)
+            if($attachment->getDeliveryOrder() === $this) {
+                $attachment->setDeliveryOrder(null);
+            }
+        }
+
         return $this;
     }
 }

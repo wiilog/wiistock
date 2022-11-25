@@ -138,13 +138,13 @@ class PDFGeneratorService {
 
     public function generatePDFDeliveryNote(string $title,
                                             ?string $logo,
-                                            Dispatch $dispatch): string {
+                                            $entity): string {
         $fileName = uniqid() . '.pdf';
 
         $this->PDFGenerator->generateFromHtml(
             $this->templating->render('prints/delivery-note-template.html.twig', [
                 'title' => $title,
-                'dispatch' => $dispatch,
+                'entity' => $entity,
                 'logo' => $logo
             ]),
             ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),

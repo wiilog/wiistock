@@ -25,15 +25,16 @@ $(function () {
     };
     initDataTable('tableArticle_id', tableArticleConfig);
 
-    let $modalPrintWaybill = $('#modalPrintWaybill');
-    let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
-    let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: getDeliveryId()}, true);
-    InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
-        success: () => {
-            window.location.href = Routing.generate('print_waybill_dispatch', {
-                dispatch: getDeliveryId(),
+    let $modalPrintDeliveryNote = $('#modalPrintDeliveryNote');
+    let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
+    let urlPrintDeliveryNote = Routing.generate('delivery_note_delivery_order', {deliveryOrder: getDeliveryId()}, true);
+    InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
+        success: ({attachmentId}) => {
+            window.location.href = Routing.generate('print_delivery_note_delivery_order', {
+                deliveryOrder: getDeliveryId(),
+                attachment: attachmentId
             });
-        },
+        }
     });
 });
 
@@ -114,15 +115,38 @@ function getDeliveryId() {
 
 function openDeliveryNoteModal($button) {
     const livraisonId = getDeliveryId();
-    $.get(Routing.generate('api_delivery_note_livraison', {livraison: livraisonId}))
+    $.get(Routing.generate('api_delivery_note_livraison', {deliveryOrder: livraisonId}))
         .then((result) => {
             if(result.success) {
                 const $modal = $('#modalPrintDeliveryNote');
                 const $modalBody = $modal.find('.modal-body');
                 $modalBody.html(result.html);
                 $modal.modal('show');
+
+                $('select[name=buyer]').on('change', function (){
+                    const data = $(this).select2('data');
+                    if(data.length > 0 && data[0].email){
+                        const {fax, phoneNumber, address} = data[0];
+                        const $modal = $(this).closest('.modal');
+                        $modal.find('input[name=buyerPhone]').val(phoneNumber);
+                        $modal.find('input[name=buyerFax]').val(fax);
+                        $modal.find('[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo] ').val(address);
+                    }
+                });
             } else {
                 showBSAlert(result.msg, "danger");
             }
         });
+}
+
+function copyTo($button, inputSourceName, inputTargetName) {
+    const $modal = $button.closest('.modal');
+    const $source = $modal.find(`[name="${inputSourceName}"]`);
+    const $target = $modal.find(`[name="${inputTargetName}"]`);
+    const valToCopy = $source.val();
+    if($target.is('textarea')) {
+        $target.text(valToCopy);
+    } else {
+        $target.val(valToCopy);
+    }
 }
