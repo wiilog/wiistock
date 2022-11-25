@@ -2,18 +2,26 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Chauffeur;
 use App\Entity\Emplacement;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
+use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Setting;
+use App\Entity\Statut;
 use App\Entity\TrackingMovement;
+use App\Entity\Transporteur;
+use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
@@ -42,6 +50,9 @@ class ArrivageService {
 
     #[Required]
     public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public KeptFieldService $keptFieldService;
 
     #[Required]
     public MailerService $mailerService;
@@ -775,5 +786,70 @@ class ArrivageService {
                 ])
         )
             ->toArray();
+    }
+
+
+    public function generateNewForm(EntityManagerInterface $entityManager): array
+    {
+        if ($this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+            $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE))
+                ->map(fn(Statut $statut) => [
+                    'id' => $statut->getId(),
+                    'type' => $statut->getType(),
+                    'nom' => $this->formatService->status($statut),
+                ])
+                ->toArray();
+            $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+            $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
+
+            $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
+                ->map(fn(Nature $nature) => [
+                    'id' => $nature->getId(),
+                    'label' => $this->formatService->nature($nature),
+                    'defaultQuantity' => $nature->getDefaultQuantity(),
+                ])
+                ->toArray();
+
+            $keptFields = $this->keptFieldService->getAll(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+            if(isset($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE])) {
+                $keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE] = $locationRepository->find($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE]);
+            }
+
+            $html = $this->templating->render("arrivage/modalNewArrivage.html.twig", [
+                "keptFields" => $keptFields,
+                "typesArrival" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
+                "statuses" => $statuses,
+                "users" => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
+                "fournisseurs" => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
+                "natures" => $natures,
+                "carriers" => $transporteurRepository->findAllSorted(),
+                "chauffeurs" => $chauffeurRepository->findAllSorted(),
+                "fieldsParam" => $fieldsParam,
+                "businessUnits" => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
+                "defaultLocation" => $defaultLocation,
+                "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
+                "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_COLIS),
+            ]);
+        }
+
+        return [
+            'html' => $html ?? "",
+            'acheteurs' => $acheteursUsernames ?? []
+        ];
     }
 }

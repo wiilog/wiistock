@@ -25,6 +25,7 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\DataExportService;
 use App\Service\FilterSupService;
 use App\Service\KeptFieldService;
@@ -113,7 +114,7 @@ class ArrivageController extends AbstractController {
             'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
             "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
-            "initial_form" => $this->createApi($entityManager, $keptFieldService)->getContent(),
+            "initial_form" => $arrivageService->generateNewForm($entityManager),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_ARRIVAGE)),
         ]);
@@ -134,85 +135,17 @@ class ArrivageController extends AbstractController {
     }
 
     /**
-     * @Route("/api-creer", name="arrivage_new_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
-    public function createApi(EntityManagerInterface $entityManager, KeptFieldService $keptFieldService): Response
-    {
-        if ($this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
-            $settingRepository = $entityManager->getRepository(Setting::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $natureRepository = $entityManager->getRepository(Nature::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
-            $locationRepository = $entityManager->getRepository(Emplacement::class);
-
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
-            $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE))
-                ->map(fn(Statut $statut) => [
-                    'id' => $statut->getId(),
-                    'type' => $statut->getType(),
-                    'nom' => $this->getFormatter()->status($statut),
-                ])
-                ->toArray();
-            $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
-            $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
-
-            $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
-                ->map(fn(Nature $nature) => [
-                    'id' => $nature->getId(),
-                    'label' => $this->getFormatter()->nature($nature),
-                    'defaultQuantity' => $nature->getDefaultQuantity(),
-                ])
-                ->toArray();
-
-            $keptFields = $keptFieldService->getAll(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
-            if(isset($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE])) {
-                $keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE] = $locationRepository->find($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE]);
-            }
-
-            $html = $this->renderView("arrivage/modalNewArrivage.html.twig", [
-                "keptFields" => $keptFields,
-                "typesArrival" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
-                "statuses" => $statuses,
-                "users" => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
-                "fournisseurs" => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
-                "natures" => $natures,
-                "carriers" => $transporteurRepository->findAllSorted(),
-                "chauffeurs" => $chauffeurRepository->findAllSorted(),
-                "fieldsParam" => $fieldsParam,
-                "businessUnits" => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
-                "defaultLocation" => $defaultLocation,
-                "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
-                "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_COLIS),
-            ]);
-        }
-
-        return new JsonResponse([
-            'html' => $html ?? "",
-            'acheteurs' => $acheteursUsernames ?? []
-        ]);
-    }
-
-    /**
      * @Route("/creer", name="arrivage_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
                         AttachmentService      $attachmentService,
-                        ArrivageService        $arrivageDataService,
+                        ArrivageService        $arrivalService,
                         FreeFieldService       $champLibreService,
                         PackService            $colisService,
                         KeptFieldService       $keptFieldService,
-                        TranslationService    $translation): Response
+                        TranslationService     $translation): Response
     {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -318,6 +251,45 @@ class ArrivageController extends AbstractController {
         }
         $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
 
+        $natures = Stream::from(isset($data['colis']) ? json_decode($data['colis'], true) : [])
+            ->filter()
+            ->keymap(fn($value, $key) => [intval($key), intval($value)]);
+        $total = $natures->sum();
+
+        if ($total == 0) {
+            throw new FormException(
+                $translation->translate("Général", null, "Modale", "Veuillez renseigner le champ {1}", [
+                    '1' =>  $translation->translate('Traçabilité', 'Général', 'Unités logistiques', false),
+                ])
+            );
+        }
+
+        $champLibreService->manageFreeFields($arrivage, $data, $entityManager, $this->getUser());
+
+        $supplierEmergencyAlert = $arrivalService->createSupplierEmergencyAlert($arrivage);
+        $isArrivalUrgent = isset($supplierEmergencyAlert);
+        $alertConfigs = $isArrivalUrgent
+            ? [
+                $supplierEmergencyAlert,
+                $arrivalService->createArrivalAlertConfig($arrivage, false)
+            ]
+            : $arrivalService->processEmergenciesOnArrival($entityManager, $arrivage);
+
+        if ($isArrivalUrgent) {
+            $arrivage->setIsUrgent(true);
+        }
+
+        $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
+        // persist packs after set arrival urgent
+        $colisService->persistMultiPacks(
+            $entityManager,
+            $arrivage,
+            $natures->toArray(),
+            $currentUser,
+            false,
+            $project
+        );
+
         try {
             $entityManager->flush();
         }
@@ -329,56 +301,8 @@ class ArrivageController extends AbstractController {
             ]);
         }
 
-        $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
-        $natures = [];
-        foreach ($colis as $key => $value) {
-            if (isset($value)) {
-                $natures[intval($key)] = intval($value);
-            }
-        }
-        $total = array_reduce($natures, function (int $carry, $nature) {
-            return $carry + $nature;
-        }, 0);
-
-        if ($total === 0) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => $translation->translate("Général", null, "Modale", "Veuillez renseigner le champ {1}", [
-                    '1' =>  $translation->translate('Traçabilité', 'Général', 'Unités logistiques', false),
-                ]),
-            ]);
-        }
-
-        $champLibreService->manageFreeFields($arrivage, $data, $entityManager, $this->getUser());
-
-        $supplierEmergencyAlert = $arrivageDataService->createSupplierEmergencyAlert($arrivage);
-        $isArrivalUrgent = isset($supplierEmergencyAlert);
-        $alertConfigs = $isArrivalUrgent
-            ? [
-                $supplierEmergencyAlert,
-                $arrivageDataService->createArrivalAlertConfig($arrivage, false)
-            ]
-            : $arrivageDataService->processEmergenciesOnArrival($entityManager, $arrivage);
-
-        if ($isArrivalUrgent) {
-            $arrivage->setIsUrgent(true);
-        }
-
-        $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
-        // persist packs after set arrival urgent
-        $colisService->persistMultiPacks(
-            $entityManager,
-            $arrivage,
-            $natures,
-            $currentUser,
-            false,
-            $project
-        );
-
-        $entityManager->flush();
-
         if ($sendMail) {
-            $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
+            $arrivalService->sendArrivalEmails($entityManager, $arrivage);
         }
 
         $entityManager->flush();
@@ -394,7 +318,7 @@ class ArrivageController extends AbstractController {
             'arrivageId' => $arrivage->getId(),
             'numeroArrivage' => $arrivage->getNumeroArrivage(),
             'alertConfigs' => $alertConfigs,
-            "new_form" => $this->createApi($entityManager, $keptFieldService)->getContent(),
+            "new_form" => $arrivalService->generateNewForm($entityManager),
         ]);
     }
 

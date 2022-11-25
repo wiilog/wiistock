@@ -175,10 +175,7 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
         })
         .then((data) => {
             if (data.success === false) {
-                if (!keepLoading) {
-                    $submit.popLoader();
-                }
-
+                $submit.popLoader();
                 const errorMessage = data.msg || data.message;
                 displayFormErrors($modal, {
                     $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
@@ -190,6 +187,10 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
                 }
             }
             else {
+                if (!keepLoading) {
+                    $submit.popLoader();
+                }
+
                 const res = treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable);
                 if (!res) {
                     return;
