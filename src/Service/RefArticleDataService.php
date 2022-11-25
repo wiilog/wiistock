@@ -16,6 +16,7 @@ use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
+use App\Entity\Language;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
@@ -963,6 +964,26 @@ class RefArticleDataService {
                     'refArticle' => $refArticle,
                     'supplierArticles' => $supplierArticles,
                     'urlSuffix' => $this->router->generate("reference_article_show_page", ["id" => $refArticle->getId()])
+                ]
+            ),
+            $to
+        );
+    }
+
+    public function sendMailEntryStock(ReferenceArticle $refArticle, $to, $message = '')
+    {
+        $supplierArticles = $refArticle->getArticlesFournisseur();
+
+        $this->mailerService->sendMail(
+            'FOLLOW GT // Entrée de stock',
+            $this->templating->render(
+                'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
+                [
+                    'title' => $message,
+                    'refArticle' => $refArticle,
+                    'supplierArticles' => $supplierArticles,
+                    'urlSuffix' => $this->router->generate("reference_article_show_page", ["id" => $refArticle->getId()]),
+                    'frenchSlug' => Language::FRENCH_SLUG
                 ]
             ),
             $to

@@ -23,7 +23,7 @@
 {% macro button(action) %}
     <button
         type="button"
-        class="btn btn-primary d-flex align-items-center {{ action.class is defined ? action.class}}"
+        class="btn btn-primary d-flex align-items-center pointer {{ action.class is defined ? action.class}}"
         {{ action.id is defined ? 'id="' ~ action.id ~ '"' }}
         {{ action.disable is defined and action.disable ? 'disabled' }}
         {% if action.attributes is defined%}
@@ -40,7 +40,7 @@
 
 {% macro dropdownButton(action) %}
     <div
-        class="dropdown-item d-flex align-items-center {{ action.class is defined ? action.class}}"
+        class="dropdown-item d-flex align-items-center pointer {{ action.class is defined ? action.class}}"
         {{ action.id is defined ? 'id="' ~ action.id ~ '"' }}
         {% if action.attributes is defined %}
             {% for attribute, value in action.attributes %}

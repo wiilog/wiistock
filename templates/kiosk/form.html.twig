@@ -1,0 +1,220 @@
+{% extends 'kiosk/layout.thml.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %} Borne | Formulaire {% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('kiosk') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="main-page-container">
+        <div>
+            <div class="timeline-container">
+                <span class="{{ not inStock  and reference.id ? '' : 'current' }} wii-field-text">Référence</span>
+                <span class="{{ not inStock  and reference.id ? '' : 'future' }} wii-field-text">Demandeur et suiveur</span>
+                <span class="{{ not inStock  and reference.id ? '' : 'future' }} wii-field-text">Autres informations</span>
+                {% if not inStock and reference.id %}
+                    <span class="current wii-field-text">Article</span>
+                {% endif %}
+                <span class="future wii-field-text">Récapitulatif</span>
+            </div>
+            <div class="form-content">
+
+                <div class="entry-stock-container">
+                    <div class="reference-container {{ not inStock  and reference.id ? 'd-none' : 'active' }}">
+                        <div class="d-flex justify-content-center">
+                            <label class="w-100 mr-3">Référence<input type="search" class="data w-100" required name="reference-ref-input" value="{{ reference.reference ?? scannedReference }}" autofocus></label>
+                            <label class="w-100 ml-3">Libellé<input type="search" class="data w-100" required name="reference-label-input" value="{{ reference.libelle ?? scannedReference }}"></label>
+                        </div>
+                    </div>
+                    <div class="manager-container d-none">
+                        <div class="d-flex justify-content-center">
+                            <label class="w-100 mr-3">
+                                Demandeur
+                                <select name="applicant" class="w-100 data needed" data-s2="user">
+                                    {% if reference.managers[0] is defined %}
+                                        <option value="{{ reference.managers[0].id }}" selected>{{ reference.managers[0].username }}</option>
+                                    {% endif %}
+                                </select>
+                            </label>
+                            <label class="w-100 ml-3">
+                                Suiveur
+                                <select name="follower" class="w-100 data needed" data-s2="user">
+                                    {% if reference.managers[1] is defined %}
+                                        <option value="{{ reference.managers[1].id }}" selected>{{ reference.managers[1].username }}</option>
+                                    {% endif %}
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="other-informations-container d-none">
+                        <div class="d-flex justify-content-center">
+                            <label class="w-100 mr-3 free-field-label">
+                                {% if freeField %}
+                                    {{ freeField.label }}
+                                    {% include 'free_field/freeFieldsEdit.html.twig' with {
+                                        freeFields: [freeField],
+                                        freeFieldValues: reference.freeFields,
+                                        colType: 'col-12',
+                                        requiredType: 'requiredEdit',
+                                        actionType: 'edit',
+                                        kiosk: true
+                                    } %}
+                                {% endif %}
+                            </label>
+                            <input hidden name="free-field-id" value="{{ freeField ? freeField.id }}"/>
+                            <label class="w-100 mr-3">
+                                Commentaire <span class="wii-small-text">(Facultatif)</span>
+                                <input type="search" class="data w-100" value="{{ reference.cleanedComment | striptags }}" name="reference-comment">
+                            </label>
+                        </div>
+                    </div>
+                    {% if not inStock and reference.id %}
+                        <div class="article-container active">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="info field-small">
+                                        {{ setting_value('SCAN_ARTICLE_LABEL_MESSAGE') }}
+                                    </div>
+                                    <div class="field-name my-4">
+                                        Référence : {{ reference.reference }}
+                                    </div>
+                                    <img src="{{ setting_value('FILE_LABEL_EXAMPLE_LOGO') ? asset(setting_value('FILE_LABEL_EXAMPLE_LOGO')) }}" alt="" width="100%" class="bordered-image">
+                                    <div class="field-small ">
+                                        Exemple d’étiquette à flasher
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="w-100">
+                                        Article
+                                        <input type="search" class="data w-100" required autofocus name="reference-article-input" value="{{ article ? article.barCode }}">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="summary-container d-none">
+                        <div class="row">
+                            <div class="col-12 flex-column">
+                                <div class="d-flex">
+                                    <div class="field-reference-title mr-3">Ref : <span class="reference-reference"></span> </div>
+                                    <div class="field-article-title">Article : <span class="reference-article"></span></div>
+                                </div>
+                                <div class="mt-3">
+                                    <span class="reference-label field-small"></span>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="reference-type field-name">{{ reference.type.label ?? setting_value('TYPE_REFERENCE_CREATE', 'App\\Entity\\Type').label }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-5">
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/quantity.svg') }}" alt="Icône quantité" width="35px">
+                                <label class="box-item ml-3">
+                                    <span class="field-name">Quantité</span>
+                                    <span class="field-text">1</span>
+                                </label>
+                            </div>
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="35px">
+                                <label class="box-item ml-3">
+                                    <span class="field-name">Demandeur et suiveur</span>
+                                    <span class="field-text reference-managers"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row mt-5">
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="35px">
+                                <label class="box-item ml-3">
+                                    <span class="field-name">Emplacement</span>
+                                    <span class="field-text">{{ setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement').label }}</span>
+                                </label>
+                            </div>
+                            {% if freeField %}
+                                <div class="col-6 d-flex">
+                                    <img src="{{ asset('svg/document.svg') }}" alt="Icône document" width="35px">
+                                    <label class="box-item ml-3">
+                                        <span class="field-name">{{ freeField.label }}</span>
+                                        <span class="field-text reference-free-field"></span>
+                                    </label>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="row mt-5">
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/commentary.svg') }}" alt="Icône commentaire" width="35px">
+                                <label class="box-item ml-3">
+                                    <span class="field-name">Commentaire</span>
+                                    <span class="field-text reference-commentary"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-row-reverse mt-5">
+                        <button class="button-next" data-loader-size="normal">
+                            Suivant
+                        </button>
+                    </div>
+                    <div class="d-none justify-content-between summary-button-container mt-5">
+                        <button class="outline danger give-up-button">
+                            Abandonner
+                        </button>
+                        <div>
+                            <button class="outline edit-stock-entry-button">
+                                Modifier
+                            </button>
+                            <button class="validate-stock-entry-button" data-loader-size="normal">
+                                Valider
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="corner position-absolute left-0 bottom-0 p-4 give-up-button-container">
+            <button class="outline return-or-give-up-button">
+               Retour
+            </button>
+        </div>
+    </div>
+    <div class="success-page-container d-none">
+        {% include 'utils/modal-alert/success-bookmark.html.twig' %}
+        <div class="ref-entry-stock-success text-center d-none">
+            <span class="field-success-page"></span>
+        </div>
+        <div class="article-entry-stock-success text-center d-none">
+            <span class="field-success-page"></span>
+        </div>
+        <div class="d-flex justify-content-center redirect-button-container">
+            <button class="outline print-again-button" data-loader-size="normal">
+                Réimprimer
+            </button>
+            <button class="go-home-button">
+                Accueil
+            </button>
+        </div>
+    </div>
+    <div class="corner position-absolute right-0 bottom-0 p-4" id="information-button">
+        <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
+    </div>
+
+    {% include 'kiosk/modalInformation.html.twig' %}
+    {% include 'kiosk/modalGiveUpStockEntry.html.twig' %}
+    {% include 'kiosk/modalArticleIsNotValid.html.twig' %}
+    {% include 'kiosk/modalWaiting.html.twig' with {
+        'message': 'Veuillez patienter un instant. Votre demande est en cours de traitement.'
+    }%}
+    {% include 'kiosk/modalWarning.html.twig' with {
+        message: "Des champs obligatoires n'ont pas été renseignés, impossible de valider l'entrée de stock.",
+        id: 'modal-missing-required-fields',
+    }%}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('kiosk') }}
+{% endblock %}

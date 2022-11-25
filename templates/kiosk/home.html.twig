@@ -1,0 +1,49 @@
+{% set isHome = true %}
+
+{% extends 'kiosk/layout.thml.twig' %}
+
+{% block title %} Borne {% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('kiosk') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="home-page-wrapper">
+        <div class="corner position-absolute left-0 bottom-0 p-4">
+            <button class="outline btn-small keep-background" id="openModalPrintHistory">
+                <img src="{{ asset('svg/printer-history.svg') }}" alt="" height="30px" class="mx-3" >
+            </button>
+        </div>
+
+        <div class="page-content home">
+            <h1 class="home">
+                {{ setting_value('WELCOME_MESSAGE') }}
+            </h1>
+            <p>Follow GT met à disposition cette application de réception de production pour simplifier la mise à disposition du stock.</p>
+            <a href="{{ path('kiosk_form', {token: app.request.get('token')}) }}" class="mt-5">
+                <img src="{{ asset('svg/ref-modif.svg') }}" height="100">
+                <span class="mt-3">Faire une entrée manuelle</span>
+            </a>
+        </div>
+    </div>
+
+    {% include 'kiosk/modalPrintHistory.html.twig' with {
+        'latestsPrint': latestsPrint
+    }%}
+    {% include 'kiosk/modalWarning.html.twig' with {
+        'message': setting_value('QUANTITY_ERROR_MESSAGE'),
+        'id': 'modal-in-stock-warning',
+    }%}
+    {% include 'kiosk/modalWaiting.html.twig' with {
+        'message': 'Un instant, nous interrogeons la base de données.'
+    }%}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('kiosk') }}
+{% endblock %}
+
+

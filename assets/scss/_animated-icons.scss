@@ -145,7 +145,7 @@
         }
 
         &.sa-warning {
-            border-color: $warning;
+            border-color: $danger;
             animation: scaleWarning 0.75s infinite alternate;
 
             &:after, &:before {
@@ -166,7 +166,7 @@
             }
 
             .sa-warning-body {
-                background-color: $warning;
+                background-color: $danger;
                 border-radius: 2px;
                 height: 47px;
                 left: 50%;
@@ -178,7 +178,7 @@
             }
 
             .sa-warning-dot {
-                background-color: $warning;
+                background-color: $danger;
                 border-radius: 50%;
                 bottom: 10px;
                 height: 7px;
@@ -187,6 +187,38 @@
                 position: absolute;
                 width: 7px;
                 z-index: 2;
+            }
+        }
+
+        &.sa-question {
+            border-color: $primary;
+            animation: scaleWarning 0.75s infinite alternate;
+
+            &:after, &:before {
+                border-radius: 50%;
+                height: 100%;
+                width: 100%;
+            }
+
+            &:after {
+                display: block;
+                z-index: 1;
+            }
+
+            &:before {
+                display: inline-block;
+                opacity: 0;
+                animation: pulseQuestion 2s linear infinite;
+            }
+
+            .sa-question-mark{
+                position: absolute;
+                height: 100%;
+                width: 100%;
+                z-index: 10;
+                padding: 20%;
+                background: url("../../public/svg/question.svg") no-repeat;
+                background-origin: content-box;
             }
         }
     }
@@ -328,7 +360,27 @@
     }
 
     100% {
-        background-color: $warning;
+        background-color: $danger;
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes pulseQuestion {
+    0% {
+        background-color: $primary;
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    30% {
+        background-color: $primary;
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    100% {
+        background-color: $primary;
         transform: scale(2);
         opacity: 0;
     }

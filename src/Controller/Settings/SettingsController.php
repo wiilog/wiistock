@@ -18,6 +18,7 @@ use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
+use App\Entity\KioskToken;
 use App\Entity\Language;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
@@ -156,6 +157,11 @@ class SettingsController extends AbstractController {
                             "wrapped" => false,
                         ],
                     ],
+                ],
+                self::MENU_TOUCH_TERMINAL => [
+                    "label" => "Borne tactile",
+                    "right" => Action::SETTINGS_DISPLAY_TOUCH_TERMINAL,
+                    "save" => true,
                 ],
                 self::MENU_REQUESTS => [
                     "label" => "Demandes",
@@ -479,6 +485,7 @@ class SettingsController extends AbstractController {
     public const MENU_CONFIGURATIONS = "configurations";
     public const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
     public const MENU_ALERTS = "alertes";
+    public const MENU_TOUCH_TERMINAL = "borne_tactile";
     public const MENU_INVENTORIES = "inventaires";
     public const MENU_FREQUENCIES = "frequences";
     public const MENU_CATEGORIES = "categories";
@@ -1006,6 +1013,9 @@ class SettingsController extends AbstractController {
                         "type" => $typeRepository->findOneByLabel(Type::LABEL_RECEPTION),
                     ],
                 ],
+                self::MENU_TOUCH_TERMINAL => fn() => [
+                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll())
+                ]
             ],
             self::CATEGORY_TRACING => [
                 self::MENU_DISPATCHES => [

@@ -83,13 +83,18 @@ function initPageModal(tableMvt) {
     let modalNewMvtTraca = $("#modalNewMvtTraca");
     let submitNewMvtTraca = $("#submitNewMvtTraca");
     let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
+
+    modalNewMvtTraca.on(`shown.bs.modal`, function() {
+        fillDatePickers('[name="datetime"]', 'YYYY-MM-DD', true);
+    })
+
     InitModal(
         modalNewMvtTraca,
         submitNewMvtTraca,
         urlNewMvtTraca,
         {
             tables: [tableMvt],
-            keepModal: !Number($('#redirectAfterTrackingMovementCreation').val()),
+            keepModal: Number($('#clearAndStayAfterNewMvt').val()),
             keepForm: true,
             success: ({success, trackingMovementsCounter, group}) => {
                 if (group) {

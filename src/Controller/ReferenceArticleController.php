@@ -7,13 +7,19 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Collecte;
+use App\Entity\CollecteReference;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\OrdreCollecte;
+use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -27,7 +33,9 @@ use App\Service\ArticleDataService;
 use App\Service\ArticleFournisseurService;
 use App\Service\AttachmentService;
 use App\Service\FreeFieldService;
+use App\Service\Kiosk\KioskService;
 use App\Service\MouvementStockService;
+use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
@@ -155,7 +163,6 @@ class ReferenceArticleController extends AbstractController
 
             if ($data['emplacement'] !== null) {
                 $emplacement = $emplacementRepository->find($data['emplacement']);
-                //$emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
@@ -626,8 +633,9 @@ class ReferenceArticleController extends AbstractController
      * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
-    public function showPage(ReferenceArticle $referenceArticle, RefArticleDataService $refArticleDataService, EntityManagerInterface $manager): Response {
+    public function showPage(Request $request, ReferenceArticle $referenceArticle, RefArticleDataService $refArticleDataService, EntityManagerInterface $manager): Response {
         $type = $referenceArticle->getType();
+        $showOnly = $request->query->getBoolean('showOnly');
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
@@ -645,8 +653,7 @@ class ReferenceArticleController extends AbstractController
                                 ($article->getStatut() && $article->getStatut()?->getCode() === Article::STATUT_ACTIF)
                                     ? $carry + $article->getQuantite()
                                     : $carry
-                            ),
-                            0
+                            )
                         )
                 ];
                 return $carry;
@@ -656,6 +663,7 @@ class ReferenceArticleController extends AbstractController
             'referenceArticle' => $referenceArticle,
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
+            'showOnly' => $showOnly
         ]);
     }
 
@@ -889,5 +897,196 @@ class ReferenceArticleController extends AbstractController
             "categories" => $inventoryCategories,
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
         ]);
+    }
+
+    #[Route("/api-check-stock", name: "reference_article_check_quantity", options: ["expose" => true], methods: ["GET"])]
+    public function checkQuantity(Request                $request,
+                                  EntityManagerInterface $entityManager): Response {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
+        if(str_starts_with($request->query->get('scannedReference'), 'ART')){
+            $article = $articleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+            $reference = $article->getArticleFournisseur()->getReferenceArticle();
+        } else {
+            $article = null;
+            $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+        }
+
+        return $this->json([
+            'referenceForErrorModal' => $reference->getBarCode(),
+            'codeArticle' => $article ? $article->getBarCode() : 'Non défini',
+            'exists' => $reference !== null,
+            'inStock' => $reference?->getQuantiteStock() > 0,
+        ]);
+    }
+
+    #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["GET|POST"])]
+    public function validateEntryStock(Request $request,
+                                  EntityManagerInterface $entityManager,
+                                  ArticleFournisseurService $articleFournisseurService,
+                                  ArticleDataService $articleDataService,
+                                  RefArticleDataService $refArticleDataService,
+                                  KioskService $kioskService,
+                                  FreeFieldService $freeFieldService,
+                                  NotificationService $notificationService): Response {
+        $refArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+        $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $data = $request->query->all();
+
+        $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
+        $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
+        $applicant = $userRepository->find($data['applicant']);
+        $follower = $userRepository->find($data['follower']);
+        $articleSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
+        $referenceSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
+
+        $reference = $refArticleRepository->findOneBy(['reference' => $data['reference']]) ?? new ReferenceArticle();
+        $referenceExist = isset($data['article']);
+        $reference
+            ->setReference($data['reference'])
+            ->setLibelle($data['label'])
+            ->setStatut($status)
+            ->setCommentaire($data['comment'])
+            ->setCreatedBy($userRepository->getKioskUser())
+            ->setCreatedAt(new DateTime());
+
+        if(!$referenceExist){
+            $reference
+                ->setType($type)
+                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);
+        }
+
+        foreach ([$applicant, $follower] as $user) {
+            $reference->addManager($user);
+        }
+        if(!$referenceExist){
+            $reference->setBarCode($refArticleDataService->generateBarCode());
+        }
+
+        if($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE)){
+            $visibilityGroup = $visibilityGroupRepository->find($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE));
+            $reference->setProperties(['visibilityGroup' => $visibilityGroup]);
+        }
+        if($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE)){
+            $inventoryCategory = $inventoryCategoryRepository->find($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE));
+            $reference->setCategory($inventoryCategory);
+        }
+
+        $entityManager->persist($reference);
+        if(!$referenceExist) {
+            $provider = $entityManager->getRepository(Fournisseur::class)->find($settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_REFERENCE_CREATE));
+            $supplierArticle = $articleFournisseurService->createArticleFournisseur([
+                'fournisseur' => $provider,
+                'article-reference' => $reference,
+                'label' => $reference->getReference(),
+                'reference' => $reference->getReference(),
+                'visible' => $reference->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS
+            ], true);
+            $entityManager->persist($supplierArticle);
+            $reference->addArticleFournisseur($supplierArticle);
+        }
+
+        if(!empty($data['freeField'])){
+            $freeFieldService->manageFreeFields($reference, [
+                $data['freeField'][0] => $data['freeField'][1]
+            ], $entityManager);
+        }
+
+        try {
+            $number = 'C-' . (new DateTime('now'))->format('YmdHis');
+            $collecte = new Collecte();
+            $collecte
+                ->setNumero($number)
+                ->setDemandeur($userRepository->getKioskUser())
+                ->setDate(new DateTime())
+                ->setValidationDate(new DateTime())
+                ->setType($typeRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_TYPE)))
+                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER))
+                ->setPointCollecte($emplacementRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT)))
+                ->setObjet($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_OBJECT))
+                ->setstockOrDestruct($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_DESTINATION));
+
+            $collecteReference = new CollecteReference();
+            $collecteReference
+                ->setCollecte($collecte)
+                ->setReferenceArticle($reference)
+                ->setQuantite($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT) ?? 1);
+            $entityManager->persist($collecteReference);
+            $collecte->addCollecteReference($collecteReference);
+            $entityManager->persist($collecte);
+
+
+            $ordreCollecte = new OrdreCollecte();
+            $date = new DateTime('now');
+            $ordreCollecte
+                ->setDate($date)
+                ->setNumero('C-' . $date->format('YmdHis'))
+                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER))
+                ->setDemandeCollecte($collecte);
+
+            if(!$referenceExist){
+                $entityManager->flush();
+                $article = $articleDataService->newArticle([
+                    'statut' => Article::STATUT_INACTIF,
+                    'refArticle' => $reference->getId(),
+                    'emplacement' => $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT),
+                    'articleFournisseur' => $supplierArticle->getId(),
+                    'libelle' => $reference->getLibelle(),
+                    'quantite' => 1,
+                ], $entityManager);
+                $article
+                    ->setReference($reference->getReference())
+                    ->setInactiveSince($date)
+                    ->setCreatedOnKioskAt($date);
+                $entityManager->persist($article);
+
+                $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
+                $options['barcode'] = $article->getBarCode();
+                $kioskService->printLabel($options, $entityManager);
+            } else {
+                $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
+            }
+            $ordreCollecte->addArticle($article);
+            $entityManager->persist($ordreCollecte);
+        } catch(Exception $exception) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => $exception->getMessage(),
+            ]);
+        }
+
+        $entityManager->flush();
+
+        if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+            $notificationService->toTreat($ordreCollecte);
+        }
+
+        $to = Stream::from($reference->getManagers())
+            ->map(fn(Utilisateur $manager) => $manager->getEmail())
+            ->toArray();
+
+        if($referenceExist) {
+            $articleSuccessMessage = str_replace('@reference', $data['reference'], str_replace('@codearticle', '<span style="color: #3353D7;">'.$data['article'].'</span>', $articleSuccessMessage));
+            $message = strip_tags(str_replace('@reference', $data['reference'], str_replace('@codearticle', $data['article'], $articleSuccessMessage)));
+        } else {
+            $referenceSuccessMessage = str_replace('@reference', '<span style="color: #3353D7;">'.$data['reference'].'</span>', $referenceSuccessMessage);
+            $message = strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage));
+        }
+        $refArticleDataService->sendMailEntryStock($reference, $to, $message);
+
+        return new JsonResponse([
+                'success' => true,
+                'msg' => "Validation d'entrée de stock",
+                "referenceExist" => $referenceExist,
+                "successMessage" => $referenceExist ? $articleSuccessMessage : $referenceSuccessMessage,
+            ]
+        );
     }
 }

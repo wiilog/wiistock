@@ -6,6 +6,7 @@ import {initUserPage} from "./users/users";
 import {initializeExports, initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
+import {initializeTouchTerminal} from "./kiosk";
 import {initializeTransportRound} from "./transport-round";
 import {
     initializeStockArticlesTypesFreeFields,
@@ -76,6 +77,7 @@ const initializers = {
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_inventaires_missions: initializeInventoryMissionsTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
+    stock_borne_tactile: initializeTouchTerminal,
     utilisateurs_utilisateurs: initUserPage,
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
     trace_acheminements_statuts: initializeDispatchStatuses,
@@ -104,11 +106,17 @@ const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);
 const $managementButtons = $(`.save-settings, .discard-settings`);
 let canTranslate = true;
+let editing = false;
 
 $(function() {
     let canEdit = $(`input#edit`).val();
 
     updateMenu(submenu || menu, canEdit);
+
+
+    $(document).on(`change`, `.wii-box.settings-content:not(.d-none) *`, function() {
+        editing = true;
+    });
 
     document.body.addEventListener(`click`, function(event) {
         const $target = $(event.target);
@@ -139,8 +147,7 @@ $(function() {
     }, true);
 
     $(`.settings-item`).on(`click`, function() {
-        const editing = $(`.settings-content`).find(`.dataTables_wrapper`).is('.current-editing');
-        if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez-vous continuer ?"))) {
+        if (!editing || window.confirm(`Vous avez des modifications en attente, souhaitez-vous continuer ?`)) {
             const selectedMenu = $(this).data(`menu`);
             $(`.settings-item.selected`).removeClass(`selected`);
             $(this).addClass(`selected`);
@@ -158,6 +165,7 @@ $(function() {
         const config = {ignored: `[data-table-processing]`,};
 
         const data = Form.process(form.element, config);
+
         let hasErrors = false;
         if(data) {
             const fieldNames = Form.getFieldNames(form.element, config);
@@ -202,6 +210,9 @@ $(function() {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
         $saveButton.pushLoader('white');
+
+        editing = false;
+
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
             .then(result => {

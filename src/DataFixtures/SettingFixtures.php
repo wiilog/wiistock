@@ -133,7 +133,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::CL_USED_IN_LABELS => [
                 'default' => FreeField::SPECIC_COLLINS_BL
             ],
-            Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT => [
+            Setting::CLEAR_AND_STAY_AFTER_NEW_MVT => [
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
@@ -220,6 +220,39 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::FILE_SHIPMENT_NOTE_LOGO => [
                 'default' => null,
+            ],
+            Setting::FILE_TOP_LEFT_LOGO => [
+                'default' => Setting::DEFAULT_TOP_LEFT_VALUE,
+            ],
+            Setting::FILE_TOP_RIGHT_LOGO => [
+                'default' => null,
+            ],
+            Setting::FILE_LABEL_EXAMPLE_LOGO => [
+                'default' => Setting::DEFAULT_LABEL_EXAMPLE_VALUE,
+            ],
+            Setting::STATUT_REFERENCE_CREATE => [
+                'default' => "actif"
+            ],
+            Setting::COLLECT_REQUEST_DESTINATION => [
+                'default' => 'stock'
+            ],
+            Setting::WELCOME_MESSAGE => [
+                'default' => 'Veuillez scanner l’étiquette pour faire une entrée de stock.'
+            ],
+            Setting::INFORMATION_MESSAGE => [
+                'default' => 'Si vous rencontrez un problème ou une difficulté, merci de contacter GT au 8 45 65.'
+            ],
+            Setting::SCAN_ARTICLE_LABEL_MESSAGE => [
+                'default' => 'Veuillez scanner l’étiquette de GT Logistics déjà présente sur le lot pour renseigner automatiquement l’article à remettre en stock.'
+            ],
+            Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE => [
+                'default' => 'La nouvelle référence @reference a bien été entrée en stock, une étiquette vient d’être imprimée.'
+            ],
+            Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE => [
+                'default' => 'L’article @codearticle issu de la référence @reference a bien été entré en stock.'
+            ],
+            Setting::QUANTITY_ERROR_MESSAGE => [
+                'default' => 'La référence @reference est déjà en stock en quantité 1, vous ne pouvez donc pas faire une nouvelle entrée en stock pour cet article. Contactez GT au 8 45 65 pour plus d’informations.'
             ],
         ];
 

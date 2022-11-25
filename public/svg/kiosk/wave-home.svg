@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 345">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#Dégradé_);
+        isolation: isolate;
+      }
+    </style>
+    <linearGradient id="Dégradé_" data-name="Dégradé " x1="193.08" y1="679.42" x2="1773.95" y2="-233.29" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3353d8"/>
+      <stop offset="1" stop-color="#00dda8"/>
+    </linearGradient>
+  </defs>
+  <path id="courbe_dégradé" data-name="courbe dégradé" class="cls-1" d="M1920,19.68C1388.7,171.82,246.84-187.01,0,153.79v191.21H1920s0-325.32,0-325.32Z"/>
+</svg>

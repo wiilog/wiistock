@@ -763,7 +763,7 @@ function fillDatePickers(selector, sourceFormat = 'YYYY-MM-DD', appendTime = fal
     const destinationFormat = DATE_FORMATS_TO_DISPLAY[format] + time;
     $(selector).each(function () {
         if ($(this).data('init')) {
-            const dateValue = moment($(this).data('init'), sourceFormat + time).format(destinationFormat);
+            const dateValue = ($(this).data('init') === `now` ? moment() : moment($(this).data('init'), sourceFormat + time)).format(destinationFormat);
             $(this)
                 .data("DateTimePicker")
                 .format(destinationFormat)
@@ -1204,14 +1204,17 @@ function onTypeChange($select) {
             $errorEmptyStatus.removeClass('d-none');
             $selectStatus.addClass('d-none');
         }
-        $.post(Routing.generate('handling_users_by_type'), {id: type}, function (data) {
-            const $select2 = $('.modal-body select[name=receivers]');
-            $select2.empty().trigger('change');
-            Object.entries(data).forEach(([key, value]) => {
-                let option = new Option(value, key, true, true);
-                $select2.append(option).trigger('change');
-            })
-        });
+
+        if ($modal.attr('id') === 'modalNewHandling') {
+            $.post(Routing.generate('handling_users_by_type'), {id: type}, function (data) {
+                const $select2 = $('.modal-body select[name=receivers]');
+                $select2.empty().trigger('change');
+                Object.entries(data).forEach(([key, value]) => {
+                    let option = new Option(value, key, true, true);
+                    $select2.append(option).trigger('change');
+                })
+            });
+        }
     }
 }
 
