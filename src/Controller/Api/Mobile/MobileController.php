@@ -2037,20 +2037,27 @@ class MobileController extends AbstractApiController
 
         $barCode = $request->query->get('barCode');
         $location = $request->query->get('location');
+        $createIfNotExist = $request->query->get('createIfNotExist');
 
         if (!empty($barCode)) {
             $statusCode = Response::HTTP_OK;
-
-            $referenceArticleArray = $referenceArticleRepository->getOneReferenceByBarCodeAndLocation($barCode, $location);
-            if (!empty($referenceArticleArray)) {
-                $referenceArticle = $referenceArticleRepository->find($referenceArticleArray['id']);
+            $referenceArticle = $referenceArticleRepository->findOneBy([
+                'barCode' => $barCode,
+            ]);
+            if (!empty($referenceArticle) && (!$location || $referenceArticle->getEmplacement()->getLabel() === $location)) {
                 $statusReferenceArticle = $referenceArticle->getStatut();
                 $statusReferenceId = $statusReferenceArticle ? $statusReferenceArticle->getId() : null;
                 // we can transfer if reference is active AND it is not linked to any active orders
-                $referenceArticleArray['can_transfer'] = (
-                    ($statusReferenceId === $referenceActiveStatusId)
-                    && !$referenceArticleRepository->isUsedInQuantityChangingProcesses($referenceArticle)
-                );
+                $referenceArticleArray = [
+                    'can_transfer' => (
+                        ($statusReferenceId === $referenceActiveStatusId)
+                        && !$referenceArticleRepository->isUsedInQuantityChangingProcesses($referenceArticle)
+                    ),
+                    "id" => $referenceArticle->getId(),
+                    "barCode" => $referenceArticle->getBarCode(),
+                    "quantity" => $referenceArticle->getQuantiteDisponible(),
+                    "is_ref" => "1"
+                ];
                 $resData['article'] = $referenceArticleArray;
             } else {
                 $article = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
@@ -2062,6 +2069,14 @@ class MobileController extends AbstractApiController
                     if(!empty($pack)) {
                         $pack["can_transfer"] = 1;
                         $pack["articles"] = $pack["articles"] ? explode(";", $pack["articles"]) : null;
+                    } else if ($createIfNotExist) {
+                        $pack = [
+                            'barCode' => $barCode,
+                            'is_lu' => "1",
+                            'project' => null,
+                            'location' => null,
+                            'is_ref' => 0,
+                        ];
                     }
                     $resData['article'] = $pack;
                 }
@@ -2075,10 +2090,45 @@ class MobileController extends AbstractApiController
         } else {
             throw new BadRequestHttpException();
         }
-
         return new JsonResponse($resData, $statusCode);
     }
 
+    /**
+     * @Rest\Post("/api/drop-in-lu", name="api-post-drop-in-lu", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postDropInLu(Request $request, EntityManagerInterface $entityManager, TrackingMovementService $trackingMovementService): Response
+    {
+        $articlesRepository = $entityManager->getRepository(Article::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $articles = json_decode($request->request->get('articles'));
+
+        $articlesEntites = Stream::from($articles)
+            ->map(fn(string $barCode) => $articlesRepository->findOneBy(['barCode' => $barCode]))
+            ->toArray();
+
+        $luToDropIn = $request->request->get('lu');
+        $location = $request->request->get('location');
+
+        $trackingMovementService->persistLogisticUnitMovements(
+            $entityManager,
+            $luToDropIn,
+            $locationRepository->findOneBy(['label' => $location]),
+            $articlesEntites,
+            $this->getUser(),
+            [
+                'entityManager' => $entityManager
+            ]
+        );
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
+    }
     /**
      * @Rest\Get("/api/tracking-drops", name="api-get-tracking-drops-on-location", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()

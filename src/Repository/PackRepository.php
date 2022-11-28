@@ -683,23 +683,31 @@ class PackRepository extends EntityRepository
     }
 
     public function getOneArticleByBarCodeAndLocation(string $barCode, ?string $location) {
-        $result = $this->createQueryBuilder("pack")
+        $query = $this->createQueryBuilder("pack")
             ->addSelect("pack.id AS id")
             ->addSelect("pack.code AS barCode")
-            ->addSelect("pack_location.label AS location")
             ->addSelect("pack.quantity AS quantity")
+            ->addSelect("pack_location.label AS location")
             ->addSelect("GROUP_CONCAT(child_articles.barCode SEPARATOR ';') AS articles")
             ->addSelect("0 as is_ref")
             ->addSelect("1 as is_lu")
+            ->addSelect("pack_project.code as project")
             ->join("pack.lastTracking", "last_tracking")
             ->join("last_tracking.emplacement", "pack_location")
             ->leftJoin("pack.childArticles", "child_articles")
+            ->leftJoin("pack.project", "pack_project")
             ->andWhere("pack.code = :barcode")
-            ->andWhere("pack_location.label = :location")
             ->andWhere("pack.groupIteration IS NULL")
             ->groupBy("pack")
-            ->setParameter("barcode", $barCode)
-            ->setParameter("location", $location)
+            ->setParameter("barcode", $barCode);
+
+        if ($location) {
+            $query
+                ->andWhere("pack_location.label = :location")
+                ->setParameter("location", $location);
+        }
+
+        $result = $query
             ->getQuery()
             ->getArrayResult();
 
