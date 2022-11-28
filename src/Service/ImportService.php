@@ -1537,14 +1537,11 @@ class ImportService
                             if (!$request->getPreparations()->isEmpty()) {
                                 $preparation = $request->getPreparations()->first();
                                 $article->setStatut($statusRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                                $ligneArticlePreparation = new PreparationOrderArticleLine();
+                                $ligneArticlePreparation = $line->createPreparationOrderLine();
                                 $ligneArticlePreparation
-                                    ->setPickedQuantity($line->getPickedQuantity())
-                                    ->setQuantityToPick($line->getQuantityToPick())
-                                    ->setArticle($article)
-                                    ->setTargetLocationPicking($targetLocationPicking);
+                                    ->setPreparation($preparation)
+                                    ->setPickedQuantity($line->getPickedQuantity());
                                 $this->entityManager->persist($ligneArticlePreparation);
-                                $preparation->addArticleLine($ligneArticlePreparation);
                             }
                         } else {
                             $barcode = $article->getBarCode();

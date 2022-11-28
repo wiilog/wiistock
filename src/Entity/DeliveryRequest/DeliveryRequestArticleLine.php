@@ -5,6 +5,7 @@ namespace App\Entity\DeliveryRequest;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\Pack;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Repository\DeliveryRequest\DeliveryRequestArticleLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -120,6 +121,17 @@ class DeliveryRequestArticleLine {
     public function setPack(?Pack $pack): self {
         $this->pack = $pack;
         return $this;
+    }
+
+    public function createPreparationOrderLine(): PreparationOrderArticleLine {
+        $preparationLine = new PreparationOrderArticleLine();
+        $preparationLine
+            ->setPickedQuantity(0)
+            ->setQuantityToPick($this->getQuantityToPick())
+            ->setTargetLocationPicking($this->getTargetLocationPicking())
+            ->setArticle($this->getArticle())
+            ->setPack($this->getPack());
+        return $preparationLine;
     }
 
 }
