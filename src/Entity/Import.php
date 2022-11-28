@@ -177,6 +177,9 @@ class Import {
         'urgent' => 'Urgent',
 
         'fax' => 'Fax',
+        self::ENTITY_CLIENT => [
+            'name' =>  'Client',
+        ],
     ];
 
     #[ORM\Id]
