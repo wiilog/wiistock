@@ -43,12 +43,6 @@ class KioskService
         $logo = $settingRepository->getOneParamByLabel('LABEL_LOGO');
         $labelTypeIs128 = $settingRepository->getOneParamByLabel('BARCORE_TYPE');
 
-        if ($logo) {
-            $logo = Image::fromPath(0, 0, $logo)
-                ->setAlignment(Align::LEFT)
-                ->setHeight(15);
-        }
-
         if ($labelTypeIs128) {
             $image = $this->printBarcodeFunction([
                 'code' => $options['barcode'],
@@ -83,7 +77,11 @@ class KioskService
             ->with($code)
             ->with($text);
 
-        if (isset($logo)) {
+        if ($logo && file_exists($logo)) {
+            $logo = Image::fromPath(0, 0, $logo)
+                ->setAlignment(Align::LEFT)
+                ->setHeight(15);
+
             $label->with($logo);
         }
 
