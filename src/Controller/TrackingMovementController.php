@@ -160,7 +160,8 @@ class TrackingMovementController extends AbstractController
         }
         $user = $this->getUser();
         $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
-        $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now') ?: new DateTime();
+        $date = $this->formatService->parseDatetime($post->get('datetime'), [$format]) ?: (new DateTime());
+        $date->setTime($date->format('H'), $date->format('i'), 0);
 
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -387,10 +388,12 @@ class TrackingMovementController extends AbstractController
 
         $newDate = $this->formatService->parseDatetime($post->get('date'));
         $newCode = $post->get('pack');
+        $currentDate = clone $mvt->getDatetime();
+        $currentDate = $currentDate->setTime($currentDate->format('H'), $currentDate->format('i'), 0);
 
         $hasChanged = (
             $mvt->getEmplacement()->getLabel() !== $newLocation->getLabel()
-            || $mvt->getDatetime() != $newDate // required != comparison
+            || $currentDate != $newDate // required != comparison
             || $pack->getCode() !== $newCode
         );
 
@@ -406,6 +409,8 @@ class TrackingMovementController extends AbstractController
                 true,
                 $mvt->getType(),
                 false,
+                ['disableUngrouping'=> true],
+                true
             );
             if ($response['success']) {
                 $new = $response['movement'];
