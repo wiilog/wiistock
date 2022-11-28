@@ -41,16 +41,23 @@
                     <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
                 </a>
             {% endif %}
-{#              {% if dispatch.statut.notTreated %} #} {# TODO rajouter le check pour voir si l'ordre contient un UL #}
-                <a type="button"
-                   onclick="openDeliveryNoteModal($(this))"
-                   id="generateDeliveryNoteButton"
-                   title="Générer un bon de livraison"
-                   class="dropdown-item d-flex align-items-center">
-                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
-                    Générer un bon de livraison
-                </a>
-{#                {% endif %}#}
+            {% dump displayButton %}
+                {% if displayButton is defined and displayButton %}
+                    <a type="button"
+                       onclick="openDeliveryNoteModal($(this))"
+                       title="Générer un bon de livraison"
+                       class="dropdown-item d-flex align-items-center">
+                        <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                        Générer un bon de livraison
+                    </a>
+                    <a type="button"
+                       onclick="openWaybillModal($(this))"
+                       title="Générer une lettre de voiture"
+                       class="dropdown-item d-flex align-items-center">
+                        <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                        Générer une lettre de voiture
+                    </a>
+                {% endif %}
             {% if not livraison.preparation.demande.manual %}
                 <a href="{{ path('demande_show', {'id': demande.id}) }}" class="dropdown-item">
                     <i class="mr-2 fas fa-external-link-alt"></i>Retourner à la demande de livraison

@@ -36,6 +36,19 @@ $(function () {
             });
         }
     });
+
+    let $modalPrintWaybill = $('#modalPrintWaybill');
+    let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
+    let urlPrintWaybill = Routing.generate('post_delivery_waybill', {deliveryOrder: deliveryId}, true);
+    InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
+        success: ({attachmentId, headerDetailsConfig}) => {
+            $('.zone-entete').html(headerDetailsConfig);
+            window.location.href = Routing.generate('print_waybill_delivery', {
+                deliveryOrder: deliveryId,
+                attachment: attachmentId,
+            });
+        },
+    });
 });
 
 function endLivraison($button) {
@@ -139,6 +152,31 @@ function openDeliveryNoteModal($button) {
         });
 }
 
+function openWaybillModal($button) {
+    const livraisonId = getDeliveryId();
+
+    Promise.all([
+        $.get(Routing.generate('check_delivery_waybill', {deliveryOrder: livraisonId})),
+        $.get(Routing.generate('api_delivery_waybill', {deliveryOrder: livraisonId})),
+    ]).then((values) => {
+        let check = values[0];
+        if(!check.success) {
+            showBSAlert(check.msg, "danger");
+            return;
+        }
+
+        let result = values[1];
+        if(result.success) {
+            const $modal = $('#modalPrintWaybill');
+            const $modalBody = $modal.find('.modal-body');
+            $modalBody.html(result.html);
+            $modal.modal('show');
+        } else {
+            showBSAlert(result.msg, "danger");
+        }
+    });
+}
+
 function copyTo($button, inputSourceName, inputTargetName) {
     const $modal = $button.closest('.modal');
     const $source = $modal.find(`[name="${inputSourceName}"]`);
@@ -149,4 +187,14 @@ function copyTo($button, inputSourceName, inputTargetName) {
     } else {
         $target.val(valToCopy);
     }
+}
+
+function reverseFields($button, inputName1, inputName2) {
+    const $modal = $button.closest('.modal');
+    const $field1 = $modal.find(`[name="${inputName1}"]`);
+    const $field2 = $modal.find(`[name="${inputName2}"]`);
+    const val1 = $field1.val();
+    const val2 = $field2.val();
+    $field1.val(val2);
+    $field2.val(val1);
 }

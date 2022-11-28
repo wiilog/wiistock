@@ -49,6 +49,20 @@ class Livraison {
         'notes' => true,
     ];
 
+    const WAYBILL_DATA = [
+        'carrier' => false,
+        'dispatchDate' => false,
+        'consignor' => false,
+        'receiver' => false,
+        'consignorUsername' => false,
+        'consignorEmail' => false,
+        'receiverUsername' => false,
+        'receiverEmail' => false,
+        'locationFrom' => true,
+        'locationTo' => true,
+        'notes' => true,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -83,6 +97,9 @@ class Livraison {
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $deliveryNoteData;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $waybillData;
 
     #[ORM\OneToMany(targetEntity: Attachment::class, mappedBy: 'deliveryOrder')]
     private Collection $attachements;
@@ -222,6 +239,22 @@ class Livraison {
      */
     public function setDeliveryNoteData(array $deliveryNoteData): self {
         $this->deliveryNoteData = $deliveryNoteData;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getWaybillData(): array {
+        return $this->waybillData ?? [];
+    }
+
+    /**
+     * @param array $waybillData
+     * @return self
+     */
+    public function setWaybillData(array $waybillData): self {
+        $this->waybillData = $waybillData;
         return $this;
     }
 

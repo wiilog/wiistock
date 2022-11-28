@@ -1395,7 +1395,16 @@ class DispatchController extends AbstractController {
         $client = SpecificService::CLIENTS[$specificService->getAppClient()];
 
         $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
-        $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch);
+        $packs = Stream::from($dispatch->getDispatchPacks())
+            ->map(fn(DispatchPack $dispatchPack) => [
+                'quantity' => $dispatchPack->getQuantity(),
+                'code' => $dispatchPack->getPack()->getCode(),
+                'weight' => $dispatchPack->getPack()->getWeight(),
+                'volume' => $dispatchPack->getPack()->getVolume(),
+                'comment' => $dispatchPack->getPack()->getComment(),
+                'nature' => $this->getFormatter()->nature($dispatchPack->getPack()->getNature(), "", $loggedUser)
+            ])->toArray();
+        $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch, $packs);
 
         $wayBillAttachment = new Attachment();
         $wayBillAttachment
