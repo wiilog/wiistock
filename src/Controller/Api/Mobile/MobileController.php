@@ -2018,6 +2018,29 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Get("/api/logistic-unit/articles", name="api_logistic_unit_articles", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getLogisticUnitArticles(Request $request, EntityManagerInterface $entityManager) {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $code = $request->query->get('code');
+
+        $pack = $packRepository->findOneBy(['code' => $code]);
+
+        $articles = $pack->getChildArticles()->map(fn(Article $article) => [
+            'id' => $article->getId(),
+            'barCode' => $article->getBarCode(),
+            'label' => $article->getLabel(),
+            'location' => $article->getEmplacement()?->getLabel(),
+            'quantity' => $article->getQuantite(),
+        ]);
+
+        return $this->json($articles);
+    }
+
+    /**
      * @Rest\Get("/api/articles", name="api-get-articles", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()

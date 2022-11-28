@@ -483,7 +483,7 @@ class ImportService
         try {
             $emptyCells = count(array_filter($row, fn(string $value) => $value === ""));
             if($emptyCells !== count($row)) {
-                $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
+                $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($this->currentImport->getEntity(), $dataToCheck, $row, $headers);
                 $data = array_map('trim', $verifiedData);
                 switch($this->currentImport->getEntity()) {
                     case Import::ENTITY_FOU:
@@ -627,11 +627,11 @@ class ImportService
         return $pieceJointeForLogFile;
     }
 
-    private function checkFieldsAndFillArrayBeforeImporting(array $originalDatasToCheck, array $row, array $headers): array
+    private function checkFieldsAndFillArrayBeforeImporting(string $entity, array $originalDatasToCheck, array $row, array $headers): array
     {
         $data = [];
         foreach ($originalDatasToCheck as $column => $originalDataToCheck) {
-            $fieldName = Import::FIELDS_ENTITY[$column] ?? $column;
+            $fieldName = Import::FIELDS_ENTITY[$entity][$column] ?? Import::FIELDS_ENTITY[$column] ?? $column;
             if(is_array($fieldName)) {
                 $fieldName = $this->translationService->translate(...$fieldName);
             }
@@ -2052,7 +2052,7 @@ class ImportService
         }
 
         $fieldsToAssociate = $fieldsToAssociate
-            ->keymap(fn(string $key) => [$key, Import::FIELDS_ENTITY[$key] ?? $key])
+            ->keymap(fn(string $key) => [$key, Import::FIELDS_ENTITY[$entityCode][$key] ?? Import::FIELDS_ENTITY[$key] ?? $key])
             ->map(fn(string|array $field) => is_array($field) ? $this->translationService->translate(...$field) : $field)
             ->toArray();
 
