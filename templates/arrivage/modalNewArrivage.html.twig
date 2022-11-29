@@ -197,7 +197,9 @@
                                     multiple="multiple">
                                 {% set savedOrderNumber = keptFields[orderNumberFieldCode] ?? null %}
                                 {% if savedOrderNumber %}
-                                    <option value="{{ savedOrderNumber }}" selected>{{ savedOrderNumber }}</option>
+                                    {% for orderNumber in savedOrderNumber|split(',') %}
+                                        <option value="{{ orderNumber }}" selected>{{ orderNumber }}</option>
+                                    {% endfor %}
                                 {% endif %}
                             </select>
                         </div>
