@@ -970,7 +970,7 @@ class TrackingMovementService extends AbstractController
                                                                    $trackingType,
                                             bool                   $forced,
                                             array                  $options = [],
-                                            bool                   $isGroupTracking = false): array {
+                                            bool                   $keepGroup = false): array {
 
         $movement = $this->createTrackingMovement(
             $packOrCode,
@@ -984,7 +984,7 @@ class TrackingMovementService extends AbstractController
         );
 
         $associatedPack = $movement->getPack();
-        if (!$isGroupTracking && $associatedPack) {
+        if (!$keepGroup && $associatedPack) {
             $associatedGroup = $associatedPack->getParent();
 
             if (!$forced && $associatedGroup) {
