@@ -68,6 +68,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -76,8 +77,11 @@ use WiiCommon\Helper\Stream;
  */
 class ReceptionController extends AbstractController {
 
-    /** @Required */
+    #[Required]
     public NotificationService $notificationService;
+
+    #[Required]
+    public FreeFieldService $freeFieldService;
 
     /**
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
@@ -2210,7 +2214,7 @@ class ReceptionController extends AbstractController {
                'quantity' => $data['quantity'],
                'freeFields' => $freeFields,
                'dropLocationIsReceptionLocation' => !$pack || $receptionLocation === $packLocation,
-               'data' => array_merge(
+               'data' =>
                    [
                        'quantityToReceive' => $data['quantityToReceive'],
                        'quantite' => $data['quantity'],
@@ -2219,9 +2223,7 @@ class ReceptionController extends AbstractController {
                        'receptionReferenceArticle' => $receptionReferenceArticle->getId(),
                        'pack' => $pack?->getId(),
                        'articleFournisseur' => $supplierReference ? $supplierReference->getId() : '',
-                   ],
-                   $freeFieldsValues
-               ),
+                   ] + $freeFieldsValues,
            ]),
         ]);
     }
