@@ -440,6 +440,9 @@ class TrackingMovementController extends AbstractController
             || $pack->getCode() !== $newCode
         );
 
+        $mainMvt = $mvt->getMainMovement();
+        $linkedMouvements = $trackingMovementRepository->findBy(['mainMovement' => $mvt]);
+
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
             $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
@@ -450,13 +453,17 @@ class TrackingMovementController extends AbstractController
                 true,
                 $mvt->getType(),
                 false,
-                ['disableUngrouping'=> true],
+                ['disableUngrouping'=> true, 'mainMovement'=>$mainMvt],
                 true
             );
             if ($response['success']) {
                 /** @var TrackingMovement $new */
                 $new = $response['movement'];
                 $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
+
+                foreach ($linkedMouvements as $linkedMvt) {
+                    $linkedMvt->setMainMovement($new);
+                }
 
                 $entityManager->persist($new);
                 $entityManager->remove($mvt);

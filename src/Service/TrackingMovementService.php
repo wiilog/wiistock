@@ -336,6 +336,7 @@ class TrackingMovementService extends AbstractController
         $natureId = $options['natureId'] ?? null;
         $disableUngrouping = $options['disableUngrouping'] ?? false;
         $attachments = $options['attachments'] ?? null;
+        $mainMovement = $options['mainMovement'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;
@@ -353,7 +354,8 @@ class TrackingMovementService extends AbstractController
             ->setFinished($finished)
             ->setType($type)
             ->setMouvementStock($mouvementStock)
-            ->setCommentaire(!empty($commentaire) ? $commentaire : null);
+            ->setCommentaire(!empty($commentaire) ? $commentaire : null)
+            ->setMainMovement($mainMovement);
 
         if ($attachments) {
             foreach($attachments as $attachment) {
@@ -1067,6 +1069,8 @@ class TrackingMovementService extends AbstractController
                 }
 
                 if($trackingType->getCode() === TrackingMovement::TYPE_PRISE && $packArticle?->getCurrentLogisticUnit()) {
+
+                    $pick = $movement["movement"];
                     $movement = $this->persistTrackingMovement(
                         $entityManager,
                         $pack ?? $packOrCode,
@@ -1078,6 +1082,8 @@ class TrackingMovementService extends AbstractController
                         $forced,
                         $options
                     );
+
+                    $movement["movement"]->setMainMovement($pick);
 
                     if($movement["movement"] ?? null) {
                         $movement["movement"]->setLogisticUnitParent($packArticle?->getCurrentLogisticUnit());
@@ -1255,6 +1261,7 @@ class TrackingMovementService extends AbstractController
 
             $pack->setArticleContainer(true);
 
+            $newMovements = [];
             if ($isUnitChanges || $isLocationChanges) {
                 //generate pick movements
                 $pick = $this->persistTrackingMovement(
@@ -1269,6 +1276,7 @@ class TrackingMovementService extends AbstractController
                     $options,
                 )["movement"];
                 $movements[] = $pick;
+                $newMovements[] = $pick;
             }
 
             if ($isUnitChanges) {
@@ -1289,6 +1297,7 @@ class TrackingMovementService extends AbstractController
                 $oldCurrentLogisticUnit = $article->getCurrentLogisticUnit();
                 $luPick->setLogisticUnitParent($oldCurrentLogisticUnit);
                 $movements[] = $luPick;
+                $newMovements[] = $luPick;
             }
 
             //now the pick LU movement is done, set the logistic unit
@@ -1310,6 +1319,7 @@ class TrackingMovementService extends AbstractController
                 )["movement"];
 
                 $movements[] = $drop;
+                $newMovements[] = $drop;
             }
 
             //generate drop in LU movements
@@ -1327,6 +1337,10 @@ class TrackingMovementService extends AbstractController
 
             $luDrop->setLogisticUnitParent($pack);
             $movements[] = $luDrop;
+
+            foreach ($newMovements as $movement) {
+                $movement->setMainMovement($luDrop);
+            }
 
             if ($isLocationChanges) {
                 $stockMovement = $this->stockMovementService->createMouvementStock(

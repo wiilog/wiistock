@@ -93,6 +93,10 @@ class TrackingMovement {
     #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $logisticUnitParent = null;
 
+    #[ORM\ManyToOne(targetEntity: TrackingMovement::class )]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?TrackingMovement $mainMovement = null;
+
     public function __construct() {
         $this->quantity = 1;
         $this->firstDropRecords = new ArrayCollection();
@@ -449,6 +453,15 @@ class TrackingMovement {
 
     public function setLogisticUnitParent(?Pack $logisticUnitParent): self {
         $this->logisticUnitParent = $logisticUnitParent;
+        return $this;
+    }
+
+    public function getMainMovement(): ?TrackingMovement {
+        return $this->mainMovement;
+    }
+
+    public function setMainMovement(?TrackingMovement $movement): self {
+        $this->mainMovement = $movement;
         return $this;
     }
 
