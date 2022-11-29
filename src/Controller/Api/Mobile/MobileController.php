@@ -725,6 +725,7 @@ class MobileController extends AbstractApiController
                         foreach ($mouvements as $mouvement) {
                             if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
                                 $preparationsManager->createMouvementLivraison(
+                                    $entityManager,
                                     $mouvement->getQuantity(),
                                     $nomadUser,
                                     $livraison,
@@ -1427,9 +1428,12 @@ class MobileController extends AbstractApiController
         foreach ($request->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
             $outMovement = $preparationsManagerService->createMouvementLivraison(
+                $entityManager,
                 $article->getQuantite(),
-                $nomadUser, $order,
-                false, $article,
+                $nomadUser,
+                $order,
+                false,
+                $article,
                 $preparation,
                 true,
                 $article->getEmplacement()

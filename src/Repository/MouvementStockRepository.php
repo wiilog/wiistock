@@ -80,23 +80,6 @@ class MouvementStockRepository extends EntityRepository
     }
 
     /**
-     * @param Livraison $livraison
-     * @return MouvementStock[]
-     */
-    public function findByLivraison($livraison)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT m
-            FROM App\Entity\MouvementStock m
-            WHERE m.livraisonOrder = :livraison"
-        )->setParameter('livraison', $livraison);
-
-        return $query->execute();
-    }
-
-    /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
      * @return Generator

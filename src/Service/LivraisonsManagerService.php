@@ -178,7 +178,7 @@ class LivraisonsManagerService
             }
 
             // on termine les mouvements de livraison
-            $mouvements = $mouvementRepository->findByLivraison($livraison);
+            $mouvements = $mouvementRepository->findBy(['livraisonOrder' => $livraison]);
 
             foreach ($mouvements as $mouvement) {
                 $mouvement->setDate($dateEnd);
