@@ -17,6 +17,7 @@
         {% set hasArrival = (hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_ARRI')) and reception.arrival is not null) %}
 
         {% include 'utils/action-buttons/header-buttons.html.twig' with {
+            forceActionButton: true,
             actions: [
                 {
                     id: "finishReceptionButton",
@@ -39,7 +40,7 @@
                         "data-id": reception.id,
                         "data-target": "#modalEditReception",
                         "data-toggle": "modal",
-                        onclick: "editRow(
+                        "onclick": "editRow(
                            $(this),
                            Routing.generate('api_reception_edit', true),
                            $('#modalEditReception'),
@@ -95,7 +96,7 @@
                         "data-id": reception.id,
                         "data-target": "#modalDeleteReception",
                         "data-toggle": "modal",
-                        onclick: "checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')"
+                        "onclick": "checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')"
                     },
                 },
                 {
