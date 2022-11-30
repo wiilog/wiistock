@@ -39,9 +39,11 @@
                 {% endif %}
             {% endif %}
             {% if (preparation.referenceLines | length + preparation.articleLines | length  > 0 ) %}
-                <button onclick="printPrepaBarCodes()" class="dropdown-item pointe d-flex align-items-center">
-                    <span class="wii-icon wii-icon-printer-black mr-2 print-button"></span>Imprimer les étiquettes
-                </button>
+                <a class=" dropdown-item pointer d-flex align-items-center"
+                   href="{{ path('preparation_bar_codes_print', { preparation: preparation.id }) }}">
+                    <span class="wii-icon wii-icon-printer-black print-button mr-2"></span>
+                    Imprimer les étiquettes
+                </a>
             {% endif %}
             {% if
                 hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_PREPARATION_DATE'))

@@ -172,20 +172,3 @@ function finishCollecte($button, withoutLocation = false) {
         modalFinishCollecte.find('.error-msg').html('Veuillez choisir un point de dépose.');
     }
 }
-function printCollecteBarCodes() {
-
-    const lengthPrintButton = $('.print-button').length;
-
-     if (lengthPrintButton > 0) {
-              window.location.href = Routing.generate(
-                  'collecte_bar_codes_print',
-                  {
-                      ordreCollecte: id
-                  },
-                 true
-             );
-         } else {
-             showBSAlert("Il n'y a aucun article à imprimer.", 'danger');
-     }
-
-}

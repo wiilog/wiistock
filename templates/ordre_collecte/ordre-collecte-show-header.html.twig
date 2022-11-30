@@ -37,11 +37,12 @@
                         Aller vers la demande de collecte
                     </a>
                     {% if (collecte.ordreCollecteReferences | length + collecte.articles | length > 0) %}
-                        <button onclick="printCollecteBarCodes()"
-                                class="dropdown-item pointer d-flex align-items-center">
-                            <span class="wii-icon wii-icon-printer-black print-button mr-2"></span> Imprimer les
-                            étiquettes
-                        </button>
+                        <a class=" dropdown-item pointer d-flex align-items-center"
+                           href="{{ path('collecte_bar_codes_print', { ordreCollecte: collecte.id }) }}">
+                            <span class="wii-icon wii-icon-printer-black print-button mr-2"></span>
+                            Imprimer les étiquettes
+                        </a>
+
                     {% endif %}
                 {% endif %}
                 {% if (collecte.pairings|length>=1)
