@@ -127,7 +127,7 @@
                                 <tbody>
                                     {% for record in projectHistory %}
                                         <tr>
-                                            <td class="wii-body-text">{{ record.project ? record.project.code : '-' }}</td>
+                                            <td class="wii-body-text">{{ record.project ? record.project.code : 'Aucun projet' }}</td>
                                             <td class="wii-body-text">{{ record.createdAt|format_helper('longDate', {time: true}) }}</td>
                                         </tr>
                                     {% endfor %}
