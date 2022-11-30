@@ -197,7 +197,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private ?array $savedDispatchDeliveryNoteData = [];
 
     #[ORM\Column(type: 'json')]
+    private ?array $savedDeliveryDeliveryNoteData = [];
+
+    #[ORM\Column(type: 'json')]
     private ?array $savedDispatchWaybillData = [];
+
+    #[ORM\Column(type: 'json')]
+    private ?array $savedDeliveryWaybillData = [];
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $phone = null;
@@ -1944,6 +1950,24 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
         $this->kioskToken = $kioskToken;
 
+        return $this;
+    }
+
+    public function getSavedDeliveryOrderDeliveryNoteData(): array {
+        return $this->savedDeliveryDeliveryNoteData ?? [];
+    }
+
+    public function setSavedDeliveryOrderDeliveryNoteData(array $savedDeliveryOrderDeliveryNoteData): self {
+        $this->savedDeliveryDeliveryNoteData = $savedDeliveryOrderDeliveryNoteData;
+        return $this;
+    }
+
+    public function getSavedDeliveryWaybillData(): array {
+        return $this->savedDeliveryWaybillData ?? [];
+    }
+
+    public function setSavedDeliveryWaybillData(array $savedDeliveryWaybillData): self {
+        $this->savedDeliveryWaybillData = $savedDeliveryWaybillData;
         return $this;
     }
 }

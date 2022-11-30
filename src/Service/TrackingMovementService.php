@@ -1348,7 +1348,8 @@ class TrackingMovementService extends AbstractController
                     $pickLocation,
                     $article->getQuantite(),
                     $article,
-                    MouvementStock::TYPE_TRANSFER
+                    MouvementStock::TYPE_TRANSFER,
+                    ['from' => $options['from'] ?? null]
                 );
 
                 $this->stockMovementService->finishMouvementStock($stockMovement, $now, $dropLocation);

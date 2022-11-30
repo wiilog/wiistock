@@ -57,28 +57,17 @@ class CustomerRepository extends ServiceEntityRepository
             ->toIterable();
     }
 
-//    /**
-//     * @return Customer[] Returns an array of Customer objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('c.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Customer
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function getForSelect(?string $term): array {
+        return $this->createQueryBuilder("customer")
+            ->select("customer.name AS id")
+            ->addSelect("customer.name AS text")
+            ->addSelect("customer.address AS address")
+            ->addSelect("customer.email AS email")
+            ->addSelect("customer.phoneNumber AS phoneNumber")
+            ->addSelect("customer.fax AS fax")
+            ->andWhere("customer.name LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

@@ -1659,7 +1659,10 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $packRepository = $entityManager->getRepository(Pack::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $paramGlobalRepository = $entityManager->getRepository(Setting::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $createDirectDelivery = $settingRepository->getOneParamByLabel(Setting::DIRECT_DELIVERY);
+        $paramCreatePrepa = $settingRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
 
         $transferRequest = null;
         $demande = null;
@@ -1749,11 +1752,8 @@ class ReceptionController extends AbstractController {
             $needCreateLivraison = $data['requestType'] === 'delivery';
             $needCreateTransfer = $data['requestType'] === 'transfer';
 
-            $createDirectDelivery = $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DIRECT_DELIVERY);
-
             if ($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
-                $paramCreatePrepa = $paramGlobalRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
                 $needCreatePrepa = $paramCreatePrepa && $paramCreatePrepa->getValue();
                 $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
@@ -1778,9 +1778,6 @@ class ReceptionController extends AbstractController {
                             $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
                             $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
 
-                            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-                            $mouvements = $mouvementRepository->findByPreparation($preparation);
-
                             try {
                                 $entityManager->flush();
                                 if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
@@ -1792,18 +1789,6 @@ class ReceptionController extends AbstractController {
                                     'success' => false,
                                     'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.',
                                 ]);
-                            }
-                            foreach ($mouvements as $mouvement) {
-                                $preparationsManagerService->createMouvementLivraison(
-                                    $mouvement->getQuantity(),
-                                    $currentUser,
-                                    $delivery,
-                                    !empty($mouvement->getRefArticle()),
-                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
-                                    $preparation,
-                                    false,
-                                    $locationEndPreparation
-                                );
                             }
                         }
                     }
@@ -1902,7 +1887,7 @@ class ReceptionController extends AbstractController {
 
                     /** @var Preparation $preparation */
                     $preparation = $demande->getPreparations()->first();
-                    if ($preparation) {
+                    if (isset($preparation)) {
                         $preparationArticleLine = $preparationsManagerService->createArticleLine(
                             $article,
                             $preparation,
@@ -1975,6 +1960,21 @@ class ReceptionController extends AbstractController {
                     $currentUser,
                     ['from' => $reception,]
                 );
+                if ($createDirectDelivery && isset($delivery) && isset($preparation)) {
+                    foreach ($createdLoopArticles as $article) {
+                        $preparationsManagerService->createMouvementLivraison(
+                            $entityManager,
+                            $article->getQuantite(),
+                            $currentUser,
+                            $delivery,
+                            false,
+                            $article,
+                            $preparation,
+                            false,
+                            $pack->getLastDrop()?->getEmplacement()
+                        );
+                    }
+                }
             }
             $entityManager->flush();
         }

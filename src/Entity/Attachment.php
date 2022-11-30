@@ -45,6 +45,10 @@ class Attachment {
     #[ORM\JoinColumn(nullable: true)]
     private ?Dispatch $dispatch = null;
 
+    #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'attachements')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Livraison $deliveryOrder = null;
+
     #[ORM\ManyToOne(targetEntity: Handling::class, inversedBy: 'attachments')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Handling $handling = null;
@@ -201,4 +205,13 @@ class Attachment {
         return $this;
     }
 
+    public function getDeliveryOrder(): ?Livraison {
+        return $this->deliveryOrder;
+    }
+
+    public function setDeliveryOrder(?Livraison $deliveryOrder): self {
+        $this->deliveryOrder = $deliveryOrder;
+
+        return $this;
+    }
 }
