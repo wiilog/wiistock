@@ -211,6 +211,7 @@ class PackController extends AbstractController
                 $preparationOrderArticleLineRepository->getPreparationOrderArticleLine($pack, [Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION])
                 || $deliveryRequestArticleLineRepository->isOngoingAndUsingPack($pack)
                 || Stream::from($pack->getChildArticles())->some(fn(Article $article) => $article->getCarts()->count())
+                || !empty($pack->getArticle())
             );
 
             $html = $this->renderView('pack/modalEditPackContent.html.twig', [
