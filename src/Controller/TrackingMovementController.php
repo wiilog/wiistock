@@ -259,7 +259,7 @@ class TrackingMovementController extends AbstractController
                         }
                         else {
                             array_push($createdMouvements, ...$pickingRes['movements']);
-                            $mainPack = $pickingRes['parent'];
+                            $mainPack = $pickingRes['parent'] ?? null;
                         }
                     }
                     else {
@@ -288,7 +288,7 @@ class TrackingMovementController extends AbstractController
                         }
                         else {
                             array_push($createdMouvements, ...$dropRes['movements']);
-                            $createdPack = $dropRes['parent'];
+                            $createdPack = $dropRes['parent'] ?? null;
                         }
                     }
                     else {
@@ -451,8 +451,8 @@ class TrackingMovementController extends AbstractController
                 true,
                 $mvt->getType(),
                 false,
-                ['disableUngrouping'=> true],
-                true
+                ['disableUngrouping'=> true, 'ignoreProjectChange' => true],
+                true,
             );
             if ($response['success']) {
                 /** @var TrackingMovement $new */
