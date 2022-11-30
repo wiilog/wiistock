@@ -41,6 +41,7 @@ const ROUTES = {
     project: 'ajax_select_project',
     receptionLogisticUnits: 'ajax_select_reception_logistic_units',
     deliveryLogisticUnits: 'ajax_select_delivery_logistic_units',
+    customers: 'ajax_select_customers',
 }
 
 const INSTANT_SELECT_TYPES = {

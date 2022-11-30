@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\Customer;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
@@ -657,6 +658,23 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/customers", name="ajax_select_customers", options={"expose": true})
+     */
+    public function customers(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get("term");
+        $customers = $entityManager->getRepository(Customer::class)->getForSelect($search);
+
+        array_unshift($customers, [
+            "id" => "new-item",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau client</b></div>",
+        ]);
+
+        return $this->json([
+            "results" => $customers
         ]);
     }
 

@@ -655,7 +655,7 @@ class PackRepository extends EntityRepository
             ->leftJoin(DeliveryRequestArticleLine::class, "request_line", Join::WITH, "request_line.pack = pack")
             ->leftJoin("request_line.request",  "request")
             ->leftJoin("request.statut",  "request_status")
-            ->join("pack.childArticles", "pack_child_articles")
+            ->leftJoin("pack.childArticles", "pack_child_articles")
             ->join(Demande::class, "edited_request", Join::WITH, "edited_request.id = :delivery")
             ->andWhere("pack.code LIKE :term")
             ->andWhere("request.id IS NULL OR request_status.code NOT IN (:ongoing_statuses)")
