@@ -20,26 +20,35 @@
                 </td>
                 <td>
                     <div class="col-12 h-100">
-                        <div class="main-ul-data row">
+                        <div class="main-ul-data row {{ header.classes ?? '' }}" {{ header.actionOnClick ?? false ? 'onclick=' ~ header.actionOnClick }}
+                             data-logistic-unit-id="{{ header.data['pack-id'] }}">
                             {% set headerLength = header.content|length %}
                             {% for item in header.content %}
-                                <div class="col d-flex"
-                                     style="flex: 0 0 {{ 100 / headerLength }}%; max-width: {{ 100 / headerLength }}%;">
-                                    {% if item.icon is defined %}
-                                        <div class="mr-2">
-                                            <i class="wii-icon wii-icon-{{ item.icon }} wii-icon-15px bg-primary"></i>
+                                {% if not item['actions'] ?? false %}
+                                    <div class="col d-flex"
+                                         {#style="flex: 0 0 {{ 100 / headerLength }}%; max-width: {{ 100 / headerLength }}%;"#}>
+                                        {% if item.icon is defined %}
+                                            <div class="mr-2">
+                                                <i class="wii-icon wii-icon-{{ item.icon }} wii-icon-15px bg-primary"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="d-flex h-100 align-items-start text-break flex-column">
+                                            <div class="wii-body-text flex-fill {{ item.bold == 'label' ? 'font-weight-bold' : 'font-weight-normal' }}">{{ item.label }}</div>
+                                            <div class="wii-label flex-fill {{ item.bold == 'value' ? 'font-weight-bold' : 'font-weight-normal' }}">{{ item.value }}</div>
                                         </div>
-                                    {% endif %}
-                                    <div class="d-flex h-100 align-items-start text-break flex-column">
-                                        <div class="wii-body-text flex-fill {{ item.bold == 'label' ? 'font-weight-bold' : 'font-weight-normal' }}">{{ item.label }}</div>
-                                        <div class="wii-label flex-fill {{ item.bold == 'value' ? 'font-weight-bold' : 'font-weight-normal' }}">{{ item.value }}</div>
                                     </div>
-                                </div>
+                                {% else %}
+                                    <div class="col d-flex" style="flex: 0 0 5%;">
+                                        {% include "utils/action-buttons/dropdown.html.twig" with {
+                                            actions: item['actions']
+                                        } %}
+                                    </div>
+                                {% endif %}
                             {% endfor %}
                         </div>
                     </div>
                 </td>
-                {% if action is defined and (action['onclick'] ?? false) %}
+                {% if action and action['onclick'] ?? false %}
                     <td>
                         <button type="button"
                                 data-toggle="modal"

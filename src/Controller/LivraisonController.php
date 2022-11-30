@@ -122,7 +122,7 @@ class LivraisonController extends AbstractController {
 
         $lines = Stream::from($logisticsUnits)
             ->map(fn(Pack $logisticUnit) => [
-                'pack' => [
+                "pack" => [
                     "packId" => $logisticUnit->getId(),
                     "code" => $logisticUnit->getCode() ?? null,
                     "location" => $this->formatService->location($logisticUnit->getLastDrop()?->getEmplacement()),
@@ -131,25 +131,25 @@ class LivraisonController extends AbstractController {
                     "color" => $logisticUnit->getNature()?->getColor() ?? null,
                     "quantity" => $logisticUnit->getQuantity() ?? null,
                     "quantityArticleInLocation" => count($logisticUnit->getChildArticles()) ?? null,
-                    "articles" => Stream::from($preparationOrder->getArticleLines())
-                        ->filterMap(function(PreparationOrderArticleLine $line) use ($logisticUnit) {
-                            $article = $line->getArticle();
-                            if ($article->getCurrentLogisticUnit()?->getId() == $logisticUnit->getId()) {
-                                return [
-                                    "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
-                                    "barCode" => $article->getBarCode() ?: '',
-                                    "label" => $article->getLabel() ?: '',
-                                    "quantity" => $line->getPickedQuantity(),
-                                    "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                                        'id' => $article->getId(),
-                                    ]),
-                                ];
-                            } else {
-                                return null;
-                            }
-                        })
-                        ->toArray(),
                 ],
+                "articles" => Stream::from($preparationOrder->getArticleLines())
+                    ->filterMap(function(PreparationOrderArticleLine $line) use ($logisticUnit) {
+                        $article = $line->getArticle();
+                        if ($article->getCurrentLogisticUnit()?->getId() == $logisticUnit->getId()) {
+                            return [
+                                "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                                "barCode" => $article->getBarCode() ?: '',
+                                "label" => $article->getLabel() ?: '',
+                                "quantity" => $line->getPickedQuantity(),
+                                "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                                    'id' => $article->getId(),
+                                ]),
+                            ];
+                        } else {
+                            return null;
+                        }
+                    })
+                    ->toArray(),
             ])->toArray();
 
         return $this->json([

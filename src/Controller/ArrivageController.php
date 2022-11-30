@@ -1148,6 +1148,7 @@ class ArrivageController extends AbstractController {
                                                Request $request,
                                                EntityManagerInterface $entityManager,
                                                PDFGeneratorService $PDFGeneratorService,
+                                               PackService $packService,
                                                Pack $colis = null,
                                                array $packIdsFilter = []): Response
     {
@@ -1192,6 +1193,7 @@ class ArrivageController extends AbstractController {
             if ($printColis) {
                 $barcodeConfigs = $this->getBarcodeConfigPrintAllColis(
                     $arrivage,
+                    $packService,
                     $typeArrivalParamIsDefined,
                     $usernameParamIsDefined,
                     $dropzoneParamIsDefined,
@@ -1218,7 +1220,7 @@ class ArrivageController extends AbstractController {
             $total = $arrivage->getPacks()->count();
             $position = $arrivage->getPacks()->indexOf($colis) + 1;
 
-            $barcodeConfigs[] = $this->getBarcodeColisConfig(
+            $barcodeConfigs[] = $packService->getBarcodeColisConfig(
                 $colis,
                 $arrivage->getDestinataire(),
                 "$position/$total",
@@ -1266,6 +1268,7 @@ class ArrivageController extends AbstractController {
     }
 
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage,
+                                                   PackService $packService,
                                                    ?bool $typeArrivalParamIsDefined = false,
                                                    ?bool $usernameParamIsDefined = false,
                                                    ?bool $dropzoneParamIsDefined = false,
@@ -1283,7 +1286,7 @@ class ArrivageController extends AbstractController {
         foreach($arrivage->getPacks() as $index => $pack) {
             $position = $index + 1;
             if (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) {
-                $packs[] = $this->getBarcodeColisConfig(
+                $packs[] = $packService->getBarcodeColisConfig(
                     $pack,
                     $arrivage->getDestinataire(),
                     "$position/$total",
@@ -1301,109 +1304,6 @@ class ArrivageController extends AbstractController {
         }
 
         return $packs;
-    }
-
-    private function getBarcodeColisConfig(Pack $colis,
-                                           ?Utilisateur $destinataire,
-                                           ?string $packIndex = '',
-                                           ?bool $typeArrivalParamIsDefined = false,
-                                           ?bool $usernameParamIsDefined = false,
-                                           ?bool $dropzoneParamIsDefined = false,
-                                           ?bool $packCountParamIsDefined = false,
-                                           ?bool $commandAndProjectNumberIsDefined = false,
-                                           ?array $firstCustomIconConfig = null,
-                                           ?array $secondCustomIconConfig = null,
-                                           ?bool $businessUnitParam = false,
-                                           ?bool $projectParam = false,
-    ) {
-
-        $arrival = $colis->getArrivage();
-
-        $businessUnit = $businessUnitParam
-            ? $arrival->getBusinessUnit()
-            : '';
-
-        $project = $projectParam
-            ? $colis->getProject()?->getCode()
-            : '';
-
-        $arrivalType = $typeArrivalParamIsDefined
-            ? $this->getFormatter()->type($arrival->getType())
-            : '';
-
-        $recipientUsername = ($usernameParamIsDefined && $destinataire)
-            ? $destinataire->getUsername()
-            : '';
-
-        $dropZoneLabel = ($dropzoneParamIsDefined && $destinataire)
-            ? ($destinataire->getDropzone()
-                ? $destinataire->getDropzone()->getLabel()
-                : '')
-            : '';
-
-        $arrivalCommand = [];
-        $arrivalLine = "";
-        $i = 0;
-        foreach($arrival->getNumeroCommandeList() as $command) {
-            $arrivalLine .= $command;
-
-            if(++$i % 4 == 0) {
-                $arrivalCommand[] = $arrivalLine;
-                $arrivalLine = "";
-            } else {
-                $arrivalLine .= " ";
-            }
-        }
-
-        if(!empty($arrivalLine)) {
-            $arrivalCommand[] = $arrivalLine;
-        }
-
-        $arrivalProjectNumber = $arrival
-            ? ($arrival->getProjectNumber() ?? '')
-            : '';
-
-        $packLabel = ($packCountParamIsDefined ? $packIndex : '');
-
-        $usernameSeparator = ($recipientUsername && $dropZoneLabel) ? ' / ' : '';
-
-        $labels = [$arrivalType];
-
-        $labels[] = $recipientUsername . $usernameSeparator . $dropZoneLabel;
-
-        if ($commandAndProjectNumberIsDefined) {
-            if ($arrivalCommand && $arrivalProjectNumber) {
-                if(count($arrivalCommand) > 1) {
-                    $labels = array_merge($labels, $arrivalCommand);
-                    $labels[] = $arrivalProjectNumber;
-                } else if(count($arrivalCommand) == 1) {
-                    $labels[] = $arrivalCommand[0] . ' / ' . $arrivalProjectNumber;
-                }
-            } else if ($arrivalCommand) {
-                $labels = array_merge($labels, $arrivalCommand);
-            } else if ($arrivalProjectNumber) {
-                $labels[] = $arrivalProjectNumber;
-            }
-        }
-
-        if($businessUnitParam) {
-            $labels[] = $businessUnit;
-        }
-
-        if($projectParam) {
-            $labels[] = $project;
-        }
-
-        if ($packLabel) {
-            $labels[] = $packLabel;
-        }
-
-        return [
-            'code' => $colis->getCode(),
-            'labels' => $labels,
-            'firstCustomIcon' => $arrival->getCustoms() ? $firstCustomIconConfig : null,
-            'secondCustomIcon' => $arrival->getIsUrgent() ? $secondCustomIconConfig : null
-        ];
     }
 
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,

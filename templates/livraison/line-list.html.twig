@@ -5,19 +5,19 @@
             'line-id': logisticsUnit.packId
         },
         header: logisticsUnit
-        ? {
-            data: {
-                'pack-id': logisticsUnit.packId,
+            ? {
+                data: {
+                    'pack-id': logisticsUnit.packId,
+                },
+                sideLabel: logisticsUnit.nature,
+                color: logisticsUnit.color,
+                content: [
+                    {label: 'Unité logistique', value: logisticsUnit.code, bold: 'value'},
+                    {label: 'Emplacement', value: logisticsUnit.location, bold: 'label'},
+                    {label: 'Nombre d\'articles demandé', value: line.articles|length~'/'~logisticsUnit.quantityArticleInLocation, bold: 'label'}
+                ]
             },
-            sideLabel: logisticsUnit.nature,
-            color: logisticsUnit.color,
-            content: [
-                {label: 'Unité logistique', value: logisticsUnit.code, bold: 'value'},
-                {label: 'Emplacement', value: logisticsUnit.location, bold: 'label'},
-                {label: 'Nombre d\'articles demandé', value: logisticsUnit.articles|length~'/'~logisticsUnit.quantityArticleInLocation, bold: 'label'}
-            ]
-        },
-        content: logisticsUnit.articles,
+        content: line.articles,
         action: {
             icon: "",
             datatarget: "",
