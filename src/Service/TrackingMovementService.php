@@ -347,7 +347,10 @@ class TrackingMovementService extends AbstractController
 
         $pack->addTrackingMovement($tracking);
 
-        $pack->setLastTracking($tracking);
+        if ($pack->getLastTracking()?->getDatetime() <= $tracking->getDatetime()) {
+            $pack->setLastTracking($tracking);
+        }
+
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
         $this->manageTrackingFiles($tracking, $fileBag);
@@ -526,7 +529,7 @@ class TrackingMovementService extends AbstractController
             $packsAlreadyExisting->setLastDrop(null);
         }
 
-        if ($pack && $tracking->isDrop()) {
+        if ($pack && $tracking->isDrop() && $tracking->getDatetime() >= $pack->getLastDrop()->getDatetime()) {
             $pack->setLastDrop($tracking);
         }
 

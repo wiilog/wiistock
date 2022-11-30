@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\FreeField;
+use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -428,5 +429,23 @@ class TrackingMovementRepository extends EntityRepository
             'filtered' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    public function findLastTrackingMovement($pack,?Statut $type) {
+        $qb = $this->createQueryBuilder('tracking_movement');
+        $qb->select('tracking_movement')
+            ->leftJoin('tracking_movement.pack', 'pack')
+            ->andWhere('pack.id = :pack')
+            ->setParameter('pack', $pack)
+            ->orderBy('tracking_movement.datetime', 'DESC')
+            ->setMaxResults(1);
+
+        if ($type){
+            $qb->leftJoin('tracking_movement.type', 'type')
+                ->andWhere('type.id = :type')
+                ->setParameter('type', $type);
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
 }

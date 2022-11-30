@@ -370,6 +370,7 @@ class TrackingMovementController extends AbstractController
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $operator = $utilisateurRepository->find($post->get('operator'));
         $newLocation = $locationRepository->find($post->get('location'));
@@ -414,6 +415,10 @@ class TrackingMovementController extends AbstractController
                 $entityManager->persist($new);
                 $entityManager->remove($mvt);
                 $entityManager->flush();
+
+                $pack->setLastTracking($trackingMovementRepository->findLastTrackingMovement($pack, null));
+                $dropType =  $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
+                $pack->setLastDrop($trackingMovementRepository->findLastTrackingMovement($pack, $dropType));
 
                 $mvt = $new;
             } else {
