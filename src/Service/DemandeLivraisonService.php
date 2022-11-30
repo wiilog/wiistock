@@ -386,6 +386,7 @@ class DemandeLivraisonService
                 } else {
                     $refArticle = $articleLine->getArticle()->getArticleFournisseur()->getReferenceArticle();
                     $totalQuantity = $refArticle->getQuantiteDisponible();
+                    dump($refArticle->getBarCode());
                     $treshHold = ($article->getQuantite() > $totalQuantity)
                         ? $totalQuantity
                         : $article->getQuantite();
