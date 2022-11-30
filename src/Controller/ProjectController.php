@@ -10,7 +10,9 @@ use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ProjectHistoryRecord;
 use App\Entity\Utilisateur;
+use App\Service\CSVExportService;
 use App\Service\ProjectService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -164,5 +166,29 @@ class ProjectController extends AbstractController
             "success" => true,
             "msg" => "Le projet a bien été supprimé"
         ]);
+    }
+
+
+    /**
+     * @Route("/csv", name="get_projects_csv", options={"expose"=true}, methods={"GET"})
+     */
+    public function getProjectsCSV(CSVExportService $CSVExportService, EntityManagerInterface $entityManager): Response {
+        $csvHeader = [
+            "Code",
+            "Description",
+            "Chef de projet",
+            "Actif",
+        ];
+
+        $today = new DateTime();
+        $today = $today->format("d-m-Y-H-i-s");
+
+        return $CSVExportService->streamResponse(function ($output) use ($entityManager, $CSVExportService) {
+            $projects = $entityManager->getRepository(Project::class)->iterateAll();
+
+            foreach ($projects as $project) {
+                $CSVExportService->putLine($output, $project->serialize());
+            }
+        }, "export-projects-$today.csv", $csvHeader);
     }
 }

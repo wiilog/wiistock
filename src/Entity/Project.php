@@ -79,4 +79,13 @@ class Project {
         return $this;
     }
 
+    public function serialize(): array {
+        return [
+            "code" => $this->getCode(),
+            "description" => str_replace(["\r", "\n"], '', $this->getDescription()),
+            "projectManager" => $this->getProjectManager(),
+            "isActive" => $this->isActive() ? 'oui' : 'non',
+        ];
+    }
+
 }
