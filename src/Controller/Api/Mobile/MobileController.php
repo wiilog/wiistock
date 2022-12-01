@@ -2129,19 +2129,26 @@ class MobileController extends AbstractApiController
     {
         $articlesRepository = $entityManager->getRepository(Article::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
 
         $articles = json_decode($request->request->get('articles'));
 
         $articlesEntites = Stream::from($articles)
             ->map(fn(string $barCode) => $articlesRepository->findOneBy(['barCode' => $barCode]))
+            ->filter()
             ->toArray();
 
         $luToDropIn = $request->request->get('lu');
+
+        $luToDropInEntity = $packRepository->findOneBy([
+            'code' => $luToDropIn
+        ]);
+
         $location = $request->request->get('location');
 
         $trackingMovementService->persistLogisticUnitMovements(
             $entityManager,
-            $luToDropIn,
+            $luToDropInEntity ?? $luToDropIn,
             $locationRepository->findOneBy(['label' => $location]),
             $articlesEntites,
             $this->getUser(),
