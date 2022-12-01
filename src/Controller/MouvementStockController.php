@@ -100,8 +100,7 @@ class MouvementStockController extends AbstractController
     public function new(Request $request,
                         MouvementStockService $mouvementStockService,
                         TrackingMovementService $trackingMovementService,
-                        EntityManagerInterface $entityManager,
-                        ProjectHistoryRecordService $projectHistoryRecordService): Response
+                        EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
