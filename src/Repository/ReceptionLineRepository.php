@@ -2,10 +2,12 @@
 
 namespace App\Repository;
 
+use App\Entity\Pack;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -127,5 +129,55 @@ class ReceptionLineRepository extends EntityRepository {
             "data" => $result->values(),
             "total" => $total ?? 0
         ];
+    }
+
+    public function getForSelectFromReception(?string $term,
+                                              ?int    $reception,
+                                              array $options = []): array {
+        $reference = $options['reference'] ?? null;
+        $orderNumber = $options['order-number'] ?? null;
+        $includeEmpty = $options['include-empty'] ?? false;
+
+        $queryBuilder = $this->createQueryBuilder("reception_line")
+            ->distinct()
+            ->select("IF(pack.id IS NOT NULL, pack.id, -1) AS id")
+            ->addSelect("IF(pack.code IS NOT NULL, pack.code, '&nbsp;') AS text")
+            ->leftJoin(Pack::class, "pack", Join::WITH, "reception_line.pack = pack")
+            ->join("reception_line.reception",  "reception")
+            ->andWhere("reception.id = :reception")
+            ->setParameter("reception", $reception)
+            ->setMaxResults(100);
+
+        if (!$includeEmpty) {
+            $queryBuilder->andWhere('pack.id IS NOT NULL');
+        }
+
+        if (!$includeEmpty || $term) {
+            $queryBuilder
+                ->andWhere("pack.code LIKE :term")
+                ->setParameter("term", "%$term%");
+        }
+
+        if ($orderNumber) {
+            $queryBuilder
+                ->join("reception_line.receptionReferenceArticles",  "receptionReferenceArticle")
+                ->andWhere("receptionReferenceArticle.commande = :orderNumber")
+                ->setParameter("orderNumber", $orderNumber);
+        }
+
+        if ($reference) {
+            if (!$orderNumber) {
+                $queryBuilder
+                    ->join("reception_line.receptionReferenceArticles",  "receptionReferenceArticle");
+            }
+            $queryBuilder
+                ->join("receptionReferenceArticle.referenceArticle",  "referenceArticle")
+                ->andWhere("referenceArticle.reference = :reference")
+                ->setParameter("reference", $reference);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getArrayResult();
     }
 }
