@@ -220,7 +220,7 @@ class TranslationService {
                 }
 
                 if($translation) {
-                    $zoomedTranslations[$original->getTranslation()] = $translation->getTranslation();
+                    $zoomedTranslations[$original->getTranslation()] = strip_tags($translation->getTranslation());
                 }
             }
 

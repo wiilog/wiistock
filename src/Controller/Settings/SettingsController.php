@@ -797,7 +797,7 @@ class SettingsController extends AbstractController {
 
         foreach ($translations as $translation) {
            $id = $translation->id;
-           $value = $translation->value;
+           $value = strip_tags($translation->value);
            $source = $translationSourceRepository->find($translation->source);
            if ($id != null or $id != '') {
                $translation= $translationRepository->find($id);
