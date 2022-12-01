@@ -160,9 +160,6 @@ class Reception {
         return $this;
     }
 
-
-
-
     public function getFournisseur(): ?Fournisseur {
         return $this->fournisseur;
     }

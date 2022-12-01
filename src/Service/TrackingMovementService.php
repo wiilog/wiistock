@@ -331,6 +331,7 @@ class TrackingMovementService extends AbstractController
         $fileBag = $options['fileBag'] ?? null;
         $quantity = $options['quantity'] ?? 1;
         $from = $options['from'] ?? null;
+        $refOrArticle = $options['refOrArticle'] ?? null;
         $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
         $natureId = $options['natureId'] ?? null;
@@ -371,7 +372,11 @@ class TrackingMovementService extends AbstractController
         }
 
         $this->managePackLinksWithTracking($entityManager, $tracking);
-        $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
+        $this->manageTrackingLinks($entityManager, $tracking, [
+            "from" => $from,
+            "receptionReferenceArticle" => $receptionReferenceArticle,
+            "refOrArticle" => $refOrArticle
+        ]);
         $this->manageTrackingFiles($tracking, $fileBag);
 
         if (!$disableUngrouping
@@ -407,8 +412,11 @@ class TrackingMovementService extends AbstractController
 
     private function manageTrackingLinks(EntityManagerInterface $entityManager,
                                          TrackingMovement $tracking,
-                                         $from,
-                                         $receptionReferenceArticle) {
+                                         array $options) {
+
+        $from = $options['from'] ?? null;
+        $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
+        $refOrArticle = $options['refOrArticle'] ?? null;
 
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -420,7 +428,8 @@ class TrackingMovementService extends AbstractController
             $alreadyLinkedReferenceArticle = $pack->getReferenceArticle();
             if (!isset($alreadyLinkedArticle) && !isset($alreadyLinkedReferenceArticle)) {
                 $refOrArticle = (
-                    $referenceArticleRepository->findOneBy(['barCode' => $packCode])
+                    $refOrArticle
+                    ?: $referenceArticleRepository->findOneBy(['barCode' => $packCode])
                     ?: $articleRepository->findOneBy(['barCode' => $packCode])
                 );
 
@@ -1217,10 +1226,11 @@ class TrackingMovementService extends AbstractController
         $movements = [];
         $inCarts = [];
 
-        $now = new DateTime();
+        $trackingDate = $options['trackingDate'] ?? new DateTime();
 
         // clear given options articles
         unset($options['articles']);
+        unset($options['trackingDate']);
 
         if(is_string($pack)) {
             $pack = $this->packService->persistPack($manager, $pack, 1);
@@ -1229,7 +1239,7 @@ class TrackingMovementService extends AbstractController
                 $pack,
                 $dropLocation,
                 $user,
-                $now,
+                $trackingDate,
                 true,
                 TrackingMovement::TYPE_DEPOSE,
                 false,
@@ -1267,7 +1277,7 @@ class TrackingMovementService extends AbstractController
             }
 
             if($pack->getProject()) {
-                $this->projectHistoryRecordService->changeProject($manager, $article, $pack->getProject(), $now);
+                $this->projectHistoryRecordService->changeProject($manager, $article, $pack->getProject(), $trackingDate);
             }
 
             $pack->setArticleContainer(true);
@@ -1280,7 +1290,7 @@ class TrackingMovementService extends AbstractController
                     $trackingPack,
                     $pickLocation,
                     $user,
-                    $now,
+                    $trackingDate,
                     true,
                     TrackingMovement::TYPE_PRISE,
                     false,
@@ -1298,7 +1308,7 @@ class TrackingMovementService extends AbstractController
                     $trackingPack,
                     $pickLocation,
                     $user,
-                    $now,
+                    $trackingDate,
                     true,
                     TrackingMovement::TYPE_PICK_LU,
                     false,
@@ -1314,7 +1324,7 @@ class TrackingMovementService extends AbstractController
             //now the pick LU movement is done, set the logistic unit
             $article->setCurrentLogisticUnit($pack);
             //then change the project of the article according to the pack project
-            $this->projectHistoryRecordService->changeProject($manager, $article, $pack->getProject(), $now);
+            $this->projectHistoryRecordService->changeProject($manager, $article, $pack->getProject(), $trackingDate);
 
             if ($isUnitChanges || $isLocationChanges) {
                 //generate drop movements
@@ -1324,7 +1334,7 @@ class TrackingMovementService extends AbstractController
                     $trackingPack,
                     $dropLocation,
                     $user,
-                    $now,
+                    $trackingDate,
                     true,
                     TrackingMovement::TYPE_DEPOSE,
                     false,
@@ -1341,7 +1351,7 @@ class TrackingMovementService extends AbstractController
                 $trackingPack,
                 $dropLocation,
                 $user,
-                $now,
+                $trackingDate,
                 true,
                 TrackingMovement::TYPE_DROP_LU,
                 false,
@@ -1365,7 +1375,7 @@ class TrackingMovementService extends AbstractController
                     ['from' => $options['from'] ?? null]
                 );
 
-                $this->stockMovementService->finishMouvementStock($stockMovement, $now, $dropLocation);
+                $this->stockMovementService->finishMouvementStock($stockMovement, $trackingDate, $dropLocation);
                 $article->setEmplacement($dropLocation);
 
                 $drop->setMouvementStock($stockMovement);

@@ -49,6 +49,7 @@ use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\ReceptionLineService;
+use App\Service\ReceptionReferenceArticleService;
 use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
@@ -563,10 +564,11 @@ class ReceptionController extends AbstractController {
      * @Route("/new-reception-reference-article", name="reception_reference_article_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function newReceptionReferenceArticle(EntityManagerInterface $entityManager,
-                                                 ReceptionService       $receptionService,
-                                                 ReceptionLineService   $receptionLineService,
-                                                 Request                $request): Response {
+    public function newReceptionReferenceArticle(EntityManagerInterface           $entityManager,
+                                                 ReceptionService                 $receptionService,
+                                                 ReceptionLineService             $receptionLineService,
+                                                 ReceptionReferenceArticleService $receptionReferenceArticleService,
+                                                 Request                          $request): Response {
         if ($contentData = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -650,7 +652,7 @@ class ReceptionController extends AbstractController {
                 $json = [
                     'success' => true,
                     'msg' => 'La référence <strong>' . $refArticle->getReference() . '</strong> a bien été ajoutée.',
-                    'receptionReferenceArticle' => $receptionReferenceArticle->getId(),
+                    'receptionReferenceArticle' => $receptionReferenceArticleService->serializeForSelect($receptionReferenceArticle),
                     'entete' => $this->renderView('reception/show/header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,
@@ -925,45 +927,32 @@ class ReceptionController extends AbstractController {
     /**
      * @Route("/autocomplete-ref-art/{reception}", name="get_ref_article_reception", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
-    public function getRefTypeQtyArticle(Request $request,
-                                         Reception $reception,
-                                         EntityManagerInterface $entityManager,
-                                         RefArticleDataService $refArticleDataService) {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-        $articlesFournisseurArrays = [];
+    public function getRefTypeQtyArticle(Reception                        $reception,
+                                         ReceptionReferenceArticleService $receptionReferenceArticleService) {
 
-        $receptionReferenceArticleId = $request->query->get('id');
-        $receptionReferenceArticle = $receptionReferenceArticleId
-            ? $receptionReferenceArticleRepository->find($receptionReferenceArticleId)
-            : null;
-
-        $ref = array_map(
-            function($item) use ($articleFournisseurRepository, &$articlesFournisseurArrays, $refArticleDataService) {
-                if(!isset($articlesFournisseurArrays[$item['reference']])) {
-                    $articlesFournisseurArrays[$item['reference']] = $articleFournisseurRepository->getIdAndLibelleByRefRef($item['reference']);
-                }
-                return [
-                    'id' => $item['id'],
-                    'reference' => $item['reference'],
-                    'commande' => $item['commande'],
-                    'packCode' => $item['packCode'],
-                    'packId' => $item['packId'],
-                    'packProject' => $item['packProject'],
-                    'defaultArticleFournisseur' => count($articlesFournisseurArrays[$item['reference']]) === 1
-                        ? [
-                            'text' => $articlesFournisseurArrays[$item['reference']][0]['reference'],
-                            'value' => $articlesFournisseurArrays[$item['reference']][0]['id'],
-                        ]
-                        : null,
-                    'text' => "{$item['reference']} – {$item['commande']}" . ($item['packCode'] ? " – {$item['packCode']}" : ''),
-                ];
-            },
-            $referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId(), $receptionReferenceArticle)
-        );
-
-        return new JsonResponse(['results' => $ref]);
+        return $this->json([
+            'results' => Stream::from($reception->getLines())
+                ->flatMap(fn(ReceptionLine $line) => $line->getReceptionReferenceArticles())
+                ->filter(fn(ReceptionReferenceArticle $receptionReferenceArticle) => (
+                    $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
+                    && (
+                        !$receptionReferenceArticle->getQuantite()
+                        ||$receptionReferenceArticle->getQuantiteAR() > $receptionReferenceArticle->getQuantite()
+                    )
+                ))
+                ->keymap(fn(ReceptionReferenceArticle $receptionReferenceArticle) => [
+                    "{$receptionReferenceArticle->getReferenceArticle()->getReference()}-{$receptionReferenceArticle->getCommande()}",
+                    $receptionReferenceArticleService->serializeForSelect($receptionReferenceArticle)
+                ], true)
+                ->map(function(array $references) {
+                    $reference = $references[0];
+                    if (count($references) > 1) {
+                        unset($reference['pack']);
+                    }
+                    return $reference;
+                })
+                ->values()
+        ]);
     }
 
     /**
@@ -1649,6 +1638,7 @@ class ReceptionController extends AbstractController {
                                    LivraisonsManagerService   $livraisonsManagerService): Response {
 
         $now = new DateTime('now');
+
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
@@ -1657,7 +1647,6 @@ class ReceptionController extends AbstractController {
 
         $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -1668,23 +1657,11 @@ class ReceptionController extends AbstractController {
         $demande = null;
 
         $totalQuantities = [];
-        $cache = [
-            'receptionReferenceArticles' => [],
-            'packs' => [],
-        ];
+        $cache = ['receptionReferenceArticles' => [],];
 
         //checking values and retrieves entities
         foreach($articles as &$articleArray) {
             $receptionReferenceArticleId = $articleArray['receptionReferenceArticle'];
-            $packId = $articleArray['pack'] ?? null;
-
-            if (!isset($cache['packs'][$packId]) && $packId) {
-                $pack = $packRepository->find($packId);
-                $cache['packs'][$packId] = $pack;
-            }
-            else {
-                $pack = $cache['packs'][$packId] ?? null;
-            }
 
             if (!isset($cache['receptionReferenceArticles'][$receptionReferenceArticleId])) {
                 $receptionReferenceArticle = $receptionReferenceArticleRepository->find($receptionReferenceArticleId);
@@ -1696,25 +1673,6 @@ class ReceptionController extends AbstractController {
 
             $articleArray['receptionReferenceArticle'] = $receptionReferenceArticle;
             $articleArray['refArticle'] = $receptionReferenceArticle->getReferenceArticle();
-            $articleArray['pack'] = $pack;
-
-            $receptionLinePack = $receptionReferenceArticle->getReceptionLine()->getPack();
-
-            if ($receptionLinePack?->getId() !== $pack?->getId()) {
-                if ($receptionLinePack) {
-                    throw new FormException("Vous ne pouvez pas changer l'unité logistique de cette référence");
-                }
-                else {
-                    $receptionLine = $reception->getLine($pack);
-                    if (!$receptionLine) {
-                        throw new FormException("L'unité logistique n'est pas présente dans la réception");
-                    }
-                    else if ($receptionLine->getReceptionReferenceArticle($receptionReferenceArticle->getReferenceArticle(), $receptionReferenceArticle->getCommande())) {
-                        throw new FormException("La référence et le numéro de commande sont déjà associés à l'unité logistique sélectionnée");
-                    }
-                }
-                $articleArray['receptionLineChanged'] = true;
-            }
 
             if(!isset($totalQuantities[$receptionReferenceArticle->getId()])) {
                 $totalQuantities[$receptionReferenceArticle->getId()] = [
@@ -1854,14 +1812,9 @@ class ReceptionController extends AbstractController {
             /** @var ReceptionReferenceArticle $receptionReferenceArticle */
             $receptionReferenceArticle = $articleArray['receptionReferenceArticle'];
             /** @var Pack|null $pack */
-            $pack = $articleArray['pack'];
+            $pack = $receptionReferenceArticle->getReceptionLine()->getPack();
             /** @var ReferenceArticle $referenceArticle */
             $referenceArticle = $articleArray['refArticle'];
-
-            if ($articleArray['receptionLineChanged'] ?? false) {
-                $receptionLine = $reception->getLine($pack);
-                $receptionReferenceArticle->setReceptionLine($receptionLine);
-            }
 
             if(isset($receptionLocationId)) {
                 $articleArray['emplacement'] = $receptionLocationId;
@@ -1919,16 +1872,12 @@ class ReceptionController extends AbstractController {
                 );
                 $mouvementStock->setReceptionOrder($reception);
 
-                $mouvementStockService->finishMouvementStock(
-                    $mouvementStock,
-                    $now,
-                    $receptionLocation
-                );
+                $mouvementStockService->finishMouvementStock($mouvementStock, $now, $receptionLocation);
 
                 $entityManager->persist($mouvementStock);
                 if ($receptionLocation) {
                     $createdMvt = $trackingMovementService->createTrackingMovement(
-                        $article->getBarCode(),
+                        $article->getTrackingPack() ?? $article->getBarCode(),
                         $receptionLocation,
                         $currentUser,
                         $now,
@@ -1939,6 +1888,7 @@ class ReceptionController extends AbstractController {
                             'mouvementStock' => $mouvementStock,
                             'quantity' => $mouvementStock->getQuantity(),
                             'from' => $reception,
+                            "refOrArticle" => $article
                         ]
                     );
 
@@ -1958,7 +1908,10 @@ class ReceptionController extends AbstractController {
                     $pack->getLastDrop()?->getEmplacement(),
                     $createdLoopArticles,
                     $currentUser,
-                    ['from' => $reception,]
+                    [
+                        'from' => $reception,
+                        'trackingDate' => $now
+                    ]
                 );
                 if ($createDirectDelivery && isset($delivery) && isset($preparation)) {
                     foreach ($createdLoopArticles as $article) {
@@ -2126,28 +2079,41 @@ class ReceptionController extends AbstractController {
         );
     }
 
-    #[Route("/packing-template", name: "packing_template", options: ['expose' => true], methods: "GET")]
+    #[Route("/{reception}/packing-article-form-template", name: "packing_article_form_template", options: ['expose' => true], methods: "GET")]
     public function packingTemplate(Request                $request,
-                                    EntityManagerInterface $manager): Response {
-        $receptionReferenceArticleId = $request->query->get('receptionReferenceArticle');
+                                    Reception              $reception,
+                                    EntityManagerInterface $entityManager): Response {
+        $reference = $request->query->get('reference');
+        $orderNumber = $request->query->get('orderNumber');
         $packId = $request->query->get('pack');
         $supplierReference = $request->query->get('supplierReference');
 
-        $freeFieldRepository = $manager->getRepository(FreeField::class);
-        $supplierReferenceRepository = $manager->getRepository(ArticleFournisseur::class);
-        $receptionReferenceArticleRepository = $manager->getRepository(ReceptionReferenceArticle::class);
-        $packRepository = $manager->getRepository(Pack::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $supplierReferenceRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
 
-        $pack = $packId ? $packRepository->find($packId) : null;
-        $receptionReferenceArticle = $receptionReferenceArticleRepository->find($receptionReferenceArticleId);
+        // pack could be equal to -1
+        $pack = $packId > 0 ? $packRepository->find($packId) : null;
+        $referenceArticle = $reference ? $referenceArticleRepository->findOneBy(['reference' => $reference]) : null;
         $supplierReference = $supplierReferenceRepository->find($supplierReference);
 
-        $reference = $receptionReferenceArticle->getReferenceArticle();
-        $type = $reference->getType();
+        $receptionLine = $reception->getLine($pack);
+        $receptionReferenceArticle = $receptionLine?->getReceptionReferenceArticle($referenceArticle, $orderNumber);
+
+        if (!$referenceArticle || !$receptionReferenceArticle || !$supplierReference) {
+            return $this->json([
+                'success' => true, // success: we do not display error to the user
+                'template' => '',
+            ]);
+        }
+
+        $type = $referenceArticle->getType();
         $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
 
         return $this->json([
-            'template' => $this->renderView('reception/show/packing_content.html.twig', [
+            'success' => true,
+            'template' => $this->renderView('reception/show/packing/article-form.html.twig', [
                 'freeFields' => $freeFields,
                 'receptionReferenceArticle' => $receptionReferenceArticle,
                 'selectedPack' => $pack,
@@ -2156,7 +2122,7 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    #[Route("/packing-articles-template", name: "get_packing_article_template", options: ['expose' => true], methods: "GET")]
+    #[Route("/packing-articles-template", name: "get_packing_articles_template", options: ['expose' => true], methods: "GET")]
     public function getPackingArticlesTemplate(Request                $request,
                                                EntityManagerInterface $manager): Response {
         $data = json_decode($request->query->get('params'), true);
@@ -2204,7 +2170,7 @@ class ReceptionController extends AbstractController {
         $packLocation = $pack?->getLastDrop()?->getEmplacement()?->getId();
 
         return $this->json([
-           'template' => $this->renderView('reception/show/packing_article_template.html.twig', [
+           'template' => $this->renderView('reception/show/packing/articles_template.html.twig', [
                'pack' => $pack,
                'receptionReferenceArticle' => $receptionReferenceArticle,
                'quantityToReceive' => $data['quantityToReceive'],
@@ -2224,7 +2190,8 @@ class ReceptionController extends AbstractController {
                        'receptionReferenceArticle' => $receptionReferenceArticle->getId(),
                        'pack' => $pack?->getId(),
                        'articleFournisseur' => $supplierReference ? $supplierReference->getId() : '',
-                   ] + $freeFieldsValues,
+                   ]
+                   + $freeFieldsValues,
            ]),
         ]);
     }
