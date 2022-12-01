@@ -507,7 +507,7 @@ class TrackingMovementService extends AbstractController
             $packsAlreadyExisting->setLastDrop(null);
         }
 
-        if ($pack && $tracking->isDrop() && $tracking->getDatetime() >= $pack->getLastDrop()->getDatetime()) {
+        if ($pack && $tracking->isDrop() && $tracking->getDatetime() >= $pack->getLastDrop()?->getDatetime()) {
             $pack->setLastDrop($tracking);
         }
 
@@ -1002,6 +1002,11 @@ class TrackingMovementService extends AbstractController
         }
 
         $movementType = $movement->getType();
+        if (($options['ignoreProjectChange'] ?? false)
+            && $movementType?->getCode() === TrackingMovement::TYPE_DEPOSE
+            && $movement->getPack()->getArticle()) {
+            $this->projectHistoryRecordService->changeProject($entityManager, $movement->getPack(), null, $date);
+        }
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
         if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && ($location && !$location->ableToBeDropOff($movement->getPack()))) {
@@ -1296,6 +1301,8 @@ class TrackingMovementService extends AbstractController
 
             //now the pick LU movement is done, set the logistic unit
             $article->setCurrentLogisticUnit($pack);
+            //then change the project of the article according to the pack project
+            $this->projectHistoryRecordService->changeProject($manager, $article, $pack->getProject(), $now);
 
             if ($isUnitChanges || $isLocationChanges) {
                 //generate drop movements
@@ -1309,7 +1316,7 @@ class TrackingMovementService extends AbstractController
                     true,
                     TrackingMovement::TYPE_DEPOSE,
                     false,
-                    $options,
+                    $options + ['ignoreProjectChange' => true],
                 )["movement"];
 
                 $movements[] = $drop;

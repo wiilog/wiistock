@@ -17,6 +17,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\MouvementStockService;
+use App\Service\ProjectHistoryRecordService;
 use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -99,7 +100,8 @@ class MouvementStockController extends AbstractController
     public function new(Request $request,
                         MouvementStockService $mouvementStockService,
                         TrackingMovementService $trackingMovementService,
-                        EntityManagerInterface $entityManager): Response
+                        EntityManagerInterface $entityManager,
+                        ProjectHistoryRecordService $projectHistoryRecordService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);

@@ -20,7 +20,7 @@ class ProjectHistoryRecordService {
 
     public function changeProject(EntityManagerInterface $entityManager,
                                   Article|Pack           $item,
-                                  ?Project                $project,
+                                  ?Project               $project,
                                   DateTime               $recordDate): ?ProjectHistoryRecord {
 
         /** @var Pack $trackingPack */
