@@ -2197,6 +2197,7 @@ class ReceptionController extends AbstractController {
                             : $value)));
                 return [$freeField->getLabel(), $formattedValue];
             })
+            ->ksort()
             ->toArray();
 
         $receptionLocation = $reception->getLocation()?->getId();
