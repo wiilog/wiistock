@@ -52,7 +52,7 @@
                     <td>
                         <button type="button"
                                 data-toggle="modal"
-                                data-target="{{ action.datatarget }}"
+                                {% if action.datatarget ?? false %}data-target="{{ action.datatarget }}"{% endif %}
                                 class="btn btn-outline-primary ml-2 h-100 p-1"
                                 onclick="{{ action.onclick }}">
                             <i class="{{ action.icon }}"></i>

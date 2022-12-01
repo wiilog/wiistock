@@ -50,7 +50,7 @@ $(function () {
 function loadLogisticUnitList(preparationId) {
     const $logisticUnitsContainer = $('.logistic-units-container');
     wrapLoadingOnActionButton($logisticUnitsContainer, () => (
-        AJAX.route('GET', 'preparation_order_logistic_unit_api', {id: preparationId})
+        AJAX.route('GET', 'preparation_order_logistics_unit_api', {id: preparationId})
             .json()
             .then(({html}) => {
                 $logisticUnitsContainer.html(html);
@@ -298,8 +298,8 @@ function finishPrepa($button) {
         data.push(Array.from(table.column('pickedQuantity:name').data()));
     });
 
-    const canProceed = data.reduce((elem, total) => total + elem) > 0;
-    if (canProceed) {
+    const canProceed = data.reduce((total, elem) => total + elem) > 0;
+    if (!canProceed) {
         showBSAlert('Veuillez sélectionner au moins une ligne.', 'danger');
     } else if (!$button.hasClass('loading')) {
         clearValidatePreparationModal();

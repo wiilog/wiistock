@@ -139,9 +139,9 @@ class PreparationController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/preparation-order-logistic-unit-api", name: "preparation_order_logistic_unit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/preparation-order-logistics-unit-api", name: "preparation_order_logistics_unit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA], mode: HasPermission::IN_JSON)]
-    public function logisticUnitApi(Request $request, EntityManagerInterface $manager): Response {
+    public function logisticsUnitApi(Request $request, EntityManagerInterface $manager): Response {
         $preparationOrder = $manager->find(Preparation::class, $request->query->get('id'));
         $logisticsUnits = [null];
         foreach ($preparationOrder->getArticleLines() as $articleLine) {

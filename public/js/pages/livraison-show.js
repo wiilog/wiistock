@@ -10,7 +10,7 @@ $(function () {
 function loadLogisticUnitPack(deliveryId) {
     const $logisticUnitsContainer = $('.logistic-units-container');
     wrapLoadingOnActionButton($logisticUnitsContainer, () => (
-            AJAX.route('GET', 'delivery_order_logistic_unit_api', {id: deliveryId})
+            AJAX.route('GET', 'delivery_order_logistics_unit_api', {id: deliveryId})
                 .json()
                 .then(({html}) => {
                     $logisticUnitsContainer.html(html);

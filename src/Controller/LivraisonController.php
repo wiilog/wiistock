@@ -14,6 +14,7 @@ use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -111,31 +112,35 @@ class LivraisonController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    #[Route("/delivery-order-logistic-unit-api", name: "delivery_order_logistic_unit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/delivery-order-logistics-unit-api", name: "delivery_order_logistics_unit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR], mode: HasPermission::IN_JSON)]
-    public function logisticUnitApi(Request $request, EntityManagerInterface $manager): Response {
+    public function logisticsUnitApi(Request $request, EntityManagerInterface $manager): Response {
         $deliveryOrder = $manager->find(Livraison::class, $request->query->get('id'));
         $preparationOrder = $deliveryOrder->getPreparation();
-        $logisticsUnits = Stream::from($preparationOrder->getArticleLines())
-            ->filterMap(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack())
-            ->unique();
+        $logisticsUnits = [null];
+        foreach ($preparationOrder->getArticleLines() as $articleLine) {
+            $article = $articleLine->getArticle();
+            if ($article->getCurrentLogisticUnit() && !in_array($article->getCurrentLogisticUnit(), $logisticsUnits)) {
+                $logisticsUnits[] = $article->getCurrentLogisticUnit();
+            }
+        }
 
         $lines = Stream::from($logisticsUnits)
-            ->map(fn(Pack $logisticUnit) => [
+            ->map(fn(?Pack $logisticUnit) => [
                 "pack" => [
-                    "packId" => $logisticUnit->getId(),
-                    "code" => $logisticUnit->getCode() ?? null,
-                    "location" => $this->formatService->location($logisticUnit->getLastDrop()?->getEmplacement()),
-                    "project" => $logisticUnit->getProject()?->getCode() ?? null,
-                    "nature" => $this->formatService->nature($logisticUnit->getNature()),
-                    "color" => $logisticUnit->getNature()?->getColor() ?? null,
-                    "quantity" => $logisticUnit->getQuantity() ?? null,
-                    "quantityArticleInLocation" => count($logisticUnit->getChildArticles()) ?? null,
+                    "packId" => $logisticUnit?->getId(),
+                    "code" => $logisticUnit?->getCode() ?? null,
+                    "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
+                    "project" => $logisticUnit?->getProject()?->getCode() ?? null,
+                    "nature" => $this->formatService->nature($logisticUnit?->getNature()),
+                    "color" => $logisticUnit?->getNature()?->getColor() ?? null,
+                    "quantity" => $logisticUnit?->getQuantity() ?? null,
+                    "quantityArticleInLocation" => $logisticUnit?->getChildArticles() ? count($logisticUnit?->getChildArticles()) : null,
                 ],
                 "articles" => Stream::from($preparationOrder->getArticleLines())
                     ->filterMap(function(PreparationOrderArticleLine $line) use ($logisticUnit) {
                         $article = $line->getArticle();
-                        if ($article->getCurrentLogisticUnit()?->getId() == $logisticUnit->getId()) {
+                        if ($logisticUnit && $article->getCurrentLogisticUnit()?->getId() == $logisticUnit->getId()) {
                             return [
                                 "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
                                 "barCode" => $article->getBarCode() ?: '',
@@ -152,6 +157,23 @@ class LivraisonController extends AbstractController {
                     ->toArray(),
             ])->toArray();
 
+        $references = Stream::from($preparationOrder->getReferenceLines())
+            ->map(function(PreparationOrderReferenceLine $line) {
+                $reference = $line->getReference();
+                return [
+                    "reference" => $reference->getReference(),
+                    "label" => $reference->getLibelle(),
+                    "barCode" => $reference->getBarCode() ?: '',
+                    "location" => $this->formatService->location($reference->getEmplacement()),
+                    "quantity" => $line->getPickedQuantity(),
+                    "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                        'refArticleId' => $reference->getId(),
+                    ]),
+                ];
+            })
+            ->toArray();
+
+        $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
         return $this->json([
             "success" => true,
             "html" => $this->renderView("livraison/line-list.html.twig", [

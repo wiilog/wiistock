@@ -34,12 +34,6 @@
                     classes: not logisticUnit.alreadyTreated ? "pointer" : "treated-line"
                 },
             content: line.articles,
-            action: logisticUnit
-            ? [{
-                icon: 'wii-icon wii-icon-trash-black',
-                datatarget: "#modalDeleteArticle",
-                onclick: "removeLogisticUnitLine(" ~ logisticUnit.packId ~ ", 'unit')",
-            }, ]
         } %}
     {% endfor %}
 {% else %}
