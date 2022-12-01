@@ -294,19 +294,19 @@ export default class Select2 {
     }
 
     static destroy($element) {
-        if ($element.is(`[data-s2-initialized]`)
-            && $element.is(`.select2-hidden-accessible`)) {
+        if ($element.is(`.select2-hidden-accessible`)) {
             $element.val(null).html(``);
             $element.select2(`data`, null);
             $element.select2(`destroy`);
 
-            const type = $element.data(`s2-initialized`);
-            $element
-                .attr(`data-s2`, type)
-                .data(`s2`, type);
-            $element
-                .removeAttr(`data-s2-initialized`)
-                .removeData(`s2-initialized`);
+            if ($element.is(`[data-s2-initialized]`)) {
+                const type = $element.data(`s2-initialized`);
+                $element
+                    .attr(`data-s2`, type)
+                    .data(`s2`, type)
+                    .removeAttr(`data-s2-initialized`)
+                    .removeData(`s2-initialized`);
+            }
         }
     }
 

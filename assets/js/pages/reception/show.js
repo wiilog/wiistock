@@ -683,7 +683,7 @@ function onReferenceToReceiveChange() {
     const $selectPackFormGroup = $selectPack.closest('.form-group');
 
     if (referenceToReceive) {
-        const {reference, orderNumber, pack, defaultArticleFournisseur} = referenceToReceive;
+        let {reference, orderNumber, pack, defaultArticleFournisseur} = referenceToReceive;
 
         $selectPack
             .data('other-params-reference', reference)
@@ -694,7 +694,11 @@ function onReferenceToReceiveChange() {
         // remove old options
         Select2.reload($selectPack)
 
-        if (pack) {
+        // if the reference is only in the reception without a pack
+        // => pack == null
+        // else if there are multiple pack associated pack === undefined
+        if (pack !== undefined) {
+            pack = (pack || {});
             $selectPack
                 .prop('disabled', true)
                 .append(new Option(pack.code || "&nbsp;", pack.id || `-1`, true, true));

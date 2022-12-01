@@ -4,17 +4,16 @@
         <label for="reference" class="wii-field-name">
             {{ trans('Stock', 'Références', 'référence') }}*
         </label>
-        {% set isLigneArticleEditable = receptionReferenceArticle.quantite is empty or receptionReferenceArticle.quantite == 0 %}
-        <select class="{{ isLigneArticleEditable ? 'ajax-autocomplete-edit' }} data form-control needed"
+        <select class="{{ not receptionReferenceArticle.receptionBegun ? 'ajax-autocomplete-edit' }} data form-control needed"
                 name="referenceArticle"
-                {{ not isLigneArticleEditable ? 'disabled' }}>
+                {{ receptionReferenceArticle.receptionBegun ? 'disabled' }}>
             <option value="{{receptionReferenceArticle.referenceArticle.id}}">{{receptionReferenceArticle.referenceArticle.reference}}</option>
         </select>
     </div>
     {% if reception.hasPacks %}
         <div class="form-group col-xl-6 col-12">
             <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
-            {% if not receptionLine.pack %}
+            {% if not receptionReferenceArticle.receptionBegun %}
                 <select class="ajax-autocomplete w-100 data form-control wii-field-text"
                         name="pack"
                         data-s2="receptionLogisticUnits"
@@ -24,7 +23,7 @@
                 </select>
             {% else %}
                 {% set pack = receptionLine.pack %}
-                <input class="form-control" disabled type="text" name="logisticUnit" value="{{ pack.code }}">
+                <input class="form-control" disabled type="text" name="logisticUnit" value="{{ pack ? pack.code }}">
             {% endif %}
         </div>
     {% endif %}
@@ -32,7 +31,8 @@
         <label class="wii-field-name">Numéro de commande d'achat*</label>
         {% if reception.orderNumber is not empty %}
             <select name="commande"
-                    class="form-control needed w-100 data">
+                    class="form-control needed w-100 data"
+                    {{ receptionReferenceArticle.receptionBegun ? 'disabled' }}>
                 {% for orderNumber in reception.orderNumber %}
                     <option {{ receptionReferenceArticle.commande == orderNumber ? 'selected' }}
                             value="{{ orderNumber }}">
@@ -44,7 +44,8 @@
             <input type="text"
                    class="form-control data needed wii-field-text"
                    name="commande"
-                   value="{{receptionReferenceArticle.commande}}">
+                   value="{{receptionReferenceArticle.commande}}"
+                   {{ receptionReferenceArticle.receptionBegun ? 'disabled' }}/>
         {% endif %}
     </div>
     <div class="form-group col-6">

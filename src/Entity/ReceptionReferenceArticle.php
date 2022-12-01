@@ -234,4 +234,11 @@ class ReceptionReferenceArticle {
         return $this;
     }
 
+    public function isReceptionBegun(): bool {
+        return (
+            !$this->articles->isEmpty()
+            || ($this->quantite && $this->quantite > 0)
+        );
+    }
+
 }

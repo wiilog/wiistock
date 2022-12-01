@@ -711,38 +711,40 @@ class ReceptionController extends AbstractController {
             $receptionLine = $receptionReferenceArticle->getReceptionLine();
             $reception = $receptionLine->getReception();
 
-            if (isset($data['pack'])) {
-                $pack = $packRepository->find($data['pack']);
-                $newReceptionLine = $reception->getLine($pack);
-                if ($newReceptionLine) {
-                    $receptionLine = $newReceptionLine;
-                    $receptionReferenceArticle->setReceptionLine($receptionLine);
-                }
+            $pack = !empty($data['pack']) ? $packRepository->find($data['pack']) : null;
+            $orderNumber = $data['commande'];
+            $referenceArticle = !empty($data['referenceArticle']) ? $referenceArticleRepository->find($data['referenceArticle']) : null;
+
+            if ($receptionReferenceArticle->isReceptionBegun()
+                && ($pack?->getId() !== $receptionLine->getPack()?->getId()
+                    || $orderNumber !== $receptionReferenceArticle->getCommande()
+                    || $referenceArticle?->getId() !== $receptionReferenceArticle->getReferenceArticle()?->getId())) {
+                throw new FormException("Des articles ont déjà été réceptionnés, vous ne pouvez pas modifier l'unité logistique, la référence ou le numéro de commande d'achat de cette ligne de réception.");
             }
 
-            /* Only reference by article in the reception's packs */
+            /* Only reference managed by article in packs */
             if (isset($pack)
                 && $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 throw new FormException('Vous pouvez uniquement ajouter des références gérées par article aux unités logistiques et il s\'agit d\'une référence gérée par référence.');
             }
 
-            $receivedQuantity = $receptionReferenceArticle->getQuantite();
+            $newReceptionLine = $reception->getLine($pack);
+            if ($newReceptionLine && $newReceptionLine->getId() !== $receptionLine->getId()) {
+                $receptionLine = $newReceptionLine;
+                $receptionReferenceArticle->setReceptionLine($receptionLine);
+            }
 
-            $receptionReferenceArticleMatching = $receptionLine->getReceptionReferenceArticle($receptionReferenceArticle->getReferenceArticle(), $data['commande']);
+            $receptionReferenceArticleMatching = $receptionLine->getReceptionReferenceArticle($referenceArticle, $orderNumber);
             if ($receptionReferenceArticleMatching
                 && $receptionReferenceArticleMatching->getId() !== $receptionReferenceArticle->getId()) {
                 throw new FormException("L'association de cette référence avec ce numéro de commande existe déjà dans la réception");
             }
 
-            if(empty($receivedQuantity)) {
-                $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
-                $receptionReferenceArticle->setReferenceArticle($refArticle);
-            }
-
             $receptionReferenceArticle
-                ->setCommande($data['commande'])
+                ->setReferenceArticle($referenceArticle)
+                ->setCommande($orderNumber)
                 ->setAnomalie($data['anomalie'])
-                ->setQuantiteAR(max($data['quantiteAR'], 0))// protection contre quantités négatives
+                ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
                 ->setCommentaire($data['commentaire']);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();

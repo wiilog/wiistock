@@ -14,7 +14,10 @@
                         <div class="row no-gutters align-items-end">
                             <div class="col">
                                 <label for="reception-add-ligne"
-                                       title="référence" class="wii-field-name">{{ trans('Stock', 'Références', 'référence', false) }}*</label>
+                                       title="référence"
+                                       class="wii-field-name">
+                                    {{ trans('Stock', 'Références', 'référence', false) }}*
+                                </label>
                                 <select class="ajax-autocomplete w-100 data form-control needed wii-field-text"
                                         onchange="articleChanged($(this))"
                                         id="reception-add-ligne"
