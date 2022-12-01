@@ -685,7 +685,7 @@ class ArticleController extends AbstractController
     public function getTrackingMovements(EntityManagerInterface $manager, Request $request): Response {
         $article = $request->query->get('article');
 
-        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article);
+        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article, ['mainMovementOnly'=>true]);
 
         return $this->json([
             'template' => $this->renderView('article/show/timeline.html.twig', [

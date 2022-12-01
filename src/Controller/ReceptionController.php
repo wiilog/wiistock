@@ -1305,7 +1305,7 @@ class ReceptionController extends AbstractController {
 
             $reception = $receptionRepository->find($data['id']);
 
-            $listReceptionReferenceArticle = Stream::from($reception->getReceptionReferenceArticles()->toArray());
+            $listReceptionReferenceArticle = Stream::from($reception->getLines())->flatMap(fn(ReceptionLine $line) => $line->getReceptionReferenceArticles());
 
             if($listReceptionReferenceArticle->isEmpty()) {
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
