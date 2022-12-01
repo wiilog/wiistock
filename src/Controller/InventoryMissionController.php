@@ -186,10 +186,10 @@ class InventoryMissionController extends AbstractController
 
                     if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
                         $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
-
                         $checkForArt = $article instanceof Article
                             && $referenceArticle->getStatut()?->getCode() === ReferenceArticle::STATUT_ACTIF
-                            && !$inventoryService->isInMissionInSamePeriod($article, $mission, false);
+                            && !$inventoryService->isInMissionInSamePeriod($article, $mission, false)
+                            && $article->getStatut()?->getCode() !== Article::STATUT_INACTIF;
 
                         return $checkForArt ? $article : $article->getBarCode();
                     } else if($reference = $refArtRepository->findOneBy(["barCode" => $barcode])) {
