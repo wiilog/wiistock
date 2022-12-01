@@ -480,8 +480,9 @@ class TrackingMovementRepository extends EntityRepository
         ];
     }
 
-    public function getArticleTrackingMovements(int $article): array {
-        return $this->createQueryBuilder('tracking_movement')
+    public function getArticleTrackingMovements(int $article, $option = []): array {
+        $qb =  $this->createQueryBuilder('tracking_movement');
+        $qb
             ->addSelect('tracking_movement.id AS id')
             ->addSelect('join_status.code AS type')
             ->addSelect('join_location.label AS location')
@@ -497,9 +498,13 @@ class TrackingMovementRepository extends EntityRepository
             ->andWhere('join_article.id = :article')
             ->orderBy('tracking_movement.datetime', 'DESC')
             ->setMaxResults(self::MAX_ARTICLE_TRACKING_MOVEMENTS_TIMELINE)
-            ->setParameter('article', $article)
-            ->getQuery()
-            ->getResult();
+            ->setParameter('article', $article);
+
+        if (array_key_exists('mainMovementOnly', $option) && $option['mainMovementOnly']) {
+            $qb->andWhere('tracking_movement.mainMovement is null');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     public function findChildArticleMovementsBy(Pack $pack) {
