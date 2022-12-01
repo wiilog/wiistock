@@ -33,8 +33,42 @@ $(function () {
 
     $(document).on(`focusout`, `[data-fill-location]`, function () {
         loadLULocation($(this));
-    })
+    });
+
+    $(document).on(`keypress`, `[data-fill-quantity]`, function(event) {
+        if(event.code === `Enter`) {
+            loadLUQuantity($(this));
+        }
+    });
+
+    $(document).on(`focusout`, `[data-fill-quantity]`, function () {
+        loadLUQuantity($(this));
+    });
 });
+
+function loadLUQuantity($selector) {
+    const $modalNewMvtTraca = $('#modalNewMvtTraca');
+    const $quantity = $modalNewMvtTraca.find(`[name="quantity"]`);
+    const code = $selector.val();
+
+    AJAX.route(`GET`, `tracking_movement_logistic_unit_quantity`, {code})
+        .json()
+        .then(response => {
+            $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+            if (response.error) {
+                Flash.add(`danger`, response.error);
+            }
+
+            if (response.quantity) {
+                $quantity.val(response.quantity);
+            } else {
+                $quantity.empty();
+                $quantity.val(1);
+            }
+
+            $quantity.prop(`disabled`, !!response.quantity).trigger(`change`);
+        });
+}
 
 function loadLULocation($input) {
     const $modalNewMvtTraca = $('#modalNewMvtTraca');

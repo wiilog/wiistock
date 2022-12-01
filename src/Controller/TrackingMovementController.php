@@ -666,6 +666,28 @@ class TrackingMovementController extends AbstractController
         ]);
     }
 
+    #[Route("/tracking-movement-logistic-unit-quantity", name: "tracking_movement_logistic_unit_quantity", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
+    public function getLUQuantity(EntityManagerInterface $entityManager, TranslationService $translationService, Request $request): Response
+    {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $code = $request->query->get('code');
+
+        /** @var Pack $pack */
+        $pack = $packRepository->findOneBy(["code" => $code]);
+        $articles = $pack?->getChildArticles() ?? $articleRepository->findBy(["barCode" => $code]);
+        $quantity = Stream::from($articles)
+            ->map(fn (Article $article) => ($article->getQuantite()))
+            ->sum();
+
+        return $this->json([
+            "success" => true,
+            "error" => false,
+            "quantity" => $quantity > 0 ? $quantity : null, //regle de gestion : l'UL doit contenir au moins un article pour qu'on grise le champ
+        ]);
+    }
+
     private function persistAttachments(TrackingMovement $trackingMovement, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager ,  array $options = [])
     {
         $isAddToDispatch = $options['addToDispatch'] ?? false;
