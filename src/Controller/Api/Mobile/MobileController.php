@@ -553,8 +553,10 @@ class MobileController extends AbstractApiController
                                     false,
                                     $options
                                 )['movement'];
-                                $movement->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
+                                $logisticUnit = $associatedPack->getArticle()->getCurrentLogisticUnit();
+                                $movement->setLogisticUnitParent($logisticUnit);
                                 $associatedPack->getArticle()->setCurrentLogisticUnit(null);
+                                $logisticUnit->setQuantity($logisticUnit->getQuantity() - $associatedPack->getQuantity());
                                 $trackingMovementService->persistSubEntities($entityManager, $movement);
                                 $entityManager->persist($movement);
                                 $numberOfRowsInserted++;
