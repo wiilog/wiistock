@@ -40,7 +40,7 @@
             {% endif %}
         </div>
         {% include 'free_field/freeFieldsEdit.html.twig' with {
-            freeFields: freeFields|sort((a, b) => b.typage <=> a.typage),
+            freeFields: freeFields|sort((a, b) => a.label <=> b.label),
             freeFieldValues: [],
             colType: 'col-md-4 col-12',
             requiredType: 'requiredCreate',
