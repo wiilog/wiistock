@@ -90,11 +90,32 @@ let tableRefArticleConfig = {
 };
 let tableRefArticle = initDataTable('tableMissionInvReferenceArticle', tableRefArticleConfig);
 
-let modalAddToMission = $("#modalAddToMission");
-let submitAddToMission = $("#submitAddToMission");
+let $modalAddToMission = $("#modalAddToMission");
+let $submitAddToMission = $("#submitAddToMission");
 let urlAddToMission = Routing.generate('add_to_mission', true);
-InitModal(modalAddToMission, submitAddToMission, urlAddToMission, {
-    tables: [tableArticle, tableRefArticle]
+InitModal($modalAddToMission, $submitAddToMission, urlAddToMission, {
+    tables: [tableArticle, tableRefArticle],
+    error: (data) => {
+        const msg = data.data.msg;
+        const barcodesUL = data.data.barcodesUL;
+        const barcodesToAdd = data.data.barcodesToAdd;
+
+        $modalAddToMission.modal('hide');
+        if (barcodesUL) {
+            Modal.confirm({
+                title: 'Ajouter les articles',
+                message: msg,
+                validateButton: {
+                    color: 'success',
+                    label: 'Continuer',
+                    click: () => {
+                        displayFirstModal({barcodesUL, barcodesToAdd, $modalAddToMission});
+                    }
+                },
+            });
+        }
+
+    }
 });
 
 const $modalRemoveRefFromMission = $('#modalDeleteRefFromMission');
@@ -104,3 +125,11 @@ const urlRemoveRefFromMission = Routing.generate('mission_remove_ref', true);
 InitModal($modalRemoveRefFromMission, $submitRemoveRefFromMission, urlRemoveRefFromMission, {
     tables: [tableRefArticle]
 });
+
+function displayFirstModal({barcodesUL, barcodesToAdd, $modalAddToMission}) {
+    $modalAddToMission.modal('show');
+    AJAX.route('GET', `add_to_mission_after_validation`, {
+        barcodesUL,
+        barcodesToAdd
+    });
+}

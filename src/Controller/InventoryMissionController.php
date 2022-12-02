@@ -167,6 +167,29 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
+     * @Route("/ajouter-after-validation", name="add_to_mission_after_validation", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
+     */
+    public function addToMissionAfterValidation(Request $request,
+                                 InventoryService $inventoryService,
+                                 EntityManagerInterface $entityManager): Response
+    {
+        // vérifier s'il y a des erreurs dans les articles à ajouter qui n'ont pas d'ul
+
+        dump($request);
+        //$barcodesUL = json_decode($request->query->get('barcodesUL'), true);
+        //$barcodesToAdd = json_decode($request->query->get('barcodesToAdd'), true);
+
+        //dump($barcodesUL);
+        //dump($barcodesToAdd);
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => ""
+        ]);
+    }
+
+    /**
      * @Route("/ajouter", name="add_to_mission", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
@@ -180,6 +203,8 @@ class InventoryMissionController extends AbstractController
 
             $mission = $inventoryMissionRepository->find($data['missionId']);
             $barcodeErrors = [];
+            $refOrArtToAdd = [];
+            $artWithUL = [];
             Stream::explode([",", " ", ";", "\t"], $data['articles'])
                 ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission, $inventoryService) {
                     $barcode = trim($barcode);
@@ -203,13 +228,38 @@ class InventoryMissionController extends AbstractController
                         return $barcode;
                     }
                 })
-                ->each(function($refOrArt) use ($mission, &$barcodeErrors) {
+                ->each(function($refOrArt) use ($mission, &$barcodeErrors, $data, &$artWithUL, &$refOrArtToAdd) {
                     if ($refOrArt instanceof ReferenceArticle || $refOrArt instanceof Article) {
-                        $refOrArt->addInventoryMission($mission);
+                        if ($refOrArt instanceof Article && $refOrArt->getCurrentLogisticUnit() && count($refOrArt->getCurrentLogisticUnit()->getChildArticles()) > 1) {
+                            $artWithUL[] = $refOrArt->getBarCode();
+                        } else {
+                            $refOrArtToAdd[] = $refOrArt->getBarCode();
+                        }
                     } else {
                         $barcodeErrors[] = $refOrArt;
                     }
                 });
+
+            if (!empty($artWithUL)) {
+                $errorMsg = '<span class="text-danger pl-2">Les articles suivants sont contenus dans une unité logistique :</span><ul class="list-group my-2">';
+                foreach ($artWithUL as $articleCode) {
+                    $errorMsg .= '<li class="text-danger list-group-item">' . $articleCode . '</li>';
+                }
+                $errorMsg .= '</ul><span class="text-danger pl-2">L\'ensemble des articles des unités logistiques associées va être ajoutés à la mission d\'inventaire.</span>';
+
+                return new JsonResponse([
+                    'success' => false,
+                    'data' => [
+                        'msg' => $errorMsg,
+                        'barcodesUL' => $artWithUL,
+                        'barcodesToAdd' => $refOrArtToAdd
+                    ]
+                ]);
+            } else {
+                foreach ($refOrArtToAdd as $refOrArt) {
+                    $refOrArt->addInventoryMission($mission);
+                }
+            }
 
             $entityManager->flush();
             $success = count($barcodeErrors) === 0;
@@ -224,6 +274,7 @@ class InventoryMissionController extends AbstractController
                     ->join("") . "</ul><span class='text-dark pl-2'>Les autres codes-barres ont bien été ajoutés à la mission.</span>"
                 );
             }
+
             return new JsonResponse([
                 'success' => $success,
                 'msg' => $errorMsg
