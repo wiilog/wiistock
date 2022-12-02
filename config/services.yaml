@@ -5,7 +5,7 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '6.16.3#terega'
+    web_version: '6.16.4#terega'
     nomade_version: '=6.16.3#terega'
     nomade_apk: 'https://ftp.wiilog.fr/wiistock/recette/6-16-3-terega.apk'
     client: '%env(APP_CLIENT)%'
