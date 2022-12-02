@@ -72,6 +72,7 @@ function initActionOnRow(row) {
                 if (href) {
                     if($anchor.attr(`target`) === `_blank` || which === 2) {
                         window.open(href, '_blank');
+                        event.stopPropagation();
                     } else if(which === 1) {
                         window.location.href = href;
                     }

@@ -472,6 +472,7 @@ class MobileController extends AbstractApiController
                         $options = [
                             'uniqueIdForMobile' => $mvt['date'],
                             'entityManager' => $entityManager,
+                            'quantity' => $mvt['quantity'],
                         ];
 
                         /** @var Statut $type */

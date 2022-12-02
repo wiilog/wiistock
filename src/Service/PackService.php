@@ -434,13 +434,13 @@ class PackService {
         $columnsVisible = $currentUser->getVisibleColumns()['arrivalPack'];
         return $this->visibleColumnService->getArrayConfig(
             [
-                ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
-                ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature')],
-                ["name" => 'code', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Unités logistiques')],
-                ["name" => 'project', 'title' => 'Projet'],
-                ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
-                ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement')],
-                ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur')],
+                ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
+                ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature'), "searchable" => true],
+                ["name" => 'code', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Unités logistiques'), "searchable" => true],
+                ["name" => 'project', 'title' => 'Projet', "searchable" => true],
+                ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement'), "searchable" => true],
+                ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement'), "searchable" => true],
+                ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],
             ],
             [],
             $columnsVisible
