@@ -275,15 +275,15 @@ class PackController extends AbstractController
             $packCode = $pack->getCode();
             $arrivage = isset($data['arrivage']) ? $arrivageRepository->find($data['arrivage']) : null;
             if (!$pack->getTrackingMovements()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencé dans un ou plusieurs mouvements de traçabilité");
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs mouvements de traçabilité");
             }
 
             if (!$pack->getDispatchPacks()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencé dans un ou plusieurs acheminements");
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs acheminements");
             }
 
             if (!$pack->getDisputes()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencé dans un ou plusieurs litiges");
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs litiges");
             }
             if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
                 $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans l\'arrivage {1}', [
