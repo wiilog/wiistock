@@ -15,7 +15,7 @@
                     content: [
                         {label: 'Unité logistique', value: logisticUnit.code, bold: 'value'},
                         {label: 'Emplacement', value: logisticUnit.location, bold: 'label'},
-                        {label: 'Nombre d\'articles demandé', value: line.articles|length~'/'~logisticUnit.quantityArticleInLocation, bold: 'label'}
+                        {label: "Nombre d'articles demandé", value: logisticUnit.currentQuantity ~ "/" ~ logisticUnit.totalQuantity, bold: 'label'},
                     ]
                 },
             content: line.articles,

@@ -30,7 +30,7 @@
                             },
                         }]}
                     ],
-                    actionOnClick: not logisticUnit.alreadyTreated ? "treatLine($(this));",
+                    actionOnClick: not logisticUnit.alreadyTreated ? 'treatLine(event, $(this));',
                     classes: not logisticUnit.alreadyTreated ? "pointer" : "treated-line"
                 },
             content: line.articles,

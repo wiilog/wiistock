@@ -298,7 +298,9 @@ function finishPrepa($button) {
         data.push(Array.from(table.column('pickedQuantity:name').data()));
     });
 
-    const canProceed = data.reduce((total, elem) => total + elem) > 0;
+    const canProceed = data
+        .flat()
+        .reduce((total, elem) => total + elem) > 0;
     if (!canProceed) {
         showBSAlert('Veuillez sélectionner au moins une ligne.', 'danger');
     } else if (!$button.hasClass('loading')) {
@@ -415,19 +417,21 @@ function initializeProjectHistoryTable(packId) {
     });
 }
 
-function treatLine($line) {
-    const $datatableContainer = $line.closest(`.logistic-unit-wrapper`).find(`.dataTables_wrapper`)[0];
-    const table = tables.filter((table) => table.table().container() === $datatableContainer);
-    const values = Array.from(table[0].data())
-        .map(({lineId, quantityToPick}) => [{ligneArticle: lineId, quantite: quantityToPick}])
-        .flat();
+function treatLine(event, $line) {
+    if(!$(event.target).closest(`.no-action-click`).exists()) {
+        const $datatableContainer = $line.closest(`.logistic-unit-wrapper`).find(`.dataTables_wrapper`)[0];
+        const table = tables.filter((table) => table.table().container() === $datatableContainer);
+        const values = Array.from(table[0].data())
+            .map(({lineId, quantityToPick}) => [{ligneArticle: lineId, quantite: quantityToPick}])
+            .flat();
 
-    wrapLoadingOnActionButton($line, () => (
-        AJAX.route(`GET`, `prepa_edit_ligne_article`, {values: JSON.stringify(values)})
-            .json()
-            .then(() => {
-                Flash.add(`success`, `Les articles de l'unité logistique ont bien été préparés.`);
-                loadLogisticUnitList($preparationId.val());
-            })
-    ));
+        wrapLoadingOnActionButton($line, () => (
+            AJAX.route(`GET`, `prepa_edit_ligne_article`, {values: JSON.stringify(values)})
+                .json()
+                .then(() => {
+                    Flash.add(`success`, `Les articles de l'unité logistique ont bien été préparés.`);
+                    loadLogisticUnitList($preparationId.val());
+                })
+        ));
+    }
 }

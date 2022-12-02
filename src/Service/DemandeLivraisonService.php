@@ -381,7 +381,7 @@ class DemandeLivraisonService
                 $statutArticle = $article->getStatut();
                 if ($statutArticle?->getCode() !== Article::STATUT_ACTIF) {
                     $response['success'] = false;
-                    $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleLine->getBarCode();
+                    $response['nomadMessage'] = "Erreur de quantité sur l\'article : {$article->getBarCode()}";
                     $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
                 } else {
                     $refArticle = $articleLine->getArticle()->getArticleFournisseur()->getReferenceArticle();

@@ -16,7 +16,7 @@
                     ],
                 },
             content: line.articles,
-            action: logisticUnit
+            action: editable and logisticUnit
                 ? {
                     icon: 'wii-icon wii-icon-trash-black',
                     onclick: "removeLogisticUnitLine($(this), " ~ logisticUnit.packId ~ ")",

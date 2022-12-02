@@ -134,8 +134,10 @@ class LivraisonController extends AbstractController {
                     "project" => $logisticUnit?->getProject()?->getCode() ?? null,
                     "nature" => $this->formatService->nature($logisticUnit?->getNature()),
                     "color" => $logisticUnit?->getNature()?->getColor() ?? null,
-                    "quantity" => $logisticUnit?->getQuantity() ?? null,
-                    "quantityArticleInLocation" => $logisticUnit?->getChildArticles() ? count($logisticUnit?->getChildArticles()) : null,
+                    "currentQuantity" => Stream::from($preparationOrder->getArticleLines()
+                        ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit))
+                        ->count(),
+                    "totalQuantity" => $logisticUnit?->getChildArticles() ? $logisticUnit->getChildArticles()->count() : null,
                 ],
                 "articles" => Stream::from($preparationOrder->getArticleLines())
                     ->filterMap(function(PreparationOrderArticleLine $line) use ($logisticUnit) {

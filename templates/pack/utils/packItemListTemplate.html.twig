@@ -20,12 +20,13 @@
                 </td>
                 <td>
                     <div class="col-12 h-100">
-                        <div class="main-ul-data row {{ header.classes ?? '' }}" {{ header.actionOnClick ?? false ? 'onclick=' ~ header.actionOnClick }}
+                        <div class="main-ul-data row {{ header.classes ?? '' }}" onclick="{{ header.actionOnClick ?: null }}"
                              data-logistic-unit-id="{{ header.data['pack-id'] }}">
                             {% set headerLength = header.content|length %}
                             {% for item in header.content %}
                                 {% if not item['actions'] ?? false %}
                                     <div class="col d-flex"
+                                         {# TODO NECESSAIRE ? #}
                                          {#style="flex: 0 0 {{ 100 / headerLength }}%; max-width: {{ 100 / headerLength }}%;"#}>
                                         {% if item.icon is defined %}
                                             <div class="mr-2">
@@ -38,7 +39,7 @@
                                         </div>
                                     </div>
                                 {% else %}
-                                    <div class="col d-flex" style="flex: 0 0 5%;">
+                                    <div class="col d-flex no-action-click" style="flex: 0 0 5%;">
                                         {% include "utils/action-buttons/dropdown.html.twig" with {
                                             actions: item['actions']
                                         } %}
@@ -48,7 +49,7 @@
                         </div>
                     </div>
                 </td>
-                {% if action and action['onclick'] ?? false %}
+                {% if action is defined and action['onclick'] ?? false %}
                     <td>
                         <button type="button"
                                 data-toggle="modal"

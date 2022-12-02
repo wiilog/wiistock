@@ -338,6 +338,7 @@ class DemandeController extends AbstractController
     public function logisticsUnitApi(Request $request, EntityManagerInterface $manager): Response {
         $deliveryRequest = $manager->find(Demande::class, $request->query->get('id'));
         $needsQuantitiesCheck = !$manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $editable = $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON;
         $logisticsUnits = [null];
         foreach ($deliveryRequest->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
@@ -361,7 +362,7 @@ class DemandeController extends AbstractController
                     "totalQuantity" => $logisticUnit?->getChildArticles()?->count()
                 ],
                 "articles" => Stream::from($deliveryRequest->getArticleLines())
-                    ->filterMap(function(DeliveryRequestArticleLine $line) use ($logisticUnit, $needsQuantitiesCheck, $deliveryRequest) {
+                    ->filterMap(function(DeliveryRequestArticleLine $line) use ($logisticUnit, $needsQuantitiesCheck, $deliveryRequest, $editable) {
                         $article = $line->getArticle();
                         if ($logisticUnit && $article->getCurrentLogisticUnit()?->getId() == $logisticUnit->getId()) {
                             return [
@@ -381,7 +382,7 @@ class DemandeController extends AbstractController
                                         'articleId' => $article->getId(),
                                         'name' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                                         'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
-                                        'modifiable' => $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON,
+                                        'modifiable' => $editable,
                                     ]
                                 ),
                             ];
@@ -393,7 +394,7 @@ class DemandeController extends AbstractController
             ])->toArray();
 
         $references = Stream::from($deliveryRequest->getReferenceLines())
-            ->map(function(DeliveryRequestReferenceLine $line) use ($needsQuantitiesCheck, $deliveryRequest) {
+            ->map(function(DeliveryRequestReferenceLine $line) use ($needsQuantitiesCheck, $deliveryRequest, $editable) {
                 $reference = $line->getReference();
                 return [
                     "reference" => $reference->getReference() ?: '',
@@ -411,7 +412,7 @@ class DemandeController extends AbstractController
                             'name' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                             'refArticleId' => $reference->getId(),
                             'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
-                            'modifiable' => $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON,
+                            'modifiable' => $editable,
                         ]
                     )
                 ];
@@ -423,7 +424,8 @@ class DemandeController extends AbstractController
             "success" => true,
             "html" => $this->renderView("demande/show/line-list.html.twig", [
                 "lines" => $lines,
-                "emptyLines" => $deliveryRequest->getArticleLines()->isEmpty() && $deliveryRequest->getReferenceLines()->isEmpty()
+                "emptyLines" => $deliveryRequest->getArticleLines()->isEmpty() && $deliveryRequest->getReferenceLines()->isEmpty(),
+                "editable" => $editable
             ]),
         ]);
     }
