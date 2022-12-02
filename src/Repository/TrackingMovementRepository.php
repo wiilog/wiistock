@@ -497,11 +497,12 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.logisticUnitParent', 'join_logisticUnitParent')
             ->andWhere('join_article.id = :article')
             ->orderBy('tracking_movement.datetime', 'DESC')
+            ->addOrderBy('tracking_movement.id', 'DESC')
             ->setMaxResults(self::MAX_ARTICLE_TRACKING_MOVEMENTS_TIMELINE)
             ->setParameter('article', $article);
 
-        if (array_key_exists('mainMovementOnly', $option) && $option['mainMovementOnly']) {
-            $qb->andWhere('tracking_movement.mainMovement is null');
+        if ($option['mainMovementOnly'] ?? false) {
+            $qb->andWhere('tracking_movement.mainMovement IS NULL');
         }
 
         return $qb->getQuery()->getResult();
