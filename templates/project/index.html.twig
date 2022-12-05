@@ -7,12 +7,27 @@
         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
-                    <a href=""
-                       data-toggle="modal"
-                       data-target="#modalNewProject"
-                       class="btn btn-primary d-flex align-items-center">
-                        <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter
-                    </a>
+                    {% include "utils/action-buttons/header-buttons.html.twig" with {
+                        actions: [
+                            {
+                                hasRight: hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')),
+                                title: "Ajouter",
+                                icon: "wii-icon wii-icon-plus",
+                                attributes: {
+                                    "data-toggle": "modal",
+                                    "data-target": "#modalNewProject",
+                                },
+                            },
+                            {
+                                hasRight: hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EXPORT')),
+                                title: "Exporter au format CSV",
+                                icon : "fa fa-file-csv",
+                                attributes: {
+                                    onclick : "saveExportFile('get_projects_csv', false)",
+                                },
+                            },
+                        ]
+                    } %}
                 </div>
             </div>
         {% endif %}
