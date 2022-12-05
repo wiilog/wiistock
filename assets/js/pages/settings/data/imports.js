@@ -264,6 +264,7 @@ function importTemplateChanged($dataTypeImport = null) {
         DELIVERY: {label: 'livraisons', url: `${templateDirectory}/modele-import-livraisons.csv`},
         LOCATION: {label: 'emplacements', url: `${templateDirectory}/modele-import-emplacements.csv`},
         CLIENT: {label: 'clients', url: `${templateDirectory}/modele-import-clients.csv`},
+        PROJECT: {label: 'projets', url: `${templateDirectory}/modele-import-projets.csv`},
     };
 
     const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
