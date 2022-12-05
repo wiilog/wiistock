@@ -1119,40 +1119,6 @@ class ReferenceArticleRepository extends EntityRepository {
         return $queryBuilder;
     }
 
-    public function getRefTypeQtyArticleByReception($id, ?ReceptionReferenceArticle $receptionReferenceArticle)
-    {
-
-        $queryBuilder = $this->createQueryBuilder('ra')
-            ->select('receptionReferenceArticle.id AS id')
-            ->addSelect('ra.reference AS reference')
-            ->addSelect('receptionReferenceArticle.commande AS commande')
-            ->addSelect('pack.code AS packCode')
-            ->addSelect('pack.id AS packId')
-            ->addSelect('project.code AS packProject')
-            ->join('ra.receptionReferenceArticles', 'receptionReferenceArticle')
-            ->join('receptionReferenceArticle.receptionLine', 'receptionLine')
-            ->leftJoin('receptionLine.pack', 'pack')
-            ->leftJoin('pack.project', 'project')
-            ->join('receptionLine.reception', 'reception')
-            ->andWhere('reception.id = :id')
-            ->andWhere('(receptionReferenceArticle.quantiteAR > receptionReferenceArticle.quantite OR receptionReferenceArticle.quantite IS NULL)')
-            ->andWhere('ra.typeQuantite = :typeQty')
-            ->setParameters([
-                'id' => $id,
-                'typeQty' => ReferenceArticle::QUANTITY_TYPE_ARTICLE
-            ]);
-
-        if (!empty($receptionReferenceArticle)) {
-            $queryBuilder
-                ->andWhere('receptionReferenceArticle = :receptionReferenceArticle_value')
-                ->setParameter('receptionReferenceArticle_value', $receptionReferenceArticle);
-        }
-
-        return $queryBuilder
-            ->getQuery()
-            ->execute();
-    }
-
     public function getReferenceArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {
         if (!empty($requests)) {
             $queryBuilder = $this->createQueryBuilder('referenceArticle')

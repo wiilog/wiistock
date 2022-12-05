@@ -138,12 +138,18 @@ function openDeliveryNoteModal($button) {
 
                 $('select[name=buyer]').on('change', function (){
                     const data = $(this).select2('data');
-                    if(data.length > 0 && data[0].email){
+                    if(data.length > 0){
                         const {fax, phoneNumber, address} = data[0];
                         const $modal = $(this).closest('.modal');
-                        $modal.find('input[name=buyerPhone]').val(phoneNumber);
-                        $modal.find('input[name=buyerFax]').val(fax);
-                        $modal.find('[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo] ').val(address);
+                        if(fax){
+                            $modal.find('input[name=buyerFax]').val(fax);
+                        }
+                        if(phoneNumber){
+                            $modal.find('input[name=buyerPhone]').val(phoneNumber);
+                        }
+                        if(address){
+                            $modal.find('[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo] ').val(address);
+                        }
                     }
                 });
             } else {
@@ -171,6 +177,20 @@ function openWaybillModal($button) {
             const $modalBody = $modal.find('.modal-body');
             $modalBody.html(result.html);
             $modal.modal('show');
+
+            $('select[name=receiverUsername]').on('change', function (){
+                const data = $(this).select2('data');
+                if(data.length > 0){
+                    const {email, phoneNumber, address} = data[0];
+                    const $modal = $(this).closest('.modal');
+                    if(phoneNumber || email){
+                        $modal.find('input[name=receiverEmail]').val(phoneNumber.concat(' - ', email));
+                    }
+                    if(address){
+                        $modal.find('[name=receiver]').val(address);
+                    }
+                }
+            });
         } else {
             showBSAlert(result.msg, "danger");
         }

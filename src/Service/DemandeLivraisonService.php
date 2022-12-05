@@ -447,7 +447,9 @@ class DemandeLivraisonService
             }
 
             foreach($demande->getReferenceLines() as $reference) {
-                $locations[$reference->getReference()->getEmplacement()->getId()] = true;
+                if($reference->getReference()->getEmplacement()) {
+                    $locations[$reference->getReference()->getEmplacement()->getId()] = true;
+                }
             }
 
             $preparedUponValidation = count($locations) === 1;

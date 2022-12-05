@@ -519,7 +519,7 @@ class LivraisonController extends AbstractController
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $userSavedData = $loggedUser->getSavedDeliveryWaybillData();
-        $deliveryOrderSavedData = $deliveryOrder->getWaybillData();
+        $wayBillSavedData = $deliveryOrder->getWaybillData();
 
         $now = new DateTime('now');
 
@@ -548,9 +548,9 @@ class LivraisonController extends AbstractController
 
         $wayBillData = array_reduce(
             array_keys(Livraison::WAYBILL_DATA),
-            function(array $carry, string $dataKey) use ($request, $userSavedData, $deliveryOrderSavedData, $defaultData) {
+            function(array $carry, string $dataKey) use ($request, $userSavedData, $wayBillSavedData, $defaultData) {
                 $carry[$dataKey] = (
-                    $dispatchSavedData[$dataKey]
+                    $wayBillSavedData[$dataKey]
                     ?? ($userSavedData[$dataKey]
                         ?? ($defaultData[$dataKey]
                             ?? null))

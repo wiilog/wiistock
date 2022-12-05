@@ -331,11 +331,13 @@ class TrackingMovementService extends AbstractController
         $fileBag = $options['fileBag'] ?? null;
         $quantity = $options['quantity'] ?? 1;
         $from = $options['from'] ?? null;
+        $refOrArticle = $options['refOrArticle'] ?? null;
         $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
         $natureId = $options['natureId'] ?? null;
         $disableUngrouping = $options['disableUngrouping'] ?? false;
         $attachments = $options['attachments'] ?? null;
+        $mainMovement = $options['mainMovement'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;
@@ -353,7 +355,8 @@ class TrackingMovementService extends AbstractController
             ->setFinished($finished)
             ->setType($type)
             ->setMouvementStock($mouvementStock)
-            ->setCommentaire(!empty($commentaire) ? $commentaire : null);
+            ->setCommentaire(!empty($commentaire) ? $commentaire : null)
+            ->setMainMovement($mainMovement);
 
         if ($attachments) {
             foreach($attachments as $attachment) {
@@ -363,12 +366,17 @@ class TrackingMovementService extends AbstractController
 
         $pack->addTrackingMovement($tracking);
 
-        if ($pack->getLastTracking()?->getDatetime() <= $tracking->getDatetime()) {
+        if (!$pack->getLastTracking()
+            || $pack->getLastTracking()->getDatetime() <= $tracking->getDatetime()) {
             $pack->setLastTracking($tracking);
         }
 
         $this->managePackLinksWithTracking($entityManager, $tracking);
-        $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
+        $this->manageTrackingLinks($entityManager, $tracking, [
+            "from" => $from,
+            "receptionReferenceArticle" => $receptionReferenceArticle,
+            "refOrArticle" => $refOrArticle
+        ]);
         $this->manageTrackingFiles($tracking, $fileBag);
 
         if (!$disableUngrouping
@@ -404,8 +412,11 @@ class TrackingMovementService extends AbstractController
 
     private function manageTrackingLinks(EntityManagerInterface $entityManager,
                                          TrackingMovement $tracking,
-                                         $from,
-                                         $receptionReferenceArticle) {
+                                         array $options) {
+
+        $from = $options['from'] ?? null;
+        $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
+        $refOrArticle = $options['refOrArticle'] ?? null;
 
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -417,7 +428,8 @@ class TrackingMovementService extends AbstractController
             $alreadyLinkedReferenceArticle = $pack->getReferenceArticle();
             if (!isset($alreadyLinkedArticle) && !isset($alreadyLinkedReferenceArticle)) {
                 $refOrArticle = (
-                    $referenceArticleRepository->findOneBy(['barCode' => $packCode])
+                    $refOrArticle
+                    ?: $referenceArticleRepository->findOneBy(['barCode' => $packCode])
                     ?: $articleRepository->findOneBy(['barCode' => $packCode])
                 );
 
@@ -507,7 +519,9 @@ class TrackingMovementService extends AbstractController
             $packsAlreadyExisting->setLastDrop(null);
         }
 
-        if ($pack && $tracking->isDrop() && $tracking->getDatetime() >= $pack->getLastDrop()->getDatetime()) {
+        if ($pack
+            && $tracking->isDrop()
+            && (!$pack->getLastDrop() || $tracking->getDatetime() >= $pack->getLastDrop()->getDatetime())) {
             $pack->setLastDrop($tracking);
         }
 
@@ -975,6 +989,8 @@ class TrackingMovementService extends AbstractController
                                             array                  $options = [],
                                             bool                   $keepGroup = false): array {
 
+        $ignoreProjectChange = $options['ignoreProjectChange'] ?? false;
+
         $movement = $this->createTrackingMovement(
             $packOrCode,
             $location,
@@ -1002,6 +1018,11 @@ class TrackingMovementService extends AbstractController
         }
 
         $movementType = $movement->getType();
+        if (!$ignoreProjectChange
+            && $movementType?->getCode() === TrackingMovement::TYPE_DEPOSE
+            && $movement->getPack()->getArticle()) {
+            $this->projectHistoryRecordService->changeProject($entityManager, $movement->getPack(), null, $date);
+        }
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
         if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && ($location && !$location->ableToBeDropOff($movement->getPack()))) {
@@ -1070,6 +1091,7 @@ class TrackingMovementService extends AbstractController
                 }
 
                 if($trackingType->getCode() === TrackingMovement::TYPE_PRISE && $packArticle?->getCurrentLogisticUnit()) {
+                    $pick = $movement["movement"];
                     $movement = $this->persistTrackingMovement(
                         $entityManager,
                         $pack ?? $packOrCode,
@@ -1081,6 +1103,8 @@ class TrackingMovementService extends AbstractController
                         $forced,
                         $options
                     );
+
+                    $pick->setMainMovement($movement["movement"]);
 
                     if($movement["movement"] ?? null) {
                         $movement["movement"]->setLogisticUnitParent($packArticle?->getCurrentLogisticUnit());
@@ -1203,10 +1227,11 @@ class TrackingMovementService extends AbstractController
         $movements = [];
         $inCarts = [];
 
-        $now = new DateTime();
+        $trackingDate = $options['trackingDate'] ?? new DateTime();
 
         // clear given options articles
         unset($options['articles']);
+        unset($options['trackingDate']);
 
         if(is_string($pack)) {
             $pack = $this->packService->persistPack($manager, $pack, 1);
@@ -1215,7 +1240,7 @@ class TrackingMovementService extends AbstractController
                 $pack,
                 $dropLocation,
                 $user,
-                $now,
+                $trackingDate,
                 true,
                 TrackingMovement::TYPE_DEPOSE,
                 false,
@@ -1252,12 +1277,9 @@ class TrackingMovementService extends AbstractController
                 $inCarts = array_merge($inCarts, $article->getCarts()->toArray());
             }
 
-            if($pack->getProject()) {
-                $this->projectHistoryRecordService->changeProject($manager, $article, $pack->getProject(), $now);
-            }
-
             $pack->setArticleContainer(true);
 
+            $newMovements = [];
             if ($isUnitChanges || $isLocationChanges) {
                 //generate pick movements
                 $pick = $this->persistTrackingMovement(
@@ -1265,13 +1287,14 @@ class TrackingMovementService extends AbstractController
                     $trackingPack,
                     $pickLocation,
                     $user,
-                    $now,
+                    $trackingDate,
                     true,
                     TrackingMovement::TYPE_PRISE,
                     false,
                     $options,
                 )["movement"];
                 $movements[] = $pick;
+                $newMovements[] = $pick;
             }
 
             if ($isUnitChanges) {
@@ -1282,7 +1305,7 @@ class TrackingMovementService extends AbstractController
                     $trackingPack,
                     $pickLocation,
                     $user,
-                    $now,
+                    $trackingDate,
                     true,
                     TrackingMovement::TYPE_PICK_LU,
                     false,
@@ -1292,10 +1315,13 @@ class TrackingMovementService extends AbstractController
                 $oldCurrentLogisticUnit = $article->getCurrentLogisticUnit();
                 $luPick->setLogisticUnitParent($oldCurrentLogisticUnit);
                 $movements[] = $luPick;
+                $newMovements[] = $luPick;
             }
 
-            //now the pick LU movement is done, set the logistic unit
+            // now the pick LU movement is done, set the logistic unit
             $article->setCurrentLogisticUnit($pack);
+            // then change the project of the article according to the pack project
+            $this->projectHistoryRecordService->changeProject($manager, $article, $pack->getProject(), $trackingDate);
 
             if ($isUnitChanges || $isLocationChanges) {
                 //generate drop movements
@@ -1305,14 +1331,15 @@ class TrackingMovementService extends AbstractController
                     $trackingPack,
                     $dropLocation,
                     $user,
-                    $now,
+                    $trackingDate,
                     true,
                     TrackingMovement::TYPE_DEPOSE,
                     false,
-                    $options,
+                    $options + ['ignoreProjectChange' => true],
                 )["movement"];
 
                 $movements[] = $drop;
+                $newMovements[] = $drop;
             }
 
             //generate drop in LU movements
@@ -1321,7 +1348,7 @@ class TrackingMovementService extends AbstractController
                 $trackingPack,
                 $dropLocation,
                 $user,
-                $now,
+                $trackingDate,
                 true,
                 TrackingMovement::TYPE_DROP_LU,
                 false,
@@ -1330,6 +1357,10 @@ class TrackingMovementService extends AbstractController
 
             $luDrop->setLogisticUnitParent($pack);
             $movements[] = $luDrop;
+
+            foreach ($newMovements as $movement) {
+                $movement->setMainMovement($luDrop);
+            }
 
             if ($isLocationChanges) {
                 $stockMovement = $this->stockMovementService->createMouvementStock(
@@ -1341,7 +1372,7 @@ class TrackingMovementService extends AbstractController
                     ['from' => $options['from'] ?? null]
                 );
 
-                $this->stockMovementService->finishMouvementStock($stockMovement, $now, $dropLocation);
+                $this->stockMovementService->finishMouvementStock($stockMovement, $trackingDate, $dropLocation);
                 $article->setEmplacement($dropLocation);
 
                 $drop->setMouvementStock($stockMovement);

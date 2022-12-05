@@ -50,7 +50,7 @@
                     },
                 },
                 {
-                    title: "Annuler " ~ trans('Ordre', 'Réceptions', 'cette réception'),
+                    title: "Annuler&nbsp" ~ trans('Ordre', 'Réceptions', 'cette réception'),
                     icon: "wii-icon wii-icon-trash-black",
                     class: "d-flex align-items-center",
                     dropdownOnly: true,
@@ -116,18 +116,11 @@
     {% set urgentArticles = reception.urgentArticles %}
     {% if manualUrgent or urgentArticles %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
-        <span title="{{
-            ((manualUrgent and urgentArticles) ? 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes'
-                : (manualUrgent ? 'Cette réception est urgente'
-                    : (urgentArticles ? 'Une ou plusieurs références liées à cette réception sont urgentes'
+        {{
+            ((manualUrgent and urgentArticles) ? trans('Ordre','Réceptions', 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes')
+                : (manualUrgent ? trans('Ordre','Réceptions', 'Cette réception est urgente')
+                    : (urgentArticles ? trans('Ordre','Réceptions', 'Une ou plusieurs références liées à cette réception sont urgentes')
                         : '')))
-            }}">
-            {{
-                ((manualUrgent and urgentArticles) ? trans('Ordre','Réceptions', 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes', false)
-                    : (manualUrgent ? trans('Ordre','Réceptions', 'Cette réception est urgente', false)
-                        : (urgentArticles ? trans('Ordre','Réceptions', 'Une ou plusieurs références liées à cette réception sont urgentes', false)
-                            : '')))
-            }}
-        </span>
+        }}
     {% endif %}
 {% endblock %}

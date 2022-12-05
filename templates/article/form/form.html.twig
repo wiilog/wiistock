@@ -124,7 +124,7 @@
                                 <span class="icon wii-field-name">
                                     <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">Date de péremption
                                 </span>
-                                <input type="date" class="form-control data" name="expiry" value ="{{ article.expiryDate ? article.expiryDate|format_helper('longDate') : '' }}"/>
+                                <input type="date" class="form-control data" name="expiry" value="{{ article.expiryDate ? article.expiryDate| date('Y-m-d') : '' }}"/>
                             </label>
                         </div>
                         {% set managers = article.referenceArticle.managers|map((manager) => manager.username)|join(', ') %}

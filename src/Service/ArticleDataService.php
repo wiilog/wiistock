@@ -197,7 +197,7 @@ class ArticleDataService
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
-        $article = $articleRepository->find(intval($data['idArticle']));
+        $article = $articleRepository->find(intval($data['idArticle'] ?? $data['article']));
         if ($article) {
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
 
@@ -208,7 +208,7 @@ class ArticleDataService
                     ->setPrixUnitaire((float)$price)
                     ->setBatch($data['batch'] ?? null)
                     ->setExpiryDate($expiryDate ?: null)
-                    ->setCommentaire($data['commentaire']);
+                    ->setCommentaire($data['commentaire'] ?? null);
 
                 if (isset($data['conform'])) {
                     $article->setConform($data['conform'] == 1);
