@@ -688,5 +688,4 @@ class SelectController extends AbstractController {
             "results" => $customers
         ]);
     }
-
 }

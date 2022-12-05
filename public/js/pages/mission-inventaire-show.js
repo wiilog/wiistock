@@ -44,6 +44,7 @@ let tableArticleConfig = {
         {"data": 'Ref', 'title': 'Reférence'},
         {"data": 'CodeBarre', 'title': 'Code barre'},
         {"data": 'Label', 'title': 'Libellé'},
+        {"data": 'UL', 'title': 'Unité Logistique'},
         {"data": 'Location', 'title': 'Emplacement', 'name': 'location'},
         {"data": 'Date', 'title': 'Date de saisie', 'name': 'date'},
         {"data": 'Anomaly', 'title': 'Anomalie', 'name': 'anomaly'},
@@ -103,4 +104,11 @@ const urlRemoveRefFromMission = Routing.generate('mission_remove_ref', true);
 
 InitModal($modalRemoveRefFromMission, $submitRemoveRefFromMission, urlRemoveRefFromMission, {
     tables: [tableRefArticle]
+});
+
+let modalAddLocationToMission = $("#modalAddLocationToMission");
+let submitAddLocationToMission = $("#submitAddLocationToMission");
+let urlAddLocationToMission = Routing.generate('add_location_to_mission', true);
+InitModal(modalAddLocationToMission, submitAddLocationToMission, urlAddLocationToMission, {
+    tables: [tableArticle, tableRefArticle]
 });
