@@ -169,9 +169,8 @@ class ProjectController extends AbstractController
     }
 
 
-    /**
-     * @Route("/csv", name="get_projects_csv", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route("/csv", name: "get_projects_csv", options: ["expose" => true], methods: "GET")]
+    #[HasPermission([Menu::REFERENTIEL, Action::EXPORT])]
     public function getProjectsCSV(CSVExportService $CSVExportService, EntityManagerInterface $entityManager): Response {
         $csvHeader = [
             "Code",
@@ -180,15 +179,13 @@ class ProjectController extends AbstractController
             "Actif",
         ];
 
-        $today = new DateTime();
-        $today = $today->format("d-m-Y-H-i-s");
-
+        $today = (new DateTime())->format("d-m-Y-H-i-s");
         return $CSVExportService->streamResponse(function ($output) use ($entityManager, $CSVExportService) {
             $projects = $entityManager->getRepository(Project::class)->iterateAll();
 
             foreach ($projects as $project) {
                 $CSVExportService->putLine($output, $project->serialize());
             }
-        }, "export-projects-$today.csv", $csvHeader);
+        }, "export-projets-$today.csv", $csvHeader);
     }
 }
