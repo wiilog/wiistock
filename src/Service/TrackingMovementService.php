@@ -1278,10 +1278,6 @@ class TrackingMovementService extends AbstractController
                 $inCarts = array_merge($inCarts, $article->getCarts()->toArray());
             }
 
-            if($pack->getProject()) {
-                $this->projectHistoryRecordService->changeProject($manager, $article, $pack->getProject(), $trackingDate);
-            }
-
             $pack->setArticleContainer(true);
 
             $newMovements = [];
@@ -1323,9 +1319,9 @@ class TrackingMovementService extends AbstractController
                 $newMovements[] = $luPick;
             }
 
-            //now the pick LU movement is done, set the logistic unit
+            // now the pick LU movement is done, set the logistic unit
             $article->setCurrentLogisticUnit($pack);
-            //then change the project of the article according to the pack project
+            // then change the project of the article according to the pack project
             $this->projectHistoryRecordService->changeProject($manager, $article, $pack->getProject(), $trackingDate);
 
             if ($isUnitChanges || $isLocationChanges) {
