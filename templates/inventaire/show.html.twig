@@ -18,6 +18,15 @@
                     <div class="btn-group">
                         <button type="button"
                                 data-toggle="modal"
+                                data-target="#modalAddLocationToMission"
+                                class="btn btn-primary split-button d-flex align-items-center mr-2"
+                                onclick="clearModal($('#modalAddLocationToMission'))">
+                            <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter des emplacements
+                        </button>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button"
+                                data-toggle="modal"
                                 data-target="#modalAddToMission"
                                 class="btn btn-primary split-button d-flex align-items-center"
                                 onclick="clearModal($('#modalAddToMission'))">
@@ -74,6 +83,7 @@
     </div>
     <input value="{{ missionId }}" id="missionId" hidden/>
     {% include 'inventaire/modalAddToMission.html.twig' %}
+    {% include 'inventaire/modalAddLocationToMission.html.twig' %}
     {% include 'inventaire/modalRemoveRef.html.twig' %}
 {% endblock %}
 

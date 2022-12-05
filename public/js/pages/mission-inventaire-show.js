@@ -104,3 +104,10 @@ const urlRemoveRefFromMission = Routing.generate('mission_remove_ref', true);
 InitModal($modalRemoveRefFromMission, $submitRemoveRefFromMission, urlRemoveRefFromMission, {
     tables: [tableRefArticle]
 });
+
+let modalAddLocationToMission = $("#modalAddLocationToMission");
+let submitAddLocationToMission = $("#submitAddLocationToMission");
+let urlAddLocationToMission = Routing.generate('add_location_to_mission', true);
+InitModal(modalAddLocationToMission, submitAddLocationToMission, urlAddLocationToMission, {
+    tables: [tableArticle, tableRefArticle]
+});
