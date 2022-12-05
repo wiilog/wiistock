@@ -42,7 +42,8 @@ class PackRepository extends EntityRepository
         'packOrigin' => 'packOrigin',
         'packLocation' => 'packLocation',
         'quantity' => 'quantity',
-        'arrivageType' => 'arrivage'
+        'arrivageType' => 'arrivage',
+        'project' => 'project',
     ];
 
     public function countPacksByDates(DateTime $dateMin,
@@ -274,6 +275,10 @@ class PackRepository extends EntityRepository
                         $queryBuilder
                             ->leftJoin('pack.pairings', 'order_pairings')
                             ->orderBy('order_pairings.active', $order);
+                    } else if ($column === 'project') {
+                        $queryBuilder
+                            ->leftJoin('pack.project', 'order_project')
+                            ->orderBy('order_project.code', $order);
                     } else {
                         $queryBuilder
                             ->orderBy('pack.' . $column, $order);

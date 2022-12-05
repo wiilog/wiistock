@@ -219,10 +219,10 @@ class PackService {
         $project = $projectRepository->findOneBy(["id" => $projectId]);
 
         $recordDate = new DateTime();
-        $this->projectHistoryRecordService->changeProject($entityManager, $pack, !empty($project) ? $project : null, $recordDate);
+        $this->projectHistoryRecordService->changeProject($entityManager, $pack, $project, $recordDate);
 
         foreach($pack->getChildArticles() as $article) {
-            $this->projectHistoryRecordService->changeProject($entityManager, $article, !empty($project) ? $project : null, $recordDate);
+            $this->projectHistoryRecordService->changeProject($entityManager, $article, $project, $recordDate);
         }
 
         $pack
