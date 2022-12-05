@@ -989,6 +989,8 @@ class TrackingMovementService extends AbstractController
                                             array                  $options = [],
                                             bool                   $keepGroup = false): array {
 
+        $ignoreProjectChange = $options['ignoreProjectChange'] ?? false;
+
         $movement = $this->createTrackingMovement(
             $packOrCode,
             $location,
@@ -1016,7 +1018,7 @@ class TrackingMovementService extends AbstractController
         }
 
         $movementType = $movement->getType();
-        if (($options['ignoreProjectChange'] ?? false)
+        if (!$ignoreProjectChange
             && $movementType?->getCode() === TrackingMovement::TYPE_DEPOSE
             && $movement->getPack()->getArticle()) {
             $this->projectHistoryRecordService->changeProject($entityManager, $movement->getPack(), null, $date);

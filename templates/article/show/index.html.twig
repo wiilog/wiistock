@@ -28,7 +28,7 @@
     {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
 
     {% set projectHistoryRecords = (article.trackingPack ? article.trackingPack.projectHistoryRecords : [])
-        | sort((record1, record2) => record1.createdAt <=> record2.createdAt)
+        | sort((record1, record2) => (record1.createdAt <=> record2.createdAt) ?: (record1.id <=> record2.id))
         | reverse
     %}
     {% set firstProjectHistoryRecord = projectHistoryRecords|first %}
