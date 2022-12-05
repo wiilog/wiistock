@@ -185,7 +185,8 @@ class TrackingMovementController extends AbstractController
         }
         $user = $this->getUser();
         $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
-        $date = DateTime::createFromFormat($format, $post->get('datetime') ?: 'now') ?: new DateTime();
+        $date = $this->formatService->parseDatetime($post->get('datetime'), [$format]) ?: (new DateTime());
+        $date->setTime($date->format('H'), $date->format('i'), 0);
 
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -258,7 +259,7 @@ class TrackingMovementController extends AbstractController
                         }
                         else {
                             array_push($createdMouvements, ...$pickingRes['movements']);
-                            $mainPack = $pickingRes['parent'];
+                            $mainPack = $pickingRes['parent'] ?? null;
                         }
                     }
                     else {
@@ -287,7 +288,7 @@ class TrackingMovementController extends AbstractController
                         }
                         else {
                             array_push($createdMouvements, ...$dropRes['movements']);
-                            $createdPack = $dropRes['parent'];
+                            $createdPack = $dropRes['parent'] ?? null;
                         }
                     }
                     else {
@@ -413,6 +414,7 @@ class TrackingMovementController extends AbstractController
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $operator = $utilisateurRepository->find($post->get('operator'));
         $newLocation = $locationRepository->find($post->get('location'));
@@ -430,12 +432,17 @@ class TrackingMovementController extends AbstractController
 
         $newDate = $this->formatService->parseDatetime($post->get('date'));
         $newCode = $post->get('pack');
+        $currentDate = clone $mvt->getDatetime();
+        $currentDate = $currentDate->setTime($currentDate->format('H'), $currentDate->format('i'), 0);
 
         $hasChanged = (
             $mvt->getEmplacement()?->getLabel() !== $newLocation?->getLabel()
-            || $mvt->getDatetime() != $newDate // required != comparison
+            || $currentDate != $newDate // required != comparison
             || $pack->getCode() !== $newCode
         );
+
+        $mainMvt = $mvt->getMainMovement();
+        $linkedMouvements = $trackingMovementRepository->findBy(['mainMovement' => $mvt]);
 
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
             $response = $trackingMovementService->persistTrackingMovement(
@@ -447,15 +454,25 @@ class TrackingMovementController extends AbstractController
                 true,
                 $mvt->getType(),
                 false,
+                ['disableUngrouping'=> true, 'ignoreProjectChange' => true, 'mainMovement'=>$mainMvt],
+                true,
             );
             if ($response['success']) {
                 /** @var TrackingMovement $new */
                 $new = $response['movement'];
                 $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
 
+                foreach ($linkedMouvements as $linkedMvt) {
+                    $linkedMvt->setMainMovement($new);
+                }
+
                 $entityManager->persist($new);
                 $entityManager->remove($mvt);
                 $entityManager->flush();
+
+                $pack->setLastTracking($trackingMovementRepository->findLastTrackingMovement($pack, null));
+                $dropType =  $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
+                $pack->setLastDrop($trackingMovementRepository->findLastTrackingMovement($pack, $dropType));
 
                 $mvt = $new;
             } else {
@@ -653,6 +670,28 @@ class TrackingMovementController extends AbstractController
                 "id" => $location->getId(),
                 "label" => $location->getLabel(),
             ] : null,
+        ]);
+    }
+
+    #[Route("/tracking-movement-logistic-unit-quantity", name: "tracking_movement_logistic_unit_quantity", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
+    public function getLUQuantity(EntityManagerInterface $entityManager, TranslationService $translationService, Request $request): Response
+    {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $code = $request->query->get('code');
+
+        /** @var Pack $pack */
+        $pack = $packRepository->findOneBy(["code" => $code]);
+        $articles = $pack?->getChildArticles() ?? $articleRepository->findBy(["barCode" => $code]);
+        $quantity = Stream::from($articles)
+            ->map(fn (Article $article) => ($article->getQuantite()))
+            ->sum();
+
+        return $this->json([
+            "success" => true,
+            "error" => false,
+            "quantity" => $quantity > 0 ? $quantity : null, //regle de gestion : l'UL doit contenir au moins un article pour qu'on grise le champ
         ]);
     }
 

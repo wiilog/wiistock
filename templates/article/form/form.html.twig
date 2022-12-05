@@ -61,12 +61,6 @@
                                     <span class="wii-field-name">
                                         <img src="{{ asset('svg/reference_article/threshold.svg') }}" alt="Icône anomalie" width="20px">
                                         Anomalie
-                                        <sup><img src="{{ asset('svg/information.svg') }}"
-                                                  alt="Icône information"
-                                                  width="10px"
-                                                  class="has-tooltip"
-                                                  title="A déterminer">
-                                        </sup>
                                     </span>
                                 <div class="wii-switch w-fit-content" data-title="Anomalie">
                                     <input class="data"
@@ -130,7 +124,7 @@
                                 <span class="icon wii-field-name">
                                     <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">Date de péremption
                                 </span>
-                                <input type="date" class="form-control data" name="expiry" value ="{{ article.expiryDate ? article.expiryDate|format_helper('longDate') : '' }}"/>
+                                <input type="date" class="form-control data" name="expiry" value="{{ article.expiryDate ? article.expiryDate| date('Y-m-d') : '' }}"/>
                             </label>
                         </div>
                         {% set managers = article.referenceArticle.managers|map((manager) => manager.username)|join(', ') %}

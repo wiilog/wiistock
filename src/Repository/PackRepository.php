@@ -42,7 +42,8 @@ class PackRepository extends EntityRepository
         'packOrigin' => 'packOrigin',
         'packLocation' => 'packLocation',
         'quantity' => 'quantity',
-        'arrivageType' => 'arrivage'
+        'arrivageType' => 'arrivage',
+        'project' => 'project',
     ];
 
     public function countPacksByDates(DateTime $dateMin,
@@ -274,6 +275,10 @@ class PackRepository extends EntityRepository
                         $queryBuilder
                             ->leftJoin('pack.pairings', 'order_pairings')
                             ->orderBy('order_pairings.active', $order);
+                    } else if ($column === 'project') {
+                        $queryBuilder
+                            ->leftJoin('pack.project', 'order_project')
+                            ->orderBy('order_project.code', $order);
                     } else {
                         $queryBuilder
                             ->orderBy('pack.' . $column, $order);
@@ -633,30 +638,14 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult()) > 0;
     }
 
-    public function getForSelectFromReception(?string $term, ?int $reception): array {
-        return $this->createQueryBuilder("pack")
-            ->select("pack.id AS id, pack.code AS text")
-            ->join(ReceptionLine::class, "reception_line", Join::WITH, "reception_line.pack = pack")
-            ->join("reception_line.reception",  "reception")
-            ->andWhere("pack.code LIKE :term")
-            ->andWhere("reception.id = :reception")
-            ->setParameters([
-                "term" => "%$term%",
-                "reception" => $reception
-            ])
-            ->setMaxResults(100)
-            ->getQuery()
-            ->getArrayResult();
-    }
-
     public function getForSelectFromDelivery(?string $term, ?int $delivery, bool $allowNoProject): array {
         $qb = $this->createQueryBuilder("pack")
             ->select("pack.id AS id, pack.code AS text")
             ->leftJoin(DeliveryRequestArticleLine::class, "request_line", Join::WITH, "request_line.pack = pack")
             ->leftJoin("request_line.request",  "request")
             ->leftJoin("request.statut",  "request_status")
-            ->join("pack.childArticles", "pack_child_articles")
             ->join(Demande::class, "edited_request", Join::WITH, "edited_request.id = :delivery")
+            ->andWhere('pack.childArticles IS NOT EMPTY')
             ->andWhere("pack.code LIKE :term")
             ->andWhere("request.id IS NULL OR request_status.code NOT IN (:ongoing_statuses)")
             ->andWhere("edited_request.project IS NULL OR edited_request.project = pack.project")

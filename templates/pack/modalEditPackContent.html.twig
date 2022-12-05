@@ -39,6 +39,7 @@
             {{ form.select('projects', 'Projet', false, {
                 items: projects,
                 placeholder: 'Sélectionnez un projet',
+                emptyOption: {text: '', value: ''},
                 disabled: disabledProject,
                 tooltip: disabledProject ? 'Le projet ne peut pas être modifié car le colis est dans une réception en cours, une livraison en cours ou un panier' : null
             }) }}

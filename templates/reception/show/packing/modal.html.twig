@@ -8,22 +8,25 @@
                 title: trans('Ordre','Réceptions', 'nouvelle réception')
             } %}
             <div class="modal-body">
-                <div class="row reference-container">
+                <div class="row reference-container"
+                     data-form-id="reference-container-form">
+                    <input name="reception" type="hidden" value="{{ reception.id }}"/>
                     <div class="form-group col-4">
                         <label class="wii-field-name">Référence</label>
                         <select class="form-control select2-autocomplete-ref-articles w-100"
-                                name="refArticleCommande"></select>
+                                name="referenceToReceive"></select>
                     </div>
                     <div class="form-group col-4">
                         <label class="wii-field-name">Référence fournisseur</label>
-                        <select class="form-control data select2 w-100" name="articleFournisseurDefault"></select>
+                        <select class="form-control select2 w-100" name="articleFournisseurDefault"></select>
                     </div>
                     {% if reception %}
                         <div class="form-group col-4">
                             <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
-                            <select class="w-100 data form-control wii-field-text"
+                            <select class="w-100 form-control wii-field-text"
                                     name="pack"
                                     data-s2="receptionLogisticUnits"
+                                    data-min-length="0"
                                     data-other-params
                                     data-other-params-reception="{{ reception.id }}">
                             </select>
@@ -148,7 +151,6 @@
                     {classes: 'btn btn-success', text: 'Enregistrer', type: "submit"}
                 ]
             } %}
-
         </div>
     </div>
 </div>

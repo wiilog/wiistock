@@ -298,6 +298,7 @@ class MobileController extends AbstractApiController
                                 $options
                             )['movement'];
                             $movement->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
+                            $createdMvt->setMainMovement($movement);
                             $associatedPack->getArticle()->setCurrentLogisticUnit(null);
                             $trackingMovementService->persistSubEntities($entityManager, $movement);
                             $entityManager->persist($movement);
@@ -472,6 +473,7 @@ class MobileController extends AbstractApiController
                         $options = [
                             'uniqueIdForMobile' => $mvt['date'],
                             'entityManager' => $entityManager,
+                            'quantity' => $mvt['quantity'],
                         ];
 
                         /** @var Statut $type */
@@ -553,8 +555,11 @@ class MobileController extends AbstractApiController
                                     false,
                                     $options
                                 )['movement'];
-                                $movement->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
+                                $logisticUnit = $associatedPack->getArticle()->getCurrentLogisticUnit();
+                                $movement->setLogisticUnitParent($logisticUnit);
+                                $createdMvt->setMainMovement($movement);
                                 $associatedPack->getArticle()->setCurrentLogisticUnit(null);
+                                $logisticUnit->setQuantity($logisticUnit->getQuantity() - $associatedPack->getQuantity());
                                 $trackingMovementService->persistSubEntities($entityManager, $movement);
                                 $entityManager->persist($movement);
                                 $numberOfRowsInserted++;
@@ -725,6 +730,7 @@ class MobileController extends AbstractApiController
                         foreach ($mouvements as $mouvement) {
                             if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
                                 $preparationsManager->createMouvementLivraison(
+                                    $entityManager,
                                     $mouvement->getQuantity(),
                                     $nomadUser,
                                     $livraison,
@@ -1427,9 +1433,12 @@ class MobileController extends AbstractApiController
         foreach ($request->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
             $outMovement = $preparationsManagerService->createMouvementLivraison(
+                $entityManager,
                 $article->getQuantite(),
-                $nomadUser, $order,
-                false, $article,
+                $nomadUser,
+                $order,
+                false,
+                $article,
                 $preparation,
                 true,
                 $article->getEmplacement()
@@ -1717,10 +1726,13 @@ class MobileController extends AbstractApiController
 
             $articlesLivraison = $articleRepository->getByLivraisonsIds($livraisonsIds);
             $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
-
             /// preparations
             $preparations = Stream::from($preparationRepository->getMobilePreparations($user))
-                ->map(function ($preparationArray) {
+                ->map(function ($preparationArray) use ($deliveriesExpectedDateColors) {
+                    $preparationArray['color'] = $this->mobileApiService->expectedDateColor($preparationArray['expectedAt'], $deliveriesExpectedDateColors);
+                    $preparationArray['expectedAt'] = $preparationArray['expectedAt']
+                        ? $preparationArray['expectedAt']->format('d/m/Y')
+                        : null;
                     if (!empty($preparationArray['comment'])) {
                         $preparationArray['comment'] = substr(strip_tags($preparationArray['comment']), 0, 200);
                     }
@@ -2125,19 +2137,26 @@ class MobileController extends AbstractApiController
     {
         $articlesRepository = $entityManager->getRepository(Article::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
 
         $articles = json_decode($request->request->get('articles'));
 
         $articlesEntites = Stream::from($articles)
             ->map(fn(string $barCode) => $articlesRepository->findOneBy(['barCode' => $barCode]))
+            ->filter()
             ->toArray();
 
         $luToDropIn = $request->request->get('lu');
+
+        $luToDropInEntity = $packRepository->findOneBy([
+            'code' => $luToDropIn
+        ]);
+
         $location = $request->request->get('location');
 
         $trackingMovementService->persistLogisticUnitMovements(
             $entityManager,
-            $luToDropIn,
+            $luToDropInEntity ?? $luToDropIn,
             $locationRepository->findOneBy(['label' => $location]),
             $articlesEntites,
             $this->getUser(),

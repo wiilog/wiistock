@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\Customer;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
@@ -619,10 +620,21 @@ class SelectController extends AbstractController {
     /**
      * @Route("/select/reception-logistic-units", name="ajax_select_reception_logistic_units", options={"expose"=true})
      */
-    public function receptionLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
-        $results = $entityManager->getRepository(Pack::class)->getForSelectFromReception(
+    public function receptionLogisticUnits(Request $request,
+                                           EntityManagerInterface $entityManager): Response {
+
+        $options = [];
+
+        if (!$request->query->getBoolean("all")) {
+            $options["reference"] = $request->query->get("reference");
+            $options["order-number"] = $request->query->get("order-number");
+            $options["include-empty"] = true;
+        }
+
+        $results = $entityManager->getRepository(ReceptionLine::class)->getForSelectFromReception(
             $request->query->get("term"),
             $request->query->get("reception"),
+            $options
         );
 
         return $this->json([
@@ -657,6 +669,23 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/customers", name="ajax_select_customers", options={"expose": true})
+     */
+    public function customers(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get("term");
+        $customers = $entityManager->getRepository(Customer::class)->getForSelect($search);
+
+        array_unshift($customers, [
+            "id" => "new-item",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau client</b></div>",
+        ]);
+
+        return $this->json([
+            "results" => $customers
         ]);
     }
 

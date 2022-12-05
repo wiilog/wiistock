@@ -84,10 +84,8 @@ class PreparationController extends AbstractController
         $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, $articlesNotPicked);
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
-        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-
         $entityManager->flush();
-        $preparationsManager->handlePreparationTreatMovements($mouvementRepository, $preparation, $livraison, $locationEndPrepa, $user);
+        $preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
         $preparationsManager->updateRefArticlesQuantities($preparation);
 
         $entityManager->flush();

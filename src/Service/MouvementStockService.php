@@ -6,10 +6,16 @@ use App\Controller\Settings\SettingsController;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Import;
+use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 
+use App\Entity\OrdreCollecte;
+use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Reception;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
+use App\Entity\TransferOrder;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
@@ -140,11 +146,12 @@ class MouvementStockService
         ];
     }
 
-    public function createMouvementStock(Utilisateur $user,
-                                         ?Emplacement $locationFrom,
-                                         int $quantity,
-                                         $article,
-                                         string $type): MouvementStock {
+    public function createMouvementStock(Utilisateur              $user,
+                                         ?Emplacement             $locationFrom,
+                                         int                      $quantity,
+                                         Article|ReferenceArticle $article,
+                                         string                   $type,
+                                         array                    $options = []): MouvementStock {
 
         $newMouvement = new MouvementStock();
         $newMouvement
@@ -160,8 +167,30 @@ class MouvementStockService
                 $article->setInactiveSince(new DateTime());
             }
         }
-        else if($article instanceof ReferenceArticle) {
+        else { // if($article instanceof ReferenceArticle) {
             $newMouvement->setRefArticle($article);
+        }
+
+        $from = $options['from'] ?? null;
+        if ($from) {
+            if ($from instanceof Preparation) {
+                $newMouvement->setPreparationOrder($from);
+            }
+            else if ($from instanceof Livraison) {
+                $newMouvement->setLivraisonOrder($from);
+            }
+            else if ($from instanceof OrdreCollecte) {
+                $newMouvement->setCollecteOrder($from);
+            }
+            else if ($from instanceof Reception) {
+                $newMouvement->setReceptionOrder($from);
+            }
+            else if ($from instanceof Import) {
+                $newMouvement->setImport($from);
+            }
+            else if ($from instanceof TransferOrder) {
+                $newMouvement->setTransferOrder($from);
+            }
         }
 
         return $newMouvement;

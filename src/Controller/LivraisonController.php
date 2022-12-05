@@ -4,17 +4,21 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -23,12 +27,21 @@ use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
+use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
+use App\Service\SpecificService;
+use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Exception;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Throwable;
@@ -239,37 +252,19 @@ class LivraisonController extends AbstractController {
      * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
-    public function show(Livraison $livraison): Response {
+    public function show(Livraison $livraison, EntityManagerInterface $manager, LivraisonService $livraisonService): Response
+    {
         $demande = $livraison->getDemande();
 
-        $utilisateurPreparation = $livraison->getPreparation()?->getUtilisateur();
-        $destination = $demande?->getDestination();
-        $dateLivraison = $livraison->getDateFin();
-        $comment = $demande->getCommentaire();
+        $headerDetailsConfig = $livraisonService->createHeaderDetailsConfig($livraison);
 
         return $this->render('livraison/show.html.twig', [
             'demande' => $demande,
             'livraison' => $livraison,
+            'displayButton' => Stream::from($livraison->getPreparation()->getArticleLines())->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())->count() > 0,
             'preparation' => $livraison->getPreparation(),
             'finished' => $livraison->isCompleted(),
-            'headerConfig' => [
-                ['label' => 'Numéro', 'value' => $livraison->getNumero()],
-                ['label' => 'Statut', 'value' => $livraison->getStatut() ? ucfirst($this->getFormatter()->status($livraison->getStatut())) : ''],
-                ['label' => 'Opérateur', 'value' => $utilisateurPreparation ? $utilisateurPreparation->getUsername() : ''],
-                ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
-                ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
-                ['label' => 'Date de livraison', 'value' => $dateLivraison ? $dateLivraison->format('d/m/Y') : ''],
-                ['label' => 'Date attendue', 'value' => $demande ? $demande->getExpectedAt()?->format('d/m/Y') : ''],
-                ['label' => 'Projet', 'value' => $demande ? $demande->getProject()?->getCode() : ''],
-                [
-                    'label' => 'Commentaire',
-                    'value' => $comment ?: '',
-                    'isRaw' => true,
-                    'colClass' => 'col-sm-6 col-12',
-                    'isScrollable' => true,
-                    'isNeededNotEmpty' => true,
-                ],
-            ],
+            'headerConfig' => $headerDetailsConfig
         ]);
     }
 
@@ -376,4 +371,400 @@ class LivraisonController extends AbstractController {
         }
     }
 
+    /**
+     * @Route("/{deliveryOrder}/api-delivery-note", name="api_delivery_note_livraison", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param Livraison $deliveryOrder
+     * @return JsonResponse
+     */
+    public function apiDeliveryNote(Request $request,
+                                    EntityManagerInterface $manager,
+                                    Livraison $deliveryOrder): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+        $maxNumberOfPacks = 10;
+
+        $settingRepository = $manager->getRepository(Setting::class);
+
+        $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
+        $deliveryOrderHasPacks = Stream::from($preparationArticleLines)
+            ->some(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit());
+
+        if(!$deliveryOrderHasPacks) {
+            return $this->json([
+                "success" => false,
+                "msg" => 'Des unités logistiques sont nécessaires pour générer un bon de livraison'
+            ]);
+        }
+
+        $preparationPacks = Stream::from($preparationArticleLines)
+            ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())->toArray();
+
+        $packs = array_slice($preparationPacks, 0, $maxNumberOfPacks);
+        $packs = array_map(function(Pack $pack) {
+            return [
+                "code" => $pack->getCode(),
+                "quantity" => $pack->getQuantity(),
+                "comment" => $pack->getComment(),
+            ];
+        }, $packs);
+
+        $userSavedData = $loggedUser->getSavedDeliveryOrderDeliveryNoteData();
+        $dispatchSavedData = $deliveryOrder->getDeliveryNoteData();
+        $defaultData = [
+            'deliveryNumber' => $deliveryOrder->getNumero(),
+            'username' => $loggedUser->getUsername(),
+            'packs' => $packs,
+            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'consignor2' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'userPhone' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
+        ];
+
+        $deliveryNoteData = array_reduce(
+            array_keys(Livraison::DELIVERY_NOTE_DATA),
+            function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
+                $carry[$dataKey] = (
+                    $dispatchSavedData[$dataKey]
+                    ?? ($userSavedData[$dataKey]
+                        ?? ($defaultData[$dataKey]
+                            ?? null))
+                );
+
+                return $carry;
+            },
+            []
+        );
+
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+
+        $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
+            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EMERGENCY),
+        ]));
+
+        return $this->json([
+            "success" => true,
+            "html" => $html
+        ]);
+    }
+
+    /**
+     * @Route("/{deliveryOrder}/delivery-note", name="delivery_note_delivery_order", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param EntityManagerInterface $entityManager
+     * @param Livraison $deliveryOrder
+     * @param PDFGeneratorService $pdf
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postDeliveryNoteDeliveryOrder(EntityManagerInterface $entityManager,
+                                     Livraison $deliveryOrder,
+                                     PDFGeneratorService $pdf,
+                                     Request $request,
+                                     SpecificService $specificService,
+                                     LivraisonService $livraisonService): JsonResponse {
+
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $data = json_decode($request->getContent(), true);
+
+        $userDataToSave = [];
+        $dispatchDataToSave = [];
+
+        // force dispatch number
+        $data['deliveryNumber'] = $deliveryOrder->getNumero();
+
+        foreach(array_keys(Livraison::DELIVERY_NOTE_DATA) as $deliveryNoteKey) {
+            if(isset(Livraison::DELIVERY_NOTE_DATA[$deliveryNoteKey])) {
+                $value = $data[$deliveryNoteKey] ?? null;
+                $dispatchDataToSave[$deliveryNoteKey] = $value;
+                if(Livraison::DELIVERY_NOTE_DATA[$deliveryNoteKey]) {
+                    $userDataToSave[$deliveryNoteKey] = $value;
+                }
+            }
+        }
+
+        $loggedUser->setSavedDeliveryOrderDeliveryNoteData($userDataToSave);
+        $deliveryOrder->setDeliveryNoteData($dispatchDataToSave);
+
+        $entityManager->flush();
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
+
+        $nowDate = new DateTime('now');
+        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+
+        $documentTitle = "BL - {$deliveryOrder->getNumero()} - {$client} - {$nowDate->format('dmYHis')}";
+
+        $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $deliveryOrder);
+
+        $deliveryNoteAttachment = new Attachment();
+        $deliveryNoteAttachment
+            ->setDeliveryOrder($deliveryOrder)
+            ->setFileName($fileName)
+            ->setOriginalName($documentTitle . '.pdf');
+
+        $entityManager->persist($deliveryNoteAttachment);
+
+        $entityManager->flush();
+
+        $detailsConfig = $livraisonService->createHeaderDetailsConfig($deliveryOrder);
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le téléchargement de votre bon de livraison va commencer...',
+            'headerDetailsConfig' => $this->renderView("livraison/livraison-show-header.html.twig", [
+                'livraison' => $deliveryOrder,
+                'showDetails' => $detailsConfig,
+                'finished' => $deliveryOrder->isCompleted(),
+                'displayButton' => Stream::from($deliveryOrder->getPreparation()->getArticleLines())->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())->count() > 0,
+                'demande' => $deliveryOrder->getDemande(),
+                'preparation' => $deliveryOrder->getPreparation(),
+                'titleLogo' => $deliveryOrder->getPreparation()->getPairings()->count() >=1 ? 'pairing' : null,
+                'titleLogoTooltip' => "Cette livraison est liée à un capteur",
+            ]),
+            'attachmentId' => $deliveryNoteAttachment->getId()
+        ]);
+
+    }
+
+    /**
+     * @Route("/{deliveryOrder}/delivery-note/{attachment}", name="print_delivery_note_delivery_order", options={"expose"=true}, methods="GET")
+     * @param Livraison $deliveryOrder
+     * @param KernelInterface $kernel
+     * @param Attachment $attachment
+     * @return PdfResponse
+     */
+    public function printDeliveryNote(Livraison $deliveryOrder,
+                                      KernelInterface $kernel,
+                                      Attachment $attachment): Response {
+        if(!$deliveryOrder->getDeliveryNoteData()) {
+            return $this->json([
+                "success" => false,
+                "msg" => 'Le bon de livraison n\'existe pas pour cette ordre de livraison'
+            ]);
+        }
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
+
+        return $response;
+    }
+
+    /**
+     * @Route("/{deliveryOrder}/check-waybill", name="check_delivery_waybill", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param Livraison $deliveryOrder
+     * @return JsonResponse
+     */
+    public function checkDeliveryWaybill(Livraison $deliveryOrder) {
+        $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
+        $deliveryOrderHasPacks = Stream::from($preparationArticleLines)
+            ->some(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit());
+
+        if(!$deliveryOrderHasPacks) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Des unités logistiques sont nécessaires pour générer une lettre de voiture.'
+            ]);
+        } else {
+            return new JsonResponse([
+                "success" => true,
+            ]);
+        }
+    }
+
+    /**
+     * @Route("/{deliveryOrder}/api-waybill", name="api_delivery_waybill", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     */
+    public function apiDeliveryWaybill(Request $request,
+                               EntityManagerInterface $entityManager,
+                               Livraison $deliveryOrder): JsonResponse {
+
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $userSavedData = $loggedUser->getSavedDeliveryWaybillData();
+        $wayBillSavedData = $deliveryOrder->getWaybillData();
+
+        $now = new DateTime('now');
+
+        $consignorUsername = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME);
+        $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
+            ? $consignorUsername
+            : null;
+
+        $consignorEmail = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
+        $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
+            ? $consignorEmail
+            :  null;
+
+        $defaultData = [
+            'carrier' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CARRIER),
+            'dispatchDate' => $now->format('Y-m-d'),
+            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'receiver' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_RECEIVER),
+            'locationFrom' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_FROM),
+            'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
+            'consignorUsername' => $consignorUsername,
+            'consignorEmail' => $consignorEmail,
+            'receiverUsername' => $loggedUser->getUsername(),
+            'receiverEmail' => $loggedUser->getEmail()
+        ];
+
+        $wayBillData = array_reduce(
+            array_keys(Livraison::WAYBILL_DATA),
+            function(array $carry, string $dataKey) use ($request, $userSavedData, $wayBillSavedData, $defaultData) {
+                $carry[$dataKey] = (
+                    $wayBillSavedData[$dataKey]
+                    ?? ($userSavedData[$dataKey]
+                        ?? ($defaultData[$dataKey]
+                            ?? null))
+                );
+
+                return $carry;
+            },
+            []
+        );
+
+        $html = $this->renderView('dispatch/modalPrintWayBillContent.html.twig', array_merge($wayBillData, [
+            'packsCounter' => Stream::from($deliveryOrder->getPreparation()->getArticleLines())
+                ->some(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())
+        ]));
+
+        return $this->json([
+            "success" => true,
+            "html" => $html
+        ]);
+    }
+
+    /**
+     * @Route("/{deliveryOrder}/waybill", name="post_delivery_waybill", options={"expose"=true}, condition="request.isXmlHttpRequest()", methods="POST")
+     */
+    public function postDispatchWaybill(EntityManagerInterface $entityManager,
+                                        Livraison $deliveryOrder,
+                                        PDFGeneratorService $pdf,
+                                        LivraisonService $livraisonService,
+                                        Request $request,
+                                        TranslationService $translationService,
+                                        SpecificService $specificService): JsonResponse {
+        $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
+        $deliveryOrderHasPacks = Stream::from($preparationArticleLines)
+            ->some(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit());
+
+        if($deliveryOrderHasPacks > LivraisonService::WAYBILL_MAX_PACK) {
+            $message = $translationService->translate('Demande', 'Acheminements', 'Général', "Attention : L'acheminement contient plus de {1} unités logistiques, cette lettre de voiture ne peut contenir plus de {1} lignes.", [
+                1 => LivraisonService::WAYBILL_MAX_PACK
+            ]);
+            $success = false;
+        } else {
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+
+            $data = json_decode($request->getContent(), true);
+
+            $userDataToSave = [];
+            $deliveryDataToSave = [];
+            foreach(array_keys(Livraison::WAYBILL_DATA) as $wayBillKey) {
+                if(isset(Livraison::WAYBILL_DATA[$wayBillKey])) {
+                    $value = $data[$wayBillKey] ?? null;
+                    $deliveryDataToSave[$wayBillKey] = $value;
+                    if(Livraison::WAYBILL_DATA[$wayBillKey]) {
+                        $userDataToSave[$wayBillKey] = $value;
+                    }
+                }
+            }
+            $loggedUser->setSavedDeliveryWaybillData($userDataToSave);
+            $deliveryOrder->setWaybillData($deliveryDataToSave);
+
+            $entityManager->flush();
+
+            $message = 'Le téléchargement de votre lettre de voiture va commencer...';
+            $success = true;
+        }
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
+
+        $nowDate = new DateTime('now');
+
+        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+        $title = "LDV - {$deliveryOrder->getNumero()} - {$client} - {$nowDate->format('dmYHis')}";
+
+        $packsQuantity = Stream::from($deliveryOrder->getPreparation()->getArticleLines())
+            ->filter()
+            ->reduce(function(array $carry, PreparationOrderArticleLine $articleLine) {
+                if(isset($carry[$articleLine->getArticle()->getCurrentLogisticUnit()->getId()])){
+                    $carry[$articleLine->getArticle()->getCurrentLogisticUnit()->getId()] += $articleLine->getPickedQuantity();
+                } else {
+                    $carry[$articleLine->getArticle()->getCurrentLogisticUnit()->getId()] = $articleLine->getPickedQuantity();
+
+                }
+                return $carry;
+            }, []) ;
+
+
+        $packs = Stream::from($deliveryOrder->getPreparation()->getArticleLines())
+            ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())
+            ->unique()
+            ->map(fn(Pack $pack) => [
+                'quantity' => $packsQuantity[$pack->getId()],
+                'code' => $pack->getCode(),
+                'weight' => $pack->getWeight(),
+                'volume' => $pack->getVolume(),
+                'comment' => $pack->getComment(),
+                'nature' => $this->getFormatter()->nature($pack->getNature(), "", $loggedUser)
+            ])->toArray();
+
+        $fileName = $pdf->generatePDFWaybill($title, $logo, $deliveryOrder, $packs);
+
+        $wayBillAttachment = new Attachment();
+        $wayBillAttachment
+            ->setDeliveryOrder($deliveryOrder)
+            ->setFileName($fileName)
+            ->setOriginalName($title . '.pdf');
+
+        $entityManager->persist($wayBillAttachment);
+
+        $entityManager->flush();
+
+        $detailsConfig =  $livraisonService->createHeaderDetailsConfig($deliveryOrder);
+
+        return new JsonResponse([
+            'success' => $success,
+            'msg' => $message,
+            'headerDetailsConfig' => $this->renderView("livraison/livraison-show-header.html.twig", [
+                'livraison' => $deliveryOrder,
+                'showDetails' => $detailsConfig,
+                'finished' => $deliveryOrder->isCompleted(),
+                'demande' => $deliveryOrder->getDemande(),
+                'displayButton' => Stream::from($deliveryOrder->getPreparation()->getArticleLines())->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())->count() > 0,
+                'preparation' => $deliveryOrder->getPreparation(),
+                'titleLogo' => $deliveryOrder->getPreparation()->getPairings()->count() >=1 ? 'pairing' : null,
+                'titleLogoTooltip' => "Cette livraison est liée à un capteur",
+            ]),
+            'attachmentId' => $wayBillAttachment->getId()
+        ]);
+    }
+
+    /**
+     * @Route("/{deliveryOrder}/waybill/{attachment}", name="print_waybill_delivery", options={"expose"=true}, methods="GET")
+     */
+    public function printWaybillNote(Livraison $deliveryOrder,
+                                     Attachment $attachment,
+                                     TranslationService $translationService,
+                                     KernelInterface $kernel): Response {
+        if(!$deliveryOrder->getWaybillData()) {
+            return $this->json([
+                "success" => false,
+                "msg" => $translationService->translate('Demande', 'Acheminements', 'Lettre de voiture', 'La lettre de voiture n\'existe pas pour cet acheminement', false),
+            ]);
+        }
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
+
+        return $response;
+    }
 }

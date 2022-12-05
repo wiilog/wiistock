@@ -42,6 +42,8 @@
     </div>
 
     {% include 'emplacement/modal-select-location.html.twig' with {type: 'delete-delivery'} %}
+    {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
+    {% include "dispatch/modalPrintWayBill.html.twig" %}
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

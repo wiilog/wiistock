@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Dispatch;
+use App\Entity\Livraison;
 use App\Entity\Setting;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
@@ -117,14 +118,16 @@ class PDFGeneratorService {
         );
     }
 
-    public function generatePDFWaybill(string $title, ?string $logo, Dispatch $dispatch): string {
+    public function generatePDFWaybill(string $title, ?string $logo, Dispatch|Livraison $entity, array $packs): string {
         $fileName = uniqid() . '.pdf';
 
         $this->PDFGenerator->generateFromHtml(
             $this->templating->render('prints/waybill-template.html.twig', [
                 'title' => $title,
-                'dispatch' => $dispatch,
-                'logo' => $logo
+                'entity' => $entity,
+                'logo' => $logo,
+                'packs' => $packs,
+                'number' => $entity instanceof Dispatch ? $entity->getNumber() : ($entity instanceof Livraison ? $entity->getNumero() : '')
             ]),
             ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),
             [
@@ -138,13 +141,13 @@ class PDFGeneratorService {
 
     public function generatePDFDeliveryNote(string $title,
                                             ?string $logo,
-                                            Dispatch $dispatch): string {
+                                            Dispatch|Livraison $entity): string {
         $fileName = uniqid() . '.pdf';
 
         $this->PDFGenerator->generateFromHtml(
             $this->templating->render('prints/delivery-note-template.html.twig', [
                 'title' => $title,
-                'dispatch' => $dispatch,
+                'entity' => $entity,
                 'logo' => $logo
             ]),
             ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),

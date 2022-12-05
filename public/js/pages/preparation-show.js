@@ -343,26 +343,6 @@ function finishPrepa($button) {
     }
 }
 
-function printPrepaBarCodes() {
-    const lengthPrintButton = $('.print-button').length;
-    if (lengthPrintButton > 0) {
-        $.get(Routing.generate('count_bar_codes', {preparation: $preparationId.val()}
-        )).then((data) => {
-            if (data) {
-                window.location.href = Routing.generate(
-                    'preparation_bar_codes_print',
-                    {
-                        preparation: $preparationId.val()
-                    },
-                    true
-                );
-            } else {
-                showBSAlert("Il n'y a aucune étiquette à imprimer", 'info');
-            }
-        })
-    }
-}
-
 function clearValidatePreparationModal() {
     const $locationSelect = $modalSubmitPreparation.find('select[name="location"]')
     $locationSelect.html('');

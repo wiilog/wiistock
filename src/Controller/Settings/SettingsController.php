@@ -797,7 +797,7 @@ class SettingsController extends AbstractController {
 
         foreach ($translations as $translation) {
            $id = $translation->id;
-           $value = $translation->value;
+           $value = strip_tags($translation->value);
            $source = $translationSourceRepository->find($translation->source);
            if ($id != null or $id != '') {
                $translation= $translationRepository->find($id);
@@ -1860,12 +1860,10 @@ class SettingsController extends AbstractController {
         $class = "form-control data";
 
         $categorieCLRepository = $manager->getRepository(CategorieCL::class);
-        $categories = Stream::from($categorieCLRepository->findByLabel([
-            CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
-        ]))
-            ->map(fn(CategorieCL $category) => "<option value='{$category->getId()}'>{$category->getLabel()}</option>")
-            ->join("");
 
+        $categoryLabels = $categorieCLRepository->findByLabel([
+            CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
+        ]);
         $rows = [];
         $freeFields = $type ? $type->getChampsLibres() : [];
         foreach ($freeFields as $freeField) {
@@ -1955,6 +1953,13 @@ class SettingsController extends AbstractController {
                 $requiredCreate = $freeField->isRequiredCreate() ? "checked" : "";
                 $requiredEdit = $freeField->isRequiredEdit() ? "checked" : "";
                 $elements = join(";", $freeField->getElements());
+
+                $categories = Stream::from($categoryLabels)
+                    ->map(function(CategorieCL $category) use ($freeField) {
+                        $selected = $freeField->getCategorieCL()->getLabel() === $category->getLabel() ? 'selected' : '';
+                        return "<option value='{$category->getId()}' $selected>{$category->getLabel()}</option>";
+                    })
+                    ->join("");
 
                 $rows[] = [
                     "id" => $freeField->getId(),

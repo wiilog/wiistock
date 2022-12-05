@@ -111,15 +111,17 @@ class PreparationsManagerService
         }
     }
 
-    public function handlePreparationTreatMovements(MouvementStockRepository $mouvementStockRepository,
+    public function handlePreparationTreatMovements(EntityManagerInterface $entityManager,
                                                     Preparation $preparation,
                                                     Livraison $livraison,
                                                     ?Emplacement $locationEndPrepa,
                                                     Utilisateur $user) {
+        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $mouvements = $mouvementStockRepository->findByPreparation($preparation);
         foreach ($mouvements as $mouvement) {
             if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
                 $this->createMouvementLivraison(
+                    $entityManager,
                     $mouvement->getQuantity(),
                     $user,
                     $livraison,
@@ -268,17 +270,18 @@ class PreparationsManagerService
         return $newPreparation;
     }
 
-    public function createMouvementLivraison(int $quantity,
+    public function createMouvementLivraison(EntityManagerInterface $entityManager,
+                                             int $quantity,
                                              Utilisateur $userNomade,
                                              Livraison $livraison,
                                              bool $isRef,
                                              $article,
                                              Preparation $preparation,
                                              bool $isSelectedByArticle,
-                                             Emplacement $emplacementFrom = null)
+                                             ?Emplacement $emplacementFrom = null)
     {
-        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
 
         $mouvement = new MouvementStock();
         $mouvement
@@ -291,7 +294,7 @@ class PreparationsManagerService
             $mouvement->setEmplacementFrom($emplacementFrom);
         }
 
-        $this->entityManager->persist($mouvement);
+        $entityManager->persist($mouvement);
 
         if ($isRef) {
             $refArticle = ($article instanceof ReferenceArticle)

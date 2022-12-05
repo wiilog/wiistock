@@ -41,6 +41,7 @@ const ROUTES = {
     project: 'ajax_select_project',
     receptionLogisticUnits: 'ajax_select_reception_logistic_units',
     deliveryLogisticUnits: 'ajax_select_delivery_logistic_units',
+    customers: 'ajax_select_customers',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -77,8 +78,12 @@ export default class Select2 {
                     $element.prepend(`<option selected>`);
                 }
 
-                $element.attr(`data-s2-initialized`, ``);
-                $element.removeAttr(`data-s2`);
+                $element
+                    .attr(`data-s2-initialized`, type || '')
+                    .data(`s2-initialized`, type || '');
+                $element
+                    .removeAttr(`data-s2`)
+                    .removeData(`s2`);
 
                 const config = {};
                 if (type) {
@@ -289,11 +294,25 @@ export default class Select2 {
     }
 
     static destroy($element) {
-        if($element.is(`.select2-hidden-accessible`)) {
+        if ($element.is(`.select2-hidden-accessible`)) {
             $element.val(null).html(``);
             $element.select2(`data`, null);
             $element.select2(`destroy`);
+
+            if ($element.is(`[data-s2-initialized]`)) {
+                const type = $element.data(`s2-initialized`);
+                $element
+                    .attr(`data-s2`, type)
+                    .data(`s2`, type)
+                    .removeAttr(`data-s2-initialized`)
+                    .removeData(`s2-initialized`);
+            }
         }
+    }
+
+    static reload($element) {
+        Select2.destroy($element);
+        Select2.init($element);
     }
 }
 

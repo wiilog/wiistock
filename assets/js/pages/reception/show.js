@@ -42,19 +42,19 @@ $(function () {
 
     const $modalNewLigneReception = $(`#modalNewLigneReception`);
 
-    const $refArticleCommande = $modalNewLigneReception.find(`select[name=refArticleCommande]`);
-    $refArticleCommande.on(`change`, function () {
-        onReceptionReferenceArticleChange();
+    const $referenceToReceive = $modalNewLigneReception.find(`select[name=referenceToReceive]`);
+    $referenceToReceive.on(`change`, function () {
+        onReferenceToReceiveChange();
     });
 
     $modalNewLigneReception.find('select[name=articleFournisseurDefault], select[name=pack]')
         .on(`change`, function () {
-            loadPackingTemplate($modalNewLigneReception);
+            loadPackingArticleForm($modalNewLigneReception);
         });
 
     $(document).on(`click`, `.add-packing-lines`, function (e) {
         e.preventDefault();
-        addPackingLines($(this));
+        loadPackingArticlesTemplate($(this));
     });
 
     $(document).on(`click`, `.remove-article-line`, function () {
@@ -492,7 +492,7 @@ function clearModalLigneReception(modal) {
         .find('.articles-conditionnement-container')
         .html('');
 
-    const $select2 = $modal.find('select[name="refArticleCommande"]');
+    const $select2 = $modal.find('select[name="referenceToReceive"]');
     if ($select2.hasClass("select2-hidden-accessible")) {
         $select2
             .val(null)
@@ -531,7 +531,7 @@ function initNewLigneReception() {
     Select2Old.init($('.select2-type'));
     Select2Old.user($modalNewLigneReception.find('.select2-user'));
     Select2Old.initValues($('select[name=demandeur]'), $( '#currentUser'));
-    Select2Old.init($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
+    Select2Old.init($modalNewLigneReception.find('[name=referenceToReceive]'), '', 0, {
         route: 'get_ref_article_reception',
         param: {
             reception: $('#receptionId').val()
@@ -617,29 +617,18 @@ function createHandlerAddLigneArticleResponseAndRedirect($modal) {
             const {receptionReferenceArticle} = data;
             $('#modalNewLigneReception').modal('show');
 
-            $.get({
-                url: Routing.generate('get_ref_article_reception', {
-                    reception: $('#receptionId').val(),
-                    id: receptionReferenceArticle
-                })
-            })
-                .then(({results}) => {
-                    if (results && results.length > 0) {
-                        const [selected] = results;
-                        if (selected) {
-                            const $pickingSelect = $('#modalNewLigneReception').find('[name=refArticleCommande]');
-                            let newOption = new Option(selected.text, selected.id, true, true);
-                            $pickingSelect
-                                .append(newOption)
-                                .val(selected.id);
-                            const [selectedPicking] = $pickingSelect.select2('data');
-                            Object.assign(selectedPicking, selected);
-                            $pickingSelect.trigger(`change`);
+            if (receptionReferenceArticle) {
+                const $pickingSelect = $('#modalNewLigneReception').find('[name=referenceToReceive]');
+                let newOption = new Option(receptionReferenceArticle.text, receptionReferenceArticle.id, true, true);
+                $pickingSelect
+                    .append(newOption)
+                    .val(receptionReferenceArticle.id);
+                const [selectedPicking] = $pickingSelect.select2('data');
+                Object.assign(selectedPicking, receptionReferenceArticle);
+                $pickingSelect.trigger(`change`);
+            }
 
-                            loadReceptionLines();
-                        }
-                    }
-                });
+            loadReceptionLines();
         }
     }
 }
@@ -681,11 +670,11 @@ function toggleForm($content, $input, force = false) {
     }
 }
 
-function onReceptionReferenceArticleChange() {
+function onReferenceToReceiveChange() {
     const $modal = $('#modalNewLigneReception');
     const $firstStepForm = $modal.find('.reference-container');
-    const $selectRefArticle = $firstStepForm.find('[name="refArticleCommande"]');
-    const [referenceArticle] = $selectRefArticle.select2('data');
+    const $referenceToReceive = $firstStepForm.find('[name="referenceToReceive"]');
+    const [referenceToReceive] = $referenceToReceive.select2('data');
 
     const $selectArticleFournisseur = $firstStepForm.find('[name=articleFournisseurDefault]');
     const $selectArticleFournisseurFormGroup = $selectArticleFournisseur.closest('.form-group');
@@ -693,8 +682,31 @@ function onReceptionReferenceArticleChange() {
     const $selectPack = $firstStepForm.find('[name=pack]');
     const $selectPackFormGroup = $selectPack.closest('.form-group');
 
-    if (referenceArticle) {
-        const {reference, defaultArticleFournisseur, packCode, packId, packDisabled} = referenceArticle;
+    if (referenceToReceive) {
+        let {reference, orderNumber, pack, defaultArticleFournisseur} = referenceToReceive;
+
+        $selectPack
+            .data('other-params-reference', reference)
+            .attr('data-other-params-reference', reference)
+            .data('other-params-order-number', orderNumber)
+            .attr('data-other-params-order-number', orderNumber);
+
+        // remove old options
+        Select2.reload($selectPack)
+
+        // if the reference is only in the reception without a pack
+        // => pack == null
+        // else if there are multiple pack associated pack === undefined
+        if (pack !== undefined) {
+            pack = (pack || {});
+            $selectPack
+                .prop('disabled', true)
+                .append(new Option(pack.code || "&nbsp;", pack.id || `-1`, true, true));
+        }
+        else {
+            $selectPack.prop('disabled', false)
+        }
+
         $selectArticleFournisseur
             .val(null)
             .html('')
@@ -715,19 +727,6 @@ function onReceptionReferenceArticleChange() {
         $selectArticleFournisseurFormGroup.removeClass('d-none');
         $selectPackFormGroup.removeClass('d-none');
 
-        if (packDisabled
-            || (packCode && packId)) {
-            $selectPack.prop('disabled', true);
-            if (packCode && packId) {
-                $selectPack.append(new Option(packCode, packId, true, true))
-            }
-        }
-        else {
-            $selectPack
-                .val(null)
-                .prop('disabled', false);
-        }
-
         $modal
             .find('.packing-container')
             .empty();
@@ -735,6 +734,15 @@ function onReceptionReferenceArticleChange() {
     else {
         $selectArticleFournisseurFormGroup.addClass('d-none');
         $selectPackFormGroup.addClass('d-none');
+
+
+        $selectPack
+            .prop('disabled', false)
+            .removeData('other-params-reference')
+            .removeAttr('data-other-params-reference')
+            .removeData('other-params-order-number')
+            .removeAttr('data-other-params-order-number')
+            .val(null).select2('data', null);
     }
 
     $selectArticleFournisseur.trigger('change');
@@ -850,27 +858,35 @@ function clearPackListSearching() {
     $searchInput.val(null);
 }
 
-function loadPackingTemplate($modal) {
+function loadPackingArticleForm($modal) {
     const $referenceContainer = $modal.find(`.reference-container`);
 
-    const $refArticleCommande = $referenceContainer.find(`select[name=refArticleCommande]`)
+    const $referenceToReceive = $referenceContainer.find(`select[name=referenceToReceive]`)
     const $pack = $referenceContainer.find(`[name=pack]`);
-    const $supplierArticleDefault = $referenceContainer.find(`[name=articleFournisseurDefault]`)
+    const $supplierArticleDefault = $referenceContainer.find(`[name=articleFournisseurDefault]`);
+    const $reception = $referenceContainer.find(`[name=reception]`);
 
-    const [refArticleOrderNumber] = $refArticleCommande.hasClass("select2-hidden-accessible") ? $refArticleCommande.select2(`data`) : [];
+    const [referenceToReceive] = $referenceToReceive.hasClass("select2-hidden-accessible") ? $referenceToReceive.select2(`data`) : [];
 
-    if (refArticleOrderNumber && $supplierArticleDefault.select2(`data`).length > 0) {
+    if (referenceToReceive && $supplierArticleDefault.select2(`data`).length > 0) {
         const $packingContainer = $modal.find(`.packing-container`);
 
         wrapLoadingOnActionButton($packingContainer, () => (
-            AJAX.route(GET, `packing_template`, {
-                receptionReferenceArticle: refArticleOrderNumber.id,
+            AJAX.route(GET, `packing_article_form_template`, {
+                reception: $reception.val(),
+                reference: referenceToReceive.reference,
+                orderNumber: referenceToReceive.orderNumber,
                 pack: $pack.val(),
                 supplierReference: $supplierArticleDefault.val(),
             })
                 .json()
-                .then(({template}) => {
-                    $packingContainer.html(template);
+                .then(({success, msg, template}) => {
+                    if (success) {
+                        $packingContainer.html(template);
+                    }
+                    else {
+                        Flash.add(ERROR, msg);
+                    }
                 })
         ));
     } else {
@@ -878,7 +894,7 @@ function loadPackingTemplate($modal) {
     }
 }
 
-function addPackingLines($button) {
+function loadPackingArticlesTemplate($button) {
     const $modal = $button.closest('.modal');
     const $packingContainer = $modal.find('.packing-container');
 
@@ -886,31 +902,12 @@ function addPackingLines($button) {
         Flash.add(ERROR, 'Veuillez sélectionner une référence et une référence fournisseur.');
         return;
     }
-
-    const receptionReferenceArticleToPack = Number($packingContainer.find('[name=receptionReferenceArticle]').val());
-    const packToPack = Number($packingContainer.find('[name=pack]').val());
-
-    const $articlesContainer = $modal.find('.articles-container')
-    const packedReferenceArticleIds = $articlesContainer.find('.article-line')
-        .map((index, line) => {
-            const reference = Number($(line).find('[name=receptionReferenceArticle]').val());
-            const pack = Number($(line).find('[name=pack]').val());
-            return `${reference}-${pack}`;
-        })
-        .toArray();
-
-    if (packedReferenceArticleIds.length > 0
-        && !packedReferenceArticleIds.includes(`${receptionReferenceArticleToPack}-${packToPack}`)) {
-        Flash.add(ERROR, 'Vous ne pouvez pas effectuer le conditionnement de plusieurs référence en même temps.');
-        return;
-    }
-
     const data = Form.process($modal.find(`.packing-container`));
 
     if (data) {
         const params = JSON.stringify(data.asObject());
         wrapLoadingOnActionButton($button, () => (
-            AJAX.route(GET, `get_packing_article_template`, {params})
+            AJAX.route(GET, `get_packing_articles_template`, {params})
                 .json()
                 .then(({template}) => {
                     const $articlesContainer = $modal.find(`.articles-container`);

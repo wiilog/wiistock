@@ -296,7 +296,7 @@ class DemandeLivraisonService
             UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
         );
 
-        $expectedAt = FormatHelper::parseDatetime($data['expectedAt'] ?? '');
+        $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? '');
 
         $demande = new Demande();
         $demande
@@ -447,7 +447,9 @@ class DemandeLivraisonService
             }
 
             foreach($demande->getReferenceLines() as $reference) {
-                $locations[$reference->getReference()->getEmplacement()->getId()] = true;
+                if($reference->getReference()->getEmplacement()) {
+                    $locations[$reference->getReference()->getEmplacement()->getId()] = true;
+                }
             }
 
             $preparedUponValidation = count($locations) === 1;
@@ -590,10 +592,8 @@ class DemandeLivraisonService
             $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa, []);
             $this->preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
-            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-
             $entityManager->flush();
-            $this->preparationsManager->handlePreparationTreatMovements($mouvementRepository, $preparation, $livraison, $locationEndPrepa, $user);
+            $this->preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
             $this->preparationsManager->updateRefArticlesQuantities($preparation);
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,

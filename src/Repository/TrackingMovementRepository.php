@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\Statut;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
@@ -479,8 +480,9 @@ class TrackingMovementRepository extends EntityRepository
         ];
     }
 
-    public function getArticleTrackingMovements(int $article): array {
-        return $this->createQueryBuilder('tracking_movement')
+    public function getArticleTrackingMovements(int $article, $option = []): array {
+        $qb =  $this->createQueryBuilder('tracking_movement');
+        $qb
             ->addSelect('tracking_movement.id AS id')
             ->addSelect('join_status.code AS type')
             ->addSelect('join_location.label AS location')
@@ -495,10 +497,15 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.logisticUnitParent', 'join_logisticUnitParent')
             ->andWhere('join_article.id = :article')
             ->orderBy('tracking_movement.datetime', 'DESC')
+            ->addOrderBy('tracking_movement.id', 'DESC')
             ->setMaxResults(self::MAX_ARTICLE_TRACKING_MOVEMENTS_TIMELINE)
-            ->setParameter('article', $article)
-            ->getQuery()
-            ->getResult();
+            ->setParameter('article', $article);
+
+        if ($option['mainMovementOnly'] ?? false) {
+            $qb->andWhere('tracking_movement.mainMovement IS NULL');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     public function findChildArticleMovementsBy(Pack $pack) {
@@ -517,4 +524,22 @@ class TrackingMovementRepository extends EntityRepository
             ->getResult();
     }
 
+
+    public function findLastTrackingMovement($pack,?Statut $type) {
+        $qb = $this->createQueryBuilder('tracking_movement');
+        $qb->select('tracking_movement')
+            ->leftJoin('tracking_movement.pack', 'pack')
+            ->andWhere('pack.id = :pack')
+            ->setParameter('pack', $pack)
+            ->orderBy('tracking_movement.datetime', 'DESC')
+            ->setMaxResults(1);
+
+        if ($type){
+            $qb->leftJoin('tracking_movement.type', 'type')
+                ->andWhere('type.id = :type')
+                ->setParameter('type', $type);
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
 }

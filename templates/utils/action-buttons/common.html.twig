@@ -69,7 +69,7 @@ format:
     {% endif %}
 
     <{{ tag }}
-            class="btn btn-primary d-flex align-items-center pointer {{ option.class is defined ? option.class}} {{ option.buttonClass is defined ? option.buttonClass }}"
+            class="d-flex align-items-center pointer {{ option.class is defined ? option.class}} {{ option.buttonClass is defined ? option.buttonClass : 'btn btn-primary' }}"
             {{ _self.attributes(attributes ?? {}) }}>
         {% if option.icon is defined %}
             <i class="{{ option.icon }} mr-2"></i>

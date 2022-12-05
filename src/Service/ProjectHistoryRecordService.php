@@ -20,7 +20,7 @@ class ProjectHistoryRecordService {
 
     public function changeProject(EntityManagerInterface $entityManager,
                                   Article|Pack           $item,
-                                  ?Project                $project,
+                                  ?Project               $project,
                                   DateTime               $recordDate): ?ProjectHistoryRecord {
 
         /** @var Pack $trackingPack */
@@ -68,7 +68,9 @@ class ProjectHistoryRecordService {
 
     private function serialize(ProjectHistoryRecord $projectHistoryRecord): array {
         return [
-            'project' => $this->formatService->project($projectHistoryRecord->getProject()),
+            'project' => !empty($this->formatService->project($projectHistoryRecord->getProject()))
+                ? $this->formatService->project($projectHistoryRecord->getProject())
+                : 'Aucun projet',
             'createdAt' => $this->formatService->datetime($projectHistoryRecord->getCreatedAt()),
         ];
     }
