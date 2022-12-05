@@ -298,6 +298,7 @@ class MobileController extends AbstractApiController
                                 $options
                             )['movement'];
                             $movement->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
+                            $createdMvt->setMainMovement($movement);
                             $associatedPack->getArticle()->setCurrentLogisticUnit(null);
                             $trackingMovementService->persistSubEntities($entityManager, $movement);
                             $entityManager->persist($movement);
@@ -556,6 +557,7 @@ class MobileController extends AbstractApiController
                                 )['movement'];
                                 $logisticUnit = $associatedPack->getArticle()->getCurrentLogisticUnit();
                                 $movement->setLogisticUnitParent($logisticUnit);
+                                $createdMvt->setMainMovement($movement);
                                 $associatedPack->getArticle()->setCurrentLogisticUnit(null);
                                 $logisticUnit->setQuantity($logisticUnit->getQuantity() - $associatedPack->getQuantity());
                                 $trackingMovementService->persistSubEntities($entityManager, $movement);
