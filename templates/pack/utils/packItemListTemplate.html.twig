@@ -20,7 +20,7 @@
                 </td>
                 <td>
                     <div class="col-12 h-100">
-                        <div class="main-ul-data row {{ header.classes ?? '' }}" onclick="{{ header.actionOnClick ?: null }}"
+                        <div class="main-ul-data row {{ header.classes ?? '' }}" onclick="{{ header.actionOnClick ?? null }}"
                              data-logistic-unit-id="{{ header.data['pack-id'] }}">
                             {% set headerLength = header.content|length %}
                             {% for item in header.content %}

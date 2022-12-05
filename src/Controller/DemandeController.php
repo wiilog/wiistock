@@ -390,7 +390,7 @@ class DemandeController extends AbstractController
                             return null;
                         }
                     })
-                    ->toArray(),
+                    ->values(),
             ])->toArray();
 
         $references = Stream::from($deliveryRequest->getReferenceLines())

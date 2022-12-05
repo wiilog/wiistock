@@ -16,6 +16,7 @@ use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
 use App\Repository\MouvementStockRepository;
@@ -66,6 +67,9 @@ class PreparationsManagerService
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
 
     public function __construct(Security $security,
                                 CSVExportService $CSVExportService,
@@ -428,7 +432,8 @@ class PreparationsManagerService
 
     public function createMouvementsPrepaAndSplit(Preparation $preparation,
                                                   Utilisateur $user,
-                                                  EntityManagerInterface $entityManager): array
+                                                  EntityManagerInterface $entityManager,
+                                                  ?Emplacement $endLocation = null): array
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $splitArticleLineIds = [];
@@ -436,6 +441,7 @@ class PreparationsManagerService
         $articleLines = $preparation->getArticleLines();
         $articleTransitStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $articleActiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
+        $now = new DateTime();
 
         foreach ($articleLines as $line) {
             $article = $line->getArticle();
@@ -447,7 +453,6 @@ class PreparationsManagerService
 
                 if ($article->getQuantite() >= $pickedQuantity) {
                     // scission des articles dont la quantité prélevée n'est pas totale
-                    $now = new DateTime();
                     if ($article->getQuantite() > $pickedQuantity) {
                         $newArticle = [
                             'articleFournisseur' => $article->getArticleFournisseur()->getId(),
@@ -556,6 +561,20 @@ class PreparationsManagerService
                 else {
                     throw new NegativeQuantityException($articleRef);
                 }
+            }
+        }
+
+        $previousLogisticUnit = null;
+        foreach ($articleLines as $line) {
+            $logisticUnit = $line->getArticle()->getCurrentLogisticUnit();
+            if($logisticUnit && $line->getArticle()->getQuantite() >= $line->getPickedQuantity()) {
+                if($logisticUnit !== $previousLogisticUnit) {
+                    $trackingMovement = $this->trackingMovementService->createTrackingMovement($logisticUnit->getCode(), $endLocation, $user, $now, false, false, TrackingMovement::TYPE_PRISE_DEPOSE);
+                    $this->entityManager->persist($trackingMovement);
+                    $previousLogisticUnit = $logisticUnit;
+                }
+                $trackingMovement = $this->trackingMovementService->createTrackingMovement($line->getArticle()->getBarCode(), $endLocation, $user, $now, false, false, TrackingMovement::TYPE_PRISE_DEPOSE);
+                $this->entityManager->persist($trackingMovement);
             }
         }
 

@@ -70,7 +70,7 @@ class PreparationController extends AbstractController
         $user = $this->getUser();
 
         try {
-            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
+            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager, $locationEndPrepa);
         } catch (NegativeQuantityException $exception) {
             $barcode = $exception->getArticle()->getBarCode();
             return new JsonResponse([
@@ -201,7 +201,7 @@ class PreparationController extends AbstractController
                             return null;
                         }
                     })
-                    ->toArray(),
+                    ->values(),
             ])->toArray();
 
         $references = Stream::from($preparationOrder->getReferenceLines())

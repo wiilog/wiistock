@@ -156,7 +156,7 @@ class LivraisonController extends AbstractController {
                             return null;
                         }
                     })
-                    ->toArray(),
+                    ->values(),
             ])->toArray();
 
         $references = Stream::from($preparationOrder->getReferenceLines())
