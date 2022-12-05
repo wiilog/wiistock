@@ -10,6 +10,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Menu;
+use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Helper\FormatHelper;
 use DateTimeInterface;
@@ -182,7 +183,8 @@ class InvMissionService {
             !empty($artDateAndQuantity) ? $artDateAndQuantity['date'] : null,
             $inventoryEntryRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDateAndQuantity ? 'non' : '-'),
             $art->getQuantite(),
-            (!empty($artDateAndQuantity) && isset($artDateAndQuantity['quantity'])) ? $artDateAndQuantity['quantity'] : null
+            (!empty($artDateAndQuantity) && isset($artDateAndQuantity['quantity'])) ? $artDateAndQuantity['quantity'] : null,
+            $art->getCurrentLogisticUnit()
         );
     }
 
@@ -193,7 +195,8 @@ class InvMissionService {
                                           ?DateTimeInterface $date,
                                           ?string            $anomaly,
                                           ?string            $quantiteStock,
-                                          ?string            $quantiteComptee): array {
+                                          ?string            $quantiteComptee,
+                                          ?Pack              $pack = null): array {
         if ($emplacement) {
             $location = $emplacement->getLabel();
             $emptyLocation = false;
@@ -207,6 +210,7 @@ class InvMissionService {
             'Ref' => $reference,
             'CodeBarre' => $codeBarre,
             'Label' => $label,
+            'UL' => $pack ? $pack->getCode() : '',
             'Location' => $location,
             'Date' => isset($date) ? $date->format('d/m/Y') : '',
             'Anomaly' => $anomaly,
