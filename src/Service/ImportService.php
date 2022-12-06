@@ -170,14 +170,14 @@ class ImportService
             "allowedCollectTypes",
             "allowedDeliveryTypes"
         ],
-        Import::ENTITY_CLIENT => [
+        Import::ENTITY_CUSTOMER => [
             "name",
             "address",
             "phone",
             "email",
             "fax"
         ],
-        Import::ENTITY_PROJET => [
+        Import::ENTITY_PROJECT => [
             "code",
             "description",
             "projectManager",
@@ -521,10 +521,10 @@ class ImportService
                     case Import::ENTITY_LOCATION:
                         $this->importLocationEntity($data, $stats);
                         break;
-                    case Import::ENTITY_CLIENT:
-                        $this->importClientEntity($data, $stats);
+                    case Import::ENTITY_CUSTOMER:
+                        $this->importCustomerEntity($data, $stats);
                         break;
-                    case Import::ENTITY_PROJET:
+                    case Import::ENTITY_PROJECT:
                         $this->importProjectEntity($data, $stats);
                         break;
                 }
@@ -644,7 +644,9 @@ class ImportService
     {
         $data = [];
         foreach ($originalDatasToCheck as $column => $originalDataToCheck) {
-            $fieldName = Import::FIELDS_ENTITY[$entity][$column] ?? Import::FIELDS_ENTITY[$column] ?? $column;
+            $fieldName = Import::FIELDS_ENTITY[$entity][$column]
+                ?? Import::FIELDS_ENTITY['default'][$column]
+                ?? $column;
             if(is_array($fieldName)) {
                 $fieldName = $this->translationService->translate(...$fieldName);
             }
@@ -1449,7 +1451,7 @@ class ImportService
         $this->updateStats($stats, !$user->getId());
     }
 
-    private function importClientEntity(array $data, array &$stats) {
+    private function importCustomerEntity(array $data, array &$stats) {
 
         $customerAlreadyExists = $this->entityManager->getRepository(Customer::class)->findOneBy(['name' => $data['name']]);
         $customer = $customerAlreadyExists ?? new Customer();
@@ -2137,7 +2139,12 @@ class ImportService
         }
 
         $fieldsToAssociate = $fieldsToAssociate
-            ->keymap(fn(string $key) => [$key, Import::FIELDS_ENTITY[$entityCode][$key] ?? Import::FIELDS_ENTITY[$key] ?? $key])
+            ->keymap(fn(string $key) => [
+                $key,
+                Import::FIELDS_ENTITY[$entityCode][$key]
+                    ?? Import::FIELDS_ENTITY['default'][$key]
+                    ?? $key
+            ])
             ->map(fn(string|array $field) => is_array($field) ? $this->translationService->translate(...$field) : $field)
             ->toArray();
 
