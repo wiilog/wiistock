@@ -17,6 +17,7 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
+use WiiCommon\Helper\StringHelper;
 
 class DisputeService {
 
@@ -343,7 +344,7 @@ class DisputeService {
         $historyRecord = new DisputeHistoryRecord();
         $historyRecord
             ->setDate(new DateTime('now'))
-            ->setComment($comment ?: null)
+            ->setComment(StringHelper::cleanedComment($comment) ?: null)
             ->setDispute($dispute)
             ->setUser($user);
 

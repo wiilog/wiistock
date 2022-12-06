@@ -23,6 +23,7 @@ use InvalidArgumentException;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
+use WiiCommon\Helper\StringHelper;
 
 class ReceptionService
 {
@@ -212,7 +213,7 @@ class ReceptionService
             ->setDate($date)
             ->setUtilisateur($currentUser)
             ->setType($type)
-            ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
+            ->setCommentaire(!empty($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null);
 
         // Date commande provenant des imports de réception
         if ($fromImport && isset($data['orderDate'])) {

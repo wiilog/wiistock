@@ -46,6 +46,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class IOTService
 {
@@ -258,7 +259,7 @@ class IOTService
             ->setCreationDate($date)
             ->setTriggeringSensorWrapper($sensorWrapper)
             ->setStatus($requestTemplate->getRequestStatus())
-            ->setComment($requestTemplate->getComment())
+            ->setComment(StringHelper::cleanedComment($requestTemplate->getComment()))
             ->setAttachments($requestTemplate->getAttachments())
             ->setSubject($requestTemplate->getSubject())
             ->setDesiredDate($desiredDate);
@@ -278,7 +279,7 @@ class IOTService
         $request
             ->setStatut($statut)
             ->setCreatedAt($date)
-            ->setCommentaire($requestTemplate->getComment())
+            ->setCommentaire(StringHelper::cleanedComment($requestTemplate->getComment()))
             ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())
             ->setDestination($requestTemplate->getDestination())
@@ -314,7 +315,7 @@ class IOTService
             ->setStatut($status)
             ->setPointCollecte($requestTemplate->getCollectPoint())
             ->setObjet($requestTemplate->getSubject())
-            ->setCommentaire($requestTemplate->getComment())
+            ->setCommentaire(StringHelper::cleanedComment($requestTemplate->getComment()))
             ->setstockOrDestruct($requestTemplate->getDestination());
         $entityManager->persist($request);
         $entityManager->flush();

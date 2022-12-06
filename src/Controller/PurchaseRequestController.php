@@ -33,6 +33,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 
 /**
@@ -478,7 +479,7 @@ class PurchaseRequestController extends AbstractController
         }
 
         $purchaseRequest
-            ->setComment($comment)
+            ->setComment(StringHelper::cleanedComment($comment))
             ->setRequester($requester);
 
         $purchaseRequest->removeIfNotIn($data['files'] ?? []);
