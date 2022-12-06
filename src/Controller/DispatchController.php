@@ -59,6 +59,7 @@ use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/acheminements")
@@ -291,7 +292,7 @@ class DispatchController extends AbstractController {
             ->setDestination($destination);
 
         if(!empty($comment)) {
-            $dispatch->setCommentaire($comment);
+            $dispatch->setCommentaire(StringHelper::cleanedComment($comment));
         }
 
         if(!empty($startDate)) {
@@ -539,7 +540,7 @@ class DispatchController extends AbstractController {
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)
-            ->setCommentaire($post->get('commentaire') ?: '')
+            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')) ?: '')
             ->setDestination($destination);
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
@@ -788,7 +789,7 @@ class DispatchController extends AbstractController {
 
         $nature = $natureRepository->find($natureId);
         $pack->setNature($nature);
-        $pack->setComment($comment);
+        $pack->setComment(StringHelper::cleanedComment($comment));
         $dispatchPack->setQuantity($quantity);
         $pack->setWeight($weight ? round($weight, 3) : null);
         $pack->setVolume($volume ? round($volume, 3) : null);

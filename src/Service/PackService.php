@@ -26,6 +26,7 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class PackService {
 
@@ -229,7 +230,7 @@ class PackService {
             ->setQuantity($quantity)
             ->setWeight($weight)
             ->setVolume($volume)
-            ->setComment($comment);
+            ->setComment(StringHelper::cleanedComment($comment));
     }
 
     public function createPack(EntityManager $entityManager, array $options = []): Pack

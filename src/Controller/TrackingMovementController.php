@@ -40,6 +40,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/mouvement-traca")
@@ -84,7 +85,7 @@ class TrackingMovementController extends AbstractController
         $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-        $clearAndStayAfterNewMvt = $settingRepository->getOneParamByLabel(Setting::CLEAR_AND_STAY_AFTER_NEW_MVT);
+        $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
         $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
 
         $request->request->add(['length' => 10]);
@@ -94,7 +95,7 @@ class TrackingMovementController extends AbstractController
             'form_statuses' => Stream::from($statuses)
                 ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
                 ->toArray(),
-            'clearAndStayAfterNewMvt' => $clearAndStayAfterNewMvt,
+            'redirectAfterTrackingMovementCreation' => $redirectAfterTrackingMovementCreation,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'fields' => $fields,
             'filterArticle' => $article,
@@ -484,7 +485,7 @@ class TrackingMovementController extends AbstractController
         $mvt
             ->setOperateur($operator)
             ->setQuantity($quantity)
-            ->setCommentaire($post->get('commentaire'));
+            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')));
 
         $entityManager->flush();
 

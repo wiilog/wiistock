@@ -355,7 +355,7 @@ class TrackingMovementService extends AbstractController
             ->setFinished($finished)
             ->setType($type)
             ->setMouvementStock($mouvementStock)
-            ->setCommentaire(!empty($commentaire) ? $commentaire : null)
+            ->setCommentaire(!empty($commentaire) ? StringHelper::cleanedComment($commentaire) : null)
             ->setMainMovement($mainMovement);
 
         if ($attachments) {
@@ -395,7 +395,7 @@ class TrackingMovementService extends AbstractController
                 ->setPackParent($pack->getParent())
                 ->setGroupIteration($pack->getParent() ? $pack->getParent()->getGroupIteration() : null)
                 ->setMouvementStock($mouvementStock)
-                ->setCommentaire(!empty($commentaire) ? $commentaire : null);
+                ->setCommentaire(!empty($commentaire) ? StringHelper::cleanedComment($commentaire) : null);
             $pack->addTrackingMovement($trackingUngroup);
             if ($removeFromGroup) {
                 $pack->setParent(null);

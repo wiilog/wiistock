@@ -74,6 +74,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 
 class MobileController extends AbstractApiController
@@ -910,6 +911,7 @@ class MobileController extends AbstractApiController
 
         $data = [];
 
+        $commentaire = $request->request->get('commentaire');
         $id = $request->request->get('id');
         /** @var Handling $handling */
         $handling = $handlingRepository->find($id);
@@ -922,12 +924,12 @@ class MobileController extends AbstractApiController
                 $statusHistoryService->updateStatus($entityManager, $handling, $newStatus);
             }
 
-            $commentaire = $request->request->get('comment');
             $treatmentDelay = $request->request->get('treatmentDelay');
             if (!empty($commentaire)) {
                 $previousComments = $handling->getComment() !== '<p><br></p>' ? "{$handling->getComment()}\n" : "";
                 $dateStr = (new DateTime())->format('d/m/y H:i:s');
                 $dateAndUser = "<strong>$dateStr - {$nomadUser->getUsername()} :</strong>";
+                $commentaire = StringHelper::cleanedComment($commentaire);
                 $handling->setComment("$previousComments $dateAndUser $commentaire");
             }
 

@@ -832,7 +832,7 @@ class ImportService
         }
 
         if (!empty($data['commentaire'])) {
-            $reception->setCommentaire($data['commentaire']);
+            $reception->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
         }
 
         if (!empty($data['anomalie'])) {
@@ -974,7 +974,7 @@ class ImportService
             $refArt->setBuyer($userRepository->findOneBy(['username' => $data['buyer']]));
         }
         if (isset($data['commentaire'])) {
-            $refArt->setCommentaire($data['commentaire']);
+            $refArt->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
         }
         if (isset($data['emergencyComment'])) {
             $refArt->setEmergencyComment($data['emergencyComment']);
@@ -1605,7 +1605,7 @@ class ImportService
         }
 
         if (!$request->getCommentaire()) {
-            $request->setCommentaire($commentaire);
+            $request->setCommentaire(StringHelper::cleanedComment($commentaire));
         }
 
         $number = $this->uniqueNumberService->create(

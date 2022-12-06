@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\StringHelper;
 
 
 #[Route("transport/sous-traitance")]
@@ -299,7 +300,7 @@ class SubcontractController extends AbstractController
 
         $comment = $data->get('commentaire');
         if (strip_tags($comment)) {
-            $transportOrder->setComment($comment);
+            $transportOrder->setComment(StringHelper::cleanedComment($comment));
         }
 
         $addedAttachments = $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);

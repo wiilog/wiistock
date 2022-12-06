@@ -24,6 +24,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment;
 use Symfony\Component\Routing\RouterInterface;
+use WiiCommon\Helper\StringHelper;
 
 class CartService {
 
@@ -200,7 +201,7 @@ class CartService {
                 ->setExpectedAt($expectedAt)
                 ->setCreatedAt(new DateTime('now'))
                 ->setDestination($destination)
-                ->setCommentaire($data['comment'])
+                ->setCommentaire(StringHelper::cleanedComment($data['comment']))
                 ->setStatut($draft);
 
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
@@ -276,7 +277,7 @@ class CartService {
                 ->setObjet($data['object'])
                 ->setStockOrDestruct($data['destination'] === 'destruction' ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE)
                 ->setPointCollecte($collectLocation)
-                ->setCommentaire($data['comment'])
+                ->setCommentaire(StringHelper::cleanedComment($data['comment']))
                 ->setDemandeur($user);
 
             $this->freeFieldService->manageFreeFields($collectRequest, $data, $manager);

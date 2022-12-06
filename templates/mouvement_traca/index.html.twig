@@ -80,17 +80,16 @@
         </div>
     </div>
 
-    <input id="trackingMovementFilters" value="{{ initial_filters }}" hidden>
+    <input id="trackingMovementFilters" value="{{ initial_filters }}" type="hidden">
+    <input type="hidden" id="redirectAfterTrackingMovementCreation" value="{{ redirectAfterTrackingMovementCreation }}">
     {% if filterArticle %}
-        <input id="filterArticle" value="{{ filterArticle.id }}" hidden>
+        <input id="filterArticle" value="{{ filterArticle.id }}" type="hidden">
     {% endif %}
 
     {% include "mouvement_traca/modalNewMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalEditMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalDeleteMvtTraca.html.twig" %}
-    <input type="text" hidden id="clearAndStayAfterNewMvt" value="{{ clearAndStayAfterNewMvt }}">
-
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
         'table': 'tableMvt',

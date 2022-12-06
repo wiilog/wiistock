@@ -50,6 +50,7 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class SettingsService {
 
@@ -838,7 +839,7 @@ class SettingsService {
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
-                        ->setComment($statusData['comment'] ?? null)
+                        ->setComment(StringHelper::cleanedComment($statusData['comment']) ?? null)
                         ->setDefaultForCategory($statusData['defaultStatut'] ?? false)
                         ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)

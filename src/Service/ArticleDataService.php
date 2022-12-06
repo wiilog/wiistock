@@ -30,6 +30,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\StringHelper;
 
 class ArticleDataService
 {
@@ -208,7 +209,7 @@ class ArticleDataService
                     ->setPrixUnitaire((float)$price)
                     ->setBatch($data['batch'] ?? null)
                     ->setExpiryDate($expiryDate ?: null)
-                    ->setCommentaire($data['commentaire'] ?? null);
+                    ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null);
 
                 if (isset($data['conform'])) {
                     $article->setConform($data['conform'] == 1);
@@ -282,7 +283,7 @@ class ArticleDataService
             ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
             ->setConform(!isset($data['conform']) || !$data['conform'])
             ->setStatut($statut)
-            ->setCommentaire($data['commentaire'] ?? null)
+            ->setCommentaire(StringHelper::cleanedComment($data['commentaire']) ?? null)
             ->setPrixUnitaire($price)
             ->setReference($refReferenceArticle . $formattedDate . $cpt)
             ->setQuantite($quantity)
