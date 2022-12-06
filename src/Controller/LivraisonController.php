@@ -317,17 +317,15 @@ class LivraisonController extends AbstractController
 
         $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
         $deliveryOrderHasPacks = Stream::from($preparationArticleLines)
-            ->some(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit());
+            ->some(fn(PreparationOrderArticleLine $line) => $line->getPack());
 
         if(!$deliveryOrderHasPacks) {
-            return $this->json([
-                "success" => false,
-                "msg" => 'Des unités logistiques sont nécessaires pour générer un bon de livraison'
-            ]);
+            throw new FormException('Des unités logistiques sont nécessaires pour générer un bon de livraison');
         }
 
         $preparationPacks = Stream::from($preparationArticleLines)
-            ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())->toArray();
+            ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack())
+            ->values();
 
         $packs = array_slice($preparationPacks, 0, $maxNumberOfPacks);
         $packs = array_map(function(Pack $pack) {

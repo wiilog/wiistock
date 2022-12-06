@@ -10,6 +10,8 @@
 {% block showSubtitle ('n°' ~ livraison.numero) %}
 
 {% block showActions %}
+    {% set displayFileGeneretionButtons = preparation.articleLines|filter((line) => line.pack) is not empty %}
+
     {% include 'utils/action-buttons/header-buttons.html.twig' with {
         forceActionButton: true,
         actions: [
@@ -26,7 +28,7 @@
                 }
             },
             {
-                hasRight: true,
+                hasRight: displayFileGeneretionButtons,
                 icon: "wii-icon wii-icon-printer-black",
                 title: "Générer un bon de livraison",
                 dropdownOnly: true,
@@ -35,7 +37,7 @@
                 },
             },
             {
-                hasRight: true,
+                hasRight: displayFileGeneretionButtons,
                 icon: "wii-icon wii-icon-printer-black",
                 title: "Générer une lettre de voiture",
                 dropdownOnly: true,
