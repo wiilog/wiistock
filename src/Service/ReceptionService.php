@@ -41,6 +41,7 @@ class ReceptionService
     public const INVALID_STORAGE_LOCATION = 'invalid-storage-location';
     public const INVALID_CARRIER = 'invalid-carrier';
     public const INVALID_PROVIDER = 'invalid-provider';
+    public const INVALID_PACK = 'invalid-pack';
 
 
     #[Required]
@@ -117,9 +118,11 @@ class ReceptionService
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-        $ransporteurRepository = $entityManager->getRepository(Transporteur::class);
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+
         if(!empty($data['anomalie'])) {
             $anomaly = (
                 isset($data['anomalie'])
@@ -191,12 +194,12 @@ class ReceptionService
 
         if(!empty($data['transporteur'])) {
             if($fromImport) {
-                $transporteur = $ransporteurRepository->findOneBy(['code' => $data['transporteur']]);
+                $transporteur = $transporteurRepository->findOneBy(['code' => $data['transporteur']]);
                 if (!isset($transporteur)) {
                     throw new InvalidArgumentException(self::INVALID_CARRIER);
                 }
             } else {
-                $transporteur = $ransporteurRepository->find(intval($data['transporteur']));
+                $transporteur = $transporteurRepository->find(intval($data['transporteur']));
             }
             $reception
                 ->setTransporteur($transporteur);
@@ -225,8 +228,21 @@ class ReceptionService
             );
         }
 
+        $line = new ReceptionLine();
+        $line->setReception($reception);
+        if (!empty($data['pack'])) {
+            $pack = $packRepository->findOneBy(['code' => $data['pack']]);
+            if (!isset($pack)) {
+                throw new \http\Exception\InvalidArgumentException(self::INVALID_PACK);
+            }
+            $line->setPack($pack);
+        }
+        $entityManager->persist($line);
+        $reception->addLine($line);
+
+
         $reception
-            ->setOrderNumber(!empty($data['orderNumber']) ? explode(",", $data['orderNumber']) : null)
+            ->setOrderNumber(!empty($data['orderNumber']) ? [$data['orderNumber']] : null)
             ->setStatut($statut)
             ->setNumber($numero)
             ->setDate($date)
@@ -263,6 +279,7 @@ class ReceptionService
         }
 
         $entityManager->persist($reception);
+        $entityManager->flush();
         return $reception;
     }
 
@@ -446,13 +463,25 @@ class ReceptionService
         );
     }
 
-    public function getAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, callable $onAdd = null): ?Reception {
+    public function getAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, ?string $fournisseur = null, ?string $transporteur = null, callable $onAdd = null): ?Reception {
         $reception = null;
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
 
         foreach($collection as &$receptionIntel) {
             if ($orderNumber === $receptionIntel['orderNumber']
                 && $expectedDate === $receptionIntel['expectedDate']) {
+                $reception = $receptionIntel['reception'];
+                $isPersistedReception = $this->entityManager->getUnitOfWork()->isInIdentityMap($reception);
+                if (!$isPersistedReception) {
+                    $reception = $receptionRepository->find($reception->getId());
+                    $receptionIntel['reception'] = $reception;
+                }
+                break;
+            } elseif (isset($fournisseur) && isset($transporteur)
+                && isset($receptionIntel['fournisseur']) && isset($receptionIntel['transporteur'])
+                && $expectedDate === $receptionIntel['expectedDate']
+                && $fournisseur === $receptionIntel['fournisseur']
+                && $transporteur === $receptionIntel['transporteur']) {
                 $reception = $receptionIntel['reception'];
                 $isPersistedReception = $this->entityManager->getUnitOfWork()->isInIdentityMap($reception);
                 if (!$isPersistedReception) {
@@ -475,12 +504,26 @@ class ReceptionService
                     'id' => 'DESC'
                 ]);
 
+            if (empty($receptions) && $fournisseur && $transporteur) {
+                $receptions = $receptionRepository->findBy(
+                    [
+                        'dateAttendue' => $expectedDate
+                            ? DateTime::createFromFormat('d/m/Y', $expectedDate) ?: null
+                            : null,
+                        'fournisseur' => $fournisseur,
+                        'transporteur' => $transporteur
+                    ]
+                );
+            }
+
             if (!empty($receptions)) {
                 $reception = $receptions[0];
                 $collection[] = [
                     'orderNumber' => $orderNumber,
                     'expectedDate' => $expectedDate,
-                    'reception' => $reception
+                    'reception' => $reception,
+                    'fournisseur' => $fournisseur ?? null,
+                    'transporteur' => $transporteur ?? null
                 ];
 
                 if(isset($onAdd)) {
@@ -492,7 +535,7 @@ class ReceptionService
         return $reception;
     }
 
-    public function setAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, Reception $reception): void {
+    public function setAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, ?string $fournisseur, ?string $transporteur,  Reception $reception): void {
         $receptionSaved = false;
         foreach($collection as &$receptionIntel) {
             if ($orderNumber === $receptionIntel['orderNumber']
@@ -500,14 +543,51 @@ class ReceptionService
                 $receptionIntel['reception'] = $reception;
                 $receptionSaved = true;
                 break;
+            } elseif (isset($fournisseur) && isset($transporteur)
+                && isset($receptionIntel['fournisseur']) && isset($receptionIntel['transporteur'])
+                && $expectedDate === $receptionIntel['expectedDate']
+                && $fournisseur === $receptionIntel['fournisseur']
+                && $transporteur === $receptionIntel['transporteur']) {
+                break;
             }
         }
         if (!$receptionSaved) {
             $collection[] = [
                 'orderNumber' => $orderNumber,
                 'expectedDate' => $expectedDate,
-                'reception' => $reception
+                'reception' => $reception,
+                'fournisseur' => $fournisseur ?? null,
+                'transporteur' => $transporteur ?? null
             ];
         }
+    }
+
+    public function getLine(Reception $reception, ?Pack $pack = null): ?ReceptionLine {
+        $line = null;
+        foreach ($reception->getLines() as $receptionLine) {
+            if (!isset($pack)) {
+                if (!$receptionLine->hasPack()) {
+                    $line = $receptionLine;
+                    break;
+                }
+            } else {
+                if ($receptionLine->hasPack() && $pack->getId() === $receptionLine->getPack()->getId()) {
+                    $line = $receptionLine;
+                    break;
+                }
+            }
+        }
+
+        if (!isset($pack) && !isset($line)) {
+            $this->initFirstLine($reception);
+        }
+        return $line;
+    }
+
+    public function initFirstLine(Reception $reception) {
+        $line = new ReceptionLine();
+        $line->setReception($reception);
+        $this->entityManager->persist($line);
+        $this->entityManager->flush();
     }
 }

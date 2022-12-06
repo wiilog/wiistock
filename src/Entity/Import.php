@@ -25,8 +25,8 @@ class Import {
     const ENTITY_USER = 'USER';
     const ENTITY_DELIVERY = 'DELIVERY';
     const ENTITY_LOCATION = 'LOCATION';
-    const ENTITY_CLIENT = 'CLIENT';
-    const ENTITY_PROJET = 'PROJET';
+    const ENTITY_CLIENT = 'CLIENT'; // TODO ADRIEN RENOMER
+    const ENTITY_PROJET = 'PROJET'; // TODO ADRIEN RENOMER
     const ENTITY_LABEL = [
         self::ENTITY_ART => "Articles",
         self::ENTITY_REF => "Références",
@@ -184,10 +184,12 @@ class Import {
         'urgent' => 'Urgent',
 
         'fax' => 'Fax',
+        'pack' => 'Unité logistique',
 
         'code' => 'Code',
         'projectManager' => 'Chef de projet',
 
+    // TODO ADRIEN
         self::ENTITY_CLIENT => [
             'name' =>  'Client',
         ],
