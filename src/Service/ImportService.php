@@ -23,6 +23,7 @@ use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
@@ -172,7 +173,13 @@ class ImportService
             "phone",
             "email",
             "fax"
-        ]
+        ],
+        Import::ENTITY_PROJET => [
+            "code",
+            "description",
+            "projectManager",
+            "isActive",
+        ],
     ];
 
     #[Required]
@@ -513,6 +520,9 @@ class ImportService
                         break;
                     case Import::ENTITY_CLIENT:
                         $this->importClientEntity($data, $stats);
+                        break;
+                    case Import::ENTITY_PROJET:
+                        $this->importProjectEntity($data, $stats);
                         break;
                 }
 
@@ -1752,6 +1762,51 @@ class ImportService
         $this->updateStats($stats, $isNewEntity);
 
         return $location;
+    }
+
+    private function importProjectEntity(array $data, array &$stats) {
+        $projectAlreadyExists = $this->entityManager->getRepository(Project::class)->findOneBy(['code' => $data['code']]);
+        $project = $projectAlreadyExists ?? new Project();
+
+        if (!$projectAlreadyExists && isset($data['code'])) {
+            if ((strlen($data['code'])) > 15) {
+                $this->throwError("La valeur saisie pour le code ne doit pas dépasser 15 caractères");
+            } else {
+                $project->setCode($data['code']);
+            }
+        }
+
+        if (isset($data['description'])) {
+            if ((strlen($data['description'])) > 255) {
+                $this->throwError("La valeur saisie pour le champ description ne doit pas dépasser 255 caractères");
+            } else {
+                $project->setDescription($data['description']);
+            }
+        }
+
+        if (isset($data['projectManager'])) {
+            $projectManager = $this->entityManager->getRepository(Utilisateur::class)->findOneBy(['username' => $data['projectManager']]);
+
+            if (!isset($projectManager)) {
+                $this->throwError('Aucun utilisateur ne correspond au nom d\'utilisateur saisi dans la colonne Chef de projet');
+            } else {
+                $project->setProjectManager($projectManager);
+            }
+        }
+
+        if (isset($data['isActive'])) {
+            $value = strtolower($data['isActive']);
+            if ($value !== 'oui' && $value !== 'non') {
+                $this->throwError('La valeur saisie pour Actif est invalide (autorisé : "oui" ou "non")');
+            }
+            else {
+                $project->setActive($data['isActive']);
+            }
+        }
+
+        $this->entityManager->persist($project);
+
+        $this->updateStats($stats, !$projectAlreadyExists);
     }
 
     private function checkAndSetChampsLibres(array $colChampsLibres,

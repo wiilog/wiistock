@@ -1726,10 +1726,13 @@ class MobileController extends AbstractApiController
 
             $articlesLivraison = $articleRepository->getByLivraisonsIds($livraisonsIds);
             $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
-
             /// preparations
             $preparations = Stream::from($preparationRepository->getMobilePreparations($user))
-                ->map(function ($preparationArray) {
+                ->map(function ($preparationArray) use ($deliveriesExpectedDateColors) {
+                    $preparationArray['color'] = $this->mobileApiService->expectedDateColor($preparationArray['expectedAt'], $deliveriesExpectedDateColors);
+                    $preparationArray['expectedAt'] = $preparationArray['expectedAt']
+                        ? $preparationArray['expectedAt']->format('d/m/Y')
+                        : null;
                     if (!empty($preparationArray['comment'])) {
                         $preparationArray['comment'] = substr(strip_tags($preparationArray['comment']), 0, 200);
                     }

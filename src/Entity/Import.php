@@ -26,6 +26,7 @@ class Import {
     const ENTITY_DELIVERY = 'DELIVERY';
     const ENTITY_LOCATION = 'LOCATION';
     const ENTITY_CLIENT = 'CLIENT';
+    const ENTITY_PROJET = 'PROJET';
     const ENTITY_LABEL = [
         self::ENTITY_ART => "Articles",
         self::ENTITY_REF => "Références",
@@ -36,6 +37,7 @@ class Import {
         self::ENTITY_DELIVERY => "Livraisons",
         self::ENTITY_LOCATION => "Emplacements",
         self::ENTITY_CLIENT => "Clients",
+        self::ENTITY_PROJET => "Projets",
     ];
     const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
@@ -84,6 +86,10 @@ class Import {
         self::ENTITY_CLIENT => [
             'name',
         ],
+        self::ENTITY_PROJET => [
+            'code',
+            'projectManager',
+        ],
     ];
     const FIELD_PK = [
         self::ENTITY_ART_FOU => 'reference',
@@ -95,6 +101,7 @@ class Import {
         self::ENTITY_DELIVERY => null,
         self::ENTITY_LOCATION => 'name',
         self::ENTITY_CLIENT => 'name',
+        self::ENTITY_PROJET => 'code',
     ];
 
     public const IMPORT_FIELDS_TO_FIELDS_PARAM = [
@@ -177,6 +184,10 @@ class Import {
         'urgent' => 'Urgent',
 
         'fax' => 'Fax',
+
+        'code' => 'Code',
+        'projectManager' => 'Chef de projet',
+
         self::ENTITY_CLIENT => [
             'name' =>  'Client',
         ],

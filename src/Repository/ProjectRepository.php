@@ -100,4 +100,10 @@ class ProjectRepository extends EntityRepository
             ->getArrayResult();
     }
 
+    public function iterateAll(): iterable {
+        return $this->createQueryBuilder("project")
+            ->getQuery()
+            ->toIterable();
+    }
+
 }
