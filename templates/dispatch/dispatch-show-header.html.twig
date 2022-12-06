@@ -37,9 +37,8 @@
         actions: [
             {
                 hasRight: hasRightEdit and dispatch.statut.draft,
-                buttonClass: "split-button",
                 icon: "wii-icon wii-icon-check-white",
-                title:  trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Valider la demande', false),
+                title:  trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Valider la demande'),
                 attributes: {
                     "data-id": dispatch ? dispatch.id,
                     "onclick": "openValidateDispatchModal()"
@@ -47,9 +46,8 @@
             },
             {
                 hasRight: hasRightEdit and not dispatch.statut.draft and not dispatch.statut.treated,
-                buttonClass: "split-button",
                 icon: "wii-icon wii-icon-check-white",
-                title:  trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Terminer la demande', false),
+                title:  trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Terminer la demande'),
                 attributes: {
                     "data-id": dispatch ? dispatch.id,
                     "onclick": "openTreatDispatchModal()"
@@ -58,14 +56,14 @@
             {
                 hasRight: hasRightEdit and dispatch.statut.notTreated and not dispatch.statut.draft,
                 icon: "fas fa-undo-alt",
-                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Retour au statut Brouillon', false),
+                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Retour au statut Brouillon'),
                 dropdownOnly: true,
                 href: dispatch ? path('rollback_draft', {'dispatch': dispatch.id}),
             },
             {
                 hasRight: hasRightToGenerateDeliveryNote,
                 icon: "wii-icon wii-icon-printer-black",
-                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer un bon de livraison', false),
+                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer un bon de livraison'),
                 dropdownOnly: true,
                 attributes: {
                     "id": "generateDeliveryNoteButton",
@@ -75,9 +73,8 @@
             },
             {
                 hasRight: hasRightToGenerateOverconsumptionBill,
-                buttonClass: "dropdown-menu-right",
                 icon: "wii-icon wii-icon-printer-black",
-                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer un bon de surconsommation', false),
+                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer un bon de surconsommation'),
                 dropdownOnly: true,
                 attributes: {
                     "onclick": dispatch ? "generateOverconsumptionBill(" ~ dispatch.id ~ ")",
@@ -86,10 +83,9 @@
             {
                 hasRight: hasRightToGenerateWayBill,
                 icon: "wii-icon wii-icon-printer-black",
-                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer une lettre de voiture', false),
+                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer une lettre de voiture'),
                 dropdownOnly: true,
                 attributes: {
-                    "id": "generateDeliveryNoteButton",
                     "onclick": "openWaybillModal($(this))",
                     "data-dispatch-id": dispatch ? dispatch.id,
                 }
@@ -97,7 +93,7 @@
             {
                 hasRight: hasRightToGenerateDispatchBill,
                 icon: "wii-icon wii-icon-printer-black",
-                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', "Générer un bon d'acheminement", false),
+                title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', "Générer un bon d'acheminement"),
                 dropdownOnly: true,
                 attributes: {
                     "onclick": "runDispatchPrint()",
@@ -117,14 +113,13 @@
             },
             {
                 hasRight: hasRightDelete,
-                icon: "fa fa-trash",
+                icon: "wii-icon wii-icon-trash-black",
                 title: trans('Général', null, 'Modale', 'Supprimer'),
                 dropdownOnly: true,
                 attributes: {
                     "data-id": dispatch ? dispatch.id,
-                    "data-target": '#modalDeleteDispatch',
-                    "data-toggle": 'modal',
-                    "href": "",
+                    "data-target": "#modalDeleteDispatch",
+                    "data-toggle": "modal",
                 },
             },
         ]
@@ -134,8 +129,6 @@
 {% block showUrgence %}
     {% if dispatch.emergency %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
-        <span title="Cet acheminement est urgent">
-            {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', "Cet acheminement est urgent", false) }} ({{ dispatch.emergency }})
-        </span>
+        {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', "Cet acheminement est urgent") }} ({{ dispatch.emergency }})
     {% endif %}
 {% endblock %}

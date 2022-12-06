@@ -7,25 +7,11 @@
     {% set hasRightPairingOrder = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::PAIR_SENSOR')) %}
     {% set hasRightFinish = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
 
-{#
-TODO ADRIEN
-
-            {% if (preparation.referenceLines | length + preparation.articleLines | length  > 0 ) %}
-                <a class=" dropdown-item pointer d-flex align-items-center"
-                   href="{{ path('preparation_bar_codes_print', { preparation: preparation.id }) }}">
-                    <span class="wii-icon wii-icon-printer-black print-button mr-2"></span>
-                    Imprimer les étiquettes
-                </a>
-            {% endif %}
-
-#}
-
     {% include 'utils/action-buttons/header-buttons.html.twig' with {
         forceActionButton: true,
         actions: [
             {
                 hasRight: isPrepaEditable and hasRightFinish and preparation.statut.code != constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED'),
-                buttonClass: "split-button",
                 icon: "wii-icon wii-icon-check-white",
                 title: "Finir la préparation",
                 attributes: {
@@ -33,43 +19,39 @@ TODO ADRIEN
                 },
             },
             {
-                hasRight: (isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE'))) and preparation.activePairing,
-                buttonClass: "disabled",
+                hasRight: isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')),
+                buttonClass:  preparation.activePairing ? "disabled",
                 icon: "wii-icon wii-icon-trash-black",
                 title: "Supprimer",
                 dropdownOnly: true,
-                attributes: {
-                    "disabled": true,
-                    "style": "pointer-events: initial",
-                    "title": "La livraison est associée à un capteur, il faut d'abord la dissocier de son capteur",
-                },
+                attributes: preparation.activePairing
+                    ? {
+                        "disabled": true,
+                        "style": "pointer-events: initial",
+                        "title": "La livraison est associée à un capteur, il faut d'abord la dissocier de son capteur",
+                    }
+                    : {
+                        "data-target": "#modalDeletePreparation",
+                        "data-toggle": "modal",
+                    },
             },
             {
-                hasRight: (isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE'))) and not preparation.activePairing,
-                icon: "wii-icon wii-icon-trash-black",
-                title: "Supprimer",
-                href: "",
-                dropdownOnly: true,
-                attributes: {
-                    "data-target": "#modalDeletePreparation",
-                    "data-toggle": "modal",
-                },
-            },
-            {
+                hasRight: preparation.referenceLines | length > 0 or preparation.articleLines | length > 0,
                 icon: "wii-icon wii-icon-printer-black",
                 title: "Imprimer les étiquettes",
+                href: path('preparation_bar_codes_print', { preparation: preparation.id }),
                 dropdownOnly: true,
-                attributes: {
-                    "onclick": "printPrepaBarCodes()",
-                },
             },
             {
-                hasRight: hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_PREPARATION_DATE')) and preparation.expectedAt
-                            and preparation.demande.expectedAt and preparation.statut.code == constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED'),
+                hasRight: (
+                    hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_PREPARATION_DATE'))
+                    and preparation.expectedAt
+                    and preparation.demande.expectedAt
+                    and preparation.statut.code == constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED')
+                ),
                 icon: "fa fa-edit",
                 title: "Modifier",
                 dropdownOnly: true,
-                href: "",
                 attributes: {
                     "data-target": '#modalEditPreparation',
                     "data-toggle": 'modal',
@@ -80,7 +62,7 @@ TODO ADRIEN
                 icon: "fas fa-external-link-alt",
                 title: "Retourner à la demande de livraison",
                 dropdownOnly: true,
-                href: path('demande_show', {'id': demande.id}),
+                href: demande ? path('demande_show', {'id': demande.id}),
             },
             {
                 hasRight: hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) and livraison is not empty,
@@ -93,7 +75,6 @@ TODO ADRIEN
                 hasRight: hasRightPairingOrder and hasRightFinish and not preparation.activePairing,
                 icon: "wii-icon wii-icon-pairing",
                 title: "Associer à un capteur",
-                href: "",
                 dropdownOnly: true,
                 attributes: {
                     "data-target": "#modalNewSensorPairing",

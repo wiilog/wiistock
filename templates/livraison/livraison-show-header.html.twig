@@ -1,70 +1,74 @@
+
+{% set preparation = livraison.preparation %}
+{% set demande = preparation.demande %}
+{% set titleLogo = preparation.pairings|length >= 1 ? 'pairing' : null %}
+{% set titleLogoTooltip = "Cette livraison est liée à un capteur" %}
+
 {% extends 'utils/show-header.html.twig' %}
 
 {% block showTitle ('Ordre de livraison') %}
 {% block showSubtitle ('n°' ~ livraison.numero) %}
 
 {% block showActions %}
-    {% set canFinish = (livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER')) and not finished and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-    {% set canGoToHistory = (livraison.preparation.pairings is not empty) and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
-
-{# TODO ADRIEN #}
-{#    {% if displayButton is defined and displayButton %}#}
-{#        <a type="button"#}
-{#           onclick="openDeliveryNoteModal($(this))"#}
-{#           title="Générer un bon de livraison"#}
-{#           class="dropdown-item d-flex align-items-center">#}
-{#            <span class="wii-icon wii-icon-printer-black mr-2"></span>#}
-{#            Générer un bon de livraison#}
-{#        </a>#}
-{#        <a type="button"#}
-{#           onclick="openWaybillModal($(this))"#}
-{#           title="Générer une lettre de voiture"#}
-{#           class="dropdown-item d-flex align-items-center">#}
-{#            <span class="wii-icon wii-icon-printer-black mr-2"></span>#}
-{#            Générer une lettre de voiture#}
-{#        </a>#}
-{#    {% endif %}#}
-
     {% include 'utils/action-buttons/header-buttons.html.twig' with {
         forceActionButton: true,
         actions: [
             {
-                hasRight: canFinish,
-                buttonClass: "btn btn-primary split-button",
+                hasRight: (
+                    livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER')
+                    and not finished
+                    and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT'))
+                ),
                 icon: "wii-icon wii-icon-check-white",
                 title: "Finir la livraison",
                 attributes: {
-                    "data-id": '22',
                     "onclick": "endLivraison($(this))"
                 }
             },
             {
-                hasRight: not livraison.preparation.demande.manual,
-                buttonClass: "btn btn-primary",
+                hasRight: true,
+                icon: "wii-icon wii-icon-printer-black",
+                title: "Générer un bon de livraison",
+                dropdownOnly: true,
+                attributes: {
+                    "onclick": "openDeliveryNoteModal($(this))",
+                },
+            },
+            {
+                hasRight: true,
+                icon: "wii-icon wii-icon-printer-black",
+                title: "Générer une lettre de voiture",
+                dropdownOnly: true,
+                attributes: {
+                    "onclick": "openWaybillModal($(this))",
+                },
+            },
+            {
+                hasRight: not demande.manual,
                 icon: "fas fa-external-link-alt",
                 title: "Retourner à la demande de livraison",
                 dropdownOnly: true,
                 href: path('demande_show', {'id': demande.id}),
             },
             {
-                hasRight: not livraison.preparation.demande.manual,
-                buttonClass: "btn btn-primary",
+                hasRight: not demande.manual,
                 icon: "fas fa-external-link-alt",
                 title: "Retourner à la préparation",
                 dropdownOnly: true,
                 href: path('preparation_show', {'id': preparation.id}),
             },
             {
-                hasRight: canGoToHistory,
-                buttonClass: "btn btn-primary dropdown-menu-right",
+                hasRight: (
+                    preparation.pairings is not empty
+                    and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR'))
+                ),
                 icon: "wii-icon wii-icon-pairing",
                 title: "Historique des données",
                 dropdownOnly: true,
-                href: path('show_data_history', {id: livraison.preparation.demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}),
+                href: path('show_data_history', {id: demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}),
             },
             {
                 hasRight: hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')),
-                buttonClass: "btn btn-primary",
                 icon: "wii-icon wii-icon-trash-black",
                 title: "Supprimer",
                 dropdownOnly: true,

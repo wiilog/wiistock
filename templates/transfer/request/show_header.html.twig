@@ -4,54 +4,52 @@
 {% block showSubtitle ('n°' ~ transfer.number) %}
 
 {% block showActions %}
-        {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-        {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+    {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+    {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
 
-        {% include 'utils/action-buttons/header-buttons.html.twig' with {
-            forceActionButton: true,
-            actions: [
-                {
-                    hasRight: hasRightEdit and transfer.order is null,
-                    buttonClass: "split-button",
-                    icon: "wii-icon wii-icon-check-white",
-                    title: "Valider",
-                    attributes: {
-                        "onclick": "validateTransfer(" ~ transfer.id ~ ", $(this))",
-                    },
+    {% include 'utils/action-buttons/header-buttons.html.twig' with {
+        forceActionButton: true,
+        actions: [
+            {
+                hasRight: hasRightEdit and transfer.order is null,
+                icon: "wii-icon wii-icon-check-white",
+                title: "Valider",
+                attributes: {
+                    "onclick": "validateTransfer(" ~ transfer.id ~ ", $(this))",
                 },
-                {
-                    hasRight: transfer.order is not null,
-                    icon: "fas fa-external-link-alt",
-                    title: "Aller vers l'ordre de transfert",
-                    dropdownOnly: true,
-                    href: path('transfer_order_show', {'id': transfer.order.id }),
+            },
+            {
+                hasRight: transfer.order is not null,
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers l'ordre de transfert",
+                dropdownOnly: true,
+                href: transfer.order ? path('transfer_order_show', {'id': transfer.order.id }),
+            },
+            {
+                hasRight: hasRightEdit and transfer.order is null,
+                icon: "fa fa-pen",
+                title: "Modifier",
+                dropdownOnly: true,
+                attributes: {
+                    "data-id": transfer ? transfer.id,
+                    "data-target": '#modalEditTransferRequest',
+                    "data-toggle": 'modal',
+                    "onclick": "editRow($(this), Routing.generate('transfer_request_api_edit', true), $('#modalEditTransferRequest'), $('#submitEditTransferRequest'),
+                       false, () => InitModal($('#modalEditTransferRequest'), $('#submitEditTransferRequest'), Routing.generate('transfer_request_edit', true)))"
                 },
-                {
-                    hasRight: hasRightEdit and transfer.order is null,
-                    buttonClass: "edit-button",
-                    icon: "fa fa-pen",
-                    title: "Modifier",
-                    dropdownOnly: true,
-                    attributes: {
-                        "data-id": transfer ? transfer.id,
-                        "data-target": '#modalEditTransferRequest',
-                        "data-toggle": 'modal',
-                        "onclick": "editRow($(this), Routing.generate('transfer_request_api_edit', true), $('#modalEditTransferRequest'), $('#submitEditTransferRequest'),
-                           false, () => InitModal($('#modalEditTransferRequest'), $('#submitEditTransferRequest'), Routing.generate('transfer_request_edit', true)))"
-                    },
+            },
+            {
+                hasRight: hasRightDelete and transfer.order is null,
+                icon: "wii-icon wii-icon-trash-black",
+                title: "Supprimer",
+                dropdownOnly: true,
+                attributes: {
+                    "data-id": transfer ? transfer.id,
+                    "data-target": '#modalDeleteTransfer',
+                    "data-toggle": 'modal',
+                    "onclick": "deleteRow($(this), $('#modalDeleteTransfer'), $('#submitDeleteTransfer'))",
                 },
-                {
-                    hasRight: hasRightDelete and transfer.order is null,
-                    icon: "wii-icon wii-icon-trash-black",
-                    title: "Supprimer",
-                    dropdownOnly: true,
-                    attributes: {
-                        "data-id": transfer ? transfer.id,
-                        "data-target": '#modalDeleteTransfer',
-                        "data-toggle": 'modal',
-                            "onclick": "deleteRow($(this), $('#modalDeleteTransfer'), $('#submitDeleteTransfer'))",
-                    },
-                },
-            ]
-        } %}
+            },
+        ]
+    } %}
 {% endblock %}

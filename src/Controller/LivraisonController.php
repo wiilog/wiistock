@@ -20,6 +20,7 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
@@ -179,17 +180,12 @@ class LivraisonController extends AbstractController
      * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
-    public function show(Livraison $livraison, EntityManagerInterface $manager, LivraisonService $livraisonService): Response
+    public function show(Livraison $livraison, LivraisonService $livraisonService): Response
     {
-        $demande = $livraison->getDemande();
-
         $headerDetailsConfig = $livraisonService->createHeaderDetailsConfig($livraison);
 
         return $this->render('livraison/show.html.twig', [
-            'demande' => $demande,
             'livraison' => $livraison,
-            'displayButton' => Stream::from($livraison->getPreparation()->getArticleLines())->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())->count() > 0,
-            'preparation' => $livraison->getPreparation(),
             'finished' => $livraison->isCompleted(),
             'headerConfig' => $headerDetailsConfig
         ]);
@@ -450,11 +446,6 @@ class LivraisonController extends AbstractController
                 'livraison' => $deliveryOrder,
                 'showDetails' => $detailsConfig,
                 'finished' => $deliveryOrder->isCompleted(),
-                'displayButton' => Stream::from($deliveryOrder->getPreparation()->getArticleLines())->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())->count() > 0,
-                'demande' => $deliveryOrder->getDemande(),
-                'preparation' => $deliveryOrder->getPreparation(),
-                'titleLogo' => $deliveryOrder->getPreparation()->getPairings()->count() >=1 ? 'pairing' : null,
-                'titleLogoTooltip' => "Cette livraison est liée à un capteur",
             ]),
             'attachmentId' => $deliveryNoteAttachment->getId()
         ]);
@@ -671,11 +662,6 @@ class LivraisonController extends AbstractController
                 'livraison' => $deliveryOrder,
                 'showDetails' => $detailsConfig,
                 'finished' => $deliveryOrder->isCompleted(),
-                'demande' => $deliveryOrder->getDemande(),
-                'displayButton' => Stream::from($deliveryOrder->getPreparation()->getArticleLines())->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())->count() > 0,
-                'preparation' => $deliveryOrder->getPreparation(),
-                'titleLogo' => $deliveryOrder->getPreparation()->getPairings()->count() >=1 ? 'pairing' : null,
-                'titleLogoTooltip' => "Cette livraison est liée à un capteur",
             ]),
             'attachmentId' => $wayBillAttachment->getId()
         ]);

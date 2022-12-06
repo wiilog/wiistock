@@ -11,12 +11,17 @@
         actions: [
             {
                 hasRight: hasRightEdit and order.status.nom != constant('App\\Entity\\TransferOrder::TREATED'),
-                buttonClass: "split-button",
                 icon: "wii-icon wii-icon-check-white",
                 title: "Transférer",
                 attributes: {
                     "onclick": "validateOrder($(this))",
                 },
+            },
+            {
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers la demande de transfert",
+                dropdownOnly: true,
+                href: order ? path('transfer_request_show', {'id': order.request.id }),
             },
             {
                 hasRight: hasRightDelete,
@@ -27,12 +32,6 @@
                     "onclick": "deleteOrder()",
                     "data-id": order ? order.id,
                 },
-            },
-            {
-                icon: "fas fa-external-link-alt",
-                title: "Aller vers la demande de transfert",
-                dropdownOnly: true,
-                href: order ? path('transfer_request_show', {'id': order.request.id }),
             },
         ]
     } %}

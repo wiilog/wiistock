@@ -21,15 +21,12 @@
     {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_TREATED_PURCHASE_REQUESTS')) %}
 {% endif %}
 
-{% set hasRightEDdRL = hasRightEdit or hasRightDelete or displayReceptionLink %}
-
 {% block showActions %}
     {% include 'utils/action-buttons/header-buttons.html.twig' with {
         forceActionButton: true,
         actions: [
             {
                 hasRight: hasRightEdit and request.status.draft,
-                buttonClass: "split-button",
                 icon: "wii-icon wii-icon-check-white",
                 title: "Valider",
                 attributes: {
@@ -39,7 +36,6 @@
             },
             {
                 hasRight: hasRightEdit and request.status.notTreated,
-                buttonClass: "split-button",
                 icon: "wii-icon wii-icon-check-white",
                 title: "Prendre en compte",
                 attributes: {
@@ -49,7 +45,6 @@
             },
             {
                 hasRight: hasRightEdit and request.status.inProgress,
-                buttonClass: "split-button",
                 icon: "wii-icon wii-icon-check-white",
                 title: "Terminer la demande",
                 attributes: {
@@ -58,7 +53,7 @@
                 },
             },
             {
-                hasRight: hasRightEDdRL and displayReceptionLink,
+                hasRight: displayReceptionLink,
                 icon: "fas fa-external-link-alt",
                 title: "Aller vers les réceptions",
                 dropdownOnly: true,
@@ -68,8 +63,7 @@
                 }
             },
             {
-                hasRight: hasRightEDdRL and hasRightEdit,
-                buttonClass: "edit-button",
+                hasRight: hasRightEdit,
                 icon: "fa fa-pen",
                 title: "Modifier",
                 dropdownOnly: true,
@@ -81,14 +75,13 @@
                 },
             },
             {
-                hasRight: hasRightEDdRL and hasRightDelete,
+                hasRight: hasRightDelete,
                 icon: "wii-icon wii-icon-trash-black",
                 title: "Supprimer",
                 dropdownOnly: true,
-                href: "",
                 attributes: {
                     "data-id": request ? request.id,
-                    "data-target": '#modalDeleteTransfer',
+                    "data-target": '#modalDeleteRequest',
                     "data-toggle": 'modal',
                     "onclick": "deleteRow($(this), $('#modalDeleteRequest'), $('#submitDeleteRequest'))",
                 },

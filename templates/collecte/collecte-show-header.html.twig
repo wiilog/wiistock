@@ -4,19 +4,11 @@
 {% block showSubtitle ('n°' ~ collecte.numero) %}
 
 {% block showActions %}
-    {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-    {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
-    {% set canValidate = modifiable and hasRightEdit %}
-    {% set pairingExists = hasPairings is defined and hasPairings %}
-    {% set hasPairingEditDeleteRight = pairingExists or hasRightEdit or hasRightDelete %}
-    {% set canGoToHistory = pairingExists and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
-    {% set hasDemCollectRight = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
     {% include 'utils/action-buttons/header-buttons.html.twig' with {
         forceActionButton: true,
         actions: [
             {
-                hasRight: modifiable and hasRightEdit,
-                buttonClass: "split-button",
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')),
                 icon: "wii-icon wii-icon-check-white",
                 title: "Valider",
                 attributes: {
@@ -24,16 +16,7 @@
                 },
             },
             {
-                hasRight: hasPairingEditDeleteRight and canGoToHistory,
-                buttonClass: "dropdown-menu-right",
-                icon: "wii-icon wii-icon-pairing",
-                title: "Historique des données",
-                dropdownOnly: true,
-                href: collecte ? path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT_REQUEST')}),
-            },
-            {
-                hasRight: modifiable and hasPairingEditDeleteRight and hasRightEdit,
-                buttonClass: "edit-button",
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')),
                 icon: "fa fa-pen",
                 title: "Modifier",
                 dropdownOnly: true,
@@ -42,11 +25,44 @@
                     "data-target": '#modalEditCollecte',
                     "data-toggle": 'modal',
                     "onclick": "editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'),
-                                   $('#submitEditCollecte'), false, () => initEditModal());"
+                                       $('#submitEditCollecte'), false, () => initEditModal());"
                 },
             },
             {
-                hasRight: modifiable and hasPairingEditDeleteRight and hasRightDelete,
+                hasRight: (
+                    hasPairings is defined
+                    and hasPairings
+                    and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR'))
+                ),
+                icon: "wii-icon wii-icon-pairing",
+                title: "Historique des données",
+                dropdownOnly: true,
+                href: collecte ? path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT_REQUEST')}),
+            },
+            {
+                hasRight: (
+                    hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'))
+                    and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL'))
+                    and collecte.ordresCollecte.count > 1
+                ),
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers les ordres de collecte",
+                dropdownOnly: true,
+                href: collecte ? path('ordre_collecte_index', {'demandId': collecte.id}),
+            },
+            {
+                hasRight: (
+                    hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'))
+                    and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL'))
+                    and collecte.ordresCollecte.count == 1
+                ),
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers l'ordre de collecte",
+                dropdownOnly: true,
+                href: collecte ? path('ordre_collecte_show', {'id': collecte.ordresCollecte.first.id }),
+            },
+            {
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')),
                 icon: "fa fa-trash",
                 title: "Supprimer",
                 dropdownOnly: true,
@@ -56,20 +72,6 @@
                     "data-toggle": 'modal',
                     "onclick": "deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
                 },
-            },
-            {
-                hasRight: not modifiable and hasDemCollectRight and (collecte.ordresCollecte.count > 1),
-                icon: "fas fa-external-link-alt",
-                title: "Aller vers les ordres de collecte",
-                dropdownOnly: true,
-                href: collecte ? path('ordre_collecte_index', {'demandId': collecte.id}),
-            },
-            {
-                hasRight: not modifiable and hasDemCollectRight and (collecte.ordresCollecte.count == 1),
-                icon: "fas fa-external-link-alt",
-                title: "Aller vers l'ordre de collecte",
-                dropdownOnly: true,
-                href: collecte ? path('ordre_collecte_show', {'id': collecte.ordresCollecte.first.id }),
             },
         ]
     } %}
