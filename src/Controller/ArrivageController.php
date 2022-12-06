@@ -563,10 +563,8 @@ class ArrivageController extends AbstractController {
 
         $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
-        $validComment  = StringHelper::cleanedComment($post->get('commentaire'));
-
         $arrivage
-            ->setCommentaire(StringHelper::cleanedComment($validComment))
+            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')))
             ->setNoTracking(substr($post->get('noTracking'), 0, 64))
             ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
             ->setDropLocation($dropLocation)

@@ -173,7 +173,7 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
             dataType: 'json',
         })
         .then((data) => {
-            if (data.invalidComment || !keepLoading) {
+            if (!keepLoading) {
                 $submit.popLoader();
             }
 
