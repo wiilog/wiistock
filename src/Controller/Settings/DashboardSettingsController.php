@@ -164,6 +164,9 @@ class DashboardSettingsController extends AbstractController {
             "managers" => [],
             "arrivalStatuses" => [],
             "handlingStatuses" => [],
+            "deliveryOrderStatuses" => [],
+            "deliveryOrderTypes" => [],
+            "displayDeliveryOrderContent" => null,
             "dispatchStatuses" => [],
             "entityTypes" => [],
             "separateType" => false,
@@ -292,6 +295,14 @@ class DashboardSettingsController extends AbstractController {
             $values['dispatchStatuses'] = $statusRepository->findBy(['id' => $values['dispatchStatuses']]);
         }
 
+        if(!empty($values['deliveryOrderStatuses'])) {
+            $values['deliveryOrderStatuses'] = $statusRepository->findBy(['id' => $values['deliveryOrderStatuses']]);
+        }
+
+        if(!empty($values['deliveryOrderTypes'])) {
+            $values['deliveryOrderTypes'] = $typeRepository->findBy(['id' => $values['deliveryOrderTypes']]);
+        }
+
         if(!empty($values['handlingStatuses'])) {
             $values['handlingStatuses'] = $statusRepository->findBy(['id' => $values['handlingStatuses']]);
         }
@@ -365,7 +376,9 @@ class DashboardSettingsController extends AbstractController {
         $referenceTypes = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
         $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $deliveryOrderTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $handlingStatuses = $statusRepository->findByCategorieName(CategorieStatut::HANDLING);
+        $deliveryOrderStatuses = $statusRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON);
         $dispatchStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPATCH);
 
         $natures = $natureRepository->findAll();
@@ -381,10 +394,14 @@ class DashboardSettingsController extends AbstractController {
                     'cellIndex' => $request->request->get('cellIndex'),
                     'arrivalTypes' => $arrivalTypes,
                     'handlingTypes' => $handlingTypes,
+                    'deliveryOrderTypes' => $deliveryOrderTypes,
+                    'displayDeliveryOrderContentCheckbox' => $values['displayDeliveryOrderContentCheckbox'],
+                    'displayDeliveryOrderContent' => $values['displayDeliveryOrderContent'],
                     'dispatchTypes' => $dispatchTypes,
                     'referenceTypes' => $referenceTypes,
                     'arrivalStatuses' => $arrivalStatuses,
                     'handlingStatuses' => $handlingStatuses,
+                    'deliveryOrderStatuses' => $deliveryOrderStatuses,
                     'dispatchStatuses' => $dispatchStatuses,
                     'entities' => $entities,
                     'entityTypes' => $entityTypes,

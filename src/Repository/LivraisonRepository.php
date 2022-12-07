@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -339,5 +340,95 @@ class LivraisonRepository extends EntityRepository
         else {
             return null;
         }
+    }
+
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 array $options): int {
+        $deliveryOrderStatusesFilter = $options['deliveryOrderStatusesFilter'] ?? [];
+        $deliveryOrderTypesFilter = $options['deliveryOrderTypesFilter'] ?? [];
+
+        $date = match ($options['date']) {
+            "treatmentDate" => "delivery_order.dateFin",
+            "expectedDate" => "join_delivery_request.expectedAt",
+            default => "delivery_order.date"
+        };
+
+        $qb = $this->createQueryBuilder('delivery_order')
+            ->select('COUNT(delivery_order)')
+            ->andWhere("$date BETWEEN :dateMin AND :dateMax")
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        if (!empty($deliveryOrderStatusesFilter)) {
+            $qb
+                ->andWhere('delivery_order.statut IN (:deliveryOrderStatusesFilter)')
+                ->setParameter('deliveryOrderStatusesFilter', $deliveryOrderStatusesFilter);
+        }
+
+        if (!empty($deliveryOrderTypesFilter)) {
+            $qb
+                ->join('delivery_order.preparation', 'join_preparation')
+                ->join('join_preparation.demande', 'join_delivery_request')
+                ->andWhere('join_delivery_request.type IN (:deliveryOrderTypesFilter)')
+                ->setParameter('deliveryOrderTypesFilter', $deliveryOrderTypesFilter);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countContentByDates(DateTime $dateMin,
+                                        DateTime $dateMax,
+                                        array $deliveryOrderStatusesFilter,
+                                        array $deliveryOrderTypesFilter,
+                                        array $options = []): int {
+        $date = match ($options['date']) {
+            "treatmentDate" => "delivery_order.dateFin",
+            "expectedDate" => "join_delivery_request.expectedAt",
+            default => "delivery_order.date"
+        };
+
+        $queryBuilder = $this->createQueryBuilder('delivery_order')
+            ->join('delivery_order.preparation', 'join_preparation')
+            ->join('join_preparation.articleLines', 'join_article_lines')
+            ->join('join_article_lines.article', 'join_article')
+            ->join('join_article.articleFournisseur', 'join_provider_article')
+            ->join('join_provider_article.referenceArticle', 'join_article_reference')
+            ->andWhere("$date BETWEEN :dateMin AND :dateMax")
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        if($options['displayDeliveryOrderContent'] === 'displayLogisticUnitsCount') {
+            $queryBuilder
+                ->select('COUNT(DISTINCT(join_article.currentLogisticUnit)) AS count');
+        } else {
+            $queryBuilder
+                ->select('COUNT(join_article.id) AS count')
+                ->andWhere('join_article_reference.typeQuantite = :quantity_type')
+                ->setParameter('quantity_type', ReferenceArticle::QUANTITY_TYPE_ARTICLE);
+        }
+
+        if (!empty($deliveryOrderStatusesFilter)) {
+            $queryBuilder
+                ->andWhere('delivery_order.statut IN (:deliveryOrderStatusesFilter)')
+                ->setParameter('deliveryOrderStatusesFilter', $deliveryOrderStatusesFilter);
+        }
+
+        if (!empty($deliveryOrderTypesFilter)) {
+            $queryBuilder
+                ->join('join_preparation.demande', 'join_delivery_request')
+                ->andWhere('join_delivery_request.type IN (:deliveryOrderTypesFilter)')
+                ->setParameter('deliveryOrderTypesFilter', $deliveryOrderTypesFilter);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
