@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Customer;
@@ -686,6 +687,22 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $customers
+        ]);
+    }
+
+    /**
+     * @Route("/select/nature-or-type", name="ajax_select_nature_or_type", options={"expose": true})
+     */
+    public function natureOrType(Request $request, EntityManagerInterface $entityManager): Response {
+        $module = $request->query->get("module");
+        $term = $request->query->get("term");
+
+        $naturesOrTypes = $module === CategoryType::ARRIVAGE ?
+            $entityManager->getRepository(Type::class)->getForSelect(CategoryType::ARRIVAGE, $term) :
+            $entityManager->getRepository(Nature::class)->getForSelect($term);
+
+        return $this->json([
+            "results" => $naturesOrTypes,
         ]);
     }
 }
