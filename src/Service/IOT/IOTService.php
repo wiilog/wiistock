@@ -59,6 +59,8 @@ class IOTService
     const SYMES_ACTION_MULTI = 'symes-action-multi';
     const KOOVEA_TAG = 'Tag température Koovea';
     const KOOVEA_HUB = 'Hub GPS Koovea';
+    const DEMO_TEMPERATURE = 'demo-temperature';
+    const DEMO_ACTION = 'demo-action';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 1,
@@ -78,6 +80,8 @@ class IOTService
         self::INEO_SENS_ACS_BTN => Sensor::ACTION,
         self::SYMES_ACTION_MULTI => Sensor::ACTION,
         self::SYMES_ACTION_SINGLE => Sensor::ACTION,
+        self::DEMO_ACTION => Sensor::ACTION,
+        self::DEMO_TEMPERATURE => Sensor::TEMPERATURE,
     ];
 
     const PROFILE_TO_FREQUENCY = [
@@ -578,6 +582,7 @@ class IOTService
                 }
                 break;
             case IOTService::INEO_SENS_ACS_TEMP:
+            case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
                     return $frame['jcd_temperature'];
@@ -604,7 +609,8 @@ class IOTService
                 return $config['event'];
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
-                if (isset($config['payload'])) {
+            case IOTService::DEMO_TEMPERATURE:
+            if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
                     return $frame['jcd_msg_type'];
                 }
@@ -638,6 +644,7 @@ class IOTService
                 return -1;
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
+            case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
                     return $frame['jcd_battery_level'];
