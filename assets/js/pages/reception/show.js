@@ -702,6 +702,9 @@ function onReferenceToReceiveChange() {
             $selectPack
                 .prop('disabled', true)
                 .append(new Option(pack.code || "&nbsp;", pack.id || `-1`, true, true));
+            if (Object.keys(pack).length) {
+                $('.create-request-container').find('input[value=transfer]').prop('disabled', true);
+            }
         }
         else {
             $selectPack.prop('disabled', false)
