@@ -4,26 +4,7 @@ $(function () {
 
     const $selectDeleteDeliveryLocation = $modalDeleteDelivery.find('select[name="location"]')
     Select2Old.location($selectDeleteDeliveryLocation);
-
-    let pathArticle = Routing.generate('livraison_article_api', {id: deliveryId});
-    let tableArticleConfig = {
-        ajax: {
-            'url': pathArticle,
-            "type": "POST"
-        },
-        columns: [
-            {data: 'Actions', title: '', className: 'noVis', orderable: false},
-            {data: 'reference', title: 'Référence'},
-            {data: 'label', title: 'Libellé'},
-            {data: 'location', title: 'Emplacement'},
-            {data: 'quantity', title: 'Quantité'},
-        ],
-        rowConfig: {
-            needsRowClickAction: true,
-        },
-        order: [['reference', "asc"]]
-    };
-    initDataTable('tableArticle_id', tableArticleConfig);
+    loadLogisticUnitPack(deliveryId);
 
     let $modalPrintDeliveryNote = $('#modalPrintDeliveryNote');
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
@@ -51,6 +32,41 @@ $(function () {
     });
 });
 
+function loadLogisticUnitPack(deliveryId) {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    wrapLoadingOnActionButton($logisticUnitsContainer, () => (
+            AJAX.route('GET', 'delivery_order_logistics_unit_api', {id: deliveryId})
+                .json()
+                .then(({html}) => {
+                    $logisticUnitsContainer.html(html);
+                    $logisticUnitsContainer.find('.articles-container table')
+                        .each(function () {
+                            const $table = $(this);
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                columns: [
+                                    {data: 'Actions', title: '', className: 'noVis', orderable: false},
+                                    {data: 'reference', title: 'Référence'},
+                                    {data: 'barCode', title: 'Code barre'},
+                                    {data: 'label', title: 'Libellé'},
+                                    {data: 'quantity', title: 'Quantité'},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                },
+                            })
+                        });
+                })
+        )
+    );
+}
+
 function endLivraison($button) {
     wrapLoadingOnActionButton(
         $button,
@@ -61,8 +77,7 @@ function endLivraison($button) {
                 .then(({success, redirect, message}) => {
                     if (success) {
                         window.location.href = redirect;
-                    }
-                    else {
+                    } else {
                         showBSAlert(message, 'danger');
                     }
 
@@ -98,8 +113,7 @@ function askForDeleteDelivery() {
                         .then(({success, redirect, message}) => {
                             if (success) {
                                 window.location.href = redirect;
-                            }
-                            else {
+                            } else {
                                 showBSAlert(message, 'danger');
                             }
 
@@ -108,8 +122,7 @@ function askForDeleteDelivery() {
                 ),
                 false
             );
-        }
-        else {
+        } else {
             showBSAlert('Veuillez sélectionner un emplacement.', 'danger');
         }
     })

@@ -1,5 +1,10 @@
 {% extends 'layout.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
 {% block title %}Ordre | Livraison | Détails{% endblock %}
 {% block titleLink path('livraison_index') %}
 
@@ -22,15 +27,16 @@
                 <div class="wii-box mt-0">
                     <div class="header wii-title">Liste des articles</div>
                     <div class="content">
-                        <table id="tableArticle_id" class="table w-100"></table>
+                        <div class="col-12 logistic-units-container my-3 wii-multiple-loading"
+                             data-loader-color="primary"
+                             data-loader-size="normal">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {% include 'reference_article/modalShowRefArticle.html.twig' %}
-    {% include 'article/modalShowArticle.html.twig' %}
     {% include 'emplacement/modal-select-location.html.twig' with {type: 'delete-delivery'} %}
     {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
     {% include "dispatch/modalPrintWayBill.html.twig" %}

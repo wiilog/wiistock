@@ -24,11 +24,13 @@ use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PackService;
+use App\Service\PDFGeneratorService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\TrackingMovementService;
 
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -380,5 +382,16 @@ class PackController extends AbstractController
             'success' => true,
             'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
         ]);
+    }
+
+    #[Route("/print-single-logistic-unit/{pack}", name: "print_single_logistic_unit", options: ["expose" => true])]
+    public function printSingleLogisticUnit(Pack $pack, PackService $packService, PDFGeneratorService $PDFGeneratorService): PdfResponse {
+        $config = $packService->getBarcodeColisConfig($pack);
+        $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'colis');
+        $render = $PDFGeneratorService->generatePDFBarCodes($fileName, [$config]);
+        return new PdfResponse(
+            $render,
+            $fileName
+        );
     }
 }

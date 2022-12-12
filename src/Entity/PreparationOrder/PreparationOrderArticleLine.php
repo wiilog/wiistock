@@ -121,4 +121,13 @@ class PreparationOrderArticleLine {
         return $this;
     }
 
+    public function clone(): PreparationOrderArticleLine {
+        return (new PreparationOrderArticleLine())
+            ->setPack($this->getPack())
+            ->setTargetLocationPicking($this->getTargetLocationPicking())
+            ->setQuantityToPick($this->getQuantityToPick())
+            ->setPickedQuantity($this->getPickedQuantity())
+            ->setArticle($this->getArticle());
+    }
+
 }
