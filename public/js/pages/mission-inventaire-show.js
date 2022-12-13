@@ -95,26 +95,31 @@ let $submitAddToMission = $("#submitAddToMission");
 let urlAddToMission = Routing.generate('add_to_mission', true);
 InitModal($modalAddToMission, $submitAddToMission, urlAddToMission, {
     tables: [tableArticle, tableRefArticle],
+    success: () => {
+        $modalAddToMission.find("input[name=barcodesWithUL]").val(""); //reinitialisation de l'input hidden à vide
+    },
     error: (data) => {
-        const msg = data.data.msg;
-        const barcodesUL = data.data.barcodesUL;
-        const barcodesToAdd = data.data.barcodesToAdd;
+        /* Affichage de la modale de confirmation si l'utilisateur entre des codes barres associés à des UL */
+        if (data.data) {
+            const msg = data.msg;
+            const barcodesUL = data.data.barcodesUL;
+            const barcodesToAdd = data.data.barcodesToAdd;
 
-        $modalAddToMission.modal('hide');
-        if (barcodesUL) {
-            Modal.confirm({
-                title: 'Ajouter les articles',
-                message: msg,
-                validateButton: {
-                    color: 'success',
-                    label: 'Continuer',
-                    click: () => {
-                        displayFirstModal({barcodesUL, barcodesToAdd, $modalAddToMission});
-                    }
-                },
-            });
+            $modalAddToMission.modal('hide');
+            if (barcodesUL) {
+                Modal.confirm({
+                    title: 'Ajouter les articles',
+                    message: msg,
+                    validateButton: {
+                        color: 'success',
+                        label: 'Continuer',
+                        click: () => {
+                            displayFirstModal({barcodesUL, barcodesToAdd, $modalAddToMission});
+                        }
+                    },
+                });
+            }
         }
-
     }
 });
 
@@ -127,9 +132,22 @@ InitModal($modalRemoveRefFromMission, $submitRemoveRefFromMission, urlRemoveRefF
 });
 
 function displayFirstModal({barcodesUL, barcodesToAdd, $modalAddToMission}) {
-    $modalAddToMission.modal('show');
-    AJAX.route('GET', `add_to_mission_after_validation`, {
-        barcodesUL,
-        barcodesToAdd
+    clearModal($modalAddToMission);
+
+    const $barcodesWithUL = $modalAddToMission.find("input[name=barcodesWithUL]");
+    $barcodesWithUL.val(barcodesUL);
+
+    const $articlesInput = $modalAddToMission.find("input[name=articles]");
+    $articlesInput.val(barcodesToAdd.join(' '));
+
+    let errorMessage = "</ul><span class=\"text-danger pl-2\">L'ensemble des articles des unités logistiques associées aux articles ci-dessous va être ajouté à la mission d'inventaire :</span>";
+    barcodesUL.forEach(function(barcode){
+        errorMessage += "<li class=\"text-danger list-group-item\">" + barcode + "</li>";
     });
+
+    displayFormErrors($modalAddToMission, {
+        errorMessages: [errorMessage],
+        keepModal: true,
+    });
+    $modalAddToMission.modal('show');
 }

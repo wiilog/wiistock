@@ -167,29 +167,6 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/ajouter-after-validation", name="add_to_mission_after_validation", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
-     */
-    public function addToMissionAfterValidation(Request $request,
-                                 InventoryService $inventoryService,
-                                 EntityManagerInterface $entityManager): Response
-    {
-        // vérifier s'il y a des erreurs dans les articles à ajouter qui n'ont pas d'ul
-
-        dump($request);
-        //$barcodesUL = json_decode($request->query->get('barcodesUL'), true);
-        //$barcodesToAdd = json_decode($request->query->get('barcodesToAdd'), true);
-
-        //dump($barcodesUL);
-        //dump($barcodesToAdd);
-
-        return new JsonResponse([
-            'success' => true,
-            'msg' => ""
-        ]);
-    }
-
-    /**
      * @Route("/ajouter", name="add_to_mission", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
@@ -205,10 +182,12 @@ class InventoryMissionController extends AbstractController
             $barcodeErrors = [];
             $refOrArtToAdd = [];
             $artWithUL = [];
+
+            /* Gestion de chaque code barre entré par l'utilisateur */
             Stream::explode([",", " ", ";", "\t"], $data['articles'])
                 ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission, $inventoryService) {
                     $barcode = trim($barcode);
-
+                    /* Le code barre doit être celui d'un article ou d'une référence article */
                     if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
                         $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
 
@@ -216,6 +195,7 @@ class InventoryMissionController extends AbstractController
                             && $referenceArticle->getStatut()?->getCode() === ReferenceArticle::STATUT_ACTIF
                             && !$inventoryService->isInMissionInSamePeriod($article, $mission, false);
 
+                        /* Si l'article/la ref article ne remplis pas les conditions, le filterMap renvoie un string */
                         return $checkForArt ? $article : $article->getBarCode();
                     } else if($reference = $refArtRepository->findOneBy(["barCode" => $barcode])) {
 
@@ -229,33 +209,69 @@ class InventoryMissionController extends AbstractController
                     }
                 })
                 ->each(function($refOrArt) use ($mission, &$barcodeErrors, $data, &$artWithUL, &$refOrArtToAdd) {
+
                     if ($refOrArt instanceof ReferenceArticle || $refOrArt instanceof Article) {
+                        /* Si le filterMap renvoie un objet, on vérifie s'il est associé avec une UL qui a plusieurs articles */
                         if ($refOrArt instanceof Article && $refOrArt->getCurrentLogisticUnit() && count($refOrArt->getCurrentLogisticUnit()->getChildArticles()) > 1) {
                             $artWithUL[] = $refOrArt->getBarCode();
                         } else {
-                            $refOrArtToAdd[] = $refOrArt->getBarCode();
+                            $refOrArtToAdd[] = $refOrArt;
                         }
                     } else {
+                        /* Si le filterMap renvoie un string avec un code barre, c'est une erreur */
                         $barcodeErrors[] = $refOrArt;
                     }
                 });
 
             if (!empty($artWithUL)) {
+                /* L'article est associé avec une UL qui a plusieurs articles : on renvoie une erreur pour afficher une modale de confirmation */
                 $errorMsg = '<span class="text-danger pl-2">Les articles suivants sont contenus dans une unité logistique :</span><ul class="list-group my-2">';
                 foreach ($artWithUL as $articleCode) {
                     $errorMsg .= '<li class="text-danger list-group-item">' . $articleCode . '</li>';
                 }
-                $errorMsg .= '</ul><span class="text-danger pl-2">L\'ensemble des articles des unités logistiques associées va être ajoutés à la mission d\'inventaire.</span>';
+                $errorMsg .= '</ul><span class="text-danger pl-2">L\'ensemble des articles des unités logistiques associées va être ajouté à la mission d\'inventaire.</span>';
+
+                /* On renvoie des barcodes et non des objets */
+                $barcodesWithoutUL = Stream::from($refOrArtToAdd)
+                                ->filterMap(fn($refOrArtWithoutUL) => ($refOrArtWithoutUL->getBarCode()))
+                                ->toArray();
 
                 return new JsonResponse([
                     'success' => false,
+                    'msg' => $errorMsg,
                     'data' => [
-                        'msg' => $errorMsg,
-                        'barcodesUL' => $artWithUL,
-                        'barcodesToAdd' => $refOrArtToAdd
+                        'barcodesUL' => $artWithUL, //barcodes qu'on va stocker dans l'input hidden
+                        'barcodesToAdd' => array_merge($barcodesWithoutUL, $barcodeErrors), //barcodes qu'on va remettre dans l'input texte
                     ]
                 ]);
             } else {
+                /* Si l'input texte ne contient pas d'article associés à des UL */
+                $articlesWithULToAdd = [];
+                $barcodesWithUL = $data['barcodesWithUL'];
+                if (isset($barcodesWithUL) && !empty($barcodesWithUL)) {
+                    /* On récupère les articles associés à des UL */
+                    Stream::explode([",", " ", ";", "\t"], $barcodesWithUL)
+                        ->each(function($barcode) use ($articleRepository, &$barcodeErrors, &$articlesWithULToAdd) {
+                            $barcode = trim($barcode);
+
+                            if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
+                                $articlesWithULToAdd[] = $article;
+                            } else {
+                                $barcodeErrors[] = $article;
+                            }
+                        });
+                }
+
+                /* Ajout de la mission à tous les articles des UL associées  */
+                if (!empty($articlesWithULToAdd)) {
+                    foreach ($articlesWithULToAdd as $article) {
+                        foreach ($article->getCurrentLogisticUnit()->getChildArticles() as $articleFromPack) {
+                            $articleFromPack->addInventoryMission($mission);
+                        }
+                    }
+                }
+
+                /* Ajout de la mission à chaque reference ou article qui remplis les conditions */
                 foreach ($refOrArtToAdd as $refOrArt) {
                     $refOrArt->addInventoryMission($mission);
                 }
@@ -264,6 +280,8 @@ class InventoryMissionController extends AbstractController
             $entityManager->flush();
             $success = count($barcodeErrors) === 0;
             $errorMsg = "";
+
+            /* Création du message d'erreur si des articles ne remplissent pas les conditions */
             if (!$success) {
                 $errorMsg = '<span class="pl-2">Les codes-barres suivants sont en erreur :</span><ul class="list-group my-2">';
                 $errorMsg .= (
