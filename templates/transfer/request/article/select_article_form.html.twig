@@ -4,7 +4,7 @@
             required="required"
             class="form-control">
         <option value="">Sélectionner un article à transférer</option>
-        {% for article in articles %}
+        {% for article in articles | filter ( v => not v.currentLogisticUnit) %}
             <option class="{{ (article.id in articleAlreadyInRequest) ? 'd-none' : '' }}" value="{{ article.id }}">{{ article.barCode }}</option>
         {% endfor %}
     </select>

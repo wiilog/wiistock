@@ -283,7 +283,7 @@ class ArticleDataService
             ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
             ->setConform(!isset($data['conform']) || !$data['conform'])
             ->setStatut($statut)
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire']) ?? null)
+            ->setCommentaire( array_key_exists('commentaire', $data) ? StringHelper::cleanedComment($data['commentaire']) ?? null : null)
             ->setPrixUnitaire($price)
             ->setReference($refReferenceArticle . $formattedDate . $cpt)
             ->setQuantite($quantity)
