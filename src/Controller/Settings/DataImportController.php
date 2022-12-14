@@ -215,7 +215,7 @@ class DataImportController extends AbstractController
 
         if ($import) {
             $importModeTodo = ($force ? ImportService::IMPORT_MODE_FORCE_PLAN : ImportService::IMPORT_MODE_PLAN);
-            $importModeDone = $importService->treatImport($import, $this->getUser(), $importModeTodo);
+            $importModeDone = $importService->treatImport($import, $importModeTodo);
 
             $success = true;
             $message = (

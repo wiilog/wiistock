@@ -66,6 +66,9 @@ class PackService {
     #[Required]
     public ReceptionService $receptionService;
 
+    #[Required]
+    public ReceptionLineService $receptionLineService;
+
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
@@ -259,7 +262,7 @@ class PackService {
                 if (isset($options['reception'])) {
                     /** @var Reception $reception */
                     $reception = $options['reception'];
-                    $this->receptionService->persistReceptionPackLine($entityManager, $reception, $pack);
+                    $this->receptionLineService->persistReceptionLine($entityManager, $reception, $pack);
                 }
 
                 $arrival->addPack($pack);
