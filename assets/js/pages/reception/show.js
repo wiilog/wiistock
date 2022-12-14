@@ -270,7 +270,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {}, recept
             })
         });
         values.forEach(value => {
-            $('#colisEditLitige').select2("trigger", "select", {
+            $('#packEditLitige').select2("trigger", "select", {
                 data: value
             });
         });

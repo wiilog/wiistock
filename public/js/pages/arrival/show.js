@@ -238,7 +238,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        modal.find('#colisEditLitige').val(data.colis).select2();
+        modal.find('#packEditLitige').val(data.packs).select2();
         fillDemandeurField(modal);
         afterLoadingEditModal()
     }, 'json');

@@ -10,7 +10,7 @@
             {{ form.checkbox(setting('SEND_MAIL_AFTER_NEW_ARRIVAL'), "Envoyer un email après nouvel arrivage", false, setting_value('SEND_MAIL_AFTER_NEW_ARRIVAL')) }}
         </div>
         <div class="col-md-6 col-12 my-1">
-            {{ form.checkbox(setting('AUTO_PRINT_COLIS'), "Impressions cochées par défaut", false, setting_value('AUTO_PRINT_COLIS')) }}
+            {{ form.checkbox(setting('AUTO_PRINT_LU'), "Impressions cochées par défaut", false, setting_value('AUTO_PRINT_LU')) }}
         </div>
         <div class="col-md-6 col-12 my-1">
             {{ form.checkbox(setting('PRINT_TWICE_CUSTOMS'), 'Impression en double de l\'étiquette de colis d\'arrivage si champ "Douane" coché', false, setting_value('PRINT_TWICE_CUSTOMS')) }}

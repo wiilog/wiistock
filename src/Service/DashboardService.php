@@ -1355,7 +1355,7 @@ class DashboardService {
                 ->setDelay($lastLate['delay'])
                 ->setDate($lastLate['date'])
                 ->setEmp($lastLate['emp'])
-                ->setColis($lastLate['colis']);
+                ->setLU($lastLate['LU']);
             $entityManager->persist($latePack);
         }
     }

@@ -311,21 +311,21 @@ class PackRepository extends EntityRepository
     {
         $natures = $options['natures'] ?? [];
         $isCount = $options['isCount'] ?? true;
-        $field = $options['field'] ?? 'colis.id';
+        $field = $options['field'] ?? 'pack.id';
         $start = $options['start'] ?? null;
         $limit = $options['limit'] ?? null;
         $order = $options['order'] ?? 'desc';
         $onlyLate = $options['onlyLate'] ?? false;
 
-        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilder = $this->createQueryBuilder('pack');
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
             ->select($isCount ? $queryBuilderExpr->count($field) : $field)
-            ->leftJoin('colis.nature', 'nature')
-            ->leftJoin('colis.arrivage', 'pack_arrival')
-            ->join('colis.lastDrop', 'lastDrop')
+            ->leftJoin('pack.nature', 'nature')
+            ->leftJoin('pack.arrivage', 'pack_arrival')
+            ->join('pack.lastDrop', 'lastDrop')
             ->join('lastDrop.emplacement', 'emplacement')
-            ->where('colis.groupIteration IS NULL');
+            ->where('pack.groupIteration IS NULL');
 
         if (!empty($locations)) {
             $queryBuilder

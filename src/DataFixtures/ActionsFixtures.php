@@ -50,7 +50,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_INVENTORY = 'inventaire';
     const SUB_MENU_ARRIVALS = 'arrivages';
     const SUB_MENU_MOVEMENTS = 'mouvements';
-    const SUB_MENU_PACKS = 'colis';
+    const SUB_MENU_PACKS = 'unités logistiques';
     const SUB_MENU_ASSOCIATION_BR = 'association BR';
     const SUB_MENU_ENCO = 'encours';
     const SUB_MENU_EMERGENCYS = 'urgences';

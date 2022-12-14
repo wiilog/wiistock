@@ -639,7 +639,7 @@ class ArrivageController extends AbstractController {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $arrivage = $arrivageRepository->find($data['id']);
 
-            $html = $this->renderView('arrivage/modalListColisContent.html.twig', [
+            $html = $this->renderView('arrivage/modalListPacksContent.html.twig', [
                 'arrivage' => $arrivage
             ]);
 
@@ -981,9 +981,9 @@ class ArrivageController extends AbstractController {
 
             $dispute = $disputeRepository->find($data['disputeId']);
 
-            $colisCode = [];
+            $packCode = [];
             foreach ($dispute->getPacks() as $pack) {
-                $colisCode[] = $pack->getId();
+                $packCode[] = $pack->getId();
             }
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
@@ -1004,10 +1004,10 @@ class ArrivageController extends AbstractController {
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $disputeStatuses,
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
-                'colis' => $arrivage->getPacks(),
+                'packs' => $arrivage->getPacks(),
             ]);
 
-            return new JsonResponse(['html' => $html, 'colis' => $colisCode]);
+            return new JsonResponse(['html' => $html, 'packs' => $packCode]);
         }
         throw new BadRequestHttpException();
     }

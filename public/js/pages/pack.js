@@ -97,7 +97,7 @@ $(function() {
 
     const codeUl = $('#lu-code').val();
     if(codeUl) {
-        displayFiltersSup([{field: 'colis', value: codeUl}], true);
+        displayFiltersSup([{field: 'LU', value: codeUl}], true);
     }
     else {
         $.post(path, params, function(data) {

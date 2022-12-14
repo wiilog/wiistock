@@ -14,7 +14,7 @@ class LatePack {
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $colis;
+    private $LU;
 
     #[ORM\Column(type: 'string', length: 255)]
     private $date;
@@ -29,12 +29,12 @@ class LatePack {
         return $this->id;
     }
 
-    public function getColis(): ?string {
-        return $this->colis;
+    public function getLU(): ?string {
+        return $this->LU;
     }
 
-    public function setColis(string $colis): self {
-        $this->colis = $colis;
+    public function setLU(string $LU): self {
+        $this->LU = $LU;
 
         return $this;
     }

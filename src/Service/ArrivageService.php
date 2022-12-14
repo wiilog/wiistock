@@ -843,7 +843,7 @@ class ArrivageService {
                 "businessUnits" => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
                 "defaultLocation" => $defaultLocation,
                 "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
-                "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_COLIS),
+                "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_LU),
             ]);
         }
 
