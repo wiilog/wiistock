@@ -82,7 +82,7 @@ class ImportCommand extends Command
         $statusFinished = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
 
         foreach ($importsToLaunch as $import) {
-            $this->importService->treatImport($import, null, ImportService::IMPORT_MODE_RUN);
+            $this->importService->treatImport($import, ImportService::IMPORT_MODE_RUN);
             $import
                 ->setStatus($statusFinished)
                 ->setEndDate(new DateTime('now'));

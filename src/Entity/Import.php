@@ -185,7 +185,6 @@ class Import {
             'urgent' => 'Urgent',
 
             'fax' => 'Fax',
-            'pack' => 'Unité logistique',
 
             'code' => 'Code',
             'projectManager' => 'Chef de projet',
