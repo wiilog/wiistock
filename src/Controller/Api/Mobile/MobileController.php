@@ -1064,6 +1064,45 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Get("/api/check-logistic-unit-content", name="api_check_logistic_unit_content", methods={"GET"},condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function checkLogisticUnitContent(Request                  $request,
+                                             ExceptionLoggerService   $exceptionLoggerService,
+                                             EntityManagerInterface   $entityManager,
+                                             LivraisonsManagerService $livraisonsManager): Response
+    {
+        $data = json_decode($request->query->get('logisticUnits'), true);
+        $logisticUnits = $entityManager->getRepository(Pack::class)->findBy(['code' => $data]);
+        $articlesNotInTransit = Stream::from($logisticUnits)
+            ->flatMap(function (Pack $logisticUnit) {
+                $articlesAllInTransit = Stream::from($logisticUnit->getChildArticles())->every(fn(Article $article) => $article->isInTransit());
+                if (!$articlesAllInTransit) {
+                    return Stream::from($logisticUnit->getChildArticles())
+                            ->filter(fn(Article $article) => !$article->isInTransit())
+                            ->map(fn(Article $article) => [
+                                'barcode' => $article->getBarCode(),
+                                'reference' => $article->getReference(),
+                                'quantity' => $article->getQuantite(),
+                                'label' => $article->getLabel(),
+                                'location' => $article->getEmplacement()->getLabel(),
+                                'currentLogisticUnitCode' => $article->getCurrentLogisticUnit()->getCode(),
+                            ])
+                            ->values();
+                } else {
+                    return [];
+                }
+            })
+            ->filter(fn(array $articles) => !empty($articles))
+            ->toArray();
+
+        return $this->json([
+            'articles' => $articlesNotInTransit
+        ]);
+    }
+
+    /**
      * @Rest\Post("/api/group-trackings/{trackingMode}", name="api_post_pack_groups", condition="request.isXmlHttpRequest()", requirements={"trackingMode": "picking|drop"})
      * @Rest\View()
      * @Wii\RestAuthenticated()
