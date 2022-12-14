@@ -35,6 +35,7 @@ use Symfony\Component\Security\Core\Security;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use DateTimeInterface;
+use WiiCommon\Helper\StringHelper;
 
 class TrackingMovementService extends AbstractController
 {
@@ -1217,7 +1218,7 @@ class TrackingMovementService extends AbstractController
     }
 
     public function persistLogisticUnitMovements(EntityManagerInterface $manager,
-                                                 Pack|string            $pack,
+                                                 Pack|string|null            $pack,
                                                  Emplacement            $dropLocation,
                                                  ?array                 $articles,
                                                  ?Utilisateur           $user,
@@ -1259,7 +1260,7 @@ class TrackingMovementService extends AbstractController
 
             $isUnitChanges = (
                 $article->getCurrentLogisticUnit()
-                && $article->getCurrentLogisticUnit()?->getId() !== $pack->getId()
+                && $article->getCurrentLogisticUnit()?->getId() !== $pack?->getId()
             );
             $isLocationChanges = $pickLocation?->getId() !== $dropLocation->getId();
 
@@ -1277,7 +1278,7 @@ class TrackingMovementService extends AbstractController
                 $inCarts = array_merge($inCarts, $article->getCarts()->toArray());
             }
 
-            $pack->setArticleContainer(true);
+            $pack?->setArticleContainer(true);
 
             $newMovements = [];
             if ($isUnitChanges || $isLocationChanges) {
@@ -1321,7 +1322,7 @@ class TrackingMovementService extends AbstractController
             // now the pick LU movement is done, set the logistic unit
             $article->setCurrentLogisticUnit($pack);
             // then change the project of the article according to the pack project
-            $this->projectHistoryRecordService->changeProject($manager, $article, $pack->getProject(), $trackingDate);
+            $this->projectHistoryRecordService->changeProject($manager, $article, $pack?->getProject(), $trackingDate);
 
             if ($isUnitChanges || $isLocationChanges) {
                 //generate drop movements
@@ -1342,24 +1343,26 @@ class TrackingMovementService extends AbstractController
                 $newMovements[] = $drop;
             }
 
-            //generate drop in LU movements
-            $luDrop = $this->persistTrackingMovement(
-                $manager,
-                $trackingPack,
-                $dropLocation,
-                $user,
-                $trackingDate,
-                true,
-                TrackingMovement::TYPE_DROP_LU,
-                false,
-                $options,
-            )["movement"];
+            if($pack) {
+                //generate drop in LU movements
+                $luDrop = $this->persistTrackingMovement(
+                    $manager,
+                    $trackingPack,
+                    $dropLocation,
+                    $user,
+                    $trackingDate,
+                    true,
+                    TrackingMovement::TYPE_DROP_LU,
+                    false,
+                    $options,
+                )["movement"];
 
-            $luDrop->setLogisticUnitParent($pack);
-            $movements[] = $luDrop;
+                $luDrop->setLogisticUnitParent($pack);
+                $movements[] = $luDrop;
+            }
 
             foreach ($newMovements as $movement) {
-                $movement->setMainMovement($luDrop);
+                $movement->setMainMovement($luDrop ?? $drop);
             }
 
             if ($isLocationChanges) {

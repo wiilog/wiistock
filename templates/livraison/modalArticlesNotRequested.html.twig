@@ -1,0 +1,31 @@
+<div
+    class="modal fade"
+    id="modal-articles-not-requested"
+    role="dialog"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl"
+         role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Choisissez un point de dépose et/ou une unité logistique"
+            } %}
+            <div class='modal-body'>
+                <div class="wii-small-text">
+                    Cette livraison contient des articles non demandés. Enlevez des unités logistiques pour finaliser la livraison.
+                </div>
+                <div class="wii-section-title my-4">
+                    Article(s) à enlever de l’unité logistique
+                </div>
+                <div class="dataTable table-articles-not-requested-container">
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', dismiss: false, text: 'Finir la livraison', id: 'submitFinishDelivery', event: 'treatArticlesNotRequested($(this))'}
+                ],
+                renderErrorContainer: false
+            } %}
+        </div>
+    </div>
+</div>
