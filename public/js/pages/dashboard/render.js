@@ -38,7 +38,7 @@ const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
 const HANDLING_TRACKING = 'handling_tracking';
 
-const SECURITY_PADDING = 10;
+const SECURITY_PADDING = 0;
 let DELAYS = {};
 
 $(function() {
