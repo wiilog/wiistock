@@ -96,10 +96,10 @@ let urlAddToMission = Routing.generate('add_to_mission', true);
 InitModal($modalAddToMission, $submitAddToMission, urlAddToMission, {
     tables: [tableArticle, tableRefArticle],
     success: () => {
-        $modalAddToMission.find("input[name=barcodesWithUL]").val(""); //reinitialisation de l'input hidden à vide
+        $modalAddToMission.find("input[name=barcodesWithUL]").val(""); //reset of the input hidden
     },
     error: (data) => {
-        /* Affichage de la modale de confirmation si l'utilisateur entre des codes barres associés à des UL */
+        /* Display of the confirmation modal if the user enters barcodes associated with ULs */
         if (data.data) {
             const msg = data.msg;
             const barcodesUL = data.data.barcodesUL;

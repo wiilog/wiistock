@@ -183,11 +183,11 @@ class InventoryMissionController extends AbstractController
             $refOrArtToAdd = [];
             $artWithUL = [];
 
-            /* Gestion de chaque code barre entré par l'utilisateur */
+            /* Management of each barcode entered by the user */
             Stream::explode([",", " ", ";", "\t"], $data['articles'])
                 ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission, $inventoryService) {
                     $barcode = trim($barcode);
-                    /* Le code barre doit être celui d'un article ou d'une référence article */
+                    /* The barcode must be from an article or an article reference */
                     if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
                         $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
 
@@ -195,7 +195,7 @@ class InventoryMissionController extends AbstractController
                             && $referenceArticle->getStatut()?->getCode() === ReferenceArticle::STATUT_ACTIF
                             && !$inventoryService->isInMissionInSamePeriod($article, $mission, false);
 
-                        /* Si l'article/la ref article ne remplis pas les conditions, le filterMap renvoie un string */
+                        /* If the article/ref article does not meet the conditions, the filterMap returns a string */
                         return $checkForArt ? $article : $article->getBarCode();
                     } else if($reference = $refArtRepository->findOneBy(["barCode" => $barcode])) {
 
@@ -211,27 +211,27 @@ class InventoryMissionController extends AbstractController
                 ->each(function($refOrArt) use ($mission, &$barcodeErrors, $data, &$artWithUL, &$refOrArtToAdd) {
 
                     if ($refOrArt instanceof ReferenceArticle || $refOrArt instanceof Article) {
-                        /* Si le filterMap renvoie un objet, on vérifie s'il est associé avec une UL qui a plusieurs articles */
+                        /* If the filterMap returns an object, we check if it's associated with a LU that has several articles */
                         if ($refOrArt instanceof Article && $refOrArt->getCurrentLogisticUnit() && count($refOrArt->getCurrentLogisticUnit()->getChildArticles()) > 1) {
                             $artWithUL[] = $refOrArt->getBarCode();
                         } else {
                             $refOrArtToAdd[] = $refOrArt;
                         }
                     } else {
-                        /* Si le filterMap renvoie un string avec un code barre, c'est une erreur */
+                        /* If the filterMap returns a string with a barcode, it's an error */
                         $barcodeErrors[] = $refOrArt;
                     }
                 });
 
             if (!empty($artWithUL)) {
-                /* L'article est associé avec une UL qui a plusieurs articles : on renvoie une erreur pour afficher une modale de confirmation */
+                /* The article is associated with a LU which has several articles : an error is returned to display a confirmation modal */
                 $errorMsg = '<span class="text-danger pl-2">Les articles suivants sont contenus dans une unité logistique :</span><ul class="list-group my-2">';
                 foreach ($artWithUL as $articleCode) {
                     $errorMsg .= '<li class="text-danger list-group-item">' . $articleCode . '</li>';
                 }
                 $errorMsg .= '</ul><span class="text-danger pl-2">L\'ensemble des articles des unités logistiques associées va être ajouté à la mission d\'inventaire.</span>';
 
-                /* On renvoie des barcodes et non des objets */
+                /* We return barcodes and not objects */
                 $barcodesWithoutUL = Stream::from($refOrArtToAdd)
                                 ->filterMap(fn($refOrArtWithoutUL) => ($refOrArtWithoutUL->getBarCode()))
                                 ->toArray();
@@ -240,16 +240,16 @@ class InventoryMissionController extends AbstractController
                     'success' => false,
                     'msg' => $errorMsg,
                     'data' => [
-                        'barcodesUL' => $artWithUL, //barcodes qu'on va stocker dans l'input hidden
-                        'barcodesToAdd' => array_merge($barcodesWithoutUL, $barcodeErrors), //barcodes qu'on va remettre dans l'input texte
+                        'barcodesUL' => $artWithUL, //barcodes that we stock in the input hidden
+                        'barcodesToAdd' => array_merge($barcodesWithoutUL, $barcodeErrors), //barcodes that we will put again in the input texte
                     ]
                 ]);
             } else {
-                /* Si l'input texte ne contient pas d'article associés à des UL */
+                /* If the text input does not contain articles associated with an LU */
                 $articlesWithULToAdd = [];
                 $barcodesWithUL = $data['barcodesWithUL'];
                 if (isset($barcodesWithUL) && !empty($barcodesWithUL)) {
-                    /* On récupère les articles associés à des UL */
+                    /* We retrieve the articles associated with LUs */
                     Stream::explode([",", " ", ";", "\t"], $barcodesWithUL)
                         ->each(function($barcode) use ($articleRepository, &$barcodeErrors, &$articlesWithULToAdd) {
                             $barcode = trim($barcode);
@@ -262,7 +262,7 @@ class InventoryMissionController extends AbstractController
                         });
                 }
 
-                /* Ajout de la mission à tous les articles des UL associées  */
+                /* Adding the mission to all the articles from the LU related */
                 if (!empty($articlesWithULToAdd)) {
                     foreach ($articlesWithULToAdd as $article) {
                         foreach ($article->getCurrentLogisticUnit()->getChildArticles() as $articleFromPack) {
@@ -271,7 +271,7 @@ class InventoryMissionController extends AbstractController
                     }
                 }
 
-                /* Ajout de la mission à chaque reference ou article qui remplis les conditions */
+                /* Adding the mission to each reference or article that meets the conditions */
                 foreach ($refOrArtToAdd as $refOrArt) {
                     $refOrArt->addInventoryMission($mission);
                 }
@@ -281,7 +281,7 @@ class InventoryMissionController extends AbstractController
             $success = count($barcodeErrors) === 0;
             $errorMsg = "";
 
-            /* Création du message d'erreur si des articles ne remplissent pas les conditions */
+            /* Creation of the error message if articles do not meet the conditions */
             if (!$success) {
                 $errorMsg = '<span class="pl-2">Les codes-barres suivants sont en erreur :</span><ul class="list-group my-2">';
                 $errorMsg .= (
