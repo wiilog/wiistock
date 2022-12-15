@@ -21,9 +21,11 @@ use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
 use App\Entity\MailerServer;
+use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
@@ -44,6 +46,7 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -565,6 +568,41 @@ class SettingsService {
                 $category->setFrequency($frequence);
 
                 $this->manager->persist($category);
+            }
+        }
+
+        if(isset($tables["tagTemplateTable"])){
+            $tagTemplateRepository = $this->manager->getRepository(TagTemplate::class);
+            $typeRepository = $this->manager->getRepository(Type::class);
+            $natureRepository = $this->manager->getRepository(Nature::class);
+
+            foreach (array_filter($tables["tagTemplateTable"]) as $tagTemplateData) {
+                $tagTemplateExist = $tagTemplateRepository->findOneBy(['prefix' => $tagTemplateData['prefix']]);
+                if ($tagTemplateExist && $tagTemplateExist->getId() !== intval($tagTemplateData['tagTemplateId'] ?? null)){
+                    throw new RuntimeException("Un modèle d'étiquette existe déjà avec ce préfixe.");
+                }
+
+                $tagTemplate = isset($tagTemplateData['tagTemplateId'])
+                    ? $tagTemplateRepository->find($tagTemplateData['tagTemplateId'])
+                    : new TagTemplate();
+
+                $tagTemplate->setPrefix($tagTemplateData['prefix']);
+                $tagTemplate->setBarcodeOrQr($tagTemplateData['barcodeType']);
+                $tagTemplate->setHeight($tagTemplateData['height']);
+                $tagTemplate->setWidth($tagTemplateData['width']);
+                $tagTemplate->setModule($tagTemplateData['module']);
+                Stream::explode(',', $tagTemplateData['natureOrType'])
+                    ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate) {
+                        if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
+                            $type = $typeRepository->find($id);
+                            $tagTemplate->addType($type);
+                        } else {
+                            $nature = $natureRepository->find($id);
+                            $tagTemplate->addNature($nature);
+                        }
+                    } );
+
+                $this->manager->persist($tagTemplate);
             }
         }
 

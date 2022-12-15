@@ -35,6 +35,7 @@ use Symfony\Component\Security\Core\Security;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use DateTimeInterface;
+use WiiCommon\Helper\StringHelper;
 
 class TrackingMovementService extends AbstractController
 {
