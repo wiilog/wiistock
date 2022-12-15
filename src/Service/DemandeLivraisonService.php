@@ -31,6 +31,7 @@ use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class DemandeLivraisonService
 {
@@ -293,7 +294,7 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($number)
             ->setManual($isManual)
-            ->setCommentaire($data['commentaire']);
+            ->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 

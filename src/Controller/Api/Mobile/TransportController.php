@@ -41,6 +41,7 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class TransportController extends AbstractApiController
 {
@@ -1361,7 +1362,7 @@ class TransportController extends AbstractApiController
     {
         $order = $request->getOrder();
 
-        $order->setComment($comment);
+        $order->setComment(StringHelper::cleanedComment($comment));
 
         $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
             "user" => $this->getUser(),

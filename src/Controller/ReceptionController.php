@@ -66,6 +66,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/reception")
@@ -172,7 +173,7 @@ class ReceptionController extends AbstractController {
                     !empty($data['dateCommande'])
                         ? new DateTime(str_replace('/', '-', $data['dateCommande']))
                         : null)
-                ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
+                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null);
 
             $reception->removeIfNotIn($data['files'] ?? []);
 
@@ -614,7 +615,7 @@ class ReceptionController extends AbstractController {
                 $receptionReferenceArticle
                     ->setCommande($commande)
                     ->setAnomalie($contentData['anomalie'])
-                    ->setCommentaire($contentData['commentaire'])
+                    ->setCommentaire(StringHelper::cleanedComment($contentData['commentaire']))
                     ->setReferenceArticle($refArticle)
                     ->setQuantiteAR(max($contentData['quantiteAR'], 1))// protection contre quantités négatives ou nulles
                     ->setReception($reception);
@@ -711,7 +712,7 @@ class ReceptionController extends AbstractController {
                 ->setCommande($data['commande'])
                 ->setAnomalie($data['anomalie'])
                 ->setQuantiteAR(max($data['quantiteAR'], 0))// protection contre quantités négatives
-                ->setCommentaire($data['commentaire']);
+                ->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();

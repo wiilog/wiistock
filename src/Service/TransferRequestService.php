@@ -134,7 +134,7 @@ class TransferRequestService {
             ->setDestination($destination)
             ->setOrigin($origin)
             ->setRequester($requester)
-            ->setComment($comment);
+            ->setComment(StringHelper::cleanedComment($comment));
 
         return $transfer;
     }

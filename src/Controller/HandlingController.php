@@ -48,6 +48,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Service\TranslationService;
 use Throwable;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/services")
@@ -220,7 +221,7 @@ class HandlingController extends AbstractController {
             ->setDestination($post->get('destination') ?? '')
             ->setStatus($status)
             ->setDesiredDate($desiredDate)
-            ->setComment($post->get('comment'))
+            ->setComment(StringHelper::cleanedComment($post->get('comment')))
             ->setEmergency($post->get('emergency'))
             ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
@@ -337,7 +338,7 @@ class HandlingController extends AbstractController {
             ->setSource($post->get('source') ?? $handling->getSource())
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
-            ->setComment($post->get('comment') ?: '')
+            ->setComment(StringHelper::cleanedComment($post->get('comment')) ?: '')
             ->setEmergency($post->get('emergency') ?? $handling->getEmergency())
             ->setCarriedOutOperationCount(
                 (is_numeric($carriedOutOperationCount)

@@ -94,7 +94,7 @@ function initPageModal(tableMvt) {
         urlNewMvtTraca,
         {
             tables: [tableMvt],
-            keepModal: Number($('#clearAndStayAfterNewMvt').val()),
+            keepModal: Number($('#redirectAfterTrackingMovementCreation').val()),
             keepForm: true,
             success: ({success, trackingMovementsCounter, group}) => {
                 if (group) {
