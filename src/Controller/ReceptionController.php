@@ -853,6 +853,7 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $typeChampLibreDL = [];
@@ -896,6 +897,7 @@ class ReceptionController extends AbstractController {
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),
             'restrictedLocations' => $restrictedLocations,
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
         ]);
     }
 
@@ -1842,7 +1844,7 @@ class ReceptionController extends AbstractController {
 
                     /** @var Preparation $preparation */
                     $preparation = $demande->getPreparations()->first();
-                    if (isset($preparation)) {
+                    if ($preparation) {
 
                         $preparationArticleLine = $deliveryArticleLine->createPreparationOrderLine()
                             ->setPickedQuantity($preparation->getStatut()->getCode() === Preparation::STATUT_PREPARE ? $article->getQuantite() : 0)
