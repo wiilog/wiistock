@@ -236,7 +236,9 @@ class ArrivageService {
             $packsNatureNb = [];
             $natures = $entityManager->getRepository(Nature::class)->findAll();
             foreach ($natures as $nature) {
-                $packsNatureNb[$nature->getLabel()] = 0;
+                if (isset($nature->getAllowedForms()['arrival']) && $nature->getAllowedForms()['arrival'] === 'all') {
+                    $packsNatureNb[$nature->getLabel()] = 0;
+                }
             }
             foreach ($arrival->getPacks() as $pack) {
                 $packsNatureNb[$pack->getNature()->getLabel()] += 1;
