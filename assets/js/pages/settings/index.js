@@ -492,6 +492,10 @@ function initializeGlobalLabels() {
             natureOrType: `<select name='natureOrType' multiple data-s2="natureOrTypeSelect" data-include-params-parent="tr" data-include-params='select[name=module]' class='form-control data needed' data-global-error='Nature(s) / Type(s)'>`+$typeOptions+`</select>`,
         },
     });
+
+    $(window).on('resize', function () {
+        table.table.columns.adjust();
+    });
 }
 
 function initializeStockArticlesLabels($container) {
