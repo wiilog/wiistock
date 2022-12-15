@@ -210,7 +210,7 @@ class PackController extends AbstractController
                 ]);
 
             $disabledProject = (
-                $preparationOrderArticleLineRepository->getPreparationOrderArticleLine($pack, [Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION])
+                $preparationOrderArticleLineRepository->isOngoingAndUsingPack($pack)
                 || $deliveryRequestArticleLineRepository->isOngoingAndUsingPack($pack)
                 || Stream::from($pack->getChildArticles())->some(fn(Article $article) => $article->getCarts()->count())
                 || !empty($pack->getArticle())

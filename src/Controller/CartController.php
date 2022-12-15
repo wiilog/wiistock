@@ -219,9 +219,9 @@ class CartController extends AbstractController
     /**
      * @Route("/validate-cart", name="cart_validate", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      */
-    public function validateCart(Request $request,
+    public function validateCart(Request                $request,
                                  EntityManagerInterface $entityManager,
-                                 CartService $cartService) {
+                                 CartService            $cartService) {
         $data = json_decode($request->getContent(), true);
 
         /** @var Utilisateur $loggedUser */

@@ -27,15 +27,15 @@ class DeliveryRequestArticleLineRepository extends EntityRepository
 
     public function isOngoingAndUsingPack(Pack|int $pack): bool {
         return $this->createQueryBuilder("line")
-                ->select("COUNT(line)")
-                ->join("line.request", "request")
-                ->join("request.statut", "status")
-                ->andWhere("line.pack = :pack")
-                ->andWhere("status.code NOT IN (:statuses)")
-                ->setParameter("pack", $pack)
-                ->setParameter("statuses", [Demande::STATUT_LIVRE, Demande::STATUT_LIVRE_INCOMPLETE])
-                ->getQuery()
-                ->getSingleScalarResult() > 0;
+            ->select("COUNT(line)")
+            ->join("line.request", "request")
+            ->join("request.statut", "status")
+            ->andWhere("line.pack = :pack")
+            ->andWhere("status.code NOT IN (:statuses)")
+            ->setParameter("pack", $pack)
+            ->setParameter("statuses", [Demande::STATUT_LIVRE, Demande::STATUT_LIVRE_INCOMPLETE])
+            ->getQuery()
+            ->getSingleScalarResult() > 0;
     }
 
 }
