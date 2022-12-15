@@ -6,6 +6,9 @@
             <label class="w-100 col-12">
                 {{ form.select('buyer', trans('Demande', 'Acheminements', 'Bon de livraison', 'Client acheteur'), true, {
                     type: 'customers',
+                    labelOptions: {
+                        class: 'm-0',
+                    },
                     items: [{label: buyer, value: buyer, selected: true}]
                 }) }}
             </label>

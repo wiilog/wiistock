@@ -390,18 +390,16 @@ class LivraisonController extends AbstractController {
             throw new FormException('Des unités logistiques sont nécessaires pour générer un bon de livraison');
         }
 
-        $preparationPacks = Stream::from($preparationArticleLines)
-            ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack())
-            ->values();
-
-        $packs = array_slice($preparationPacks, 0, $maxNumberOfPacks);
-        $packs = array_map(function(Pack $pack) {
-            return [
+        $packs = Stream::from($preparationArticleLines)
+            ->filterMap(fn(PreparationOrderArticleLine $line) => $line->getPack())
+            ->reindex()
+            ->slice(0, $maxNumberOfPacks)
+            ->map(fn(Pack $pack) => [
                 "code" => $pack->getCode(),
                 "quantity" => $pack->getQuantity(),
                 "comment" => $pack->getComment(),
-            ];
-        }, $packs);
+            ])
+            ->values();
 
         $userSavedData = $loggedUser->getSavedDeliveryOrderDeliveryNoteData();
         $dispatchSavedData = $deliveryOrder->getDeliveryNoteData();
