@@ -133,7 +133,7 @@ class ReceptionService
         }
 
         $reception
-            ->setOrderNumber(!empty($data['orderNumber']) ? [$data['orderNumber']] : [])
+            ->setOrderNumber(!empty($data['orderNumber']) ? explode(",", $data['orderNumber']) : null)
             ->setNumber($numero)
             ->setDate($date)
             ->setUtilisateur($currentUser)
