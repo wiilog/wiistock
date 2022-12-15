@@ -1160,6 +1160,16 @@ class ArrivageController extends AbstractController {
                                                array                  $packIdsFilter = [],
                                                TagTemplate $tagTemplate = null,
                                                bool $forceTagEmpty = false): Response {
+        if (!$tagTemplate) {
+            $tagTemplate = $request->query->get('template')
+                ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+                : null;
+        }
+        $forceTagEmpty = !$forceTagEmpty ? $request->query->get('forceTagEmpty', false) : $forceTagEmpty;
+
+        if ($colis && !$tagTemplate) {
+            $tagTemplate = $colis->getNature()?->getTags()?->first() ?: null;
+        }
         $barcodeConfigs = [];
         $settingRepository = $entityManager->getRepository(Setting::class);
         $usernameParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_LABEL);
@@ -1302,7 +1312,7 @@ class ArrivageController extends AbstractController {
         foreach($arrivage->getPacks() as $index => $pack) {
             $position = $index + 1;
             if (
-                (!$forceTagEmpty || $pack->getNature()->getTags()->isEmpty()) &&
+                (!$forceTagEmpty || $pack->getNature()?->getTags()?->isEmpty()) &&
                 (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) &&
                 (empty($tagTemplate) || in_array($pack->getNature(), $tagTemplate->getNatures()->toArray()))
             ) {

@@ -386,9 +386,14 @@ class PackController extends AbstractController
 
     #[Route("/print-single-logistic-unit/{pack}", name: "print_single_logistic_unit", options: ["expose" => true])]
     public function printSingleLogisticUnit(Pack $pack, PackService $packService, PDFGeneratorService $PDFGeneratorService): PdfResponse {
+        if ($pack->getNature() && !$pack->getNature()->getTags()->isEmpty()) {
+            $tag = $pack->getNature()->getTags()->first();
+        } else {
+            $tag = null;
+        }
         $config = $packService->getBarcodeColisConfig($pack);
-        $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'colis');
-        $render = $PDFGeneratorService->generatePDFBarCodes($fileName, [$config]);
+        $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'colis', $tag?->getPrefix() ?? 'ETQ');
+        $render = $PDFGeneratorService->generatePDFBarCodes($fileName, [$config], false, $tag);
         return new PdfResponse(
             $render,
             $fileName
