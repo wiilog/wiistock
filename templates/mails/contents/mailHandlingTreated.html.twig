@@ -47,7 +47,7 @@
         <strong>{{ handling.status.labelIn(language, language_service.defaultSlug) }}</strong>
     </div>
     <div>{{ translateIn(language, 'Demande', 'Général', 'Urgence', false) }} :
-        <strong>{{ trans('Général', null, 'Modale', handling.emergency ? 'Oui' : 'Non', false) }}</strong>
+        <strong>{{ translateIn(language, 'Général', null, 'Modale', handling.emergency ? 'Oui' : 'Non', false) }}</strong>
     </div>
 
     <div>{{ translateIn(language, 'Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)', false) }} :

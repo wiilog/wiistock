@@ -414,7 +414,7 @@ class PackService {
 
             $this->mailerService->sendMail(
                 "Follow GT // Colis non récupéré$titleSuffix",
-                $this->templating->render('mails/contents/mail-pack-delivery-done.html.twig', [
+                $this->templating->render('mailPackDeliveryDone.html.twig', [
                     'title' => 'Votre colis est toujours présent dans votre magasin',
                     'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
                     'colis' => $this->formatService->pack($pack),
