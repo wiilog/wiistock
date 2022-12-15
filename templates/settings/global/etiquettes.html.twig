@@ -36,3 +36,16 @@
         </div>
     </div>
 </div>
+
+<div class="wii-section-title">Modèle d'étiquette</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-small-text">
+            Le modèle d'étiquette viendra remplacer l'étiquette par défaut pour les cas paramétrés.
+        </div>
+    </div>
+    <table id="tagTemplateTable" data-table-processing="tagTemplateTable"></table>
+</div>
+<input type="hidden" id="type_options" value="{{ typeOptions | json_encode }}">
+<input type="hidden" id="nature_options" value="{{ natureOptions | json_encode }}">
+

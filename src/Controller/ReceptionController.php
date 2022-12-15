@@ -99,7 +99,7 @@ class ReceptionController extends AbstractController {
         if ($data = $request->request->all()) {
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $reception = $receptionService->createAndPersistReception($entityManager, $currentUser, $data);
+            $reception = $receptionService->persistReception($entityManager, $currentUser, $data);
 
             try {
                 $entityManager->flush();

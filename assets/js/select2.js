@@ -42,6 +42,7 @@ const ROUTES = {
     receptionLogisticUnits: 'ajax_select_reception_logistic_units',
     deliveryLogisticUnits: 'ajax_select_delivery_logistic_units',
     customers: 'ajax_select_customers',
+    natureOrTypeSelect: 'ajax_select_nature_or_type',
 }
 
 const INSTANT_SELECT_TYPES = {

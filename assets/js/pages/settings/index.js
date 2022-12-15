@@ -440,6 +440,58 @@ function initializeSiteAppearance() {
 
 function initializeGlobalLabels() {
     $('#upload-label-logo').on('change', () => updateImagePreview('#preview-label-logo', '#upload-label-logo'));
+
+    const $typeOptions = JSON.parse($(`#type_options`).val());
+    const $natureOptions = JSON.parse($(`#nature_options`).val());
+
+    const table = EditableDatatable.create(`#tagTemplateTable`, {
+        route: Routing.generate('settings_tag_template_api', true),
+        deleteRoute: `settings_delete_tag_template`,
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `prefix`, title: `Préfixe`, required: true},
+            {data: `barcodeType`, title: `Type d'étiquette`, required: true},
+            {data: `height`, title: `Hauteur (mm)`, required: true},
+            {data: `width`, title: `Largeur (mm)`, required: true},
+            {data: `module`, title: `Brique`, required: true},
+            {data: `natureOrType`, title: `Nature(s) / Type(s)`, required: true},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            prefix: `<input type='text' name='prefix' class='form-control data needed' data-global-error='Préfixe'/>`,
+            barcodeType: () => {
+                const elements = [{label: 'Code 128', value: '1', checked: false}, {label: 'QR Code', value: '0', checked: true}]
+                    .map(({label, value, checked}) => {
+                        const id = 'barcodeType-' + Math.floor(Math.random() * 1000000);
+                        return `
+                            <input type='radio' id='${id}' name='barcodeType' class='form-control data d-none' value='${value}' ${checked ? 'checked' : ''} content='${label}'>
+                            <label for="${id}">${label}</label>
+                        `;
+                    })
+                    .join('');
+                return `<form><div class='wii-switch needed' data-title="Type d'étiquette" data-name="barcodeType">${elements}</div></form>`;
+            },
+            height: `<input type='number' name='height' class='form-control data needed' data-global-error='Hauteur'/>`,
+            width: `<input type='number' name='width' class='form-control data needed' data-global-error='Largeur'/>`,
+            module: `<select name='module' class='form-control data needed' data-global-error='Brique'>
+                        <option value='arrivage' selected>Arrivage</option>
+                        <option value='article'>Article</option>
+                    </select>`,
+            natureOrType: `<select name='natureOrType' multiple data-s2="natureOrTypeSelect" data-include-params-parent="tr" data-include-params='select[name=module]' class='form-control data needed' data-global-error='Nature(s) / Type(s)'>`+$typeOptions+`</select>`,
+        },
+    });
 }
 
 function initializeStockArticlesLabels($container) {

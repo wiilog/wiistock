@@ -7,6 +7,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\ReceptionReferenceArticle;
 
 class ReceptionReferenceArticleService {
+
     public function serializeForSelect(ReceptionReferenceArticle $item): array {
         $receptionLine = $item->getReceptionLine();
         $pack = $receptionLine->getPack();
