@@ -1145,14 +1145,13 @@ class ArrivageController extends AbstractController {
     /**
      * @Route("/{arrivage}/colis/{colis}/etiquette", name="print_arrivage_single_colis_bar_codes", options={"expose"=true}, methods="GET")
      */
-    public function printArrivageColisBarCodes(Arrivage $arrivage,
-                                               Request $request,
+    public function printArrivageColisBarCodes(Arrivage               $arrivage,
+                                               Request                $request,
                                                EntityManagerInterface $entityManager,
-                                               PDFGeneratorService $PDFGeneratorService,
-                                               PackService $packService,
-                                               Pack $colis = null,
-                                               array $packIdsFilter = []): Response
-    {
+                                               PDFGeneratorService    $PDFGeneratorService,
+                                               PackService            $packService,
+                                               Pack                   $colis = null,
+                                               array                  $packIdsFilter = []): Response {
         $barcodeConfigs = [];
         $settingRepository = $entityManager->getRepository(Setting::class);
         $usernameParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_LABEL);
@@ -1259,13 +1258,14 @@ class ArrivageController extends AbstractController {
     /**
      * @Route("/{arrivage}/etiquettes", name="print_arrivage_bar_codes", options={"expose"=true}, methods="GET")
      */
-    public function printArrivageAlias(Arrivage $arrivage,
-                                       Request $request,
+    public function printArrivageAlias(Arrivage               $arrivage,
+                                       Request                $request,
+                                       PackService            $packService,
                                        EntityManagerInterface $entityManager,
-                                       PDFGeneratorService $PDFGeneratorService)
+                                       PDFGeneratorService    $PDFGeneratorService)
     {
         $packIdsFilter = $request->query->all('packs') ?: [];
-        return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, null, $packIdsFilter);
+        return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, $packService, null, $packIdsFilter);
     }
 
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage,
