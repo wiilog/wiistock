@@ -10,6 +10,7 @@ use App\Entity\Language;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\Reception;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -21,6 +22,7 @@ use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use RuntimeException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -65,6 +67,9 @@ class PackService {
 
     #[Required]
     public ReceptionService $receptionService;
+
+    #[Required]
+    public PDFGeneratorService $PDFGeneratorService;
 
     #[Required]
     public ReceptionLineService $receptionLineService;
@@ -461,5 +466,108 @@ class PackService {
             $article->setTrackingPack($trackingPack);
         }
         return $trackingPack;
+    }
+
+    public function getBarcodeColisConfig(Pack $colis,
+                                           ?Utilisateur $destinataire = null,
+                                           ?string $packIndex = '',
+                                           ?bool $typeArrivalParamIsDefined = false,
+                                           ?bool $usernameParamIsDefined = false,
+                                           ?bool $dropzoneParamIsDefined = false,
+                                           ?bool $packCountParamIsDefined = false,
+                                           ?bool $commandAndProjectNumberIsDefined = false,
+                                           ?array $firstCustomIconConfig = null,
+                                           ?array $secondCustomIconConfig = null,
+                                           ?bool $businessUnitParam = false,
+                                           ?bool $projectParam = false,
+    ): array {
+
+        $arrival = $colis->getArrivage();
+
+        $businessUnit = $businessUnitParam
+            ? $arrival->getBusinessUnit()
+            : '';
+
+        $project = $projectParam
+            ? $colis->getProject()?->getCode()
+            : '';
+
+        $arrivalType = $typeArrivalParamIsDefined
+            ? $this->formatService->type($arrival->getType())
+            : '';
+
+        $recipientUsername = ($usernameParamIsDefined && $destinataire)
+            ? $destinataire->getUsername()
+            : '';
+
+        $dropZoneLabel = ($dropzoneParamIsDefined && $destinataire)
+            ? ($destinataire->getDropzone()
+                ? $destinataire->getDropzone()->getLabel()
+                : '')
+            : '';
+
+        $arrivalCommand = [];
+        $arrivalLine = "";
+        $i = 0;
+        foreach($arrival?->getNumeroCommandeList() ?? [] as $command) {
+            $arrivalLine .= $command;
+
+            if(++$i % 4 == 0) {
+                $arrivalCommand[] = $arrivalLine;
+                $arrivalLine = "";
+            } else {
+                $arrivalLine .= " ";
+            }
+        }
+
+        if(!empty($arrivalLine)) {
+            $arrivalCommand[] = $arrivalLine;
+        }
+
+        $arrivalProjectNumber = $arrival
+            ? ($arrival->getProjectNumber() ?? '')
+            : '';
+
+        $packLabel = ($packCountParamIsDefined ? $packIndex : '');
+
+        $usernameSeparator = ($recipientUsername && $dropZoneLabel) ? ' / ' : '';
+
+        $labels = [$arrivalType];
+
+        $labels[] = $recipientUsername . $usernameSeparator . $dropZoneLabel;
+
+        if ($commandAndProjectNumberIsDefined) {
+            if ($arrivalCommand && $arrivalProjectNumber) {
+                if(count($arrivalCommand) > 1) {
+                    $labels = array_merge($labels, $arrivalCommand);
+                    $labels[] = $arrivalProjectNumber;
+                } else if(count($arrivalCommand) == 1) {
+                    $labels[] = $arrivalCommand[0] . ' / ' . $arrivalProjectNumber;
+                }
+            } else if ($arrivalCommand) {
+                $labels = array_merge($labels, $arrivalCommand);
+            } else if ($arrivalProjectNumber) {
+                $labels[] = $arrivalProjectNumber;
+            }
+        }
+
+        if($businessUnitParam) {
+            $labels[] = $businessUnit;
+        }
+
+        if($projectParam) {
+            $labels[] = $project;
+        }
+
+        if ($packLabel) {
+            $labels[] = $packLabel;
+        }
+
+        return [
+            'code' => $colis->getCode(),
+            'labels' => $labels,
+            'firstCustomIcon' => $arrival?->getCustoms() ? $firstCustomIconConfig : null,
+            'secondCustomIcon' => $arrival?->getIsUrgent() ? $secondCustomIconConfig : null
+        ];
     }
 }

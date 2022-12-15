@@ -382,7 +382,7 @@ class DemandeLivraisonService
                 $statutArticle = $article->getStatut();
                 if ($statutArticle?->getCode() !== Article::STATUT_ACTIF) {
                     $response['success'] = false;
-                    $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleLine->getBarCode();
+                    $response['nomadMessage'] = "Erreur de quantité sur l\'article : {$article->getBarCode()}";
                     $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
                 } else {
                     $refArticle = $articleLine->getArticle()->getArticleFournisseur()->getReferenceArticle();
@@ -488,20 +488,19 @@ class DemandeLivraisonService
         }
 
         // modification du statut articles => en transit
-        $articles = $demande->getArticleLines();
         $statutArticleIntransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
-        foreach ($articles as $article) {
-            $article->getArticle()->setStatut($statutArticleIntransit);
-            $ligneArticlePreparation = new PreparationOrderArticleLine();
-            $ligneArticlePreparation
-                ->setPickedQuantity($article->getPickedQuantity())
-                ->setQuantityToPick($article->getQuantityToPick())
-                ->setTargetLocationPicking($article->getTargetLocationPicking())
-                ->setArticle($article->getArticle())
-                ->setPreparation($preparation);
-            $entityManager->persist($ligneArticlePreparation);
-            $preparation->addArticleLine($ligneArticlePreparation);
+        $requestLines = $demande->getArticleLines();
+        foreach ($requestLines as $requestArticleLine) {
+            $article = $requestArticleLine->getArticle();
+            $article->setStatut($statutArticleIntransit);
+
+            $preparationArticleLine = $requestArticleLine->createPreparationOrderLine();
+            $preparationArticleLine
+                ->setPreparation($preparation)
+                ->setPickedQuantity($requestArticleLine->getPickedQuantity());
+            $entityManager->persist($preparationArticleLine);
         }
+
         $lignesArticles = $demande->getReferenceLines();
         $refArticleToUpdateQuantities = [];
         foreach ($lignesArticles as $ligneArticle) {

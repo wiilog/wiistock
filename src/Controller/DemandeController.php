@@ -15,6 +15,8 @@ use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Pack;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Project;
 use App\Entity\Setting;
 use App\Entity\PreparationOrder\Preparation;
@@ -40,6 +42,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
 use App\Helper\FormatHelper;
 use WiiCommon\Helper\StringHelper;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -321,7 +324,7 @@ class DemandeController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $status = $demande->getStatut();
-        return $this->render('demande/show.html.twig', [
+        return $this->render('demande/show/index.html.twig', [
             'demande' => $demande,
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'modifiable' => $status?->getCode() === Demande::STATUT_BROUILLON,
@@ -329,6 +332,122 @@ class DemandeController extends AbstractController
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING)
+        ]);
+    }
+
+    #[Route("/delivery-request-logistics-unit-api", name: "delivery_request_logistics_unit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
+    public function logisticsUnitApi(Request $request, EntityManagerInterface $manager): Response {
+        $deliveryRequest = $manager->find(Demande::class, $request->query->get('id'));
+        $needsQuantitiesCheck = !$manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $editable = $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON;
+        $logisticsUnits = [null];
+        foreach ($deliveryRequest->getArticleLines() as $articleLine) {
+            $article = $articleLine->getArticle();
+            if ($article->getCurrentLogisticUnit() && !in_array($article->getCurrentLogisticUnit(), $logisticsUnits)) {
+                $logisticsUnits[] = $article->getCurrentLogisticUnit();
+            }
+        }
+
+        $lines = Stream::from($logisticsUnits)
+            ->map(fn(?Pack $logisticUnit) => [
+                "pack" => [
+                    "packId" => $logisticUnit?->getId(),
+                    "code" => $logisticUnit?->getCode() ?? null,
+                    "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
+                    "project" => $logisticUnit?->getProject()?->getCode() ?? null,
+                    "nature" => $this->formatService->nature($logisticUnit?->getNature()),
+                    "color" => $logisticUnit?->getNature()?->getColor() ?? null,
+                    "currentQuantity" => Stream::from($deliveryRequest->getArticleLines()
+                        ->filter(fn(DeliveryRequestArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit))
+                        ->count(),
+                    "totalQuantity" => $logisticUnit?->getChildArticles()?->count()
+                ],
+                "articles" => Stream::from($deliveryRequest->getArticleLines())
+                    ->filterMap(function(DeliveryRequestArticleLine $line) use ($logisticUnit, $needsQuantitiesCheck, $deliveryRequest, $editable) {
+                        $article = $line->getArticle();
+                        if ($logisticUnit && $article->getCurrentLogisticUnit()?->getId() == $logisticUnit->getId()) {
+                            return [
+                                "reference" => $article->getArticleFournisseur()->getReferenceArticle()
+                                    ? $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+                                    : '',
+                                "label" => $article->getLabel() ?: '',
+                                "location" => $this->formatService->location($article->getEmplacement()),
+                                "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
+                                "quantityToPick" => $line->getQuantityToPick() ?: '',
+                                "barcode" => $article->getBarCode() ?? '',
+                                "error" => $needsQuantitiesCheck && $article->getQuantite() < $line->getQuantityToPick() && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON,
+                                "Actions" => $this->renderView(
+                                    'demande/datatableLigneArticleRow.html.twig',
+                                    [
+                                        'id' => $line->getId(),
+                                        'articleId' => $article->getId(),
+                                        'name' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+                                        'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
+                                        'modifiable' => $editable,
+                                    ]
+                                ),
+                            ];
+                        } else {
+                            return null;
+                        }
+                    })
+                    ->values(),
+            ])->toArray();
+
+        $references = Stream::from($deliveryRequest->getReferenceLines())
+            ->map(function(DeliveryRequestReferenceLine $line) use ($needsQuantitiesCheck, $deliveryRequest, $editable) {
+                $reference = $line->getReference();
+                return [
+                    "reference" => $reference->getReference() ?: '',
+                    "label" => $reference->getLibelle() ?: '',
+                    "location" => $this->formatService->location($reference->getEmplacement()),
+                    "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
+                    "quantityToPick" => $line->getQuantityToPick() ?? '',
+                    "barcode" => $reference->getBarCode() ?? '',
+                    "error" => $needsQuantitiesCheck && $reference->getQuantiteDisponible() < $line->getQuantityToPick()
+                        && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON,
+                    "Actions" => $this->renderView(
+                        'demande/datatableLigneArticleRow.html.twig',
+                        [
+                            'id' => $line->getId(),
+                            'name' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
+                            'refArticleId' => $reference->getId(),
+                            'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
+                            'modifiable' => $editable,
+                        ]
+                    )
+                ];
+            })
+            ->toArray();
+
+        $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("demande/show/line-list.html.twig", [
+                "lines" => $lines,
+                "emptyLines" => $deliveryRequest->getArticleLines()->isEmpty() && $deliveryRequest->getReferenceLines()->isEmpty(),
+                "editable" => $editable
+            ]),
+        ]);
+    }
+
+    #[Route("remove_delivery_request_logistic_unit_line", name: "remove_delivery_request_logistic_unit_line", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
+    public function removeLogisticUnitLine(Request $request, EntityManagerInterface $manager): Response {
+        $query = $request->query->all();
+        $logisticUnit = $manager->find(Pack::class, $query['logisticUnitId']);
+        $deliveryRequest = $manager->find(Demande::class, $query['deliveryRequestId']);
+
+        Stream::from($deliveryRequest->getArticleLines())
+            ->filter(fn(DeliveryRequestArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() && $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit)
+            ->each(fn(DeliveryRequestArticleLine $line) => $manager->remove($line));
+
+        $manager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => "L'unité logistique a bien été retirée de la demande de livraison."
         ]);
     }
 
@@ -454,7 +573,10 @@ class DemandeController extends AbstractController
                 $entityManager->flush();
             }
 
-            return new JsonResponse();
+            return $this->json([
+                'success' => true,
+                'msg' => "L'article a bien été retiré de la demande de livraison."
+            ]);
         }
         throw new BadRequestHttpException();
     }

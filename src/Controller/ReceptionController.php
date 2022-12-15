@@ -171,7 +171,6 @@ class ReceptionController extends AbstractController {
                     : $data['emergency']
                 )
                 : null;
-
             $reception->setManualUrgent($emergency);
             $reception
                 ->setOrderNumber(!empty($data['orderNumber']) ? explode(",", $data['orderNumber']) : null)
@@ -854,6 +853,7 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $typeChampLibreDL = [];
@@ -897,6 +897,7 @@ class ReceptionController extends AbstractController {
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),
             'restrictedLocations' => $restrictedLocations,
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
         ]);
     }
 
@@ -1843,22 +1844,19 @@ class ReceptionController extends AbstractController {
 
                     /** @var Preparation $preparation */
                     $preparation = $demande->getPreparations()->first();
-                    if (isset($preparation)) {
-                        $preparationArticleLine = $preparationsManagerService->createArticleLine(
-                            $article,
-                            $preparation,
-                            $article->getQuantite(),
-                            $preparation->getStatut()->getCode() === Preparation::STATUT_PREPARE ? $article->getQuantite() : 0
-                        );
+                    if ($preparation) {
+
+                        $preparationArticleLine = $deliveryArticleLine->createPreparationOrderLine()
+                            ->setPickedQuantity($preparation->getStatut()->getCode() === Preparation::STATUT_PREPARE ? $article->getQuantite() : 0)
+                            ->setPreparation($preparation);
+
                         $entityManager->persist($preparationArticleLine);
 
                         $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                     }
                 }
 
-                if ($transferRequest) {
-                    $transferRequest->addArticle($article);
-                }
+                $transferRequest?->addArticle($article);
 
                 $article->setReceptionReferenceArticle($receptionReferenceArticle);
 

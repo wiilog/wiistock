@@ -11,6 +11,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
@@ -69,7 +70,7 @@ class PreparationController extends AbstractController
         $user = $this->getUser();
 
         try {
-            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
+            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager, $locationEndPrepa);
         } catch (NegativeQuantityException $exception) {
             $barcode = $exception->getArticle()->getBarCode();
             return new JsonResponse([
@@ -136,82 +137,105 @@ class PreparationController extends AbstractController
         return new JsonResponse($data);
     }
 
+    #[Route("/preparation-order-logistics-unit-api", name: "preparation_order_logistics_unit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA], mode: HasPermission::IN_JSON)]
+    public function logisticsUnitApi(Request $request, EntityManagerInterface $manager): Response {
+        $preparationOrder = $manager->find(Preparation::class, $request->query->get('id'));
+        $logisticsUnits = [null];
+        foreach ($preparationOrder->getArticleLines() as $articleLine) {
+            $article = $articleLine->getArticle();
+            if ($article->getCurrentLogisticUnit() && !in_array($article->getCurrentLogisticUnit(), $logisticsUnits)) {
+                $logisticsUnits[] = $article->getCurrentLogisticUnit();
+            }
+        }
 
-    /**
-     * @Route("/api_article/{preparation}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA}, mode=HasPermission::IN_JSON)
-     */
-    public function apiLignePreparation(Preparation $preparation): Response
-    {
-        $demande = $preparation->getDemande();
-        $preparationStatut = $preparation->getStatut()?->getCode();
+        $preparationStatut = $preparationOrder->getStatut()->getCode();
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
-            || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
+            || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparationOrder->getUtilisateur() == $this->getUser());
+        $lines = Stream::from($logisticsUnits)
+            ->map(fn(?Pack $logisticUnit) => [
+                "pack" => [
+                    "packId" => $logisticUnit?->getId(),
+                    "code" => $logisticUnit?->getCode() ?? null,
+                    "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
+                    "project" => $logisticUnit?->getProject()?->getCode() ?? null,
+                    "nature" => $this->formatService->nature($logisticUnit?->getNature()),
+                    "color" => $logisticUnit?->getNature()?->getColor() ?? null,
+                    "quantity" => Stream::from($preparationOrder->getArticleLines())
+                        ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() && $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit)
+                        ->reduce(fn(int $total, PreparationOrderArticleLine $line) => $total + $line->getPickedQuantity()) ?: '-',
+                    "quantityArticleInLocation" => $logisticUnit?->getChildArticles() ? count($logisticUnit?->getChildArticles()) : null,
+                    "alreadyTreated" => Stream::from($preparationOrder->getArticleLines())
+                        ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack() === $logisticUnit)
+                        ->every(fn(PreparationOrderArticleLine $line) => $line->getPickedQuantity() !== 0)
+                ],
+                "articles" => Stream::from($preparationOrder->getArticleLines())
+                    ->filterMap(function(PreparationOrderArticleLine $line) use ($logisticUnit, $isPrepaEditable) {
+                        $article = $line->getArticle();
+                        if ($logisticUnit && $article->getCurrentLogisticUnit()?->getId() == $logisticUnit->getId()) {
+                            return [
+                                "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                                "barcode" => $article->getBarCode() ?: '',
+                                "label" => $article->getLabel() ?: '',
+                                "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
+                                "quantity" => $article->getQuantite(),
+                                "quantityToPick" => $line->getQuantityToPick(),
+                                "pickedQuantity" => $line->getPickedQuantity(),
+                                "lineId" => $line->getId(),
+                                "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                                    'barcode' => $article->getBarCode(),
+                                    'artOrRefId' => $article->getId(),
+                                    'isRef' => false,
+                                    'isRefByArt' => false,
+                                    'quantity' => $line->getPickedQuantity(),
+                                    'id' => $line->getId(),
+                                    'isPrepaEditable' => $isPrepaEditable,
+                                    'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement(),
+                                    'inLogisticUnit' => true
+                                ]),
+                            ];
+                        } else {
+                            return null;
+                        }
+                    })
+                    ->values(),
+            ])->toArray();
 
-        if (isset($demande)) {
-            $rows = [];
-            /** @var PreparationOrderReferenceLine $referenceLine */
-            foreach ($preparation->getReferenceLines() as $referenceLine) {
-                $articleRef = $referenceLine->getReference();
-                $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-                if ($referenceLine->getPickedQuantity() > 0 ||
-                    ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                    $rows[] = [
-                        "reference" => $articleRef->getReference(),
-                        "label" => $articleRef->getLibelle(),
-                        "location" => FormatHelper::location($articleRef->getEmplacement()),
-                        "targetLocationPicking" => FormatHelper::location($referenceLine->getTargetLocationPicking()),
-                        "quantity" => $articleRef->getQuantiteStock(),
-                        "quantityToPick" => $referenceLine->getQuantityToPick() ?: ' ',
-                        "pickedQuantity" => $referenceLine->getPickedQuantity() ?: ' ',
-                        'active' => !empty($referenceLine->getPickedQuantity()),
-                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                            'barcode' => $articleRef->getBarCode(),
-                            'isRef' => true,
-                            'artOrRefId' => $articleRef->getId(),
-                            'isRefByArt' => $isRefByArt,
-                            'id' => $referenceLine->getId(),
-                            'isPrepaEditable' => $isPrepaEditable,
-                            'stockManagement' => $articleRef->getStockManagement()
-                        ])
-                    ];
-                }
-            }
+        $references = Stream::from($preparationOrder->getReferenceLines())
+            ->map(function(PreparationOrderReferenceLine $line) use ($isPrepaEditable) {
+                $articleRef = $line->getReference();
+                return [
+                    "reference" => $articleRef->getReference(),
+                    "label" => $articleRef->getLibelle(),
+                    "barcode" => "",
+                    "location" => $this->formatService->location($articleRef->getEmplacement()),
+                    "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
+                    "quantity" => $articleRef->getQuantiteStock(),
+                    "quantityToPick" => $line->getQuantityToPick() ?: ' ',
+                    "pickedQuantity" => $line->getPickedQuantity() ?: ' ',
+                    'active' => !empty($line->getPickedQuantity()),
+                    "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                        'barcode' => $articleRef->getBarCode(),
+                        'isRef' => true,
+                        'artOrRefId' => $articleRef->getId(),
+                        'isRefByArt' => $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+                        'id' => $line->getId(),
+                        'isPrepaEditable' => $isPrepaEditable,
+                        'stockManagement' => $articleRef->getStockManagement(),
+                        'inLogisticUnit' => false
+                    ])
+                ];
+            })
+            ->toArray();
 
-            /** @var PreparationOrderArticleLine $articleLine */
-            foreach ($preparation->getArticleLines() as $articleLine) {
-                $article = $articleLine->getArticle();
-                if ($articleLine->getPickedQuantity() > 0 ||
-                    ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                    $rows[] = [
-                        "reference" => ($article->getArticleFournisseur() && $article->getArticleFournisseur()->getReferenceArticle()) ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "label" => $article->getLabel() ?? '',
-                        "location" => FormatHelper::location($article->getEmplacement()),
-                        "targetLocationPicking" => FormatHelper::location($articleLine->getTargetLocationPicking()),
-                        "quantity" => $article->getQuantite() ?? '',
-                        "quantityToPick" => $articleLine->getQuantityToPick() ?? ' ',
-                        "pickedQuantity" => $articleLine->getPickedQuantity() ?? ' ',
-                        'active' => !empty($articleLine->getPickedQuantity()),
-                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                            'barcode' => $article->getBarCode(),
-                            'artOrRefId' => $article->getId(),
-                            'isRef' => false,
-                            'isRefByArt' => false,
-                            'quantity' => $articleLine->getPickedQuantity(),
-                            'id' => $articleLine->getId(),
-                            'isPrepaEditable' => $isPrepaEditable,
-                            'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement()
-                        ])
-                    ];
-                }
-            }
-
-            $data['data'] = $rows;
-        } else {
-            $data = false; //TODO gérer affichage erreur
-        }
-        return new JsonResponse($data);
+        $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("preparation/show/line-list.html.twig", [
+                "lines" => $lines,
+            ]),
+        ]);
     }
 
     /**
@@ -248,7 +272,7 @@ class PreparationController extends AbstractController
             )
             : $preparation->getStatut()->getCode();
 
-        return $this->render('preparation/show.html.twig', [
+        return $this->render('preparation/show/index.html.twig', [
             "sensorWrappers" => $sensorWrappers,
             'demande' => $demande,
             'showTargetLocationPicking' => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
@@ -256,16 +280,16 @@ class PreparationController extends AbstractController
             'preparation' => $preparation,
             'isPrepaEditable' => $preparationStatusCode === Preparation::STATUT_A_TRAITER
                 || $preparationStatusCode === Preparation::STATUT_VALIDATED
-                || ($preparationStatusCode == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
+                || ($preparationStatusCode == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() === $this->getUser()),
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
                 ['label' => 'Statut', 'value' => ucfirst($status)],
                 ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
-                ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
-                ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => FormatHelper::date($demande->getExpectedAt())]] : []),
+                ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
+                ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => $this->formatService->date($demande->getExpectedAt())]] : []),
                 ...($demande->getProject() ? [['label' => 'Projet', 'value' => $demande->getProject()->getCode() ]] : []),
-                ...($preparation->getExpectedAt() ? [['label' => 'Date de préparation', 'value' => FormatHelper::date($preparation->getExpectedAt())]] : []),
+                ...($preparation->getExpectedAt() ? [['label' => 'Date de préparation', 'value' => $this->formatService->date($preparation->getExpectedAt())]] : []),
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
@@ -465,10 +489,14 @@ class PreparationController extends AbstractController
         $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
         $preparationOrderReferenceLineRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
 
-        if ($data = json_decode($request->getContent(), true)) {
+        $values = $request->getContent() ?: $request->query->get("values");
+        $data = json_decode($values, true);
 
-            /** @var PreparationOrderArticleLine|PreparationOrderReferenceLine $line */
-            $line = $data['isRef']
+        // Allows you to determine if the data comes from the quantity confirmation modal or from the LU line click
+        $lines = Stream::from($data)->some(fn(string|array $value) => is_array($value)) ? $data : [$data];
+
+        foreach ($lines as $data) {
+            $line = isset($data['isRef'])
                 ? $preparationOrderReferenceLineRepository->find($data['ligneArticle'])
                 : $preparationOrderArticleLineRepository->find($data['ligneArticle']);
 
@@ -487,11 +515,13 @@ class PreparationController extends AbstractController
             if (isset($data['quantite'])) {
                 $line->setPickedQuantity(max($data['quantite'], 0));
             }
-            $entityManager->flush();
-
-            return new JsonResponse();
         }
-        throw new BadRequestHttpException();
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true
+        ]);
     }
 
     /**
