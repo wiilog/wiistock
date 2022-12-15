@@ -791,7 +791,7 @@ class ArticleRepository extends EntityRepository {
 
 	public function getOneArticleByBarCodeAndLocation(string $barCode, ?string $location) {
         $queryBuilder = $this
-            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location, true)
             ->addSelect('article.id as id')
             ->addSelect('article.barCode as barCode')
             ->addSelect('articleFournisseur_reference.libelle as label')
@@ -803,6 +803,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('0 as is_ref')
             ->addSelect('current_logistic_unit.id as currentLogisticUnitId')
             ->addSelect('current_logistic_unit.code as currentLogisticUnitCode')
+            ->addSelect('article_status.code as articleStatusCode')
             ->join('article.articleFournisseur', 'article_articleFournisseur')
             ->join('article_articleFournisseur.referenceArticle', 'articleFournisseur_reference')
             ->join('articleFournisseur_reference.statut', 'referenceArticle_status')
@@ -813,19 +814,21 @@ class ArticleRepository extends EntityRepository {
         return !empty($result) ? $result[0] : null;
     }
 
-    private function createQueryBuilderByBarCodeAndLocation(string $barCode, ?string $location): QueryBuilder {
+    private function createQueryBuilderByBarCodeAndLocation(string  $barCode,
+                                                            ?string $location,
+                                                            bool    $includeUnavailable = false): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('article');
-        $exprBuilder = $queryBuilder->expr();
         $queryBuilder
-            ->join('article.statut', 'status')
+            ->join('article.statut', 'article_status')
             ->andWhere('article.barCode = :barCode')
-            ->andWhere($exprBuilder->orX(
-                'status.nom = :activeStatusName',
-                'status.nom = :statusDisputeName'
-            ))
-            ->setParameter('barCode', $barCode)
-            ->setParameter('activeStatusName', Article::STATUT_ACTIF)
-            ->setParameter('statusDisputeName', Article::STATUT_EN_LITIGE);
+            ->setParameter('barCode', $barCode);
+
+        if (!$includeUnavailable) {
+            $queryBuilder
+                ->andWhere('article_status.code IN (:articleStatuses)')
+                ->setParameter('articleStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
+        }
+
 
         if($location) {
             $queryBuilder

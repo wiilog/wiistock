@@ -2082,6 +2082,7 @@ class MobileController extends AbstractApiController
                 'barCode' => $barCode,
             ]);
             if (!empty($referenceArticle) && (!$location || $referenceArticle->getEmplacement()->getLabel() === $location)) {
+                dump('dump 1');
                 $statusReferenceArticle = $referenceArticle->getStatut();
                 $statusReferenceId = $statusReferenceArticle ? $statusReferenceArticle->getId() : null;
                 // we can transfer if reference is active AND it is not linked to any active orders
@@ -2096,11 +2097,16 @@ class MobileController extends AbstractApiController
                     "is_ref" => "1"
                 ];
                 $resData['article'] = $referenceArticleArray;
-            } else {
+            }
+            else {
                 $article = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
+
                 if (!empty($article)) {
+                    $canAssociate = in_array($article['articleStatusCode'], [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
+
                     $article['can_transfer'] = ($article['reference_status'] === ReferenceArticle::STATUT_ACTIF);
-                    $resData['article'] = $article;
+                    $article['can_associate'] = $canAssociate;
+                    $resData['article'] = $canAssociate ? $article : null;
                 } else {
                     $pack = $packRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
                     if(!empty($pack)) {
