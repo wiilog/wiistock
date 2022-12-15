@@ -16,6 +16,7 @@ use App\Entity\OrdreCollecteReference;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TagTemplate;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
@@ -26,6 +27,7 @@ use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
+use App\Service\TagTemplateService;
 use App\Service\UserService;
 
 use DateTime;
@@ -43,6 +45,7 @@ use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -88,11 +91,14 @@ class OrdreCollecteController extends AbstractController
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL})
      */
     public function show(OrdreCollecte $ordreCollecte,
+                         TagTemplateService $tagTemplateService,
+                         EntityManagerInterface $entityManager,
                          OrdreCollecteService $ordreCollecteService): Response
     {
         return $this->render('ordre_collecte/show.html.twig', [
             'collecte' => $ordreCollecte,
             'finished' => $ordreCollecte->getStatut()?->getCode() === OrdreCollecte::STATUT_TRAITE,
+            "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),
             'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte),
         ]);
     }
@@ -443,15 +449,27 @@ class OrdreCollecteController extends AbstractController
     public function printCollecteBarCodes(OrdreCollecte $ordreCollecte,
                                           RefArticleDataService $refArticleDataService,
                                           ArticleDataService $articleDataService,
+                                          Request $request,
+                                          EntityManagerInterface $entityManager,
                                           PDFGeneratorService $PDFGeneratorService): Response
     {
-
+        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
+        $tag = $forceTagEmpty
+            ? null
+            : ($request->query->get('template')
+                ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+                : null);
         $articles = $ordreCollecte->getArticles()->toArray();
         $ordreCollecteReferences = $ordreCollecte->getOrdreCollecteReferences()->toArray();
 
-        $barCodesArticles = array_map(function (Article $article) use ($articleDataService) {
-            return $articleDataService->getBarcodeConfig($article);
-        }, $articles);
+        $barCodesArticles = Stream::from($articles)
+            ->filter(function(Article $article) use ($forceTagEmpty, $tag) {
+                return
+                    (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                    (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
+            })
+            ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article))
+            ->toArray();
 
         $barCodesReferences = array_map(function (OrdreCollecteReference $ordreCollecteReference) use ($refArticleDataService) {
             $referenceArticle = $ordreCollecteReference->getReferenceArticle();
@@ -460,18 +478,18 @@ class OrdreCollecteController extends AbstractController
                 : null;
         }, $ordreCollecteReferences);
 
-        $barCodes = array_merge($barCodesArticles, array_filter($barCodesReferences , function ($value) {
-            return $value !== null;}
-        ));
+        $barCodes = array_merge($barCodesArticles, !$forceTagEmpty ? [] : array_filter($barCodesReferences , function ($value) {
+            return $value !== null;
+        }));
         $barCodesCount = count($barCodes);
         if($barCodesCount > 0) {
             $fileName = $PDFGeneratorService->getBarcodeFileName(
                 $barCodes,
-                'ordreCollecte'
+                'ordreCollecte', $tag ? $tag->getPrefix() : 'ETQ'
             );
 
             return new PdfResponse(
-                $PDFGeneratorService->generatePDFBarCodes($fileName, $barCodes),
+                $PDFGeneratorService->generatePDFBarCodes($fileName, $barCodes, false, $tag),
                 $fileName
             );
         } else {

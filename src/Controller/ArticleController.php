@@ -17,6 +17,7 @@ use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\ProjectHistoryRecord;
 use App\Entity\Setting;
+use App\Entity\TagTemplate;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
@@ -31,6 +32,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\ArticleDataService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
+use App\Service\TagTemplateService;
 use App\Service\UserService;
 use App\Annotation\HasPermission;
 
@@ -83,7 +85,7 @@ class ArticleController extends AbstractController
      * @Route("/", name="article_index", methods={"GET", "POST"})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
      */
-    public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
+    public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService, TagTemplateService $tagTemplateService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         /** @var Utilisateur $currentUser */
@@ -93,6 +95,7 @@ class ArticleController extends AbstractController
         return $this->render('article/index.html.twig', [
             "fields" => $articleDataService->getColumnVisibleConfig($entityManager, $currentUser),
             "searches" => $currentUser->getRechercheForArticle(),
+            "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),
             "activeOnly" => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
         ]);
     }
@@ -651,19 +654,27 @@ class ArticleController extends AbstractController
                                           PDFGeneratorService $PDFGeneratorService,
                                           ArticleDataService $articleDataService): Response {
         $articleRepository = $entityManager->getRepository(Article::class);
+        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
+        $tag = $forceTagEmpty
+            ? null
+            : ($request->query->get('template')
+                ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+                : null);
         $listArticles = $request->query->all('listArticles') ?: [];
         $articles = $articleRepository->findBy(['id' => $listArticles]);
-        $barcodeConfigs = array_map(
-            function (Article $article) use ($articleDataService) {
-                return $articleDataService->getBarcodeConfig($article);
-            },
-            $articles
-        );
+        $barcodeConfigs = Stream::from($articles)
+            ->filter(function(Article $article) use ($forceTagEmpty, $tag) {
+                return
+                    (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                    (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
+            })
+            ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article))
+            ->toArray();
 
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article', $tag ? $tag->getPrefix() : 'ETQ');
 
         return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag),
             $fileName
         );
     }
@@ -674,11 +685,11 @@ class ArticleController extends AbstractController
     public function getSingleArticleBarCode(Article $article,
                                             ArticleDataService $articleDataService,
                                             PDFGeneratorService $PDFGeneratorService): Response {
+        $tag = $article->getType()->getTags()->first() ?: null;
         $barcodeConfigs = [$articleDataService->getBarcodeConfig($article)];
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
-
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article', $tag ? $tag->getPrefix() : 'ETQ');
         return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag),
             $fileName
         );
     }
