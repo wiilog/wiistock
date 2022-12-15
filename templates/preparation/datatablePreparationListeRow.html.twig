@@ -4,7 +4,7 @@
     <div class="dropdown dropright">
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt">
-            <a class="dropdown-item" href="{{ path(route, {id}) }}" target="_blank">
+            <a class="dropdown-item" href="{{ path(route, {id: artOrRefId}) }}" target="_blank">
                 <i class='fas fa-eye mr-2'></i>Voir
             </a>
             {% if isPrepaEditable and canEdit %}
