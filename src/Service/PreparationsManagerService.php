@@ -575,6 +575,7 @@ class PreparationsManagerService
                     $trackingMovement = $this->trackingMovementService->createTrackingMovement($logisticUnit->getCode(), $endLocation, $user, $now, false, false, TrackingMovement::TYPE_PRISE_DEPOSE);
                     $this->entityManager->persist($trackingMovement);
                     $previousLogisticUnit = $logisticUnit;
+                    $logisticUnit->setLastDrop($trackingMovement)->setLastTracking($trackingMovement);
                 }
                 $trackingMovement = $this->trackingMovementService->createTrackingMovement($line->getArticle()->getBarCode(), $endLocation, $user, $now, false, false, TrackingMovement::TYPE_PRISE_DEPOSE);
                 $this->entityManager->persist($trackingMovement);
