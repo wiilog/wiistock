@@ -2667,7 +2667,7 @@ class SettingsController extends AbstractController {
         $natureRepository = $manager->getRepository(Nature::class);
         $typeRepository = $manager->getRepository(Type::class);
 
-        $categoryTypeArrivage = $manager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
+        $categoryTypeArrivage = $manager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARTICLE]);
 
         $natures = $natureRepository->findAll();
         $types = $typeRepository->findBy(['category' => $categoryTypeArrivage]);
@@ -2692,7 +2692,6 @@ class SettingsController extends AbstractController {
                                 "selected" => $tagTemplate->getTypes()->contains($t),
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"]);
-
                 $selectContent = Stream::from($natureOrTypeOptions)
                     ->map(function(array $n) {
                         $selected = $n['selected'] ? "selected" : '';
