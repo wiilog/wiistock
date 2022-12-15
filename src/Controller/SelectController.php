@@ -698,8 +698,9 @@ class SelectController extends AbstractController {
         $term = $request->query->get("term");
 
         $naturesOrTypes = $module === CategoryType::ARRIVAGE ?
-            $entityManager->getRepository(Type::class)->getForSelect(CategoryType::ARRIVAGE, $term) :
-            $entityManager->getRepository(Nature::class)->getForSelect($term);
+            $entityManager->getRepository(Nature::class)->getForSelect($term) :
+            $entityManager->getRepository(Type::class)->getForSelect(CategoryType::ARTICLE, $term);
+
 
         return $this->json([
             "results" => $naturesOrTypes,

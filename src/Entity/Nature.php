@@ -80,10 +80,14 @@ class Nature {
     #[ORM\OneToOne(mappedBy: "nature", targetEntity: TranslationSource::class)]
     private ?TranslationSource $labelTranslation = null;
 
+    #[ORM\ManyToMany(targetEntity: TagTemplate::class, mappedBy: 'natures')]
+    private Collection $tags;
+
     public function __construct() {
         $this->packs = new ArrayCollection();
         $this->emplacements = new ArrayCollection();
         $this->temperatureRanges = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -300,6 +304,14 @@ class Nature {
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, TagTemplate>
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
     }
 
 }

@@ -2677,11 +2677,11 @@ class SettingsController extends AbstractController {
                 $isArrival = $tagTemplate->getModule() === CategoryType::ARRIVAGE ? 'selected' : '';
                 $isArticle = $tagTemplate->getModule() === 'article' ? 'selected' : '';
 
-                $natureOrTypeOptions = $tagTemplate->getModule() === 'article' ?
+                $natureOrTypeOptions = $tagTemplate->getModule() === CategoryType::ARRIVAGE ?
                         Stream::from($natures)
                             ->map(fn(Nature $n) => [
                                 "id" => $n->getId(),
-                                "label" => $n->getCode(),
+                                "label" => $n->getLabel(),
                                 "selected" => $tagTemplate->getNatures()->contains($n),
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"]) :
@@ -2745,7 +2745,7 @@ class SettingsController extends AbstractController {
                     "natureOrType" =>
                         !$tagTemplate->getNatures()->isEmpty() ?
                             Stream::from($tagTemplate->getNatures())
-                                ->map(fn(Nature $nature) => $nature->getCode())
+                                ->map(fn(Nature $nature) => $nature->getLabel())
                                 ->join(", ") :
                                 ($tagTemplate->getTypes() ?
                                     Stream::from($tagTemplate->getTypes())

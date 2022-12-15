@@ -571,7 +571,7 @@ class SettingsService {
             }
         }
 
-        if(isset($tables["tagTemplateTable"])){
+        if(isset($tables["tagTemplateTable"])) {
             $tagTemplateRepository = $this->manager->getRepository(TagTemplate::class);
             $typeRepository = $this->manager->getRepository(Type::class);
             $natureRepository = $this->manager->getRepository(Nature::class);
@@ -594,11 +594,11 @@ class SettingsService {
                 Stream::explode(',', $tagTemplateData['natureOrType'])
                     ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
-                            $type = $typeRepository->find($id);
-                            $tagTemplate->addType($type);
-                        } else {
                             $nature = $natureRepository->find($id);
                             $tagTemplate->addNature($nature);
+                        } else {
+                            $type = $typeRepository->find($id);
+                            $tagTemplate->addType($type);
                         }
                     } );
 
