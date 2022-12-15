@@ -181,6 +181,7 @@ class MobileController extends AbstractApiController
 
         $numberOfRowsInserted = 0;
         $mouvementsNomade = json_decode($request->request->get('mouvements'), true);
+        $createTakeAndDrop = $request->request->getBoolean('createTakeAndDrop');
         $finishMouvementTraca = [];
         $successData['data'] = [
             'errors' => [],
@@ -192,6 +193,7 @@ class MobileController extends AbstractApiController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $packRepository = $entityManager->getRepository(Pack::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
 
         $mustReloadLocation = false;
 
@@ -215,6 +217,8 @@ class MobileController extends AbstractApiController
             try {
                 $entityManager->transactional(function ()
                 use (
+                    $articleRepository,
+                    $createTakeAndDrop,
                     $mailerService,
                     $freeFieldService,
                     $mouvementStockService,
@@ -269,6 +273,22 @@ class MobileController extends AbstractApiController
                         $options['quantity'] = $mvt['quantity'] ?? null;
 
                         $options += $trackingMovementService->treatTrackingData($mvt, $request->files, $index);
+
+                        if($createTakeAndDrop){
+                            $article = $articleRepository->findOneBy(['barCode' => $mvt['ref_article']]);
+                            $createdPriseMvt = $trackingMovementService->createTrackingMovement(
+                                $mvt['ref_article'],
+                                $article->getCurrentLogisticUnit()->getLastDrop()->getEmplacement(),
+                                $nomadUser,
+                                $date,
+                                true,
+                                true,
+                                TrackingMovement::TYPE_PRISE,
+                                $options,
+                            );
+                            $article->setCurrentLogisticUnit(null);
+                            $entityManager->persist($createdPriseMvt);
+                        }
 
                         $createdMvt = $trackingMovementService->createTrackingMovement(
                             $mvt['ref_article'],
@@ -1073,32 +1093,27 @@ class MobileController extends AbstractApiController
                                              EntityManagerInterface   $entityManager,
                                              LivraisonsManagerService $livraisonsManager): Response
     {
-        $data = json_decode($request->query->get('logisticUnits'), true);
-        $logisticUnits = $entityManager->getRepository(Pack::class)->findBy(['code' => $data]);
-        $articlesNotInTransit = Stream::from($logisticUnits)
-            ->flatMap(function (Pack $logisticUnit) {
-                $articlesAllInTransit = Stream::from($logisticUnit->getChildArticles())->every(fn(Article $article) => $article->isInTransit());
-                if (!$articlesAllInTransit) {
-                    return Stream::from($logisticUnit->getChildArticles())
-                            ->filter(fn(Article $article) => !$article->isInTransit())
-                            ->map(fn(Article $article) => [
-                                'barcode' => $article->getBarCode(),
-                                'reference' => $article->getReference(),
-                                'quantity' => $article->getQuantite(),
-                                'label' => $article->getLabel(),
-                                'location' => $article->getEmplacement()->getLabel(),
-                                'currentLogisticUnitCode' => $article->getCurrentLogisticUnit()->getCode(),
-                            ])
-                            ->values();
-                } else {
-                    return [];
-                }
-            })
-            ->filter(fn(array $articles) => !empty($articles))
-            ->toArray();
+        $logisticUnit = $entityManager->getRepository(Pack::class)->findOneBy(['code' => $request->query->get('logisticUnit')]);
+        $articlesAllInTransit = Stream::from($logisticUnit->getChildArticles())->every(fn(Article $article) => $article->isInTransit());
+        $articlesNotInTransit = [];
+        if (!$articlesAllInTransit) {
+
+            $articlesNotInTransit = Stream::from($logisticUnit->getChildArticles())
+                    ->filter(fn(Article $article) => !$article->isInTransit())
+                    ->map(fn(Article $article) => [
+                        'barcode' => $article->getBarCode(),
+                        'reference' => $article->getReference(),
+                        'quantity' => $article->getQuantite(),
+                        'label' => $article->getLabel(),
+                        'location' => $article->getEmplacement()->getLabel(),
+                        'currentLogisticUnitCode' => $article->getCurrentLogisticUnit()->getCode(),
+                        'selected' => true
+                    ])
+                    ->values();
+        }
 
         return $this->json([
-            'articles' => $articlesNotInTransit
+            'extraArticles' => $articlesNotInTransit
         ]);
     }
 
