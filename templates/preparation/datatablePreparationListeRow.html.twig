@@ -1,18 +1,12 @@
 <div class="d-flex">
-    {% set target = isRef ? '#modalShowRefArticle' : '#modalShowArticle' %}
-    {% set path = isRef ? 'reference_article_show' : 'article_show' %}
+    {% set route = isRef ? 'reference_article_show_page' : 'article_show_page' %}
     {% set canEdit = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT'))  %}
     <div class="dropdown dropright">
         {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu dropdown-follow-gt pointer">
-            <div class="dropdown-item"
-                 data-barcode='{{ barcode }}'
-                 data-target='{{ target }}'
-                 data-toggle='modal'
-                 data-id="{{ artOrRefId }}"
-                 onclick="showRow($(this), Routing.generate('{{ path }}', true), $('{{ target }}'))">
+        <div class="dropdown-menu dropdown-follow-gt">
+            <a class="dropdown-item" href="{{ path(route, {id}) }}" target="_blank">
                 <i class='fas fa-eye mr-2'></i>Voir
-            </div>
+            </a>
             {% if isPrepaEditable and canEdit %}
                 {% set action = '' %}
                 {% set attr = '' %}
@@ -23,15 +17,17 @@
                     {% set action = ", editRow($(this), Routing.generate('prepa_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'))" %}
                     {% set attr = 'data-target=#modalEditLigneArticle data-toggle=modal' %}
                 {% endif %}
-                <div class="action-on-click d-none action-on-click-single"
-                    {{ attr }}
-                     data-barcode='{{ barcode }}'
-                     data-id='{{ id }}'
-                     data-ref='{{ isRef ? 1 : 0 }}'
-                     onclick="beginPrepa(){{ action }}"
-                     id="startPicking">
-                    <span class="wii-icon wii-icon-check-white mr-2"></span>Selectionner
-                </div>
+                {% if not inLogisticUnit %}
+                    <div class="action-on-click d-none action-on-click-single d-flex align-items-center"
+                        {{ attr }}
+                         data-barcode='{{ barcode }}'
+                         data-id='{{ id }}'
+                         data-ref='{{ isRef ? 1 : 0 }}'
+                         onclick="beginPrepa(){{ action }}"
+                         id="startPicking">
+                        <span class="wii-icon wii-icon-check-white mr-2"></span>Selectionner
+                    </div>
+                {% endif %}
             {% endif %}
             {% if not isRef or not isRefByArt %}
                 {% set printPath = (isRef

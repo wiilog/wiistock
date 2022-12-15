@@ -3,6 +3,11 @@
 {% block title %}Demande | Livraison | Détails{% endblock %}
 {% block titleLink path('demande_index') %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
 {% block page_content %}
     <button class="btn btn-outline-secondary" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>
     <div class="m-4">
@@ -29,47 +34,42 @@
                                 <div class="row wii-page-card-header" id="boutonCollecteInf">
                                     <div class="col-auto ml-auto">
                                         <div class="btn-group">
-                                            <button
-                                                onclick="redirectToArticlesList()"
+                                            <a
+                                                href="{{ path('reference_article_index') }}"
+                                                target="_blank"
                                                 class="btn btn-primary split-button"
                                                 title="Chercher une référence">
-                                            <i class="fa fa-search mr-2"></i>
-                                            Chercher une {{ trans('Stock', 'Références', 'référence', false) }}
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                                data-toggle="dropdown"
-                                                aria-haspopup="true"
-                                                aria-expanded="false">
-                                            <span class="fa fa-angle-down"></span>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                            <a data-toggle="modal"
-                                               data-target="#modalNewArticle"
-                                               class="dropdown-item pointer d-flex align-items-center"
-                                               onclick="clearModal('#modalNewArticle')">
-                                                <span class="wii-icon wii-icon-plus-black mr-2"></span>
-                                                Ajouter article
+                                                <i class="fa fa-search mr-2"></i>
+                                                Chercher une {{ trans('Stock', 'Références', 'référence', false) }}
                                             </a>
-                                            <a class="dropdown-item pointer d-flex align-items-center" onclick="openAddLUModal()">
-                                                <span class="wii-icon wii-icon-plus-black mr-2"></span>
-                                                Ajouter unité logistique
-                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                                    data-toggle="dropdown"
+                                                    aria-haspopup="true"
+                                                    aria-expanded="false">
+                                                <span class="fa fa-angle-down"></span>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                                <a data-toggle="modal"
+                                                   data-target="#modalNewArticle"
+                                                   class="dropdown-item pointer d-flex align-items-center"
+                                                   onclick="clearModal('#modalNewArticle')">
+                                                    <span class="wii-icon wii-icon-plus-black mr-2"></span>
+                                                    Ajouter article
+                                                </a>
+                                                <a class="dropdown-item pointer d-flex align-items-center" onclick="openAddLUModal()">
+                                                    <span class="wii-icon wii-icon-plus-black mr-2"></span>
+                                                    Ajouter unité logistique
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                    <input id="demande-id" type="hidden" value="{{ demande.id }}"/>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <table id="table-lignes"
-                                       data-id="{{ demande.id }}"
-                                       class="table w-100">
-                                </table>
-                            </div>
+                        <div class="col-12 logistic-units-container my-3 wii-multiple-loading"
+                             data-loader-color="primary"
+                             data-loader-size="normal">
                         </div>
                     </div>
                 </div>
@@ -79,6 +79,7 @@
     <button class="btn btn-outline-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
     <input type="hidden" name="showTargetLocationPicking" value="{{ showTargetLocationPicking }}">
     <input type="hidden" name="managePreparationWithPlanning" value="{{ managePreparationWithPlanning }}">
+    <input id="demande-id" type="hidden" value="{{ demande.id }}"/>
 
     {% include 'demande/modalDeleteArticle.html.twig' %}
     {% include 'demande/modalDeleteDemande.html.twig' %}

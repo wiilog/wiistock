@@ -1,0 +1,32 @@
+{% if lines is not empty %}
+    {% for line in lines %}
+        {% set logisticUnit = line.pack ?? null %}
+        {% include 'pack/utils/packItemListTemplate.html.twig' with {
+            data: {
+                'line-id': logisticUnit.packId
+            },
+            header: logisticUnit and logisticUnit.packId is not null
+                ? {
+                    data: {
+                        'pack-id': logisticUnit.packId,
+                    },
+                    sideLabel: logisticUnit.nature,
+                    color: logisticUnit.color,
+                    content: [
+                        {label: 'Unité logistique', value: logisticUnit.code, bold: 'value'},
+                        {label: 'Emplacement', value: logisticUnit.location, bold: 'label'},
+                        {label: "Nombre d'articles demandé", value: logisticUnit.currentQuantity ~ "/" ~ logisticUnit.totalQuantity, bold: 'label'},
+                    ]
+                },
+            content: line.articles,
+            action: {
+                icon: "",
+                datatarget: "",
+                class: "d-none",
+                onclick: "",
+            }
+        } %}
+    {% endfor %}
+{% else %}
+    <div class="text-center">Il n'y a aucune ligne sur cet ordre de livraison</div>
+{% endif %}
