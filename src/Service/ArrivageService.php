@@ -647,7 +647,7 @@ class ArrivageService {
                 $this->mailerService->sendMail(
                     ['Traçabilité', 'Général', 'FOLLOW GT // Dépose effectuée', false],
                     [
-                        "name" => "mails/contents/mail-pack-delivery-done.html.twig",
+                        "name" => "mails/contents/mailPackDeliveryDone.html.twig",
                         "context" => [
                             'title' => ['Traçabilité', 'Général', 'Votre unité logistique a été livrée', false],
                             'orderNumber' => implode(', ', $arrivage->getNumeroCommandeList()),
