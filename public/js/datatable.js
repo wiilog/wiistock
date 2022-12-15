@@ -71,8 +71,8 @@ function initActionOnRow(row) {
                 const href = $anchor.attr('href');
                 if (href) {
                     if($anchor.attr(`target`) === `_blank` || which === 2) {
-                        window.open(href, '_blank');
                         event.stopPropagation();
+                        window.open(href, '_blank');
                     } else if(which === 1) {
                         window.location.href = href;
                     }
