@@ -223,7 +223,7 @@ class CollecteController extends AbstractController
                 ->setStatut($status)
                 ->setPointCollecte($emplacementRepository->find($data['emplacement']))
                 ->setObjet(substr($data['Objet'], 0, 255))
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire']))
+                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
                 ->setstockOrDestruct($destination);
 
             $entityManager->persist($collecte);
@@ -455,7 +455,7 @@ class CollecteController extends AbstractController
 
 				$collecte
 					->setDate(new DateTime($data['date-collecte']))
-					->setCommentaire(StringHelper::cleanedComment($data['commentaire']))
+					->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
 					->setObjet(substr($data['objet'], 0, 255))
 					->setPointCollecte($pointCollecte)
 					->setType($type)

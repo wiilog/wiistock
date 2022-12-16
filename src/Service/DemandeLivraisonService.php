@@ -310,7 +310,7 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($number)
             ->setManual($isManual)
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
+            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 
