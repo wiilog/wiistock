@@ -63,14 +63,14 @@ class RequestTemplateService {
                 ->setSource($data["source"] ?? null)
                 ->setDestination($data["destination"] ?? null)
                 ->setCarriedOutOperationCount(($data["carriedOutOperationCount"] ?? null) ?: null)
-                ->setComment(StringHelper::cleanedComment($data["comment"]) ?? null)
+                ->setComment(StringHelper::cleanedComment($data["comment"] ?? null))
                 ->setAttachments($this->attachmentService->createAttachements($files));
         } else if ($template instanceof DeliveryRequestTemplate) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
 
             $template->setRequestType($typeRepository->find($data["deliveryType"]))
                 ->setDestination($locationRepository->find($data["destination"]))
-                ->setComment(StringHelper::cleanedComment($data["comment"]) ?? "");
+                ->setComment(StringHelper::cleanedComment($data["comment"] ?? null));
         } else if ($template instanceof CollectRequestTemplate) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
 
@@ -78,7 +78,7 @@ class RequestTemplateService {
                 ->setSubject($data["subject"])
                 ->setCollectPoint($locationRepository->find($data["collectPoint"]))
                 ->setDestination($data["destination"])
-                ->setComment(StringHelper::cleanedComment($data["comment"]) ?? "");
+                ->setComment(StringHelper::cleanedComment($data["comment"] ?? null));
         } else {
             throw new RuntimeException("Unknown request template");
         }

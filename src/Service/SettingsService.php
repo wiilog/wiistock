@@ -839,7 +839,7 @@ class SettingsService {
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
-                        ->setComment(StringHelper::cleanedComment($statusData['comment']) ?? null)
+                        ->setComment(StringHelper::cleanedComment($statusData['comment'] ?? null))
                         ->setDefaultForCategory($statusData['defaultStatut'] ?? false)
                         ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)

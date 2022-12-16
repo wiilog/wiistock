@@ -259,7 +259,7 @@ class ArrivageController extends AbstractController {
             ->setNumeroArrivage($numeroArrivage)
             ->setCustoms(isset($data['customs']) && $data['customs'] == 'true')
             ->setFrozen(isset($data['frozen']) && $data['frozen'] == 'true')
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire']) ?? null)
+            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
             ->setType($typeRepository->find($data['type']));
 
         $status = !empty($data['status']) ? $statutRepository->find($data['status']) : null;

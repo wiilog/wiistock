@@ -214,7 +214,7 @@ class ArticleDataService
                         ->setConform(!$data['conform'])
                         ->setBatch($data['batch'] ?? null)
                         ->setExpiryDate($expiryDate ? $expiryDate : null)
-                        ->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
+                        ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
 
                     if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
                         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);

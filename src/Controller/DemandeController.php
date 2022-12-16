@@ -152,7 +152,7 @@ class DemandeController extends AbstractController
                     ->setDestination($emplacement)
                     ->setExpectedAt($expectedAt)
                     ->setType($type)
-                    ->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
+                    ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
                 $entityManager->flush();
                 $champLibreService->manageFreeFields($demande, $data, $entityManager);
                 $entityManager->flush();
@@ -185,7 +185,7 @@ class DemandeController extends AbstractController
                         FreeFieldService $champLibreService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $data['commentaire'] = StringHelper::cleanedComment($data['commentaire']);
+            $data['commentaire'] = StringHelper::cleanedComment($data['commentaire'] ?? null);
             $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
 
             if ($demande instanceof Demande) {
