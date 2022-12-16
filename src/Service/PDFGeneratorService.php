@@ -127,7 +127,8 @@ class PDFGeneratorService {
                 'entity' => $entity,
                 'logo' => $logo,
                 'packs' => $packs,
-                'number' => $entity instanceof Dispatch ? $entity->getNumber() : ($entity instanceof Livraison ? $entity->getNumero() : '')
+                'number' => $entity instanceof Dispatch ? $entity->getNumber() : ($entity instanceof Livraison ? $entity->getNumero() : ''),
+                'fromDelivery' => $entity instanceof Livraison
             ]),
             ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),
             [
