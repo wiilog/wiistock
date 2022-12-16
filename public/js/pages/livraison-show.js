@@ -139,9 +139,9 @@ function getDeliveryId() {
     return $('input[type="hidden"][name="delivery-id"]').val();
 }
 
-function openDeliveryNoteModal($button) {
+function openDeliveryNoteModal($button, fromDelivery = false) {
     const livraisonId = getDeliveryId();
-    $.get(Routing.generate('api_delivery_note_livraison', {deliveryOrder: livraisonId}))
+    $.get(Routing.generate('api_delivery_note_livraison', {deliveryOrder: livraisonId, fromDelivery}))
         .then((result) => {
             if(result.success) {
                 const $modal = $('#modalPrintDeliveryNote');

@@ -431,6 +431,7 @@ class LivraisonController extends AbstractController {
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EMERGENCY),
+            'fromDelivery' => $request->query->getBoolean('fromDelivery'),
         ]));
 
         return $this->json([

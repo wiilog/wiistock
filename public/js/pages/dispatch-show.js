@@ -133,10 +133,10 @@ function runDispatchPrint() {
         });
 }
 
-function openDeliveryNoteModal($button) {
+function openDeliveryNoteModal($button, fromDelivery = false) {
     const dispatchId = $button.data('dispatch-id');
     $
-        .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId}))
+        .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId, fromDelivery}))
         .then((result) => {
             if(result.success) {
                 const $modal = $('#modalPrintDeliveryNote');
