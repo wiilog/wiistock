@@ -40,7 +40,10 @@
             <div class="col-12">
                 {{ form.select('receiverUsername', trans('Demande', 'Acheminements', 'Lettre de voiture', 'Nom'), true, {
                     type: 'customers',
-                    items: [{label: receiverUsername, value: receiverUsername, selected: true}]
+                    items: [{label: receiverUsername, value: receiverUsername, selected: true}],
+                    labelOptions: {
+                        class: 'm-0',
+                    },
                 }) }}
             </div>
         </div>
