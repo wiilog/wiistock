@@ -619,20 +619,20 @@ class DemandeLivraisonService
         );
 
         $config = [
-            ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst(FormatHelper::status($demande->getStatut()))],
-            ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
-            ['label' => 'Destination', 'value' => FormatHelper::location($demande->getDestination())],
-            ['label' => 'Date de la demande', 'value' => FormatHelper::datetime($demande->getCreatedAt())],
-            ['label' => 'Date de validation', 'value' => FormatHelper::datetime($demande->getValidatedAt())],
-            ['label' => 'Type', 'value' => FormatHelper::type($demande->getType())],
+            ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst($this->formatService->status($demande->getStatut()))],
+            ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
+            ['label' => 'Destination', 'value' => $this->formatService->location($demande->getDestination())],
+            ['label' => 'Date de la demande', 'value' => $this->formatService->datetime($demande->getCreatedAt())],
+            ['label' => 'Date de validation', 'value' => $this->formatService->datetime($demande->getValidatedAt())],
+            ['label' => 'Type', 'value' => $this->formatService->type($demande->getType())],
             [
                 'label' => 'Date attendue',
-                'value' => FormatHelper::date($demande->getExpectedAt()),
+                'value' => $this->formatService->date($demande->getExpectedAt()),
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
             [
                 'label' => 'Projet',
-                'value' => $demande?->getProject()?->getCode() ?? '',
+                'value' => $this->formatService->project($demande?->getProject()) ?? '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT]
             ],
         ];
