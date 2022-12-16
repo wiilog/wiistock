@@ -358,6 +358,36 @@ function initializeHistoryTables(packId){
     initializeProjectHistoryTable(packId);
 }
 
+function printArticles(preparation) {
+    let templates;
+    try {
+        templates = JSON.parse($('#tagTemplates').val());
+    } catch (error) {
+        templates = [];
+    }
+    const params = {
+        preparation
+    };
+
+    if (templates.length > 0) {
+        Promise.all(
+            [AJAX.route('GET', `preparation_bar_codes_print`, {forceTagEmpty: true, ...params}).file({})]
+                .concat(templates.map(function (template) {
+                    params.template = template;
+                    return AJAX
+                        .route('GET', `preparation_bar_codes_print`, params)
+                        .file({})
+                }))
+        ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
+    } else {
+        window.location.href = Routing.generate(
+            'preparation_bar_codes_print',
+            params,
+            true
+        );
+    }
+}
+
 function initializeGroupHistoryTable(packId) {
     initDataTable('groupHistoryTable', {
         serverSide: true,

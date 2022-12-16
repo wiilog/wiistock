@@ -39,7 +39,9 @@
                 hasRight: preparation.referenceLines | length > 0 or preparation.articleLines | length > 0,
                 icon: "wii-icon wii-icon-printer-black",
                 title: "Imprimer les étiquettes",
-                href: path('preparation_bar_codes_print', { preparation: preparation.id }),
+                attributes: {
+                "onclick": "printArticles(" ~ preparation.id ~ ")",
+                },
                 dropdownOnly: true,
             },
             {

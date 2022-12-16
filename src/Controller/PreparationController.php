@@ -20,6 +20,7 @@ use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TagTemplate;
 use App\Entity\Type;
 use App\Exceptions\NegativeQuantityException;
 use App\Helper\FormatHelper;
@@ -30,6 +31,7 @@ use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
+use App\Service\TagTemplateService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -202,6 +204,36 @@ class PreparationController extends AbstractController
                     ->values(),
             ])->toArray();
 
+        $articlesWithoutLU = Stream::from($preparationOrder->getArticleLines())
+            ->filterMap(function(PreparationOrderArticleLine $line) use ($isPrepaEditable) {
+                $article = $line->getArticle();
+                if (!$article->getCurrentLogisticUnit()) {
+                    return [
+                        "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                        "barcode" => $article->getBarCode() ?: '',
+                        "label" => $article->getLabel() ?: '',
+                        "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
+                        "quantity" => $article->getQuantite(),
+                        "quantityToPick" => $line->getQuantityToPick(),
+                        "pickedQuantity" => $line->getPickedQuantity(),
+                        "lineId" => $line->getId(),
+                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                            'barcode' => $article->getBarCode(),
+                            'artOrRefId' => $article->getId(),
+                            'isRef' => false,
+                            'isRefByArt' => false,
+                            'quantity' => $line->getPickedQuantity(),
+                            'id' => $line->getId(),
+                            'isPrepaEditable' => $isPrepaEditable,
+                            'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement(),
+                            'inLogisticUnit' => true
+                        ]),
+                    ];
+                } else {
+                    return null;
+                }
+            })->toArray();
+
         $references = Stream::from($preparationOrder->getReferenceLines())
             ->map(function(PreparationOrderReferenceLine $line) use ($isPrepaEditable) {
                 $articleRef = $line->getReference();
@@ -229,7 +261,7 @@ class PreparationController extends AbstractController
             })
             ->toArray();
 
-        $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
+        $lines[0]['articles'] = array_merge($lines[0]['articles'], $references, $articlesWithoutLU);
         return $this->json([
             "success" => true,
             "html" => $this->renderView("preparation/show/line-list.html.twig", [
@@ -243,6 +275,7 @@ class PreparationController extends AbstractController
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
      */
     public function show(Preparation            $preparation,
+                         TagTemplateService $tagTemplateService,
                          EntityManagerInterface $entityManager): Response
     {
         $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
@@ -278,6 +311,7 @@ class PreparationController extends AbstractController
             'showTargetLocationPicking' => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
+            "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),
             'isPrepaEditable' => $preparationStatusCode === Preparation::STATUT_A_TRAITER
                 || $preparationStatusCode === Preparation::STATUT_VALIDATED
                 || ($preparationStatusCode == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() === $this->getUser()),
@@ -651,11 +685,29 @@ class PreparationController extends AbstractController
     public function getBarCodes(Preparation           $preparation,
                                 RefArticleDataService $refArticleDataService,
                                 ArticleDataService    $articleDataService,
+                                EntityManagerInterface $entityManager,
+                                Request $request,
                                 PDFGeneratorService   $PDFGeneratorService): ?Response
     {
+        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
+        $tag = $forceTagEmpty
+            ? null
+            : ($request->query->get('template')
+                ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+                : null);
+
         $articles = $preparation->getArticleLines()->toArray();
         $lignesArticle = $preparation->getReferenceLines()->toArray();
         $referenceArticles = [];
+        $barCodesArticles = Stream::from($articles)
+            ->filter(function(PreparationOrderArticleLine $line) use ($forceTagEmpty, $tag) {
+                $article = $line->getArticle();
+                return
+                    (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                    (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
+            })
+            ->map(fn(PreparationOrderArticleLine $line) => $articleDataService->getBarcodeConfig($line->getArticle()))
+            ->toArray();
 
         /** @var PreparationOrderReferenceLine $ligne */
         foreach ($lignesArticle as $ligne) {
@@ -664,31 +716,22 @@ class PreparationController extends AbstractController
                 $referenceArticles[] = $reference;
             }
         }
-        $barcodeConfigs = array_merge(
-            array_map(
-                function (PreparationOrderArticleLine $article) use ($articleDataService) {
-                    return $articleDataService->getBarcodeConfig($article->getArticle());
-                },
-                $articles
-            ),
-            array_map(
-                function (ReferenceArticle $referenceArticle) use ($refArticleDataService) {
-                    return $refArticleDataService->getBarcodeConfig($referenceArticle);
-                },
-                $referenceArticles
-            )
-        );
-
+        $barcodeConfigs = array_merge($barCodesArticles, !$forceTagEmpty ? [] : array_map(
+            function (ReferenceArticle $referenceArticle) use ($refArticleDataService) {
+                return $refArticleDataService->getBarcodeConfig($referenceArticle);
+            },
+            $referenceArticles
+        ));
         $barcodeCounter = count($barcodeConfigs);
 
         if ($barcodeCounter > 0) {
             $fileName = $PDFGeneratorService->getBarcodeFileName(
                 $barcodeConfigs,
-                'preparation'
+                'preparation', $tag ? $tag->getPrefix() : 'ETQ'
             );
 
             return new PdfResponse(
-                $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+                $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag),
                 $fileName
             );
         } else {

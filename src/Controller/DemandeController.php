@@ -421,7 +421,37 @@ class DemandeController extends AbstractController
             })
             ->toArray();
 
-        $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
+        $articlesWithoutLU = Stream::from($deliveryRequest->getArticleLines())
+            ->filterMap(function(DeliveryRequestArticleLine $line) use ($needsQuantitiesCheck, $deliveryRequest, $editable) {
+                $article = $line->getArticle();
+                if (!$article->getCurrentLogisticUnit()) {
+                    return [
+                        "reference" => $article->getArticleFournisseur()->getReferenceArticle()
+                            ? $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+                            : '',
+                        "label" => $article->getLabel() ?: '',
+                        "location" => $this->formatService->location($article->getEmplacement()),
+                        "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
+                        "quantityToPick" => $line->getQuantityToPick() ?: '',
+                        "barcode" => $article->getBarCode() ?? '',
+                        "error" => $needsQuantitiesCheck && $article->getQuantite() < $line->getQuantityToPick() && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON,
+                        "Actions" => $this->renderView(
+                            'demande/datatableLigneArticleRow.html.twig',
+                            [
+                                'id' => $line->getId(),
+                                'articleId' => $article->getId(),
+                                'name' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+                                'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
+                                'modifiable' => $editable,
+                            ]
+                        ),
+                    ];
+                } else {
+                    return null;
+                }
+            })->toArray();
+
+        $lines[0]['articles'] = array_merge($lines[0]['articles'], $references, $articlesWithoutLU);
         return $this->json([
             "success" => true,
             "html" => $this->renderView("demande/show/line-list.html.twig", [
