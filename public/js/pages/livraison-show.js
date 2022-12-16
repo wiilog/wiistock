@@ -64,10 +64,9 @@ function endLivraison($button) {
                     } else {
                         if (tableArticlesNotRequestedData) {
                             const modalArticlesNotRequested = $('#modal-articles-not-requested');
-                            modalArticlesNotRequested.find('.table-articles-not-requested-container').empty().append('<table class="table w-100" id ="table-articles-not-requested"></table>');
-
                             let tableArticlesNotRequestedConfig = {
                                 lengthMenu: [10, 25, 50],
+                                destroy: true,
                                 columns: [
                                     {data: 'barCode', name: 'barCode', title: 'Code barre', className: 'barCode'},
                                     {data: 'label', name: 'label', title: 'Libellé'},
