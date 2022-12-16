@@ -597,8 +597,8 @@ class LivraisonController extends AbstractController {
             'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
             'consignorUsername' => $consignorUsername,
             'consignorEmail' => $consignorEmail,
-            'receiverUsername' => $loggedUser->getUsername(),
-            'receiverEmail' => $loggedUser->getEmail()
+            'receiverUsername' => null,
+            'receiverEmail' => null
         ];
 
         $wayBillData = array_reduce(
