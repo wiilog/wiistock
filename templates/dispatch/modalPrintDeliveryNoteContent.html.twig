@@ -402,7 +402,8 @@
     </div>
 </div>
 <hr class="mb-4"/>
-{% if fromDelivery is defined and fromDelivery %}
+
+{% if fromDelivery is defined and not fromDelivery %}
     <div class="row">
         <div class="col-12">
             <div class="wii-section-title">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Ligne du BL') }}</div>
