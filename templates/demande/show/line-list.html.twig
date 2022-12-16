@@ -11,8 +11,8 @@
                     color: logisticUnit.color,
                     content: [
                         {label: 'Unité logistique', value: logisticUnit.code, bold: 'value'},
-                        {label: 'Emplacement', value: logisticUnit.location, bold: 'label'},
-                        {label: "Nombre d'articles demandé", value: logisticUnit.currentQuantity ~ "/" ~ logisticUnit.totalQuantity, bold: 'label'},
+                        {label: 'Emplacement', value: logisticUnit.location, bold: 'label', icon: 'iot-location'},
+                        {label: "Nombre d'articles demandé", value: logisticUnit.currentQuantity ~ "/" ~ logisticUnit.totalQuantity, bold: 'label', icon: 'quantity'},
                     ],
                 },
             content: line.articles,

@@ -443,7 +443,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
             } else if ($input.prev('label').text()){
                 missingInputNames.push($input.prev('label').text().replace('*', ''));
             }else if ($input.closest('label').find(`.wii-field-name`)){
-                missingInputNames.push(label);
+                missingInputNames.push(label || $input.closest('label').find(`.wii-field-name`).text());
             } else if (label && missingInputNames.indexOf(label) === -1) {
                 missingInputNames.push(label);
             }
