@@ -29,6 +29,7 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\TagTemplate;
 use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
@@ -53,6 +54,7 @@ use App\Service\ReceptionReferenceArticleService;
 use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
+use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
 use App\Service\TransferOrderService;
 use App\Service\TransferRequestService;
@@ -848,6 +850,7 @@ class ReceptionController extends AbstractController {
     public function show(EntityManagerInterface $entityManager,
                          SettingsService $settingsService,
                          ReceptionService $receptionService,
+                         TagTemplateService $tagTemplateService,
                          Reception $reception): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -896,6 +899,7 @@ class ReceptionController extends AbstractController {
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),
             'restrictedLocations' => $restrictedLocations,
+            "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),
         ]);
     }
 
@@ -1396,18 +1400,28 @@ class ReceptionController extends AbstractController {
                                          ArticleDataService $articleDataService,
                                          PDFGeneratorService $PDFGeneratorService): Response {
         $articleIds = json_decode($request->query->get('articleIds'), true);
-
+        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
+        $tag = $forceTagEmpty
+            ? null
+            : ($request->query->get('template')
+                ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+                : null);
         if(empty($articleIds)) {
             $barcodeConfigs = Stream::from($reception->getReceptionReferenceArticles())
-                ->flatMap(function(ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception) {
+                ->flatMap(function(ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception, $tag, $forceTagEmpty) {
                     $referenceArticle = $recepRef->getReferenceArticle();
 
-                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE && $forceTagEmpty) {
                         return [$refArticleDataService->getBarcodeConfig($referenceArticle)];
                     } else {
                         $articlesReception = $recepRef->getArticles()->toArray();
                         if (!empty($articlesReception)) {
                             return Stream::from($articlesReception)
+                                ->filter(function(Article $article) use ($forceTagEmpty, $tag) {
+                                    return
+                                        (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                                        (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
+                                })
                                 ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
                                 ->toArray();
                         }
@@ -1419,13 +1433,18 @@ class ReceptionController extends AbstractController {
         } else {
             $articles = $entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]);
             $barcodeConfigs = Stream::from($articles)
+                ->filter(function(Article $article) use ($forceTagEmpty, $tag) {
+                    return
+                        (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                        (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
+                })
                 ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReceptionLine()->getReception()))
                 ->toArray();
         }
 
         if(!empty($barcodeConfigs)) {
-            $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
-            $pdf = $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
+            $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception',$tag ? $tag->getPrefix() : 'ETQ');
+            $pdf = $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag);
             return new PdfResponse($pdf, $fileName);
         } else {
             throw new NotFoundHttpException('Aucune étiquette à imprimer');
@@ -2069,11 +2088,12 @@ class ReceptionController extends AbstractController {
                                                     Reception $reception,
                                                     ArticleDataService $articleDataService,
                                                     PDFGeneratorService $PDFGeneratorService): Response {
+        $tag = $article->getType()->getTags()->isEmpty() ? null : $article->getType()->getTags()->first();
         $barcodeConfigs = [$articleDataService->getBarcodeConfig($article, $reception)];
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article', $tag ? $tag->getPrefix() : 'ETQ');
 
         return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag),
             $fileName
         );
     }
