@@ -921,7 +921,7 @@ class DashboardSettingsService {
         $values['label'] = 'Livraison';
         $scale = $config['daysNumber'] ?? DashboardService::DEFAULT_DAILY_REQUESTS_SCALE;
         $displayDeliveryOrderContentChecked = $config['displayDeliveryOrderContentCheckbox'] ?? false;
-        $displayDeliveryOrderContentValue = $config['displayDeliveryOrderContent'];
+        $displayDeliveryOrderContentValue = $config['displayDeliveryOrderContent'] ?? null;
 
         // arrivals column
         if (!$example && isset($meterChart)) {
@@ -1061,6 +1061,20 @@ class DashboardSettingsService {
         if ($example) {
             $values = $componentType->getExampleValues();
 
+            $displayDeliveryOrderContentChecked = $config['displayDeliveryOrderContentCheckbox'] ?? false;
+            $displayDeliveryOrderContentValue = $config['displayDeliveryOrderContent'] ?? null;
+
+            if ($displayDeliveryOrderContentChecked) {
+                $values['subCounts'] = [
+                    $displayDeliveryOrderContentValue === 'displayLogisticUnitsCount'
+                        ? '<span>Nombre d\'unités logistiques</span>'
+                        : '<span>Nombre d\'articles</span>',
+                    '<span class="text-wii-black dashboard-stats dashboard-stats-counter">5</span>'
+                ];
+            } else {
+                unset($values['subCounts']);
+            }
+
             $convertedDelay = null;
             if(isset($config['treatmentDelay'])
                 && preg_match(Dashboard\ComponentType::ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY, $config['treatmentDelay'])) {
@@ -1072,14 +1086,16 @@ class DashboardSettingsService {
         } else {
             $values = [
                 'count' => $meter ? $meter->getCount() : '-',
-                'delay' => $meter ? $meter->getDelay() : '-'
+                'delay' => $meter ? $meter->getDelay() : '-',
+                'subCounts' => $meter ? $meter->getSubCounts() : []
             ];
+
+
         }
 
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {
             unset($values['delay']);
         }
-
         return $values;
     }
 

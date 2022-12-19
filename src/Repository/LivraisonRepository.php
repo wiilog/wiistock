@@ -286,10 +286,14 @@ class LivraisonRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int {
+    public function countByTypesAndStatuses(?array $types,
+                                            ?array $statuses,
+                                            $displayDeliveryOrderContentCheckbox,
+                                            $displayDeliveryOrderContent,
+                                            $displayDeliveryOrderWithExpectedDate) {
         if (!empty($types) && !empty($statuses)) {
             $qb = $this->createQueryBuilder('deliveryOrder')
-                ->select('COUNT(deliveryOrder)')
+                ->select('COUNT(DISTINCT deliveryOrder.id) as count')
                 ->leftJoin('deliveryOrder.statut', 'status')
                 ->leftJoin('deliveryOrder.preparation', 'preparation')
                 ->leftJoin('preparation.demande', 'request')
@@ -298,10 +302,26 @@ class LivraisonRepository extends EntityRepository
                 ->andWhere('type IN (:types)')
                 ->setParameter('statuses', $statuses)
                 ->setParameter('types', $types);
-
+            if ($displayDeliveryOrderWithExpectedDate) {
+                $qb
+                    ->andWhere('preparation.expectedAt IS NOT NULL');
+            }
+            if ($displayDeliveryOrderContentCheckbox) {
+                if ($displayDeliveryOrderContent === 'displayLogisticUnitsCount') {
+                    $qb
+                        ->leftJoin('preparation.articleLines', 'article_lines')
+                        ->leftJoin('article_lines.pack', 'pack')
+                        ->addSelect('COUNT(DISTINCT pack.id) as sub');
+                } else if ($displayDeliveryOrderContent === 'displayArticlesCount') {
+                    $qb
+                        ->leftJoin('preparation.articleLines', 'article_lines')
+                        ->addSelect('COUNT(DISTINCT article_lines.id) as sub');
+                }
+            }
             return $qb
                 ->getQuery()
-                ->getSingleScalarResult();
+                ->getResult();
+
         }
         else {
             return [];
