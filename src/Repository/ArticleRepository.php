@@ -510,8 +510,7 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function getByPreparationsIds($preparationsIds): array
-    {
+    public function getByPreparationsIds($preparationsIds): array {
         return $this->createQueryBuilder('article')
             ->select('article.reference AS reference')
             ->addSelect('join_location.label AS location')
@@ -522,8 +521,16 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.barCode AS barCode')
             ->addSelect('join_referenceArticle.reference AS reference_article_reference')
             ->addSelect('join_targetLocationPicking.label AS targetLocationPicking')
+            ->addSelect('join_lineLogisticUnit.id AS lineLogisticUnitId')
+            ->addSelect('join_lineLogisticUnit.code AS lineLogisticUnitCode')
+            ->addSelect('join_lineLogisticUnitNature.id AS lineLogisticUnitNatureId')
+            ->addSelect('join_lineLogisticUnitLastDropLocation.label AS lineLogisticUnitLocation')
             ->leftJoin('article.emplacement', 'join_location')
             ->join('article.preparationOrderLines', 'join_preparationLine')
+            ->join('join_preparationLine.pack', 'join_lineLogisticUnit')
+            ->join('join_lineLogisticUnit.lastDrop', 'join_lineLogisticUnitLastDrop')
+            ->join('join_lineLogisticUnitLastDrop.emplacement', 'join_lineLogisticUnitLastDropLocation')
+            ->join('join_lineLogisticUnit.nature', 'join_lineLogisticUnitNature')
             ->join('join_preparationLine.preparation', 'join_preparation')
             ->join('article.articleFournisseur', 'join_supplierArticle')
             ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
