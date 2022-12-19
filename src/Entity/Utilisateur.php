@@ -30,7 +30,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     const DEFAULT_ARTICLE_VISIBLE_COLUMNS = ["actions", "label", "reference", "articleReference", "type", "quantity", "location"];
     const DEFAULT_REFERENCE_VISIBLE_COLUMNS = ["actions", "label", "reference", "type", "availableQuantity", "stockQuantity", "location"];
-    const DEFAULT_ARRIVAL_VISIBLE_COLUMNS = ["date", "numeroArrivage", "transporteur", "chauffeur", "noTracking", "NumeroCommandeList", "fournisseur", "destinataire", "acheteurs", "NbUM", "customs", "frozen", "Statut", "Utilisateur", "urgent", "actions"];
+    const DEFAULT_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "arrivalNumber", "type", "status", "provider", "carrier", "nbUm", "user"];
     const DEFAULT_DISPATCH_VISIBLE_COLUMNS = ["number", "creationDate", "validationDate", "treatmentDate", "type", "requester", "receiver", "locationFrom", "locationTo", "nbPacks", "status", "emergency", "actions"];
     const DEFAULT_TRACKING_MOVEMENT_VISIBLE_COLUMNS = ["origin", "date", "colis", "reference", "label", "quantity", "location", "type", "operateur", "group"];
     const DEFAULT_DISPUTE_VISIBLE_COLUMNS = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
