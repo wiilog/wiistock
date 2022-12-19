@@ -50,7 +50,7 @@ $(function () {
 function loadLogisticUnitList(preparationId) {
     const $logisticUnitsContainer = $('.logistic-units-container');
     wrapLoadingOnActionButton($logisticUnitsContainer, () => (
-        AJAX.route('GET', 'preparation_order_logistics_unit_api', {id: preparationId})
+        AJAX.route('GET', 'preparation_order_logistic_units_api', {id: preparationId})
             .json()
             .then(({html}) => {
                 $logisticUnitsContainer.html(html);

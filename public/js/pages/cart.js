@@ -27,7 +27,7 @@ $(document).ready(() => {
     const requestType = $requestTypeRadio.val();
     const $cartContentContainers = $('.wii-form > .cart-content');
     const $cartContentToShow = $cartContentContainers.filter(`[data-request-type="${requestType}"]`);
-    if (containsLogisticsUnit($cartContentToShow)) {
+    if (containsLogisticUnits($cartContentToShow)) {
         loadLogisticUnitsCartForm($requestTypeRadio, $addOrCreate, $existingPurchase);
     }
     else {
@@ -313,7 +313,7 @@ function loadLogisticUnitsCartForm($requestType, $addOrCreate, $existingPurchase
 
     const $cartContentToShow = $cartContentContainers.filter(`[data-request-type="${requestType}"]`);
 
-    if (containsLogisticsUnit($cartContentToShow)) {
+    if (containsLogisticUnits($cartContentToShow)) {
         $cartContentToShow.removeClass('d-none');
         $cartContentToShow
             .find('.data-save')
@@ -346,7 +346,7 @@ function containsReferences($container) {
     return ($cartReferenceContainers.length > 0);
 }
 
-function containsLogisticsUnit($container) {
+function containsLogisticUnits($container) {
     const $numberUL = $container.find(`input[name=articlesInCart]`).val();
     return ($numberUL > 0);
 }
@@ -357,7 +357,7 @@ function loadLogisticUnitPack() {
     wrapLoadingOnActionButton(
         $logisticUnitsContainer,
         () => (
-            AJAX.route('POST', 'articles_logistics_unit_api', {})
+            AJAX.route('POST', 'articles_logistic_units_api', {})
                 .json()
                 .then(({html}) => {
                     $logisticUnitsContainer.html(html);

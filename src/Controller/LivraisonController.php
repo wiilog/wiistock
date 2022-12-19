@@ -121,18 +121,11 @@ class LivraisonController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    #[Route("/delivery-order-logistics-unit-api", name: "delivery_order_logistics_unit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/delivery-order-logistic-units-api", name: "delivery_order_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR], mode: HasPermission::IN_JSON)]
-    public function logisticsUnitApi(Request $request, EntityManagerInterface $manager): Response {
+    public function logisticUnitsApi(Request $request, EntityManagerInterface $manager): Response {
         $deliveryOrder = $manager->find(Livraison::class, $request->query->get('id'));
         $preparationOrder = $deliveryOrder->getPreparation();
-        $logisticsUnits = [null];
-        foreach ($preparationOrder->getArticleLines() as $articleLine) {
-            $article = $articleLine->getArticle();
-            if ($article->getCurrentLogisticUnit() && !in_array($article->getCurrentLogisticUnit(), $logisticsUnits)) {
-                $logisticsUnits[] = $article->getCurrentLogisticUnit();
-            }
-        }
 
         $lines = Stream::from($preparationOrder->getArticleLines())
             ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack())
@@ -142,16 +135,16 @@ class LivraisonController extends AbstractController {
             ->map(fn(?Pack $logisticUnit) => [
                 "pack" => $logisticUnit
                     ? [
-                        "packId" => $logisticUnit?->getId(),
-                        "code" => $logisticUnit?->getCode() ?? null,
-                        "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
-                        "project" => $logisticUnit?->getProject()?->getCode() ?? null,
-                        "nature" => $this->formatService->nature($logisticUnit?->getNature()),
-                        "color" => $logisticUnit?->getNature()?->getColor() ?? null,
+                        "packId" => $logisticUnit->getId(),
+                        "code" => $logisticUnit->getCode(),
+                        "location" => $this->formatService->location($logisticUnit->getLastDrop()?->getEmplacement()),
+                        "project" => $logisticUnit->getProject()?->getCode(),
+                        "nature" => $this->formatService->nature($logisticUnit->getNature()),
+                        "color" => $logisticUnit?->getNature()->getColor(),
                         "currentQuantity" => Stream::from($preparationOrder->getArticleLines()
                             ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit))
                             ->count(),
-                        "totalQuantity" => $logisticUnit?->getChildArticles() ? $logisticUnit->getChildArticles()->count() : null,
+                        "totalQuantity" => $logisticUnit->getChildArticles()->count(),
                     ]
                     : null,
                 "articles" => Stream::from($preparationOrder->getArticleLines())

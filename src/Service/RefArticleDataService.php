@@ -625,7 +625,7 @@ class RefArticleDataService {
                         ->setTargetLocationPicking($targetLocationPicking);
                     $entityManager->persist($line);
                 } else {
-                    $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande, true);
+                    $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                     $line->setQuantityToPick($line->getQuantityToPick() + max($data["quantity-to-pick"], 0));
                 }
             } else {

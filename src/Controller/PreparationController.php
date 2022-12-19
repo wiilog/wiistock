@@ -136,9 +136,9 @@ class PreparationController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/preparation-order-logistics-unit-api", name: "preparation_order_logistics_unit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/preparation-order-logistic-units-api", name: "preparation_order_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA], mode: HasPermission::IN_JSON)]
-    public function logisticsUnitApi(Request $request, EntityManagerInterface $manager): Response {
+    public function logisticUnitsApi(Request $request, EntityManagerInterface $manager): Response {
         $preparationOrder = $manager->find(Preparation::class, $request->query->get('id'));
 
         $preparationStatut = $preparationOrder->getStatut()->getCode();
@@ -181,6 +181,7 @@ class PreparationController extends AbstractController
                             "quantityToPick" => $line->getQuantityToPick(),
                             "pickedQuantity" => $line->getPickedQuantity(),
                             "lineId" => $line->getId(),
+                            "active" => !empty($line->getPickedQuantity()),
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                                 'barcode' => $article->getBarCode(),
                                 'artOrRefId' => $article->getId(),
@@ -190,7 +191,7 @@ class PreparationController extends AbstractController
                                 'id' => $line->getId(),
                                 'isPrepaEditable' => $isPrepaEditable,
                                 'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement(),
-                                'inLogisticUnit' => true
+                                'inLogisticUnit' => (bool) $line->getPack()
                             ]),
                         ];
                     })
@@ -210,7 +211,7 @@ class PreparationController extends AbstractController
                     "quantity" => $articleRef->getQuantiteStock(),
                     "quantityToPick" => $line->getQuantityToPick() ?: ' ',
                     "pickedQuantity" => $line->getPickedQuantity() ?: ' ',
-                    'active' => !empty($line->getPickedQuantity()),
+                    "active" => !empty($line->getPickedQuantity()),
                     "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                         'barcode' => $articleRef->getBarCode(),
                         'isRef' => true,
@@ -499,7 +500,8 @@ class PreparationController extends AbstractController
         $lines = Stream::from($data)->some(fn(string|array $value) => is_array($value)) ? $data : [$data];
 
         foreach ($lines as $data) {
-            $line = isset($data['isRef'])
+            dump(!empty($data['isRef']));
+            $line = !empty($data['isRef'])
                 ? $preparationOrderReferenceLineRepository->find($data['ligneArticle'])
                 : $preparationOrderArticleLineRepository->find($data['ligneArticle']);
 
