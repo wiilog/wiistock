@@ -139,39 +139,43 @@ class LivraisonController extends AbstractController {
             }
         }
 
-        $lines = Stream::from($logisticsUnits)
+        $lines = Stream::from($preparationOrder->getArticleLines())
+            ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack())
+            ->unique()
+            // null packs in first
+            ->sort(fn(?Pack $logisticUnit1, ?Pack $logisticUnit2) => ($logisticUnit1?->getCode() <=> $logisticUnit2?->getCode()))
             ->map(fn(?Pack $logisticUnit) => [
-                "pack" => [
-                    "packId" => $logisticUnit?->getId(),
-                    "code" => $logisticUnit?->getCode() ?? null,
-                    "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
-                    "project" => $logisticUnit?->getProject()?->getCode() ?? null,
-                    "nature" => $this->formatService->nature($logisticUnit?->getNature()),
-                    "color" => $logisticUnit?->getNature()?->getColor() ?? null,
-                    "currentQuantity" => Stream::from($preparationOrder->getArticleLines()
-                        ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit))
-                        ->count(),
-                    "totalQuantity" => $logisticUnit?->getChildArticles() ? $logisticUnit->getChildArticles()->count() : null,
-                ],
+                "pack" => $logisticUnit
+                    ? [
+                        "packId" => $logisticUnit?->getId(),
+                        "code" => $logisticUnit?->getCode() ?? null,
+                        "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
+                        "project" => $logisticUnit?->getProject()?->getCode() ?? null,
+                        "nature" => $this->formatService->nature($logisticUnit?->getNature()),
+                        "color" => $logisticUnit?->getNature()?->getColor() ?? null,
+                        "currentQuantity" => Stream::from($preparationOrder->getArticleLines()
+                            ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit))
+                            ->count(),
+                        "totalQuantity" => $logisticUnit?->getChildArticles() ? $logisticUnit->getChildArticles()->count() : null,
+                    ]
+                    : null,
                 "articles" => Stream::from($preparationOrder->getArticleLines())
-                    ->filterMap(function(PreparationOrderArticleLine $line) use ($logisticUnit) {
+                    ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
+                    ->map(function(PreparationOrderArticleLine $line) {
                         $article = $line->getArticle();
-                        if ($logisticUnit && $article->getCurrentLogisticUnit()?->getId() == $logisticUnit->getId()) {
-                            return [
-                                "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
-                                "barCode" => $article->getBarCode() ?: '',
-                                "label" => $article->getLabel() ?: '',
-                                "quantity" => $line->getPickedQuantity(),
-                                "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                                    'id' => $article->getId(),
-                                ]),
-                            ];
-                        } else {
-                            return null;
-                        }
+                        return [
+                            "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                            "barCode" => $article->getBarCode() ?: '',
+                            "label" => $article->getLabel() ?: '',
+                            "quantity" => $line->getPickedQuantity(),
+                            "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                                'id' => $article->getId(),
+                            ]),
+                        ];
                     })
                     ->values(),
-            ])->toArray();
+            ])
+            ->values();
 
         $references = Stream::from($preparationOrder->getReferenceLines())
             ->map(function(PreparationOrderReferenceLine $line) {
@@ -188,6 +192,13 @@ class LivraisonController extends AbstractController {
                 ];
             })
             ->toArray();
+
+        if (!isset($lines[0]) || $lines[0]['pack'] !== null) {
+            array_unshift($lines, [
+                'pack' => null,
+                'articles' => [],
+            ]);
+        }
 
         $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
         return $this->json([
@@ -310,7 +321,7 @@ class LivraisonController extends AbstractController {
             'success' => true,
             'redirect' => $this->generateUrl('preparation_show', [
                 'id' => $preparation->getId(),
-                ]),
+            ]),
         ]);
     }
 

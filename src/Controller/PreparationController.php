@@ -141,66 +141,63 @@ class PreparationController extends AbstractController
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA], mode: HasPermission::IN_JSON)]
     public function logisticsUnitApi(Request $request, EntityManagerInterface $manager): Response {
         $preparationOrder = $manager->find(Preparation::class, $request->query->get('id'));
-        $logisticsUnits = [null];
-        foreach ($preparationOrder->getArticleLines() as $articleLine) {
-            $article = $articleLine->getArticle();
-            if ($article->getCurrentLogisticUnit() && !in_array($article->getCurrentLogisticUnit(), $logisticsUnits)) {
-                $logisticsUnits[] = $article->getCurrentLogisticUnit();
-            }
-        }
 
         $preparationStatut = $preparationOrder->getStatut()->getCode();
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
             || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparationOrder->getUtilisateur() == $this->getUser());
-        $lines = Stream::from($logisticsUnits)
+        $lines = Stream::from($preparationOrder->getArticleLines())
+            ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack())
+            ->unique()
+            // null packs in first
+            ->sort(fn(?Pack $logisticUnit1, ?Pack $logisticUnit2) => ($logisticUnit1?->getCode() <=> $logisticUnit2?->getCode()))
             ->map(fn(?Pack $logisticUnit) => [
-                "pack" => [
-                    "packId" => $logisticUnit?->getId(),
-                    "code" => $logisticUnit?->getCode() ?? null,
-                    "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
-                    "project" => $logisticUnit?->getProject()?->getCode() ?? null,
-                    "nature" => $this->formatService->nature($logisticUnit?->getNature()),
-                    "color" => $logisticUnit?->getNature()?->getColor() ?? null,
-                    "quantity" => Stream::from($preparationOrder->getArticleLines())
-                        ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() && $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit)
-                        ->reduce(fn(int $total, PreparationOrderArticleLine $line) => $total + $line->getPickedQuantity()) ?: '-',
-                    "quantityArticleInLocation" => $logisticUnit?->getChildArticles() ? count($logisticUnit?->getChildArticles()) : null,
-                    "alreadyTreated" => Stream::from($preparationOrder->getArticleLines())
-                        ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack() === $logisticUnit)
-                        ->every(fn(PreparationOrderArticleLine $line) => $line->getPickedQuantity() !== 0)
-                ],
+                "pack" => $logisticUnit
+                    ? [
+                        "packId" => $logisticUnit?->getId(),
+                        "code" => $logisticUnit?->getCode() ?? null,
+                        "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
+                        "project" => $logisticUnit?->getProject()?->getCode() ?? null,
+                        "nature" => $this->formatService->nature($logisticUnit?->getNature()),
+                        "color" => $logisticUnit?->getNature()?->getColor() ?? null,
+                        "quantity" => Stream::from($preparationOrder->getArticleLines())
+                            ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() && $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit)
+                            ->reduce(fn(int $total, PreparationOrderArticleLine $line) => $total + $line->getPickedQuantity()) ?: '-',
+                        "quantityArticleInLocation" => $logisticUnit?->getChildArticles()?->count() ?: null,
+                        "alreadyTreated" => Stream::from($preparationOrder->getArticleLines())
+                            ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack() === $logisticUnit)
+                            ->every(fn(PreparationOrderArticleLine $line) => $line->getPickedQuantity() !== 0)
+                    ]
+                    : null,
                 "articles" => Stream::from($preparationOrder->getArticleLines())
-                    ->filterMap(function(PreparationOrderArticleLine $line) use ($logisticUnit, $isPrepaEditable) {
+                    ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
+                    ->map(function(PreparationOrderArticleLine $line) use ($isPrepaEditable) {
                         $article = $line->getArticle();
-                        if ($logisticUnit && $article->getCurrentLogisticUnit()?->getId() == $logisticUnit->getId()) {
-                            return [
-                                "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
-                                "barcode" => $article->getBarCode() ?: '',
-                                "label" => $article->getLabel() ?: '',
-                                "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
-                                "quantity" => $article->getQuantite(),
-                                "quantityToPick" => $line->getQuantityToPick(),
-                                "pickedQuantity" => $line->getPickedQuantity(),
-                                "lineId" => $line->getId(),
-                                "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                                    'barcode' => $article->getBarCode(),
-                                    'artOrRefId' => $article->getId(),
-                                    'isRef' => false,
-                                    'isRefByArt' => false,
-                                    'quantity' => $line->getPickedQuantity(),
-                                    'id' => $line->getId(),
-                                    'isPrepaEditable' => $isPrepaEditable,
-                                    'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement(),
-                                    'inLogisticUnit' => true
-                                ]),
-                            ];
-                        } else {
-                            return null;
-                        }
+                        return [
+                            "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                            "barcode" => $article->getBarCode() ?: '',
+                            "label" => $article->getLabel() ?: '',
+                            "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
+                            "quantity" => $article->getQuantite(),
+                            "quantityToPick" => $line->getQuantityToPick(),
+                            "pickedQuantity" => $line->getPickedQuantity(),
+                            "lineId" => $line->getId(),
+                            "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                                'barcode' => $article->getBarCode(),
+                                'artOrRefId' => $article->getId(),
+                                'isRef' => false,
+                                'isRefByArt' => false,
+                                'quantity' => $line->getPickedQuantity(),
+                                'id' => $line->getId(),
+                                'isPrepaEditable' => $isPrepaEditable,
+                                'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement(),
+                                'inLogisticUnit' => true
+                            ]),
+                        ];
                     })
                     ->values(),
-            ])->toArray();
+            ])
+            ->values();
 
         $references = Stream::from($preparationOrder->getReferenceLines())
             ->map(function(PreparationOrderReferenceLine $line) use ($isPrepaEditable) {
@@ -228,6 +225,13 @@ class PreparationController extends AbstractController
                 ];
             })
             ->toArray();
+
+        if (!isset($lines[0]) || $lines[0]['pack'] !== null) {
+            array_unshift($lines, [
+                'pack' => null,
+                'articles' => [],
+            ]);
+        }
 
         $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
         return $this->json([
