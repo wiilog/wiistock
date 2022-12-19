@@ -755,7 +755,7 @@ class ArrivageService {
                 ["code" => FieldsParam::FIELD_CODE_ARRIVAL_CREATOR, "label" => $this->translation->translate('Traçabilité', 'Général', 'Utilisateur', false)],
             ],
             Stream::from($arrivalFields)
-                ->filter(fn(FieldsParam $field) => !in_array($field->getFieldCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE]))
+                ->filter(fn(FieldsParam $field) => !in_array($field->getFieldCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT]))
                 ->map(fn(FieldsParam $field) => [
                     "code" => $field->getFieldCode(),
                     "label" => match($field->getFieldCode()) {

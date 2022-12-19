@@ -130,7 +130,8 @@ class DisputeRepository extends EntityRepository
             ->createQueryBuilderByDates($dateMin, $dateMax, $statuses)
             ->join('dispute.articles', 'article')
             ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
-            ->join('receptionReferenceArticle.reception', 'reception')
+            ->join('receptionReferenceArticle.receptionLine', 'receptionLine')
+            ->join('receptionLine.reception', 'reception')
             ->getQuery()
             ->toIterable();
 	}
