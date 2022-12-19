@@ -91,6 +91,10 @@ function loadDashboards(m, refreshRate) {
         .arrive(".segments-list .segment-hour", function () {
             onSegmentInputChange($(this), true);
         });
+
+    $(document).on(`change`, `input[name=displayDeliveryOrderContentCheckbox]`, function () {
+        $(this).closest(`.wii-checkbox`).next().toggleClass(`d-none`, !$(this).is(`:checked`));
+    });
 }
 
 function registerComponentOnChange() {

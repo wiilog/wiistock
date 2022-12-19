@@ -37,6 +37,7 @@ const REFERENCE_RELIABILITY = 'reference_reliability';
 const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
 const HANDLING_TRACKING = 'handling_tracking';
+const DAILY_DELIVERY_ORDERS = 'daily_delivery_orders';
 
 const SECURITY_PADDING = 0;
 let DELAYS = {};
@@ -139,6 +140,9 @@ const creators = {
         callback: createExternalImage
     },
     [HANDLING_TRACKING]: {
+        callback: createChart
+    },
+    [DAILY_DELIVERY_ORDERS]: {
         callback: createChart
     },
 };

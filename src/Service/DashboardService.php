@@ -42,6 +42,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use InvalidArgumentException;
+use function PHPUnit\Framework\matches;
 
 class DashboardService {
 
@@ -1358,5 +1359,111 @@ class DashboardService {
                 ->setColis($lastLate['colis']);
             $entityManager->persist($latePack);
         }
+    }
+
+    public function persistDailyDeliveryOrders(EntityManagerInterface $entityManager,
+                                               Dashboard\Component $component): void {
+        $config = $component->getConfig();
+        $deliveryOrderStatusesFilter = $config['deliveryOrderStatuses'] ?? [];
+        $deliveryOrderTypesFilter = $config['deliveryOrderTypes'] ?? [];
+        $scale = $config['daysNumber'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
+        $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
+        $date = $config['date'];
+
+        $deliveryOrderRepository = $entityManager->getRepository(Livraison::class);
+
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+        $getDailyObjectsStatisticsCallable = 'getDailyObjectsStatistics';
+
+        $type = match ($config['date']) {
+            'validationDate'  => "de validation",
+            'treatmentDate'   => "de traitement",
+            default           => "date attendue",
+        };
+        $hint = "Nombre d'ordres de livraison ayant leur $type sur les jours présentés";
+
+        $chartData = $this->{$getDailyObjectsStatisticsCallable}(
+            $entityManager,
+            $scale,
+            function(DateTime $dateMin, DateTime $dateMax) use ($deliveryOrderRepository, $deliveryOrderStatusesFilter, $deliveryOrderTypesFilter, $date) {
+                return $deliveryOrderRepository->countByDates(
+                    $dateMin,
+                    $dateMax,
+                    [
+                        'deliveryOrderStatusesFilter' => $deliveryOrderStatusesFilter,
+                        'deliveryOrderTypesFilter' => $deliveryOrderTypesFilter,
+                        'date' => $date
+                    ]
+                );
+            },
+            $workFreeDays,
+            $period
+        );
+
+        if ($config['displayDeliveryOrderContentCheckbox'] && $scale) {
+            $deliveryOrderContent = $this->getDeliveryOrderContent(
+                $entityManager,
+                $getDailyObjectsStatisticsCallable,
+                $scale,
+                $deliveryOrderStatusesFilter,
+                $deliveryOrderTypesFilter,
+                $workFreeDays,
+                [
+                    'displayDeliveryOrderContent' => $config['displayDeliveryOrderContent'],
+                    'date' => $date,
+                ]
+            );
+
+            if ($deliveryOrderContent) {
+                $chartData['stack'] = $deliveryOrderContent;
+            }
+
+            if(isset($config['chartColor1'])) {
+                $chartData['stack'][0]['backgroundColor'] = $config['chartColor1'];
+            }
+        }
+
+        $chartColors = $config['chartColors'] ?? [];
+        $chartData['hint'] = $hint;
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+        $meter
+            ->setData($chartData);
+        if ($chartColors) {
+            $meter->setChartColors($chartColors);
+        }
+    }
+
+    public function getDeliveryOrderContent(EntityManagerInterface $entityManager,
+                                            string $getObjectsStatisticsCallable,
+                                            int $scale,
+                                            array $deliveryOrderStatusesFilter,
+                                            array $deliveryOrderTypesFilter,
+                                            array $workFreeDays,
+                                            array $options = []): array {
+        $deliveryOrderRepository = $entityManager->getRepository(Livraison::class);
+
+        $contentCountByDay = $this->{$getObjectsStatisticsCallable}(
+            $entityManager,
+            $scale,
+            function(DateTime $dateMin, DateTime $dateMax) use ($deliveryOrderRepository, $deliveryOrderStatusesFilter, $deliveryOrderTypesFilter, $options) {
+                return $deliveryOrderRepository->countContentByDates($dateMin, $dateMax, $deliveryOrderStatusesFilter, $deliveryOrderTypesFilter, $options);
+            },
+            $workFreeDays
+        );
+
+        $contentStack[] = [
+            'label' => 'UL',
+            'backgroundColor' => '#E5E1E1',
+            'stack' => 'stack',
+            'data' => []
+        ];
+
+        foreach ($contentCountByDay as $contentCount) {
+            $contentStack[0]['data'][] = $contentCount;
+        }
+
+        return array_values($contentStack);
     }
 }
