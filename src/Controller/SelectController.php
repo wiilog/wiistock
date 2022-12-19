@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Customer;
@@ -17,7 +16,6 @@ use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Project;
-use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Entity\Setting;
 use App\Entity\PurchaseRequest;

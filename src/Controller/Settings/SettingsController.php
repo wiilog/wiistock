@@ -23,7 +23,6 @@ use App\Entity\Language;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;

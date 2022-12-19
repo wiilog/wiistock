@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
-use App\Service\DisputeService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Utilisateur;
 use Symfony\Component\HttpFoundation\JsonResponse;

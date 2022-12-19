@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;

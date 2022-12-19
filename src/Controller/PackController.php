@@ -13,7 +13,6 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 
-use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
 use App\Entity\ReceptionLine;
