@@ -536,11 +536,70 @@ class PreparationsManagerService
                             ->setDate($now)
                             ->setPreparationOrder($preparation);
                         $entityManager->persist($mouvement);
+
+                        //création du mouvement de tracabilite
+                        $trackingMovement = $this->trackingMovementService->createTrackingMovement(
+                            $article->getBarCode(),
+                            $article->getEmplacement(),
+                            $user,
+                            $now,
+                            false,
+                            false,
+                            TrackingMovement::TYPE_PRISE,
+                            ['mouvementStock'=>$mouvement]
+
+                        );
+                        $entityManager->persist($trackingMovement);
+                        $trackingMovement = $this->trackingMovementService->createTrackingMovement(
+                            $article->getBarCode(),
+                            $endLocation,
+                            $user,
+                            $now,
+                            false,
+                            false,
+                            TrackingMovement::TYPE_DEPOSE,
+                            ['mouvementStock'=>$mouvement]
+                        );
+                        $entityManager->persist($trackingMovement);
+                        $ulToMove[] = $article->getCurrentLogisticUnit();
                     }
                     $entityManager->flush();
                 }
                 else {
                     throw new NegativeQuantityException($article);
+                }
+            }
+        }
+
+        if (isset($ulToMove)){
+            foreach (array_unique($ulToMove) as $lu) {
+                if ($lu != null){
+                    $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                        $lu,
+                        $lu->getLastDrop()->getEmplacement(),
+                        $user,
+                        $now,
+                        false,
+                        false,
+                        TrackingMovement::TYPE_PRISE,
+                        ['mouvementStock'=>$mouvement]
+
+                    );
+                    $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                        $lu,
+                        $endLocation,
+                        $user,
+                        $now,
+                        false,
+                        false,
+                        TrackingMovement::TYPE_DEPOSE,
+                        ['mouvementStock'=>$mouvement]
+
+                    );
+                    $this->entityManager->persist($pickTrackingMovement);
+                    $this->entityManager->persist($DropTrackingMovement);
+
+                    $lu->setLastDrop($DropTrackingMovement)->setLastTracking($DropTrackingMovement);
                 }
             }
         }
@@ -564,21 +623,6 @@ class PreparationsManagerService
                 else {
                     throw new NegativeQuantityException($articleRef);
                 }
-            }
-        }
-
-        $previousLogisticUnit = null;
-        foreach ($articleLines as $line) {
-            $logisticUnit = $line->getArticle()->getCurrentLogisticUnit();
-            if($logisticUnit && $line->getArticle()->getQuantite() >= $line->getPickedQuantity()) {
-                if($logisticUnit !== $previousLogisticUnit) {
-                    $trackingMovement = $this->trackingMovementService->createTrackingMovement($logisticUnit->getCode(), $endLocation, $user, $now, false, false, TrackingMovement::TYPE_PRISE_DEPOSE);
-                    $this->entityManager->persist($trackingMovement);
-                    $previousLogisticUnit = $logisticUnit;
-                    $logisticUnit->setLastDrop($trackingMovement)->setLastTracking($trackingMovement);
-                }
-                $trackingMovement = $this->trackingMovementService->createTrackingMovement($line->getArticle()->getBarCode(), $endLocation, $user, $now, false, false, TrackingMovement::TYPE_PRISE_DEPOSE);
-                $this->entityManager->persist($trackingMovement);
             }
         }
 

@@ -146,6 +146,11 @@ class TrackingMovementService extends AbstractController
                 $data ['fromLabel'] = 'Transfert de stock';
                 $data ['entityId'] = $movement->getMouvementStock()->getTransferOrder()->getId();
                 $data ['from'] = $movement->getMouvementStock()->getTransferOrder()->getNumber();
+            } else if ($movement->getMouvementStock() && $movement->getMouvementStock()->getPreparationOrder()) {
+                $data ['entityPath'] = 'preparation_show';
+                $data ['fromLabel'] = 'Préparation';
+                $data ['entityId'] = $movement->getMouvementStock()->getPreparationOrder()->getId();
+                $data ['from'] = $movement->getMouvementStock()->getPreparationOrder()->getNumero();
             }
         }
         return $data;
@@ -173,7 +178,7 @@ class TrackingMovementService extends AbstractController
                 $pack = $movement->getLogisticUnitParent()->getCode();
             }
         } else {
-            $pack = $movement->getPack()->getCode();
+            $pack = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
         }
 
         $row = [
