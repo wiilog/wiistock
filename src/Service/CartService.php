@@ -204,7 +204,7 @@ class CartService {
                 ->setExpectedAt($expectedAt)
                 ->setCreatedAt(new DateTime('now'))
                 ->setDestination($destination)
-                ->setCommentaire(StringHelper::cleanedComment($data['comment']))
+                ->setCommentaire(StringHelper::cleanedComment($data['comment'] ?? null))
                 ->setStatut($draft);
 
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);

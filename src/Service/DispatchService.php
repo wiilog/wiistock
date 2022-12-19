@@ -768,7 +768,7 @@ class DispatchService {
         $packRepository = $entityManager->getRepository(Pack::class);
 
         foreach($packs as $pack) {
-            $comment = $pack['packComment'];
+            $comment = $pack['packComment'] ?? null;
             $packId = $pack['packId'];
             $packQuantity = (int)$pack['packQuantity'];
             $pack = $packRepository->find($packId);

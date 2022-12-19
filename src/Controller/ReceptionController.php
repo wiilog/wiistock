@@ -182,7 +182,7 @@ class ReceptionController extends AbstractController {
                     !empty($data['dateCommande'])
                         ? new DateTime(str_replace('/', '-', $data['dateCommande']))
                         : null)
-                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null);
+                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
 
             $reception->removeIfNotIn($data['files'] ?? []);
 
@@ -620,7 +620,7 @@ class ReceptionController extends AbstractController {
                 $receptionReferenceArticle
                     ->setCommande($commande)
                     ->setAnomalie($contentData['anomalie'])
-                    ->setCommentaire(StringHelper::cleanedComment($contentData['commentaire']))
+                    ->setCommentaire(StringHelper::cleanedComment($contentData['commentaire'] ?? null))
                     ->setReferenceArticle($refArticle)
                     ->setQuantiteAR(max($contentData['quantiteAR'], 1));// protection contre quantités négatives ou nulles
 
@@ -745,7 +745,7 @@ class ReceptionController extends AbstractController {
                 ->setCommande($orderNumber)
                 ->setAnomalie($data['anomalie'])
                 ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
+                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();

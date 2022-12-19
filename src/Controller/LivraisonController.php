@@ -431,6 +431,7 @@ class LivraisonController extends AbstractController {
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EMERGENCY),
+            'fromDelivery' => $request->query->getBoolean('fromDelivery'),
         ]));
 
         return $this->json([
@@ -596,8 +597,8 @@ class LivraisonController extends AbstractController {
             'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
             'consignorUsername' => $consignorUsername,
             'consignorEmail' => $consignorEmail,
-            'receiverUsername' => $loggedUser->getUsername(),
-            'receiverEmail' => $loggedUser->getEmail()
+            'receiverUsername' => null,
+            'receiverEmail' => null
         ];
 
         $wayBillData = array_reduce(

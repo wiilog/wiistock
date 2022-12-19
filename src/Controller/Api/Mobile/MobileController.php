@@ -2082,7 +2082,6 @@ class MobileController extends AbstractApiController
                 'barCode' => $barCode,
             ]);
             if (!empty($referenceArticle) && (!$location || $referenceArticle->getEmplacement()->getLabel() === $location)) {
-                dump('dump 1');
                 $statusReferenceArticle = $referenceArticle->getStatut();
                 $statusReferenceId = $statusReferenceArticle ? $statusReferenceArticle->getId() : null;
                 // we can transfer if reference is active AND it is not linked to any active orders
