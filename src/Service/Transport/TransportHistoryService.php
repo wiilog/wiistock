@@ -22,6 +22,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class TransportHistoryService {
 

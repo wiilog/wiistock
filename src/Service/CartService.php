@@ -285,7 +285,7 @@ class CartService {
                 ->setObjet($data['object'])
                 ->setStockOrDestruct($data['destination'] === 'destruction' ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE)
                 ->setPointCollecte($collectLocation)
-                ->setCommentaire(StringHelper::cleanedComment($data['comment']))
+                ->setCommentaire(StringHelper::cleanedComment($data['comment'] ?? null))
                 ->setDemandeur($user);
 
             $this->freeFieldService->manageFreeFields($collectRequest, $data, $manager);
