@@ -744,11 +744,11 @@ class MobileController extends AbstractApiController
                                     $emplacementPrepa
                                 );
 
-                                $trackingMovementPrise = $this->trackingMovementService->createTrackingMovement(
+                                $trackingMovementPick = $this->trackingMovementService->createTrackingMovement(
                                     $movement->getArticle()->getBarCode(),
                                     $movement->getEmplacementFrom(),
                                     $nomadUser,
-                                    new DateTime('now'),
+                                    $dateEnd,
                                     true,
                                     true,
                                     TrackingMovement::TYPE_PRISE,
@@ -757,13 +757,13 @@ class MobileController extends AbstractApiController
                                         'preparation' => $preparation,
                                     ]
                                 );
-                                $entityManager->persist($trackingMovementPrise);
+                                $entityManager->persist($trackingMovementPick);
 
-                                $trackingMovementDepose = $this->trackingMovementService->createTrackingMovement(
+                                $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
                                      $movement->getArticle()->getBarCode(),
                                     $movement->getEmplacementTo(),
                                     $nomadUser,
-                                    new DateTime('now'),
+                                    $dateEnd,
                                     true,
                                     true,
                                     TrackingMovement::TYPE_DEPOSE,
@@ -773,10 +773,42 @@ class MobileController extends AbstractApiController
                                     ],
                                 );
 
-                                $trackingMovementDepose->setPreparation($preparation);
-                                $entityManager->persist($trackingMovementDepose);
+                                $trackingMovementDrop->setPreparation($preparation);
+                                $entityManager->persist($trackingMovementDrop);
+                                $ulToMove[] = $movement->getArticle()?->getCurrentLogisticUnit();
 
                                 $entityManager->flush();
+                            }
+                        }
+                        if (isset($ulToMove)){
+                            foreach (array_unique($ulToMove) as $lu) {
+                                if ($lu != null){
+                                    $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                                        $lu,
+                                        $lu->getLastDrop()->getEmplacement(),
+                                        $nomadUser,
+                                        $dateEnd,
+                                        true,
+                                        true,
+                                        TrackingMovement::TYPE_PRISE,
+                                        ['preparation' => $preparation]
+
+                                    );
+                                    $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                                        $lu,
+                                        $emplacementPrepa,
+                                        $nomadUser,
+                                        $dateEnd,
+                                        true,
+                                        true,
+                                        TrackingMovement::TYPE_DEPOSE,
+                                        ['preparation' => $preparation]
+                                    );
+                                    $entityManager->persist($pickTrackingMovement);
+                                    $entityManager->persist($DropTrackingMovement);
+
+                                    $lu->setLastDrop($DropTrackingMovement)->setLastTracking($DropTrackingMovement);
+                                }
                             }
                         }
 

@@ -117,6 +117,7 @@ class PreparationsManagerService
                                                     Utilisateur            $user) {
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $movements = $mouvementStockRepository->findByPreparation($preparation);
+        $now = new DateTime('now');
         foreach ($movements as $movement) {
             if ($movement->getType() === MouvementStock::TYPE_TRANSFER) {
                 $this->createMovementLivraison(
@@ -131,11 +132,11 @@ class PreparationsManagerService
                     $locationEndPrepa
                 );
 
-                $trackingMovementPrise = $this->trackingMovementService->createTrackingMovement(
+                $trackingMovementPick= $this->trackingMovementService->createTrackingMovement(
                     $movement->getArticle()->getBarCode(),
                     $movement->getEmplacementFrom(),
                     $user,
-                    new DateTime('now'),
+                    $now,
                     false,
                     true,
                     TrackingMovement::TYPE_PRISE,
@@ -144,13 +145,13 @@ class PreparationsManagerService
                         'mouvementStock' => $movement
                     ],
                 );
-                $this->entityManager->persist($trackingMovementPrise);
+                $this->entityManager->persist($trackingMovementPick);
 
-                $trackingMovementDepose = $this->trackingMovementService->createTrackingMovement(
+                $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
                     $movement->getArticle()->getBarCode(),
                     $movement->getEmplacementTo(),
                     $user,
-                    new DateTime('now'),
+                    $now,
                     false,
                     true,
                     TrackingMovement::TYPE_DEPOSE,
@@ -159,9 +160,42 @@ class PreparationsManagerService
                         'mouvementStock' => $movement
                     ],
                 );
-                $this->entityManager->persist($trackingMovementDepose);
+                $this->entityManager->persist($trackingMovementDrop);
+                $ulToMove[] = $movement->getArticle()?->getCurrentLogisticUnit();
 
                 $this->entityManager->flush();
+            }
+        }
+
+        if (isset($ulToMove)){
+            foreach (array_unique($ulToMove) as $lu) {
+                if ($lu != null){
+                    $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                        $lu,
+                        $lu->getLastDrop()->getEmplacement(),
+                        $user,
+                        $now,
+                        false,
+                        true,
+                        TrackingMovement::TYPE_PRISE,
+                        ['preparation' => $preparation]
+
+                    );
+                    $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                        $lu,
+                        $locationEndPrepa,
+                        $user,
+                        $now,
+                        false,
+                        true,
+                        TrackingMovement::TYPE_DEPOSE,
+                        ['preparation' => $preparation]
+                    );
+                    $this->entityManager->persist($pickTrackingMovement);
+                    $this->entityManager->persist($DropTrackingMovement);
+
+                    $lu->setLastDrop($DropTrackingMovement)->setLastTracking($DropTrackingMovement);
+                }
             }
         }
     }
@@ -568,70 +602,11 @@ class PreparationsManagerService
                             ->setDate($now)
                             ->setPreparationOrder($preparation);
                         $entityManager->persist($mouvement);
-
-                        //création du mouvement de tracabilite
-                        $trackingMovement = $this->trackingMovementService->createTrackingMovement(
-                            $article->getBarCode(),
-                            $article->getEmplacement(),
-                            $user,
-                            $now,
-                            false,
-                            false,
-                            TrackingMovement::TYPE_PRISE,
-                            ['mouvementStock'=>$mouvement]
-
-                        );
-                        $entityManager->persist($trackingMovement);
-                        $trackingMovement = $this->trackingMovementService->createTrackingMovement(
-                            $article->getBarCode(),
-                            $endLocation,
-                            $user,
-                            $now,
-                            false,
-                            false,
-                            TrackingMovement::TYPE_DEPOSE,
-                            ['mouvementStock'=>$mouvement]
-                        );
-                        $entityManager->persist($trackingMovement);
-                        $ulToMove[] = $article->getCurrentLogisticUnit();
                     }
                     $entityManager->flush();
                 }
                 else {
                     throw new NegativeQuantityException($article);
-                }
-            }
-        }
-
-        if (isset($ulToMove)){
-            foreach (array_unique($ulToMove) as $lu) {
-                if ($lu != null){
-                    $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
-                        $lu,
-                        $lu->getLastDrop()->getEmplacement(),
-                        $user,
-                        $now,
-                        false,
-                        false,
-                        TrackingMovement::TYPE_PRISE,
-                        ['mouvementStock'=>$mouvement]
-
-                    );
-                    $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
-                        $lu,
-                        $endLocation,
-                        $user,
-                        $now,
-                        false,
-                        false,
-                        TrackingMovement::TYPE_DEPOSE,
-                        ['mouvementStock'=>$mouvement]
-
-                    );
-                    $this->entityManager->persist($pickTrackingMovement);
-                    $this->entityManager->persist($DropTrackingMovement);
-
-                    $lu->setLastDrop($DropTrackingMovement)->setLastTracking($DropTrackingMovement);
                 }
             }
         }

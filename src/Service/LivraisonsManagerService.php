@@ -40,9 +40,6 @@ class LivraisonsManagerService
     #[Required]
     public FormatService $formatService;
 
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
     private $entityManager;
     private $mailerService;
     private $templating;
@@ -102,40 +99,8 @@ class LivraisonsManagerService
     public function finishLivraison(Utilisateur $user,
                                     Livraison $livraison,
                                     DateTime $dateEnd,
-                                    ?Emplacement $emplacementTo,
-                                    ?bool $fromNomade): void
+                                    ?Emplacement $emplacementTo): void
     {
-        $movements = $livraison->getMouvements();
-        foreach ($movements as $movement) {
-                $reference = $movement->getRefArticle() ?? $movement->getArticle();
-                $from = $movement->getEmplacementFrom();
-                $to = $livraison->getDemande()->getDestination();
-                $time = new DateTime('now');
-            $trackingMovementPrise = $this->trackingMovementService->createTrackingMovement(
-                $reference,
-                $from,
-                $user,
-                $time,
-                $fromNomade,
-                true,
-                TrackingMovement::TYPE_PRISE,
-                []
-            );
-            $trackingMovementPrise->setLivraison($livraison);
-            $this->entityManager->persist($trackingMovementPrise);
-            $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
-                $reference,
-                $to,
-                $user,
-                $time,
-                $fromNomade,
-                true,
-                TrackingMovement::TYPE_DEPOSE,
-                []
-            );
-            $trackingMovementDrop->setLivraison($livraison);
-            $this->entityManager->persist($trackingMovementDrop);
-        }
         $pairings = $livraison->getPreparation()->getPairings();
         $pairingEnd = new DateTime('now');
         foreach ($pairings as $pairing) {

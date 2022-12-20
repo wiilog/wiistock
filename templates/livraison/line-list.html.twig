@@ -2,6 +2,9 @@
     {% for line in lines %}
         {% set logisticUnit = line.pack ?? null %}
         {% include 'pack/utils/packItemListTemplate.html.twig' with {
+            data: {
+                'line-id': logisticUnit.packId ?? null,
+            },
             header: logisticUnit and logisticUnit.packId is not null
                 ? {
                     data: {
