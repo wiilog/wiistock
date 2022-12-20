@@ -700,7 +700,6 @@ class ReceptionController extends AbstractController {
 
             $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
             $reception = $receptionReferenceArticle->getReception();
-            $quantite = $data['quantite'];
             $receivedQuantity = $receptionReferenceArticle->getQuantite();
 
             if(empty($receivedQuantity)) {
@@ -717,6 +716,7 @@ class ReceptionController extends AbstractController {
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
             if($typeQuantite === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+                $quantite = $data['quantite'];
                 $oldReceivedQuantity = $receptionReferenceArticle->getQuantite() ?? 0;
                 $newReceivedQuantity = max((int)$quantite, 0);
                 $diffReceivedQuantity = $newReceivedQuantity - $oldReceivedQuantity;
