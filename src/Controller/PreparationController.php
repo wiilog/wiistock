@@ -500,7 +500,6 @@ class PreparationController extends AbstractController
         $lines = Stream::from($data)->some(fn(string|array $value) => is_array($value)) ? $data : [$data];
 
         foreach ($lines as $data) {
-            dump(!empty($data['isRef']));
             $line = !empty($data['isRef'])
                 ? $preparationOrderReferenceLineRepository->find($data['ligneArticle'])
                 : $preparationOrderArticleLineRepository->find($data['ligneArticle']);
