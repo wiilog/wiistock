@@ -9,19 +9,89 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
+    initDateTimePicker('#datetime', DATE_FORMATS_TO_DISPLAY[format] + ` HH:mm`, {setTodayDate: true});
     initDatePickers();
     Select2Old.init($('#emplacement'), 'Emplacements');
 
     initTrackingMovementTable($(`#tableMvts`).data(`initial-visible`));
 
-    const filters = JSON.parse($(`#trackingMovementFilters`).val())
-    displayFiltersSup(filters, true);
+    if(!$(`#filterArticle`).exists()) {
+        const filters = JSON.parse($(`#trackingMovementFilters`).val())
+        displayFiltersSup(filters, true);
+    }
 
     Select2Old.user(Translation.of('Traçabilité', 'Mouvements', 'Opérateurs', false));
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of( 'Traçabilité', 'Général', 'Emplacement', false), 3);
 
     initNewModal($modalNewMvtTraca);
+
+    $(document).on(`keypress`, `[data-fill-location]`, function(event) {
+        if(event.code === `Enter`) {
+            loadLULocation($(this));
+        }
+    });
+
+    $(document).on(`focusout`, `[data-fill-location]`, function () {
+        loadLULocation($(this));
+    });
+
+    $(document).on(`keypress`, `[data-fill-quantity]`, function(event) {
+        if(event.code === `Enter`) {
+            loadLUQuantity($(this));
+        }
+    });
+
+    $(document).on(`focusout`, `[data-fill-quantity]`, function () {
+        loadLUQuantity($(this));
+    });
 });
+
+function loadLUQuantity($selector) {
+    const $modalNewMvtTraca = $('#modalNewMvtTraca');
+    const $quantity = $modalNewMvtTraca.find(`[name="quantity"]`);
+    const code = $selector.val();
+
+    AJAX.route(`GET`, `tracking_movement_logistic_unit_quantity`, {code})
+        .json()
+        .then(response => {
+            $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+            if (response.error) {
+                Flash.add(`danger`, response.error);
+            }
+
+            if (response.quantity) {
+                $quantity.val(response.quantity);
+            } else {
+                $quantity.empty();
+                $quantity.val(1);
+            }
+
+            $quantity.prop(`disabled`, !!response.quantity).trigger(`change`);
+        });
+}
+
+function loadLULocation($input) {
+    const $modalNewMvtTraca = $('#modalNewMvtTraca');
+    const code = $input.val();
+
+    AJAX.route(`GET`, `tracking_movement_logistic_unit_location`, {code})
+        .json()
+        .then(response => {
+            $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+            if (response.error) {
+                Flash.add(`danger`, response.error);
+            }
+
+            const $location = $modalNewMvtTraca.find(`[name="emplacement"]`);
+            if (response.location) {
+                $location.append(new Option(response.location.label, response.location.id, true, true))
+            } else {
+                $location.val(null);
+            }
+
+            $location.prop(`disabled`, !!response.location).trigger(`change`);
+        });
+}
 
 function initTrackingMovementTable(columns) {
     let trackingMovementTableConfig = {
@@ -30,8 +100,11 @@ function initTrackingMovementTable(columns) {
         processing: true,
         order: [['date', "desc"]],
         ajax: {
-            "url": Routing.generate('tracking_movement_api', true),
-            "type": "POST",
+            url: Routing.generate('tracking_movement_api', true),
+            type: "POST",
+            data: {
+                article: $(`#filterArticle`).val(),
+            }
         },
         drawConfig: {
             needsSearchOverride: true,
@@ -94,8 +167,37 @@ function initPageModal(tableMvt) {
         urlNewMvtTraca,
         {
             tables: [tableMvt],
-            keepModal: Number($('#clearAndStayAfterNewMvt').val()),
+            keepModal: Number($('#redirectAfterTrackingMovementCreation').val()),
             keepForm: true,
+            confirmMessage: $modal => {
+                return new Promise((resolve, reject) => {
+                    const pack = $modal.find(`[name="colis"]`).val();
+                    const type = $modal.find(`[name="type"] option:selected`).text().trim();
+
+                    if(type !== `prise`) {
+                        return resolve(true);
+                    }
+
+                    AJAX.route(`GET`, `tracking_movement_is_in_lu`, {barcode: pack})
+                        .json()
+                        .then(result => {
+                            if(result.in_logistic_unit) {
+                                Modal.confirm({
+                                    title: `Article dans unité logistique`,
+                                    message: `L'article ${pack} sera enlevé de l'unité logistique ${result.logistic_unit}`,
+                                    validateButton: {
+                                        color: 'success',
+                                        label: 'Continuer',
+                                        click: () => resolve(true)
+                                    },
+                                    cancelled: () => resolve(false),
+                                });
+                            } else {
+                                resolve(true)
+                            }
+                        })
+                })
+            },
             success: ({success, trackingMovementsCounter, group}) => {
                 if (group) {
                     displayConfirmationModal(group);
@@ -159,6 +261,9 @@ function resetNewModal($modal) {
 function switchMvtCreationType($input) {
     let pathToGetAppropriateHtml = Routing.generate("mouvement_traca_get_appropriate_html", true);
     let paramsToGetAppropriateHtml = $input.val();
+
+    $(`#submitNewMvtTraca`).prop(`disabled`, false);
+
     $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function (response) {
         if (response) {
             const $modal = $input.closest('.modal');

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\Customer;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
@@ -14,6 +15,8 @@ use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Project;
+use App\Entity\ReceptionLine;
 use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
@@ -587,6 +590,117 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $vehicles
+        ]);
+    }
+
+    /**
+     * @Route("/select/project", name="ajax_select_project", options={"expose": true})
+     */
+    public function project(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get("term");
+        $projects = $entityManager->getRepository(Project::class)->getForSelect($search);
+
+        return $this->json([
+            "results" => $projects
+        ]);
+    }
+
+    /**
+     * @Route("/select/articles", name="ajax_select_articles", options={"expose"=true})
+     */
+    public function articles(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"));
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/reception-logistic-units", name="ajax_select_reception_logistic_units", options={"expose"=true})
+     */
+    public function receptionLogisticUnits(Request $request,
+                                           EntityManagerInterface $entityManager): Response {
+
+        $options = [];
+
+        if (!$request->query->getBoolean("all")) {
+            $options["reference"] = $request->query->get("reference");
+            $options["order-number"] = $request->query->get("order-number");
+            $options["include-empty"] = true;
+        }
+
+        $results = $entityManager->getRepository(ReceptionLine::class)->getForSelectFromReception(
+            $request->query->get("term"),
+            $request->query->get("reception"),
+            $options
+        );
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/delivery-logistic-units", name="ajax_select_delivery_logistic_units", options={"expose"=true})
+     */
+    public function deliveryLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_PROJECT);
+
+        $results = $entityManager->getRepository(Pack::class)->getForSelectFromDelivery(
+            $request->query->get("term"),
+            $request->query->get("delivery"),
+            (!$projectField->isDisplayedCreate() || !$projectField->isRequiredCreate())
+            && (!$projectField->isDisplayedEdit() || !$projectField->isRequiredEdit())
+        );
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/articles-disponibles", name="ajax_select_available_articles", options={"expose"=true})
+     */
+    public function availableArticles(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"), Article::STATUT_ACTIF);
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/customers", name="ajax_select_customers", options={"expose": true})
+     */
+    public function customers(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get("term");
+        $customers = $entityManager->getRepository(Customer::class)->getForSelect($search);
+
+        array_unshift($customers, [
+            "id" => "new-item",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau client</b></div>",
+        ]);
+
+        return $this->json([
+            "results" => $customers
+        ]);
+    }
+
+    /**
+     * @Route("/select/nature-or-type", name="ajax_select_nature_or_type", options={"expose": true})
+     */
+    public function natureOrType(Request $request, EntityManagerInterface $entityManager): Response {
+        $module = $request->query->get("module");
+        $term = $request->query->get("term");
+
+        $naturesOrTypes = $module === CategoryType::ARRIVAGE ?
+            $entityManager->getRepository(Type::class)->getForSelect(CategoryType::ARRIVAGE, $term) :
+            $entityManager->getRepository(Nature::class)->getForSelect($term);
+
+        return $this->json([
+            "results" => $naturesOrTypes,
         ]);
     }
 }

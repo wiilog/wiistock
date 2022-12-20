@@ -28,6 +28,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/transfert/demande")
@@ -77,8 +78,8 @@ class TransferRequestController extends AbstractController {
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-
-            $transfer = $transferRequestService->createTransferRequest($entityManager, $draft, $origin, $destination, $currentUser, $data['comment']);
+            $validComment = StringHelper::cleanedComment($data['comment'] ?? null);
+            $transfer = $transferRequestService->createTransferRequest($entityManager, $draft, $origin, $destination, $currentUser, $validComment);
 
             $entityManager->persist($transfer);
 
@@ -137,12 +138,12 @@ class TransferRequestController extends AbstractController {
      * @Route("/modifier", name="transfer_request_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request,
+    public function edit(Request                $request,
                          TransferRequestService $service,
                          EntityManagerInterface $entityManager): Response {
 
-        if($data = json_decode($request->getContent(), true)) {
-             $destination = $entityManager->getRepository(Emplacement::class)->find($data['destination']);
+        if ($data = json_decode($request->getContent(), true)) {
+            $destination = $entityManager->getRepository(Emplacement::class)->find($data['destination']);
             $origin = null;
             if (isset($data['origin'])) {
                 $origin = $entityManager->getRepository(Emplacement::class)->find($data['origin']);
@@ -150,7 +151,7 @@ class TransferRequestController extends AbstractController {
             $transfer = $entityManager->getRepository(TransferRequest::class)->find($data['transfer']);
             $transfer
                 ->setDestination($destination)
-                ->setComment($data['comment']);
+                ->setComment(StringHelper::cleanedComment($data['comment'] ?? null));
             if ($origin) {
                 $transfer->setOrigin($origin);
             }

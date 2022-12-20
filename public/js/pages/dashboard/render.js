@@ -37,6 +37,8 @@ const REFERENCE_RELIABILITY = 'reference_reliability';
 const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
 const HANDLING_TRACKING = 'handling_tracking';
+
+const SECURITY_PADDING = 0;
 let DELAYS = {};
 
 $(function() {
@@ -51,7 +53,7 @@ $(document).arrive('.scroll, .dashboard-box .title', function() {
     const $element = $(this);
     const $mainParent = $element.closest(`.dashboard-component`);
 
-    if($mainParent.width() < $element.width() || $mainParent.width() < $element[0].scrollWidth) {
+    if($mainParent.width() - SECURITY_PADDING < $element.width() || $mainParent.width() - SECURITY_PADDING < $element[0].scrollWidth) {
         $element.html(`<marquee behavior="alternate" scrollamount=2>${MARQUEE_PADDING}${$element.html()}${MARQUEE_PADDING}</marquee>`);
     }
 });

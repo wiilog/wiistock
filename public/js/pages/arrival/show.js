@@ -1,5 +1,6 @@
 $('.select2').select2();
 let tableHistoLitige;
+let tableColis;
 
 $(function () {
     let addColis = $('#addColis').val();
@@ -38,49 +39,65 @@ $(function () {
             });
     });
 
-    let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
-    let tableColisConfig = {
-        ajax: {
-            "url": pathColis,
-            "type": "POST"
-        },
-        domConfig: {
-            removeInfo: true
-        },
-        processing: true,
-        rowConfig: {
-            needsRowClickAction: true
-        },
-        columns: [
-            {data: 'actions', name: 'actions',  title: '', className: 'noVis', orderable: true},
-            {data: 'nature', name: 'nature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
-            {data: 'code', name: 'code', title: Translation.of('Traçabilité', 'Général', 'Unités logistiques')},
-            {data: 'lastMvtDate', name: 'lastMvtDate', title:  Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
-            {data: 'lastLocation', name: 'lastLocation', title:  Translation.of('Traçabilité', 'Général', 'Dernier emplacement')},
-            {data: 'operator', name: 'operator', title: Translation.of('Traçabilité', 'Général', 'Opérateur')},
-        ],
-        order: [['code', 'asc']]
-    };
-    let tableColis = initDataTable('tableColis', tableColisConfig);
+    $.post(Routing.generate('arrival_list_packs_api_columns'), function(columns){
+        let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
+        let tableColisConfig = {
+            ajax: {
+                "url": pathColis,
+                "type": "POST"
+            },
+            domConfig: {
+                removeInfo: true
+            },
+            processing: true,
+            rowConfig: {
+                needsRowClickAction: true
+            },
+            columns: columns,
+            hideColumnConfig: {
+                columns,
+                tableFilter: 'tableColis'
+            },
+            order: [['code', 'asc']]
+        };
+        tableColis = initDataTable('tableColis', tableColisConfig);
 
-    let modalAddColis = $('#modalAddColis');
-    let submitAddColis = $('#submitAddColis');
-    let urlAddColis = Routing.generate('arrivage_add_colis', true);
-    InitModal(modalAddColis, submitAddColis, urlAddColis, {
-        tables: [tableColis],
-        waitDatatable: true,
-        success: (data) => {
-            if (data.packs && data.packs.length > 0) {
-                window.location.href = Routing.generate(
-                    'print_arrivage_bar_codes',
-                    {
-                        packs: data.packs.map(({id}) => id),
-                        arrivage: data.arrivageId,
-                        printColis: 1
-                    },
-                    true);
+        let modalAddColis = $('#modalAddColis');
+        let submitAddColis = $('#submitAddColis');
+        let urlAddColis = Routing.generate('arrivage_add_colis', true);
+        InitModal(modalAddColis, submitAddColis, urlAddColis, {
+            tables: [tableColis],
+            waitDatatable: true,
+            success: (data) => {
+                if (data.packs && data.packs.length > 0) {
+                    window.location.href = Routing.generate(
+                        'print_arrivage_bar_codes',
+                        {
+                            packs: data.packs.map(({id}) => id),
+                            arrivage: data.arrivageId,
+                            printColis: 1
+                        },
+                        true);
+                }
             }
-        }
+        });
+
+        //édition de colis
+        const $modalEditPack = $('#modalEditPack');
+        const $submitEditPack = $('#submitEditPack');
+        const urlEditPack = Routing.generate('pack_edit', true);
+        InitModal($modalEditPack, $submitEditPack, urlEditPack, {
+            tables: [tableColis],
+            waitForUserAction: () => {
+                return checkPossibleCustoms($modalEditPack);
+            },
+        });
+
+        //suppression de colis
+        let modalDeletePack = $("#modalDeletePack");
+        let SubmitDeletePack = $("#submitDeletePack");
+        let urlDeletePack = Routing.generate('pack_delete', true);
+        InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [tableColis], clearOnClose: true});
     });
 
     let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
@@ -143,23 +160,6 @@ $(function () {
     let urlDispatchNewWithBL = Routing.generate('dispatch_new', {printDeliveryNote: 1}, true);
     InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
     InitModal($modalNewDispatch, $submitNewDispatchWithBL, urlDispatchNewWithBL);
-
-    //édition de colis
-    const $modalEditPack = $('#modalEditPack');
-    const $submitEditPack = $('#submitEditPack');
-    const urlEditPack = Routing.generate('pack_edit', true);
-    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
-        tables: [tableColis],
-        waitForUserAction: () => {
-            return checkPossibleCustoms($modalEditPack);
-        },
-    });
-
-    //suppression de colis
-    let modalDeletePack = $("#modalDeletePack");
-    let SubmitDeletePack = $("#submitDeletePack");
-    let urlDeletePack = Routing.generate('pack_delete', true);
-    InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [tableColis], clearOnClose: true});
 
     $(`.new-dispute-modal`).on(`click`, function () {
         getNewDisputeModalContent($(this));

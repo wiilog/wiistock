@@ -43,7 +43,7 @@
                                             name="type"
                                             onchange="switchMvtCreationType($(this))">
                                         <option disabled selected></option>
-                                        {% for statut in statuts %}
+                                        {% for statut in form_statuses %}
                                             {% if statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP') %}
                                                 <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and not hasEmptyRoundRight ? 'd-none' }}"
                                                         value="{{ statut.id }}">

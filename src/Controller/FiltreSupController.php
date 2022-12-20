@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
-use App\Service\DisputeService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Utilisateur;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -57,6 +56,8 @@ class FiltreSupController extends AbstractController
                 'requestNumber' => FiltreSup::FIELD_REQUEST_NUMBER,
                 'category' => FiltreSup::FIELD_CATEGORY,
                 'contact' => FiltreSup::FIELD_CONTACT,
+                'projectNumber' => FiltreSup::FIELD_PROJECT_NUMBER,
+                'project' => FiltreSup::FIELD_PROJECT,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {
@@ -111,6 +112,7 @@ class FiltreSupController extends AbstractController
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
                 'businessUnit' => FiltreSup::FIELD_BUSINESS_UNIT,
+                'article' => FiltreSup::FIELD_ARTICLE,
                 'deliverers' => FiltreSup::FIELD_DELIVERERS,
             ];
 

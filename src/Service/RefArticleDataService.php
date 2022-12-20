@@ -8,7 +8,6 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -23,6 +22,7 @@ use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Reception;
+use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -43,6 +43,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class RefArticleDataService {
 
@@ -129,6 +130,9 @@ class RefArticleDataService {
 
     #[Required]
     public TranslationService $translationService;
+
+    #[Required]
+    public DemandeLivraisonService $demandeLivraisonService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -376,7 +380,7 @@ class RefArticleDataService {
         }
 
         if(isset($data['commentaire'])) {
-            $refArticle->setCommentaire($data['commentaire']);
+            $refArticle->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
         }
 
         if(isset($data['mobileSync'])) {
@@ -480,9 +484,6 @@ class RefArticleDataService {
         $rows = $this->dataRowRefArticle($refArticle);
         $response['success'] = true;
         $response['id'] = $refArticle->getId();
-        $response['data'] = [
-            "id" => $refArticle->getId(),
-        ];
         $response['edit'] = $rows;
         if ($sendMail){
             $this->sendMailCreateDraftOrDraftToActive($refArticle, $refArticle->getCreatedBy());
@@ -624,18 +625,19 @@ class RefArticleDataService {
                         ->setTargetLocationPicking($targetLocationPicking);
                     $entityManager->persist($line);
                 } else {
-                    $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande, true);
+                    $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                     $line->setQuantityToPick($line->getQuantityToPick() + max($data["quantity-to-pick"], 0));
                 }
             } else {
                 $article = $articleRepository->find($data['article']);
-                $line = new DeliveryRequestArticleLine();
-                $line
-                    ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
-                    ->setArticle($article)
-                    ->setRequest($demande)
-                    ->setTargetLocationPicking($targetLocationPicking);
+
+                $line = $this->demandeLivraisonService->createArticleLine($article, $demande, [
+                    'quantityToPick' => max($data["quantity-to-pick"], 0), // protection contre quantités négatives
+                    'targetLocationPicking' => $targetLocationPicking
+                ]);
+
                 $entityManager->persist($line);
+
                 $resp = 'article';
             }
         } else {
@@ -1015,7 +1017,8 @@ class RefArticleDataService {
 
     private function extractIncomingReceptionsData(array $quantityByDatesWithEvents, array $receptions, ReferenceArticle $referenceArticle): array {
         foreach ($receptions as $reception) {
-            $reservedQuantity = Stream::from($reception->getReceptionReferenceArticles())
+            $reservedQuantity = Stream::from($reception->getLines())
+                ->flatMap(fn(ReceptionLine $line) => $line->getReceptionReferenceArticles()->toArray())
                 ->filterMap(function(ReceptionReferenceArticle $line) use ($referenceArticle) {
                     return $line->getReferenceArticle()->getId() === $referenceArticle->getId()
                         ? $line->getQuantiteAR() - $line->getQuantite()

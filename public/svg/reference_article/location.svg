@@ -1,6 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    <g id="Wifi">
-        <path fill="#3353d7" d="M50,7A29,29,0,0,0,21,36c0,18.78,27,55,28.18,56.58a1,1,0,0,0,1.66,0C52,91.05,79,54.79,79,36A29,29,0,0,0,50,7Z"/>
-        <circle fill="#FFFFFF" cx="50" cy="36.01" r="16.58"/>
-    </g>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 26.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Calque_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+     viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#3353D7;}
+</style>
+    <path class="st0" d="M50,0C31.4,0,16.3,15.1,16.3,33.7c0,21.8,31.4,64,32.8,65.8c0.4,0.5,1.1,0.7,1.6,0.3c0.1-0.1,0.2-0.2,0.3-0.3
+	c1.3-1.8,32.7-43.9,32.7-65.8C83.7,15.1,68.6,0,50,0z M50,53c-10.6,0-19.3-8.6-19.3-19.3c0-10.6,8.6-19.3,19.3-19.3
+	s19.3,8.6,19.3,19.3C69.3,44.4,60.6,53,50,53z"/>
 </svg>

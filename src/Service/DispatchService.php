@@ -28,6 +28,7 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class DispatchService {
 
@@ -767,12 +768,12 @@ class DispatchService {
         $packRepository = $entityManager->getRepository(Pack::class);
 
         foreach($packs as $pack) {
-            $comment = $pack['packComment'];
+            $comment = $pack['packComment'] ?? null;
             $packId = $pack['packId'];
             $packQuantity = (int)$pack['packQuantity'];
             $pack = $packRepository->find($packId);
             $pack
-                ->setComment($comment);
+                ->setComment(StringHelper::cleanedComment($comment));
             $packDispatch = new DispatchPack();
             $packDispatch
                 ->setPack($pack)

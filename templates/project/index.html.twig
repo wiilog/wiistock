@@ -1,0 +1,49 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Référentiel | Projets{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    {% include "utils/action-buttons/header-buttons.html.twig" with {
+                        actions: [
+                            {
+                                hasRight: hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')),
+                                title: "Ajouter",
+                                icon: "wii-icon wii-icon-plus",
+                                attributes: {
+                                    "data-toggle": "modal",
+                                    "data-target": "#modalNewProject",
+                                },
+                            },
+                            {
+                                hasRight: hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EXPORT')),
+                                title: "Exporter au format CSV",
+                                icon : "fa fa-file-csv",
+                                attributes: {
+                                    onclick : "saveExportFile('get_projects_csv', false)",
+                                },
+                            },
+                        ]
+                    } %}
+                </div>
+            </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-12">
+                <table id="projectTable_id" class="table w-100"></table>
+            </div>
+        </div>
+    </div>
+
+    {% include "project/modal/new.html.twig" %}
+    {% include "project/modal/edit.html.twig" %}
+    {% include "project/modal/delete.html.twig" %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('project') }}
+{% endblock %}

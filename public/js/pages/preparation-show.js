@@ -4,10 +4,11 @@ let tableArticleSplitting;
 let prepaHasBegun = false;
 let $preparationId = $('#prepa-id');
 let $modalSubmitPreparation = $('#modal-select-location');
-let pathArticle = Routing.generate('preparation_article_api', {'preparation': $preparationId.val()});
+let tables = [];
 const showTargetLocationPicking = Number($(`input[name=showTargetLocationPicking]`).val());
 
 $(function () {
+    loadLogisticUnitList($preparationId.val());
     const $locationSelect = $modalSubmitPreparation.find('select[name="location"]');
     Select2Old.location($locationSelect);
 
@@ -30,7 +31,65 @@ $(function () {
     const $submitDeletePreparation = $modalDeletePreparation.find(`.submit`);
     const pathDeletePreparation = Routing.generate(`preparation_delete`, {preparation: $modalDeletePreparation.find(`input[name=preparation]`).val()}, true);
     InitModal($modalDeletePreparation, $submitDeletePreparation, pathDeletePreparation);
+
+    const $modalEditPack = $('#modalEditPack');
+    const $submitEditPack = $('#submitEditPack');
+    const urlEditPack = Routing.generate('pack_edit', true);
+    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
+        success: () => loadLogisticUnitList($preparationId.val())
+    });
+
+    let urlEditLigneArticle = Routing.generate('prepa_edit_ligne_article', true);
+    let modalEditLigneArticle = $("#modalEditLigneArticle");
+    let submitEditLigneArticle = $("#submitEditLigneArticle");
+    InitModal(modalEditLigneArticle, submitEditLigneArticle, urlEditLigneArticle, {
+        success: () => loadLogisticUnitList($preparationId.val())
+    });
 });
+
+function loadLogisticUnitList(preparationId) {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    wrapLoadingOnActionButton($logisticUnitsContainer, () => (
+        AJAX.route('GET', 'preparation_order_logistic_units_api', {id: preparationId})
+            .json()
+            .then(({html}) => {
+                $logisticUnitsContainer.html(html);
+                $logisticUnitsContainer.find('.articles-container table')
+                    .each(function () {
+                        const $table = $(this);
+                        const table = initDataTable($table, {
+                            serverSide: false,
+                            ordering: true,
+                            paging: false,
+                            searching: false,
+                            columns: [
+                                {data: 'Actions', title: '', className: 'noVis', orderable: false},
+                                {data: 'reference', title: 'Référence'},
+                                {data: 'barcode', title: 'Code barre'},
+                                {data: 'label', title: 'Libellé'},
+                                {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: showTargetLocationPicking},
+                                {data: 'quantity', title: 'Quantité en stock'},
+                                {data: 'quantityToPick', title: 'Quantité à prélever'},
+                                {data: 'pickedQuantity', title: 'Quantité prélevée'},
+                            ],
+                            rowConfig: {
+                                needsRowClickAction: true,
+                                needsColor: true,
+                                color: 'success',
+                                dataToCheck: 'active'
+                            },
+                            domConfig: {
+                                removeInfo: true,
+                            },
+                            order: [['reference', "asc"]],
+                        });
+
+                        tables.push(table);
+                    });
+            })
+        )
+    );
+}
 
 function initializeEdit() {
     const $modalEditPreparation = $('#modalEditPreparation');
@@ -46,29 +105,6 @@ function initializeEdit() {
             });
         });
 }
-
-let tableArticleConfig = {
-    ajax: pathArticle,
-    columns: [
-        {data: 'Actions', title: '', className: 'noVis', orderable: false},
-        {data: 'reference', title: 'Référence'},
-        {data: 'label', title: 'Libellé'},
-        {data: 'location', title: 'Emplacement'},
-        {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: showTargetLocationPicking},
-        {data: 'quantity', title: 'Quantité en stock'},
-        {data: 'quantityToPick', title: 'Quantité à prélever'},
-        {data: 'pickedQuantity', title: 'Quantité prélevée'},
-    ],
-    rowConfig: {
-        needsRowClickAction: true,
-        needsColor: true,
-        color: 'success',
-        dataToCheck: 'active'
-    },
-    order: [['reference', "asc"]]
-};
-
-let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
 
 function startPicking($button, managementType) {
     if (!$button.data('clicked')) {
@@ -95,11 +131,6 @@ function startPicking($button, managementType) {
         });
     }
 }
-
-let urlEditLigneArticle = Routing.generate('prepa_edit_ligne_article', true);
-let modalEditLigneArticle = $("#modalEditLigneArticle");
-let submitEditLigneArticle = $("#submitEditLigneArticle");
-InitModal(modalEditLigneArticle, submitEditLigneArticle, urlEditLigneArticle, {tables: [tableArticle]});
 
 function submitSplitting($submit) {
     if (!$submit.hasClass('loading')) {
@@ -135,7 +166,7 @@ function submitSplitting($submit) {
                     $submit.popLoader();
                     if (data.success) {
                         $modal.find('.close').click();
-                        tableArticle.ajax.reload();
+                        loadLogisticUnitList($preparationId.val());
                     } else if (data.msg) {
                         $modal.find('.error-msg').html(data.msg);
                         showBSAlert(data.msg, 'danger');
@@ -262,17 +293,15 @@ function validateSplittingArticle($input) {
 }
 
 function finishPrepa($button) {
-    let allRowsEmpty = true;
-
-    let rows = tableArticle
-        .column('pickedQuantity:name')
-        .data();
-
-    rows.each((elem) => {
-        if (elem > 0) allRowsEmpty = false;
+    let data = [];
+    tables.forEach((table) => {
+        data.push(Array.from(table.column('pickedQuantity:name').data()));
     });
 
-    if (allRowsEmpty) {
+    const canProceed = data
+        .flat()
+        .reduce((total, elem) => total + elem) > 0;
+    if (!canProceed) {
         showBSAlert('Veuillez sélectionner au moins une ligne.', 'danger');
     } else if (!$button.hasClass('loading')) {
         clearValidatePreparationModal();
@@ -314,29 +343,75 @@ function finishPrepa($button) {
     }
 }
 
-function printPrepaBarCodes() {
-    const lengthPrintButton = $('.print-button').length;
-    if (lengthPrintButton > 0) {
-        $.get(Routing.generate('count_bar_codes', {preparation: $preparationId.val()}
-        )).then((data) => {
-            if (data) {
-                window.location.href = Routing.generate(
-                    'preparation_bar_codes_print',
-                    {
-                        preparation: $preparationId.val()
-                    },
-                    true
-                );
-            } else {
-                showBSAlert("Il n'y a aucune étiquette à imprimer", 'info');
-            }
-        })
-    }
-}
-
 function clearValidatePreparationModal() {
     const $locationSelect = $modalSubmitPreparation.find('select[name="location"]')
     $locationSelect.html('');
     $locationSelect.val('');
 }
 
+function printLogisticUnit(id) {
+    Wiistock.download(Routing.generate(`print_single_logistic_unit`, {pack: id}));
+}
+
+function initializeHistoryTables(packId){
+    initializeGroupHistoryTable(packId);
+    initializeProjectHistoryTable(packId);
+}
+
+function initializeGroupHistoryTable(packId) {
+    initDataTable('groupHistoryTable', {
+        serverSide: true,
+        processing: true,
+        order: [['date', "desc"]],
+        ajax: {
+            "url": Routing.generate('group_history_api', {pack: packId}, true),
+            "type": "POST"
+        },
+        columns: [
+            {data: 'group', name: 'group', title: Translation.of('Traçabilité', 'Mouvements', 'Groupe')},
+            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
+            {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Mouvements', 'Type')},
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        }
+    });
+}
+
+function initializeProjectHistoryTable(packId) {
+    initDataTable('projectHistoryTable', {
+        serverSide: true,
+        processing: true,
+        order: [['createdAt', "desc"]],
+        ajax: {
+            "url": Routing.generate('project_history_api', {pack: packId}, true),
+            "type": "POST"
+        },
+        columns: [
+            {data: 'project', name: 'group', title: 'Projet'},
+            {data: 'createdAt', name: 'type', title: 'Assigné le'},
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        }
+    });
+}
+
+function treatLine(event, $line) {
+    if(!$(event.target).closest(`.no-action-click`).exists()) {
+        const $datatableContainer = $line.closest(`.logistic-unit-wrapper`).find(`.dataTables_wrapper`)[0];
+        const table = tables.filter((table) => table.table().container() === $datatableContainer);
+        const values = Array.from(table[0].data())
+            .map(({lineId, quantityToPick}) => [{ligneArticle: lineId, quantite: quantityToPick}])
+            .flat();
+
+        wrapLoadingOnActionButton($line, () => (
+            AJAX.route(`GET`, `prepa_edit_ligne_article`, {values: JSON.stringify(values)})
+                .json()
+                .then(() => {
+                    Flash.add(`success`, `Les articles de l'unité logistique ont bien été préparés.`);
+                    loadLogisticUnitList($preparationId.val());
+                })
+        ));
+    }
+}

@@ -2,23 +2,32 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Chauffeur;
 use App\Entity\Emplacement;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
+use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Setting;
+use App\Entity\Statut;
 use App\Entity\TrackingMovement;
+use App\Entity\Transporteur;
+use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -41,6 +50,9 @@ class ArrivageService {
 
     #[Required]
     public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public KeptFieldService $keptFieldService;
 
     #[Required]
     public MailerService $mailerService;
@@ -104,7 +116,7 @@ class ArrivageService {
                 'user' => $this->security->getUser(),
                 'dispatchMode' => $dispatchMode,
                 'defaultLanguage' => $defaultLanguage,
-                'language' => $language
+                'language' => $language,
             ]
         );
 
@@ -187,7 +199,7 @@ class ArrivageService {
         return $row;
     }
 
-    public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
+    public function sendArrivalEmails(EntityManager $entityManager, Arrivage $arrival, array $emergencies = []): void {
         /** @var Utilisateur $user */
         $user = $this->security->getUser();
 
@@ -221,6 +233,17 @@ class ArrivageService {
                 $this->security->getUser()
             );
 
+            $packsNatureNb = [];
+            $natures = $entityManager->getRepository(Nature::class)->findAll();
+            foreach ($natures as $nature) {
+                if (isset($nature->getAllowedForms()['arrival']) && $nature->getAllowedForms()['arrival'] === 'all') {
+                    $packsNatureNb[$nature->getLabel()] = 0;
+                }
+            }
+            foreach ($arrival->getPacks() as $pack) {
+                $packsNatureNb[$pack->getNature()->getLabel()] += 1;
+            }
+
             $this->mailerService->sendMail(
                 ($isUrgentArrival
                     ? ['Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'FOLLOW GT // Arrivage urgent', false]
@@ -234,6 +257,7 @@ class ArrivageService {
                         'emergencies' => $emergencies,
                         'isUrgentArrival' => $isUrgentArrival,
                         'freeFields' => $freeFields,
+                        'packsNatureNb' => $packsNatureNb,
                         'urlSuffix' => $this->router->generate("arrivage_show", ["id" => $arrival->getId()]),
                     ]
                 ],
@@ -242,14 +266,14 @@ class ArrivageService {
         }
     }
 
-    public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void
+    public function setArrivalUrgent(EntityManager $entityManager, Arrivage $arrivage, array $emergencies): void
     {
         if (!empty($emergencies)) {
             $arrivage->setIsUrgent(true);
             foreach ($emergencies as $emergency) {
                 $emergency->setLastArrival($arrivage);
             }
-            $this->sendArrivalEmails($arrivage, $emergencies);
+            $this->sendArrivalEmails($entityManager, $arrivage, $emergencies);
         }
     }
 
@@ -331,7 +355,7 @@ class ArrivageService {
             : null;
     }
 
-    public function processEmergenciesOnArrival(Arrivage $arrival): array
+    public function processEmergenciesOnArrival(EntityManager $entityManager, Arrivage $arrival): array
     {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
@@ -352,7 +376,7 @@ class ArrivageService {
 
                 if (!empty($urgencesMatching)) {
                     if (!$isSEDCurrentClient) {
-                        $this->setArrivalUrgent($arrival, $urgencesMatching);
+                        $this->setArrivalUrgent($entityManager, $arrival, $urgencesMatching);
                         array_push($allMatchingEmergencies, ...$urgencesMatching);
                     } else {
                         $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $isSEDCurrentClient) {
@@ -623,7 +647,7 @@ class ArrivageService {
                 $this->mailerService->sendMail(
                     ['Traçabilité', 'Général', 'FOLLOW GT // Dépose effectuée', false],
                     [
-                        "name" => "mails/contents/mail-pack-delivery-done.html.twig",
+                        "name" => "mails/contents/mailPackDeliveryDone.html.twig",
                         "context" => [
                             'title' => ['Traçabilité', 'Général', 'Votre unité logistique a été livrée', false],
                             'orderNumber' => implode(', ', $arrivage->getNumeroCommandeList()),
@@ -731,7 +755,7 @@ class ArrivageService {
                 ["code" => FieldsParam::FIELD_CODE_ARRIVAL_CREATOR, "label" => $this->translation->translate('Traçabilité', 'Général', 'Utilisateur', false)],
             ],
             Stream::from($arrivalFields)
-                ->filter(fn(FieldsParam $field) => !in_array($field->getFieldCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE]))
+                ->filter(fn(FieldsParam $field) => !in_array($field->getFieldCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT]))
                 ->map(fn(FieldsParam $field) => [
                     "code" => $field->getFieldCode(),
                     "label" => match($field->getFieldCode()) {
@@ -764,5 +788,70 @@ class ArrivageService {
                 ])
         )
             ->toArray();
+    }
+
+
+    public function generateNewForm(EntityManagerInterface $entityManager): array
+    {
+        if ($this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+            $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE))
+                ->map(fn(Statut $statut) => [
+                    'id' => $statut->getId(),
+                    'type' => $statut->getType(),
+                    'nom' => $this->formatService->status($statut),
+                ])
+                ->toArray();
+            $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+            $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
+
+            $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
+                ->map(fn(Nature $nature) => [
+                    'id' => $nature->getId(),
+                    'label' => $this->formatService->nature($nature),
+                    'defaultQuantity' => $nature->getDefaultQuantity(),
+                ])
+                ->toArray();
+
+            $keptFields = $this->keptFieldService->getAll(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+            if(isset($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE])) {
+                $keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE] = $locationRepository->find($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE]);
+            }
+
+            $html = $this->templating->render("arrivage/modalNewArrivage.html.twig", [
+                "keptFields" => $keptFields,
+                "typesArrival" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
+                "statuses" => $statuses,
+                "users" => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
+                "fournisseurs" => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
+                "natures" => $natures,
+                "carriers" => $transporteurRepository->findAllSorted(),
+                "chauffeurs" => $chauffeurRepository->findAllSorted(),
+                "fieldsParam" => $fieldsParam,
+                "businessUnits" => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
+                "defaultLocation" => $defaultLocation,
+                "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
+                "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_COLIS),
+            ]);
+        }
+
+        return [
+            'html' => $html ?? "",
+            'acheteurs' => $acheteursUsernames ?? []
+        ];
     }
 }

@@ -102,38 +102,32 @@
                     </div>
                     <div class="col-md-8 col-12">
                         {% if not partialEdit %}
-                            <label class="wii-field-name" title="Référence">
-                                Référence*
-                                <input type="text"
-                                       name="reference"
-                                       class="form-control data needed"
-                                       placeholder="Référence"
-                                       data-draft-default="{{ draftDefaultReference ?? null }}"
-                                       value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference ?? null) }}"
-                                    {{ hasRightCreateDraft ? 'disabled' : ' ' }}>
-                            </label>
+                            <label class="wii-field-name" title="Référence">Référence*</label>
+                            <input type="text"
+                                   name="reference"
+                                   class="form-control data needed"
+                                   placeholder="Référence"
+                                   data-draft-default="{{ draftDefaultReference ?? null }}"
+                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference ?? null) }}"
+                                {{ hasRightCreateDraft ? 'disabled' : ' ' }}>
                         {% else %}
                             <span class="wii-field-name" style="font-size: 20px;">Ref : {{ reference.reference }}</span>
                             <input type="hidden" name="reference" class="data" value="{{ reference.reference }}">
                         {% endif %}
-                        <label class="mt-3 wii-field-name" title="Libellé">
-                            Libellé*
-                            <input type="text" name="libelle" class="form-control data needed" placeholder="Libellé" value="{{ reference.libelle }}">
-                        </label>
+                        <label class="mt-3 wii-field-name" title="Libellé">Libellé*</label>
+                        <input type="text" name="libelle" class="form-control data needed" placeholder="Libellé" value="{{ reference.libelle }}">
                         {% if not reference.id %}
-                            <label class="mt-3 wii-field-name">
-                                Type*
-                                <select name="type"
-                                        data-s2 data-placeholder="Choisissez un type"
-                                        class="form-control data d-block type needed"
-                                        onchange="typeChoice($(this), $(this).closest('.wii-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.wii-form').find('.free-fields-container'))">
-                                    {% for type in types %}
-                                        <option value="{{ type.id }}">
-                                            {{ type.label }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </label>
+                            <label class="mt-3 wii-field-name">Type*</label>
+                            <select name="type"
+                                    data-s2 data-placeholder="Choisissez un type"
+                                    class="form-control data d-block type needed"
+                                    onchange="typeChoice($(this), $(this).closest('.wii-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.wii-form').find('.free-fields-container'))">
+                                {% for type in types %}
+                                    <option value="{{ type.id }}">
+                                        {{ type.label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
                         {% endif %}
                         {% if not partialEdit %}
                             <label class="mt-3 wii-field-name">
@@ -180,7 +174,7 @@
                             </label>
                         {% else %}
                             <div class="d-flex align-content-center mt-4">
-                                <span class="reference-status wii-body-text mr-3"
+                                <span class="current-status wii-body-text mr-3"
                                       style="background-color: {{ statuses[reference.statut.code]['color'] }};">
                                     Référence {{ statuses[reference.statut.code]['status'] }}
                                 </span>
@@ -655,7 +649,7 @@
                                     colType: 'col-md-6 col-12',
                                     requiredType: 'requiredCreate',
                                     actionType: 'new',
-                                    disabledNeeded: true
+                                    disabledNeeded: false
                                 } %}
                             </div>
                         {% endfor %}

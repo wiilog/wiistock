@@ -8,6 +8,7 @@ use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Customer;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
@@ -20,21 +21,21 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\LocationGroup;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
-use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\ImportException;
 use Closure;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -117,7 +118,7 @@ class ImportService
             "quantité à recevoir",
             "référence",
             "transporteur",
-            "manualUrgent"
+            "manualUrgent",
         ],
         Import::ENTITY_ART_FOU => [
             "label",
@@ -164,7 +165,20 @@ class ImportService
             "isDeliveryPoint",
             "allowedCollectTypes",
             "allowedDeliveryTypes"
-        ]
+        ],
+        Import::ENTITY_CUSTOMER => [
+            "name",
+            "address",
+            "phone",
+            "email",
+            "fax"
+        ],
+        Import::ENTITY_PROJECT => [
+            "code",
+            "description",
+            "projectManager",
+            "isActive",
+        ],
     ];
 
     #[Required]
@@ -201,9 +215,6 @@ class ImportService
     public UserService $userService;
 
     #[Required]
-    public FormService $formService;
-
-    #[Required]
     public UniqueNumberService $uniqueNumberService;
 
     #[Required]
@@ -215,12 +226,18 @@ class ImportService
     #[Required]
     public LanguageService $languageService;
 
+    #[Required]
+    public ReceptionLineService $receptionLineService;
+
     private Import $currentImport;
     private EntityManagerInterface $entityManager;
+
+    private array $cache = [];
 
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
         $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->resetCache();
     }
 
     public function getDataForDatatable(Utilisateur $user, $params = null)
@@ -309,8 +326,10 @@ class ImportService
         return $res;
     }
 
-    public function treatImport(Import $import, ?Utilisateur $user, int $mode = self::IMPORT_MODE_PLAN): int
+    public function treatImport(Import $import, int $mode = self::IMPORT_MODE_PLAN): int
     {
+        $this->resetCache();
+
         $this->currentImport = $import;
 
         $csvFile = $this->currentImport->getCsvFile();
@@ -331,10 +350,7 @@ class ImportService
         $dataToCheck = $this->getDataToCheck($this->currentImport->getEntity(), $corresp);
 
         $headers = null;
-        $logRows = [];
         $refToUpdate = [];
-        $receptionsWithCommand = [];
-        $deliveries = [];
         $stats = [
             'news' => 0,
             'updates' => 0,
@@ -349,7 +365,7 @@ class ImportService
 
             if (empty($headers)) {
                 $headers = $row;
-                $logRows[] = array_merge($headers, ['Statut import']);
+                $headersLog = [...$headers, 'Statut import'];
             } else {
                 $firstRows[] = $row;
                 $rowCount++;
@@ -389,11 +405,15 @@ class ImportService
             ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
             $logFileMapper = $this->getLogFileMapper();
 
+            if (isset($headersLog)) {
+                $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
+            }
+
             $import->setStartDate(new DateTime());
             $this->entityManager->flush();
 
             foreach ($firstRows as $row) {
-                $logRow = $this->treatImportRow(
+                $headersLog = $this->treatImportRow(
                     $row,
                     $headers,
                     $dataToCheck,
@@ -401,18 +421,16 @@ class ImportService
                     $refToUpdate,
                     $stats,
                     false,
-                    $receptionsWithCommand,
-                    $deliveries,
                     $index
                 );
                 $index++;
 
-                $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+                $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
             }
             $this->clearEntityManagerAndRetrieveImport();
             if (!$smallFile) {
                 while (($row = fgetcsv($file, 0, ';')) !== false) {
-                    $logRow = $this->treatImportRow(
+                    $headersLog = $this->treatImportRow(
                         $row,
                         $headers,
                         $dataToCheck,
@@ -420,12 +438,10 @@ class ImportService
                         $refToUpdate,
                         $stats,
                         ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
-                        $receptionsWithCommand,
-                        $deliveries,
                         $index
                     );
                     $index++;
-                    $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+                    $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
                 }
             }
 
@@ -467,15 +483,13 @@ class ImportService
                                     array &$refToUpdate,
                                     array &$stats,
                                     bool $needsUnitClear,
-                                    array &$receptionsWithCommand,
-                                    array &$deliveries,
                                     int $rowIndex,
                                     int $retry = 0): array
     {
         try {
             $emptyCells = count(array_filter($row, fn(string $value) => $value === ""));
             if($emptyCells !== count($row)) {
-                $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
+                $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($this->currentImport->getEntity(), $dataToCheck, $row, $headers);
                 $data = array_map('trim', $verifiedData);
                 switch($this->currentImport->getEntity()) {
                     case Import::ENTITY_FOU:
@@ -488,7 +502,7 @@ class ImportService
                         $this->importReferenceEntity($data, $colChampsLibres, $row, $dataToCheck, $stats);
                         break;
                     case Import::ENTITY_RECEPTION:
-                        $this->importReceptionEntity($data, $receptionsWithCommand, $this->currentImport->getUser(), $stats, $this->receptionService);
+                        $this->importReceptionEntity($data, $this->currentImport->getUser(), $stats);
                         break;
                     case Import::ENTITY_ART:
                         $referenceArticle = $this->importArticleEntity($data, $colChampsLibres, $row, $stats, $rowIndex);
@@ -498,16 +512,22 @@ class ImportService
                         $this->importUserEntity($data, $stats);
                         break;
                     case Import::ENTITY_DELIVERY:
-                        $insertedDelivery = $this->importDeliveryEntity($data, $stats, $deliveries, $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
+                        $insertedDelivery = $this->importDeliveryEntity($data, $stats, $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
                         break;
                     case Import::ENTITY_LOCATION:
                         $this->importLocationEntity($data, $stats);
+                        break;
+                    case Import::ENTITY_CUSTOMER:
+                        $this->importCustomerEntity($data, $stats);
+                        break;
+                    case Import::ENTITY_PROJECT:
+                        $this->importProjectEntity($data, $stats);
                         break;
                 }
 
                 $this->entityManager->flush();
                 if (!empty($insertedDelivery)) {
-                    $deliveries[$insertedDelivery->getUtilisateur()->getId() . '-' . $insertedDelivery->getDestination()->getId()] = $insertedDelivery;
+                    $this->cache['deliveries'][$insertedDelivery->getUtilisateur()->getId() . '-' . $insertedDelivery->getDestination()->getId()] = $insertedDelivery;
                 }
                 if ($needsUnitClear) {
                     $this->clearEntityManagerAndRetrieveImport();
@@ -536,8 +556,6 @@ class ImportService
                         $refToUpdate,
                         $stats,
                         $needsUnitClear,
-                        $receptionsWithCommand,
-                        $deliveries,
                         $rowIndex,
                         $retry
                     );
@@ -552,6 +570,7 @@ class ImportService
                 $trace = $throwable->getTraceAsString();
                 $importId = $this->currentImport->getId();
                 $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file($line) | $trace");
+                throw $throwable;
             }
 
             $stats['errors']++;
@@ -616,11 +635,13 @@ class ImportService
         return $pieceJointeForLogFile;
     }
 
-    private function checkFieldsAndFillArrayBeforeImporting(array $originalDatasToCheck, array $row, array $headers): array
+    private function checkFieldsAndFillArrayBeforeImporting(string $entity, array $originalDatasToCheck, array $row, array $headers): array
     {
         $data = [];
         foreach ($originalDatasToCheck as $column => $originalDataToCheck) {
-            $fieldName = Import::FIELDS_ENTITY[$column] ?? $column;
+            $fieldName = Import::FIELDS_ENTITY[$entity][$column]
+                ?? Import::FIELDS_ENTITY['default'][$column]
+                ?? $column;
             if(is_array($fieldName)) {
                 $fieldName = $this->translationService->translate(...$fieldName);
             }
@@ -722,170 +743,119 @@ class ImportService
         $this->updateStats($stats, $newEntity);
     }
 
-    public function throwError($message)
-    {
+    public function throwError($message) {
         throw new ImportException($message);
     }
 
-    private function importReceptionEntity(array $data,
-                                           array &$receptionsWithCommand,
+    private function importReceptionEntity(array        $data,
                                            ?Utilisateur $user,
-                                           array &$stats,
-                                           ReceptionService $receptionService)
-    {
+                                           array        &$stats): void {
         $refArtRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
         if ($user) {
-            $userRepository = $this->entityManager->getRepository(Utilisateur::class);
             $user = $userRepository->find($user->getId());
         }
 
-        $dataOrderNumber = $data['orderNumber'] ?? null;
-        $dataExpectedDate = $data['expectedDate'] ?? null;
+        $uniqueReceptionConstraint = [
+            'orderNumber' => $data['orderNumber'] ?? null,
+            'expectedDate' => $data['expectedDate'] ?? null,
+        ];
 
-        $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $dataOrderNumber, $dataExpectedDate, fn() => $this->updateStats($stats, false));
+        $reception = $this->receptionService->getAlreadySavedReception(
+            $this->entityManager,
+            $this->cache['receptions'],
+            $uniqueReceptionConstraint
+        );
+
+        // retrieve from database if we don't found the reception in the cache
+        if (!isset($reception)) {
+            $expectedDate = isset($uniqueConstraint['expectedDate'])
+                ? DateTime::createFromFormat("d/m/Y", $uniqueConstraint['expectedDate']) ?: null
+                : null;
+
+            $receptionRepository = $this->entityManager->getRepository(Reception::class);
+            $receptions = $receptionRepository->findBy(
+                [
+                    "orderNumber" => $uniqueReceptionConstraint['orderNumber'],
+                    "dateAttendue" => $expectedDate
+                ],
+                ['id' => Criteria::DESC]
+            );
+
+            if (!empty($receptions)) {
+                $reception = $receptions[0];
+                $this->receptionService->setAlreadySavedReception($this->cache['receptions'], $uniqueReceptionConstraint, $reception);
+                $this->updateStats($stats, false);
+            }
+        }
+
         $newEntity = !isset($reception);
-        if (!$reception) {
-            try {
-                $reception = $this->receptionService->createAndPersistReception($this->entityManager, $user, $data, true);
-            } catch (InvalidArgumentException $exception) {
-                switch ($exception->getMessage()) {
-                    case ReceptionService::INVALID_EXPECTED_DATE:
-                        $this->throwError('La date attendue n\'est pas au bon format (dd/mm/yyyy)');
-                        break;
-                    case ReceptionService::INVALID_ORDER_DATE:
-                        $this->throwError('La date commande n\'est pas au bon format (dd/mm/yyyy)');
-                        break;
-                    case ReceptionService::INVALID_LOCATION:
-                        $this->throwError('Emplacement renseigné invalide');
-                        break;
-                    case ReceptionService::INVALID_STORAGE_LOCATION:
-                        $this->throwError('Emplacement de stockage renseigné invalide');
-                        break;
-                    case ReceptionService::INVALID_CARRIER:
-                        $this->throwError('Transporteur renseigné invalide');
-                        break;
-                    case ReceptionService::INVALID_PROVIDER:
-                        $this->throwError('Fournisseur renseigné invalide');
-                        break;
-                    default:
-                        throw $exception;
-                }
+        try {
+            if ($newEntity) {
+                $reception = $this->receptionService->persistReception($this->entityManager, $user, $data, ['import' => true]);
+                $this->receptionService->setAlreadySavedReception($this->cache['receptions'], $uniqueReceptionConstraint, $reception);
             }
-
-            $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $reception);
-        }
-        $locationRepository = $this->entityManager->getRepository(Emplacement::class);
-
-        if (!empty($data['fournisseur'])) {
-            $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
-            $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $data['fournisseur']]);
-            if (!isset($fournisseur)) {
-                $this->throwError('Le fournisseur n\'existe pas.');
+            else {
+                $this->receptionService->updateReception($this->entityManager, $reception, $data, [
+                    'import' => true,
+                    'update' => true,
+                ]);
             }
-            $reception
-                ->setFournisseur($fournisseur);
-        }
-
-        if (!empty($data['location'])) {
-            $location = $locationRepository->findOneBy(['label' => $data['location']]);
-            if (!isset($location)) {
-                $this->throwError('L\'emplacement n\'existe pas.');
+        } catch (InvalidArgumentException $exception) {
+            switch ($exception->getMessage()) {
+                case ReceptionService::INVALID_EXPECTED_DATE:
+                    $this->throwError('La date attendue n\'est pas au bon format (dd/mm/yyyy)');
+                case ReceptionService::INVALID_ORDER_DATE:
+                    $this->throwError('La date commande n\'est pas au bon format (dd/mm/yyyy)');
+                case ReceptionService::INVALID_LOCATION:
+                    $this->throwError('Emplacement renseigné invalide');
+                case ReceptionService::INVALID_STORAGE_LOCATION:
+                    $this->throwError('Emplacement de stockage renseigné invalide');
+                case ReceptionService::INVALID_CARRIER:
+                    $this->throwError('Transporteur renseigné invalide');
+                case ReceptionService::INVALID_PROVIDER:
+                    $this->throwError('Fournisseur renseigné invalide');
+                default:
+                    throw $exception;
             }
-            $reception
-                ->setLocation($location);
-        }
-
-        if (!empty($data['storageLocation'])) {
-
-            $storageLocation = $locationRepository->findOneBy(['label' => $data['storageLocation']]);
-            if (!isset($storageLocation)) {
-                $this->throwError('L\'emplacement de stockage n\'existe pas.');
-            }
-
-            $reception
-                ->setStorageLocation($storageLocation);
-        }
-
-        if (!empty($data['transporteur'])) {
-            $transporteurRepository = $this->entityManager->getRepository(Transporteur::class);
-            $transporteur = $transporteurRepository->findOneBy(['code' => $data['transporteur']]);
-            if (!isset($transporteur)) {
-                $this->throwError('Le transporteur n\'existe pas.');
-            }
-            $reception
-                ->setTransporteur($transporteur);
-        }
-
-        if (!empty($data['commentaire'])) {
-            $reception->setCommentaire($data['commentaire']);
-        }
-
-        if (!empty($data['anomalie'])) {
-            $anomaly = (
-                isset($data['anomalie'])
-                && (
-                    filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['anomalie'], self::POSITIVE_ARRAY)
-                )
-            );
-            if ($anomaly || $reception->getStatut()->getCode() === Reception::STATUT_ANOMALIE) {
-                $statusCode = $anomaly
-                    ? Reception::STATUT_ANOMALIE
-                    : Reception::STATUT_EN_ATTENTE;
-
-                $statutRepository = $this->entityManager->getRepository(Statut::class);
-
-                $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
-                $reception->setStatut($status);
-            }
-        }
-
-        if (!empty($data['manualUrgent'])) {
-            $reception->setManualUrgent(
-                isset($data['manualUrgent'])
-                && (
-                    filter_var($data['manualUrgent'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['manualUrgent'], self::POSITIVE_ARRAY)
-                )
-            );
-        }
-
-        if (!empty($data['orderDate'])) {
-            $this->formService->validateDate($data['orderDate'], ReceptionService::INVALID_ORDER_DATE);
-            $orderDate = DateTime::createFromFormat('d/m/Y', $data['orderDate'] ?: '') ?: null;
-            $reception->setDateCommande($orderDate);
         }
 
         if (!empty($data['référence'])) {
-            $receptionRefArticle = new ReceptionReferenceArticle();
-            $refArt = $refArtRepository->findOneBy(['reference' => $data['référence']]);
-            if ($refArt) {
-                if (!empty($data['anomalie'])) {
-                    $anomaly = (
-                        isset($data['anomalie'])
-                        && (
-                            filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
-                            || in_array($data['anomalie'], self::POSITIVE_ARRAY)
-                        )
-                    );
-                    $receptionRefArticle->setAnomalie($anomaly ? 1 : 0);
-                }
+            if (empty($uniqueReceptionConstraint['orderNumber'])) {
+                $this->throwError("Le numéro de commande doit être renseigné.");
+            }
 
-                if (isset($data['quantité à recevoir'])) {
-                    $receptionRefArticle
-                        ->setReception($reception)
-                        ->setReferenceArticle($refArt)
-                        ->setQuantiteAR($data['quantité à recevoir'])
-                        ->setCommande($reception->getOrderNumber())
-                        ->setQuantite(0);
-                    $this->entityManager->persist($receptionRefArticle);
-                } else {
-                    $this->throwError('La quantité à recevoir doit être renseignée.');
-                }
-            } else {
+            $referenceArticle = $refArtRepository->findOneBy(['reference' => $data['référence']]);
+            if (!$referenceArticle) {
                 $this->throwError('La référence article n\'existe pas.');
             }
+
+            if (!isset($data['quantité à recevoir'])) {
+                $this->throwError('La quantité à recevoir doit être renseignée.');
+            }
+
+            $line = $reception->getLine(null)
+                ?? $this->receptionLineService->persistReceptionLine($this->entityManager, $reception, null);
+
+            $receptionRefArticle = $line->getReceptionReferenceArticle($referenceArticle, $uniqueReceptionConstraint['orderNumber']);
+
+            if (!isset($receptionRefArticle)) {
+                $receptionRefArticle = new ReceptionReferenceArticle();
+                $receptionRefArticle
+                    ->setReceptionLine($line)
+                    ->setReferenceArticle($referenceArticle)
+                    ->setCommande($uniqueReceptionConstraint['orderNumber'])
+                    ->setAnomalie($receptionAnomaly ?? false)
+                    ->setQuantiteAR($data['quantité à recevoir'])
+                    ->setQuantite(0);
+                $this->entityManager->persist($receptionRefArticle);
+            }
+            else {
+                $this->throwError("La ligne de réception existe déjà pour cette référence et ce numéro de commande");
+            }
+
+            $this->entityManager->flush();
         }
 
         $this->updateStats($stats, $newEntity);
@@ -960,7 +930,7 @@ class ImportService
             $refArt->setBuyer($userRepository->findOneBy(['username' => $data['buyer']]));
         }
         if (isset($data['commentaire'])) {
-            $refArt->setCommentaire($data['commentaire']);
+            $refArt->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
         }
         if (isset($data['emergencyComment'])) {
             $refArt->setEmergencyComment($data['emergencyComment']);
@@ -1405,7 +1375,51 @@ class ImportService
         $this->updateStats($stats, !$user->getId());
     }
 
-    private function importDeliveryEntity(array $data, array &$stats, array &$deliveries, Utilisateur $utilisateur, array &$refsToUpdate, array $colChampsLibres, $row): ?Demande {
+    private function importCustomerEntity(array $data, array &$stats) {
+
+        $customerAlreadyExists = $this->entityManager->getRepository(Customer::class)->findOneBy(['name' => $data['name']]);
+        $customer = $customerAlreadyExists ?? new Customer();
+
+        if (isset($data['name'])) {
+            $customer->setName($data['name']);
+        }
+
+        if (isset($data['address'])) {
+            $customer->setAddress($data['address']);
+        }
+
+        if (isset($data['phone'])) {
+            if (!preg_match(StringHelper::PHONE_NUMBER_REGEX, $data['phone'])) {
+                $this->throwError('Le format du numéro de téléphone est incorrect');
+            }
+            $customer->setPhoneNumber($data['phone']);
+        }
+
+        if (isset($data['email'])) {
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $this->throwError('Le format de l\'adresse email est incorrect');
+            }
+            $customer->setEmail($data['email']);
+        }
+
+        if (isset($data['fax'])) {
+            if (!preg_match(StringHelper::PHONE_NUMBER_REGEX, $data['fax'])) {
+                $this->throwError('Le format du numéro de fax est incorrect');
+            }
+            $customer->setFax($data['fax']);
+        }
+
+        $this->entityManager->persist($customer);
+
+        $this->updateStats($stats, !$customerAlreadyExists);
+    }
+
+    private function importDeliveryEntity(array $data,
+                                          array &$stats,
+                                          Utilisateur $utilisateur,
+                                          array &$refsToUpdate,
+                                          array $colChampsLibres,
+                                          $row): ?Demande {
         $users = $this->entityManager->getRepository(Utilisateur::class);
         $locations = $this->entityManager->getRepository(Emplacement::class);
         $types = $this->entityManager->getRepository(Type::class);
@@ -1451,13 +1465,13 @@ class ImportService
             $this->throwError('Type non autorisé sur l\'emplacement fourni.');
         }
         $deliveryKey = $requester->getId() . '-' . $destination->getId();
-        $newEntity = !isset($deliveries[$deliveryKey]);
+        $newEntity = !isset($this->cache['deliveries'][$deliveryKey]);
         if (!$newEntity) {
-            $request = $deliveries[$deliveryKey];
+            $request = $this->cache['deliveries'][$deliveryKey];
             $request = $this->entityManager->getRepository(Demande::class)->find($request->getId());
-            $deliveries[$deliveryKey] = $request;
+            $this->cache['deliveries'][$deliveryKey] = $request;
         }
-        $request = $newEntity ? new Demande() : $deliveries[$deliveryKey];
+        $request = $newEntity ? new Demande() : $this->cache['deliveries'][$deliveryKey];
 
         if (!$type) {
             $this->throwError('Type inconnu.');
@@ -1485,24 +1499,20 @@ class ImportService
                         $existing = Stream::from($request->getArticleLines())
                             ->some(fn(DeliveryRequestArticleLine $line) => $line->getArticle()->getId() === $article->getId());
                         if (!$existing) {
-                            $line = new DeliveryRequestArticleLine();
-                            $line
-                                ->setArticle($article)
-                                ->setQuantityToPick(intval($quantityDelivery))
-                                ->setTargetLocationPicking($targetLocationPicking);
+                            $line = $this->demandeLivraisonService->createArticleLine($article, $request, [
+                                'quantityToPick' => intval($quantityDelivery),
+                                'targetLocationPicking' => $targetLocationPicking
+                            ]);
                             $this->entityManager->persist($line);
-                            $request->addArticleLine($line);
+
                             if (!$request->getPreparations()->isEmpty()) {
                                 $preparation = $request->getPreparations()->first();
                                 $article->setStatut($statusRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                                $ligneArticlePreparation = new PreparationOrderArticleLine();
+                                $ligneArticlePreparation = $line->createPreparationOrderLine();
                                 $ligneArticlePreparation
-                                    ->setPickedQuantity($line->getPickedQuantity())
-                                    ->setQuantityToPick($line->getQuantityToPick())
-                                    ->setArticle($article)
-                                    ->setTargetLocationPicking($targetLocationPicking);
+                                    ->setPreparation($preparation)
+                                    ->setPickedQuantity($line->getPickedQuantity());
                                 $this->entityManager->persist($ligneArticlePreparation);
-                                $preparation->addArticleLine($ligneArticlePreparation);
                             }
                         } else {
                             $barcode = $article->getBarCode();
@@ -1553,7 +1563,7 @@ class ImportService
         }
 
         if (!$request->getCommentaire()) {
-            $request->setCommentaire($commentaire);
+            $request->setCommentaire(StringHelper::cleanedComment($commentaire));
         }
 
         $number = $this->uniqueNumberService->create(
@@ -1710,6 +1720,51 @@ class ImportService
         $this->updateStats($stats, $isNewEntity);
 
         return $location;
+    }
+
+    private function importProjectEntity(array $data, array &$stats) {
+        $projectAlreadyExists = $this->entityManager->getRepository(Project::class)->findOneBy(['code' => $data['code']]);
+        $project = $projectAlreadyExists ?? new Project();
+
+        if (!$projectAlreadyExists && isset($data['code'])) {
+            if ((strlen($data['code'])) > 15) {
+                $this->throwError("La valeur saisie pour le code ne doit pas dépasser 15 caractères");
+            } else {
+                $project->setCode($data['code']);
+            }
+        }
+
+        if (isset($data['description'])) {
+            if ((strlen($data['description'])) > 255) {
+                $this->throwError("La valeur saisie pour le champ description ne doit pas dépasser 255 caractères");
+            } else {
+                $project->setDescription($data['description']);
+            }
+        }
+
+        if (isset($data['projectManager'])) {
+            $projectManager = $this->entityManager->getRepository(Utilisateur::class)->findOneBy(['username' => $data['projectManager']]);
+
+            if (!isset($projectManager)) {
+                $this->throwError('Aucun utilisateur ne correspond au nom d\'utilisateur saisi dans la colonne Chef de projet');
+            } else {
+                $project->setProjectManager($projectManager);
+            }
+        }
+
+        if (isset($data['isActive'])) {
+            $value = strtolower($data['isActive']);
+            if ($value !== 'oui' && $value !== 'non') {
+                $this->throwError('La valeur saisie pour Actif est invalide (autorisé : "oui" ou "non")');
+            }
+            else {
+                $project->setActive($data['isActive']);
+            }
+        }
+
+        $this->entityManager->persist($project);
+
+        $this->updateStats($stats, !$projectAlreadyExists);
     }
 
     private function checkAndSetChampsLibres(array $colChampsLibres,
@@ -2010,7 +2065,12 @@ class ImportService
         }
 
         $fieldsToAssociate = $fieldsToAssociate
-            ->keymap(fn(string $key) => [$key, Import::FIELDS_ENTITY[$key] ?? $key])
+            ->keymap(fn(string $key) => [
+                $key,
+                Import::FIELDS_ENTITY[$entityCode][$key]
+                    ?? Import::FIELDS_ENTITY['default'][$key]
+                    ?? $key
+            ])
             ->map(fn(string|array $field) => is_array($field) ? $this->translationService->translate(...$field) : $field)
             ->toArray();
 
@@ -2030,5 +2090,12 @@ class ImportService
         }
 
         return $fieldsToAssociate;
+    }
+
+    private function resetCache(): void {
+        $this->cache = [
+            'receptions' => [],
+            'deliveries' => [],
+        ];
     }
 }

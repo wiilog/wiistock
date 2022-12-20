@@ -195,7 +195,7 @@ function updateOptions($select) {
     $allSelects.each((index, element) => {
         $(element).find('option').removeAttr('disabled');
         let selectedValue = $(element).val();
-        if (selectedValue != '') {
+        if (selectedValue !== '') {
             selectedValues.push('option[value="' + selectedValue + '"]');
         }
     });
@@ -209,7 +209,7 @@ function updateOptions($select) {
         });
     }
 
-    if (selectValue != '') {
+    if (selectValue !== '') {
         $select.find('option[value="' + selectValue + '"]').removeAttr('disabled');
     }
 }
@@ -263,6 +263,8 @@ function importTemplateChanged($dataTypeImport = null) {
         USER: {label: 'utilisateurs', url: `${templateDirectory}/modele-import-utilisateurs.csv`},
         DELIVERY: {label: 'livraisons', url: `${templateDirectory}/modele-import-livraisons.csv`},
         LOCATION: {label: 'emplacements', url: `${templateDirectory}/modele-import-emplacements.csv`},
+        CLIENT: {label: 'clients', url: `${templateDirectory}/modele-import-clients.csv`},
+        PROJECT: {label: 'projets', url: `${templateDirectory}/modele-import-projets.csv`},
     };
 
     const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';

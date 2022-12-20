@@ -1,17 +1,21 @@
 import '@styles/pages/reception/show.scss';
-import AJAX, {GET} from "@app/ajax";
-import Select2 from "@app/select2";
 
-let tableArticle;
-let tableLitigesReception;
+import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
+import AJAX, {GET, POST} from "@app/ajax";
+import Select2 from "@app/select2";
+import Modal from "@app/modal";
+import Flash, {ERROR} from "@app/flash";
+
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
 let modalArticleAlreadyInit = false;
 let tableArticleLitige;
 let tableHistoLitige;
+let receptionDisputesDatatable;
+let articleSearch;
 
 window.initNewArticleEditor = initNewArticleEditor;
-window.openModalLigneReception = openModalLigneReception;
+window.openModalNewReceptionReferenceArticle = openModalNewReceptionReferenceArticle;
 window.finishReception = finishReception;
 window.onRequestTypeChange = onRequestTypeChange;
 window.demandeurChanged = demandeurChanged;
@@ -25,15 +29,10 @@ window.initEditReception = initEditReception;
 
 $(function () {
     $('.select2').select2();
-    const dataTableInitRes = InitPageDataTable();
-    tableArticle = dataTableInitRes.tableArticle;
-    tableLitigesReception = dataTableInitRes.tableLitigesReception;
+    receptionDisputesDatatable = InitDisputeDataTable();
     initPageModals();
-    $('#packing-package-number, #packing-number-in-package').on('keypress keydown keyup', function () {
-        if ($(this).val() === '' || $(this).val() < 0) {
-            $(this).val('');
-        }
-    });
+    launchPackListSearching();
+    loadReceptionLines();
 
     $('#modalNewLitige').on('change', 'select[name=disputePacks]', function () {
         const data = $(this).select2('data');
@@ -43,95 +42,25 @@ $(function () {
 
     const $modalNewLigneReception = $(`#modalNewLigneReception`);
 
-    const $refArticleCommande = $modalNewLigneReception.find(`select[name=refArticleCommande]`);
-    $refArticleCommande.on(`change`, function () {
-        initConditionnementArticleFournisseurDefault();
-        if ($(this).select2(`data`).length === 0) {
-            clearPackingContent($(this));
-        }
+    const $referenceToReceive = $modalNewLigneReception.find(`select[name=referenceToReceive]`);
+    $referenceToReceive.on(`change`, function () {
+        onReferenceToReceiveChange();
     });
 
-    $modalNewLigneReception.find(`select[name=articleFournisseurDefault]`)
+    $modalNewLigneReception.find('select[name=articleFournisseurDefault], select[name=pack]')
         .on(`change`, function () {
-            const data = $refArticleCommande.select2(`data`);
-            if (data.length > 0 && $(this).select2(`data`).length > 0) {
-                const {reference, commande} = data[0];
-                const supplierReference = $(this).val();
-                AJAX.route(GET, `packing_template`, {
-                    reference,
-                    orderNumber: commande,
-                    supplierReference,
-                    reception: $('#receptionId').val(),
-                })
-                    .json()
-                    .then(({template}) => {
-                        $(`.packing-container`).empty().html(template);
-                    });
-            } else {
-                clearPackingContent($(this), false);
-            }
+            loadPackingArticleForm($modalNewLigneReception);
         });
 
-    $(document).on(`click`, `.add-articles`, function (e) {
+    $(document).on(`click`, `.add-packing-lines`, function (e) {
         e.preventDefault();
-        const data = Form.process($(`.packing-container`));
-
-        if (data) {
-            const params = JSON.stringify(data.asObject());
-            wrapLoadingOnActionButton($(this), () => (
-                AJAX.route(GET, `add_articles`, {params})
-                    .json()
-                    .then(({template, values}) => {
-                        const $articlesContainer = $(`.articles-container`);
-                        const $modal = $articlesContainer.closest(`.modal`);
-                        $articlesContainer.append(template);
-                        $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).removeClass(`d-none`);
-
-                        if(Number($modal.find(`[name=precheckedDelivery]`).val())) {
-                            $(`.create-request-container`).find(`input[value=delivery]`).trigger(`change`);
-                        }
-
-                        const packingArticlesValue = $modal.find(`input[name=packingArticles]`).val();
-                        const quantityToReceive = $modal.find(`input[name=quantityToReceive]`).val();
-
-                        const currentArticles = packingArticlesValue ? JSON.parse(packingArticlesValue) : [];
-                        const {
-                            supplierReferenceId,
-                            batch,
-                            expiry,
-                            quantity,
-                            referenceId,
-                            orderNumber,
-                            freeFields
-                        } = values;
-
-                        currentArticles.push({
-                            articleFournisseur: supplierReferenceId,
-                            batch: batch,
-                            expiry: expiry,
-                            noCommande: orderNumber,
-                            quantite: quantityToReceive,
-                            articleQuantity: quantity,
-                            refArticle: referenceId,
-                            ...freeFields
-                        });
-                        $modal.find(`input[name=packingArticles]`).val(JSON.stringify(currentArticles));
-                    })
-            ));
-        }
+        loadPackingArticlesTemplate($(this));
     });
 
     $(document).on(`click`, `.remove-article-line`, function () {
         const $currentArticleLine = $(this).closest(`.article-line`);
-        const $articlesContainer = $(`.articles-container`);
-        const $modal = $articlesContainer.closest(`.modal`);
-
-        const $packingArticles = $modal.find(`input[name=packingArticles]`);
-        const packingArticlesValues = JSON.parse($packingArticles.val());
-        const articleLineIndex = $articlesContainer.find(`.article-line`).index($currentArticleLine);
-
-        packingArticlesValues.splice(articleLineIndex, 1);
-        $packingArticles.val(JSON.stringify(packingArticlesValues));
+        const $modal = $currentArticleLine.closest(`.modal`);
+        const $articlesContainer = $currentArticleLine.closest(`.articles-container`);
 
         $currentArticleLine.remove();
         if($articlesContainer.find(`.article-line`).length === 0) {
@@ -155,10 +84,6 @@ $(function () {
                 toggleForm($('.transfer-form, .demande-form'), null);
                 break;
         }
-    });
-
-    $(`modalAddLigneArticle`).on(`hidden.bs.modal`, () => {
-        clearAddRefModal();
     });
 });
 
@@ -191,28 +116,30 @@ function addArticle() {
 }
 
 function initPageModals() {
-    let $modalAddLigneArticle = $("#modalAddLigneArticle");
-    let $submitAddLigneArticle = $("#addArticleLigneSubmit");
+    let $modalNewReceptionReferenceArticle = $("#modalNewReceptionReferenceArticle");
+    let $submitAddLigneArticle = $modalNewReceptionReferenceArticle.find("[type=submit]");
     let $submitAndRedirectLigneArticle = $('#addArticleLigneSubmitAndRedirect');
-    let urlAddLigneArticle = Routing.generate('reception_article_add', true);
-    InitModal($modalAddLigneArticle, $submitAddLigneArticle, urlAddLigneArticle, {tables: [tableArticle]});
-    InitModal($modalAddLigneArticle, $submitAndRedirectLigneArticle, urlAddLigneArticle, {
-        tables: [tableArticle],
-        success: createHandlerAddLigneArticleResponseAndRedirect($modalAddLigneArticle),
+    let urlAddLigneArticle = Routing.generate('reception_reference_article_new', true);
+    InitModal($modalNewReceptionReferenceArticle, $submitAddLigneArticle, urlAddLigneArticle, {
+        success: () => {
+            loadReceptionLines();
+        }
+    });
+    InitModal($modalNewReceptionReferenceArticle, $submitAndRedirectLigneArticle, urlAddLigneArticle, {
+        success: createHandlerAddLigneArticleResponseAndRedirect($modalNewReceptionReferenceArticle),
         keepForm: true,
         keepModal: true
     });
 
-    $modalAddLigneArticle.on(`show.bs.modal`, function() {
+    $modalNewReceptionReferenceArticle.on(`show.bs.modal`, function() {
         const {label, reference, is_article} = GetRequestQuery();
         const $select = $(this).find(`[name="referenceArticle"]`);
 
         if(label && reference) {
             $select.append(new Option(label, reference, true, true));
             $select.trigger(`change`);
-
             if(is_article === '1'){
-                $modalAddLigneArticle.find(`#addArticleLigneSubmitAndRedirect`).removeClass(`d-none`);
+                $modalNewReceptionReferenceArticle.find(`#addArticleLigneSubmitAndRedirect`).removeClass(`d-none`);
             }
 
             setTimeout(() => SetRequestQuery({}), 1);
@@ -220,15 +147,23 @@ function initPageModals() {
         Select2Old.articleReference($select);
     });
 
-    let $modalDeleteArticle = $("#modalDeleteLigneArticle");
-    let $submitDeleteArticle = $("#submitDeleteLigneArticle");
-    let urlDeleteArticle = Routing.generate('reception_article_remove', true);
-    InitModal($modalDeleteArticle, $submitDeleteArticle, urlDeleteArticle, {tables: [tableArticle]});
+    let $modalDeleteReceptionReferenceArticle = $("#modalDeleteReceptionReferenceArticle");
+    let $submitDeleteReceptionReferenceArticle = $("#submitDeleteReceptionReferenceArticle");
+    let urlReceptionReferenceArticle = Routing.generate('reception_reference_article_remove', true);
+    InitModal($modalDeleteReceptionReferenceArticle, $submitDeleteReceptionReferenceArticle, urlReceptionReferenceArticle, {
+        success: () => {
+            loadReceptionLines();
+        }
+    });
 
-    let $modalEditArticle = $("#modalEditLigneArticle");
+    let $modalEditArticle = $("#modalEditReceptionReferenceArticle");
     let $submitEditArticle = $("#submitEditLigneArticle");
-    let urlEditArticle = Routing.generate('reception_article_edit', true);
-    InitModal($modalEditArticle, $submitEditArticle, urlEditArticle, {tables: [tableArticle]});
+    let urlEditArticle = Routing.generate('reception_reference_article_edit', true);
+    InitModal($modalEditArticle, $submitEditArticle, urlEditArticle, {
+        success: () => {
+            loadReceptionLines();
+        }
+    });
 
     let $modalDelete = $("#modalDeleteReception");
     let $submitDelete = $("#submitDeleteReception");
@@ -248,67 +183,22 @@ function initPageModals() {
     let modalNewLitige = $('#modalNewLitige');
     let submitNewLitige = $('#submitNewLitige');
     let urlNewLitige = Routing.generate('dispute_new_reception', true);
-    InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableLitigesReception]});
+    InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [receptionDisputesDatatable]});
 
     let modalEditLitige = $('#modalEditLitige');
     let submitEditLitige = $('#submitEditLitige');
     let urlEditLitige = Routing.generate('litige_edit_reception', true);
-    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitigesReception]});
+    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [receptionDisputesDatatable]});
 
     let $modalDeleteLitige = $("#modalDeleteLitige");
     let $submitDeleteLitige = $("#submitDeleteLitige");
     let urlDeleteLitige = Routing.generate('litige_delete_reception', true);
-    InitModal($modalDeleteLitige, $submitDeleteLitige, urlDeleteLitige, {tables: [tableLitigesReception]});
+    InitModal($modalDeleteLitige, $submitDeleteLitige, urlDeleteLitige, {tables: [receptionDisputesDatatable]});
 }
 
-function InitPageDataTable() {
-    let pathAddArticle = Routing.generate('reception_article_api', {'id': $('input[type="hidden"]#receptionId').val()}, true);
+function InitDisputeDataTable() {
     let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
-    let tableArticleConfig = {
-        lengthMenu: [5, 10, 25],
-        ajax: {
-            url: pathAddArticle,
-            type: "POST",
-            dataSrc: ({data, hasBarCodeToPrint}) => {
-                const $printButton = $('#buttonPrintMultipleBarcodes');
-                const dNoneClass = 'd-none';
-                if (hasBarCodeToPrint) {
-                    $printButton.removeClass(dNoneClass);
-                    $('.print').removeClass(dNoneClass)
-                } else {
-                    $printButton.addClass(dNoneClass);
-                    $('.print').addClass(dNoneClass)
-                }
-                return data;
-            }
-        },
-        domConfig: {
-            removeInfo: true
-        },
-        order: [['Urgence', "desc"], ['Référence', "desc"]],
-        columns: [
-            {data: 'Actions', title: '', className: 'noVis', orderable: false},
-            {data: 'Référence', title: 'Référence'},
-            {data: 'Commande', title: 'Commande'},
-            {data: 'A recevoir', title: 'A recevoir'},
-            {data: 'Reçu', title: 'Reçu'},
-            {data: 'Urgence', title: 'Urgence', visible: false},
-            {data: 'Comment', title: 'Comment', visible: false},
-        ],
-        rowConfig: {
-            needsRowClickAction: true,
-            needsColor: true,
-            dataToCheck: 'Urgence',
-            color: 'danger',
-            callback: (row, data) => {
-                if (data.Urgence && data.Comment) {
-                    const $row = $(row);
-                    $row.attr('title', data.Comment);
-                    initTooltips($row);
-                }
-            }
-        },
-    };
+
     let tableLitigeConfig = {
         lengthMenu: [5, 10, 25],
         ajax: {
@@ -337,10 +227,7 @@ function InitPageDataTable() {
             color: 'danger',
         },
     };
-    return {
-        tableArticle: initDataTable('tableArticle_id', tableArticleConfig),
-        tableLitigesReception: initDataTable('tableReceptionLitiges', tableLitigeConfig)
-    };
+    return initDataTable('tableReceptionLitiges', tableLitigeConfig);
 }
 
 function initEditReception() {
@@ -487,10 +374,15 @@ function initModalCondit(tableFromArticle) {
     let $modalDeleteInnerArticle = $("#modalDeleteArticle");
     let $submitDeleteInnerArticle = $("#submitDeleteArticle");
     let urlDeleteInnerArticle = Routing.generate('article_delete', true);
-    InitModal($modalDeleteInnerArticle, $submitDeleteInnerArticle, urlDeleteInnerArticle, {tables: [tableFromArticle, tableArticle]});
+    InitModal($modalDeleteInnerArticle, $submitDeleteInnerArticle, urlDeleteInnerArticle, {
+        tables: [tableFromArticle],
+        success: () => {
+            loadReceptionLines();
+        }
+    });
 }
 
-function initNewArticleEditor(modal) {
+function initNewArticleEditor(modal, options = {}) {
     const $modal = $(modal);
     let $select2refs = $modal.find('[name="referenceArticle"]');
 
@@ -498,10 +390,6 @@ function initNewArticleEditor(modal) {
     Select2Old.articleReference($select2refs);
 
     clearModal(modal);
-
-    const $commandField = $(modal).find('[name="commande"]');
-    const $numCommand = $('#numCommandeReception').val();
-    $commandField.val($numCommand);
 
     const $button = $('#addArticleLigneSubmitAndRedirect');
     $button.addClass('d-none');
@@ -515,7 +403,13 @@ function initNewArticleEditor(modal) {
     setTimeout(() => {
         Select2Old.open($select2refs);
     }, 400);
+
+    if (options['unitCode'] && options['unitId']) {
+        let $selectUl = $modal.find('[name="pack"]');
+        $selectUl.append(new Option(options['unitCode'], options['unitId'], true, true)).trigger('change');
+    }
 }
+
 
 function openModalArticlesFromLigneArticle(ligneArticleId) {
     $('#ligneSelected').val(ligneArticleId);
@@ -531,7 +425,8 @@ function articleChanged($select) {
 
     const selectedReference = $select.select2(`data`);
     const $addArticleAndRedirectSubmit = $(`#addArticleLigneSubmitAndRedirect`);
-    const $addArticleLigneSubmit = $(`#addArticleLigneSubmit`);
+    let $modalNewReceptionReferenceArticle = $("#modalNewReceptionReferenceArticle");
+    let $addArticleLigneSubmit = $modalNewReceptionReferenceArticle.find("[type=submit]");
 
     if (selectedReference.length > 0) {
         const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
@@ -580,18 +475,14 @@ function finishReception(receptionId, confirmed, $button) {
     ), true);
 }
 
-function clearAddRefModal() {
-    $('#innerNewRef').html('');
-    $('.body-add-ref').addClass('d-none');
-}
-
-function openModalLigneReception($button) {
+function openModalNewReceptionReferenceArticle() {
     clearModalLigneReception('#modalNewLigneReception');
-    initNewLigneReception($button);
+    initNewLigneReception();
 }
 
 function clearModalLigneReception(modal) {
     const $modal = $(modal);
+    clearModal($modal);
 
     $modal
         .find(".transfer-form")
@@ -601,14 +492,7 @@ function clearModalLigneReception(modal) {
         .find('.articles-conditionnement-container')
         .html('');
 
-    $modal
-        .find('#packing-package-number, #packing-number-in-package')
-        .val('');
-
-    let $submitNewReceptionButton = $modal.find("#submitNewReceptionButton");
-    $submitNewReceptionButton.off('click');
-
-    const $select2 = $modal.find('select[name="refArticleCommande"]');
+    const $select2 = $modal.find('select[name="referenceToReceive"]');
     if ($select2.hasClass("select2-hidden-accessible")) {
         $select2
             .val(null)
@@ -616,7 +500,7 @@ function clearModalLigneReception(modal) {
         $select2.select2('data', null);
         $select2.select2('destroy');
     }
-    $('.packing-title').addClass('d-none');
+
     toggleForm($('.transfer-form, .demande-form'), null, true);
     clearPackingContent($modal);
 }
@@ -640,14 +524,14 @@ function demandeurChanged($select) {
     }
 }
 
-function initNewLigneReception($button) {
+function initNewLigneReception() {
     const restrictedLocations = $modalNewLigneReception.find(`input[name=restrictedLocations]`).val();
     Select2Old.init($modalNewLigneReception.find('.ajax-autocomplete-location'), '', restrictedLocations ? 0 : 1, {route: 'get_emplacement'});
     Select2Old.location($('.ajax-autocomplete-location-edit'));
     Select2Old.init($('.select2-type'));
     Select2Old.user($modalNewLigneReception.find('.select2-user'));
     Select2Old.initValues($('select[name=demandeur]'), $( '#currentUser'));
-    Select2Old.init($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
+    Select2Old.init($modalNewLigneReception.find('[name=referenceToReceive]'), '', 0, {
         route: 'get_ref_article_reception',
         param: {
             reception: $('#receptionId').val()
@@ -666,56 +550,39 @@ function initNewLigneReception($button) {
         Select2Old.initValues($('#origin'), $('#originTransfer'));
     }
 
-    let urlNewLigneReception = Routing.generate(
-        'reception_new_with_packing',
-        {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},
-        true
-    );
-    let $submitNewReceptionButton = $modalNewLigneReception.find("#submitNewReceptionButton");
+    Form.create($modalNewLigneReception)
+        .onSubmit((data, form) => {
+            const reception = form.element.find('input[name="reception"]').val();
+            const $articleLines = form.element.find(`.article-line`);
+            const packingArticlesValues = $articleLines
+                .map((index, line) => $(line).data('value'))
+                .toArray();
+            const showLocationAlertMessage = $articleLines
+                .map((index, line) => $(line).data('drop-location-is-reception-location'))
+                .toArray()
+                .some((dropLocationIsReceptionLocation) => dropLocationIsReceptionLocation === 0);
 
-    $submitNewReceptionButton.off('click');
-    $submitNewReceptionButton.click(function () {
-        const receptionId = $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val();
-        const {reference, commande} = $modalNewLigneReception.find(`[name=refArticleCommande]`).select2('data')[0];
+            data.append('packingArticles', JSON.stringify(packingArticlesValues))
 
-        const packingArticlesValues = JSON.parse($modalNewLigneReception.find(`[name=packingArticles]`).val());
-        const cumulatedQuantities = packingArticlesValues.reduce((acc, {quantite}) => (acc + Number(quantite)), 0);
-        const params = {
-            reception: receptionId,
-            reference,
-            orderNumber: commande,
-            cumulatedQuantities
-        };
-
-        wrapLoadingOnActionButton($submitNewReceptionButton, () => (
-            AJAX.route(GET, `can_be_packed`, params)
-                .json()
-                .then(({success, reference, orderNumber, expectedQuantity}) => {
-                    if(success) {
-                        wrapLoadingOnActionButton($button, () => (
-                            SubmitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {
-                                tables: [tableArticle],
-                                success: (response) => {
-                                    if (response && response.success) {
-                                        const $printButton = $('#buttonPrintMultipleBarcodes');
-                                        if ($printButton.length > 0) {
-                                            window.location.href = Routing.generate('reception_bar_codes_print', {
-                                                reception: receptionId,
-                                                articleIds: response.articleIds
-                                            }, true);
-                                        }
-                                    }
-                                },
-                                keepForm: true
-                            })
-                        ))
-                    } else {
-                        const plural = expectedQuantity > 1 ? 's' : '';
-                        Flash.add(`danger`, `Vous ne pouvez pas conditionner plus de <strong>${expectedQuantity}</strong> article${plural} pour la référence <strong>${reference} - ${orderNumber}</strong>`)
-                    }
-                })
-        ));
-    });
+            if (showLocationAlertMessage) {
+                Modal.confirm({
+                    message: `
+                        <p class="mb-2 text-center">L'emplacement de réception est différent de l'emplacement de l'unité logistique.</p>
+                        <p class="text-center">Les articles seront déposés sur l'emplacement de réception puis déplacés sur l'emplacement de l'unité logistique.</p>
+                    `,
+                    validateButton: {
+                        color: 'success',
+                        label: 'Continuer',
+                        click: () => {
+                            form.loading(() => submitPackingForm({reception, data, $modalNewLigneReception}));
+                        }
+                    },
+                });
+            }
+            else {
+                form.loading(() => submitPackingForm({reception, data, $modalNewLigneReception}));
+            }
+        });
 
     const $select = $modalNewLigneReception.find('.demande-form [name="type"]');
     toggleRequiredChampsLibres($select, 'create');
@@ -744,34 +611,24 @@ function createHandlerAddLigneArticleResponse($modal) {
 
 function createHandlerAddLigneArticleResponseAndRedirect($modal) {
     return (data) => {
-        const [{text: refSelectedReference} = {}] = $modal.find('select[name="referenceArticle"]').select2('data') || [];
-        const commande = $modal.find('input[name="commande"]').val();
+        loadReceptionLines();
         createHandlerAddLigneArticleResponse($modal)(data);
         if (data.success) {
+            const {receptionReferenceArticle} = data;
             $('#modalNewLigneReception').modal('show');
 
-            $.get({
-                url: Routing.generate('get_ref_article_reception', {
-                    reception: $('#receptionId').val(),
-                    reference: refSelectedReference,
-                    commande
-                })
-            })
-                .then(({results}) => {
-                    if (results && results.length > 0) {
-                        const [selected] = results;
-                        if (selected) {
-                            const $pickingSelect = $('#modalNewLigneReception').find('#referenceConditionnement');
-                            let newOption = new Option(selected.text, selected.id, true, true);
-                            $pickingSelect
-                                .append(newOption)
-                                .val(selected.id);
-                            const [selectedPicking] = $pickingSelect.select2('data');
-                            Object.assign(selectedPicking, selected);
-                            $pickingSelect.trigger(`change`);
-                        }
-                    }
-                });
+            if (receptionReferenceArticle) {
+                const $pickingSelect = $('#modalNewLigneReception').find('[name=referenceToReceive]');
+                let newOption = new Option(receptionReferenceArticle.text, receptionReferenceArticle.id, true, true);
+                $pickingSelect
+                    .append(newOption)
+                    .val(receptionReferenceArticle.id);
+                const [selectedPicking] = $pickingSelect.select2('data');
+                Object.assign(selectedPicking, receptionReferenceArticle);
+                $pickingSelect.trigger(`change`);
+            }
+
+            loadReceptionLines();
         }
     }
 }
@@ -813,13 +670,50 @@ function toggleForm($content, $input, force = false) {
     }
 }
 
-function initConditionnementArticleFournisseurDefault() {
-    const $selectRefArticle = $('#modalNewLigneReception select[name="refArticleCommande"]');
-    const [referenceArticle] = $selectRefArticle.select2('data');
-    const $selectArticleFournisseur = $('#modalNewLigneReception select[name="articleFournisseurDefault"]');
+function onReferenceToReceiveChange() {
+    const $modal = $('#modalNewLigneReception');
+    const $firstStepForm = $modal.find('.reference-container');
+    const $referenceToReceive = $firstStepForm.find('[name="referenceToReceive"]');
+    const [referenceToReceive] = $referenceToReceive.select2('data');
 
-    if (referenceArticle) {
-        const {reference, defaultArticleFournisseur} = referenceArticle;
+    const $selectArticleFournisseur = $firstStepForm.find('[name=articleFournisseurDefault]');
+    const $selectArticleFournisseurFormGroup = $selectArticleFournisseur.closest('.form-group');
+
+    const $selectPack = $firstStepForm.find('[name=pack]');
+    const $selectPackFormGroup = $selectPack.closest('.form-group');
+
+    if (referenceToReceive) {
+        let {reference, orderNumber, pack, defaultArticleFournisseur} = referenceToReceive;
+
+        $selectPack
+            .data('other-params-reference', reference)
+            .attr('data-other-params-reference', reference)
+            .data('other-params-order-number', orderNumber)
+            .attr('data-other-params-order-number', orderNumber);
+
+        // remove old options
+        Select2.reload($selectPack)
+
+        // if the reference is only in the reception without a pack
+        // => pack == null
+        // else if there are multiple pack associated pack === undefined
+        if (pack !== undefined) {
+            pack = (pack || {});
+            $selectPack
+                .prop('disabled', true)
+                .append(new Option(pack.code || "&nbsp;", pack.id || `-1`, true, true));
+
+            // user can't make a transfer if the article is in a pack
+            if (Object.keys(pack).length) {
+                $('.create-request-container').find('input[value=transfer]').prop('disabled', true);
+            } else {
+                $('.create-request-container').find('input[value=transfer]').prop('disabled', false);
+            }
+        }
+        else {
+            $selectPack.prop('disabled', false)
+        }
+
         $selectArticleFournisseur
             .val(null)
             .html('')
@@ -837,45 +731,216 @@ function initConditionnementArticleFournisseurDefault() {
             {},
             defaultArticleFournisseur || {}
         );
-        resetDefaultArticleFournisseur(true);
+        $selectArticleFournisseurFormGroup.removeClass('d-none');
+        $selectPackFormGroup.removeClass('d-none');
+
+        $modal
+            .find('.packing-container')
+            .empty();
     }
     else {
-        resetDefaultArticleFournisseur();
-    }
-}
-
-function resetDefaultArticleFournisseur(show = false) {
-    const $selectArticleFournisseur = $('#modalNewLigneReception select[name="articleFournisseurDefault"]');
-    const $selectArticleFournisseurFormGroup = $selectArticleFournisseur.parents('.form-group');
-
-    $selectArticleFournisseur.trigger(`change`);
-
-    if (show) {
-        $selectArticleFournisseurFormGroup.removeClass('d-none');
-    } else {
         $selectArticleFournisseurFormGroup.addClass('d-none');
+        $selectPackFormGroup.addClass('d-none');
+
+
+        $selectPack
+            .prop('disabled', false)
+            .removeData('other-params-reference')
+            .removeAttr('data-other-params-reference')
+            .removeData('other-params-order-number')
+            .removeAttr('data-other-params-order-number')
+            .val(null).select2('data', null);
     }
+
+    $selectArticleFournisseur.trigger('change');
+    $selectPack.trigger('change');
 }
 
-function initRequiredChampsFixes(button) {
-    let params = {id: button.data('id')};
-    let path = Routing.generate('get_quantity_type');
-
-    $.post(path, JSON.stringify(params), function (data) {
-        displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data, button)
-    }, 'json');
-}
-
-function clearPackingContent($element, hideSupplierReferenceSelect = true, hidePackingContainer = true) {
+function clearPackingContent($element, hideSubFields = true, hidePackingContainer = true) {
     const $modal = $element.is(`.modal`) ? $element : $element.closest(`.modal`);
     $modal.find(`.articles-container, .error-msg`).empty();
     $modal.find(`.wii-section-title, .create-request-container, .modal-footer, .demande-form, .transfer-form`).addClass(`d-none`);
-    if(hideSupplierReferenceSelect) {
+    if(hideSubFields) {
         $modal.find(`select[name=articleFournisseurDefault]`).closest(`.form-group`).addClass(`d-none`);
+        $modal.find(`select[name=pack]`).closest(`.form-group`).addClass(`d-none`);
     }
 
     if(hidePackingContainer) {
         $modal.find(`.packing-container`).empty();
     }
-    $modal.find(`input[name=packingArticles]`).val(null);
+}
+
+function loadReceptionLines({start, search} = {}) {
+    start = start || 0;
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const reception = $('#receptionId').val();
+
+    const params = {reception, start};
+    if (search) {
+        params.search = search;
+    }
+    else {
+        clearPackListSearching();
+    }
+
+    wrapLoadingOnActionButton(
+        $logisticUnitsContainer,
+        () => (
+            AJAX.route(GET, 'reception_lines_api', params)
+                .json()
+                .then(data => {
+                    $logisticUnitsContainer.html(data.html);
+                    $logisticUnitsContainer.find('.articles-container table')
+                        .each(function() {
+                            const $table = $(this);
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                order: [['emergency', "desc"], ['reference', "desc"]],
+                                columns: [
+                                    {data: 'actions', className: 'noVis hideOrder', orderable: false},
+                                    {data: 'reference', title: 'Référence'},
+                                    {data: 'orderNumber', title: 'Commande'},
+                                    {data: 'quantityToReceive', title: 'À recevoir'},
+                                    {data: 'receivedQuantity', title: 'Reçu'},
+                                    {data: 'emergency', visible: false},
+                                    {data: 'comment', visible: false},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                    needsPaginationRemoval: true,
+                                    removeLength: true,
+                                    removeTableHeader: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                    needsColor: true,
+                                    dataToCheck: 'emergency',
+                                    color: 'danger',
+                                    callback: (row, data) => {
+                                        if (data.emergency && data.comment) {
+                                            const $row = $(row);
+                                            $row.attr('title', data.comment);
+                                            initTooltips($row);
+                                        }
+                                    }
+                                },
+                            })
+                        });
+
+                    $logisticUnitsContainer
+                        .find('.paginate_button:not(.disabled)')
+                        .on('click', function() {
+                            const $button = $(this);
+                            loadReceptionLines({
+                                start: $button.data('page'),
+                                search: articleSearch
+                            });
+                        });
+                })
+        )
+    )
+}
+
+function launchPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+
+    $searchInput.on('input', function () {
+        const $input = $(this);
+        const articleSearch = $input.val();
+        loadReceptionLines({search: articleSearch});
+    });
+}
+
+function clearPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+    $searchInput.val(null);
+}
+
+function loadPackingArticleForm($modal) {
+    const $referenceContainer = $modal.find(`.reference-container`);
+
+    const $referenceToReceive = $referenceContainer.find(`select[name=referenceToReceive]`)
+    const $pack = $referenceContainer.find(`[name=pack]`);
+    const $supplierArticleDefault = $referenceContainer.find(`[name=articleFournisseurDefault]`);
+    const $reception = $referenceContainer.find(`[name=reception]`);
+
+    const [referenceToReceive] = $referenceToReceive.hasClass("select2-hidden-accessible") ? $referenceToReceive.select2(`data`) : [];
+
+    if (referenceToReceive && $supplierArticleDefault.select2(`data`).length > 0) {
+        const $packingContainer = $modal.find(`.packing-container`);
+
+        wrapLoadingOnActionButton($packingContainer, () => (
+            AJAX.route(GET, `packing_article_form_template`, {
+                reception: $reception.val(),
+                reference: referenceToReceive.reference,
+                orderNumber: referenceToReceive.orderNumber,
+                pack: $pack.val(),
+                supplierReference: $supplierArticleDefault.val(),
+            })
+                .json()
+                .then(({success, msg, template}) => {
+                    if (success) {
+                        $packingContainer.html(template);
+                    }
+                    else {
+                        Flash.add(ERROR, msg);
+                    }
+                })
+        ));
+    } else {
+        clearPackingContent($(this), false);
+    }
+}
+
+function loadPackingArticlesTemplate($button) {
+    const $modal = $button.closest('.modal');
+    const $packingContainer = $modal.find('.packing-container');
+
+    if (!($packingContainer.html() || '').trim()) {
+        Flash.add(ERROR, 'Veuillez sélectionner une référence et une référence fournisseur.');
+        return;
+    }
+    const data = Form.process($modal.find(`.packing-container`));
+
+    if (data) {
+        const params = JSON.stringify(data.asObject());
+        wrapLoadingOnActionButton($button, () => (
+            AJAX.route(GET, `get_packing_articles_template`, {params})
+                .json()
+                .then(({template}) => {
+                    const $articlesContainer = $modal.find(`.articles-container`);
+                    $articlesContainer.append(template);
+                    $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).removeClass(`d-none`);
+
+                    if (Number($modal.find(`[name=precheckedDelivery]`).val())) {
+                        $modal.find(`.create-request-container`).find(`input[value=delivery]`).trigger(`change`);
+                    }
+                })
+        ));
+    }
+}
+
+function submitPackingForm({reception, data, $modalNewLigneReception}) {
+    return AJAX
+        .route(POST, `reception_new_with_packing`, { reception })
+        .json(data)
+        .then(({success, articleIds}) => {
+            if (success) {
+                window.location.href = Routing.generate('reception_bar_codes_print', {
+                    reception,
+                    articleIds
+                }, true);
+                loadReceptionLines();
+                $modalNewLigneReception.modal('hide');
+            }
+        });
 }

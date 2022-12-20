@@ -130,7 +130,8 @@ class DisputeRepository extends EntityRepository
             ->createQueryBuilderByDates($dateMin, $dateMax, $statuses)
             ->join('dispute.articles', 'article')
             ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
-            ->join('receptionReferenceArticle.reception', 'reception')
+            ->join('receptionReferenceArticle.receptionLine', 'receptionLine')
+            ->join('receptionLine.reception', 'reception')
             ->getQuery()
             ->toIterable();
 	}
@@ -159,7 +160,7 @@ class DisputeRepository extends EntityRepository
             FROM App\Entity\Dispute dispute
             INNER JOIN dispute.articles a
             INNER JOIN a.receptionReferenceArticle rra
-            INNER JOIN rra.reception r
+            INNER JOIN rra.receptionLine r
             WHERE r.id = :reception'
         )->setParameter('reception', $reception);
 
@@ -205,7 +206,8 @@ class DisputeRepository extends EntityRepository
             ->leftJoin('dispute.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
 			->leftJoin('rra.referenceArticle', 'ra')
-			->leftJoin('rra.reception', 'r')
+			->leftJoin('rra.receptionLine', 'rl')
+			->leftJoin('rl.reception', 'r')
 			->leftJoin('r.fournisseur', 'rFourn');
 
         $countTotal = QueryBuilderHelper::count($qb, 'dispute');

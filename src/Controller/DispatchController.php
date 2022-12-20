@@ -23,8 +23,6 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-
-use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
@@ -61,6 +59,7 @@ use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/acheminements")
@@ -293,7 +292,7 @@ class DispatchController extends AbstractController {
             ->setDestination($destination);
 
         if(!empty($comment)) {
-            $dispatch->setCommentaire($comment);
+            $dispatch->setCommentaire(StringHelper::cleanedComment($comment));
         }
 
         if(!empty($startDate)) {
@@ -541,7 +540,7 @@ class DispatchController extends AbstractController {
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)
-            ->setCommentaire($post->get('commentaire') ?: '')
+            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')) ?: '')
             ->setDestination($destination);
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
@@ -774,7 +773,7 @@ class DispatchController extends AbstractController {
         }
 
         if(empty($pack)) {
-            $pack = $packService->createPack(['code' => $packCode]);
+            $pack = $packService->createPack($entityManager, ['code' => $packCode]);
             $entityManager->persist($pack);
         }
 
@@ -790,7 +789,7 @@ class DispatchController extends AbstractController {
 
         $nature = $natureRepository->find($natureId);
         $pack->setNature($nature);
-        $pack->setComment($comment);
+        $pack->setComment(StringHelper::cleanedComment($comment));
         $dispatchPack->setQuantity($quantity);
         $pack->setWeight($weight ? round($weight, 3) : null);
         $pack->setVolume($volume ? round($volume, 3) : null);
@@ -1111,6 +1110,7 @@ class DispatchController extends AbstractController {
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+            'fromDelivery' => $request->query->getBoolean('fromDelivery'),
         ]));
 
         return $this->json([
@@ -1397,7 +1397,16 @@ class DispatchController extends AbstractController {
         $client = SpecificService::CLIENTS[$specificService->getAppClient()];
 
         $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
-        $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch);
+        $packs = Stream::from($dispatch->getDispatchPacks())
+            ->map(fn(DispatchPack $dispatchPack) => [
+                'quantity' => $dispatchPack->getQuantity(),
+                'code' => $dispatchPack->getPack()->getCode(),
+                'weight' => $dispatchPack->getPack()->getWeight(),
+                'volume' => $dispatchPack->getPack()->getVolume(),
+                'comment' => $dispatchPack->getPack()->getComment(),
+                'nature' => $this->getFormatter()->nature($dispatchPack->getPack()->getNature(), "", $loggedUser)
+            ])->toArray();
+        $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch, $packs);
 
         $wayBillAttachment = new Attachment();
         $wayBillAttachment
@@ -1512,7 +1521,7 @@ class DispatchController extends AbstractController {
 
             $additionalField[] = [
                 "label" => "Flux",
-                "value" => $flow ? FormatHelper::freeField($freeFieldValues[$flow->getId()] ?? null, $flow) : null,
+                "value" => $flow ? $this->formatService->freeField($freeFieldValues[$flow->getId()] ?? null, $flow) : null,
             ];
 
             $requestType = current(array_filter($freeFields, function($field) {
@@ -1521,7 +1530,7 @@ class DispatchController extends AbstractController {
 
             $additionalField[] = [
                 "label" => "Type de demande",
-                "value" => $requestType ? FormatHelper::freeField($freeFieldValues[$requestType->getId()] ?? null, $requestType) : null,
+                "value" => $requestType ? $this->formatService->freeField($freeFieldValues[$requestType->getId()] ?? null, $requestType) : null,
             ];
         }
 

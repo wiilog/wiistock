@@ -46,6 +46,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => false,
                 SpecificService::CLIENT_SAFRAN_ED => true,
             ],
+            Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION => [
+                'default' => false,
+            ],
             Setting::MANAGE_PREPARATIONS_WITH_PLANNING => [
                 'default' => false,
             ],
@@ -75,6 +78,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             setting::INCLUDE_BUSINESS_UNIT_IN_LABEL => [
                 'default' => false,
                 SpecificService::CLIENT_INEO_LAV => true,
+            ],
+            setting::INCLUDE_PROJECT_IN_LABEL => [
+                'default' => false,
             ],
             Setting::INCLUDE_EMERGENCY_IN_LABEL => [
                 'default' => false,
@@ -133,7 +139,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::CL_USED_IN_LABELS => [
                 'default' => FreeField::SPECIC_COLLINS_BL
             ],
-            Setting::CLEAR_AND_STAY_AFTER_NEW_MVT => [
+            Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT => [
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
@@ -253,6 +259,15 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::QUANTITY_ERROR_MESSAGE => [
                 'default' => 'La référence @reference est déjà en stock en quantité 1, vous ne pouvez donc pas faire une nouvelle entrée en stock pour cet article. Contactez GT au 8 45 65 pour plus d’informations.'
+            ],
+            Setting::DELIVERY_EXPECTED_DATE_COLOR_AFTER => [
+                'default' => '#2b78e4'
+            ],
+            Setting::DELIVERY_EXPECTED_DATE_COLOR_D_DAY => [
+                'default' => '#009e0f'
+            ],
+            Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE => [
+                'default' => '#cf2a27'
             ],
         ];
 

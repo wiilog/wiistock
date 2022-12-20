@@ -15,6 +15,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\StringHelper;
 
 class PurchaseRequestService {
 
@@ -141,7 +142,7 @@ class PurchaseRequestService {
             ->setCreationDate($now)
             ->setStatus($status)
             ->setRequester($requester)
-            ->setComment($comment)
+            ->setComment(StringHelper::cleanedComment($comment))
             ->setNumber($purchaseRequestNumber)
             ->setValidationDate($validationDate);
 

@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 
@@ -30,6 +31,8 @@ class LivraisonService
     private $security;
 
     private $entityManager;
+
+    const WAYBILL_MAX_PACK = 20;
 
     #[Required]
     public FormatService $formatService;
@@ -158,5 +161,41 @@ class LivraisonService
                 }
             }
         }
+    }
+
+    public function createHeaderDetailsConfig(Livraison $deliveryOrder): array
+    {
+        return  [
+            [ 'label' => 'Numéro', 'value' => $deliveryOrder->getNumero() ],
+            [ 'label' => 'Statut', 'value' => $deliveryOrder->getStatut() ? ucfirst($this->formatService->status($deliveryOrder->getStatut())) : '' ],
+            [ 'label' => 'Opérateur', 'value' => $this->formatService->user($deliveryOrder->getPreparation()->getUtilisateur()) ],
+            [ 'label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($deliveryOrder->getDemande()) ],
+            [ 'label' => 'Point de livraison', 'value' => $this->formatService->location($deliveryOrder->getDemande()->getDestination())],
+            [ 'label' => 'Date de livraison', 'value' => $this->formatService->date($deliveryOrder->getDateFin()) ],
+            [
+                'label' => 'Date attendue',
+                'value' => $this->formatService->date($deliveryOrder?->getDemande()->getExpectedAt()),
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
+            ],
+            [
+                'label' => 'Projet',
+                'value' => $this->formatService->project($deliveryOrder?->getDemande()->getProject()) ?? '',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT]
+            ],
+            [
+                'label' => 'Commentaire',
+                'value' => $deliveryOrder->getDemande()->getCommentaire() ?: '',
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true,
+                'isNeededNotEmpty' => true
+            ],
+            [
+                'label' => 'Pièces jointes',
+                'value' => $deliveryOrder->getAttachments()->toArray(),
+                'isAttachments' => true,
+                'isNeededNotEmpty' => true
+            ]
+        ];
     }
 }

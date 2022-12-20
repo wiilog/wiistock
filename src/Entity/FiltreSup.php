@@ -21,6 +21,7 @@ class FiltreSup {
     const FIELD_TYPE = 'type';
     const FIELD_FILE_NUMBER = 'fileNumber';
     const FIELD_CONTACT = 'contact';
+    const FIELD_PROJECT = 'project';
     const FIELD_EMPLACEMENT = 'emplacement';
     const FIELD_COLIS = 'colis';
     const FIELD_REFERENCE = 'reference';
@@ -29,6 +30,8 @@ class FiltreSup {
     const FIELD_EMERGENCY = 'emergency';
     const FIELD_EMERGENCY_MULTIPLE = 'emergencyMultiple';
     const FIELD_BUSINESS_UNIT = 'businessUnit';
+    const FIELD_PROJECT_NUMBER = 'projectNumber';
+    const FIELD_ARTICLE = 'article';
     const FIELD_ANOMALY = 'anomaly';
     const FIELD_RECEPTION_STRING = 'reception_string';
     const FIELD_COMMANDE = 'commande';

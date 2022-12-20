@@ -15,18 +15,20 @@ class ReceptionReferenceArticle {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'receptionReferenceArticles')]
-    private ?Reception $reception = null;
+    #[ORM\ManyToOne(targetEntity: ReceptionLine::class, inversedBy: 'receptionReferenceArticles')]
+    private ?ReceptionLine $receptionLine = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'receptionReferenceArticles')]
     private ?ReferenceArticle $referenceArticle = null;
 
+    /** Received quantity */
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $quantite = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $commentaire = null;
 
+    /** Quantity to receive */
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $quantiteAR = null;
 
@@ -63,13 +65,16 @@ class ReceptionReferenceArticle {
         return $this->id;
     }
 
-    public function getReception(): ?Reception {
-        return $this->reception;
+    public function getReceptionLine(): ?ReceptionLine {
+        return $this->receptionLine;
     }
 
-    public function setReception(?Reception $reception): self {
-        $this->reception = $reception;
-
+    public function setReceptionLine(?ReceptionLine $receptionLine): self {
+        if($this->receptionLine && $this->receptionLine !== $receptionLine) {
+            $this->receptionLine->removeReceptionReferenceArticle($this);
+        }
+        $this->receptionLine = $receptionLine;
+        $receptionLine?->addReceptionReferenceArticle($this);
         return $this;
     }
 
@@ -227,6 +232,13 @@ class ReceptionReferenceArticle {
         }
 
         return $this;
+    }
+
+    public function isReceptionBegun(): bool {
+        return (
+            !$this->articles->isEmpty()
+            || ($this->quantite && $this->quantite > 0)
+        );
     }
 
 }

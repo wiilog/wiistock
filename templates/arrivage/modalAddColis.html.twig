@@ -7,10 +7,27 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
+                {% if projects != null %}
+                    <div class="row">
+                        <div class="col-auto m-1 pr-0">
+                            <div class="form-group">
+                                <label class="wii-field-name">Projet</label>
+                                <select class="form-control data cursor-default filter-input"
+                                        name="project"
+                                        id="project">
+                                    <option selected value="">Choisir un projet ...</option>
+                                    {% for project in projects | sort((a, b) => a.code <=> b.code) %}
+                                        <option value="{{ project.id }}">{{ project.code }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
                 {% if natures != null %}
                     <div class="row mt-4">
-                        <div class='col-12 mb-2'>
-                            <h3 class="label">{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', "Nombre d'UL à ajouter :") }}</h3>
+                        <div class="col-12 mb-2">
+                            <span class="wii-section-title">{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', "Nombre d'unités logistiques à ajouter :") }}</span>
                         </div>
                         <div class="form-group col-12 blocVisible d-block">
                             <div class="d-block">

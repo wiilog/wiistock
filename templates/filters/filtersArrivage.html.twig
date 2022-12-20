@@ -2,6 +2,12 @@
 
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARRIVAL_TYPE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterType.html.twig' with {
+            placeholder : trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false)
+        } %}
+    {% endif %}
     {% include 'filters/filter_item/filterStatus.html.twig' with {
         placeholder : trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Statuts', false)
     } %}
@@ -38,5 +44,10 @@
         {% include 'filters/filter_item/filterBusinessUnit.html.twig' with {
             page: constant('App\\Entity\\FieldsParam::ENTITY_CODE_ARRIVAGE')
         } %}
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterProjectNumber.html.twig' %}
     {% endif %}
 {% endblock %}

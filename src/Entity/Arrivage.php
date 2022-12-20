@@ -20,79 +20,79 @@ class Arrivage {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'arrivages')]
-    private $fournisseur;
+    private ?Fournisseur $fournisseur = null;
 
     #[ORM\ManyToOne(targetEntity: Chauffeur::class, inversedBy: 'arrivages')]
-    private $chauffeur;
+    private ?Chauffeur $chauffeur = null;
 
     #[ORM\Column(type: 'string', length: 64, nullable: true)]
-    private $noTracking;
+    private ?string $noTracking = null;
 
     #[ORM\Column(type: 'json')]
-    private $numeroCommandeList;
+    private ?array $numeroCommandeList = [];
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'arrivagesDestinataire')]
-    private $destinataire;
+    private ?Utilisateur $destinataire = null;
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'arrivagesAcheteur')]
-    private $acheteurs;
+    private Collection $acheteurs;
 
     #[ORM\Column(type: 'string', length: 64, nullable: true)]
-    private $numeroReception;
+    private ?string $numeroReception = null;
 
     #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'arrivages')]
-    private $transporteur;
+    private ?Transporteur $transporteur = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $date;
+    private ?DateTime $date = null;
 
     #[ORM\Column(type: 'string', length: 32, nullable: true, unique: true)]
-    private $numeroArrivage;
+    private ?string $numeroArrivage = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'arrivagesUtilisateur')]
-    private $utilisateur;
+    private ?Utilisateur $utilisateur = null;
 
     #[ORM\OneToMany(targetEntity: Pack::class, mappedBy: 'arrivage')]
-    private $packs;
+    private Collection $packs;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $commentaire;
+    private ?string $commentaire = null;
 
     #[ORM\OneToMany(targetEntity: 'Attachment', mappedBy: 'arrivage')]
-    private $attachements;
+    private Collection $attachements;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $isUrgent;
+    private ?bool $isUrgent = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'arrivages')]
-    private $statut;
+    private ?Statut $statut = null;
 
-    /**
-     * @var Collection
-     */
     #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'lastArrival')]
-    private $urgences;
+    private Collection $urgences;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $customs;
+    private ?bool $customs = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $frozen;
+    private ?bool $frozen = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $projectNumber;
+    private ?string $projectNumber = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $businessUnit;
+    private ?string $businessUnit = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'arrivals')]
-    private $type;
+    private ?Type $type = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'arrivals')]
-    private $dropLocation;
+    private ?Emplacement $dropLocation = null;
+
+    #[ORM\OneToOne(mappedBy: 'arrival', targetEntity: Reception::class)]
+    private ?Reception $reception = null;
 
     public function __construct() {
         $this->acheteurs = new ArrayCollection();
@@ -486,4 +486,21 @@ class Arrivage {
         return $this;
     }
 
+    public function getReception(): ?Reception {
+        return $this->reception;
+    }
+
+    public function setReception(?Reception $reception): self {
+        if($this->reception && $this->reception->getArrival() !== $this) {
+            $oldReception = $this->reception;
+            $this->reception = null;
+            $oldReception->setArrival(null);
+        }
+        $this->reception = $reception;
+        if($this->reception && $this->reception->getArrival() !== $this) {
+            $this->reception->setArrival($this);
+        }
+
+        return $this;
+    }
 }

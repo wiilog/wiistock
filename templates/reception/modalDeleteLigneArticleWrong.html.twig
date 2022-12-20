@@ -1,9 +1,0 @@
-<p class='error-msg'>
-    Vous ne pouvez pas supprimer cette ligne.<br>
-    {% if msg is defined %}
-        {{ msg }}
-    {% else %}
-        En effet, il y a eu réception <span title="d'articles">{{ trans('Ordre', 'Réceptions', 'd\'articles', false) }}</span> sur <span
-        title="cette réception">{{ trans('Ordre', 'Réceptions', 'cette réception', false) }}</span>.
-    {% endif %}
-</p>

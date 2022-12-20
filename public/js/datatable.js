@@ -10,6 +10,7 @@ $(function () {
             $table.DataTable().columns.adjust().draw();
         });
     });
+
     onToggleInputRadioOnRow();
 });
 
@@ -59,28 +60,31 @@ function extendsDateSort(name, format = '') {
 function initActionOnRow(row) {
     $(row).addClass('pointer');
     if ($(row).find('.action-on-click').get(0)) {
-        $(row).on('mouseup', 'td:not(.noVis)', function (event) {
-            const highlightedText = window.getSelection
-                ? window.getSelection().toString()
-                : undefined;
+        $(row)
+            .off('mouseup.wiitable')
+            .on('mouseup.wiitable', 'td:not(.noVis)', function (event) {
+                const highlightedText = window.getSelection
+                    ? window.getSelection().toString()
+                    : undefined;
 
-            if (!highlightedText) {
-                const {which} = event || {};
-                let $anchor = $(row).find('.action-on-click');
-                const href = $anchor.attr('href');
-                if (href) {
-                    if (which === 1) {
-                        window.location.href = href;
-                    } else if (which === 2) {
-                        window.open(href, '_blank');
-                    }
-                } else {
-                    if (which === 1) {
-                        $anchor.trigger('click');
+                if (!highlightedText) {
+                    const {which} = event || {};
+                    let $anchor = $(row).find('.action-on-click');
+                    const href = $anchor.attr('href');
+                    if (href) {
+                        if($anchor.attr(`target`) === `_blank` || which === 2) {
+                            event.stopPropagation();
+                            window.open(href, '_blank');
+                        } else if(which === 1) {
+                            window.location.href = href;
+                        }
+                    } else {
+                        if (which === 1) {
+                            $anchor.trigger('click');
+                        }
                     }
                 }
-            }
-        });
+            });
     }
 }
 
@@ -140,17 +144,22 @@ function createDatatableDomFooter({information, length, pagination}) {
         : ''
 }
 
-function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo}) {
+function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo, removeLength, removeTableHeader}) {
 
+    const domHeader = removeTableHeader
+        ? ''
+        : (
+            '<"row mb-2"' +
+                '<"col-auto d-none"f>' +
+            '>'
+        );
     const domFooter = createDatatableDomFooter({
         information: !removeInfo,
-        length: true,
+        length: !removeLength,
         pagination: !needsPaginationRemoval
     });
     let dtDefaultValue = (
-        '<"row mb-2"' +
-        '<"col-auto d-none"f>' +
-        '>' +
+        domHeader +
         't' +
         domFooter +
         'r'
@@ -376,6 +385,7 @@ function initDataTable($table, options) {
         };
 
     const initial = $table.data(`initial-data`);
+
     if(initial && typeof initial === `object`) {
         config = {
             ...config,
@@ -426,6 +436,10 @@ function initDataTable($table, options) {
                 setTimeout(() => {
                     drawCallback(response);
                 });
+
+                //remove any ghost tooltip that could be caused by
+                //datatable refresh while a tooltip is open
+                $('body > [role=tooltip]').remove();
             },
             initComplete: () => {
                 setTimeout(() => {

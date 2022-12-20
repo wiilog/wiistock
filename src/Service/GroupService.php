@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\StringHelper;
 
 class GroupService {
 
@@ -37,7 +38,7 @@ class GroupService {
     public function createParentPack(array $options = []): Pack {
         $group = $this->packService->createPackWithCode($options['parent']);
         $group
-            ->setComment($options['comment'] ?? '')
+            ->setComment(StringHelper::cleanedComment($options['comment'] ?? null))
             ->setGroupIteration(1)
             ->setNature($options['nature'] ?? null)
             ->setVolume($options['volume'] ?? 0)

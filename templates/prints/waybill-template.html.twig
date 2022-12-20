@@ -97,6 +97,7 @@
 </head>
 <body>
 <div class="container">
+    {% set entityWayBillData = entity.waybillData %}
     <div class="split">
         <div>
             {% if logo %}
@@ -109,15 +110,15 @@
             <div class="dispatch-main-details">
                 <div class="header">
                     {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lettre de voiture N°{1}", {
-                        '1': dispatch.number
+                        '1': number
                     }) }}<br>
                 </div>
 
-                {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Date d'acheminement") }} {{ dispatch.waybillData.dispatchDate }}
+                {{ fromDelivery is defined and fromDelivery ? 'Date de livraison' : trans('Demande', 'Acheminements', 'Lettre de voiture', "Date d'acheminement") }} {{ entityWayBillData.dispatchDate }}
             </div>
             <div class="qr">
                 {{ printBarcode({
-                    code: dispatch.number,
+                    code: number,
                     type: 'qrcode',
                     format: 'svg',
                     height: 100,
@@ -130,7 +131,7 @@
     <div class="split">
         <div>
             <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', 'Transporteur') }}</label><br>
-            {{ dispatch.waybillData.carrier | nl2br }}
+            {{ entityWayBillData.carrier | nl2br }}
         </div>
         <div></div>
     </div>
@@ -138,35 +139,35 @@
     <div class="split">
         <div>
             <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Expéditeur") }}</label><br>
-            {{ dispatch.waybillData.consignor | nl2br }}
+            {{ entityWayBillData.consignor | nl2br }}
         </div>
         <div>
             <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Destinataire") }}</label><br>
-            {{ dispatch.waybillData.receiver | nl2br }}
+            {{ entityWayBillData.receiver | nl2br }}
         </div>
     </div>
 
     <div class="split">
         <div>
             <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Contact expéditeur") }}</label><br>
-            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Nom") }} : {{ dispatch.waybillData.consignorUsername }}<br>
-            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Téléphone - Email") }} : {{ dispatch.waybillData.consignorEmail }}
+            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Nom") }} : {{ entityWayBillData.consignorUsername }}<br>
+            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Téléphone - Email") }} : {{ entityWayBillData.consignorEmail }}
         </div>
         <div>
             <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Contact destinataire") }}</label><br>
-            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Nom") }} : {{ dispatch.waybillData.receiverUsername }}<br>
-            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Téléphone - Email") }} : {{ dispatch.waybillData.receiverEmail }}
+            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Nom") }} : {{ entityWayBillData.receiverUsername }}<br>
+            {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Téléphone - Email") }} : {{ entityWayBillData.receiverEmail }}
         </div>
     </div>
 
     <table class="invisible">
         <tr>
             <td class="no-padding"><label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lieu de chargement") }}&nbsp;:</label></td>
-            <td>{{ dispatch.waybillData.locationFrom }}</td>
+            <td>{{ entityWayBillData.locationFrom }}</td>
         </tr>
         <tr>
             <td class="no-padding"><label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lieu de déchargement") }}&nbsp;:</label></td>
-            <td>{{ dispatch.waybillData.locationTo }}</td>
+            <td>{{ entityWayBillData.locationTo }}</td>
         </tr>
     </table>
 
@@ -187,18 +188,18 @@
         {% set total_weight = 0 %}
         {% set total_volume = 0 %}
 
-        {% for dp in dispatch.dispatchPacks %}
-            {% set total_quantity = total_quantity + dp.quantity %}
-            {% set total_weight = total_weight + dp.pack.weight %}
-            {% set total_volume = total_volume + dp.pack.volume %}
+        {% for pack in packs %}
+            {% set total_quantity = total_quantity + pack.quantity %}
+            {% set total_weight = total_weight + pack.weight %}
+            {% set total_volume = total_volume + pack.volume %}
 
             <tr>
-                <td>{{ dp.pack.code }}</td>
-                <td>{{ dp.pack.nature ? dp.pack.nature.labelIn(app.user.language.slug, language_service.defaultSlug) : '' }}</td>
-                <td>{{ dp.quantity }}</td>
-                <td>{% if dp.pack.weight %}{{ dp.pack.weight }} kg{% endif %}</td>
-                <td>{% if dp.pack.volume %}{{ dp.pack.volume }} m3{% endif %}</td>
-                <td>{{ dp.pack.comment | raw }}</td>
+                <td>{{ pack.code }}</td>
+                <td>{{ pack.nature }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td>{% if pack.weight %}{{ pack.weight }} kg{% endif %}</td>
+                <td>{% if pack.volume %}{{ pack.volume }} m3{% endif %}</td>
+                <td>{{ pack.comment | raw }}</td>
             </tr>
         {% endfor %}
 
@@ -214,7 +215,7 @@
 
     <footer>
         <label>{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Note de bas de page") }}</label><br>
-        {{ dispatch.waybillData.notes | nl2br }}
+        {{ entityWayBillData.notes | nl2br }}
     </footer>
 </div>
 </body>

@@ -1,4 +1,4 @@
-<div class="d-flex">
+<div class="d-flex justify-content-between">
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
@@ -13,7 +13,7 @@
                      data-toggle='modal'
                      data-target='#modalEditPack'
                      data-id="{{ pack.id }}"
-                     onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), false, () => initializeGroupHistoryTable({{ pack.id }}));">
+                     onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), false, () => initializeHistoryTables({{ pack.id }}));">
                     <i class='fas fa-edit mr-2'></i>{{ trans('Général', null, 'Modale', 'Modifier') }}
                 </div>
             {% endif %}

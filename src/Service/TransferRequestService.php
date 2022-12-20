@@ -17,6 +17,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\StringHelper;
 
 class TransferRequestService {
 
@@ -134,7 +135,7 @@ class TransferRequestService {
             ->setDestination($destination)
             ->setOrigin($origin)
             ->setRequester($requester)
-            ->setComment($comment);
+            ->setComment(StringHelper::cleanedComment($comment));
 
         return $transfer;
     }

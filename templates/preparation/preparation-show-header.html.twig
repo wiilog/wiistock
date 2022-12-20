@@ -4,83 +4,90 @@
 {% block showSubtitle ('n°' ~ preparation.numero) %}
 
 {% block showActions %}
-    <div class="btn-group">
-        {% set hasRightPairingOrder = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::PAIR_SENSOR')) %}
-        {% set hasRightFinish = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+    {% set hasRightPairingOrder = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::PAIR_SENSOR')) %}
+    {% set hasRightFinish = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
 
-        {% if isPrepaEditable and hasRightFinish and preparation.statut.code != constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
-            <button type="button"
-                    class="btn btn-primary split-button d-flex align-items-center"
-                    onclick="finishPrepa($(this))">
-                <span class="wii-icon wii-icon-check-white mr-2"></span>Finir la préparation
-            </button>
-        {% endif %}
-        <button type="button"
-                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false">
-            <span class="fa fa-angle-down"></span>
-        </button>
-        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            {% if isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-                {% if preparation.activePairing %}
-                    <button class="dropdown-item disabled d-flex align-items-center"
-                            style="pointer-events: initial"
-                            disabled title="La livraison est associée à un capteur, il faut d'abord la dissocier de son capteur">
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
-                    </button>
-                {% else %}
-                    <a class="dropdown-item d-flex align-items-center" href=""
-                       data-target='#modalDeletePreparation'
-                       data-toggle='modal'>
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
-                    </a>
-                {% endif %}
-            {% endif %}
-            <button onclick="printPrepaBarCodes()" class="dropdown-item pointe d-flex align-items-center">
-                <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer les étiquettes
-            </button>
-            {% if
-                hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_PREPARATION_DATE'))
-                and preparation.expectedAt
-                and preparation.demande.expectedAt
-                and preparation.statut.code == constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED') %}
-                <a class="dropdown-item" href=""
-                   data-target='#modalEditPreparation'
-                   data-toggle='modal'>
-                    <i class="fa fa-edit mr-2"></i>Modifier
-                </a>
-            {% endif %}
-            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) %}
-                {% if demande %}
-                    <a href="{{ path('demande_show', {'id': demande.id}) }}"
-                       class="dropdown-item"><i class="mr-2 fas fa-external-link-alt"></i>Retourner à la demande de livraison
-                    </a>
-                {% endif %}
-            {% endif %}
-            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) %}
-                {% if livraison is not empty %}
-                    <a href="{{ path('livraison_show', {'id': livraison.id}) }}"
-                       class="dropdown-item"><i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de livraison</a>
-                {% endif %}
-            {% endif %}
-            {% if hasRightPairingOrder and hasRightFinish and preparation.pairings|filter(p=>p.active)|length==0 %}
-                <a class="dropdown-item pointer"
-                   data-toggle="modal"
-                   data-target="#modalNewSensorPairing">
-                    <span class="wii-icon wii-icon-pairing mr-2"></span>
-                    Associer à un capteur
-                </a>
-            {% endif %}
-            {% if (preparation.pairings is not empty)
-                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
-                <a class="dropdown-item"
-                   href="{{ path('show_data_history', {id: preparation.demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}) }}">
-                    <span class="wii-icon wii-icon-pairing"></span>
-                    Historique des données
-                </a>
-            {% endif %}
-        </div>
-    </div>
+    {% include 'utils/action-buttons/header-buttons.html.twig' with {
+        forceActionButton: true,
+        actions: [
+            {
+                hasRight: isPrepaEditable and hasRightFinish and preparation.statut.code != constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED'),
+                icon: "wii-icon wii-icon-check-white",
+                title: "Finir la préparation",
+                attributes: {
+                    "onclick": "finishPrepa($(this))",
+                },
+            },
+            {
+                hasRight: isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')),
+                buttonClass:  preparation.activePairing ? "disabled",
+                icon: "wii-icon wii-icon-trash-black",
+                title: "Supprimer",
+                dropdownOnly: true,
+                attributes: preparation.activePairing
+                    ? {
+                        "disabled": true,
+                        "style": "pointer-events: initial",
+                        "title": "La livraison est associée à un capteur, il faut d'abord la dissocier de son capteur",
+                    }
+                    : {
+                        "data-target": "#modalDeletePreparation",
+                        "data-toggle": "modal",
+                    },
+            },
+            {
+                hasRight: preparation.referenceLines | length > 0 or preparation.articleLines | length > 0,
+                icon: "wii-icon wii-icon-printer-black",
+                title: "Imprimer les étiquettes",
+                href: path('preparation_bar_codes_print', { preparation: preparation.id }),
+                dropdownOnly: true,
+            },
+            {
+                hasRight: (
+                    hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT_PREPARATION_DATE'))
+                    and preparation.expectedAt
+                    and preparation.demande.expectedAt
+                    and preparation.statut.code == constant('App\\Entity\\PreparationOrder\\Preparation::STATUT_VALIDATED')
+                ),
+                icon: "fa fa-edit",
+                title: "Modifier",
+                dropdownOnly: true,
+                attributes: {
+                    "data-target": '#modalEditPreparation',
+                    "data-toggle": 'modal',
+                },
+            },
+            {
+                hasRight: hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) and demande,
+                icon: "fas fa-external-link-alt",
+                title: "Retourner à la demande de livraison",
+                dropdownOnly: true,
+                href: demande ? path('demande_show', {'id': demande.id}),
+            },
+            {
+                hasRight: hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) and livraison is not empty,
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers l'ordre de livraison",
+                dropdownOnly: true,
+                href: livraison ? path('livraison_show', {'id': livraison.id}),
+            },
+            {
+                hasRight: hasRightPairingOrder and hasRightFinish and not preparation.activePairing,
+                icon: "wii-icon wii-icon-pairing",
+                title: "Associer à un capteur",
+                dropdownOnly: true,
+                attributes: {
+                    "data-target": "#modalNewSensorPairing",
+                    "data-toggle": "modal",
+                },
+            },
+            {
+                hasRight: (preparation.pairings is not empty) and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')),
+                icon: "wii-icon wii-icon-pairing",
+                title: "Historique des données",
+                dropdownOnly: true,
+                href: preparation ? path('show_data_history', {id: preparation.demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}),
+            },
+        ]
+    } %}
 {% endblock %}

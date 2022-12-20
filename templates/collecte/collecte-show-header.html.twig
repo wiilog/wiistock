@@ -4,91 +4,75 @@
 {% block showSubtitle ('n°' ~ collecte.numero) %}
 
 {% block showActions %}
-    <div class="btn-group">
-        {% if modifiable %}
-            {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-            {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
-            {% if hasRightEdit %}
-                <button type="button"
-                        onclick="validateCollecte({{ collecte.id }}, $(this))"
-                        class="btn btn-primary split-button d-flex align-items-center">
-                    <span class="wii-icon wii-icon-check-white mr-2"></span>
-                    Valider
-                </button>
-            {% endif %}
-            {% if (hasPairings is defined and hasPairings) or hasRightEdit or hasRightDelete %}
-                <button type="button"
-                        class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false">
-                    <span class="fa fa-angle-down"></span>
-                </button>
-                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                    {% if (hasPairings is defined and hasPairings)
-                        and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
-                        <a class="dropdown-item"
-                           href="{{ path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT_REQUEST')}) }}">
-                            <span class="wii-icon wii-icon-pairing"></span>
-                            Historique des données
-                        </a>
-                    {% endif %}
-                    {% if hasRightEdit %}
-                        <a data-id='{{ collecte.id }}'
-                           data-target='#modalEditCollecte'
-                           data-toggle='modal'
-                           onclick="
-                               editRow(
-                                   $(this),
-                                   Routing.generate('collecte_api_edit', true),
-                                   $('#modalEditCollecte'),
-                                   $('#submitEditCollecte'),
-                                   false,
-                                   () => initEditModal()
-                               );"
-                           class="dropdown-item edit-button">
-                            <i class="fa fa-pen mr-2"></i>Modifier
-                        </a>
-                    {% endif %}
-                    {% if hasRightDelete %}
-                        <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
-                           data-id='{{ collecte.id }}' data-target='#modalDeleteCollecte' data-toggle='modal'
-                           class="dropdown-item">
-                            <i class="fa fa-trash mr-2"></i>Supprimer</a>
-                    {% endif %}
-                </div>
-            {% endif %}
-        {% else %}
-            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
-                <button type="button"
-                        class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false">
-                    <span class="fa fa-angle-down"></span>
-                </button>
-                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                    {% if (hasPairings is defined and hasPairings)
-                        and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
-                        <a class="dropdown-item"
-                           href="{{ path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT_REQUEST')}) }}">
-                            <span class="wii-icon wii-icon-pairing"></span>
-                            Historique des données
-                        </a>
-                    {% endif %}
-                    {% if collecte.ordresCollecte.count > 1 %}
-                        <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
-                           class="dropdown-item">
-                            <i class="mr-2 fas fa-external-link-alt"></i>Aller vers les ordres de collecte
-                        </a>
-                    {% elseif collecte.ordresCollecte.count == 1 %}
-                        <a href="{{ path('ordre_collecte_show', {'id': collecte.ordresCollecte.first.id }) }}"
-                           class="dropdown-item">
-                            <i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de collecte
-                        </a>
-                    {% endif %}
-                </div>
-            {% endif %}
-        {% endif %}
-    </div>
+    {% include 'utils/action-buttons/header-buttons.html.twig' with {
+        forceActionButton: true,
+        actions: [
+            {
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')),
+                icon: "wii-icon wii-icon-check-white",
+                title: "Valider",
+                attributes: {
+                    "onclick": collecte ? "validateCollecte(" ~ collecte.id ~ ", $(this))"
+                },
+            },
+            {
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')),
+                icon: "fa fa-pen",
+                title: "Modifier",
+                dropdownOnly: true,
+                attributes: {
+                    "data-id": collecte ? collecte.id,
+                    "data-target": '#modalEditCollecte',
+                    "data-toggle": 'modal',
+                    "onclick": "editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'),
+                                       $('#submitEditCollecte'), false, () => initEditModal());"
+                },
+            },
+            {
+                hasRight: (
+                    hasPairings is defined
+                    and hasPairings
+                    and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR'))
+                ),
+                icon: "wii-icon wii-icon-pairing",
+                title: "Historique des données",
+                dropdownOnly: true,
+                href: collecte ? path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT_REQUEST')}),
+            },
+            {
+                hasRight: (
+                    hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'))
+                    and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL'))
+                    and collecte.ordresCollecte.count > 1
+                ),
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers les ordres de collecte",
+                dropdownOnly: true,
+                href: collecte ? path('ordre_collecte_index', {'demandId': collecte.id}),
+            },
+            {
+                hasRight: (
+                    hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'))
+                    and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL'))
+                    and collecte.ordresCollecte.count == 1
+                ),
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers l'ordre de collecte",
+                dropdownOnly: true,
+                href: collecte ? path('ordre_collecte_show', {'id': collecte.ordresCollecte.first.id }),
+            },
+            {
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')),
+                icon: "fa fa-trash",
+                title: "Supprimer",
+                dropdownOnly: true,
+                attributes: {
+                    "data-id": collecte ? collecte.id,
+                    "data-target": '#modalDeleteCollecte',
+                    "data-toggle": 'modal',
+                    "onclick": "deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
+                },
+            },
+        ]
+    } %}
 {% endblock %}

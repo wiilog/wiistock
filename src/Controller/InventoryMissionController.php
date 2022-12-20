@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Emplacement;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Menu;
@@ -186,10 +187,10 @@ class InventoryMissionController extends AbstractController
 
                     if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
                         $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
-
                         $checkForArt = $article instanceof Article
                             && $referenceArticle->getStatut()?->getCode() === ReferenceArticle::STATUT_ACTIF
-                            && !$inventoryService->isInMissionInSamePeriod($article, $mission, false);
+                            && !$inventoryService->isInMissionInSamePeriod($article, $mission, false)
+                            && $article->getStatut()?->getCode() !== Article::STATUT_INACTIF;
 
                         return $checkForArt ? $article : $article->getBarCode();
                     } else if($reference = $refArtRepository->findOneBy(["barCode" => $barcode])) {
@@ -222,6 +223,63 @@ class InventoryMissionController extends AbstractController
                         return '<li class="list-group-item">' . $barcode . '</li>';
                     })
                     ->join("") . "</ul><span class='text-dark pl-2'>Les autres codes-barres ont bien été ajoutés à la mission.</span>"
+                );
+            }
+            return new JsonResponse([
+                'success' => $success,
+                'msg' => $errorMsg
+            ]);
+        } else {
+            throw new BadRequestHttpException();
+        }
+    }
+
+    /**
+     * @Route("/ajouter-emplacements", name="add_location_to_mission", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
+     */
+    public function addLocationToMission(Request $request,
+                                 InventoryService $inventoryService,
+                                 EntityManagerInterface $entityManager): Response {
+        if ($data = json_decode($request->getContent(), true)) {
+            $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+            $mission = $inventoryMissionRepository->find($data['missionId']);
+            $barcodeErrors = [];
+            Stream::explode([",", " ", ";", "\t"], $data['emplacements'])
+                ->filterMap(function($locationId) use ($mission, $inventoryService, $locationRepository) {
+                    if($location = $locationRepository->find($locationId)) {
+                        return $location;
+                    } else {
+                        return null;
+                    }
+                })
+                ->each(function($location) use ($mission, &$barcodeErrors) {
+                    if (isset($location)) {
+                        foreach ($location->getArticles() as $article) {
+                            $article->addInventoryMission($mission);
+                        }
+                        foreach ($location->getReferenceArticles() as $refArticle) {
+                            $refArticle->addInventoryMission($mission);
+                        }
+
+                    } else {
+                        $barcodeErrors[] = $location;
+                    }
+                });
+
+            $entityManager->flush();
+            $success = count($barcodeErrors) === 0;
+            $errorMsg = "";
+            if (!$success) {
+                $errorMsg = '<span class="pl-2">Les emplacements suivants n\'existent pas :</span><ul class="list-group my-2">';
+                $errorMsg .= (
+                    Stream::from($barcodeErrors)
+                        ->map(function(Emplacement $location) {
+                            return '<li class="list-group-item">' . $location->getLabel() . '</li>';
+                        })
+                        ->join("") . "</ul><span class='text-dark pl-2'>Les autres emplacements ont bien été ajoutés à la mission.</span>"
                 );
             }
             return new JsonResponse([

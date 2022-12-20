@@ -15,6 +15,12 @@
 
 {% set allPacksAlreadyInDispatch = allPacksAlreadyInDispatch is defined and allPacksAlreadyInDispatch %}
 
+    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) and arrivage.reception is null %}
+        <a class="btn btn-outline-primary mr-2"
+           href="{{ path('reception_index', {'open-modal': 'new', 'clear-modal': 0, arrivage: arrivage.id}) }}">
+            {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Réceptionner') }}
+        </a>
+    {% endif %}
     <div class="btn-group">
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_ARRI')) %}
             <button type="button"
@@ -42,6 +48,12 @@
                     <i class="fas fa-exchange-alt mr-2"></i>
                     {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Entête', 'Acheminer') }}
                 </button>
+            {% endif %}
+            {% if arrivage.reception and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_RECE')) %}
+                <a class="dropdown-item dispatch-button" href="{{ path('reception_show', {id: arrivage.reception.id}) }}">
+                    <i class="fas fa-share-square mr-2"></i>
+                    Aller vers la réception liée
+                </a>
             {% endif %}
             {% if canBeDeleted %}
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_ARRI')) %}

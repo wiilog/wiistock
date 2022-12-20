@@ -254,9 +254,11 @@ function createArrival(form = null) {
                     },
                     success: (res) => {
                         res = res || {};
-                        let newForm = JSON.parse(res.new_form);
-                        $(`#arrivalForm`).val(res.new_form);
-                        createArrival(newForm);
+                        let newForm = res.new_form;
+                        if (newForm) {
+                            $(`#arrivalForm`).val(JSON.stringify(newForm));
+                            createArrival(newForm);
+                        }
 
                         arrivalCallback(
                             true,
@@ -267,10 +269,6 @@ function createArrival(form = null) {
                             },
                             arrivalsTable
                         );
-
-                        $.get(Routing.generate(`arrivage_new_api`, true), function (data) {
-                            $(`#arrivalForm`).val(JSON.stringify(data));
-                        });
                     },
                 }).catch(() => {});
         })

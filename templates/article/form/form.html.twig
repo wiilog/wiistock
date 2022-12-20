@@ -1,0 +1,237 @@
+{% import 'form.html.twig' as form %}
+{% set statuses = {
+    'disponible': {
+        'status': 'disponible',
+        'color': 'rgba(47, 194, 171, 0.35)'
+    },
+    'en transit': {
+        'status': 'en transit',
+        'color': 'rgba(100, 51, 215, 0.15)'
+    },
+    'consommé': {
+        'status': 'consommé',
+        'color': '#E8E8E8'
+    }
+} %}
+{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+<input type="hidden" name="article-id" value="{{ article.id }}">
+<div class="details-page-container d-flex justify-content-center align-content-center">
+    <div class="row wii-form wii-column">
+        <div class="col-12 col-md-6">
+            <div class="details-page-header d-flex flex-column" style="border-color: {{ article.type.color }}">
+                <div class="wii-type" style="background-color: {{ article.type.color }}">
+                    <span>{{ article.type.label }}</span>
+                </div>
+                <div class="d-flex header-wrapper">
+                    <div class="image-container-show article">
+                        <img src="{{ asset('svg/article-barcode.svg') }}" width="80">
+                    </div>
+                    <div class="specifications w-100">
+                        <div><strong class="ref text-break">{{ article.barCode }}</strong></div>
+                        <div>
+                            <div><strong class="text-break">Ref : {{ article.referenceArticle.reference }}</strong></div>
+                            <div><strong class="text-break wii-subtitle">{{ article.referenceArticle.libelle }}</strong></div>
+                        </div>
+                        <div class="d-flex justify-content-between mr-4">
+                            <div class="d-flex align-content-center">
+                                <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
+                                <span class="wii-field-name">Quantité <span class="wii-body-text">{{ article.quantite }}</span></span>
+                            </div>
+                            <div class="d-flex align-content-center">
+                                <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" class="mr-2" width="15px">
+                                <span class="wii-field-name">Emplacement <span class="wii-body-text">{{ article.emplacement.label }}</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="wii-box mt-3">
+                <div class="header wii-title">Informations</div>
+                <div class="content">
+                    <div class="row mt-3">
+                        <div class="col-12 col-md-5 d-flex">
+                            <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Date d'entrée en stock</span>
+                                <span class="wii-body-text">{{ article.stockEntryDate|format_helper('longDate') }}</span>
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-4 d-flex">
+                            <label class="box-item">
+                                    <span class="wii-field-name">
+                                        <img src="{{ asset('svg/reference_article/threshold.svg') }}" alt="Icône anomalie" width="20px">
+                                        Anomalie
+                                    </span>
+                                <div class="wii-switch w-fit-content" data-title="Anomalie">
+                                    <input class="data"
+                                           type="radio"
+                                           name="conform"
+                                           value="{{ 0 }}"
+                                           content="Oui"
+                                           {{ article.conform is not null and article.conform == 0 ? 'checked' }}>
+                                    <input class="data"
+                                           type="radio"
+                                           name="conform"
+                                           value="{{ 1 }}"
+                                           content="Non"
+                                           {{ article.conform is not null and article.conform == 1 ? 'checked' }}>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-3 my-auto">
+                                <span class="current-status wii-body-text mr-3"
+                                      style="background-color: {{ statuses[article.statut.code]['color'] }};">
+                                    {{ statuses[article.statut.code]['status']|capitalize }}
+                                </span>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 col-md-6 d-flex">
+                            <img src="{{ asset('svg/document.svg') }}" alt="Icône projet" width="20px">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Projet</span>
+                                <span class="wii-body-text">{{ article.currentLogisticUnit and article.currentLogisticUnit.project ? article.currentLogisticUnit.project.code : '-' }}</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <label class="wii-field-name">Commentaire</label>
+                            <input class="form-control data" name="commentaire" type="hidden" value="{{ article.commentaire }}">
+                            <div class="form-control editor-container comment" data-wysiwyg>
+                                {{ article.commentaire | raw }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="wii-box">
+                <div class="header wii-title">Gestion de stock</div>
+                <div class="content">
+                    <div class="row">
+                        <div class="col-12 col-md-6 d-flex">
+                            <label class="box-item">
+                                <span class="icon wii-field-name">
+                                    <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">Lot
+                                </span>
+                                <input class="form-control data" type="text" name="batch" value ="{{ article.batch ?: ''}}">
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-6 d-flex">
+                            <label class="box-item">
+                                <span class="icon wii-field-name">
+                                    <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">Date de péremption
+                                </span>
+                                <input type="date" class="form-control data" name="expiry" value="{{ article.expiryDate ? article.expiryDate| date('Y-m-d') : '' }}"/>
+                            </label>
+                        </div>
+                        {% set managers = article.referenceArticle.managers|map((manager) => manager.username)|join(', ') %}
+                        {% set plural = article.referenceArticle.managers | length > 1 ? 's' : '' %}
+                        <div class="col-12 col-md-6 d-flex mt-3">
+                            <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="20px">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Gestionnaire{{ plural }}</span>
+                                <span class="wii-body-text">{{ managers is not empty ? managers : '-' }}</span>
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-6 d-flex mt-3">
+                            <label class="box-item">
+                                <span class="icon wii-field-name">
+                                    <img src="{{ asset('svg/price.svg') }}" alt="Icône monnaie euro" width="20px">Prix unitaire (€)
+                                </span>
+                                <input type="number" name="prix" class="form-control w-100 data"
+                                       value="{{ article.prixUnitaire }}" min="0">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="details-page-dropdown">
+                    <span class="wii-subtitle dropdown-wrapper unique">Fournisseur</span>
+                    <div class="provider-label">
+                        <span class="wii-field-name ml-3">{{ article.articleFournisseur.fournisseur.nom }}</span>&nbsp;-&nbsp;
+                        <span class="wii-body-text">{{ article.articleFournisseur.fournisseur.codeReference }}</span>
+                    </div>
+                    <div class="d-flex py-3">
+                        <div class="col-6 d-flex flex-column">
+                            <span class="wii-field-name">Ref article fournisseur</span>
+                            <span class="wii-body-text">{{ article.articleFournisseur.reference }}</span>
+                        </div>
+                        <div class="col-6 d-flex flex-column">
+                            <span class="wii-field-name">Label</span>
+                            <span class="wii-body-text">{{ article.articleFournisseur.label }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="wii-box">
+                <div class="header wii-title">Inventaire</div>
+                <div class="content">
+                    <div class="row">
+                        <div class="col-12 col-md-6 d-flex">
+                            <img src="{{ asset('svg/inventory-category.svg') }}" alt="Icône inventaire" width="20px">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Catégorie d'inventaire</span>
+                                <span class="wii-body-text">{{ article.referenceArticle.category ? article.referenceArticle.category.label : '-' }}</span>
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-6 d-flex">
+                            <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Date de dernier inventaire</span>
+                                <span class="wii-body-text">{{ article.dateLastInventory ? article.dateLastInventory|format_helper('longDate') : '-' }}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="wii-box mt-3">
+                {% set plural = freeFieldsGroupedByTypes | length > 1 ? 's' : '' %}
+                <div class="header wii-title">Champ{{ plural }} libre{{ plural }}</div>
+                <div class="px-3">
+                    {% include 'free_field/freeFieldsEdit.html.twig' with {
+                        freeFields: freeFieldsGroupedByTypes[article.type.id] is defined ? freeFieldsGroupedByTypes[article.type.id] : [],
+                        freeFieldValues: article.freeFields,
+                        colType: 'col-md-6 col-12',
+                        requiredType: 'requiredEdit',
+                        actionType: 'edit',
+                        fieldNameClass: 'wii-field-name'
+                    } %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="wii-box">
+                <div class="header wii-title d-flex justify-content-between align-items-center p-2">
+                    <span class="ml-2">Mouvements de traçabilité</span>
+                    <a class="btn btn-outline-primary {{ not hasMovements ? 'disabled' }}"
+                       href="{{ path('mvt_traca_index', {article: article.id}) }}" target="_blank">
+                        <i class="fas fa-share-square mr-2"></i>Ouvrir la page
+                    </a>
+                </div>
+                <div class="content" data-loader-color="primary" data-loader-size="normal">
+                    <div class="history-container overflow-hidden">
+                        <div class="d-flex align-items-center justify-content-center p-3">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération de l'historique des mouvements en cours</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="save-buttons">
+                <button class="btn btn-outline-secondary" onclick="history.back()">
+                    <span>Annuler</span>
+                </button>
+                <button class="btn btn-success ml-2 save data"
+                        data-submit="{{ submit_url }}"
+                        value="{{ article.id }}"
+                        name="idArticle">
+                    <span>Enregistrer</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+</div>

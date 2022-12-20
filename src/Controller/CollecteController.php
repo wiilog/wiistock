@@ -34,6 +34,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use WiiCommon\Helper\StringHelper;
 
 
 /**
@@ -222,7 +223,7 @@ class CollecteController extends AbstractController
                 ->setStatut($status)
                 ->setPointCollecte($emplacementRepository->find($data['emplacement']))
                 ->setObjet(substr($data['Objet'], 0, 255))
-                ->setCommentaire($data['commentaire'])
+                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
                 ->setstockOrDestruct($destination);
 
             $entityManager->persist($collecte);
@@ -451,9 +452,10 @@ class CollecteController extends AbstractController
 				$destination = $data['destination'] == 0 ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE;
 
 				$type = $typeRepository->find($data['type']);
+
 				$collecte
 					->setDate(new DateTime($data['date-collecte']))
-					->setCommentaire($data['commentaire'])
+					->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
 					->setObjet(substr($data['objet'], 0, 255))
 					->setPointCollecte($pointCollecte)
 					->setType($type)

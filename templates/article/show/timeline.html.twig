@@ -1,0 +1,44 @@
+{% if movements is not empty %}
+    {% set types = {
+        'depose': 'Dépose',
+        'prise': 'Prise',
+        'prise dans UL': 'Prise dans UL',
+        'depose dans UL': 'Dépose dans UL',
+        'groupage': 'Groupage',
+        'dégroupage': 'Dégroupage'
+    } %}
+    {% for movement in movements %}
+        {% set hasLogisticUnitParent = movement['logisticUnitParent'] is defined and movement['logisticUnitParent'] %}
+        <div class="history-line {{ hasLogisticUnitParent ? 'has-logistic-unit-parent' }}">
+            <div class="history-line-left-content justify-content-between">
+                <div class="line-date wii-small-text d-xl-none ml-0">{{ movement['date']|format_helper('datetime') }}</div>
+                <div class="line-date wii-small-text d-none d-xl-block">{{ movement['date']|format_helper('datetime') }}</div>
+                <div class="line-event">
+                    <div class="title-left {{ loop.first ? 'last current' : 'past wii-field-text text-white' }}">
+                        {{ types[movement['type']] ?? movement['type']| ucfirst }}
+                    </div>
+                    <div class="associated-details">
+                        {% if hasLogisticUnitParent %}
+                            <div class="outline d-flex align-items-center {{ loop.first ? 'current' }}">
+                                <img src="{{ asset('svg/logistic-unit.svg') }}" width="15px" height="15px">
+                                <span class="ml-2">{{ movement['logisticUnitParent'] }}</span>
+                            </div>
+                        {% endif %}
+                        <div class="wii-small-text mr-3 {{ not hasLogisticUnitParent ? 'mt-2' }}">{{ movement['operator'] }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="history-line-right-content inversed
+                {{ loop.first ? 'current last-history-line' : 'past' }}
+                {{ loop.last ? 'first-history-line' }}
+                {{ hasLogisticUnitParent ? 'has-logistic-unit-parent' }}">
+                <div class="title-right {{ loop.first ? 'current' : 'past' }} text-left d-flex align-items-center">
+                    <img src="{{ asset('svg/location-black.svg') }}" width="18px" height="18px">
+                    <span class="wii-field-text ml-2">{{ movement['location'] }}</span>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="wii-body-text text-center">Il n'y a aucun mouvement de traçabilité pour cet article</div>
+{% endif %}

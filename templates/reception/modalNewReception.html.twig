@@ -1,12 +1,16 @@
 <div class="modal fade" id="modalNewReception" role="dialog"
-      aria-hidden="true">
+     data-modal-type="new"
+     aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: '<span title="nouvelle réception">' ~ trans('Ordre', 'Réceptions', 'nouvelle réception', false) ~ '</span>'
+                title: trans('Ordre', 'Réceptions', 'nouvelle réception')
             } %}
 
             <div class="modal-body modal-input container-fluid">
+                {% if arrivageToReception %}
+                    <input type="hidden" class="data" name="arrivage" value="{{ arrivageToReception.id }}">
+                {% endif %}
                 <div class='row'>
                     {% if fieldsParam|isFieldRequired('dateCommande', 'displayedCreate') %}
                         <div class="form-group col-6">
@@ -15,7 +19,7 @@
                                    class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'requiredCreate') ? 'needed' : '' }}"
                                    name="dateCommande"
                                    id="dateCommande"
-                                   required="true"
+                                   required
                                    value=""
                                    placeholder="jj/mm/aaaa">
                         </div>
@@ -28,7 +32,7 @@
                                    class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateAttendue', 'requiredCreate') ? 'needed' : '' }}"
                                    name="dateAttendue"
                                    id="dateAttendue"
-                                   required="true"
+                                   required
                                    value=""
                                    placeholder="jj/mm/aaaa">
                         </div>
@@ -38,10 +42,14 @@
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('numCommande', 'displayedCreate') %}
                         <div class="form-group col-6">
-                            <label class="wii-field-name">Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? '*' : '' }}</label>
-                            <input type="text"
-                                   class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? 'needed' : '' }}"
-                                   name="orderNumber">
+                            <label class="wii-field-name">Numéro(s) de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? '*' : '' }}</label>
+                            <select name="orderNumber" data-s2 data-editable multiple class="form-control w-100 data {{ fieldsParam|isFieldRequired('numCommande', 'requiredEdit') ? 'needed' : '' }}">
+                                {% if (arrivageToReception) %}
+                                    {% for num in arrivageToReception.numCommande %}
+                                        <option value="{{ num }}" selected>{{ num }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
                         </div>
                     {% endif %}
 
@@ -50,6 +58,9 @@
                             <label class="wii-field-name">Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? '*' : '' }}</label>
                             <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? 'needed' : '' }}" name="location"
                                     id="receptionLocation">
+                                {% if receptionLocation %}
+                                    <option value="{{ receptionLocation.id }}">{{ receptionLocation.text }}</option>
+                                {% endif %}
                             </select>
                             <input hidden id="receptionLocationValue" data-id="{{ receptionLocation ? receptionLocation.id }}" data-text="{{ receptionLocation ? receptionLocation.text }}">
                         </div>
@@ -66,6 +77,10 @@
                                     <select
                                         class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
                                         name="fournisseur" id="fournisseur">
+                                        {% if arrivageToReception
+                                              and arrivageToReception.fournisseur is not null %}
+                                            <option value="{{ arrivageToReception.fournisseur.id }}" selected>{{ arrivageToReception.fournisseur.nom }}</option>
+                                        {% endif %}
                                     </select>
                                 </div>
                                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
@@ -88,6 +103,10 @@
                                     <select
                                         class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? 'needed' : '' }}"
                                         name="transporteur" id="transporteur">
+                                        {% if arrivageToReception
+                                              and arrivageToReception.transporteur is not null %}
+                                            <option value="{{ arrivageToReception.transporteur.id }}" selected>{{ arrivageToReception.transporteur.label }}</option>
+                                        {% endif %}
                                     </select>
                                 </div>
                                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}

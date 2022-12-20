@@ -124,12 +124,15 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.stockEntryDate')
             ->addSelect('article.expiryDate')
             ->addSelect("join_visibilityGroup.label AS visibilityGroup")
+            ->addSelect('project.code as projectCode')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
+            ->leftJoin('article.currentLogisticUnit', 'currentLogisticUnit')
+            ->leftJoin('currentLogisticUnit.project', 'project')
             ->groupBy('article.id')
             ->getQuery()
             ->toIterable();
@@ -293,7 +296,7 @@ class ArticleRepository extends EntityRepository {
 						$searchForArticle = Utilisateur::SEARCH_DEFAULT;
 					}
 
-                    foreach ($searchForArticle as $key => $searchField) {
+                    foreach ($searchForArticle as $searchField) {
 
                         $date = DateTime::createFromFormat('d/m/Y', $searchValue);
                         $date = $date ? $date->format('Y-m-d') : null;
@@ -356,6 +359,18 @@ class ArticleRepository extends EntityRepository {
                                     $ids[] = $idArray['id'];
                                 }
                                 break;
+                            case "project":
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.currentLogisticUnit', 'project_current_logistic_unit_search')
+                                    ->leftJoin('project_current_logistic_unit_search.project', 'project_search')
+                                    ->andWhere('project_search.code LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
@@ -409,7 +424,6 @@ class ArticleRepository extends EntityRepository {
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
-
                     switch ($column) {
                         case "type":
                             $queryBuilder->leftJoin('article.type', 't')
@@ -435,6 +449,9 @@ class ArticleRepository extends EntityRepository {
                         case "pairing":
                             $queryBuilder->leftJoin('article.pairings', 'order_pairings')
                                 ->orderBy('order_pairings.active', $order);
+                            break;
+                        case "lu":
+                            $queryBuilder->orderBy('IF(article.currentLogisticUnit IS NULL, 0, 1)', $order);
                             break;
                         default:
                             $field = self::FIELD_ENTITY_NAME[$column] ?? $column;
@@ -586,11 +603,19 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('join_delivery.id AS id_livraison')
             ->addSelect('article.barCode AS barCode')
             ->addSelect('join_targetLocationPicking.label AS targetLocationPicking')
+            ->addSelect('join_currentLogisticUnit.id AS currentLogisticUnitId')
+            ->addSelect('join_currentLogisticUnit.code AS currentLogisticUnitCode')
+            ->addSelect('join_nature.id AS currentLogisticUnitNatureId')
+            ->addSelect('join_currentLogisticUnitLocation.label AS currentLogisticUnitLocation')
             ->leftJoin('article.emplacement', 'join_location')
             ->join('article.preparationOrderLines', 'join_preparationOrderLines')
             ->join('join_preparationOrderLines.preparation', 'join_preparation')
             ->join('join_preparation.livraison', 'join_delivery')
             ->leftJoin('join_preparationOrderLines.targetLocationPicking', 'join_targetLocationPicking')
+            ->leftJoin('article.currentLogisticUnit', 'join_currentLogisticUnit')
+            ->leftJoin('join_currentLogisticUnit.lastDrop', 'join_lastDrop')
+            ->leftJoin('join_lastDrop.emplacement', 'join_currentLogisticUnitLocation')
+            ->leftJoin('join_currentLogisticUnit.nature', 'join_nature')
             ->andWhere('join_delivery.id IN (:deliveryIds)')
             ->andWhere('article.quantite > 0')
             ->setParameter('deliveryIds', $livraisonsIds, Connection::PARAM_STR_ARRAY)
@@ -766,7 +791,7 @@ class ArticleRepository extends EntityRepository {
 
 	public function getOneArticleByBarCodeAndLocation(string $barCode, ?string $location) {
         $queryBuilder = $this
-            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location, true)
             ->addSelect('article.id as id')
             ->addSelect('article.barCode as barCode')
             ->addSelect('articleFournisseur_reference.libelle as label')
@@ -776,28 +801,34 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.quantite as quantity')
             ->addSelect('referenceArticle_status.nom as reference_status')
             ->addSelect('0 as is_ref')
+            ->addSelect('current_logistic_unit.id as currentLogisticUnitId')
+            ->addSelect('current_logistic_unit.code as currentLogisticUnitCode')
+            ->addSelect('article_status.code as articleStatusCode')
             ->join('article.articleFournisseur', 'article_articleFournisseur')
             ->join('article_articleFournisseur.referenceArticle', 'articleFournisseur_reference')
             ->join('articleFournisseur_reference.statut', 'referenceArticle_status')
-            ->join('article.emplacement', 'article_location');
+            ->join('article.emplacement', 'article_location')
+            ->leftJoin('article.currentLogisticUnit', 'current_logistic_unit');
 
         $result = $queryBuilder->getQuery()->execute();
         return !empty($result) ? $result[0] : null;
     }
 
-    private function createQueryBuilderByBarCodeAndLocation(string $barCode, ?string $location): QueryBuilder {
+    private function createQueryBuilderByBarCodeAndLocation(string  $barCode,
+                                                            ?string $location,
+                                                            bool    $includeUnavailable = false): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('article');
-        $exprBuilder = $queryBuilder->expr();
         $queryBuilder
-            ->join('article.statut', 'status')
+            ->join('article.statut', 'article_status')
             ->andWhere('article.barCode = :barCode')
-            ->andWhere($exprBuilder->orX(
-                'status.nom = :activeStatusName',
-                'status.nom = :statusDisputeName'
-            ))
-            ->setParameter('barCode', $barCode)
-            ->setParameter('activeStatusName', Article::STATUT_ACTIF)
-            ->setParameter('statusDisputeName', Article::STATUT_EN_LITIGE);
+            ->setParameter('barCode', $barCode);
+
+        if (!$includeUnavailable) {
+            $queryBuilder
+                ->andWhere('article_status.code IN (:articleStatuses)')
+                ->setParameter('articleStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
+        }
+
 
         if($location) {
             $queryBuilder
@@ -864,6 +895,34 @@ class ArticleRepository extends EntityRepository {
             return [];
         }
     }
+
+    public function getForSelect(?string $term, string $status = null) {
+        $qb = $this->createQueryBuilder("article")
+            ->select("article.id AS id, article.barCode AS text");
+
+        if($status !== null) {
+            $qb->join("article.statut", "status")
+                ->andWhere("status.code = :status")
+                ->setParameter("status", $status);
+        }
+
+        return $qb
+            ->andWhere("article.barCode LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function isInLogisticUnit(string $barcode): ?Article {
+        return $this->createQueryBuilder("article")
+            ->join("article.currentLogisticUnit", "current_logistic_unit")
+            ->andWhere("article.barCode = :barcode")
+            ->setParameter("barcode", $barcode)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findWithNoPairing(?string $term) {
         return $this->createQueryBuilder("article")
             ->select("article.id AS id, article.barCode AS text")

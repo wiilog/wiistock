@@ -19,7 +19,6 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
-use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -54,6 +53,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 
 /**
@@ -182,7 +182,7 @@ class ReferenceArticleController extends AbstractController
                 ->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
-                ->setCommentaire($data['commentaire'])
+                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
@@ -878,11 +878,6 @@ class ReferenceArticleController extends AbstractController
 
         foreach ($types as $type) {
             $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-            $typeChampLibre[] = [
-                'typeLabel' =>  $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 

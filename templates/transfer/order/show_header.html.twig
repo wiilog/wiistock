@@ -4,38 +4,37 @@
 {% block showSubtitle ('n°' ~ order.number) %}
 
 {% block showActions %}
-    <div class="btn-group">
-        {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-        {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-
-        {% if hasRightEdit and order.status.nom != constant('App\\Entity\\TransferOrder::TREATED') %}
-            <button type="button"
-                    onclick="validateOrder($(this))"
-                    class="btn btn-primary split-button  d-flex align-items-center">
-                <span class="wii-icon wii-icon-check-white mr-2"></span>
-                Transférer
-            </button>
-        {% endif %}
-        <button type="button"
-                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false">
-            <span class="fa fa-angle-down"></span>
-        </button>
-        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            {% if hasRightDelete %}
-                <button onclick="deleteOrder()"
-                   data-id='{{ order.id }}'
-                   class="dropdown-item d-flex align-items-center">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer</button>
-            {% endif %}
-            <a href="{{ path('transfer_request_show', {'id': order.request.id }) }}"
-               class="dropdown-item">
-                <i class="mr-2 fas fa-external-link-alt"></i>Aller vers la demande de transfert
-            </a>
-        </div>
-    </div>
+    {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+    {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
+    {% include 'utils/action-buttons/header-buttons.html.twig' with {
+        forceActionButton: true,
+        actions: [
+            {
+                hasRight: hasRightEdit and order.status.nom != constant('App\\Entity\\TransferOrder::TREATED'),
+                icon: "wii-icon wii-icon-check-white",
+                title: "Transférer",
+                attributes: {
+                    "onclick": "validateOrder($(this))",
+                },
+            },
+            {
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers la demande de transfert",
+                dropdownOnly: true,
+                href: order ? path('transfer_request_show', {'id': order.request.id }),
+            },
+            {
+                hasRight: hasRightDelete,
+                icon: "wii-icon wii-icon-trash-black",
+                title: "Supprimer",
+                dropdownOnly: true,
+                attributes: {
+                    "onclick": "deleteOrder()",
+                    "data-id": order ? order.id,
+                },
+            },
+        ]
+    } %}
 {% endblock %}
 
 

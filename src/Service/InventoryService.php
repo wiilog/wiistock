@@ -16,6 +16,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class InventoryService {
 
@@ -69,7 +70,7 @@ class InventoryService {
             $mvt
                 ->setUser($user)
                 ->setDate(new DateTime('now'))
-                ->setComment($comment)
+                ->setComment(StringHelper::cleanedComment($comment))
                 ->setQuantity(abs($diff));
 
             $emplacement = $refOrArt->getEmplacement();

@@ -23,6 +23,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use App\Service\TranslationService;
 use Throwable;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/groupes")
@@ -71,7 +72,7 @@ class GroupController extends AbstractController {
             $group->setNature($natureRepository->find($data["nature"]))
                 ->setWeight($data["weight"] === "" ? null : $data["weight"])
                 ->setVolume($data["volume"] === "" ? null : $data["volume"])
-                ->setComment($data["comment"]);
+                ->setComment(StringHelper::cleanedComment($data["comment"] ?? null));
 
             $manager->persist($group);
             $manager->flush();

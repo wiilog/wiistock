@@ -4,74 +4,76 @@
 {% block showSubtitle ('n°' ~ collecte.numero) %}
 
 {% block showActions %}
-    <div class="btn-group">
-        {% set hasRightDemandeCollecte = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
-        {% set hasRightPairingOrder = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::PAIR_SENSOR')) %}
-        {% set hasRightDeleteOrdre = (not finished and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE'))) %}
-        {% set hasRightFinish = (not finished and ((collecte.utilisateur is null) or collecte.utilisateur.id == app.user.id)) %}
+    {% set hasRightFinish = (not finished and ((collecte.utilisateur is null) or collecte.utilisateur.id == app.user.id)) %}
 
-        {% if hasRightFinish %}
-            <button class="btn btn-primary d-flex align-items-center {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
-                    {% if collecte.demandeCollecte ? collecte.demandeCollecte.stock : false %}
-                        onclick="Select2Old.location($('.ajax-autocomplete-location')); checkIfRowSelected(openLocationModal);"
-                    {% else %}
-                        onclick="checkIfRowSelected(() => finishCollecte($(this), true))"
-                    {% endif %}>
-                <span class="wii-icon wii-icon-check-white mr-2"></span>
-                Finir la collecte
-            </button>
-        {% endif %}
-        {% if (hasRightDemandeCollecte or hasRightDeleteOrdre) %}
-            <button type="button"
-                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-                <span class="fa fa-angle-down"></span>
-            </button>
-            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                {% if hasRightDemandeCollecte %}
-                    <a href="{{ path('collecte_show', {'id': collecte.demandeCollecte.id }) }}"
-                       class="dropdown-item">
-                        <i class="fas fa-external-link-alt mr-2"></i>
-                        Aller vers la demande de collecte
-                    </a>
-                    <button onclick="printCollecteBarCodes()" class="dropdown-item pointer d-flex align-items-center">
-                        <span class="wii-icon wii-icon-printer-black mr-2"></span> Imprimer les étiquettes
-                    </button>
-                {% endif %}
-                {% if (collecte.pairings|length>=1)
-                    and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
-                    <a class="dropdown-item"
-                       href="{{ path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT_ORDER')}) }}">
-                        <span class="wii-icon wii-icon-pairing"></span>
-                        Historique des données
-                    </a>
-                {% endif %}
-                {% if hasRightDeleteOrdre %}
-                    {% if collecte.activePairing %}
-                        <button class="dropdown-item disabled d-flex align-items-center"
-                                style="pointer-events: initial"
-                                disabled title="La collecte est associée à un capteur, il faut d'abord la dissocier de son capteur">
-                            <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
-                        </button>
-                    {% else %}
-                        <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"
-                           data-id='{{ collecte.id }}' data-target='#modalDeleteOrdreCollecte' data-toggle='modal'
-                           class="dropdown-item d-flex align-items-center">
-                            <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
-                        </a>
-                    {% endif %}
-                {% endif %}
-                {% if hasRightPairingOrder and hasRightFinish and collecte.pairings|filter(p=>p.active)|length==0  and collecte.demandeCollecte.stock %}
-                    <a class="dropdown-item pointer"
-                       data-toggle="modal"
-                       data-target="#modalNewSensorPairing">
-                        <span class="wii-icon wii-icon-pairing mr-2"></span>
-                        Associer à un capteur
-                    </a>
-                {% endif %}
-            </div>
-        {% endif %}
-    </div>
+    {% include 'utils/action-buttons/header-buttons.html.twig' with {
+        forceActionButton: true,
+        actions: [
+            {
+                hasRight: hasRightFinish,
+                icon: "wii-icon wii-icon-check-white",
+                title: "Finir la collecte",
+                attributes: {
+                    "onclick":  collecte.demandeCollecte.stock
+                        ? "Select2Old.location($('.ajax-autocomplete-location')); checkIfRowSelected(openLocationModal);"
+                        : "checkIfRowSelected(() => finishCollecte($(this), true))",
+                },
+            },
+            {
+                hasRight: hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')),
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers la demande de collecte",
+                dropdownOnly: true,
+                href: collecte.demandeCollecte ? path('collecte_show', {id: collecte.demandeCollecte.id }),
+            },
+            {
+                hasRight: collecte.ordreCollecteReferences | length > 0 or collecte.articles | length > 0,
+                icon: "wii-icon wii-icon-printer-black",
+                title: "Imprimer les étiquettes",
+                dropdownOnly: true,
+                href: path('collecte_bar_codes_print', { ordreCollecte: collecte.id }),
+            },
+            {
+                hasRight: (collecte.pairings|length >= 1) and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')),
+                icon: "wii-icon wii-icon-pairing",
+                title: "Historique des données",
+                dropdownOnly: true,
+                href: path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT_ORDER')}),
+            },
+            {
+                hasRight: not finished and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')),
+                buttonClass: collecte.activePairing ? "disabled",
+                icon: "wii-icon wii-icon-trash-black",
+                title: "Supprimer",
+                dropdownOnly: true,
+                attributes: collecte.activePairing
+                    ? {
+                        "disabled": true,
+                        "style": "pointer-events: initial",
+                        "title": "La collecte est associée à un capteur, il faut d'abord la dissocier de son capteur",
+                    }
+                    : {
+                        "onclick": "deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))",
+                        "data-id": collecte.id,
+                        "data-target": "#modalDeleteOrdreCollecte",
+                        "data-toggle": "modal",
+                    },
+            },
+            {
+                hasRight: (
+                    hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::PAIR_SENSOR'))
+                    and hasRightFinish
+                    and collecte.pairings|filter(p => p.active)|length == 0
+                    and collecte.demandeCollecte.stock
+                ),
+                icon: "wii-icon wii-icon-pairing",
+                title: "Associer à un capteur",
+                dropdownOnly: true,
+                attributes: {
+                    "data-target": "#modalNewSensorPairing",
+                    "data-toggle": "modal",
+                },
+            },
+        ]
+    } %}
 {% endblock %}

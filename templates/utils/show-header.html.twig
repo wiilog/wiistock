@@ -2,11 +2,11 @@
     {% block showHiddenInputs %}{% endblock %}
     <div class="row wii-page-card-header mb-0">
         <div class="col-auto" title="{% block showTitleTooltip '' %}">
-            <h5 class="details-header-title">{% block showTitle '' %}</h5>
+            <h5 class="details-header-title capitalize">{% block showTitle '' %}</h5>
             <span>{% block showSubtitle '' %}</span>
         </div>
 
-        {% if titleLogo is defined%}
+        {% if titleLogo is defined %}
             <i class="wii-icon wii-icon-{{ titleLogo }} mr-2 has-tooltip" title="{{ titleLogoTooltip }}"></i>
         {% endif %}
 

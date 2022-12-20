@@ -20,6 +20,15 @@ class MobileApiService {
     /** @Required */
     public NatureService $natureService;
 
+    const MOBILE_TRANSLATIONS = [
+        "Acheminements",
+        "Objet",
+        "Nombre d'opération(s) réalisée(s)",
+        "Nature",
+        "Emplacement de prise",
+        "Emplacement de dépose",
+    ];
+
     public function getDispatchesData(EntityManagerInterface $entityManager,
                                       Utilisateur $loggedUser): array {
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -67,7 +76,7 @@ class MobileApiService {
         $translationsRepository = $entityManager->getRepository(Translation::class);
 
         $userLanguage = $user->getLanguage();
-        $translations = Stream::from($translationsRepository->findBy(['language' => $userLanguage]))
+        $translations = Stream::from($translationsRepository->findForMobile())
             ->map(fn(Translation $translation) => [
                 'topMenu' => $translation->getSource()->getCategory()?->getParent()?->getParent()?->getLabel(),
                 'menu' => $translation->getSource()->getCategory()?->getParent()?->getLabel(),

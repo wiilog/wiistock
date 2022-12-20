@@ -133,16 +133,33 @@ function runDispatchPrint() {
         });
 }
 
-function openDeliveryNoteModal($button) {
+function openDeliveryNoteModal($button, fromDelivery = false) {
     const dispatchId = $button.data('dispatch-id');
     $
-        .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId}))
+        .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId, fromDelivery}))
         .then((result) => {
             if(result.success) {
                 const $modal = $('#modalPrintDeliveryNote');
                 const $modalBody = $modal.find('.modal-body');
                 $modalBody.html(result.html);
                 $modal.modal('show');
+
+                $('select[name=buyer]').on('change', function (){
+                    const data = $(this).select2('data');
+                    if(data.length > 0){
+                        const {fax, phoneNumber, address} = data[0];
+                        const $modal = $(this).closest('.modal');
+                        if(fax){
+                            $modal.find('input[name=buyerFax]').val(fax);
+                        }
+                        if(phoneNumber){
+                            $modal.find('input[name=buyerPhone]').val(phoneNumber);
+                        }
+                        if(address){
+                            $modal.find('[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo] ').val(address);
+                        }
+                    }
+                });
             } else {
                 showBSAlert(result.msg, "danger");
             }
@@ -168,6 +185,20 @@ function openWaybillModal($button) {
             const $modalBody = $modal.find('.modal-body');
             $modalBody.html(result.html);
             $modal.modal('show');
+
+            $('select[name=receiverUsername]').on('change', function (){
+                const data = $(this).select2('data');
+                if(data.length > 0){
+                    const {email, phoneNumber, address} = data[0];
+                    const $modal = $(this).closest('.modal');
+                    if(phoneNumber || email){
+                        $modal.find('input[name=receiverEmail]').val(phoneNumber.concat(' - ', email));
+                    }
+                    if(address){
+                        $modal.find('[name=receiver]').val(address);
+                    }
+                }
+            });
         } else {
             showBSAlert(result.msg, "danger");
         }
