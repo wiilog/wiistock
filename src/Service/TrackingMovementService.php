@@ -180,7 +180,7 @@ class TrackingMovementService extends AbstractController
                 $pack = $movement->getLogisticUnitParent()->getCode();
             }
         } else {
-            $pack = $movement->getPack()->getCode();
+            $pack = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
         }
 
         $row = [
