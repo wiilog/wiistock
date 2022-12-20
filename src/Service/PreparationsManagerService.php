@@ -110,11 +110,11 @@ class PreparationsManagerService
         }
     }
 
-    public function handlePreparationTreatMovements(EntityManagerInterface $entityManager,,
-                                                    Preparation              $preparation,
-                                                    Livraison                $livraison,
-                                                    ?Emplacement             $locationEndPrepa,
-                                                    Utilisateur              $user) {
+    public function handlePreparationTreatMovements(EntityManagerInterface $entityManager,
+                                                    Preparation            $preparation,
+                                                    Livraison              $livraison,
+                                                    ?Emplacement           $locationEndPrepa,
+                                                    Utilisateur            $user) {
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $movements = $mouvementStockRepository->findByPreparation($preparation);
         foreach ($movements as $movement) {
@@ -132,29 +132,33 @@ class PreparationsManagerService
                 );
 
                 $trackingMovementPrise = $this->trackingMovementService->createTrackingMovement(
-                    $movement->getRefArticle() ?? $movement->getArticle(),
+                    $movement->getArticle()->getBarCode(),
                     $movement->getEmplacementFrom(),
                     $user,
                     new DateTime('now'),
                     false,
                     true,
                     TrackingMovement::TYPE_PRISE,
-                    [],
+                    [
+                        'preparation' => $preparation,
+                        'mouvementStock' => $movement
+                    ],
                 );
-                $trackingMovementPrise->setPreparation($preparation);
                 $this->entityManager->persist($trackingMovementPrise);
 
                 $trackingMovementDepose = $this->trackingMovementService->createTrackingMovement(
-                    $movement->getRefArticle() ?? $movement->getArticle(),
+                    $movement->getArticle()->getBarCode(),
                     $movement->getEmplacementTo(),
                     $user,
                     new DateTime('now'),
                     false,
                     true,
                     TrackingMovement::TYPE_DEPOSE,
-                    [],
+                    [
+                        'preparation' => $preparation,
+                        'mouvementStock' => $movement
+                    ],
                 );
-                $trackingMovementDepose->setPreparation($preparation);
                 $this->entityManager->persist($trackingMovementDepose);
 
                 $this->entityManager->flush();

@@ -346,6 +346,8 @@ class TrackingMovementService extends AbstractController
         $disableUngrouping = $options['disableUngrouping'] ?? false;
         $attachments = $options['attachments'] ?? null;
         $mainMovement = $options['mainMovement'] ?? null;
+        $preparation = $options['preparation'] ?? null;
+        $delivery = $options['delivery'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;
@@ -364,7 +366,9 @@ class TrackingMovementService extends AbstractController
             ->setType($type)
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? StringHelper::cleanedComment($commentaire) : null)
-            ->setMainMovement($mainMovement);
+            ->setMainMovement($mainMovement)
+            ->setPreparation($preparation)
+            ->setLivraison($delivery);
 
         if ($attachments) {
             foreach($attachments as $attachment) {

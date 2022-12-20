@@ -745,28 +745,34 @@ class MobileController extends AbstractApiController
                                 );
 
                                 $trackingMovementPrise = $this->trackingMovementService->createTrackingMovement(
-                                    $movement->getRefArticle() ?? $movement->getArticle(),
+                                    $movement->getArticle()->getBarCode(),
                                     $movement->getEmplacementFrom(),
                                     $nomadUser,
                                     new DateTime('now'),
                                     true,
                                     true,
                                     TrackingMovement::TYPE_PRISE,
-                                    [],
+                                    [
+                                        'mouvementStock' => $movement,
+                                        'preparation' => $preparation,
+                                    ]
                                 );
-                                $trackingMovementPrise->setPreparation($preparation);
                                 $entityManager->persist($trackingMovementPrise);
 
                                 $trackingMovementDepose = $this->trackingMovementService->createTrackingMovement(
-                                    $movement->getRefArticle() ?? $movement->getArticle(),
+                                     $movement->getArticle()->getBarCode(),
                                     $movement->getEmplacementTo(),
                                     $nomadUser,
                                     new DateTime('now'),
                                     true,
                                     true,
                                     TrackingMovement::TYPE_DEPOSE,
-                                    [],
+                                    [
+                                        'mouvementStock' => $movement,
+                                        'preparation' => $preparation,
+                                    ],
                                 );
+
                                 $trackingMovementDepose->setPreparation($preparation);
                                 $entityManager->persist($trackingMovementDepose);
 
