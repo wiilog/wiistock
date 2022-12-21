@@ -1903,7 +1903,6 @@ class MobileController extends AbstractApiController
             // inventory
             $articlesInventory = $inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
             $refArticlesInventory = $inventoryMissionRepository->getCurrentMissionRefNotTreated();
-
             // prises en cours
             $stockTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
         }
