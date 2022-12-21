@@ -1218,7 +1218,7 @@ class TrackingMovementService extends AbstractController
     }
 
     public function persistLogisticUnitMovements(EntityManagerInterface $manager,
-                                                 Pack|string|null            $pack,
+                                                 Pack|string|null       $pack,
                                                  Emplacement            $dropLocation,
                                                  ?array                 $articles,
                                                  ?Utilisateur           $user,
