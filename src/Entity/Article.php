@@ -753,4 +753,8 @@ class Article implements PairedEntity {
 
         return $this;
     }
+
+    public function isInTransit(): bool {
+        return $this->getStatut()->getCode() === self::STATUT_EN_TRANSIT;
+    }
 }
