@@ -4,15 +4,18 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Entity\TrackingMovement;
 use App\Exceptions\NegativeQuantityException;
@@ -22,6 +25,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -40,6 +44,9 @@ class LivraisonsManagerService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
     private $entityManager;
     private $mailerService;
     private $templating;
@@ -48,12 +55,14 @@ class LivraisonsManagerService
     public function __construct(EntityManagerInterface $entityManager,
                                 MouvementStockService $mouvementStockService,
                                 MailerService $mailerService,
-                                Twig_Environment $templating)
+                                Twig_Environment $templating,
+                                TrackingMovementService $trackingMovementService)
     {
         $this->entityManager = $entityManager;
         $this->mailerService = $mailerService;
         $this->templating = $templating;
         $this->mouvementStockService = $mouvementStockService;
+        $this->trackingMovementService = $trackingMovementService;
     }
 
     /**
@@ -153,6 +162,40 @@ class LivraisonsManagerService
                 $article
                     ->setStatut($inactiveArticleStatus)
                     ->setEmplacement($demande->getDestination());
+            }
+
+            $packs = stream::from($articleLines)
+                ->map(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit())
+                ->filter(fn(?Pack $pack) => $pack !== null)
+                ->unique()
+                ->toArray();
+
+            foreach ($packs as $pack) {
+                $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $pack,
+                    $livraison->getPreparation()->getEndLocation(),
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    false,
+                    []
+                );
+                $dropMovement = $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $pack,
+                    $livraison->getPreparation()->getEndLocation(),
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    false,
+                    []
+                );
+                $pack
+                    ->setLastDrop($dropMovement['movement'])
+                    ->setLastTracking($dropMovement['movement']);
             }
 
             $referenceLines = $preparation->getReferenceLines();

@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -18,6 +19,7 @@ use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -29,6 +31,7 @@ use App\Service\LivraisonsManagerService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\SpecificService;
+use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -83,24 +86,60 @@ class LivraisonController extends AbstractController {
                            LivraisonsManagerService $livraisonsManager,
                            EntityManagerInterface   $entityManager): Response {
         if ($livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER) {
-            try {
-                $dateEnd = new DateTime('now');
-                /** @var Utilisateur $user */
-                $user = $this->getUser();
-                $livraisonsManager->finishLivraison(
-                    $user,
-                    $livraison,
-                    $dateEnd,
-                    $livraison->getDemande()->getDestination(),
-                    false,
-                );
-                $entityManager->flush();
-            } catch (NegativeQuantityException $exception) {
-                $barcode = $exception->getArticle()->getBarCode();
-                return new JsonResponse([
+            // get the logistic units to deliver
+            $articleLines = $livraison->getDemande()->getArticleLines();
+            $packs = stream::from($articleLines)
+                ->map(fn(DeliveryRequestArticleLine $line) => $line->getPack())
+                ->filter(fn(?Pack $pack) => $pack !== null)
+                ->unique()
+                ->toArray();
+
+            // for each logistic unit, check if it is fully delivered
+            $notRequestedArticles = [];
+            foreach ($packs as $pack){
+                $packsArticles = $pack->getChildArticles()->toArray();
+                $deliverPacksArticles = stream::from($articleLines)
+                    ->filter(fn(DeliveryRequestArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $pack)
+                    ->map(fn(DeliveryRequestArticleLine $line) => $line->getArticle())
+                    ->toArray();
+                $notRequestedArticles += array_diff($packsArticles, $deliverPacksArticles);
+            }
+
+            if ( !empty($notRequestedArticles) ) {
+                $tableArticlesNotRequestedData = Stream::from($notRequestedArticles)
+                    ->map(fn(Article $article) => [
+                        'barCode' => $article->getBarCode(),
+                        'label' => $article->getLabel(),
+                        'lu' => '<select class="ajax-autocomplete data w-100 form-control" name="logisticUnit" data-s2="pack" data-parent="body"></select>',
+                        'location' => '<select class="ajax-autocomplete data w-100 form-control" name="location" data-s2="location" data-parent="body"></select>',
+                    ])
+                    ->values();
+                return $this->json([
                     'success' => false,
-                    'message' => "La quantité en stock de l'article $barcode est inférieure à la quantité prélevée.",
+                    'tableArticlesNotRequestedData' => $tableArticlesNotRequestedData,
                 ]);
+            }
+            else {
+                try {
+                    $dateEnd = new DateTime('now');
+                    /** @var Utilisateur $user */
+                    $user = $this->getUser();
+                    $livraisonsManager->finishLivraison(
+                        $user,
+                        $livraison,
+                        $dateEnd,
+                        $livraison->getDemande()->getDestination(),
+                        false,
+                    );
+                    $entityManager->flush();
+                }
+                catch(NegativeQuantityException $exception) {
+                    $barcode = $exception->getArticle()->getBarCode();
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => "La quantité en stock de l'article $barcode est inférieure à la quantité prélevée."
+                    ]);
+                }
             }
         }
 
@@ -746,5 +785,61 @@ class LivraisonController extends AbstractController {
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
         return $response;
+    }
+
+    /**
+     * @Route("/depose-articles-non-demandes", name="livraison_treat_articles_not_requested", options={"expose"=true}, methods="POST")
+     */
+    public function treatArticlesNotRequested(Request $request, EntityManagerInterface $manager, TrackingMovementService $trackingMovementService): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $articleRepository = $manager->getRepository(Article::class);
+        $livraisonRepository = $manager->getRepository(Livraison::class);
+        $packRepository = $manager->getRepository(Pack::class);
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $user = $this->getUser();
+
+        $deliveryOrder = $livraisonRepository->find($data['deliveryId']);
+
+        $articles = $data['articles'];
+        foreach ($articles as ['barCode' => $barcode, 'lu' => $luId, 'location' => $locationId]) {
+            $article = $articleRepository->findOneBy(['barCode' => $barcode]);
+            if ($luId && $locationId) {
+                $lu = $packRepository->find($luId);
+                $location = $locationRepository->find($locationId);
+                $trackingMovementService->persistLogisticUnitMovements(
+                    $manager,
+                    $lu,
+                    $location,
+                    [$article],
+                    $user,
+                    [],
+                );
+
+            } else if ($locationId) {
+                $location = $locationRepository->find($locationId);
+                $trackingMovementService->persistLogisticUnitMovements(
+                    $manager,
+                    null,
+                    $location,
+                    [$article],
+                    $user,
+                    [],
+                );
+
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Erreur lors de la traitement de l\'article ' . $article->getBarCode()
+                ]);
+            }
+        }
+
+        $manager->flush();
+
+        return $this->json([
+            'success' => true,
+        ]);
     }
 }
