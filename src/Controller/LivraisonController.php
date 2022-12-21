@@ -4,11 +4,9 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\Article;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -17,7 +15,6 @@ use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
-use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -34,8 +31,6 @@ use App\Service\SpecificService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -95,7 +90,8 @@ class LivraisonController extends AbstractController {
                     $user,
                     $livraison,
                     $dateEnd,
-                    $livraison->getDemande()->getDestination()
+                    $livraison->getDemande()->getDestination(),
+                    false,
                 );
                 $entityManager->flush();
             } catch (NegativeQuantityException $exception) {
@@ -126,52 +122,49 @@ class LivraisonController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    #[Route("/delivery-order-logistics-unit-api", name: "delivery_order_logistics_unit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/delivery-order-logistic-units-api", name: "delivery_order_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR], mode: HasPermission::IN_JSON)]
-    public function logisticsUnitApi(Request $request, EntityManagerInterface $manager): Response {
+    public function logisticUnitsApi(Request $request, EntityManagerInterface $manager): Response {
         $deliveryOrder = $manager->find(Livraison::class, $request->query->get('id'));
         $preparationOrder = $deliveryOrder->getPreparation();
-        $logisticsUnits = [null];
-        foreach ($preparationOrder->getArticleLines() as $articleLine) {
-            $article = $articleLine->getArticle();
-            if ($article->getCurrentLogisticUnit() && !in_array($article->getCurrentLogisticUnit(), $logisticsUnits)) {
-                $logisticsUnits[] = $article->getCurrentLogisticUnit();
-            }
-        }
 
-        $lines = Stream::from($logisticsUnits)
+        $lines = Stream::from($preparationOrder->getArticleLines())
+            ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack())
+            ->unique()
+            // null packs in first
+            ->sort(fn(?Pack $logisticUnit1, ?Pack $logisticUnit2) => ($logisticUnit1?->getCode() <=> $logisticUnit2?->getCode()))
             ->map(fn(?Pack $logisticUnit) => [
-                "pack" => [
-                    "packId" => $logisticUnit?->getId(),
-                    "code" => $logisticUnit?->getCode() ?? null,
-                    "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
-                    "project" => $logisticUnit?->getProject()?->getCode() ?? null,
-                    "nature" => $this->formatService->nature($logisticUnit?->getNature()),
-                    "color" => $logisticUnit?->getNature()?->getColor() ?? null,
-                    "currentQuantity" => Stream::from($preparationOrder->getArticleLines()
-                        ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit))
-                        ->count(),
-                    "totalQuantity" => $logisticUnit?->getChildArticles() ? $logisticUnit->getChildArticles()->count() : null,
-                ],
+                "pack" => $logisticUnit
+                    ? [
+                        "packId" => $logisticUnit->getId(),
+                        "code" => $logisticUnit->getCode(),
+                        "location" => $this->formatService->location($logisticUnit->getLastDrop()?->getEmplacement()),
+                        "project" => $logisticUnit->getProject()?->getCode(),
+                        "nature" => $this->formatService->nature($logisticUnit->getNature()),
+                        "color" => $logisticUnit?->getNature()?->getColor(),
+                        "currentQuantity" => Stream::from($preparationOrder->getArticleLines()
+                            ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit))
+                            ->count(),
+                        "totalQuantity" => $logisticUnit->getChildArticles()->count(),
+                    ]
+                    : null,
                 "articles" => Stream::from($preparationOrder->getArticleLines())
-                    ->filterMap(function(PreparationOrderArticleLine $line) use ($logisticUnit) {
+                    ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
+                    ->map(function(PreparationOrderArticleLine $line) {
                         $article = $line->getArticle();
-                        if ($logisticUnit && $article->getCurrentLogisticUnit()?->getId() == $logisticUnit->getId()) {
-                            return [
-                                "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
-                                "barCode" => $article->getBarCode() ?: '',
-                                "label" => $article->getLabel() ?: '',
-                                "quantity" => $line->getPickedQuantity(),
-                                "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                                    'id' => $article->getId(),
-                                ]),
-                            ];
-                        } else {
-                            return null;
-                        }
+                        return [
+                            "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                            "barCode" => $article->getBarCode() ?: '',
+                            "label" => $article->getLabel() ?: '',
+                            "quantity" => $line->getPickedQuantity(),
+                            "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                                'id' => $article->getId(),
+                            ]),
+                        ];
                     })
                     ->values(),
-            ])->toArray();
+            ])
+            ->values();
 
         $references = Stream::from($preparationOrder->getReferenceLines())
             ->map(function(PreparationOrderReferenceLine $line) {
@@ -188,6 +181,13 @@ class LivraisonController extends AbstractController {
                 ];
             })
             ->toArray();
+
+        if (!isset($lines[0]) || $lines[0]['pack'] !== null) {
+            array_unshift($lines, [
+                'pack' => null,
+                'articles' => [],
+            ]);
+        }
 
         $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
         return $this->json([
@@ -250,7 +250,7 @@ class LivraisonController extends AbstractController {
     }
 
     /**
-     * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"})
+     * @Route("/voir/{id}", name="livraison_show", options={"expose"=true}, methods={"GET","POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
     public function show(Livraison $livraison, LivraisonService $livraisonService): Response
@@ -310,7 +310,7 @@ class LivraisonController extends AbstractController {
             'success' => true,
             'redirect' => $this->generateUrl('preparation_show', [
                 'id' => $preparation->getId(),
-                ]),
+            ]),
         ]);
     }
 

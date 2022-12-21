@@ -4,23 +4,23 @@
             <div class="row">
                 <div class="col-12 col-md-6 col-lg-4 py-2">
                     <div class="wii-field-name">Date dernier mouvement</div>
-                    <div>{{ logisticUnit.lastTracking.datetime | date('d/m/Y à H:i') }}</div>
+                    <div class="wii-body-text">{{ logisticUnit.lastTracking.datetime | date('d/m/Y à H:i') }}</div>
                 </div>
                 <div class="col-12 col-md-6 col-lg-4 py-2">
                     <div class="wii-field-name">Dernier emplacement</div>
-                    <div>{{ logisticUnit.lastTracking.emplacement }}</div>
+                    <div class="wii-body-text">{{ logisticUnit.lastTracking.emplacement }}</div>
                 </div>
                 <div class="col-12 col-md-6 col-lg-4 py-2">
                     <div class="wii-field-name">Nature</div>
-                    <div>{{ logisticUnit.nature ? logisticUnit.nature.label : '/' }}</div>
+                    <div class="wii-body-text">{{ logisticUnit.nature ? logisticUnit.nature.label : '/' }}</div>
                 </div>
                 <div class="col-12 col-md-6 col-lg-4 py-2">
                     <div class="wii-field-name">Quantité</div>
-                    <div>{{ logisticUnit.quantity }}</div>
+                    <div class="wii-body-text">{{ logisticUnit.quantity }}</div>
                 </div>
                 <div class="col-12 col-md-6 col-lg-4 py-2">
                     <div class="wii-field-name">Projet</div>
-                    <div>{{ logisticUnit.project ? logisticUnit.project.code : '/' }}</div>
+                    <div class="wii-body-text">{{ logisticUnit.project ? logisticUnit.project.code : '/' }}</div>
                 </div>
             </div>
         </div>

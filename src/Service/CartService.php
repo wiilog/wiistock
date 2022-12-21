@@ -204,7 +204,7 @@ class CartService {
                 ->setExpectedAt($expectedAt)
                 ->setCreatedAt(new DateTime('now'))
                 ->setDestination($destination)
-                ->setCommentaire(StringHelper::cleanedComment($data['comment']))
+                ->setCommentaire(StringHelper::cleanedComment($data['comment'] ?? null))
                 ->setStatut($draft);
 
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
@@ -285,7 +285,7 @@ class CartService {
                 ->setObjet($data['object'])
                 ->setStockOrDestruct($data['destination'] === 'destruction' ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE)
                 ->setPointCollecte($collectLocation)
-                ->setCommentaire(StringHelper::cleanedComment($data['comment']))
+                ->setCommentaire(StringHelper::cleanedComment($data['comment'] ?? null))
                 ->setDemandeur($user);
 
             $this->freeFieldService->manageFreeFields($collectRequest, $data, $manager);

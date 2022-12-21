@@ -930,17 +930,42 @@ function loadPackingArticlesTemplate($button) {
 }
 
 function submitPackingForm({reception, data, $modalNewLigneReception}) {
-    return AJAX
-        .route(POST, `reception_new_with_packing`, { reception })
-        .json(data)
-        .then(({success, articleIds}) => {
-            if (success) {
-                window.location.href = Routing.generate('reception_bar_codes_print', {
-                    reception,
-                    articleIds
-                }, true);
-                loadReceptionLines();
-                $modalNewLigneReception.modal('hide');
-            }
-        });
+    return new Promise((resolve) => {
+        AJAX
+            .route(POST, `reception_new_with_packing`, { reception })
+            .json(data)
+            .then(({success, articleIds}) => {
+                if (success) {
+                    let templates;
+                    try {
+                        templates = JSON.parse($('#tagTemplates').val());
+                    } catch (error) {
+                        templates = [];
+                    }
+                    const params = {
+                        reception,
+                        articleIds
+                    };
+                    if (templates.length > 0) {
+                        Promise.all(
+                            [AJAX.route('GET', `reception_bar_codes_print`, {forceTagEmpty: true, ...params}).file({})]
+                                .concat(templates.map(function (template) {
+                                    params.template = template;
+                                    return AJAX
+                                        .route('GET', `reception_bar_codes_print`, params)
+                                        .file({})
+                                }))
+                        ).then(() => resolve());
+                    } else {
+                        window.location.href = Routing.generate('reception_bar_codes_print', {
+                            reception,
+                            articleIds
+                        }, true);
+                        resolve();
+                    }
+                    loadReceptionLines();
+                    $modalNewLigneReception.modal('hide');
+                }
+            });
+    });
 }

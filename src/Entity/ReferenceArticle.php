@@ -924,18 +924,6 @@ class ReferenceArticle
         return $this;
     }
 
-    public function getAssociatedArticles(): array {
-        return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE
-            ? []
-            : Stream::from($this->articlesFournisseur)
-                ->map(function(ArticleFournisseur $articleFournisseur) {
-                    return $articleFournisseur->getArticles()->toArray();
-                })
-                ->flatten()
-                ->unique()
-                ->toArray();
-    }
-
     public function getOrderState(): ?string {
         return $this->orderState;
     }

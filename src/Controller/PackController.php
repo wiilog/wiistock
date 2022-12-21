@@ -13,7 +13,6 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 
-use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
 use App\Entity\ReceptionLine;
@@ -48,7 +47,7 @@ class PackController extends AbstractController
 {
 
     /**
-     * @Route("/{code}", name="pack_index", options={"expose"=true}, defaults={"code"=null}, methods={"GET"})
+     * @Route("/liste/{code}", name="pack_index", options={"expose"=true}, defaults={"code"=null}, methods={"GET"})
      * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK})
      */
     public function index(EntityManagerInterface $entityManager, LanguageService $languageService, $code)
@@ -100,7 +99,7 @@ class PackController extends AbstractController
     }
 
     /**
-     * @Route("/csv", name="export_packs", options={"expose"=true}, methods={"GET"})
+     * @Route("/csv", name="export_packs", options={"expose"=true}, methods="GET")
      * @HasPermission({Menu::TRACA, Action::EXPORT})
      */
     public function printCSVPacks(Request $request,
@@ -386,9 +385,14 @@ class PackController extends AbstractController
 
     #[Route("/print-single-logistic-unit/{pack}", name: "print_single_logistic_unit", options: ["expose" => true])]
     public function printSingleLogisticUnit(Pack $pack, PackService $packService, PDFGeneratorService $PDFGeneratorService): PdfResponse {
+        if ($pack->getNature() && !$pack->getNature()->getTags()->isEmpty()) {
+            $tag = $pack->getNature()->getTags()->first();
+        } else {
+            $tag = null;
+        }
         $config = $packService->getBarcodeColisConfig($pack);
-        $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'colis');
-        $render = $PDFGeneratorService->generatePDFBarCodes($fileName, [$config]);
+        $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'colis', $tag?->getPrefix() ?? 'ETQ');
+        $render = $PDFGeneratorService->generatePDFBarCodes($fileName, [$config], false, $tag);
         return new PdfResponse(
             $render,
             $fileName

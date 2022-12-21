@@ -35,7 +35,7 @@ $(function () {
 function loadLogisticUnitList(requestId) {
     const $logisticUnitsContainer = $('.logistic-units-container');
     wrapLoadingOnActionButton($logisticUnitsContainer, () => (
-        AJAX.route('GET', 'delivery_request_logistics_unit_api', {id: requestId})
+        AJAX.route('GET', 'delivery_request_logistic_units_api', {id: requestId})
             .json()
             .then(({html}) => {
                 $logisticUnitsContainer.html(html);
@@ -196,7 +196,9 @@ function initPageModals() {
     let $modalNewArticle = $("#modalNewArticle");
     let $submitNewArticle = $("#submitNewArticle");
     let pathNewArticle = Routing.generate('demande_add_article', true);
-    InitModal($modalNewArticle, $submitNewArticle, pathNewArticle);
+    InitModal($modalNewArticle, $submitNewArticle, pathNewArticle, {
+        success: () => loadLogisticUnitList(requestId)
+    });
 
     let $modalDeleteArticle = $("#modalDeleteArticle");
     let $submitDeleteArticle = $("#submitDeleteArticle");
@@ -208,7 +210,9 @@ function initPageModals() {
     let $modalEditArticle = $("#modalEditArticle");
     let $submitEditArticle = $("#submitEditArticle");
     let pathEditArticle = Routing.generate('demande_article_edit', true);
-    InitModal($modalEditArticle, $submitEditArticle, pathEditArticle);
+    InitModal($modalEditArticle, $submitEditArticle, pathEditArticle, {
+        success: () => loadLogisticUnitList(requestId)
+    });
 
     let urlDeleteDemande = Routing.generate('demande_delete', true);
     let $modalDeleteDemande = $("#modalDeleteDemande");

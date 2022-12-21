@@ -12,6 +12,7 @@ use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\PreparationOrder\PreparationRepository;
@@ -80,6 +81,9 @@ class Preparation implements PairedEntity {
 
     #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'preparationOrder', cascade: ['remove'])]
     private Collection $pairings;
+
+    #[ORM\OneToMany(targetEntity: TrackingMovement::class, mappedBy: 'preparation')]
+    private Collection $trackingMovements;
 
     public function __construct() {
         $this->mouvements = new ArrayCollection();
@@ -378,6 +382,34 @@ class Preparation implements PairedEntity {
 
     public function setPlanned(?bool $planned): self {
         $this->planned = $planned;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getTrackingMovements(): Collection {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self {
+        if(!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
+        if($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
+            // set the owning side to null (unless already changed)
+            if($trackingMovement->getPreparation() === $this) {
+                $trackingMovement->setPreparation(null);
+            }
+        }
 
         return $this;
     }

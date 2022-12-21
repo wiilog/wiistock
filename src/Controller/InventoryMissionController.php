@@ -181,10 +181,14 @@ class InventoryMissionController extends AbstractController
 
             $mission = $inventoryMissionRepository->find($data['missionId']);
             $barcodeErrors = [];
+            $refOrArtToAdd = [];
+            $artWithUL = [];
+
+            /* Management of each barcode entered by the user */
             Stream::explode([",", " ", ";", "\t"], $data['articles'])
                 ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission, $inventoryService) {
                     $barcode = trim($barcode);
-
+                    /* The barcode must be from an article or an article reference */
                     if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
                         $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
                         $checkForArt = $article instanceof Article
@@ -192,6 +196,7 @@ class InventoryMissionController extends AbstractController
                             && !$inventoryService->isInMissionInSamePeriod($article, $mission, false)
                             && $article->getStatut()?->getCode() !== Article::STATUT_INACTIF;
 
+                        /* If the article/ref article does not meet the conditions, the filterMap returns a string */
                         return $checkForArt ? $article : $article->getBarCode();
                     } else if($reference = $refArtRepository->findOneBy(["barCode" => $barcode])) {
 
@@ -204,17 +209,80 @@ class InventoryMissionController extends AbstractController
                         return $barcode;
                     }
                 })
-                ->each(function($refOrArt) use ($mission, &$barcodeErrors) {
+                ->each(function($refOrArt) use ($mission, &$barcodeErrors, $data, &$artWithUL, &$refOrArtToAdd) {
+
                     if ($refOrArt instanceof ReferenceArticle || $refOrArt instanceof Article) {
-                        $refOrArt->addInventoryMission($mission);
+                        /* If the filterMap returns an object, we check if it's associated with a LU that has several articles */
+                        if ($refOrArt instanceof Article && $refOrArt->getCurrentLogisticUnit() && count($refOrArt->getCurrentLogisticUnit()->getChildArticles()) > 1) {
+                            $artWithUL[] = $refOrArt->getBarCode();
+                        } else {
+                            $refOrArtToAdd[] = $refOrArt;
+                        }
                     } else {
+                        /* If the filterMap returns a string with a barcode, it's an error */
                         $barcodeErrors[] = $refOrArt;
                     }
                 });
 
+            if (!empty($artWithUL)) {
+                /* The article is associated with a LU which has several articles : an error is returned to display a confirmation modal */
+                $errorMsg = '<span class="text-danger pl-2">Les articles suivants sont contenus dans une unité logistique :</span><ul class="list-group my-2">';
+                foreach ($artWithUL as $articleCode) {
+                    $errorMsg .= '<li class="text-danger list-group-item">' . $articleCode . '</li>';
+                }
+                $errorMsg .= '</ul><span class="text-danger pl-2">L\'ensemble des articles des unités logistiques associées va être ajouté à la mission d\'inventaire.</span>';
+
+                /* We return barcodes and not objects */
+                $barcodesWithoutUL = Stream::from($refOrArtToAdd)
+                                ->filterMap(fn($refOrArtWithoutUL) => ($refOrArtWithoutUL->getBarCode()))
+                                ->toArray();
+
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => $errorMsg,
+                    'data' => [
+                        'barcodesUL' => $artWithUL, //barcodes that we stock in the input hidden
+                        'barcodesToAdd' => array_merge($barcodesWithoutUL, $barcodeErrors), //barcodes that we will put again in the input texte
+                    ]
+                ]);
+            } else {
+                /* If the text input does not contain articles associated with an LU */
+                $articlesWithULToAdd = [];
+                $barcodesWithUL = $data['barcodesWithUL'];
+                if (isset($barcodesWithUL) && !empty($barcodesWithUL)) {
+                    /* We retrieve the articles associated with LUs */
+                    Stream::explode([",", " ", ";", "\t"], $barcodesWithUL)
+                        ->each(function($barcode) use ($articleRepository, &$barcodeErrors, &$articlesWithULToAdd) {
+                            $barcode = trim($barcode);
+
+                            if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
+                                $articlesWithULToAdd[] = $article;
+                            } else {
+                                $barcodeErrors[] = $article;
+                            }
+                        });
+                }
+
+                /* Adding the mission to all the articles from the LU related */
+                if (!empty($articlesWithULToAdd)) {
+                    foreach ($articlesWithULToAdd as $article) {
+                        foreach ($article->getCurrentLogisticUnit()->getChildArticles() as $articleFromPack) {
+                            $articleFromPack->addInventoryMission($mission);
+                        }
+                    }
+                }
+
+                /* Adding the mission to each reference or article that meets the conditions */
+                foreach ($refOrArtToAdd as $refOrArt) {
+                    $refOrArt->addInventoryMission($mission);
+                }
+            }
+
             $entityManager->flush();
             $success = count($barcodeErrors) === 0;
             $errorMsg = "";
+
+            /* Creation of the error message if articles do not meet the conditions */
             if (!$success) {
                 $errorMsg = '<span class="pl-2">Les codes-barres suivants sont en erreur :</span><ul class="list-group my-2">';
                 $errorMsg .= (
@@ -225,6 +293,7 @@ class InventoryMissionController extends AbstractController
                     ->join("") . "</ul><span class='text-dark pl-2'>Les autres codes-barres ont bien été ajoutés à la mission.</span>"
                 );
             }
+
             return new JsonResponse([
                 'success' => $success,
                 'msg' => $errorMsg

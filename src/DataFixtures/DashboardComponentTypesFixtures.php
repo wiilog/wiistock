@@ -836,6 +836,45 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textUnderline-3' => false,
             ]
         ],
+        "Nombre d'ordres de livraisons quotidiens" => [
+            'hint' => "Nombre d'ordres de livraison ayant leur date attendue sur les jours présentés",
+            'exampleValues' => [
+                'stack' => true,
+                'label' => 'Arrivages',
+                'chartColors' => [
+                    '#77933C',
+                    '#003871'
+                ],
+                'chartColorsLabels' => [
+                    'Livraison',
+                    'Unité logistique'
+                ],
+                'chartData' => [
+                    '04/01' => 5,
+                    '05/01' => 12,
+                    '06/01' => 8,
+                    '07/01' => 1,
+                    '08/01' => 3,
+                    '11/01' => 9,
+                    '12/01' => 7,
+                    'stack' => [
+                        [
+                            'label' => 'Unité logistique',
+                            'backgroundColor' => '#a0c',
+                            'stack' => 'stack',
+                            'data' => [15, 18, 13, 4, 7, 12, 10]
+                        ],
+                    ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
+            'template' => Dashboard\ComponentType::DAILY_DELIVERY_ORDERS,
+            'meterKey' => Dashboard\ComponentType::DAILY_DELIVERY_ORDERS,
+        ],
         'Demandes à traiter' => [
             'hint' => 'Nombre de demandes pour l\'entité, le(s) type(s) et statut(s) sélectionnés',
             'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
@@ -926,10 +965,20 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textItalic-4' => false,
                 'textUnderline-4' => false,
 
-                'textColor-5' => "#3353d7",
+                'textColor-5' => "#000000",
                 'textBold-5' => false,
                 'textItalic-5' => false,
                 'textUnderline-5' => false,
+
+                'textColor-6' => "#000000",
+                'textBold-6' => false,
+                'textItalic-6' => false,
+                'textUnderline-6' => false,
+
+                'subCounts' => [
+                    '<span>Nombre d\'unités logistiques</span>',
+                    '<span class="text-wii-black dashboard-stats dashboard-stats-counter">3</span>'
+                ]
             ]
         ]
     ];

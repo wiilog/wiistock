@@ -25,7 +25,7 @@ class DeliveryRequestReferenceLineRepository extends EntityRepository
      * @return DeliveryRequestReferenceLine
      * @throws NonUniqueResultException
      */
-    public function findOneByRefArticleAndDemande($referenceArticle, $request, $splitFilter = false)
+    public function findOneByRefArticleAndDemande($referenceArticle, $request)
     {
         $queryBuilder = $this->createQueryBuilder('line')
             ->andWhere('line.reference = :referenceArticle AND line.request = :request')
@@ -33,11 +33,6 @@ class DeliveryRequestReferenceLineRepository extends EntityRepository
                 'referenceArticle' => $referenceArticle,
                 'request' => $request
             ]);
-
-        if ($splitFilter) {
-            $queryBuilder
-                ->andWhere('line.toSplit = 1');
-        }
 
         return $queryBuilder
             ->getQuery()

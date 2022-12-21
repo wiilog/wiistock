@@ -8,21 +8,18 @@
         {% set references = line.references ?? [] %}
 
         {% include 'pack/utils/packItemListTemplate.html.twig' with {
-            data: {
-                'line-id': line.id
-            },
             header: pack
-            ? {
-                data: {
-                    'pack-id': pack.id,
+                ? {
+                    data: {
+                        'pack-id': pack.id,
+                    },
+                    sideLabel: pack.nature,
+                    color: pack.color,
+                    content: [
+                        {label: 'Unité logistique', value: pack.code, bold: 'value'},
+                        {label: 'Emplacement', value: pack.location, bold: 'label', icon: 'reference-article-location'},
+                    ] | merge(pack.project ? [{label: 'Projet', value: pack.project, bold: 'label', icon: 'reference-article-stock'}] : [])
                 },
-                sideLabel: pack.nature,
-                color: pack.color,
-                content: [
-                    {label: 'Unité logistique', value: pack.code, bold: 'value'},
-                    {label: 'Emplacement', value: pack.location, bold: 'label', icon: 'reference-article-location'},
-                ] | merge(pack.project ? [{label: 'Projet', value: pack.project, bold: 'label', icon: 'reference-article-stock'}] : [])
-            },
             content: references|map((reference) => reference|merge({
                 actions: include(
                     'reception/datatableLigneRefArticleRow.html.twig',

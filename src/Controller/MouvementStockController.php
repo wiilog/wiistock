@@ -17,7 +17,6 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\MouvementStockService;
-use App\Service\ProjectHistoryRecordService;
 use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;

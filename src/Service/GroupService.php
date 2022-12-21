@@ -38,7 +38,7 @@ class GroupService {
     public function createParentPack(array $options = []): Pack {
         $group = $this->packService->createPackWithCode($options['parent']);
         $group
-            ->setComment(StringHelper::cleanedComment($options['comment']) ?? '')
+            ->setComment(StringHelper::cleanedComment($options['comment'] ?? null))
             ->setGroupIteration(1)
             ->setNature($options['nature'] ?? null)
             ->setVolume($options['volume'] ?? 0)

@@ -46,7 +46,6 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -571,7 +570,7 @@ class SettingsService {
             }
         }
 
-        if(isset($tables["tagTemplateTable"])){
+        if(isset($tables["tagTemplateTable"])) {
             $tagTemplateRepository = $this->manager->getRepository(TagTemplate::class);
             $typeRepository = $this->manager->getRepository(Type::class);
             $natureRepository = $this->manager->getRepository(Nature::class);
@@ -594,11 +593,11 @@ class SettingsService {
                 Stream::explode(',', $tagTemplateData['natureOrType'])
                     ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
-                            $type = $typeRepository->find($id);
-                            $tagTemplate->addType($type);
-                        } else {
                             $nature = $natureRepository->find($id);
                             $tagTemplate->addNature($nature);
+                        } else {
+                            $type = $typeRepository->find($id);
+                            $tagTemplate->addType($type);
                         }
                     } );
 
@@ -877,7 +876,7 @@ class SettingsService {
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
-                        ->setComment(StringHelper::cleanedComment($statusData['comment'] ?? '') ?? null)
+                        ->setComment(StringHelper::cleanedComment($statusData['comment'] ?? null))
                         ->setDefaultForCategory($statusData['defaultStatut'] ?? false)
                         ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)

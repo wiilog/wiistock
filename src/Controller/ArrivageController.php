@@ -22,6 +22,7 @@ use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
+use App\Entity\TagTemplate;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -30,6 +31,7 @@ use App\Service\DataExportService;
 use App\Service\FilterSupService;
 use App\Service\KeptFieldService;
 use App\Service\LanguageService;
+use App\Service\TagTemplateService;
 use App\Service\VisibleColumnService;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -83,6 +85,7 @@ class ArrivageController extends AbstractController {
     public function index(Request $request,
                           EntityManagerInterface $entityManager,
                           KeptFieldService $keptFieldService,
+                          TagTemplateService $tagTemplateService,
                           ArrivageService $arrivageService,
                           FilterSupService $filterSupService): Response {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -116,6 +119,7 @@ class ArrivageController extends AbstractController {
             "fields" => $fields,
             "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
             "initial_form" => $arrivageService->generateNewForm($entityManager),
+            "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_ARRIVAGE)),
         ]);
@@ -196,7 +200,7 @@ class ArrivageController extends AbstractController {
             ->setNumeroArrivage($numeroArrivage)
             ->setCustoms(isset($data['customs']) && $data['customs'] == 'true')
             ->setFrozen(isset($data['frozen']) && $data['frozen'] == 'true')
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire']) ?? '')
+            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
             ->setType($typeRepository->find($data['type']));
 
         $status = !empty($data['status']) ? $statutRepository->find($data['status']) : null;
@@ -699,6 +703,7 @@ class ArrivageController extends AbstractController {
                          ArrivageService        $arrivageDataService,
                          PackService            $packService,
                          Request                $request,
+                         TagTemplateService     $tagTemplateService,
                          Arrivage               $arrivage): Response
     {
         // HasPermission annotation impossible
@@ -745,6 +750,7 @@ class ArrivageController extends AbstractController {
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
+            "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             "projects" => $projectRepository->findActive(),
             'fields' => $fields,
@@ -1151,7 +1157,19 @@ class ArrivageController extends AbstractController {
                                                PDFGeneratorService    $PDFGeneratorService,
                                                PackService            $packService,
                                                Pack                   $colis = null,
-                                               array                  $packIdsFilter = []): Response {
+                                               array                  $packIdsFilter = [],
+                                               TagTemplate $tagTemplate = null,
+                                               bool $forceTagEmpty = false): Response {
+        if (!$tagTemplate) {
+            $tagTemplate = $request->query->get('template')
+                ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+                : null;
+        }
+        $forceTagEmpty = !$forceTagEmpty ? $request->query->get('forceTagEmpty', false) : $forceTagEmpty;
+
+        if ($colis && !$tagTemplate) {
+            $tagTemplate = $colis->getNature()?->getTags()?->first() ?: null;
+        }
         $barcodeConfigs = [];
         $settingRepository = $entityManager->getRepository(Setting::class);
         $usernameParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_LABEL);
@@ -1204,7 +1222,13 @@ class ArrivageController extends AbstractController {
                     $packIdsFilter,
                     $businessUnitParam,
                     $projectParam,
+                    $forceTagEmpty ? null :$tagTemplate,
+                    $forceTagEmpty
                 );
+            }
+
+            if (empty($barcodeConfigs)) {
+                throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
             }
 
             if ($printArrivage) {
@@ -1247,10 +1271,10 @@ class ArrivageController extends AbstractController {
             throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
         }
 
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage', $tagTemplate ? $tagTemplate->getPrefix() : 'ETQ');
 
         return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $forceTagEmpty ? null : $tagTemplate),
             $fileName
         );
     }
@@ -1264,8 +1288,12 @@ class ArrivageController extends AbstractController {
                                        EntityManagerInterface $entityManager,
                                        PDFGeneratorService    $PDFGeneratorService)
     {
+        $template = $request->query->get('template')
+            ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+            : null;
         $packIdsFilter = $request->query->all('packs') ?: [];
-        return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, $packService, null, $packIdsFilter);
+        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
+        return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, $packService, null, $packIdsFilter, $template, $forceTagEmpty);
     }
 
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage,
@@ -1280,13 +1308,18 @@ class ArrivageController extends AbstractController {
                                                    array $packIdsFilter = [],
                                                    ?bool $businessUnitParam = false,
                                                    ?bool $projectParam = false,
+                                                   ?TagTemplate $tagTemplate = null,
+                                                   bool $forceTagEmpty = false,
     ): array {
         $total = $arrivage->getPacks()->count();
         $packs = [];
-
         foreach($arrivage->getPacks() as $index => $pack) {
             $position = $index + 1;
-            if (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) {
+            if (
+                (!$forceTagEmpty || $pack->getNature()?->getTags()?->isEmpty()) &&
+                (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) &&
+                (empty($tagTemplate) || in_array($pack->getNature(), $tagTemplate->getNatures()->toArray()))
+            ) {
                 $packs[] = $packService->getBarcodeColisConfig(
                     $pack,
                     $arrivage->getDestinataire(),

@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\CategorieCL;
-use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
@@ -15,8 +14,6 @@ use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\MouvementStock;
-use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Project;
@@ -29,7 +26,6 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use App\Service\TranslationService;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
@@ -310,7 +306,7 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($number)
             ->setManual($isManual)
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
+            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 

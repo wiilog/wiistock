@@ -19,7 +19,6 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
-use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -183,7 +182,7 @@ class ReferenceArticleController extends AbstractController
                 ->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire']))
+                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
