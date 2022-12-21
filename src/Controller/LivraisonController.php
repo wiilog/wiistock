@@ -141,7 +141,7 @@ class LivraisonController extends AbstractController {
                         "location" => $this->formatService->location($logisticUnit->getLastDrop()?->getEmplacement()),
                         "project" => $logisticUnit->getProject()?->getCode(),
                         "nature" => $this->formatService->nature($logisticUnit->getNature()),
-                        "color" => $logisticUnit?->getNature()->getColor(),
+                        "color" => $logisticUnit?->getNature()?->getColor(),
                         "currentQuantity" => Stream::from($preparationOrder->getArticleLines()
                             ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit))
                             ->count(),
@@ -465,6 +465,7 @@ class LivraisonController extends AbstractController {
         $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
         $packs = Stream::from($preparationArticleLines)
             ->filterMap(fn(PreparationOrderArticleLine $line) => $line->getPack())
+            ->unique()
             ->reindex()
             ->slice(0, $maxNumberOfPacks)
             ->map(fn(Pack $pack) => [

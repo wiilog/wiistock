@@ -11,7 +11,7 @@
             <td>{{ pack.quantity }}</td>
         </tr>
         {% if pack.packArticles is defined %}
-            <table class="articles w-95">
+            <table class="articles w-100">
                 <tr>
                     <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Article contenu") }}</th>
                     <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Référence") }}</th>
@@ -22,7 +22,7 @@
                     <tr>
                         <td>{{ article.barcode }}</td>
                         <td>{{ article.reference }}</td>
-                        <td>{{ article.label }}</td>
+                        <td>{{ article.label | slice(1,37) }}{{ (article.label | length) > 37 ? '...' }}</td>
                         <td>{{ article.quantity }}</td>
                     </tr>
                 {% endfor %}
