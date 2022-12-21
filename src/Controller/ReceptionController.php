@@ -539,10 +539,7 @@ class ReceptionController extends AbstractController {
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
             $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
-            $nbArticleNotConform = $receptionReferenceArticleRepository->countNotConformByReception($reception);
-            $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
-            $reception->setStatut($statut);
+            $reception->setStatut($receptionService->getNewStatus($reception));
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
@@ -789,6 +786,8 @@ class ReceptionController extends AbstractController {
                 $articleFournisseur = $articleFournisseurRepository->find($data['articleFournisseur']);
                 $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
             }
+
+            $reception->setStatut($receptionService->getNewStatus($reception));
 
             $entityManager->flush();
 
@@ -1580,8 +1579,8 @@ class ReceptionController extends AbstractController {
                                    TrackingMovementService $trackingMovementService,
                                    MouvementStockService $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
-                                   LivraisonsManagerService $livraisonsManagerService): Response {
-
+                                   LivraisonsManagerService $livraisonsManagerService,
+                                   ReceptionService $receptionService): Response {
         $now = new DateTime('now');
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -1897,6 +1896,8 @@ class ReceptionController extends AbstractController {
                     $demande->getUtilisateur()
                 );
             }
+            $reception->setStatut($receptionService->getNewStatus($reception));
+
             $entityManager->flush();
 
             return new JsonResponse([
