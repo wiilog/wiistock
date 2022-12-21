@@ -14,6 +14,7 @@ use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Entity\TrackingMovement;
 use App\Exceptions\NegativeQuantityException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

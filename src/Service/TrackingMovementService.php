@@ -143,6 +143,16 @@ class TrackingMovementService extends AbstractController
                 $data ['fromLabel'] = 'Transfert de stock';
                 $data ['entityId'] = $movement->getMouvementStock()->getTransferOrder()->getId();
                 $data ['from'] = $movement->getMouvementStock()->getTransferOrder()->getNumber();
+            } else if ($movement->getPreparation()) {
+                $data ['entityPath'] = 'preparation_show';
+                $data ['fromLabel'] = 'Preparation';
+                $data ['entityId'] = $movement->getPreparation()->getId();
+                $data ['from'] = $movement->getPreparation()->getNumero();
+            } else if ($movement->getDelivery()) {
+                $data ['entityPath'] = 'livraison_show';
+                $data ['fromLabel'] = 'Livraison';
+                $data ['entityId'] = $movement->getDelivery()->getId();
+                $data ['from'] = $movement->getDelivery()->getNumero();
             }
         }
         return $data;
@@ -170,7 +180,7 @@ class TrackingMovementService extends AbstractController
                 $pack = $movement->getLogisticUnitParent()->getCode();
             }
         } else {
-            $pack = $movement->getPack()->getCode();
+            $pack = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
         }
 
         $row = [
@@ -336,6 +346,8 @@ class TrackingMovementService extends AbstractController
         $disableUngrouping = $options['disableUngrouping'] ?? false;
         $attachments = $options['attachments'] ?? null;
         $mainMovement = $options['mainMovement'] ?? null;
+        $preparation = $options['preparation'] ?? null;
+        $delivery = $options['delivery'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;
@@ -354,7 +366,9 @@ class TrackingMovementService extends AbstractController
             ->setType($type)
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? StringHelper::cleanedComment($commentaire) : null)
-            ->setMainMovement($mainMovement);
+            ->setMainMovement($mainMovement)
+            ->setPreparation($preparation)
+            ->setDelivery($delivery);
 
         if ($attachments) {
             foreach($attachments as $attachment) {

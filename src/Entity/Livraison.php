@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
 use App\Repository\LivraisonRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -66,34 +67,34 @@ class Livraison {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $numero;
+    private ?string $numero = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'livraisons')]
-    private $destination;
+    private ?Emplacement $destination = null;
 
-    /**
-     * @var Statut
-     */
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'livraisons')]
-    private $statut;
+    private ?Statut $statut = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $date;
+    private ?DateTime $date = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $dateFin;
+    private ?DateTime $dateFin = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'livraisons')]
-    private $utilisateur;
+    private ?Utilisateur $utilisateur = null;
 
-    #[ORM\OneToOne(targetEntity: Preparation::class, inversedBy: 'livraison')]
+    #[ORM\OneToOne(inversedBy: 'livraison', targetEntity: Preparation::class)]
     private ?Preparation $preparation = null;
 
-    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'livraisonOrder')]
-    private $mouvements;
+    #[ORM\OneToMany(mappedBy: 'livraisonOrder', targetEntity: MouvementStock::class)]
+    private Collection $mouvements;
+
+    #[ORM\OneToMany(mappedBy: 'delivery', targetEntity: TrackingMovement::class)]
+    private Collection $trackingMovements;
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $deliveryNoteData;
@@ -101,7 +102,7 @@ class Livraison {
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $waybillData;
 
-    #[ORM\OneToMany(targetEntity: Attachment::class, mappedBy: 'deliveryOrder')]
+    #[ORM\OneToMany(mappedBy: 'deliveryOrder', targetEntity: Attachment::class)]
     private Collection $attachements;
 
     public function __construct() {
@@ -280,6 +281,34 @@ class Livraison {
             // set the owning side to null (unless already changed)
             if($attachment->getDeliveryOrder() === $this) {
                 $attachment->setDeliveryOrder(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getTrackingMovements(): Collection {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self {
+        if(!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setDelivery($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
+        if($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
+            // set the owning side to null (unless already changed)
+            if($trackingMovement->getDelivery() === $this) {
+                $trackingMovement->setDelivery(null);
             }
         }
 

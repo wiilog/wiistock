@@ -245,7 +245,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="preparation_show", methods="GET|POST")
+     * @Route("/voir/{id}", name="preparation_show", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
      */
     public function show(Preparation            $preparation,
@@ -504,7 +504,6 @@ class PreparationController extends AbstractController
         $lines = Stream::from($data)->some(fn(string|array $value) => is_array($value)) ? $data : [$data];
 
         foreach ($lines as $data) {
-            dump(!empty($data['isRef']));
             $line = !empty($data['isRef'])
                 ? $preparationOrderReferenceLineRepository->find($data['ligneArticle'])
                 : $preparationOrderArticleLineRepository->find($data['ligneArticle']);

@@ -1759,21 +1759,36 @@ class ReceptionController extends AbstractController {
                             $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
                             $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
 
-                            try {
-                                $entityManager->flush();
-                                if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
-                                    $this->notificationService->toTreat($delivery);
+                                $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+                                $mouvements = $mouvementRepository->findByPreparation($preparation);
+
+                                try {
+                                    $entityManager->flush();
+                                    if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                        $this->notificationService->toTreat($delivery);
+                                    }
+                                } /** @noinspection PhpRedundantCatchClauseInspection */
+                                catch (UniqueConstraintViolationException $e) {
+                                    return new JsonResponse([
+                                        'success' => false,
+                                        'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                                    ]);
                                 }
-                            } /** @noinspection PhpRedundantCatchClauseInspection */
-                            catch (UniqueConstraintViolationException $e) {
-                                return new JsonResponse([
-                                    'success' => false,
-                                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.',
-                                ]);
+                                foreach ($mouvements as $mouvement) {
+                                    $preparationsManagerService->createMovementLivraison(
+                                        $mouvement->getQuantity(),
+                                        $currentUser,
+                                        $delivery,
+                                        !empty($mouvement->getRefArticle()),
+                                        $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                        $preparation,
+                                        false,
+                                        $locationEndPreparation
+                                    );
+                                }
                             }
                         }
                     }
-                }
 
                 if (!isset($demande)
                     || !($demande instanceof Demande)) {
