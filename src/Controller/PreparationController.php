@@ -183,7 +183,7 @@ class PreparationController extends AbstractController
                             "quantityToPick" => $line->getQuantityToPick(),
                             "pickedQuantity" => $line->getPickedQuantity(),
                             "lineId" => $line->getId(),
-                            "active" => !empty($line->getPickedQuantity()),
+                            "active" => !$line->getPack() && !empty($line->getPickedQuantity()),
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                                 'barcode' => $article->getBarCode(),
                                 'artOrRefId' => $article->getId(),
