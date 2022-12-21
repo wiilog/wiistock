@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -378,7 +379,6 @@ class LivraisonController extends AbstractController {
                                     Livraison $deliveryOrder): JsonResponse {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
-        $maxNumberOfPacks = 10;
 
         $settingRepository = $manager->getRepository(Setting::class);
 
@@ -390,23 +390,11 @@ class LivraisonController extends AbstractController {
             throw new FormException('Des unités logistiques sont nécessaires pour générer un bon de livraison');
         }
 
-        $packs = Stream::from($preparationArticleLines)
-            ->filterMap(fn(PreparationOrderArticleLine $line) => $line->getPack())
-            ->reindex()
-            ->slice(0, $maxNumberOfPacks)
-            ->map(fn(Pack $pack) => [
-                "code" => $pack->getCode(),
-                "quantity" => $pack->getQuantity(),
-                "comment" => $pack->getComment(),
-            ])
-            ->values();
-
         $userSavedData = $loggedUser->getSavedDeliveryOrderDeliveryNoteData();
         $dispatchSavedData = $deliveryOrder->getDeliveryNoteData();
         $defaultData = [
             'deliveryNumber' => $deliveryOrder->getNumero(),
             'username' => $loggedUser->getUsername(),
-            'packs' => $packs,
             'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
             'consignor2' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
             'userPhone' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
@@ -450,9 +438,7 @@ class LivraisonController extends AbstractController {
      */
     public function postDeliveryNoteDeliveryOrder(EntityManagerInterface $entityManager,
                                      Livraison $deliveryOrder,
-                                     PDFGeneratorService $pdf,
                                      Request $request,
-                                     SpecificService $specificService,
                                      LivraisonService $livraisonService): JsonResponse {
 
         /** @var Utilisateur $loggedUser */
@@ -461,7 +447,7 @@ class LivraisonController extends AbstractController {
         $data = json_decode($request->getContent(), true);
 
         $userDataToSave = [];
-        $dispatchDataToSave = [];
+        $deliveryDataToSave = [];
 
         // force dispatch number
         $data['deliveryNumber'] = $deliveryOrder->getNumero();
@@ -469,35 +455,38 @@ class LivraisonController extends AbstractController {
         foreach(array_keys(Livraison::DELIVERY_NOTE_DATA) as $deliveryNoteKey) {
             if(isset(Livraison::DELIVERY_NOTE_DATA[$deliveryNoteKey])) {
                 $value = $data[$deliveryNoteKey] ?? null;
-                $dispatchDataToSave[$deliveryNoteKey] = $value;
+                $deliveryDataToSave[$deliveryNoteKey] = $value;
                 if(Livraison::DELIVERY_NOTE_DATA[$deliveryNoteKey]) {
                     $userDataToSave[$deliveryNoteKey] = $value;
                 }
             }
         }
 
+        $maxNumberOfPacks = 10;
+        $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
+        $packs = Stream::from($preparationArticleLines)
+            ->filterMap(fn(PreparationOrderArticleLine $line) => $line->getPack())
+            ->unique()
+            ->reindex()
+            ->slice(0, $maxNumberOfPacks)
+            ->map(fn(Pack $pack) => [
+                "code" => $pack->getCode(),
+                "quantity" => $pack->getQuantity(),
+                "comment" => $pack->getComment(),
+                "packArticles" => Stream::from($pack->getChildArticles())
+                    ->map(fn(Article $article) => [
+                        "barcode" => $article->getBarCode(),
+                        "reference" => $article->getReference(),
+                        "label" => $article->getLabel(),
+                        "quantity" => $article->getQuantite(),
+                    ])
+                    ->values(),
+            ])
+            ->values();
+        $deliveryDataToSave['packs'] = $packs;
+
         $loggedUser->setSavedDeliveryOrderDeliveryNoteData($userDataToSave);
-        $deliveryOrder->setDeliveryNoteData($dispatchDataToSave);
-
-        $entityManager->flush();
-
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
-
-        $nowDate = new DateTime('now');
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
-
-        $documentTitle = "BL - {$deliveryOrder->getNumero()} - {$client} - {$nowDate->format('dmYHis')}";
-
-        $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $deliveryOrder);
-
-        $deliveryNoteAttachment = new Attachment();
-        $deliveryNoteAttachment
-            ->setDeliveryOrder($deliveryOrder)
-            ->setFileName($fileName)
-            ->setOriginalName($documentTitle . '.pdf');
-
-        $entityManager->persist($deliveryNoteAttachment);
+        $deliveryOrder->setDeliveryNoteData($deliveryDataToSave);
 
         $entityManager->flush();
 
@@ -511,9 +500,7 @@ class LivraisonController extends AbstractController {
                 'showDetails' => $detailsConfig,
                 'finished' => $deliveryOrder->isCompleted(),
             ]),
-            'attachmentId' => $deliveryNoteAttachment->getId()
         ]);
-
     }
 
     /**
@@ -523,9 +510,10 @@ class LivraisonController extends AbstractController {
      * @param Attachment $attachment
      * @return PdfResponse
      */
-    public function printDeliveryNote(Livraison $deliveryOrder,
-                                      KernelInterface $kernel,
-                                      Attachment $attachment): Response {
+    public function printDeliveryNote(EntityManagerInterface $entityManager,
+                                      Livraison $deliveryOrder,
+                                      PDFGeneratorService $pdfService,
+                                      SpecificService $specificService): Response {
         if(!$deliveryOrder->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
@@ -533,10 +521,19 @@ class LivraisonController extends AbstractController {
             ]);
         }
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
+        $fileName = uniqid() . '.pdf';
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
 
-        return $response;
+        $nowDate = new DateTime('now');
+        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+
+        $documentTitle = "BL - {$deliveryOrder->getNumero()} - {$client} - {$nowDate->format('dmYHis')}";
+
+        return new PdfResponse(
+            $pdfService->generatePDFDeliveryNote($documentTitle, $logo, $deliveryOrder),
+            $fileName
+        );
     }
 
     /**

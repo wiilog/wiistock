@@ -1,0 +1,92 @@
+{% set dn = entity.deliveryNoteData %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title>{{ trans('Demande', 'Acheminements', "Bon de surconsommation", "Bon de surconsommation", false) }}</title>
+    <meta charset="UTF-8"/>
+    <style>
+        * {
+            font-family: Arial, sans-serif;
+        }
+
+        .logos {
+            width: 34.4cm;
+            height: 2.5cm;
+        }
+
+        .logos img {
+            max-width: 25%;
+            max-height: 2cm;
+        }
+
+        .logos img:first-of-type {
+            float: left;
+        }
+
+        .logos img:last-of-type {
+            float: right;
+        }
+
+        h1, h2 {
+            margin: 0;
+        }
+
+        h2 {
+            padding-bottom: 5mm;
+        }
+
+        .header {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .split {
+            height: 2.5cm;
+        }
+
+        .split > * {
+            display: inline-block;
+            width: 11.9cm;
+
+            vertical-align: top;
+            margin-top: 0.5cm;
+            border: 1px solid rgba(0, 0, 0, 0);
+        }
+
+        .split:first-child {
+            float: left;
+        }
+
+        .split:last-child {
+            float: right;
+        }
+
+        * {
+            font-family: Arial, sans-serif;
+        }
+
+        .image-title {
+            max-height: 100px;
+            max-width: 100px;
+        }
+    </style>
+</head>
+<body style="margin-bottom: 3cm; display: block; width: 24cm; height: 2.5cm;">
+    <div class="split">
+        <div>
+            {% if logo %}
+                <img src="{{ 'https://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}"
+                     alt="GT Logistics"
+                     class="image-title"/>
+            {% endif %}
+
+            <div style="float: right; margin-right: 1cm">{{ dn.consignor | nl2br }}</div>
+        </div>
+        <div class="header">
+            {{ trans('Demande', 'Acheminements', 'Bon de livraison', "Bon de livraison - Original") }}
+        </div>
+    </div>
+<br>
+</body>
+</html>
