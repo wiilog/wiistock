@@ -1916,7 +1916,7 @@ class ReceptionController extends AbstractController {
                         'trackingDate' => $now
                     ]
                 );
-                if (isset($createdMvt) && $luMovements['success'] && array_key_exists('movements', $luMovements)) {
+                if (isset($createdMvt) && $luMovements['success'] && isset($luMovements['movements'])) {
                     $mainMovement = stream::from($luMovements['movements'])
                         ->filter(fn(TrackingMovement $mvt) => $mvt->getMainMovement() === null)
                         ->first();
