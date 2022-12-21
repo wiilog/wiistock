@@ -49,12 +49,13 @@ class LivraisonsManagerService
     private $mailerService;
     private $templating;
     private $mouvementStockService;
+    private $trackingMovementService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 MouvementStockService $mouvementStockService,
                                 MailerService $mailerService,
-                                Twig_Environment $templating,
-                                TrackingMovementService $trackingMovementService)
+                                TrackingMovementService $trackingMovementService,
+                                Twig_Environment $templating)
     {
         $this->entityManager = $entityManager;
         $this->mailerService = $mailerService;
@@ -122,7 +123,7 @@ class LivraisonsManagerService
 
             // repositories
             $statutRepository = $this->entityManager->getRepository(Statut::class);
-            $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
+            $movementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
             $statutForLivraison = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::ORDRE_LIVRAISON,
@@ -220,14 +221,79 @@ class LivraisonsManagerService
             }
 
             // on termine les mouvements de livraison
-            $mouvements = $mouvementRepository->findBy(['livraisonOrder' => $livraison]);
-
-            foreach ($mouvements as $mouvement) {
-                $mouvement->setDate($dateEnd);
+            $movements = $movementRepository->findBy(['livraisonOrder' => $livraison]);
+            foreach ($movements as $movement) {
+                $movement->setDate($dateEnd);
                 if (isset($emplacementTo)) {
-                    $mouvement->setEmplacementTo($emplacementTo);
+                    $movement->setEmplacementTo($emplacementTo);
+                }
+
+                $trackingMovementPick = $this->trackingMovementService->createTrackingMovement(
+                    $movement->getArticle()->getBarCode(),
+                    $movement->getEmplacementFrom(),
+                    $user,
+                    $dateEnd,
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'mouvementStock' => $movement,
+                        'delivery' => $livraison,
+                    ],
+                );
+                $this->entityManager->persist($trackingMovementPick);
+
+                $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
+                    $movement->getArticle()->getBarCode(),
+                    $movement->getEmplacementTo(),
+                    $user,
+                    $dateEnd,
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'mouvementStock' => $movement,
+                        'delivery' => $livraison,
+                    ],
+                );
+
+                $this->entityManager->persist($trackingMovementDrop);
+                $ulToMove[] = $movement->getArticle()?->getCurrentLogisticUnit();
+
+                $this->entityManager->flush();
+            }
+
+            if (isset($ulToMove)){
+                foreach (array_unique($ulToMove) as $lu) {
+                    if ($lu != null){
+                        $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                            $lu,
+                            $lu->getLastDrop()->getEmplacement(),
+                            $user,
+                            $dateEnd,
+                            true,
+                            true,
+                            TrackingMovement::TYPE_PRISE,
+                            [ 'delivery' => $livraison,]
+                        );
+                        $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                            $lu,
+                            $emplacementTo,
+                            $user,
+                            $dateEnd,
+                            true,
+                            true,
+                            TrackingMovement::TYPE_DEPOSE,
+                            [ 'delivery' => $livraison,]
+                        );
+                        $this->entityManager->persist($pickTrackingMovement);
+                        $this->entityManager->persist($DropTrackingMovement);
+
+                        $lu->setLastDrop($DropTrackingMovement)->setLastTracking($DropTrackingMovement);
+                    }
                 }
             }
+
             $title = $demandeIsPartial ? 'FOLLOW GT // Livraison effectuée partiellement' : 'FOLLOW GT // Livraison effectuée';
             $bodyTitle = $demandeIsPartial ? 'Votre demande a été livrée partiellement.' : 'Votre demande a bien été livrée.';
 

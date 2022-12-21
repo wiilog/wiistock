@@ -793,7 +793,6 @@ class MobileController extends AbstractApiController
                                     ],
                                 );
 
-                                $trackingMovementDrop->setPreparation($preparation);
                                 $entityManager->persist($trackingMovementDrop);
                                 $ulToMove[] = $movement->getArticle()?->getCurrentLogisticUnit();
 
