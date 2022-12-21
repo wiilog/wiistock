@@ -10,12 +10,12 @@
                             name="entity"
                             title="{{ category ? 'Demande' : 'Ordre' }}"
                             onchange="onEntityChange($(this))">
-                            <option value="">Sélectionner une entité...</option>
+                        <option value="">Sélectionner une entité...</option>
                         {% for label, config in entities %}
                             <option value="{{ config.key }}"
                                     data-category-type="{{ config.categoryType }}"
                                     data-category-status="{{ config.categoryStatus }}"
-                                    {{ config.key == values.entity ? 'selected' }}>
+                                {{ config.key == values.entity ? 'selected' }}>
                                 {{ label }}
                             </option>
                         {% endfor %}
@@ -38,7 +38,7 @@
                         {% for type in entityTypes %}
                             <option value="{{ type.id }}"
                                     data-category-label="{{ type.category.label }}"
-                                    {{ type.id in values.entityTypes ? 'selected' }}>{{ type.label }}</option>
+                                {{ type.id in values.entityTypes ? 'selected' }}>{{ type.label }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -61,7 +61,7 @@
                         {% for status in entityStatuses %}
                             <option value="{{ status.id }}"
                                     data-category-label="{{ status.categorie ? status.categorie.nom : '' }}"
-                                    {{ status.id in values.entityStatuses ? 'selected' }}>{{ status.nom }}</option>
+                                {{ status.id in values.entityStatuses ? 'selected' }}>{{ status.nom }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -90,6 +90,43 @@
                    type="text"
                 {{ values.treatmentDelay ?: 'disabled' }}
                    value="{{ values.treatmentDelay }}">
+        </div>
+    </div>
+    <div class="row toToggle livraison">
+        <div class="col-12">
+            <div class="wii-checkbox pl-0 pointer">
+                <label class="pointer d-flex align-items-center">
+                    <input name="displayDeliveryOrderWithExpectedDate"
+                           class="data"
+                           type="checkbox" {{ displayDeliveryOrderWithExpectedDate ? 'checked' : '' }}>
+                    Afficher les ordres ayant une date attendue
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="row my-2 toToggle livraison">
+        <div class="col-12">
+            <div class="wii-checkbox pl-0 pointer">
+                <label class="pointer d-flex align-items-center">
+                    <input name="displayDeliveryOrderContentCheckbox"
+                           class="data"
+                           type="checkbox" {{ displayDeliveryOrderContentCheckbox ? 'checked' : '' }}>
+                    Afficher le contenu des ordres de livraison
+                </label>
+            </div>
+            <div class="col-12 mt-2 {{ not displayDeliveryOrderContentCheckbox ? 'd-none' }}">
+                <div>
+                    <label class="pointer">
+                        <input type="radio" class="data" name="displayDeliveryOrderContent"
+                               value="displayLogisticUnitsCount" {{ not displayDeliveryOrderContent or displayDeliveryOrderContent == "displayLogisticUnitsCount" ? 'checked' }}>
+                        Afficher le nombre d'UL à livrer</label>
+                </div>
+                <div>
+                    <label class="pointer">
+                        <input type="radio" class="data" name="displayDeliveryOrderContent" value="displayArticlesCount" {{ displayDeliveryOrderContent == "displayArticlesCount" ? 'checked' }}>
+                        Afficher le nombre d'articles à livrer (valable pour les livraisons de références gérées en article)</label>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

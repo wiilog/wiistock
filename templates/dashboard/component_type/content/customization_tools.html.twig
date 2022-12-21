@@ -146,27 +146,40 @@
             </div>
         </div>
     {% endif %}
-    {% if componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DISPATCHES') %}
+    {% if componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DISPATCHES')
+        or componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DELIVERY_ORDERS') %}
         <div class="form-group">
-            {% set dispatchDate = values.date is defined ? values.date : null %}
+            {% set referenceDate = values.date is defined ? values.date : null %}
+            {% set dailyDispatchesComponent = componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DISPATCHES') %}
+            {% set dailyDeliveryOrdersComponent = componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DELIVERY_ORDERS') %}
             <label class="wii-field-name">Date de référence*</label>
-            <div class="wii-switch-no-style needed mt-2" data-title="Date de référence">
-                <div>
-                    <input type="radio" class="data" name="date" value="startDate" {{ dispatchDate == "startDate" ? 'checked' }}>
-                    <label for="startDate">Date d'échéance "Du"</label>
-                </div>
-                <div>
-                    <input type="radio" class="data" name="date" value="endDate" {{ not dispatchDate or dispatchDate == "endDate" ? 'checked' }}>
-                    <label for="endDate">Date d'échéance "Au"</label>
-                </div>
-                <div>
-                    <input type="radio" class="data" name="date" value="validationDate" {{ dispatchDate == "validationDate" ? 'checked' }}>
-                    <label for="validationDate">Date de validation</label>
-                </div>
-                <div>
-                    <input type="radio" class="data" name="date" value="treatmentDate" {{ dispatchDate == "treatmentDate" ? 'checked' }}>
-                    <label for="treatmentDate">Date de traitement</label>
-                </div>
+            <div class="wii-switch-no-style needed mt-2 d-flex flex-column" data-title="Date de référence">
+                {% if dailyDispatchesComponent %}
+                    <label class="pointer">
+                        <input type="radio" class="data" name="date" value="startDate" {{ referenceDate == "startDate" ? 'checked' }}>
+                        Date d'échéance "Du"
+                    </label>
+                {% endif %}
+                {% if dailyDispatchesComponent %}
+                    <label class="pointer">
+                        <input type="radio" class="data" name="date" value="endDate" {{ not referenceDate or referenceDate == "endDate" ? 'checked' }}>
+                        Date d'échéance "Au"
+                    </label>
+                {% endif %}
+                {% if dailyDeliveryOrdersComponent %}
+                    <label class="pointer">
+                        <input type="radio" class="data" name="date" value="expectedDate" {{ referenceDate == "expectedDate" ? 'checked' }}>
+                        Date attendue
+                    </label>
+                {% endif %}
+                <label class="pointer">
+                    <input type="radio" class="data" name="date" value="validationDate" {{ referenceDate == "validationDate" ? 'checked' }}>
+                    Date de validation
+                </label>
+                <label class="pointer">
+                    <input type="radio" class="data" name="date" value="treatmentDate" {{ referenceDate == "treatmentDate" ? 'checked' }}>
+                    Date de traitement
+                </label>
             </div>
         </div>
     {% endif %}

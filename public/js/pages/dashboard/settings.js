@@ -91,6 +91,10 @@ function loadDashboards(m, refreshRate) {
         .arrive(".segments-list .segment-hour", function () {
             onSegmentInputChange($(this), true);
         });
+
+    $(document).on(`change`, `input[name=displayDeliveryOrderContentCheckbox]`, function () {
+        $(this).closest(`.wii-checkbox`).next().toggleClass(`d-none`, !$(this).is(`:checked`));
+    });
 }
 
 function registerComponentOnChange() {
@@ -1438,6 +1442,8 @@ function onEntityChange($select, onInit = false) {
     const $correspondingStatuses = $selectStatus.find(`option[data-category-label="${categoryStatus}"]`);
     const $otherTypes = $selectType.find(`option[data-category-label!="${categoryType}"]`);
     const $otherStatuses = $selectStatus.find(`option[data-category-label!="${categoryStatus}"]`);
+    const $toHide = $modal.find(`.toToggle:not(.${categoryStatus})`);
+    const $toShow = $modal.find(`.toToggle.${categoryStatus}`);
 
     const disabledSelect = (
         !categoryType
@@ -1452,7 +1458,8 @@ function onEntityChange($select, onInit = false) {
     $selectAllAvailableStatuses.prop('disabled', disabledSelect);
     $otherTypes.prop('disabled', true);
     $otherStatuses.prop('disabled', true);
-
+    $toHide.addClass('d-none');
+    $toShow.removeClass('d-none');
     if (!onInit) {
         $selectType.val(null);
         $selectStatus.val(null);
