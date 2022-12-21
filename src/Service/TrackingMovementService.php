@@ -148,11 +148,11 @@ class TrackingMovementService extends AbstractController
                 $data ['fromLabel'] = 'Preparation';
                 $data ['entityId'] = $movement->getPreparation()->getId();
                 $data ['from'] = $movement->getPreparation()->getNumero();
-            } else if ($movement->getLivraison()) {
+            } else if ($movement->getDelivery()) {
                 $data ['entityPath'] = 'livraison_show';
                 $data ['fromLabel'] = 'Livraison';
-                $data ['entityId'] = $movement->getLivraison()->getId();
-                $data ['from'] = $movement->getLivraison()->getNumero();
+                $data ['entityId'] = $movement->getDelivery()->getId();
+                $data ['from'] = $movement->getDelivery()->getNumero();
             }
         }
         return $data;
@@ -368,7 +368,7 @@ class TrackingMovementService extends AbstractController
             ->setCommentaire(!empty($commentaire) ? StringHelper::cleanedComment($commentaire) : null)
             ->setMainMovement($mainMovement)
             ->setPreparation($preparation)
-            ->setLivraison($delivery);
+            ->setDelivery($delivery);
 
         if ($attachments) {
             foreach($attachments as $attachment) {

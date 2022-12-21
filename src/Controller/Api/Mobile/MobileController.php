@@ -760,7 +760,7 @@ class MobileController extends AbstractApiController
                                 $entityManager->persist($trackingMovementPick);
 
                                 $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
-                                     $movement->getArticle()->getBarCode(),
+                                    $movement->getArticle()->getBarCode(),
                                     $movement->getEmplacementTo(),
                                     $nomadUser,
                                     $dateEnd,

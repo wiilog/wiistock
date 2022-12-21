@@ -71,7 +71,7 @@ class TrackingMovement {
     private ?Preparation $preparation;
 
     #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'trackingMovements')]
-    private ?Livraison $livraison;
+    private ?Livraison $delivery;
 
     #[ORM\OneToOne(mappedBy: 'lastDrop', targetEntity: Pack::class)]
     private ?Pack $linkedPackLastDrop = null;
@@ -256,17 +256,15 @@ class TrackingMovement {
         return $this;
     }
 
-    public function getLivraison(): ?Livraison {
-        return $this->livraison;
+    public function getDelivery(): ?Livraison {
+        return $this->delivery;
     }
 
-    public function setLivraison(?Livraison $livraison): self {
-        $this->livraison = $livraison;
+    public function setDelivery(?Livraison $delivery): self {
+        $this->delivery = $delivery;
 
         return $this;
     }
-
-
 
     public function getReferenceArticle(): ?ReferenceArticle {
         return isset($this->pack)
