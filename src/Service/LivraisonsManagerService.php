@@ -49,19 +49,16 @@ class LivraisonsManagerService
     private $mailerService;
     private $templating;
     private $mouvementStockService;
-    private $trackingMovementService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 MouvementStockService $mouvementStockService,
                                 MailerService $mailerService,
-                                TrackingMovementService $trackingMovementService,
                                 Twig_Environment $templating)
     {
         $this->entityManager = $entityManager;
         $this->mailerService = $mailerService;
         $this->templating = $templating;
         $this->mouvementStockService = $mouvementStockService;
-        $this->trackingMovementService = $trackingMovementService;
     }
 
     /**
