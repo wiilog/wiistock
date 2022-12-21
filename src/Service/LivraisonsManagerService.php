@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
@@ -17,7 +16,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Entity\TrackingMovement;
 use App\Exceptions\NegativeQuantityException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
