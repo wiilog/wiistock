@@ -30,10 +30,10 @@ class TagTemplate
     #[ORM\Column(length: 255)]
     private ?string $module = null;
 
-    #[ORM\ManyToMany(targetEntity: Nature::class)]
+    #[ORM\ManyToMany(targetEntity: Nature::class, inversedBy: 'tags')]
     private Collection $natures;
 
-    #[ORM\ManyToMany(targetEntity: Type::class)]
+    #[ORM\ManyToMany(targetEntity: Type::class, inversedBy: 'tags')]
     private Collection $types;
 
     public function __construct()

@@ -31,7 +31,9 @@
                 icon: "wii-icon wii-icon-printer-black",
                 title: "Imprimer les étiquettes",
                 dropdownOnly: true,
-                href: path('collecte_bar_codes_print', { ordreCollecte: collecte.id }),
+                attributes: {
+                    "onclick": "printArticles(" ~ collecte.id ~ ")",
+                }
             },
             {
                 hasRight: (collecte.pairings|length >= 1) and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')),

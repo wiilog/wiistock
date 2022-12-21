@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Dispatch;
 use App\Entity\Livraison;
 use App\Entity\Setting;
+use App\Entity\TagTemplate;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
@@ -56,12 +57,12 @@ class PDFGeneratorService {
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false): string {
+    public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false, ?TagTemplate $tagTemplate = null): string {
         $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
 
-        $height = $barcodeConfig['height'];
-        $width = $barcodeConfig['width'];
-        $isCode128 = $barcodeConfig['isCode128'];
+        $height = $tagTemplate ? $tagTemplate->getHeight() : $barcodeConfig['height'];
+        $width = $tagTemplate ? $tagTemplate->getWidth() : $barcodeConfig['width'];
+        $isCode128 = $tagTemplate ? $tagTemplate->isBarcode() : $barcodeConfig['isCode128'];
 
         $barcodeConfigsToTwig = array_map(function($config) use ($isCode128, $width) {
             $code = $config['code'];
@@ -207,7 +208,7 @@ class PDFGeneratorService {
      * @param string $name
      * @return string
      */
-    public function getBarcodeFileName(array $barcodeConfigs, string $name): string {
+    public function getBarcodeFileName(array $barcodeConfigs, string $name, string $prefix = PDFGeneratorService::PREFIX_BARCODE_FILENAME): string {
         $barcodeCounter = count($barcodeConfigs);
         // remove / and \ in filename
         $smartBarcodeLabel = $barcodeCounter === 1
@@ -215,7 +216,7 @@ class PDFGeneratorService {
             : '';
 
         return (
-            PDFGeneratorService::PREFIX_BARCODE_FILENAME . '_' .
+            $prefix . '_' .
             $name .
             (($barcodeCounter === 1 && !empty($smartBarcodeLabel)) ? ('_' . $smartBarcodeLabel) : '') .
             '.pdf'

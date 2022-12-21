@@ -59,7 +59,7 @@
                 icon: "fas fa-external-link-alt",
                 title: "Aller vers l'ordre de collecte",
                 dropdownOnly: true,
-                href: collecte ? path('ordre_collecte_show', {'id': collecte.ordresCollecte.first.id }),
+                href: not collecte.ordresCollecte.empty ? path('ordre_collecte_show', {'id': collecte.ordresCollecte.first.id }),
             },
             {
                 hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')),

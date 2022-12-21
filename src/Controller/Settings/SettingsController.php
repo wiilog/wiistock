@@ -2666,7 +2666,7 @@ class SettingsController extends AbstractController {
         $natureRepository = $manager->getRepository(Nature::class);
         $typeRepository = $manager->getRepository(Type::class);
 
-        $categoryTypeArrivage = $manager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
+        $categoryTypeArrivage = $manager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARTICLE]);
 
         $natures = $natureRepository->findAll();
         $types = $typeRepository->findBy(['category' => $categoryTypeArrivage]);
@@ -2676,11 +2676,11 @@ class SettingsController extends AbstractController {
                 $isArrival = $tagTemplate->getModule() === CategoryType::ARRIVAGE ? 'selected' : '';
                 $isArticle = $tagTemplate->getModule() === 'article' ? 'selected' : '';
 
-                $natureOrTypeOptions = $tagTemplate->getModule() === 'article' ?
+                $natureOrTypeOptions = $tagTemplate->getModule() === CategoryType::ARRIVAGE ?
                         Stream::from($natures)
                             ->map(fn(Nature $n) => [
                                 "id" => $n->getId(),
-                                "label" => $n->getCode(),
+                                "label" => $n->getLabel(),
                                 "selected" => $tagTemplate->getNatures()->contains($n),
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"]) :
@@ -2691,7 +2691,6 @@ class SettingsController extends AbstractController {
                                 "selected" => $tagTemplate->getTypes()->contains($t),
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"]);
-
                 $selectContent = Stream::from($natureOrTypeOptions)
                     ->map(function(array $n) {
                         $selected = $n['selected'] ? "selected" : '';
@@ -2744,7 +2743,7 @@ class SettingsController extends AbstractController {
                     "natureOrType" =>
                         !$tagTemplate->getNatures()->isEmpty() ?
                             Stream::from($tagTemplate->getNatures())
-                                ->map(fn(Nature $nature) => $nature->getCode())
+                                ->map(fn(Nature $nature) => $nature->getLabel())
                                 ->join(", ") :
                                 ($tagTemplate->getTypes() ?
                                     Stream::from($tagTemplate->getTypes())
