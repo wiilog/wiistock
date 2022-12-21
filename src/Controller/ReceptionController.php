@@ -1937,7 +1937,7 @@ class ReceptionController extends AbstractController {
             }
 
             if ($pack && $pack->getLastDrop()?->getEmplacement()) {
-                $trackingMovementService->persistLogisticUnitMovements(
+                $luMovements = $trackingMovementService->persistLogisticUnitMovements(
                     $entityManager,
                     $pack,
                     $pack->getLastDrop()?->getEmplacement(),
@@ -1948,6 +1948,12 @@ class ReceptionController extends AbstractController {
                         'trackingDate' => $now
                     ]
                 );
+                if (isset($createdMvt) && $luMovements['success'] && isset($luMovements['movements'])) {
+                    $mainMovement = stream::from($luMovements['movements'])
+                        ->filter(fn(TrackingMovement $mvt) => $mvt->getMainMovement() === null)
+                        ->first();
+                    $createdMvt->setMainMovement($mainMovement);
+                }
                 if ($createDirectDelivery && isset($delivery) && isset($preparation)) {
                     foreach ($createdLoopArticles as $article) {
                         $preparationsManagerService->createMouvementLivraison(
