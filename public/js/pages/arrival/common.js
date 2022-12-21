@@ -155,7 +155,6 @@ function printArrival({arrivageId, printColis, printArrivage}) {
         printColis: printColis ? 1 : 0,
         printArrivage: printArrivage ? 1 : 0
     };
-    console.log(templates);
     if (templates.length > 0) {
         Promise.all(
             [AJAX.route('GET', `print_arrivage_bar_codes`, {forceTagEmpty: true, ...params}).file({})]

@@ -157,36 +157,6 @@ function ajaxGetFournisseurByRefArticle(select) {
     }
 }
 
-function printArrival({arrivageId, printColis, printArrivage}) {
-    let templates;
-    try {
-        templates = JSON.parse($('#tagTemplates').val());
-    } catch (error) {
-        templates = [];
-    }
-    let params = {
-        arrivage: arrivageId,
-        printColis: printColis ? 1 : 0,
-        printArrivage: printArrivage ? 1 : 0
-    };
-    console.log(templates);
-    if (templates.length > 0) {
-        Promise.all(
-            [AJAX.route('GET', `print_arrivage_bar_codes`, {forceTagEmpty: true, ...params}).file({})]
-                .concat(templates.map(function(template) {
-                    params.template = template;
-                    return AJAX
-                        .route('GET', `print_arrivage_bar_codes`, params)
-                        .file({})
-                }))
-        ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
-    } else {
-        if (printArrivage || printColis) {
-            window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
-        }
-    }
-}
-
 function printArticlesBarCodes($button, event) {
     let templates;
     try {

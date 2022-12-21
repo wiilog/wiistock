@@ -1227,6 +1227,10 @@ class ArrivageController extends AbstractController {
                 );
             }
 
+            if (empty($barcodeConfigs)) {
+                throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
+            }
+
             if ($printArrivage) {
                 $barcodeConfigs[] = [
                     'code' => $arrivage->getNumeroArrivage()
