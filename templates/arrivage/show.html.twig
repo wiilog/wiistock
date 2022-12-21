@@ -56,19 +56,17 @@
                                             {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
                                         </a>
                                         {% if hasRightExport %}
-                                            {% if hasRightEdit %}
-                                                <a class="dropdown-item d-flex align-items-center"
-                                                   id="printColisBtn"
-                                                   href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                                    <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques') }}</span>
-                                                </a>
-                                            {% else %}
-                                                <a id="printColisBtn"
-                                                   class="btn btn-primary d-flex align-items-center"
-                                                   href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                                    <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques') }}</span>
-                                                </a>
-                                            {% endif %}
+                                            <a id="printColisBtn"
+                                               class="{{ hasRightEdit ? 'dropdown-item' }} btn btn-primary d-flex align-items-center"
+                                               onclick="printArrival({
+                                                   'arrivageId': {{ arrivage.id }},
+                                                   'printColis' : true,
+                                                   'printArrivage' : true
+                                               })">
+                                                <span
+                                                    class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques') }}
+                                                </span>
+                                            </a>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -124,6 +122,7 @@
         'table': 'tableColis',
         'route': 'save_column_visible_for_pack',
     } %}
+    <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
 
 {% endblock %}
 

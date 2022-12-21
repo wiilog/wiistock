@@ -42,6 +42,7 @@
 
     <input hidden id="prepa-id" value="{{ preparation.id }}">
     <input hidden name="showTargetLocationPicking" value="{{ showTargetLocationPicking }}">
+    <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
 
     {% include 'preparation/modalDeleteArticle.html.twig' %}
     {% include 'preparation/modalDeletePreparation.html.twig' %}

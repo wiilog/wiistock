@@ -98,13 +98,17 @@ export default class AJAX {
         return this.raw(body)
             .then((response) => {
                 if (!response.ok) {
-                    Flash.add(ERROR, error)
+                    if (error) {
+                        Flash.add(ERROR, error);
+                    }
                     throw new Error('printing error');
                 }
                 return response.blob().then((blob) => {
                     const fileName = response.headers.get("content-disposition").split("filename=")[1];
                     saveAs(blob, fileName);
-                    Flash.add(SUCCESS, success);
+                    if (success) {
+                        Flash.add(SUCCESS, success);
+                    }
                 });
             });
     }

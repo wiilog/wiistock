@@ -130,6 +130,9 @@ class Type {
     #[ORM\OneToOne(mappedBy: "type", targetEntity: TranslationSource::class)]
     private ?TranslationSource $labelTranslation = null;
 
+    #[ORM\ManyToMany(targetEntity: TagTemplate::class, mappedBy: 'types')]
+    private Collection $tags;
+
     public function __construct() {
         $this->champsLibres = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
@@ -148,6 +151,7 @@ class Type {
         $this->requestTemplates = new ArrayCollection();
         $this->requestTypeTemplates = new ArrayCollection();
         $this->sensors = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -815,6 +819,14 @@ class Type {
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, TagTemplate>
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
     }
 
 }
