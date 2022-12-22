@@ -32,6 +32,72 @@ class ReceptionReferenceArticleRepository extends EntityRepository
         ]);
         return $query->getSingleScalarResult();
     }
+	/**
+	 * @param Reception $reception
+	 * @return ReceptionReferenceArticle[]|null
+	 */
+    public function findByReception($reception)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT a
+            FROM App\Entity\ReceptionReferenceArticle a
+            WHERE a.reception = :reception'
+        )->setParameter('reception', $reception);;
+        return $query->execute();
+    }
+
+	public function countByReceptionId($receptionId)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			'SELECT COUNT(rra)
+            FROM App\Entity\ReceptionReferenceArticle rra
+            WHERE rra.reception = :receptionId'
+		)->setParameter('receptionId', $receptionId);;
+		return $query->getSingleScalarResult();
+	}
+
+	/**
+	 * @return ReceptionReferenceArticle[]
+	 */
+	public function findByReceptionAndCommandeAndRefArticleId(Reception $reception,
+                                                              ?string $orderNumber,
+                                                              ?int $refArticleId): array {
+        return $this->createQueryBuilder('reception_reference_article')
+            ->join('reception_reference_article.referenceArticle', 'referenceArticle')
+            ->andWhere('reception_reference_article.reception = :reception')
+            ->andWhere('reception_reference_article.commande = :orderNumber')
+            ->andWhere('referenceArticle.id = :refArticleId')
+            ->setParameters([
+                'reception' => $reception,
+                'orderNumber' => $orderNumber,
+                'refArticleId' => $refArticleId
+            ])
+            ->getQuery()
+            ->getResult();
+	}
+
+	/**
+	 * @param int $receptionReferenceArticleId
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
+	public function countArticlesByRRA($receptionReferenceArticleId)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/* @lang DQL */
+		'SELECT count(a)
+		FROM App\Entity\Article a
+		JOIN a.receptionReferenceArticle rra
+		WHERE rra.id = :rraId'
+		)->setParameter('rraId', $receptionReferenceArticleId);
+
+		return $query->getSingleScalarResult();
+	}
 
 	public function findByReferenceArticleAndReceptionStatus(ReferenceArticle $referenceArticle, array $statuses, ?Reception $ignored = null) {
 	    $queryBuilder = $this->createQueryBuilder('reception_reference_article');

@@ -525,6 +525,10 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
             $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
 
+            $reception->setStatut($receptionService->getNewStatus($reception));
+
+            // TODO check fonctionement
+
             $nbArticleNotConform = $receptionReferenceArticleRepository->countNotConformByReception($reception);
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
@@ -825,6 +829,8 @@ class ReceptionController extends AbstractController {
                 $articleFournisseur = $articleFournisseurRepository->find($data['articleFournisseur']);
                 $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
             }
+
+            $reception->setStatut($receptionService->getNewStatus($reception));
 
             $entityManager->flush();
 
@@ -1658,8 +1664,8 @@ class ReceptionController extends AbstractController {
                                    TrackingMovementService    $trackingMovementService,
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
-                                   LivraisonsManagerService   $livraisonsManagerService): Response {
-
+                                   LivraisonsManagerService $livraisonsManagerService,
+                                   ReceptionService $receptionService): Response {
         $now = new DateTime('now');
 
         /** @var Utilisateur $currentUser */
@@ -2034,6 +2040,7 @@ class ReceptionController extends AbstractController {
                 $demande->getUtilisateur()
             );
         }
+        $reception->setStatut($receptionService->getNewStatus($reception));
         $entityManager->flush();
 
         return new JsonResponse([
