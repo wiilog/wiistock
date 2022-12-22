@@ -10,7 +10,8 @@ $(function () {
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
     let urlPrintDeliveryNote = Routing.generate('delivery_note_delivery_order', {deliveryOrder: getDeliveryId()}, true);
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
-        success: ({attachmentId}) => {
+        success: ({attachmentId, headerDetailsConfig}) => {
+            $('.zone-entete').html(headerDetailsConfig);
             window.location.href = Routing.generate('print_delivery_note_delivery_order', {
                 deliveryOrder: getDeliveryId(),
                 attachment: attachmentId
