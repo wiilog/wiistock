@@ -123,7 +123,7 @@ class PDFGeneratorService {
         $fileName = uniqid() . '.pdf';
 
         $this->PDFGenerator->generateFromHtml(
-            $this->templating->render('waybillTemplate.html.twig', [
+            $this->templating->render('prints/waybillTemplate.html.twig', [
                 'title' => $title,
                 'entity' => $entity,
                 'logo' => $logo,
