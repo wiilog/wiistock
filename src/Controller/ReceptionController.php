@@ -1674,7 +1674,15 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
 
+        $location = $packRepository->find($data['pack'])->getLastDrop()->getEmplacement();
+        if (!$location->ableToBeDropOff(new Pack())) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement ".$location->getLabel(),
+            ]);
+        }
         $createDirectDelivery = $settingRepository->getOneParamByLabel(Setting::DIRECT_DELIVERY);
         $paramCreatePrepa = $settingRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
 
@@ -1912,26 +1920,6 @@ class ReceptionController extends AbstractController {
                 $mouvementStockService->finishMouvementStock($mouvementStock, $now, $receptionLocation);
 
                 $entityManager->persist($mouvementStock);
-                if ($receptionLocation) {
-                    $createdMvt = $trackingMovementService->createTrackingMovement(
-                        $article->getTrackingPack() ?? $article->getBarCode(),
-                        $receptionLocation,
-                        $currentUser,
-                        $now,
-                        false,
-                        true,
-                        TrackingMovement::TYPE_DEPOSE,
-                        [
-                            'mouvementStock' => $mouvementStock,
-                            'quantity' => $mouvementStock->getQuantity(),
-                            'from' => $reception,
-                            "refOrArticle" => $article
-                        ]
-                    );
-
-                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                    $entityManager->persist($createdMvt);
-                }
 
                 $entityManager->flush();
                 $createdArticles[] = $article;
@@ -1971,6 +1959,24 @@ class ReceptionController extends AbstractController {
                         );
                     }
                 }
+            } else if ($receptionLocation) {
+                $createdMvt = $trackingMovementService->createTrackingMovement(
+                    $article->getTrackingPack() ?? $article->getBarCode(),
+                    $receptionLocation,
+                    $currentUser,
+                    $now,
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'mouvementStock' => $mouvementStock,
+                        'quantity' => $mouvementStock->getQuantity(),
+                        'from' => $reception,
+                        "refOrArticle" => $article
+                    ]
+                );
+                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                $entityManager->persist($createdMvt);
             }
             $entityManager->flush();
         }

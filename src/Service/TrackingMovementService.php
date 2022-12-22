@@ -1022,6 +1022,7 @@ class TrackingMovementService extends AbstractController
                 return [
                     'success' => false,
                     'error' => Pack::CONFIRM_CREATE_GROUP,
+                    'msg' => Pack::CONFIRM_CREATE_GROUP,
                     'group' => $associatedGroup->getCode(),
                 ];
             } else if ($forced) {
