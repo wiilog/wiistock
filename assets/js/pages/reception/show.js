@@ -153,6 +153,11 @@ function initPageModals() {
     InitModal($modalDeleteReceptionReferenceArticle, $submitDeleteReceptionReferenceArticle, urlReceptionReferenceArticle, {
         success: () => {
             loadReceptionLines();
+        },
+        error: (data) => {
+            if (data && data.msg) {
+                Flash.add(ERROR, data.msg);
+            }
         }
     });
 

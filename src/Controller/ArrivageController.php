@@ -1227,7 +1227,7 @@ class ArrivageController extends AbstractController {
                 );
             }
 
-            if (empty($barcodeConfigs)) {
+            if (empty($barcodeConfigs) && $printColis) {
                 throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
             }
 

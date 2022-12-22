@@ -490,4 +490,9 @@ class Reception {
         return Stream::from($this->getLines())
             ->some(fn(ReceptionLine $line) => $line->hasPack());
     }
+
+    public function isPartial(): bool {
+        return Stream::from($this->getReceptionReferenceArticles())
+            ->some(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getQuantite());
+    }
 }

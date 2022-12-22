@@ -32,7 +32,7 @@
         | reverse
     %}
     {% set firstProjectHistoryRecord = projectHistoryRecords|first %}
-    {% set currentProject = article.trackingPack ? article.trackingPack.project : null %}
+    {% set currentProject = article.currentLogisticUnit ? article.currentLogisticUnit.project : null %}
 
     {% set currentProjectCode = (firstProjectHistoryRecord and firstProjectHistoryRecord.project == currentProject and currentProject) ? currentProject.code %}
     {% set currentProjectDate = (firstProjectHistoryRecord and firstProjectHistoryRecord.project == currentProject) ? firstProjectHistoryRecord.createdAt %}
