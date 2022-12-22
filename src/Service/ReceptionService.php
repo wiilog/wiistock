@@ -12,6 +12,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;
@@ -23,6 +24,7 @@ use InvalidArgumentException;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 class ReceptionService
@@ -497,5 +499,19 @@ class ReceptionService
                 'orderNumber' => $orderNumber,
             ];
         }
+    }
+
+    public function getNewStatus(Reception $reception): Statut {
+        $statusRepository = $this->entityManager->getRepository(Statut::class);
+        $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
+        $nbArticleNotConform = Stream::from($reception->getReceptionReferenceArticles())
+            ->filter(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getAnomalie())
+            ->count();
+        $statusCode = $nbArticleNotConform > 0
+            ? Reception::STATUT_ANOMALIE
+            : ($reception->isPartial()
+                ? Reception::STATUT_RECEPTION_PARTIELLE
+                : Reception::STATUT_EN_ATTENTE);
+        return $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
     }
 }
