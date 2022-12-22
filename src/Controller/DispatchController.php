@@ -1061,7 +1061,6 @@ class DispatchController extends AbstractController {
                                     Dispatch $dispatch): JsonResponse {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
-        $maxNumberOfPacks = 10;
 
         if($dispatch->getDispatchPacks()->count() === 0) {
             $errorMessage = $translationService->translate('Demande', 'Acheminements', 'Bon de livraison', 'Des unités logistiques sont nécessaires pour générer un bon de livraison', false) . '.';
@@ -1072,15 +1071,6 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        $packs = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
-        $packs = array_map(function(DispatchPack $dispatchPack) {
-            return [
-                "code" => $dispatchPack->getPack()->getCode(),
-                "quantity" => $dispatchPack->getQuantity(),
-                "comment" => $dispatchPack->getPack()->getComment(),
-            ];
-        }, $packs);
-
         $userSavedData = $loggedUser->getSavedDispatchDeliveryNoteData();
         $dispatchSavedData = $dispatch->getDeliveryNoteData();
         $defaultData = [
@@ -1088,7 +1078,6 @@ class DispatchController extends AbstractController {
             'projectNumber' => $dispatch->getProjectNumber(),
             'username' => $loggedUser->getUsername(),
             'userPhone' => $loggedUser->getPhone(),
-            'packs' => $packs,
             'dispatchEmergency' => $dispatch->getEmergency()
         ];
         $deliveryNoteData = array_reduce(
@@ -1110,6 +1099,7 @@ class DispatchController extends AbstractController {
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+            'fromDelivery' => $request->query->getBoolean('fromDelivery'),
         ]));
 
         return $this->json([
@@ -1140,10 +1130,8 @@ class DispatchController extends AbstractController {
      */
     public function postDeliveryNote(EntityManagerInterface $entityManager,
                                      Dispatch $dispatch,
-                                     PDFGeneratorService $pdf,
                                      DispatchService $dispatchService,
-                                     Request $request,
-                                     SpecificService $specificService): JsonResponse {
+                                     Request $request): JsonResponse {
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -1166,27 +1154,19 @@ class DispatchController extends AbstractController {
             }
         }
 
+        $maxNumberOfPacks = 10;
+        $packs = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
+        $packs = array_map(function(DispatchPack $dispatchPack) {
+            return [
+                "code" => $dispatchPack->getPack()->getCode(),
+                "quantity" => $dispatchPack->getQuantity(),
+                "comment" => $dispatchPack->getPack()->getComment(),
+            ];
+        }, $packs);
+        $dispatchDataToSave['packs'] = $packs;
+
         $loggedUser->setSavedDispatchDeliveryNoteData($userDataToSave);
         $dispatch->setDeliveryNoteData($dispatchDataToSave);
-
-        $entityManager->flush();
-
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
-
-        $nowDate = new DateTime('now');
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
-
-        $documentTitle = "BL - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
-        $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $dispatch);
-
-        $deliveryNoteAttachment = new Attachment();
-        $deliveryNoteAttachment
-            ->setDispatch($dispatch)
-            ->setFileName($fileName)
-            ->setOriginalName($documentTitle . '.pdf');
-
-        $entityManager->persist($deliveryNoteAttachment);
 
         $entityManager->flush();
 
@@ -1200,7 +1180,6 @@ class DispatchController extends AbstractController {
                 'showDetails' => $detailsConfig,
                 'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
             ]),
-            'attachmentId' => $deliveryNoteAttachment->getId()
         ]);
     }
 
@@ -1211,27 +1190,33 @@ class DispatchController extends AbstractController {
      *     options={"expose"=true},
      *     methods="GET"
      * )
-     * @param TranslationService $trans
      * @param Dispatch $dispatch
-     * @param KernelInterface $kernel
-     * @param Attachment $attachment
      * @return PdfResponse
      */
-    public function printDeliveryNote(TranslationService $trans,
+    public function printDeliveryNote(EntityManagerInterface $entityManager,
                                       Dispatch $dispatch,
-                                      KernelInterface $kernel,
-                                      Attachment $attachment): Response {
+                                      PDFGeneratorService $pdfService,
+                                      SpecificService $specificService): Response {
         if(!$dispatch->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
-                "msg" => $trans->translate('Demande', 'Acheminements', 'Bon de livraison', 'Le bon de livraison n\'existe pas pour cet acheminement')
+                "msg" => 'Le bon de livraison n\'existe pas pour cette ordre de livraison'
             ]);
         }
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
+        $fileName = uniqid() . '.pdf';
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
 
-        return $response;
+        $nowDate = new DateTime('now');
+        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+
+        $documentTitle = "BL - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
+
+        return new PdfResponse(
+            $pdfService->generatePDFDeliveryNote($documentTitle, $logo, $dispatch),
+            $fileName
+        );
     }
 
     /**

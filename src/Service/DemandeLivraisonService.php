@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\CategorieCL;
-use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
@@ -15,8 +14,6 @@ use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\MouvementStock;
-use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Project;
@@ -29,7 +26,6 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use App\Service\TranslationService;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
@@ -310,7 +306,7 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($number)
             ->setManual($isManual)
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
+            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 
@@ -382,7 +378,7 @@ class DemandeLivraisonService
                 $statutArticle = $article->getStatut();
                 if ($statutArticle?->getCode() !== Article::STATUT_ACTIF) {
                     $response['success'] = false;
-                    $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleLine->getBarCode();
+                    $response['nomadMessage'] = "Erreur de quantité sur l\'article : {$article->getBarCode()}";
                     $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
                 } else {
                     $refArticle = $articleLine->getArticle()->getArticleFournisseur()->getReferenceArticle();
@@ -488,20 +484,19 @@ class DemandeLivraisonService
         }
 
         // modification du statut articles => en transit
-        $articles = $demande->getArticleLines();
         $statutArticleIntransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
-        foreach ($articles as $article) {
-            $article->getArticle()->setStatut($statutArticleIntransit);
-            $ligneArticlePreparation = new PreparationOrderArticleLine();
-            $ligneArticlePreparation
-                ->setPickedQuantity($article->getPickedQuantity())
-                ->setQuantityToPick($article->getQuantityToPick())
-                ->setTargetLocationPicking($article->getTargetLocationPicking())
-                ->setArticle($article->getArticle())
-                ->setPreparation($preparation);
-            $entityManager->persist($ligneArticlePreparation);
-            $preparation->addArticleLine($ligneArticlePreparation);
+        $requestLines = $demande->getArticleLines();
+        foreach ($requestLines as $requestArticleLine) {
+            $article = $requestArticleLine->getArticle();
+            $article->setStatut($statutArticleIntransit);
+
+            $preparationArticleLine = $requestArticleLine->createPreparationOrderLine();
+            $preparationArticleLine
+                ->setPreparation($preparation)
+                ->setPickedQuantity($requestArticleLine->getPickedQuantity());
+            $entityManager->persist($preparationArticleLine);
         }
+
         $lignesArticles = $demande->getReferenceLines();
         $refArticleToUpdateQuantities = [];
         foreach ($lignesArticles as $ligneArticle) {
@@ -620,20 +615,20 @@ class DemandeLivraisonService
         );
 
         $config = [
-            ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst(FormatHelper::status($demande->getStatut()))],
-            ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
-            ['label' => 'Destination', 'value' => FormatHelper::location($demande->getDestination())],
-            ['label' => 'Date de la demande', 'value' => FormatHelper::datetime($demande->getCreatedAt())],
-            ['label' => 'Date de validation', 'value' => FormatHelper::datetime($demande->getValidatedAt())],
-            ['label' => 'Type', 'value' => FormatHelper::type($demande->getType())],
+            ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst($this->formatService->status($demande->getStatut()))],
+            ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
+            ['label' => 'Destination', 'value' => $this->formatService->location($demande->getDestination())],
+            ['label' => 'Date de la demande', 'value' => $this->formatService->datetime($demande->getCreatedAt())],
+            ['label' => 'Date de validation', 'value' => $this->formatService->datetime($demande->getValidatedAt())],
+            ['label' => 'Type', 'value' => $this->formatService->type($demande->getType())],
             [
                 'label' => 'Date attendue',
-                'value' => FormatHelper::date($demande->getExpectedAt()),
+                'value' => $this->formatService->date($demande->getExpectedAt()),
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
             [
                 'label' => 'Projet',
-                'value' => $demande?->getProject()?->getCode() ?? '',
+                'value' => $this->formatService->project($demande?->getProject()) ?? '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT]
             ],
         ];

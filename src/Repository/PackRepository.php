@@ -558,6 +558,7 @@ class PackRepository extends EntityRepository
             ->addSelect("pack.comment AS comment")
             ->addSelect("DATE_FORMAT(last_tracking.datetime, '%d/%m/%Y %H:%i') AS lastMvtDate")
             ->addSelect("last_tracking_location.label AS lastLocation")
+            ->addSelect("last_tracking_location.id AS lastLocationId")
             ->addSelect("last_tracking_user.username AS operator")
             ->andWhere("pack.code LIKE :term")
             ->leftJoin("pack.nature", "nature")

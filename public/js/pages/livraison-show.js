@@ -4,26 +4,7 @@ $(function () {
 
     const $selectDeleteDeliveryLocation = $modalDeleteDelivery.find('select[name="location"]')
     Select2Old.location($selectDeleteDeliveryLocation);
-
-    let pathArticle = Routing.generate('livraison_article_api', {id: deliveryId});
-    let tableArticleConfig = {
-        ajax: {
-            'url': pathArticle,
-            "type": "POST"
-        },
-        columns: [
-            {data: 'Actions', title: '', className: 'noVis', orderable: false},
-            {data: 'reference', title: 'Référence'},
-            {data: 'label', title: 'Libellé'},
-            {data: 'location', title: 'Emplacement'},
-            {data: 'quantity', title: 'Quantité'},
-        ],
-        rowConfig: {
-            needsRowClickAction: true,
-        },
-        order: [['reference', "asc"]]
-    };
-    initDataTable('tableArticle_id', tableArticleConfig);
+    loadLogisticUnitPack(deliveryId);
 
     let $modalPrintDeliveryNote = $('#modalPrintDeliveryNote');
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
@@ -51,6 +32,41 @@ $(function () {
     });
 });
 
+function loadLogisticUnitPack(deliveryId) {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    wrapLoadingOnActionButton($logisticUnitsContainer, () => (
+            AJAX.route('GET', 'delivery_order_logistic_units_api', {id: deliveryId})
+                .json()
+                .then(({html}) => {
+                    $logisticUnitsContainer.html(html);
+                    $logisticUnitsContainer.find('.articles-container table')
+                        .each(function () {
+                            const $table = $(this);
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                columns: [
+                                    {data: 'Actions', title: '', className: 'noVis', orderable: false},
+                                    {data: 'reference', title: 'Référence'},
+                                    {data: 'barCode', title: 'Code barre'},
+                                    {data: 'label', title: 'Libellé'},
+                                    {data: 'quantity', title: 'Quantité'},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                },
+                            })
+                        });
+                })
+        )
+    );
+}
+
 function endLivraison($button) {
     wrapLoadingOnActionButton(
         $button,
@@ -58,18 +74,112 @@ function endLivraison($button) {
             $.post({
                 url: Routing.generate('livraison_finish', {id: getDeliveryId()})
             })
-                .then(({success, redirect, message}) => {
+                .then(({success, redirect, message, tableArticlesNotRequestedData}) => {
                     if (success) {
                         window.location.href = redirect;
-                    }
-                    else {
-                        showBSAlert(message, 'danger');
-                    }
+                    } else {
+                        if (tableArticlesNotRequestedData) {
+                            const modalArticlesNotRequested = $('#modal-articles-not-requested');
+                            let tableArticlesNotRequestedConfig = {
+                                lengthMenu: [10, 25, 50],
+                                destroy: true,
+                                columns: [
+                                    {data: 'barCode', name: 'barCode', title: 'Code barre', className: 'barCode'},
+                                    {data: 'label', name: 'label', title: 'Libellé'},
+                                    {data: 'lu', name: 'lu', title: 'Unité logistique'},
+                                    {data: 'location', name: 'location', title: 'Emplacement'},
+                                ],
+                                data: tableArticlesNotRequestedData,
+                                order: [
+                                    ['barCode', 'desc'],
+                                    ['label', 'desc'],
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                    removeTableHeader: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                    needsColor: true,
+                                    dataToCheck: 'urgence',
+                                    color: 'danger',
+                                },
+                            };
+                            initDataTable('table-articles-not-requested', tableArticlesNotRequestedConfig);
 
+                            modalArticlesNotRequested.modal(`show`);
+
+                            let $luSelect = $('#table-articles-not-requested tbody tr td select[name="logisticUnit"]');
+                            $luSelect.on('change', function () {
+                                let $select = $(this);
+                                let $locationSelect = $select.closest('tr').find('td select[name="location"]');
+                                if ($select.val()) {
+                                    const luData = $select.select2('data')[0];
+                                    let option = new Option(luData.lastLocation, luData.lastLocationId, true, true);
+                                    $locationSelect.append(option);
+                                    $locationSelect.attr('disabled', true);
+                                } else {
+                                    $locationSelect.attr('disabled', false);
+                                    $locationSelect.empty();
+                                }
+                            });
+                        } else if (message) {
+                            showBSAlert(message, 'danger');
+                        }
+                    }
                     return success;
                 })
         ),
         false);
+}
+
+async function treatArticlesNotRequested($button) {
+    $button.pushLoader(`white`);
+    const $modalArticlesNotRequested = $('#modal-articles-not-requested');
+    const $tableRow = $modalArticlesNotRequested.find('tbody tr');
+    let $locationSelect = $tableRow.find('td select[name="location"]');
+
+    let locationSelectEmpty = [];
+    $locationSelect.each(function () {
+        if ($(this).val() == null) {
+            locationSelectEmpty.push($(this));
+        }
+    });
+    if (locationSelectEmpty.length > 0) {
+        locationSelectEmpty.forEach(function (select) {
+            $(select).addClass('is-invalid');
+            $(select).closest('tr').find('td .select2-selection').addClass('is-invalid');
+        });
+        $button.popLoader();
+    } else {
+        let articles = [];
+        await $tableRow.each(function () {
+            let $row = $(this);
+            let $luSelect = $row.find('td select[name="logisticUnit"]');
+            let $locationSelect = $row.find('td select[name="location"]');
+            articles.push({
+                barCode: $row.find('td.barCode').text(),
+                lu: $luSelect.val(),
+                location: $locationSelect.val(),
+            });
+        });
+        const deliveryId = await getDeliveryId();
+        AJAX.route(
+            'POST',
+            'livraison_treat_articles_not_requested'
+        ).json({
+            deliveryId:  deliveryId,
+            articles: articles,
+        }).then(({success, message}) => {
+            if (success) {
+                endLivraison($button);
+            } else {
+                showBSAlert(message, 'danger');
+                $button.popLoader();
+            }
+        });
+        $button.popLoader();
+    }
 }
 
 function askForDeleteDelivery() {
@@ -98,8 +208,7 @@ function askForDeleteDelivery() {
                         .then(({success, redirect, message}) => {
                             if (success) {
                                 window.location.href = redirect;
-                            }
-                            else {
+                            } else {
                                 showBSAlert(message, 'danger');
                             }
 
@@ -108,8 +217,7 @@ function askForDeleteDelivery() {
                 ),
                 false
             );
-        }
-        else {
+        } else {
             showBSAlert('Veuillez sélectionner un emplacement.', 'danger');
         }
     })
@@ -126,9 +234,9 @@ function getDeliveryId() {
     return $('input[type="hidden"][name="delivery-id"]').val();
 }
 
-function openDeliveryNoteModal($button) {
+function openDeliveryNoteModal($button, fromDelivery = false) {
     const livraisonId = getDeliveryId();
-    $.get(Routing.generate('api_delivery_note_livraison', {deliveryOrder: livraisonId}))
+    $.get(Routing.generate('api_delivery_note_livraison', {deliveryOrder: livraisonId, fromDelivery}))
         .then((result) => {
             if(result.success) {
                 const $modal = $('#modalPrintDeliveryNote');

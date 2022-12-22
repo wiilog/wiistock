@@ -227,10 +227,10 @@ function switchPacks() {
         packsTable.ajax.reload();
     }
 
-    $(`.packsTableContainer`).show();
-    $(`.groupsTableContainer`).hide();
-    $(`#packsTable_filter`).parent().show();
-    $(`#groupsTable_filter`).parent().hide();
+    $(`.packsTableContainer`).addClass('d-flex').removeClass('d-none');
+    $(`.groupsTableContainer`).addClass('d-none');
+    $(`#packsTable_filter`).parent().removeClass('d-none');
+    $(`#groupsTable_filter`).parent().addClass('d-none');
 }
 
 function switchGroups() {
@@ -253,10 +253,10 @@ function switchGroups() {
         groupsTable.ajax.reload();
     }
 
-    $(`.packsTableContainer`).hide();
-    $(`.groupsTableContainer`).show();
-    $(`#packsTable_filter`).parent().hide();
-    $(`#groupsTable_filter`).parent().show();
+    $(`.packsTableContainer`).removeClass('d-flex').addClass('d-none');
+    $(`.groupsTableContainer`).removeClass('d-none');
+    $(`#packsTable_filter`).parent().addClass('d-none');
+    $(`#groupsTable_filter`).parent().removeClass('d-none');
 }
 
 function toExport() {

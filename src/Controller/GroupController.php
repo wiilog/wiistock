@@ -72,7 +72,7 @@ class GroupController extends AbstractController {
             $group->setNature($natureRepository->find($data["nature"]))
                 ->setWeight($data["weight"] === "" ? null : $data["weight"])
                 ->setVolume($data["volume"] === "" ? null : $data["volume"])
-                ->setComment(StringHelper::cleanedComment($data["comment"]));
+                ->setComment(StringHelper::cleanedComment($data["comment"] ?? null));
 
             $manager->persist($group);
             $manager->flush();

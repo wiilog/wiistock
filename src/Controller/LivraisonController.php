@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -18,6 +19,7 @@ use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -29,11 +31,10 @@ use App\Service\LivraisonsManagerService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\SpecificService;
+use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -50,14 +51,14 @@ use WiiCommon\Helper\Stream;
 /**
  * @Route("/livraison")
  */
-class LivraisonController extends AbstractController
-{
+class LivraisonController extends AbstractController {
+
     /**
      * @Route("/liste/{demandId}", name="livraison_index", methods={"GET", "POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
     public function index(EntityManagerInterface $entityManager,
-                          string $demandId = null): Response {
+                          string                 $demandId = null): Response {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -81,37 +82,72 @@ class LivraisonController extends AbstractController
      * @Route("/finir/{id}", name="livraison_finish", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function finish(Livraison $livraison,
+    public function finish(Livraison                $livraison,
                            LivraisonsManagerService $livraisonsManager,
-                           EntityManagerInterface $entityManager): Response
-    {
+                           EntityManagerInterface   $entityManager): Response {
         if ($livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER) {
-            try {
-                $dateEnd = new DateTime('now');
-                /** @var Utilisateur $user */
-                $user = $this->getUser();
-                $livraisonsManager->finishLivraison(
-                    $user,
-                    $livraison,
-                    $dateEnd,
-                    $livraison->getDemande()->getDestination()
-                );
-                $entityManager->flush();
+            // get the logistic units to deliver
+            $articleLines = $livraison->getDemande()->getArticleLines();
+            $packs = stream::from($articleLines)
+                ->map(fn(DeliveryRequestArticleLine $line) => $line->getPack())
+                ->filter(fn(?Pack $pack) => $pack !== null)
+                ->unique()
+                ->toArray();
+
+            // for each logistic unit, check if it is fully delivered
+            $notRequestedArticles = [];
+            foreach ($packs as $pack){
+                $packsArticles = $pack->getChildArticles()->toArray();
+                $deliverPacksArticles = stream::from($articleLines)
+                    ->filter(fn(DeliveryRequestArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $pack)
+                    ->map(fn(DeliveryRequestArticleLine $line) => $line->getArticle())
+                    ->toArray();
+                $notRequestedArticles += array_diff($packsArticles, $deliverPacksArticles);
             }
-            catch(NegativeQuantityException $exception) {
-                $barcode = $exception->getArticle()->getBarCode();
-                return new JsonResponse([
+
+            if ( !empty($notRequestedArticles) ) {
+                $tableArticlesNotRequestedData = Stream::from($notRequestedArticles)
+                    ->map(fn(Article $article) => [
+                        'barCode' => $article->getBarCode(),
+                        'label' => $article->getLabel(),
+                        'lu' => '<select class="ajax-autocomplete data w-100 form-control" name="logisticUnit" data-s2="pack" data-parent="body"></select>',
+                        'location' => '<select class="ajax-autocomplete data w-100 form-control" name="location" data-s2="location" data-parent="body"></select>',
+                    ])
+                    ->values();
+                return $this->json([
                     'success' => false,
-                    'message' => "La quantité en stock de l'article $barcode est inférieure à la quantité prélevée."
+                    'tableArticlesNotRequestedData' => $tableArticlesNotRequestedData,
                 ]);
+            }
+            else {
+                try {
+                    $dateEnd = new DateTime('now');
+                    /** @var Utilisateur $user */
+                    $user = $this->getUser();
+                    $livraisonsManager->finishLivraison(
+                        $user,
+                        $livraison,
+                        $dateEnd,
+                        $livraison->getDemande()->getDestination(),
+                        false,
+                    );
+                    $entityManager->flush();
+                }
+                catch(NegativeQuantityException $exception) {
+                    $barcode = $exception->getArticle()->getBarCode();
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => "La quantité en stock de l'article $barcode est inférieure à la quantité prélevée."
+                    ]);
+                }
             }
         }
 
         return new JsonResponse([
             'success' => true,
             'redirect' => $this->generateUrl('livraison_show', [
-                'id' => $livraison->getId()
-            ])
+                'id' => $livraison->getId(),
+            ]),
         ]);
     }
 
@@ -119,20 +155,94 @@ class LivraisonController extends AbstractController
      * @Route("/api", name="livraison_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request,
-                        LivraisonService $livraisonService): Response
-    {
+    public function api(Request          $request,
+                        LivraisonService $livraisonService): Response {
         $filterDemandId = $request->request->get('filterDemand');
         $data = $livraisonService->getDataForDatatable($request->request, $filterDemandId);
         return new JsonResponse($data);
+    }
+
+    #[Route("/delivery-order-logistic-units-api", name: "delivery_order_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR], mode: HasPermission::IN_JSON)]
+    public function logisticUnitsApi(Request $request, EntityManagerInterface $manager): Response {
+        $deliveryOrder = $manager->find(Livraison::class, $request->query->get('id'));
+        $preparationOrder = $deliveryOrder->getPreparation();
+
+        $lines = Stream::from($preparationOrder->getArticleLines())
+            ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack())
+            ->unique()
+            // null packs in first
+            ->sort(fn(?Pack $logisticUnit1, ?Pack $logisticUnit2) => ($logisticUnit1?->getCode() <=> $logisticUnit2?->getCode()))
+            ->map(fn(?Pack $logisticUnit) => [
+                "pack" => $logisticUnit
+                    ? [
+                        "packId" => $logisticUnit->getId(),
+                        "code" => $logisticUnit->getCode(),
+                        "location" => $this->formatService->location($logisticUnit->getLastDrop()?->getEmplacement()),
+                        "project" => $logisticUnit->getProject()?->getCode(),
+                        "nature" => $this->formatService->nature($logisticUnit->getNature()),
+                        "color" => $logisticUnit?->getNature()?->getColor(),
+                        "currentQuantity" => Stream::from($preparationOrder->getArticleLines()
+                            ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit))
+                            ->count(),
+                        "totalQuantity" => $logisticUnit->getChildArticles()->count(),
+                    ]
+                    : null,
+                "articles" => Stream::from($preparationOrder->getArticleLines())
+                    ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
+                    ->map(function(PreparationOrderArticleLine $line) {
+                        $article = $line->getArticle();
+                        return [
+                            "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                            "barCode" => $article->getBarCode() ?: '',
+                            "label" => $article->getLabel() ?: '',
+                            "quantity" => $line->getPickedQuantity(),
+                            "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                                'id' => $article->getId(),
+                            ]),
+                        ];
+                    })
+                    ->values(),
+            ])
+            ->values();
+
+        $references = Stream::from($preparationOrder->getReferenceLines())
+            ->map(function(PreparationOrderReferenceLine $line) {
+                $reference = $line->getReference();
+                return [
+                    "reference" => $reference->getReference(),
+                    "label" => $reference->getLibelle(),
+                    "barCode" => $reference->getBarCode() ?: '',
+                    "location" => $this->formatService->location($reference->getEmplacement()),
+                    "quantity" => $line->getPickedQuantity(),
+                    "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                        'refArticleId' => $reference->getId(),
+                    ]),
+                ];
+            })
+            ->toArray();
+
+        if (!isset($lines[0]) || $lines[0]['pack'] !== null) {
+            array_unshift($lines, [
+                'pack' => null,
+                'articles' => [],
+            ]);
+        }
+
+        $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("livraison/line-list.html.twig", [
+                "lines" => $lines,
+            ]),
+        ]);
     }
 
     /**
      * @Route("/api-article/{id}", name="livraison_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function apiArticle(Livraison $livraison): Response
-    {
+    public function apiArticle(Livraison $livraison): Response {
         $preparation = $livraison->getPreparation();
         $data = [];
         if ($preparation) {
@@ -140,15 +250,16 @@ class LivraisonController extends AbstractController
             /** @var PreparationOrderArticleLine $articleLine */
             foreach ($preparation->getArticleLines() as $articleLine) {
                 $article = $articleLine->getArticle();
-                if ($articleLine->getQuantityToPick() !== 0 && $articleLine->getPickedQuantity() !== 0) {
+                if ($articleLine->getQuantityToPick() !== 0 && $articleLine->getPickedQuantity() !== 0 && !$article->getCurrentLogisticUnit()) {
                     $rows[] = [
                         "reference" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "barCode" => $article->getBarCode() ?: '',
                         "label" => $article->getLabel() ?: '',
                         "location" => FormatHelper::location($article->getEmplacement()),
                         "quantity" => $articleLine->getPickedQuantity(),
                         "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                             'id' => $article->getId(),
-                        ])
+                        ]),
                     ];
                 }
             }
@@ -160,24 +271,26 @@ class LivraisonController extends AbstractController
                     $rows[] = [
                         "reference" => $reference->getReference(),
                         "label" => $reference->getLibelle(),
-                        "location" =>  FormatHelper::location($reference->getEmplacement()),
+                        "barCode" => $reference->getBarCode() ?: '',
+                        "location" => FormatHelper::location($reference->getEmplacement()),
                         "quantity" => $referenceLine->getPickedQuantity(),
                         "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                             'refArticleId' => $reference->getId(),
-                        ])
+                        ]),
                     ];
                 }
             }
 
             $data['data'] = $rows;
-        } else {
+        }
+        else {
             $data = false; //TODO gérer retour message erreur
         }
         return new JsonResponse($data);
     }
 
     /**
-     * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"})
+     * @Route("/voir/{id}", name="livraison_show", options={"expose"=true}, methods={"GET","POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
     public function show(Livraison $livraison, LivraisonService $livraisonService): Response
@@ -195,12 +308,11 @@ class LivraisonController extends AbstractController
      * @Route("/{livraison}", name="livraison_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function delete(Request $request,
-                           Livraison $livraison,
-                           LivraisonsManagerService $livraisonsManager,
+    public function delete(Request                    $request,
+                           Livraison                  $livraison,
+                           LivraisonsManagerService   $livraisonsManager,
                            PreparationsManagerService $preparationsManager,
-                           EntityManagerInterface $entityManager): Response
-    {
+                           EntityManagerInterface     $entityManager): Response {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $preparation = $livraison->getpreparation();
 
@@ -216,8 +328,8 @@ class LivraisonController extends AbstractController
             $articlesDestination = isset($demande) ? $demande->getDestination() : null;
         }
 
-        if (isset($livraisonStatus) &&
-            isset($articlesDestination)) {
+        if (isset($livraisonStatus)
+            && isset($articlesDestination)) {
             $livraisonsManager->resetStockMovementsOnDelete(
                 $livraison,
                 $articlesDestination,
@@ -237,24 +349,18 @@ class LivraisonController extends AbstractController
         return new JsonResponse ([
             'success' => true,
             'redirect' => $this->generateUrl('preparation_show', [
-                'id' => $preparation->getId()
+                'id' => $preparation->getId(),
             ]),
         ]);
     }
 
     /**
      * @Route("/csv", name="get_delivery_order_csv", options={"expose"=true}, methods={"GET"})
-     * @param Request $request
-     * @param CSVExportService $CSVExportService
-     * @param EntityManagerInterface $entityManager
-     * @param LivraisonService $livraisonService
-     * @return Response
      */
-    public function getDeliveryOrderCSV(Request $request,
-                                        CSVExportService $CSVExportService,
+    public function getDeliveryOrderCSV(Request                $request,
+                                        CSVExportService       $CSVExportService,
                                         EntityManagerInterface $entityManager,
-                                        LivraisonService $livraisonService): Response
-    {
+                                        LivraisonService       $livraisonService): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -280,18 +386,19 @@ class LivraisonController extends AbstractController
                 'emplacement',
                 'quantité à livrer',
                 'quantité en stock',
-                'code-barre'
+                'code-barre',
             ];
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($entityManager, $dateTimeMin, $dateTimeMax, $CSVExportService, $livraisonService) {
+                function($output) use ($entityManager, $dateTimeMin, $dateTimeMax, $CSVExportService, $livraisonService) {
                     $livraisonRepository = $entityManager->getRepository(Livraison::class);
                     $deliveryIterator = $livraisonRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
                     foreach ($deliveryIterator as $delivery) {
                         $livraisonService->putLivraisonLine($output, $CSVExportService, $delivery);
                     }
-                }, 'export_Ordres_Livraison.csv',
+                },
+                'export_Ordres_Livraison.csv',
                 $csvHeader
             );
         }
@@ -311,7 +418,6 @@ class LivraisonController extends AbstractController
                                     Livraison $deliveryOrder): JsonResponse {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
-        $maxNumberOfPacks = 10;
 
         $settingRepository = $manager->getRepository(Setting::class);
 
@@ -323,25 +429,11 @@ class LivraisonController extends AbstractController
             throw new FormException('Des unités logistiques sont nécessaires pour générer un bon de livraison');
         }
 
-        $preparationPacks = Stream::from($preparationArticleLines)
-            ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack())
-            ->values();
-
-        $packs = array_slice($preparationPacks, 0, $maxNumberOfPacks);
-        $packs = array_map(function(Pack $pack) {
-            return [
-                "code" => $pack->getCode(),
-                "quantity" => $pack->getQuantity(),
-                "comment" => $pack->getComment(),
-            ];
-        }, $packs);
-
         $userSavedData = $loggedUser->getSavedDeliveryOrderDeliveryNoteData();
         $dispatchSavedData = $deliveryOrder->getDeliveryNoteData();
         $defaultData = [
             'deliveryNumber' => $deliveryOrder->getNumero(),
             'username' => $loggedUser->getUsername(),
-            'packs' => $packs,
             'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
             'consignor2' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
             'userPhone' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
@@ -366,6 +458,7 @@ class LivraisonController extends AbstractController
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EMERGENCY),
+            'fromDelivery' => $request->query->getBoolean('fromDelivery'),
         ]));
 
         return $this->json([
@@ -384,9 +477,7 @@ class LivraisonController extends AbstractController
      */
     public function postDeliveryNoteDeliveryOrder(EntityManagerInterface $entityManager,
                                      Livraison $deliveryOrder,
-                                     PDFGeneratorService $pdf,
                                      Request $request,
-                                     SpecificService $specificService,
                                      LivraisonService $livraisonService): JsonResponse {
 
         /** @var Utilisateur $loggedUser */
@@ -395,7 +486,7 @@ class LivraisonController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $userDataToSave = [];
-        $dispatchDataToSave = [];
+        $deliveryDataToSave = [];
 
         // force dispatch number
         $data['deliveryNumber'] = $deliveryOrder->getNumero();
@@ -403,35 +494,38 @@ class LivraisonController extends AbstractController
         foreach(array_keys(Livraison::DELIVERY_NOTE_DATA) as $deliveryNoteKey) {
             if(isset(Livraison::DELIVERY_NOTE_DATA[$deliveryNoteKey])) {
                 $value = $data[$deliveryNoteKey] ?? null;
-                $dispatchDataToSave[$deliveryNoteKey] = $value;
+                $deliveryDataToSave[$deliveryNoteKey] = $value;
                 if(Livraison::DELIVERY_NOTE_DATA[$deliveryNoteKey]) {
                     $userDataToSave[$deliveryNoteKey] = $value;
                 }
             }
         }
 
+        $maxNumberOfPacks = 10;
+        $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
+        $packs = Stream::from($preparationArticleLines)
+            ->filterMap(fn(PreparationOrderArticleLine $line) => $line->getPack())
+            ->unique()
+            ->reindex()
+            ->slice(0, $maxNumberOfPacks)
+            ->map(fn(Pack $pack) => [
+                "code" => $pack->getCode(),
+                "quantity" => $pack->getQuantity(),
+                "comment" => $pack->getComment(),
+                "packArticles" => Stream::from($pack->getChildArticles())
+                    ->map(fn(Article $article) => [
+                        "barcode" => $article->getBarCode(),
+                        "reference" => $article->getReference(),
+                        "label" => $article->getLabel(),
+                        "quantity" => $article->getQuantite(),
+                    ])
+                    ->values(),
+            ])
+            ->values();
+        $deliveryDataToSave['packs'] = $packs;
+
         $loggedUser->setSavedDeliveryOrderDeliveryNoteData($userDataToSave);
-        $deliveryOrder->setDeliveryNoteData($dispatchDataToSave);
-
-        $entityManager->flush();
-
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
-
-        $nowDate = new DateTime('now');
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
-
-        $documentTitle = "BL - {$deliveryOrder->getNumero()} - {$client} - {$nowDate->format('dmYHis')}";
-
-        $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $deliveryOrder);
-
-        $deliveryNoteAttachment = new Attachment();
-        $deliveryNoteAttachment
-            ->setDeliveryOrder($deliveryOrder)
-            ->setFileName($fileName)
-            ->setOriginalName($documentTitle . '.pdf');
-
-        $entityManager->persist($deliveryNoteAttachment);
+        $deliveryOrder->setDeliveryNoteData($deliveryDataToSave);
 
         $entityManager->flush();
 
@@ -445,9 +539,7 @@ class LivraisonController extends AbstractController
                 'showDetails' => $detailsConfig,
                 'finished' => $deliveryOrder->isCompleted(),
             ]),
-            'attachmentId' => $deliveryNoteAttachment->getId()
         ]);
-
     }
 
     /**
@@ -457,9 +549,10 @@ class LivraisonController extends AbstractController
      * @param Attachment $attachment
      * @return PdfResponse
      */
-    public function printDeliveryNote(Livraison $deliveryOrder,
-                                      KernelInterface $kernel,
-                                      Attachment $attachment): Response {
+    public function printDeliveryNote(EntityManagerInterface $entityManager,
+                                      Livraison $deliveryOrder,
+                                      PDFGeneratorService $pdfService,
+                                      SpecificService $specificService): Response {
         if(!$deliveryOrder->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
@@ -467,10 +560,19 @@ class LivraisonController extends AbstractController
             ]);
         }
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
+        $fileName = uniqid() . '.pdf';
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
 
-        return $response;
+        $nowDate = new DateTime('now');
+        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+
+        $documentTitle = "BL - {$deliveryOrder->getNumero()} - {$client} - {$nowDate->format('dmYHis')}";
+
+        return new PdfResponse(
+            $pdfService->generatePDFDeliveryNote($documentTitle, $logo, $deliveryOrder),
+            $fileName
+        );
     }
 
     /**
@@ -531,8 +633,8 @@ class LivraisonController extends AbstractController
             'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
             'consignorUsername' => $consignorUsername,
             'consignorEmail' => $consignorEmail,
-            'receiverUsername' => $loggedUser->getUsername(),
-            'receiverEmail' => $loggedUser->getEmail()
+            'receiverUsername' => null,
+            'receiverEmail' => null
         ];
 
         $wayBillData = array_reduce(
@@ -683,5 +785,61 @@ class LivraisonController extends AbstractController
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
         return $response;
+    }
+
+    /**
+     * @Route("/depose-articles-non-demandes", name="livraison_treat_articles_not_requested", options={"expose"=true}, methods="POST")
+     */
+    public function treatArticlesNotRequested(Request $request, EntityManagerInterface $manager, TrackingMovementService $trackingMovementService): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $articleRepository = $manager->getRepository(Article::class);
+        $livraisonRepository = $manager->getRepository(Livraison::class);
+        $packRepository = $manager->getRepository(Pack::class);
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $user = $this->getUser();
+
+        $deliveryOrder = $livraisonRepository->find($data['deliveryId']);
+
+        $articles = $data['articles'];
+        foreach ($articles as ['barCode' => $barcode, 'lu' => $luId, 'location' => $locationId]) {
+            $article = $articleRepository->findOneBy(['barCode' => $barcode]);
+            if ($luId && $locationId) {
+                $lu = $packRepository->find($luId);
+                $location = $locationRepository->find($locationId);
+                $trackingMovementService->persistLogisticUnitMovements(
+                    $manager,
+                    $lu,
+                    $location,
+                    [$article],
+                    $user,
+                    [],
+                );
+
+            } else if ($locationId) {
+                $location = $locationRepository->find($locationId);
+                $trackingMovementService->persistLogisticUnitMovements(
+                    $manager,
+                    null,
+                    $location,
+                    [$article],
+                    $user,
+                    [],
+                );
+
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Erreur lors de la traitement de l\'article ' . $article->getBarCode()
+                ]);
+            }
+        }
+
+        $manager->flush();
+
+        return $this->json([
+            'success' => true,
+        ]);
     }
 }

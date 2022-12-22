@@ -2,8 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\Article;
-use App\Entity\Pack;
 use App\Entity\Project;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;

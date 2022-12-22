@@ -2491,6 +2491,21 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Page",
                             "tooltip" => "PDF bon de livraison"
                         ],
+                        [
+                            "fr" => "Article contenu",
+                            "en" => "Contained article",
+                            "tooltip" => "PDF bon de livraison",
+                        ],
+                        [
+                            "fr" => "Référence",
+                            "en" => "Reference",
+                            "tooltip" => "PDF bon de livraison",
+                        ],
+                        [
+                            "fr" => "Désignation",
+                            "en" => "Designation",
+                            "tooltip" => "PDF bon de livraison",
+                        ],
                     ],
                 ],
                 "Bon de surconsommation" => [

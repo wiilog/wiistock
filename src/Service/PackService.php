@@ -66,6 +66,12 @@ class PackService {
     #[Required]
     public ReceptionService $receptionService;
 
+    #[Required]
+    public PDFGeneratorService $PDFGeneratorService;
+
+    #[Required]
+    public ReceptionLineService $receptionLineService;
+
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
@@ -259,7 +265,7 @@ class PackService {
                 if (isset($options['reception'])) {
                     /** @var Reception $reception */
                     $reception = $options['reception'];
-                    $this->receptionService->persistReceptionPackLine($entityManager, $reception, $pack);
+                    $this->receptionLineService->persistReceptionLine($entityManager, $reception, $pack);
                 }
 
                 $arrival->addPack($pack);
@@ -406,7 +412,7 @@ class PackService {
 
             $this->mailerService->sendMail(
                 "Follow GT // Colis non récupéré$titleSuffix",
-                $this->templating->render('mails/contents/mail-pack-delivery-done.html.twig', [
+                $this->templating->render('mailPackDeliveryDone.html.twig', [
                     'title' => 'Votre colis est toujours présent dans votre magasin',
                     'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
                     'colis' => $this->formatService->pack($pack),
@@ -458,5 +464,108 @@ class PackService {
             $article->setTrackingPack($trackingPack);
         }
         return $trackingPack;
+    }
+
+    public function getBarcodeColisConfig(Pack $colis,
+                                           ?Utilisateur $destinataire = null,
+                                           ?string $packIndex = '',
+                                           ?bool $typeArrivalParamIsDefined = false,
+                                           ?bool $usernameParamIsDefined = false,
+                                           ?bool $dropzoneParamIsDefined = false,
+                                           ?bool $packCountParamIsDefined = false,
+                                           ?bool $commandAndProjectNumberIsDefined = false,
+                                           ?array $firstCustomIconConfig = null,
+                                           ?array $secondCustomIconConfig = null,
+                                           ?bool $businessUnitParam = false,
+                                           ?bool $projectParam = false,
+    ): array {
+
+        $arrival = $colis->getArrivage();
+
+        $businessUnit = $businessUnitParam
+            ? $arrival->getBusinessUnit()
+            : '';
+
+        $project = $projectParam
+            ? $colis->getProject()?->getCode()
+            : '';
+
+        $arrivalType = $typeArrivalParamIsDefined
+            ? $this->formatService->type($arrival->getType())
+            : '';
+
+        $recipientUsername = ($usernameParamIsDefined && $destinataire)
+            ? $destinataire->getUsername()
+            : '';
+
+        $dropZoneLabel = ($dropzoneParamIsDefined && $destinataire)
+            ? ($destinataire->getDropzone()
+                ? $destinataire->getDropzone()->getLabel()
+                : '')
+            : '';
+
+        $arrivalCommand = [];
+        $arrivalLine = "";
+        $i = 0;
+        foreach($arrival?->getNumeroCommandeList() ?? [] as $command) {
+            $arrivalLine .= $command;
+
+            if(++$i % 4 == 0) {
+                $arrivalCommand[] = $arrivalLine;
+                $arrivalLine = "";
+            } else {
+                $arrivalLine .= " ";
+            }
+        }
+
+        if(!empty($arrivalLine)) {
+            $arrivalCommand[] = $arrivalLine;
+        }
+
+        $arrivalProjectNumber = $arrival
+            ? ($arrival->getProjectNumber() ?? '')
+            : '';
+
+        $packLabel = ($packCountParamIsDefined ? $packIndex : '');
+
+        $usernameSeparator = ($recipientUsername && $dropZoneLabel) ? ' / ' : '';
+
+        $labels = [$arrivalType];
+
+        $labels[] = $recipientUsername . $usernameSeparator . $dropZoneLabel;
+
+        if ($commandAndProjectNumberIsDefined) {
+            if ($arrivalCommand && $arrivalProjectNumber) {
+                if(count($arrivalCommand) > 1) {
+                    $labels = array_merge($labels, $arrivalCommand);
+                    $labels[] = $arrivalProjectNumber;
+                } else if(count($arrivalCommand) == 1) {
+                    $labels[] = $arrivalCommand[0] . ' / ' . $arrivalProjectNumber;
+                }
+            } else if ($arrivalCommand) {
+                $labels = array_merge($labels, $arrivalCommand);
+            } else if ($arrivalProjectNumber) {
+                $labels[] = $arrivalProjectNumber;
+            }
+        }
+
+        if($businessUnitParam) {
+            $labels[] = $businessUnit;
+        }
+
+        if($projectParam) {
+            $labels[] = $project;
+        }
+
+        if ($packLabel) {
+            $labels[] = $packLabel;
+        }
+
+        return [
+            'code' => $colis->getCode(),
+            'labels' => $labels,
+            'firstCustomIcon' => $arrival?->getCustoms() ? $firstCustomIconConfig : null,
+            'secondCustomIcon' => $arrival?->getIsUrgent() ? $secondCustomIconConfig : null
+        ];
     }
 }

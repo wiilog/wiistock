@@ -17,7 +17,6 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\MouvementStockService;
-use App\Service\ProjectHistoryRecordService;
 use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -203,6 +202,20 @@ class MouvementStockController extends AbstractController
                         $trackingMovementService->persistSubEntities($entityManager, $associatedPickTracaMvt);
                         $createdPack = $associatedPickTracaMvt->getPack();
 
+                        if($chosenArticleToMove->getCurrentLogisticUnit()){
+                            $associatedPickLUTracaMvt = $trackingMovementService->createTrackingMovement(
+                                $chosenArticleToMove->getBarCode(),
+                                $emplacementFrom,
+                                $loggedUser,
+                                $now,
+                                false,
+                                true,
+                                TrackingMovement::TYPE_PICK_LU,
+                                ['quantity' => $quantity]
+                            );
+                            $trackingMovementService->persistSubEntities($entityManager, $associatedPickLUTracaMvt);
+                        }
+
                         $associatedDropTracaMvt = $trackingMovementService->createTrackingMovement(
                             $createdPack,
                             $emplacementTo,
@@ -215,6 +228,7 @@ class MouvementStockController extends AbstractController
                         );
                         $trackingMovementService->persistSubEntities($entityManager, $associatedDropTracaMvt);
                         $entityManager->persist($associatedPickTracaMvt);
+                        $entityManager->persist($associatedPickLUTracaMvt);
                         $entityManager->persist($associatedDropTracaMvt);
                     }
                 }

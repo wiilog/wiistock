@@ -65,6 +65,7 @@ class CartService {
             }
         } else {
             $cart->getReferences()->clear();
+            $cart->getArticles()->clear();
         }
     }
 
@@ -162,7 +163,8 @@ class CartService {
     public function manageDeliveryRequest(array $data, Utilisateur $user, EntityManagerInterface $manager): array {
         $cartContent = json_decode($data['cart'] ?? '[]', true);
 
-        $isLogisticUnitCart = !$user->getCart()?->getArticles()->isEmpty();
+        $userCart = $user->getCart();
+        $isLogisticUnitCart = !$userCart->getArticles()->isEmpty();
 
         if ($data['addOrCreate'] === "add") {
             if ($isLogisticUnitCart || empty($cartContent)) {
@@ -176,7 +178,8 @@ class CartService {
 
             $link = $this->router->generate('demande_show', ['id' => $deliveryRequest->getId()]);
             $msg = "Les références ont bien été ajoutées dans la demande existante";
-        } else if ($data['addOrCreate'] === "create") {
+        }
+        else if ($data['addOrCreate'] === "create") {
             $statutRepository = $manager->getRepository(Statut::class);
             $destination = $manager->find(Emplacement::class, $data['location']);
             $type = $manager->find(Type::class, $data['deliveryType']);
@@ -201,13 +204,18 @@ class CartService {
                 ->setExpectedAt($expectedAt)
                 ->setCreatedAt(new DateTime('now'))
                 ->setDestination($destination)
-                ->setCommentaire(StringHelper::cleanedComment($data['comment']))
+                ->setCommentaire(StringHelper::cleanedComment($data['comment'] ?? null))
                 ->setStatut($draft);
 
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
             $manager->persist($deliveryRequest);
 
             if ($isLogisticUnitCart) {
+                /** @var Article $firstArticle */
+                $firstArticle = $userCart->getArticles()->first();
+                $project = $firstArticle->getTrackingPack()?->getProject();
+                $deliveryRequest->setProject($project);
+
                 $this->addCartArticlesToRequest($manager, $user, $deliveryRequest);
             }
             else {
@@ -277,7 +285,7 @@ class CartService {
                 ->setObjet($data['object'])
                 ->setStockOrDestruct($data['destination'] === 'destruction' ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE)
                 ->setPointCollecte($collectLocation)
-                ->setCommentaire(StringHelper::cleanedComment($data['comment']))
+                ->setCommentaire(StringHelper::cleanedComment($data['comment'] ?? null))
                 ->setDemandeur($user);
 
             $this->freeFieldService->manageFreeFields($collectRequest, $data, $manager);

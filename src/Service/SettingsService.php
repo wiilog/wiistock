@@ -21,9 +21,11 @@ use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
 use App\Entity\MailerServer;
+use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
@@ -568,6 +570,41 @@ class SettingsService {
             }
         }
 
+        if(isset($tables["tagTemplateTable"])) {
+            $tagTemplateRepository = $this->manager->getRepository(TagTemplate::class);
+            $typeRepository = $this->manager->getRepository(Type::class);
+            $natureRepository = $this->manager->getRepository(Nature::class);
+
+            foreach (array_filter($tables["tagTemplateTable"]) as $tagTemplateData) {
+                $tagTemplateExist = $tagTemplateRepository->findOneBy(['prefix' => $tagTemplateData['prefix']]);
+                if ($tagTemplateExist && $tagTemplateExist->getId() !== intval($tagTemplateData['tagTemplateId'] ?? null)){
+                    throw new RuntimeException("Un modèle d'étiquette existe déjà avec ce préfixe.");
+                }
+
+                $tagTemplate = isset($tagTemplateData['tagTemplateId'])
+                    ? $tagTemplateRepository->find($tagTemplateData['tagTemplateId'])
+                    : new TagTemplate();
+
+                $tagTemplate->setPrefix($tagTemplateData['prefix']);
+                $tagTemplate->setBarcodeOrQr($tagTemplateData['barcodeType']);
+                $tagTemplate->setHeight($tagTemplateData['height']);
+                $tagTemplate->setWidth($tagTemplateData['width']);
+                $tagTemplate->setModule($tagTemplateData['module']);
+                Stream::explode(',', $tagTemplateData['natureOrType'])
+                    ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate) {
+                        if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
+                            $nature = $natureRepository->find($id);
+                            $tagTemplate->addNature($nature);
+                        } else {
+                            $type = $typeRepository->find($id);
+                            $tagTemplate->addType($type);
+                        }
+                    } );
+
+                $this->manager->persist($tagTemplate);
+            }
+        }
+
         if (isset($tables["missionRulesTable"])) {
             $missionRuleRepository = $this->manager->getRepository(InventoryMissionRule::class);
             $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
@@ -839,7 +876,7 @@ class SettingsService {
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
-                        ->setComment(StringHelper::cleanedComment($statusData['comment']) ?? null)
+                        ->setComment(StringHelper::cleanedComment($statusData['comment'] ?? null))
                         ->setDefaultForCategory($statusData['defaultStatut'] ?? false)
                         ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)

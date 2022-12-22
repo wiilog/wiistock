@@ -144,7 +144,7 @@ class CustomerController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'msg' => 'Le projet a bien été modifiée'
+                'msg' => 'Le client a bien été modifiée'
             ]);
         }
     }
@@ -158,7 +158,7 @@ class CustomerController extends AbstractController
 
         return $this->json([
             "success" => true,
-            "msg" => "Le projet a bien été supprimé"
+            "msg" => "Le client a bien été supprimé"
         ]);
     }
 

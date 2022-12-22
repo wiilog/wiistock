@@ -112,8 +112,8 @@
             hidden></button>
     <button class="btn" id="chooseConditionnement" data-target='#modalChoose' data-toggle='modal' hidden></button>
     <button class="btn" id="finishReception" data-target='#modalFinishReception' data-toggle='modal' hidden></button>
-    <input type="number" id="ligneSelected" value="-1" hidden>
-
+    <input type="hidden" id="ligneSelected" value="-1"/>
+    <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
 
     {% include "reception/show/modalDeleteReception.html.twig" %}
     {% include "reception/show/modalEditReception.html.twig" %}

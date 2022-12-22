@@ -153,6 +153,11 @@ function initPageModals() {
     InitModal($modalDeleteReceptionReferenceArticle, $submitDeleteReceptionReferenceArticle, urlReceptionReferenceArticle, {
         success: () => {
             loadReceptionLines();
+        },
+        error: (data) => {
+            if (data && data.msg) {
+                Flash.add(ERROR, data.msg);
+            }
         }
     });
 
@@ -702,6 +707,13 @@ function onReferenceToReceiveChange() {
             $selectPack
                 .prop('disabled', true)
                 .append(new Option(pack.code || "&nbsp;", pack.id || `-1`, true, true));
+
+            // user can't make a transfer if the article is in a pack
+            if (Object.keys(pack).length) {
+                $('.create-request-container').find('input[value=transfer]').prop('disabled', true);
+            } else {
+                $('.create-request-container').find('input[value=transfer]').prop('disabled', false);
+            }
         }
         else {
             $selectPack.prop('disabled', false)
@@ -923,17 +935,42 @@ function loadPackingArticlesTemplate($button) {
 }
 
 function submitPackingForm({reception, data, $modalNewLigneReception}) {
-    return AJAX
-        .route(POST, `reception_new_with_packing`, { reception })
-        .json(data)
-        .then(({success, articleIds}) => {
-            if (success) {
-                window.location.href = Routing.generate('reception_bar_codes_print', {
-                    reception,
-                    articleIds
-                }, true);
-                loadReceptionLines();
-                $modalNewLigneReception.modal('hide');
-            }
-        });
+    return new Promise((resolve) => {
+        AJAX
+            .route(POST, `reception_new_with_packing`, { reception })
+            .json(data)
+            .then(({success, articleIds}) => {
+                if (success) {
+                    let templates;
+                    try {
+                        templates = JSON.parse($('#tagTemplates').val());
+                    } catch (error) {
+                        templates = [];
+                    }
+                    const params = {
+                        reception,
+                        articleIds
+                    };
+                    if (templates.length > 0) {
+                        Promise.all(
+                            [AJAX.route('GET', `reception_bar_codes_print`, {forceTagEmpty: true, ...params}).file({})]
+                                .concat(templates.map(function (template) {
+                                    params.template = template;
+                                    return AJAX
+                                        .route('GET', `reception_bar_codes_print`, params)
+                                        .file({})
+                                }))
+                        ).then(() => resolve());
+                    } else {
+                        window.location.href = Routing.generate('reception_bar_codes_print', {
+                            reception,
+                            articleIds
+                        }, true);
+                        resolve();
+                    }
+                    loadReceptionLines();
+                    $modalNewLigneReception.modal('hide');
+                }
+            });
+    });
 }

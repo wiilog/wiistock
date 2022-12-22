@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
@@ -65,6 +66,12 @@ class TrackingMovement {
 
     #[ORM\ManyToOne(targetEntity: Dispatch::class, inversedBy: 'trackingMovements')]
     private ?Dispatch $dispatch = null;
+
+    #[ORM\ManyToOne(targetEntity: Preparation::class, inversedBy: 'trackingMovements')]
+    private ?Preparation $preparation;
+
+    #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'trackingMovements')]
+    private ?Livraison $delivery;
 
     #[ORM\OneToOne(mappedBy: 'lastDrop', targetEntity: Pack::class)]
     private ?Pack $linkedPackLastDrop = null;
@@ -236,6 +243,26 @@ class TrackingMovement {
      */
     public function setDispatch($dispatch): self {
         $this->dispatch = $dispatch;
+        return $this;
+    }
+
+    public function getPreparation(): ?Preparation {
+        return $this->preparation;
+    }
+
+    public function setPreparation(?Preparation $preparation): self {
+        $this->preparation = $preparation;
+
+        return $this;
+    }
+
+    public function getDelivery(): ?Livraison {
+        return $this->delivery;
+    }
+
+    public function setDelivery(?Livraison $delivery): self {
+        $this->delivery = $delivery;
+
         return $this;
     }
 

@@ -236,7 +236,9 @@ class ArrivageService {
             $packsNatureNb = [];
             $natures = $entityManager->getRepository(Nature::class)->findAll();
             foreach ($natures as $nature) {
-                $packsNatureNb[$nature->getLabel()] = 0;
+                if (isset($nature->getAllowedForms()['arrival']) && $nature->getAllowedForms()['arrival'] === 'all') {
+                    $packsNatureNb[$nature->getLabel()] = 0;
+                }
             }
             foreach ($arrival->getPacks() as $pack) {
                 $packsNatureNb[$pack->getNature()->getLabel()] += 1;
@@ -645,7 +647,7 @@ class ArrivageService {
                 $this->mailerService->sendMail(
                     ['Traçabilité', 'Général', 'FOLLOW GT // Dépose effectuée', false],
                     [
-                        "name" => "mails/contents/mail-pack-delivery-done.html.twig",
+                        "name" => "mails/contents/mailPackDeliveryDone.html.twig",
                         "context" => [
                             'title' => ['Traçabilité', 'Général', 'Votre unité logistique a été livrée', false],
                             'orderNumber' => implode(', ', $arrivage->getNumeroCommandeList()),
@@ -753,7 +755,7 @@ class ArrivageService {
                 ["code" => FieldsParam::FIELD_CODE_ARRIVAL_CREATOR, "label" => $this->translation->translate('Traçabilité', 'Général', 'Utilisateur', false)],
             ],
             Stream::from($arrivalFields)
-                ->filter(fn(FieldsParam $field) => !in_array($field->getFieldCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE]))
+                ->filter(fn(FieldsParam $field) => !in_array($field->getFieldCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT]))
                 ->map(fn(FieldsParam $field) => [
                     "code" => $field->getFieldCode(),
                     "label" => match($field->getFieldCode()) {

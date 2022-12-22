@@ -3,6 +3,11 @@
 {% block title %}Ordre | Préparation | Détails{% endblock %}
 {% block titleLink path('preparation_index') %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
 {% block page_content %}
     <div class="m-4">
         <div class="row">
@@ -22,10 +27,13 @@
         </div>
         <div class="row mt-3">
             <div class="col-12">
-                <div class="wii-box">
+                <div class="wii-box mt-0">
                     <div class="header wii-title">Liste des articles</div>
                     <div class="content">
-                        <table id="tableArticle_id" class="table w-100"></table>
+                        <div class="col-12 logistic-units-container my-3 wii-multiple-loading"
+                             data-loader-color="primary"
+                             data-loader-size="normal">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -34,16 +42,16 @@
 
     <input hidden id="prepa-id" value="{{ preparation.id }}">
     <input hidden name="showTargetLocationPicking" value="{{ showTargetLocationPicking }}">
+    <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
 
     {% include 'preparation/modalDeleteArticle.html.twig' %}
     {% include 'preparation/modalDeletePreparation.html.twig' %}
     {% include 'preparation/edit.html.twig' with {
         preparation: preparation
     } %}
+    {% include 'pack/modalEditPack.html.twig' %}
     {% include 'emplacement/modal-select-location.html.twig' with {type: 'validate-preparation'} %}
     {% include 'preparation/modalEditLigneArticle.html.twig' %}
-    {% include 'reference_article/modalShowRefArticle.html.twig' %}
-    {% include 'article/modalShowArticle.html.twig' %}
     {% include 'preparation/modalNewSensorPairing.html.twig' %}
 
     <div id="splittingContent"></div>

@@ -60,29 +60,31 @@ function extendsDateSort(name, format = '') {
 function initActionOnRow(row) {
     $(row).addClass('pointer');
     if ($(row).find('.action-on-click').get(0)) {
-        $(row).on('mouseup', 'td:not(.noVis)', function (event) {
-            const highlightedText = window.getSelection
-                ? window.getSelection().toString()
-                : undefined;
+        $(row)
+            .off('mouseup.wiitable')
+            .on('mouseup.wiitable', 'td:not(.noVis)', function (event) {
+                const highlightedText = window.getSelection
+                    ? window.getSelection().toString()
+                    : undefined;
 
-            if (!highlightedText) {
-                const {which} = event || {};
-                let $anchor = $(row).find('.action-on-click');
-                const href = $anchor.attr('href');
-                if (href) {
-                    if($anchor.attr(`target`) === `_blank` || which === 2) {
-                        window.open(href, '_blank');
-                        event.stopPropagation();
-                    } else if(which === 1) {
-                        window.location.href = href;
-                    }
-                } else {
-                    if (which === 1) {
-                        $anchor.trigger('click');
+                if (!highlightedText) {
+                    const {which} = event || {};
+                    let $anchor = $(row).find('.action-on-click');
+                    const href = $anchor.attr('href');
+                    if (href) {
+                        if($anchor.attr(`target`) === `_blank` || which === 2) {
+                            event.stopPropagation();
+                            window.open(href, '_blank');
+                        } else if(which === 1) {
+                            window.location.href = href;
+                        }
+                    } else {
+                        if (which === 1) {
+                            $anchor.trigger('click');
+                        }
                     }
                 }
-            }
-        });
+            });
     }
 }
 

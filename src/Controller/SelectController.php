@@ -16,7 +16,6 @@ use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Project;
-use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
@@ -686,6 +685,23 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $customers
+        ]);
+    }
+
+    /**
+     * @Route("/select/nature-or-type", name="ajax_select_nature_or_type", options={"expose": true})
+     */
+    public function natureOrType(Request $request, EntityManagerInterface $entityManager): Response {
+        $module = $request->query->get("module");
+        $term = $request->query->get("term");
+
+        $naturesOrTypes = $module === CategoryType::ARRIVAGE ?
+            $entityManager->getRepository(Nature::class)->getForSelect($term) :
+            $entityManager->getRepository(Type::class)->getForSelect(CategoryType::ARTICLE, $term);
+
+
+        return $this->json([
+            "results" => $naturesOrTypes,
         ]);
     }
 }

@@ -26,6 +26,7 @@ use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
 use App\Entity\TranslationSource;
@@ -927,6 +928,7 @@ class SettingsController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
 
+        $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
         return [
             self::CATEGORY_GLOBAL => [
                 self::MENU_CLIENT => fn() => [
@@ -935,6 +937,24 @@ class SettingsController extends AbstractController {
                 self::MENU_MAIL_SERVER => fn() => [
                     "mailer_server" => $mailerServerRepository->findOneBy([]) ?? new MailerServer(),
                 ],
+                self::MENU_LABELS => fn() => [
+                    "typeOptions" => Stream::from($typeRepository->findBy(['category' => $categoryTypeArrivage]))
+                        ->map(fn(Type $type) => [
+                            "id" => $type->getId(),
+                            "label" => $type->getLabel(),
+                        ])
+                        ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
+                        ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
+                        ->join(""),
+                    "natureOptions" => Stream::from($natureRepository->findAll())
+                        ->map(fn(Nature $nature) => [
+                            "id" => $nature->getId(),
+                            "label" => $nature->getCode(),
+                        ])
+                        ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
+                        ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
+                        ->join(""),
+                ]
             ],
             self::CATEGORY_STOCK => [
                 self::MENU_ARTICLES => [
@@ -2630,6 +2650,140 @@ class SettingsController extends AbstractController {
         return $this->json([
             "success" => true,
             "msg" => "Le groupe de visibilité a été supprimé",
+        ]);
+    }
+
+    /**
+     * @Route("/tag-template-api", name="settings_tag_template_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_BILL}, mode=HasPermission::IN_JSON)
+     */
+    public function tagTemplateApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $class = "form-control data";
+
+        $data = [];
+        $tagTemplateRepository = $manager->getRepository(TagTemplate::class);
+        $natureRepository = $manager->getRepository(Nature::class);
+        $typeRepository = $manager->getRepository(Type::class);
+
+        $categoryTypeArrivage = $manager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARTICLE]);
+
+        $natures = $natureRepository->findAll();
+        $types = $typeRepository->findBy(['category' => $categoryTypeArrivage]);
+
+        foreach ($tagTemplateRepository->findAll() as $tagTemplate) {
+            if ($edit) {
+                $isArrival = $tagTemplate->getModule() === CategoryType::ARRIVAGE ? 'selected' : '';
+                $isArticle = $tagTemplate->getModule() === 'article' ? 'selected' : '';
+
+                $natureOrTypeOptions = $tagTemplate->getModule() === CategoryType::ARRIVAGE ?
+                        Stream::from($natures)
+                            ->map(fn(Nature $n) => [
+                                "id" => $n->getId(),
+                                "label" => $n->getLabel(),
+                                "selected" => $tagTemplate->getNatures()->contains($n),
+                            ])
+                            ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"]) :
+                        Stream::from($types)
+                            ->map(fn(Type $t) => [
+                                "id" => $t->getId(),
+                                "label" => $t->getLabel(),
+                                "selected" => $tagTemplate->getTypes()->contains($t),
+                            ])
+                            ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"]);
+                $selectContent = Stream::from($natureOrTypeOptions)
+                    ->map(function(array $n) {
+                        $selected = $n['selected'] ? "selected" : '';
+                        return "<option value='{$n["id"]}' {$selected}>{$n["label"]}</option>";
+                    })
+                    ->join("");
+
+                $barcodeTypeInputs = Stream::from([['label' => 'Code 128', 'value' => '1', 'checked' => $tagTemplate->isBarcode()], ['label' =>  'QR Code', 'value' => '0', 'checked' => $tagTemplate->isQRcode()]])
+                    ->map(function(array $inputLine) {
+                        $id = 'barcodeType-'.floor(rand(0, 10000) * 1000000);
+                        $checked = $inputLine['checked'] ? 'checked' : '';
+                        return "
+                                <input type='radio' id=".$id." name='barcodeType' class='form-control data d-none' value=".$inputLine['value']." ".$checked." content=".$inputLine['label'].">
+                                <label for=".$id.">".$inputLine['label']."</label>
+                            ";
+                    })
+                    ->join('');
+
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row w-50' data-id='{$tagTemplate->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                        <input type='hidden' name='tagTemplateId' class='data' value='{$tagTemplate->getId()}'/>
+                    ",
+                    "prefix" => "<input type='text' name='prefix' class='{$class} needed' value='{$tagTemplate->getPrefix()}' data-global-error='Préfixe'/>",
+                    "barcodeType" => "<form><div class='wii-switch needed' data-title='Type détiquette' data-name='barcodeType'>$barcodeTypeInputs</div></form>",
+                    "height" => "<input type='number' name='height' class='{$class} needed' value='{$tagTemplate->getHeight()}' data-global-error='Hauteur'/>",
+                    "width" => "<input type='number' name='width' class='{$class} needed' value='{$tagTemplate->getWidth()}' data-global-error='Largeur'/>",
+                    "module" => "<select name='module' class='{$class} needed' data-global-error='Brique'>
+                        <option value='arrivage' {$isArrival}>Arrivage</option>
+                        <option value='article' {$isArticle}>Article</option>
+                    </select>",
+                    "natureOrType" => "<select name='natureOrType' multiple data-s2='natureOrTypeSelect' data-include-params-parent='tr' data-include-params='select[name=module]' class='{$class} needed' data-global-error='Nature(s) / Type(s)'>
+                        {$selectContent}
+                    </select>",
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row' data-id='{$tagTemplate->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                        ",
+                    "prefix" => $tagTemplate->getPrefix(),
+                    "barcodeType" => $tagTemplate->isBarcode() ? 'Code 128' : 'QR Code',
+                    "height" => $tagTemplate->getHeight(),
+                    "width" => $tagTemplate->getWidth(),
+                    "module" => $tagTemplate->getModule(),
+                    "natureOrType" =>
+                        !$tagTemplate->getNatures()->isEmpty() ?
+                            Stream::from($tagTemplate->getNatures())
+                                ->map(fn(Nature $nature) => $nature->getLabel())
+                                ->join(", ") :
+                                ($tagTemplate->getTypes() ?
+                                    Stream::from($tagTemplate->getTypes())
+                                        ->map(fn(Type $type) => $type->getLabel())
+                                        ->join(", ") :
+                                ''),
+                ];
+            }
+        }
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "prefix" => "",
+            "barcodeType" => "",
+            "height" => "",
+            "width" => "",
+            "module" => "",
+            "natureOrType" => ""
+        ];
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
+     * @Route("/tag-template/supprimer/{entity}", name="settings_delete_tag_template", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
+     */
+    public function deleteTagTemplate(EntityManagerInterface $entityManager,
+                                   TagTemplate $entity): Response {
+
+        $entityManager->remove($entity);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "La ligne a bien été supprimée",
         ]);
     }
 

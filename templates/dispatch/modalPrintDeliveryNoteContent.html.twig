@@ -6,6 +6,9 @@
             <label class="w-100 col-12">
                 {{ form.select('buyer', trans('Demande', 'Acheminements', 'Bon de livraison', 'Client acheteur'), true, {
                     type: 'customers',
+                    labelOptions: {
+                        class: 'm-0',
+                    },
                     items: [{label: buyer, value: buyer, selected: true}]
                 }) }}
             </label>
@@ -63,8 +66,6 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Adresse de livraison') }}</label>
-            </div>
-            <div class="col-12">
                 <textarea title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Adresse de livraison') }}"
                           name="deliveryAddress"
                           style="resize: none"
@@ -110,8 +111,6 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de commande de vente') }}</label>
-            </div>
-            <div class="col-12">
                 <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de commande de vente') }}"
                        name="salesOrderNumber"
                        maxlength="50"
@@ -140,8 +139,6 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Bon de commande client') }}</label>
-            </div>
-            <div class="col-12">
                 <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Bon de commande client') }}"
                        name="customerPONumber"
                        maxlength="50"
@@ -184,8 +181,6 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de projet') }}</label>
-            </div>
-            <div class="col-12">
                 <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de projet') }}"
                        name="projectNumber"
                        maxlength="50"
@@ -307,8 +302,6 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Facturé à') }}</label>
-            </div>
-            <div class="col-12">
                 <textarea title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Facturé à') }}"
                           name="invoiceTo"
                           style="resize: none"
@@ -322,8 +315,6 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Vendu à') }}</label>
-            </div>
-            <div class="col-12">
                 <textarea title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Vendu à') }}"
                           name="soldTo"
                           style="resize: none"
@@ -340,8 +331,6 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Nom dernier utilisateur') }}</label>
-            </div>
-            <div class="col-12">
                 <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Nom dernier utilisateur') }}"
                        name="endUserNo"
                        value="{{ endUserNo }}"
@@ -371,8 +360,6 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de livraison') }}</label>
-            </div>
-            <div class="col-12">
                 <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de livraison') }}"
                        name="deliverNo"
                        maxlength="50"
@@ -415,56 +402,59 @@
     </div>
 </div>
 <hr class="mb-4"/>
-<div class="row">
-    <div class="col-12">
-        <div class="wii-section-title">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Ligne du BL') }}</div>
-    </div>
-    <div class="col-12">
-        <div class="row">
-            <div class="col-3">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro') }}</label>
-            </div>
-            <div class="col-3">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'Quantité à acheminer') }}</label>
-            </div>
-            <div class="col-6">
-                <label class="wii-field-name">{{ trans("Général", null, "Modale", 'Commentaire') }}</label>
-            </div>
+
+{% if fromDelivery is defined and not fromDelivery %}
+    <div class="row">
+        <div class="col-12">
+            <div class="wii-section-title">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Ligne du BL') }}</div>
         </div>
-        {% for dispatchPack in packs %}
-            {% set isHidden = loop.index0 > 6 %}
-            <div class="form-group row {{ isHidden ? 'd-none' }}"
-                 data-multiple-key="packs"
-                 data-multiple-object-index="{{ loop.index0 }}">
+        <div class="col-12">
+            <div class="row">
                 <div class="col-3">
-                    <input class="form-control data needed"
-                           name="code"
-                           title="Numéro"
-                           value="{{ dispatchPack.code }}"
-                           disabled/>
+                    <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro') }}</label>
                 </div>
                 <div class="col-3">
-                    <label class="sr-only">{{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Quantité à acheminer', false) }}</label>
-                    <input class="form-control data needed"
-                           name="quantity"
-                           title="{{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Quantité à acheminer', false) }}"
-                           type="number"
-                           step="1"
-                           min="1"
-                           value="{{ dispatchPack.quantity }}"/>
+                    <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'Quantité à acheminer') }}</label>
                 </div>
                 <div class="col-6">
-                    <label class="sr-only">{{ trans("Général", null, "Modale", 'Commentaire') }}</label>
-                    <textarea class="form-control data {{ not isHidden ? 'needed' }}"
-                              name="comment"
-                              title="{{ trans("Général", null, "Modale", 'Commentaire') }}"
-                              rows="1"
-                              oninput="limitTextareaLength($(this), 7, 100)">{{ (dispatchPack.comment|striptags) ? (dispatchPack.comment|striptags) : ' ' }}</textarea>
+                    <label class="wii-field-name">{{ trans("Général", null, "Modale", 'Commentaire') }}</label>
                 </div>
             </div>
-        {% endfor %}
+            {% for dispatchPack in packs %}
+                {% set isHidden = loop.index0 > 6 %}
+                <div class="form-group row {{ isHidden ? 'd-none' }}"
+                     data-multiple-key="packs"
+                     data-multiple-object-index="{{ loop.index0 }}">
+                    <div class="col-3">
+                        <input class="form-control data needed"
+                               name="code"
+                               title="Numéro"
+                               value="{{ dispatchPack.code }}"
+                               disabled/>
+                    </div>
+                    <div class="col-3">
+                        <label class="sr-only">{{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Quantité à acheminer', false) }}</label>
+                        <input class="form-control data needed"
+                               name="quantity"
+                               title="{{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Quantité à acheminer', false) }}"
+                               type="number"
+                               step="1"
+                               min="1"
+                               value="{{ dispatchPack.quantity }}"/>
+                    </div>
+                    <div class="col-6">
+                        <label class="sr-only">{{ trans("Général", null, "Modale", 'Commentaire') }}</label>
+                        <textarea class="form-control data {{ not isHidden ? 'needed' }}"
+                                  name="comment"
+                                  title="{{ trans("Général", null, "Modale", 'Commentaire') }}"
+                                  rows="1"
+                                  oninput="limitTextareaLength($(this), 7, 100)">{{ (dispatchPack.comment|striptags) ? (dispatchPack.comment|striptags) : ' ' }}</textarea>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     </div>
-</div>
+{% endif %}
 <hr class="mb-4"/>
 <div class="row">
     <div class="col-12 col-md-6">
@@ -484,8 +474,6 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Date') }}</label>
-            </div>
-            <div class="col-12">
                 <input class="form-control data needed"
                        name="date"
                        value="{{ date }}"

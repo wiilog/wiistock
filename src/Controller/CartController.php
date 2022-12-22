@@ -219,9 +219,9 @@ class CartController extends AbstractController
     /**
      * @Route("/validate-cart", name="cart_validate", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      */
-    public function validateCart(Request $request,
+    public function validateCart(Request                $request,
                                  EntityManagerInterface $entityManager,
-                                 CartService $cartService) {
+                                 CartService            $cartService) {
         $data = json_decode($request->getContent(), true);
 
         /** @var Utilisateur $loggedUser */
@@ -366,9 +366,9 @@ class CartController extends AbstractController
     }
 
 
-    #[Route("/articles-logistics-unit-api", name: "articles_logistics_unit_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/articles-logistic-units-api", name: "articles_logistic_units_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     //#[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
-    public function getLogisticsUnitAndArticlesApi(): JsonResponse {
+    public function getLogisticUnitsAndArticlesApi(): JsonResponse {
         $articlesInCart = $this->getUser()->getCart()->getArticles();
         $articles = Stream::from($articlesInCart)
             ->keymap(fn(Article $article) => [
@@ -386,7 +386,7 @@ class CartController extends AbstractController
                 ]
             ], true)
             ->toArray();
-        $logisticsUnits = Stream::from($articlesInCart)
+        $logisticUnits = Stream::from($articlesInCart)
             ->keymap(fn(Article $article) => [
                 $article->getCurrentLogisticUnit()?->getId() ?: 0,
                 $article->getCurrentLogisticUnit()
@@ -408,7 +408,7 @@ class CartController extends AbstractController
             "html" => $this->renderView("cart/line-list.html.twig", [
                 "lines" => Stream::from($articles)
                     ->map(fn(array $articles, int $logisticUnitId) => [
-                        'pack' => $logisticsUnits[$logisticUnitId] ?? null,
+                        'pack' => $logisticUnits[$logisticUnitId] ?? null,
                         'articles' => $articles
                     ]),
             ]),

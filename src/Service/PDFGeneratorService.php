@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Dispatch;
 use App\Entity\Livraison;
 use App\Entity\Setting;
+use App\Entity\TagTemplate;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
@@ -56,12 +57,12 @@ class PDFGeneratorService {
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false): string {
+    public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false, ?TagTemplate $tagTemplate = null): string {
         $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
 
-        $height = $barcodeConfig['height'];
-        $width = $barcodeConfig['width'];
-        $isCode128 = $barcodeConfig['isCode128'];
+        $height = $tagTemplate ? $tagTemplate->getHeight() : $barcodeConfig['height'];
+        $width = $tagTemplate ? $tagTemplate->getWidth() : $barcodeConfig['width'];
+        $isCode128 = $tagTemplate ? $tagTemplate->isBarcode() : $barcodeConfig['isCode128'];
 
         $barcodeConfigsToTwig = array_map(function($config) use ($isCode128, $width) {
             $code = $config['code'];
@@ -96,7 +97,7 @@ class PDFGeneratorService {
             : null);
 
         return $this->PDFGenerator->getOutputFromHtml(
-            $this->templating->render('prints/barcode-template.html.twig', [
+            $this->templating->render('prints/barcodeTemplate.html.twig', [
                 'logo' => $logo,
                 'title' => $title,
                 'height' => $height,
@@ -122,12 +123,13 @@ class PDFGeneratorService {
         $fileName = uniqid() . '.pdf';
 
         $this->PDFGenerator->generateFromHtml(
-            $this->templating->render('prints/waybill-template.html.twig', [
+            $this->templating->render('waybillTemplate.html.twig', [
                 'title' => $title,
                 'entity' => $entity,
                 'logo' => $logo,
                 'packs' => $packs,
-                'number' => $entity instanceof Dispatch ? $entity->getNumber() : ($entity instanceof Livraison ? $entity->getNumero() : '')
+                'number' => $entity instanceof Dispatch ? $entity->getNumber() : ($entity instanceof Livraison ? $entity->getNumero() : ''),
+                'fromDelivery' => $entity instanceof Livraison
             ]),
             ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),
             [
@@ -138,14 +140,13 @@ class PDFGeneratorService {
 
         return $fileName;
     }
-
-    public function generatePDFDeliveryNote(string $title,
+    /*public function generatePDFDeliveryNote(string $title,
                                             ?string $logo,
                                             Dispatch|Livraison $entity): string {
         $fileName = uniqid() . '.pdf';
 
         $this->PDFGenerator->generateFromHtml(
-            $this->templating->render('prints/delivery-note-template.html.twig', [
+            $this->templating->render('prints/deliveryNoteTemplate.html.twig', [
                 'title' => $title,
                 'entity' => $entity,
                 'logo' => $logo
@@ -158,21 +159,50 @@ class PDFGeneratorService {
         );
 
         return $fileName;
+    }*/
+
+    public function generatePDFDeliveryNote(string $title,
+                                            ?string $logo,
+                                            Dispatch|Livraison $entity): string {
+
+
+        $content = $this->templating->render('prints/deliveryNoteTemplate.html.twig', [
+            'title' => $title,
+            'entity' => $entity,
+            'logo' => $logo
+        ]);
+
+        $header = $this->templating->render("prints/deliveryNoteTemplateHeader.html.twig", [
+            "logo" => $logo,
+            'entity' => $entity,
+        ]);
+
+        $footer = $this->templating->render("prints/deliveryNoteTemplateFooter.html.twig", [
+            'entity' => $entity,
+        ]);
+
+        return $this->PDFGenerator->getOutputFromHtml($content, [
+            "page-size" => "A4",
+            "enable-local-file-access" => true,
+            "encoding" => "UTF-8",
+            "header-html" => $header,
+            "footer-html" => $footer
+        ]);
     }
 
     public function generatePDFOverconsumption(Dispatch $dispatch, ?string $appLogo, ?string $overconsumptionLogo, array $additionalFields = []): string {
-        $content = $this->templating->render("prints/overconsumption-template.html.twig", [
+        $content = $this->templating->render("overconsumptionTemplate.html.twig", [
             "dispatch" => $dispatch,
             "additionalFields" => $additionalFields
         ]);
 
-        $header = $this->templating->render("prints/overconsumption-template-header.html.twig", [
+        $header = $this->templating->render("overconsumptionTemplateHeader.html.twig", [
             "app_logo" => $appLogo ?? "",
             "overconsumption_logo" => $overconsumptionLogo ?? "",
             "commandNumber" => $dispatch->getCommandNumber() ?? ""
         ]);
 
-        $footer = $this->templating->render("prints/overconsumption-template-footer.html.twig");
+        $footer = $this->templating->render("overconsumptionTemplateFooter.html.twig");
 
         return $this->PDFGenerator->getOutputFromHtml($content, [
             "page-size" => "A4",
@@ -188,7 +218,7 @@ class PDFGeneratorService {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
 
-        $content = $this->templating->render("prints/dispatch-note-template.html.twig", [
+        $content = $this->templating->render("dispatchNoteTemplate.html.twig", [
             "app_logo" => $appLogo ?? "",
             "dispatch" => $dispatch,
         ]);
@@ -206,7 +236,7 @@ class PDFGeneratorService {
      * @param string $name
      * @return string
      */
-    public function getBarcodeFileName(array $barcodeConfigs, string $name): string {
+    public function getBarcodeFileName(array $barcodeConfigs, string $name, string $prefix = PDFGeneratorService::PREFIX_BARCODE_FILENAME): string {
         $barcodeCounter = count($barcodeConfigs);
         // remove / and \ in filename
         $smartBarcodeLabel = $barcodeCounter === 1
@@ -214,7 +244,7 @@ class PDFGeneratorService {
             : '';
 
         return (
-            PDFGeneratorService::PREFIX_BARCODE_FILENAME . '_' .
+            $prefix . '_' .
             $name .
             (($barcodeCounter === 1 && !empty($smartBarcodeLabel)) ? ('_' . $smartBarcodeLabel) : '') .
             '.pdf'
@@ -228,7 +258,7 @@ class PDFGeneratorService {
         $originator = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_ORIGINATOR);
         $sender = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_SENDER_DETAILS);
 
-        $content = $this->templating->render("prints/transport_template.html.twig", [
+        $content = $this->templating->render("transportTemplate.html.twig", [
             "app_logo" => $appLogo ?? "",
             "society" => $society,
             "requestNumber" => TransportRequest::NUMBER_PREFIX . $transportRequest->getNumber(),
@@ -260,7 +290,7 @@ class PDFGeneratorService {
             $request = $line->getOrder()?->getRequest();
             if ($request instanceof TransportDeliveryRequest) {
                 $requestNumber = TransportRequest::NUMBER_PREFIX . $request?->getNumber();
-                $content .= $this->templating->render("prints/transport_template.html.twig", [
+                $content .= $this->templating->render("transportTemplate.html.twig", [
                         "app_logo" => $appLogo ?? "",
                         "society" => $society,
                         "requestNumber" => $requestNumber,

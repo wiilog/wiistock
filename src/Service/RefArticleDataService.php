@@ -8,7 +8,6 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -626,7 +625,7 @@ class RefArticleDataService {
                         ->setTargetLocationPicking($targetLocationPicking);
                     $entityManager->persist($line);
                 } else {
-                    $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande, true);
+                    $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                     $line->setQuantityToPick($line->getQuantityToPick() + max($data["quantity-to-pick"], 0));
                 }
             } else {

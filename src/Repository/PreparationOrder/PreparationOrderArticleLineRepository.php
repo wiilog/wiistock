@@ -3,22 +3,24 @@
 namespace App\Repository\PreparationOrder;
 
 use App\Entity\Pack;
+use App\Entity\PreparationOrder\Preparation;
 use Doctrine\ORM\EntityRepository;
 
 class PreparationOrderArticleLineRepository extends EntityRepository {
 
-    public function getPreparationOrderArticleLine(Pack $pack, array $statuses = []){
-        return $this->createQueryBuilder('preparation_order_article_line')
-            ->leftJoin('preparation_order_article_line.pack', 'pack')
-            ->leftJoin('preparation_order_article_line.preparation', 'preparation')
+    public function isOngoingAndUsingPack(Pack $pack): bool {
+        return $this->createQueryBuilder('line')
+            ->select("COUNT(line)")
+            ->leftJoin('line.pack', 'pack')
+            ->leftJoin('line.preparation', 'preparation')
             ->leftJoin('preparation.statut', 'status')
             ->andWhere('pack.id = :packId')
             ->andWhere('status.code IN (:statuses)')
             ->setParameters([
                 'packId' => $pack->getId(),
-                'statuses' => $statuses
+                'statuses' => [Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION]
             ])
             ->getQuery()
-            ->getResult();
+            ->getSingleScalarResult() > 0;
     }
 }

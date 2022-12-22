@@ -204,6 +204,15 @@ class TypeController extends AbstractController {
     public function delete(Type $type,
                            EntityManagerInterface $entityManager): Response
     {
+        $translationSourceRepository = $entityManager->getRepository(TranslationSource::class);
+        $typeTranslation = $translationSourceRepository->findBy(['type' => $type]);
+
+        if ($typeTranslation) {
+            foreach ($typeTranslation as $translation) {
+                $entityManager->remove($translation);
+            }
+        }
+
         $typeLabel = $type->getLabel();
 
         $entityManager->remove($type);

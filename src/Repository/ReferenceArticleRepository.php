@@ -12,7 +12,6 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
-use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;

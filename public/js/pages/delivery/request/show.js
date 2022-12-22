@@ -1,4 +1,5 @@
-let tableArticle;
+let tables = [];
+const requestId = $('#demande-id').val();
 
 $(function () {
     $('.select2').select2();
@@ -8,30 +9,73 @@ $(function () {
         minQuantity: Number($('input[name=managePreparationWithPlanning]').val()) ? 0 : 1,
     });
 
-    tableArticle = initPageDatatable();
-    initPageModals(tableArticle);
+    loadLogisticUnitList(requestId);
+    initPageModals();
 
     const $submitNewArticle = $('#submitNewArticle');
 
-    $submitNewArticle.on('click', function() {
-
+    $submitNewArticle.on('click', function () {
         const $modal = $submitNewArticle.closest('.modal');
         const $articleSelect = $modal.find('#article');
         const $articleOptions = $articleSelect.children('option');
 
         if ($articleOptions.length === 1) {
-            showBSAlert( 'Il n\'y a aucun article disponible pour cette référence.', 'danger')
+            showBSAlert('Il n\'y a aucun article disponible pour cette référence.', 'danger')
         } else {
             return true;
         }
-
     });
 
-    $(`#modalNewArticle`).on(`shown.bs.modal`, function() {
+    $(`#modalNewArticle`).on(`shown.bs.modal`, function () {
         clearModal('#modalNewArticle');
         $(this).find('#reference').select2("open");
     });
 });
+
+function loadLogisticUnitList(requestId) {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    wrapLoadingOnActionButton($logisticUnitsContainer, () => (
+        AJAX.route('GET', 'delivery_request_logistic_units_api', {id: requestId})
+            .json()
+            .then(({html}) => {
+                $logisticUnitsContainer.html(html);
+                $logisticUnitsContainer.find('.articles-container table')
+                    .each(function () {
+                        const $table = $(this);
+                        const table = initDataTable($table, {
+                            serverSide: false,
+                            ordering: true,
+                            paging: false,
+                            searching: false,
+                            processing: true,
+                            order: [['reference', "desc"]],
+                            columns: [
+                                {data: 'Actions', title: '', className: 'noVis', orderable: false},
+                                {data: 'reference', title: 'Référence'},
+                                {data: 'barcode', title: 'Code barre'},
+                                {data: 'label', title: 'Libellé'},
+                                {data: 'location', title: 'Emplacement'},
+                                {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
+                                {data: 'quantityToPick', title: 'Quantité à prélever'},
+                                {data: 'error', title: 'Erreur', visible: false},
+                            ],
+                            rowConfig: {
+                                needsRowClickAction: true,
+                                needsColor: true,
+                                color: 'danger',
+                                dataToCheck: 'error'
+                            },
+                            domConfig: {
+                                removeInfo: true,
+                            },
+                        });
+
+                        tables.push(table);
+                    });
+            })
+        )
+    );
+}
 
 function getCompareStock(submit) {
     let path = Routing.generate('compare_stock', true);
@@ -49,7 +93,7 @@ function getCompareStock(submit) {
             if (response.success) {
                 $('.zone-entete').html(response.entete);
                 $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
-                tableArticle.ajax.reload();
+                loadLogisticUnitList(requestId);
             } else {
                 showBSAlert(response.msg, 'danger');
             }
@@ -148,59 +192,32 @@ function ajaxEditArticle(select) {
     });
 }
 
-function redirectToArticlesList() {
-    window.location.href = Routing.generate('reference_article_index');
-}
-
-function initPageModals(tableArticle) {
+function initPageModals() {
     let $modalNewArticle = $("#modalNewArticle");
     let $submitNewArticle = $("#submitNewArticle");
     let pathNewArticle = Routing.generate('demande_add_article', true);
-    InitModal($modalNewArticle, $submitNewArticle, pathNewArticle, {tables: [tableArticle]});
+    InitModal($modalNewArticle, $submitNewArticle, pathNewArticle, {
+        success: () => loadLogisticUnitList(requestId)
+    });
 
     let $modalDeleteArticle = $("#modalDeleteArticle");
     let $submitDeleteArticle = $("#submitDeleteArticle");
     let pathDeleteArticle = Routing.generate('demande_remove_article', true);
-    InitModal($modalDeleteArticle, $submitDeleteArticle, pathDeleteArticle, {tables: [tableArticle]});
+    InitModal($modalDeleteArticle, $submitDeleteArticle, pathDeleteArticle, {
+        success: () => loadLogisticUnitList(requestId)
+    });
 
     let $modalEditArticle = $("#modalEditArticle");
     let $submitEditArticle = $("#submitEditArticle");
     let pathEditArticle = Routing.generate('demande_article_edit', true);
-    InitModal($modalEditArticle, $submitEditArticle, pathEditArticle, {tables: [tableArticle]});
+    InitModal($modalEditArticle, $submitEditArticle, pathEditArticle, {
+        success: () => loadLogisticUnitList(requestId)
+    });
 
     let urlDeleteDemande = Routing.generate('demande_delete', true);
     let $modalDeleteDemande = $("#modalDeleteDemande");
     let $submitDeleteDemande = $("#submitDeleteDemande");
     InitModal($modalDeleteDemande, $submitDeleteDemande, urlDeleteDemande);
-}
-
-function initPageDatatable() {
-    let pathArticle = Routing.generate('demande_article_api', {id: $('#demande-id').val()}, true);
-    let tableArticleConfig = {
-        processing: true,
-        order: [['reference', "desc"]],
-        ajax: {
-            "url": pathArticle,
-            "type": "POST"
-        },
-        columns: [
-            {data: 'Actions', title: '', className: 'noVis', orderable: false},
-            {data: 'reference', title: 'Référence'},
-            {data: 'barcode', title: 'Code barre'},
-            {data: 'label', title: 'Libellé'},
-            {data: 'location', title: 'Emplacement'},
-            {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
-            {data: 'quantityToPick', title: 'Quantité à prélever'},
-            {data: 'error', title: 'Erreur', visible: false},
-        ],
-        rowConfig: {
-            needsRowClickAction: true,
-            needsColor: true,
-            color: 'danger',
-            dataToCheck: 'error'
-        }
-    };
-    return initDataTable('table-lignes', tableArticleConfig);
 }
 
 function initDeliveryRequestModal() {
@@ -225,10 +242,10 @@ function openAddLUModal() {
 
     $modal.modal(`show`);
 
-    $logisticUnit.on(`change`, function() {
+    $logisticUnit.on(`change`, function () {
         const logisticUnit = $logisticUnit.val();
 
-        if(logisticUnit) {
+        if (logisticUnit) {
             AJAX.route(`GET`, `delivery_logistic_unit_details`, {logisticUnit})
                 .json()
                 .then(({html}) => {
@@ -238,21 +255,33 @@ function openAddLUModal() {
         }
     });
 
-    $submit.off(`click`).on(`click`, function() {
-        const delivery = $modal.data(`delivery`);
-        const logisticUnit = $logisticUnit.val();
+    $submit
+        .off(`click`)
+        .on(`click`, function () {
+            const delivery = $modal.data(`delivery`);
+            const logisticUnit = $logisticUnit.val();
 
-        AJAX.route(`POST`, `delivery_add_logistic_unit`, {delivery, logisticUnit})
+            wrapLoadingOnActionButton($(this), () => (
+                AJAX.route(`POST`, `delivery_add_logistic_unit`, {delivery, logisticUnit})
+                    .json()
+                    .then(result => {
+                        if (result.success) {
+                            $modal.modal(`hide`);
+                            loadLogisticUnitList(requestId);
+
+                            if (result.header) {
+                                $(`.zone-entete`).html(result.header);
+                            }
+                        }
+                    })
+            ));
+        });
+}
+
+function removeLogisticUnitLine($button, logisticUnitId) {
+    wrapLoadingOnActionButton($button, () => (
+        AJAX.route('POST', 'remove_delivery_request_logistic_unit_line', {logisticUnitId, deliveryRequestId: requestId})
             .json()
-            .then(result => {
-                if(result.success) {
-                    $modal.modal(`hide`);
-                    tableArticle.ajax.reload();
-
-                    if(result.header) {
-                        $(`.zone-entete`).html(result.header);
-                    }
-                }
-            });
-    });
+            .then(() => loadLogisticUnitList(requestId))
+    ));
 }
