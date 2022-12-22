@@ -16,7 +16,6 @@ use WiiCommon\Helper\Stream;
  */
 class ReceptionReferenceArticleRepository extends EntityRepository
 {
-
     public function countNotConformByReception($reception)
     {
         $entityManager = $this->getEntityManager();

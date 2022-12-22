@@ -494,6 +494,13 @@ class ReceptionController extends AbstractController {
                 'receptionReferenceArticle' => $ligneArticle,
             ]);
 
+            if ($associatedMovements) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Cette Référence est référencée dans un ou plusieurs mouvements de traçabilité',
+                ]);
+            }
+
             $reference = $ligneArticle->getReferenceArticle();
             if($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
@@ -505,10 +512,6 @@ class ReceptionController extends AbstractController {
                     ]);
                 }
                 $reference->setQuantiteStock($newRefQuantity);
-            }
-
-            foreach($associatedMovements as $associatedMvt) {
-                $entityManager->remove($associatedMvt);
             }
 
             // if receptionReferenceArticle is not attached to a pack
@@ -526,13 +529,6 @@ class ReceptionController extends AbstractController {
             $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
 
             $reception->setStatut($receptionService->getNewStatus($reception));
-
-            // TODO check fonctionement
-
-            $nbArticleNotConform = $receptionReferenceArticleRepository->countNotConformByReception($reception);
-            $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
-            $reception->setStatut($statut);
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
