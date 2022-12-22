@@ -28,7 +28,7 @@
         <tr>
             <td>{{ pack.code }}</td>
             <td class="d-flex align-items-center justify-content-center">
-                <a href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivage.id, colis: pack.id}) }}">
+                <a href="{{ path('print_arrivage_single_pack_bar_codes', {arrivage: arrivage.id, pack: pack.id}) }}">
                     <span class="wii-icon wii-icon-printer-black"></span>
                 </a>
             </td>

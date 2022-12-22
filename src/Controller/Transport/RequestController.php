@@ -515,7 +515,7 @@ class RequestController extends AbstractController {
         $success = $transportRequest->canBeDeleted();
 
         if ($success) {
-            // TODO supprimer la demande et toutes les données liées, il faut attendre que tout soit effectif (liaisons colis, ordres, ....)
+            // TODO supprimer la demande et toutes les données liées, il faut attendre que tout soit effectif (liaisons UL, ordres, ....)
             $msg = 'Demande supprimée.';
 
             /**

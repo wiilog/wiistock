@@ -41,7 +41,7 @@ use Throwable;
 use WiiCommon\Helper\Stream;
 
 /**
- * @Route("/colis")
+ * @Route("/unite-logistique")
  */
 class PackController extends AbstractController
 {
@@ -390,7 +390,7 @@ class PackController extends AbstractController
         } else {
             $tag = null;
         }
-        $config = $packService->getBarcodeColisConfig($pack);
+        $config = $packService->getBarcodePackConfig($pack);
         $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'colis', $tag?->getPrefix() ?? 'ETQ');
         $render = $PDFGeneratorService->generatePDFBarCodes($fileName, [$config], false, $tag);
         return new PdfResponse(

@@ -1,4 +1,4 @@
-<div class="modal show" id="modalAddColis" role="dialog" aria-hidden="true">
+<div class="modal show" id="modalAddPacks" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
@@ -54,7 +54,7 @@
                 {% else %}
                     {% include 'utils/warningSelectEmpty.html.twig' with {
                         array: natures,
-                        warningLabel: 'Attention ! Aucune nature de colis n\'a été créée',
+                        warningLabel: 'Attention ! Aucune nature d\'unité logistique n\'a été créée',
                         redirectPath: path('nature_param_index'),
                         redirectLabel: 'Aller vers la création des natures',
                         block: true,
@@ -70,7 +70,7 @@
             {% include 'utils/modal/footer.html.twig' with {
                 elements: natures is not empty ? [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                    {id: 'submitAddColis', classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer')}
+                    {id: 'submitAddPacks', classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer')}
                 ] : [],
             } %}
         </div>

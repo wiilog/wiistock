@@ -244,7 +244,7 @@ class SelectController extends AbstractController {
     }
 
     /**
-     * @Route("/select/colis", name="ajax_select_packs", options={"expose": true})
+     * @Route("/select/unites-logistiques", name="ajax_select_packs", options={"expose": true})
      */
     public function packs(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"));
@@ -328,7 +328,7 @@ class SelectController extends AbstractController {
     }
 
     /**
-     * @Route("/select/colis-sans-association", name="ajax_select_packs_without_pairing", options={"expose"=true})
+     * @Route("/select/unites-logistiques-sans-association", name="ajax_select_packs_without_pairing", options={"expose"=true})
      */
     public function packsWithoutPairing(Request $request, EntityManagerInterface $entityManager): Response {
         $results = $entityManager->getRepository(Pack::class)->findWithNoPairing($request->query->get("term"));

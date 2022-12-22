@@ -1026,7 +1026,7 @@ class ReceptionController extends AbstractController {
             $dispute->setEmergencyTriggered($post->get('emergency') === 'true');
         }
         if(!empty($buyers = $post->get('acheteursLitige'))) {
-            // on détache les colis existants...
+            // on détache les UL existants...
             $existingBuyers = $dispute->getBuyers();
             foreach($existingBuyers as $buyer) {
                 $dispute->removeBuyer($buyer);
@@ -1184,13 +1184,13 @@ class ReceptionController extends AbstractController {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $dispute = $disputeRepository->find($data['disputeId']);
-            $colisCode = [];
+            $packsCode = [];
             $acheteursCode = [];
 
-            foreach($dispute->getArticles() as $colis) {
-                $colisCode[] = [
-                    'id' => $colis->getId(),
-                    'text' => $colis->getBarCode(),
+            foreach($dispute->getArticles() as $pack) {
+                $packsCode[] = [
+                    'id' => $pack->getId(),
+                    'text' => $pack->getBarCode(),
                 ];
             }
             foreach($dispute->getBuyers() as $buyer) {
@@ -1204,7 +1204,7 @@ class ReceptionController extends AbstractController {
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
             ]);
 
-            return new JsonResponse(['html' => $html, 'colis' => $colisCode, 'acheteurs' => $acheteursCode]);
+            return new JsonResponse(['html' => $html, 'packs' => $packsCode, 'acheteurs' => $acheteursCode]);
         }
         throw new BadRequestHttpException();
     }
@@ -2058,7 +2058,7 @@ class ReceptionController extends AbstractController {
             $articleStatusAvailable = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             $articleStatusDispute = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_LITIGE);
 
-            // on détache les colis existants...
+            // on détache les UL existants...
             $existingArticles = $dispute->getArticles();
             foreach($existingArticles as $article) {
                 $article->removeDispute($dispute);

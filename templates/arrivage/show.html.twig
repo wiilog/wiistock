@@ -12,7 +12,7 @@
                 <div class="zone-entete">
                     {% include "arrivage/arrivage-show-header.html.twig" with {
                         arrivage: arrivage,
-                        printColis: printColis,
+                        printPacks: printPacks,
                         printArrivage: printArrivage,
                         canBeDeleted: canBeDeleted,
                         showDetails: showDetails
@@ -35,9 +35,9 @@
                                     {% if hasRightEdit and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_PACK')) %}
                                         <button type="button"
                                                 data-toggle="modal"
-                                                data-target="#modalAddColis"
+                                                data-target="#modalAddPacks"
                                                 class="btn btn-primary d-flex align-items-center {{ hasRightEdit ? 'split-button' }}"
-                                                id="btnModalAddColis">
+                                                id="btnModalAddPacks">
                                             <span class="wii-icon wii-icon-plus mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Ajouter des unités logistiques') }}</span>
                                         </button>
                                     {% endif %}
@@ -109,7 +109,7 @@
         </div>
 
     </div>
-    {% include 'arrivage/modalAddColis.html.twig' %}
+    {% include 'arrivage/modalAddPacks.html.twig' %}
     {% include "arrivage/modalEditArrivage.html.twig" %}
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include 'arrivage/modalNewLitige.html.twig' %}

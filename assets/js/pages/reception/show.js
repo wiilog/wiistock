@@ -268,7 +268,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {}, recept
         Select2Old.articleReception(modal.find('.select2-autocomplete-articles'));
         fillDemandeurField(modal);
         let values = [];
-        data.colis.forEach(val => {
+        data.packs.forEach(val => {
             values.push({
                 id: val.id,
                 text: val.text

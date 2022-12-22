@@ -3,9 +3,9 @@ let tableHistoLitige;
 let tableColis;
 
 $(function () {
-    let addColis = $('#addColis').val();
-    if (addColis) {
-        $('#btnModalAddColis').click();
+    let addPacks = $('#addPacks').val();
+    if (addPacks) {
+        $('#btnModalAddPacks').click();
     }
 
     let printColis = Number(Boolean(Number($('#printColis').val())));
@@ -40,7 +40,7 @@ $(function () {
     });
 
     $.post(Routing.generate('arrival_list_packs_api_columns'), function(columns){
-        let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
+        let pathColis = Routing.generate('packs_api', {arrivage: $('#arrivageId').val()}, true);
         let tableColisConfig = {
             ajax: {
                 "url": pathColis,
@@ -62,10 +62,10 @@ $(function () {
         };
         tableColis = initDataTable('tableColis', tableColisConfig);
 
-        let modalAddColis = $('#modalAddColis');
-        let submitAddColis = $('#submitAddColis');
-        let urlAddColis = Routing.generate('arrivage_add_colis', true);
-        InitModal(modalAddColis, submitAddColis, urlAddColis, {
+        let modalAddPacks = $('#modalAddPacks');
+        let submitAddPacks = $('#submitAddPacks');
+        let urlAddPacks = Routing.generate('arrivage_add_pack', true);
+        InitModal(modalAddPacks, submitAddPacks, urlAddPacks, {
             tables: [tableColis],
             waitDatatable: true,
             success: (data) => {
@@ -75,7 +75,7 @@ $(function () {
                         {
                             packs: data.packs.map(({id}) => id),
                             arrivage: data.arrivageId,
-                            printColis: 1
+                            printPack: 1
                         },
                         true);
                 }

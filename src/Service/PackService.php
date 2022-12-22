@@ -351,7 +351,7 @@ class PackService {
 
     public function persistMultiPacks(EntityManagerInterface $entityManager,
                                       Arrivage               $arrivage,
-                                      array                  $colisByNatures,
+                                      array                  $packByNatures,
                                                              $user,
                                       bool                   $persistTrackingMovements = true,
                                       Project                $project = null,
@@ -363,14 +363,14 @@ class PackService {
             ? $this->arrivageDataService->getLocationForTracking($entityManager, $arrivage)
             : null;
 
-        $totalPacks = Stream::from($colisByNatures)->sum();
+        $totalPacks = Stream::from($packByNatures)->sum();
         if($totalPacks > 500) {
             throw new FormException("Vous ne pouvez pas ajouter plus de 500 colis");
         }
 
         $now = new DateTime('now');
         $createdPacks = [];
-        foreach ($colisByNatures as $natureId => $number) {
+        foreach ($packByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);
             for ($i = 0; $i < $number; $i++) {
                 $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception]);
@@ -466,28 +466,28 @@ class PackService {
         return $trackingPack;
     }
 
-    public function getBarcodeColisConfig(Pack $colis,
-                                           ?Utilisateur $destinataire = null,
-                                           ?string $packIndex = '',
-                                           ?bool $typeArrivalParamIsDefined = false,
-                                           ?bool $usernameParamIsDefined = false,
-                                           ?bool $dropzoneParamIsDefined = false,
-                                           ?bool $packCountParamIsDefined = false,
-                                           ?bool $commandAndProjectNumberIsDefined = false,
-                                           ?array $firstCustomIconConfig = null,
-                                           ?array $secondCustomIconConfig = null,
-                                           ?bool $businessUnitParam = false,
-                                           ?bool $projectParam = false,
+    public function getBarcodePackConfig(Pack         $pack,
+                                         ?Utilisateur $destinataire = null,
+                                         ?string      $packIndex = '',
+                                         ?bool        $typeArrivalParamIsDefined = false,
+                                         ?bool        $usernameParamIsDefined = false,
+                                         ?bool        $dropzoneParamIsDefined = false,
+                                         ?bool        $packCountParamIsDefined = false,
+                                         ?bool        $commandAndProjectNumberIsDefined = false,
+                                         ?array       $firstCustomIconConfig = null,
+                                         ?array       $secondCustomIconConfig = null,
+                                         ?bool        $businessUnitParam = false,
+                                         ?bool $projectParam = false,
     ): array {
 
-        $arrival = $colis->getArrivage();
+        $arrival = $pack->getArrivage();
 
         $businessUnit = $businessUnitParam
             ? $arrival->getBusinessUnit()
             : '';
 
         $project = $projectParam
-            ? $colis->getProject()?->getCode()
+            ? $pack->getProject()?->getCode()
             : '';
 
         $arrivalType = $typeArrivalParamIsDefined
@@ -562,7 +562,7 @@ class PackService {
         }
 
         return [
-            'code' => $colis->getCode(),
+            'code' => $pack->getCode(),
             'labels' => $labels,
             'firstCustomIcon' => $arrival?->getCustoms() ? $firstCustomIconConfig : null,
             'secondCustomIcon' => $arrival?->getIsUrgent() ? $secondCustomIconConfig : null

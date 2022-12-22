@@ -122,7 +122,7 @@ function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseC
     });
 }
 
-function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId}, arrivalsDatatable, success = null) {
+function treatArrivalCreation({redirectAfterAlert, printPacks, printArrivage, arrivageId}, arrivalsDatatable, success = null) {
     if (!redirectAfterAlert) {
         if (arrivalsDatatable) {
             arrivalsDatatable.ajax.reload();
@@ -133,14 +133,14 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
         }
     }
     else {
-        window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);
+        window.location.href = createArrivageShowUrl(redirectAfterAlert, printPacks, printArrivage);
     }
 }
 
-function createArrivageShowUrl(arrivageShowUrl, printColis, printArrivage) {
-    const printColisNumber = (printColis === true) ? '1' : '0';
+function createArrivageShowUrl(arrivageShowUrl, printPacks, printArrivage) {
+    const printPacksNumber = (printPacks === true) ? '1' : '0';
     const printArrivageNumber = (printArrivage === true) ? '1' : '0';
-    return `${arrivageShowUrl}?printColis=${printColisNumber}&printArrivage=${printArrivageNumber}`;
+    return `${arrivageShowUrl}?printColis=${printPacksNumber}&printArrivage=${printArrivageNumber}`;
 }
 
 function printArrival({arrivageId, printColis, printArrivage}) {

@@ -359,7 +359,7 @@ class MobileController extends AbstractApiController
                             }
                         }
 
-                        // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
+                        // envoi de mail si c'est une dépose + l'UL existe + l'emplacement est un point de livraison
                         $arrivageDataService->sendMailForDeliveredPack($location, $associatedPack, $nomadUser, $type->getNom(), $date);
 
                         $entityManager->flush();
@@ -506,7 +506,7 @@ class MobileController extends AbstractApiController
                         $dateArray = explode('_', $mvt['date']);
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
 
-                        //trouve les colis sans association à un article car les colis
+                        //trouve les ULs sans association à un article car les ULs
                         //associés a des articles SONT des articles donc on les traite normalement
                         $pack = $packRepository->findWithoutArticle($mvt['ref_article']);
 

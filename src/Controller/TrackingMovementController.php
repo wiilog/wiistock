@@ -77,7 +77,7 @@ class TrackingMovementController extends AbstractController
             $loggedUser = $this->getUser();
             $filtreSupRepository->clearFiltersByUserAndPage($loggedUser, FiltreSup::PAGE_MVT_TRACA);
             $entityManager->flush();
-            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_COLIS, $packFilter, $loggedUser);
+            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_PACK, $packFilter, $loggedUser);
             $entityManager->persist($filter);
             $entityManager->flush();
         }
@@ -234,13 +234,13 @@ class TrackingMovementController extends AbstractController
                 }
             }
             else {
-                $colisArray = explode(',', $packCode);
+                $packArray = explode(',', $packCode);
                 $pickingLocation = $emplacementRepository->find($post->get('emplacement-prise'));
                 $dropLocation = $emplacementRepository->find($post->get('emplacement-depose'));
-                foreach ($colisArray as $colis) {
+                foreach ($packArray as $pack) {
                     $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                         $entityManager,
-                        $codeToPack[$colis] ?? $colis,
+                        $codeToPack[$pack] ?? $pack,
                         $pickingLocation,
                         $operator,
                         $date,
@@ -269,7 +269,7 @@ class TrackingMovementController extends AbstractController
 
                     $dropRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                         $entityManager,
-                        $mainPack ?? $colis,
+                        $mainPack ?? $pack,
                         $dropLocation,
                         $operator,
                         $date,
@@ -296,7 +296,7 @@ class TrackingMovementController extends AbstractController
                         return $this->json($this->treatPersistTrackingError($dropRes));
                     }
 
-                    $codeToPack[$colis] = $createdPack;
+                    $codeToPack[$pack] = $createdPack;
                 }
             }
         } catch (Exception $exception) {
