@@ -13,12 +13,12 @@ $(function () {
 
     if (printColis || printArrivage) {
         let params = {
-            arrivage: Number($('#arrivageId').val()),
+            arrivageId: Number($('#arrivageId').val()),
             printColis: printColis,
             printArrivage: printArrivage
         };
         SetRequestQuery({});
-        Wiistock.download(Routing.generate('print_arrivage_bar_codes', params, true));
+        printArrival(params);
     }
 
     $(`.dispatch-button`).on(`click`, function () {
