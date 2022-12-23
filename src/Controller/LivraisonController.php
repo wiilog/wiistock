@@ -19,7 +19,6 @@ use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -106,17 +105,18 @@ class LivraisonController extends AbstractController {
             }
 
             if ( !empty($notRequestedArticles) ) {
-                $tableArticlesNotRequestedData = Stream::from($notRequestedArticles)
-                    ->map(fn(Article $article) => [
+                $ArticlesNotRequestedByLu = [];
+                foreach ($notRequestedArticles as $article){
+                    $ArticlesNotRequestedByLu[$article->getCurrentLogisticUnit()->getCode()][] = [
                         'barCode' => $article->getBarCode(),
                         'label' => $article->getLabel(),
                         'lu' => '<select class="ajax-autocomplete data w-100 form-control" name="logisticUnit" data-s2="pack" data-parent="body"></select>',
                         'location' => '<select class="ajax-autocomplete data w-100 form-control" name="location" data-s2="location" data-parent="body"></select>',
-                    ])
-                    ->values();
+                    ];
+                }
                 return $this->json([
                     'success' => false,
-                    'tableArticlesNotRequestedData' => $tableArticlesNotRequestedData,
+                    'tableArticlesNotRequestedDataBylu' => $ArticlesNotRequestedByLu,
                 ]);
             }
             else {
@@ -409,9 +409,6 @@ class LivraisonController extends AbstractController {
 
     /**
      * @Route("/{deliveryOrder}/api-delivery-note", name="api_delivery_note_livraison", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param Livraison $deliveryOrder
-     * @return JsonResponse
      */
     public function apiDeliveryNote(Request $request,
                                     EntityManagerInterface $manager,
@@ -469,16 +466,13 @@ class LivraisonController extends AbstractController {
 
     /**
      * @Route("/{deliveryOrder}/delivery-note", name="delivery_note_delivery_order", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param EntityManagerInterface $entityManager
-     * @param Livraison $deliveryOrder
-     * @param PDFGeneratorService $pdf
-     * @param Request $request
-     * @return JsonResponse
      */
     public function postDeliveryNoteDeliveryOrder(EntityManagerInterface $entityManager,
-                                     Livraison $deliveryOrder,
-                                     Request $request,
-                                     LivraisonService $livraisonService): JsonResponse {
+                                                  Livraison              $deliveryOrder,
+                                                  Request                $request,
+                                                  LivraisonService       $livraisonService,
+                                                  PDFGeneratorService    $PDFGeneratorService,
+                                                  SpecificService        $specificService): JsonResponse {
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -529,6 +523,24 @@ class LivraisonController extends AbstractController {
 
         $entityManager->flush();
 
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
+        $now = new DateTime();
+        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+
+        $title = "BL - {$deliveryOrder->getNumero()} - $client - {$now->format('dmYHis')}";
+
+        $fileName = $PDFGeneratorService->generatePDFDeliveryNote($title, $logo, $deliveryOrder, $packs);
+
+        $deliveryNoteAttachment = new Attachment();
+        $deliveryNoteAttachment
+            ->setDeliveryOrder($deliveryOrder)
+            ->setFileName($fileName)
+            ->setOriginalName($title . '.pdf');
+
+        $entityManager->persist($deliveryNoteAttachment);
+        $entityManager->flush();
+
         $detailsConfig = $livraisonService->createHeaderDetailsConfig($deliveryOrder);
 
         return new JsonResponse([
@@ -539,15 +551,12 @@ class LivraisonController extends AbstractController {
                 'showDetails' => $detailsConfig,
                 'finished' => $deliveryOrder->isCompleted(),
             ]),
+            'attachmentId' => $deliveryNoteAttachment->getId()
         ]);
     }
 
     /**
      * @Route("/{deliveryOrder}/delivery-note/{attachment}", name="print_delivery_note_delivery_order", options={"expose"=true}, methods="GET")
-     * @param Livraison $deliveryOrder
-     * @param KernelInterface $kernel
-     * @param Attachment $attachment
-     * @return PdfResponse
      */
     public function printDeliveryNote(EntityManagerInterface $entityManager,
                                       Livraison $deliveryOrder,
@@ -577,10 +586,8 @@ class LivraisonController extends AbstractController {
 
     /**
      * @Route("/{deliveryOrder}/check-waybill", name="check_delivery_waybill", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param Livraison $deliveryOrder
-     * @return JsonResponse
      */
-    public function checkDeliveryWaybill(Livraison $deliveryOrder) {
+    public function checkDeliveryWaybill(Livraison $deliveryOrder): Response {
         $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
         $deliveryOrderHasPacks = Stream::from($preparationArticleLines)
             ->some(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit());
@@ -666,13 +673,13 @@ class LivraisonController extends AbstractController {
     /**
      * @Route("/{deliveryOrder}/waybill", name="post_delivery_waybill", options={"expose"=true}, condition="request.isXmlHttpRequest()", methods="POST")
      */
-    public function postDispatchWaybill(EntityManagerInterface $entityManager,
-                                        Livraison $deliveryOrder,
-                                        PDFGeneratorService $pdf,
-                                        LivraisonService $livraisonService,
-                                        Request $request,
-                                        TranslationService $translationService,
-                                        SpecificService $specificService): JsonResponse {
+    public function postDeliveryOrderWaybill(EntityManagerInterface $entityManager,
+                                             Livraison              $deliveryOrder,
+                                             PDFGeneratorService    $pdf,
+                                             LivraisonService       $livraisonService,
+                                             Request                $request,
+                                             TranslationService     $translationService,
+                                             SpecificService        $specificService): JsonResponse {
         $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
         $deliveryOrderHasPacks = Stream::from($preparationArticleLines)
             ->some(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit());

@@ -1048,7 +1048,7 @@ class DashboardService {
                                 $config['displayDeliveryOrderContent'] === 'displayLogisticUnitsCount'
                                     ? '<span>Nombre d\'unités logistiques</span>'
                                     : '<span>Nombre d\'articles</span>',
-                                '<span class="text-wii-black dashboard-stats dashboard-stats-counter">' . $result[0]['sub'] . '</span>'
+                                '<span class="dashboard-stats dashboard-stats-counter">' . $result[0]['sub'] . '</span>'
                             ]);
                     }
                     break;

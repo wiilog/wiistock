@@ -173,20 +173,21 @@ class TrackingMovementService extends AbstractController
 
         $article = $movement->getPackArticle()?->getBarCode();
 
+        $packCode = "";
         if($movement->getLogisticUnitParent()) {
             if(in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
-                $pack = "";
+                $packCode = "";
             } else {
-                $pack = $movement->getLogisticUnitParent()->getCode();
+                $packCode = $movement->getLogisticUnitParent()->getCode();
             }
         } else {
-            $pack = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
+            $packCode = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
         }
 
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'packCode' => $pack,
+            'packCode' => $packCode == "" ? $article : $packCode,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
@@ -1022,6 +1023,7 @@ class TrackingMovementService extends AbstractController
                 return [
                     'success' => false,
                     'error' => Pack::CONFIRM_CREATE_GROUP,
+                    'msg' => Pack::CONFIRM_CREATE_GROUP,
                     'group' => $associatedGroup->getCode(),
                 ];
             } else if ($forced) {

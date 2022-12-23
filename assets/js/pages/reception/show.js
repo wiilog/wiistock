@@ -939,7 +939,7 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
         AJAX
             .route(POST, `reception_new_with_packing`, { reception })
             .json(data)
-            .then(({success, articleIds}) => {
+            .then(({success, articleIds, msg}) => {
                 if (success) {
                     let templates;
                     try {
@@ -970,6 +970,9 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
                     }
                     loadReceptionLines();
                     $modalNewLigneReception.modal('hide');
+                }
+                else {
+                    $modalNewLigneReception.find('button[type=submit]').popLoader();
                 }
             });
     });

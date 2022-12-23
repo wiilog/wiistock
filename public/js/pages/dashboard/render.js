@@ -592,7 +592,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
 
     const $element = $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
-        style: mode === MODE_EDIT ? `` : `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
+        style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
         html: [
             createTooltip(isObject(tooltip) ? tooltip[USER_SLUG] : tooltip),
             title

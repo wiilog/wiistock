@@ -960,15 +960,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textItalic-3' => false,
                 'textUnderline-3' => false,
 
-                'textColor-4' => "#000000",
-                'textBold-4' => false,
-                'textItalic-4' => false,
-                'textUnderline-4' => false,
+                'textColor-9' => "#000000",
+                'textBold-9' => false,
+                'textItalic-9' => false,
+                'textUnderline-9' => false,
 
-                'textColor-5' => "#000000",
-                'textBold-5' => false,
-                'textItalic-5' => false,
-                'textUnderline-5' => false,
+                'textColor-10' => "#000000",
+                'textBold-10' => false,
+                'textItalic-10' => false,
+                'textUnderline-10' => false,
 
                 'textColor-6' => "#000000",
                 'textBold-6' => false,
@@ -977,7 +977,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
 
                 'subCounts' => [
                     '<span>Nombre d\'unités logistiques</span>',
-                    '<span class="text-wii-black dashboard-stats dashboard-stats-counter">3</span>'
+                    '<span class="dashboard-stats dashboard-stats-counter">3</span>'
                 ]
             ]
         ]
