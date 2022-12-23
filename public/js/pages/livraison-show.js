@@ -75,42 +75,46 @@ function endLivraison($button) {
             $.post({
                 url: Routing.generate('livraison_finish', {id: getDeliveryId()})
             })
-                .then(({success, redirect, message, tableArticlesNotRequestedData}) => {
+                .then(async ({success, redirect, message, tableArticlesNotRequestedDataBylu}) => {
                     if (success) {
                         window.location.href = redirect;
                     } else {
-                        if (tableArticlesNotRequestedData) {
+                        if (tableArticlesNotRequestedDataBylu) {
                             const modalArticlesNotRequested = $('#modal-articles-not-requested');
-                            let tableArticlesNotRequestedConfig = {
-                                lengthMenu: [10, 25, 50],
-                                destroy: true,
-                                columns: [
-                                    {data: 'barCode', name: 'barCode', title: 'Code barre', className: 'barCode'},
-                                    {data: 'label', name: 'label', title: 'Libellé'},
-                                    {data: 'lu', name: 'lu', title: 'Unité logistique'},
-                                    {data: 'location', name: 'location', title: 'Emplacement'},
-                                ],
-                                data: tableArticlesNotRequestedData,
-                                order: [
-                                    ['barCode', 'desc'],
-                                    ['label', 'desc'],
-                                ],
-                                domConfig: {
-                                    removeInfo: true,
-                                    removeTableHeader: true,
-                                },
-                                rowConfig: {
-                                    needsRowClickAction: true,
-                                    needsColor: true,
-                                    dataToCheck: 'urgence',
-                                    color: 'danger',
-                                },
-                            };
-                            initDataTable('table-articles-not-requested', tableArticlesNotRequestedConfig);
-
-                            modalArticlesNotRequested.modal(`show`);
-
-                            let $luSelect = $('#table-articles-not-requested tbody tr td select[name="logisticUnit"]');
+                            const $ulContainer = modalArticlesNotRequested.find('.modal-body .ul-container');
+                            $ulContainer.empty();
+                            await Object.entries(tableArticlesNotRequestedDataBylu).forEach((data) => {
+                                let lu = data[0];
+                                let tableArticlesNotRequestedData = data[1];
+                                $ulContainer.append(`
+                                    <div class="wii-section-title my-4"> Article(s) à enlever de l’unité logistique ${lu}</div>
+                                    <div class="dataTable"><table class="table w-100" id ="table-articles-not-requested-${lu}"></table></div>
+                                `);
+                                let tableArticlesNotRequestedConfig = {
+                                    paging: false,
+                                    destroy: true,
+                                    columns: [
+                                        {data: 'barCode', name: 'barCode', title: 'Code barre', className: 'barCode', orderable: false},
+                                        {data: 'label', name: 'label', title: 'Libellé', orderable: false},
+                                        {data: 'lu', name: 'lu', title: 'Unité logistique', orderable: false},
+                                        {data: 'location', name: 'location', title: 'Emplacement*', orderable: false},
+                                    ],
+                                    order: [
+                                        ['barCode', 'desc'],
+                                        ['label', 'desc'],
+                                    ],
+                                    domConfig: {
+                                        removeInfo: true,
+                                        removeTableHeader: true,
+                                    },
+                                    rowConfig: {
+                                        needsRowClickAction: true,
+                                    },
+                                    data: tableArticlesNotRequestedData,
+                                };
+                                initDataTable(`table-articles-not-requested-${lu}`, tableArticlesNotRequestedConfig);
+                            });
+                            let $luSelect = $('tbody tr td select[name="logisticUnit"]');
                             $luSelect.on('change', function () {
                                 let $select = $(this);
                                 let $locationSelect = $select.closest('tr').find('td select[name="location"]');
@@ -124,6 +128,7 @@ function endLivraison($button) {
                                     $locationSelect.empty();
                                 }
                             });
+                            modalArticlesNotRequested.modal(`show`);
                         } else if (message) {
                             showBSAlert(message, 'danger');
                         }
@@ -148,8 +153,7 @@ async function treatArticlesNotRequested($button) {
     });
     if (locationSelectEmpty.length > 0) {
         locationSelectEmpty.forEach(function (select) {
-            $(select).addClass('is-invalid');
-            $(select).closest('tr').find('td .select2-selection').addClass('is-invalid');
+            $(select).closest('td').find('.select2-selection').addClass('is-invalid');
         });
         $button.popLoader();
     } else {

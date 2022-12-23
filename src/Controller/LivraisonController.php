@@ -105,17 +105,18 @@ class LivraisonController extends AbstractController {
             }
 
             if ( !empty($notRequestedArticles) ) {
-                $tableArticlesNotRequestedData = Stream::from($notRequestedArticles)
-                    ->map(fn(Article $article) => [
+                $ArticlesNotRequestedByLu = [];
+                foreach ($notRequestedArticles as $article){
+                    $ArticlesNotRequestedByLu[$article->getCurrentLogisticUnit()->getCode()][] = [
                         'barCode' => $article->getBarCode(),
                         'label' => $article->getLabel(),
                         'lu' => '<select class="ajax-autocomplete data w-100 form-control" name="logisticUnit" data-s2="pack" data-parent="body"></select>',
                         'location' => '<select class="ajax-autocomplete data w-100 form-control" name="location" data-s2="location" data-parent="body"></select>',
-                    ])
-                    ->values();
+                    ];
+                }
                 return $this->json([
                     'success' => false,
-                    'tableArticlesNotRequestedData' => $tableArticlesNotRequestedData,
+                    'tableArticlesNotRequestedDataBylu' => $ArticlesNotRequestedByLu,
                 ]);
             }
             else {
