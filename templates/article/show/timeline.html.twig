@@ -7,8 +7,12 @@
         'groupage': 'Groupage',
         'dégroupage': 'Dégroupage'
     } %}
+    {%  set hasLogisticUnitParentType = [
+        'prise dans UL',
+        'dépose dans UL'
+    ]%}
     {% for movement in movements %}
-        {% set hasLogisticUnitParent = movement['logisticUnitParent'] is defined and movement['logisticUnitParent'] %}
+        {% set hasLogisticUnitParent = movement['logisticUnitParent'] is defined and movement['logisticUnitParent'] and movement['type'] in hasLogisticUnitParentType %}
         <div class="history-line {{ hasLogisticUnitParent ? 'has-logistic-unit-parent' }}">
             <div class="history-line-left-content justify-content-between">
                 <div class="line-date wii-small-text d-xl-none ml-0">{{ movement['date']|format_helper('datetime') }}</div>
