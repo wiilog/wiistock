@@ -1676,8 +1676,8 @@ class ReceptionController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $packRepository = $entityManager->getRepository(Pack::class);
 
-        $location = $packRepository->find($data['pack'])->getLastDrop()->getEmplacement();
-        if (!$location->ableToBeDropOff(new Pack())) {
+        $location = $packRepository->find($data['pack'])->getLastDrop()?->getEmplacement();
+        if (isset($location) && !$location->ableToBeDropOff(new Pack())) {
             return new JsonResponse([
                 'success' => false,
                 'msg' => "Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement ".$location->getLabel(),
@@ -1786,6 +1786,7 @@ class ReceptionController extends AbstractController {
                                 }
                                 foreach ($mouvements as $mouvement) {
                                     $preparationsManagerService->createMovementLivraison(
+                                        $entityManager,
                                         $mouvement->getQuantity(),
                                         $currentUser,
                                         $delivery,
@@ -1946,7 +1947,7 @@ class ReceptionController extends AbstractController {
                 }
                 if ($createDirectDelivery && isset($delivery) && isset($preparation)) {
                     foreach ($createdLoopArticles as $article) {
-                        $preparationsManagerService->createMouvementLivraison(
+                        $preparationsManagerService->createMovementLivraison(
                             $entityManager,
                             $article->getQuantite(),
                             $currentUser,
