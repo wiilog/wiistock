@@ -471,6 +471,7 @@ class DashboardSettingsController extends AbstractController {
         } else {
             $values = $componentType->getExampleValues();
         }
+
         return $this->json([
             'success' => true,
             'exampleValues' => $dashboardSettingsService->serializeValues($entityManager, $componentType, $values, DashboardSettingsService::MODE_EDIT, true),
