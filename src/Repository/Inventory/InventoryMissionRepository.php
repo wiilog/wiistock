@@ -217,7 +217,7 @@ class InventoryMissionRepository extends EntityRepository {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
+                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value OR a.barCode LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
                 $countQuery = QueryBuilderHelper::count($qb, 'a');
