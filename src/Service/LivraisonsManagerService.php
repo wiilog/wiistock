@@ -104,7 +104,7 @@ class LivraisonsManagerService
     public function finishLivraison(Utilisateur $user,
                                     Livraison $livraison,
                                     DateTime $dateEnd,
-                                    ?Emplacement $emplacementTo): void
+                                    ?Emplacement $nextLocation): void
     {
         $pairings = $livraison->getPreparation()->getPairings();
         $pairingEnd = new DateTime('now');
@@ -170,7 +170,7 @@ class LivraisonsManagerService
                 $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
                     $pack,
-                    $livraison->getPreparation()->getEndLocation(),
+                    $pack->getLastDrop()->getEmplacement(),
                     $user,
                     $dateEnd,
                     true,
@@ -181,7 +181,7 @@ class LivraisonsManagerService
                 $dropMovement = $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
                     $pack,
-                    $livraison->getPreparation()->getEndLocation(),
+                    $nextLocation,
                     $user,
                     $dateEnd,
                     true,
@@ -221,8 +221,8 @@ class LivraisonsManagerService
             $movements = $movementRepository->findBy(['livraisonOrder' => $livraison]);
             foreach ($movements as $movement) {
                 $movement->setDate($dateEnd);
-                if (isset($emplacementTo)) {
-                    $movement->setEmplacementTo($emplacementTo);
+                if (isset($nextLocation)) {
+                    $movement->setEmplacementTo($nextLocation);
                 }
 
                 $trackingMovementPick = $this->trackingMovementService->createTrackingMovement(
@@ -275,7 +275,7 @@ class LivraisonsManagerService
                         );
                         $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
                             $lu,
-                            $emplacementTo,
+                            $nextLocation,
                             $user,
                             $dateEnd,
                             true,
