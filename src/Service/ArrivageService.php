@@ -158,7 +158,7 @@ class ArrivageService {
 
         $row = [
             'id' => $arrivalId,
-            'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='Colis acheminé(s)'></i></td>" : '',
+            'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='UL acheminée(s)'></i></td>" : '',
             'arrivalNumber' => $arrival->getNumeroArrivage() ?? '',
             'carrier' => $arrival->getTransporteur() ? $arrival->getTransporteur()->getLabel() : '',
             'totalWeight' => $options['totalWeight'] ?? '',
@@ -346,7 +346,7 @@ class ArrivageService {
         return $isArrivalUrgent
             ? [
                 'autoHide' => false,
-                'message' => "Attention, les colis $supplierName doivent être traités en urgence",
+                'message' => "Attention, les unités logistiques $supplierName doivent être traitées en urgence",
                 'iconType' => 'warning',
                 'modalType' => 'info',
                 'autoPrint' => !$settingRepository->getOneParamByLabel(Setting::REDIRECT_AFTER_NEW_ARRIVAL),
@@ -651,7 +651,7 @@ class ArrivageService {
                         "context" => [
                             'title' => ['Traçabilité', 'Général', 'Votre unité logistique a été livrée', false],
                             'orderNumber' => implode(', ', $arrivage->getNumeroCommandeList()),
-                            'colis' => $this->formatService->pack($pack),
+                            'pack' => $this->formatService->pack($pack),
                             'emplacement' => $location,
                             'fournisseur' => $this->formatService->supplier($arrivage->getFournisseur()),
                             'date' => $date,

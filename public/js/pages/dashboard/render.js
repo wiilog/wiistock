@@ -978,7 +978,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
 }
 
 function loadLatePacks($table, data) {
-    let datatableColisConfig = {
+    let datatablePacksConfig = {
         responsive: true,
         domConfig: {
             needsMinimalDomOverride: true
@@ -1039,15 +1039,15 @@ function loadLatePacks($table, data) {
         }
     };
     if(mode === MODE_EDIT) {
-        datatableColisConfig.data = data.tableData;
+        datatablePacksConfig.data = data.tableData;
     } else {
-        datatableColisConfig.ajax = {
+        datatablePacksConfig.ajax = {
             "url": Routing.generate('api_late_pack', true),
             "type": "GET",
         };
     }
 
-    initDataTable($table.attr('id'), datatableColisConfig);
+    initDataTable($table.attr('id'), datatablePacksConfig);
 }
 
 function createAndUpdateMultipleCharts($canvas,

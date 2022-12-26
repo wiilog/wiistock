@@ -56,11 +56,11 @@
                                             {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
                                         </a>
                                         {% if hasRightExport %}
-                                            <a id="printColisBtn"
+                                            <a id="printPacksBtn"
                                                class="{{ hasRightEdit ? 'dropdown-item' }} btn btn-primary d-flex align-items-center"
                                                onclick="printArrival({
                                                    'arrivageId': {{ arrivage.id }},
-                                                   'printColis' : true,
+                                                   'printPacks' : true,
                                                    'printArrivage' : true
                                                })">
                                                 <span
@@ -74,7 +74,7 @@
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                <table id="tableColis" class="table w-100"></table>
+                                <table id="tablePacks" class="table w-100"></table>
                             </div>
                         </div>
                     </div>
@@ -119,7 +119,7 @@
     {% include 'pack/modalDeletePack.html.twig' %}
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
-        'table': 'tableColis',
+        'table': 'tableUL',
         'route': 'save_column_visible_for_pack',
     } %}
     <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>

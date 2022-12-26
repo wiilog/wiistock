@@ -612,7 +612,7 @@ class DispatchService {
         }
         $href = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
 
-        $bodyTitle = $dispatch->getDispatchPacks()->count() . ' colis' . ' - ' . $requestType;
+        $bodyTitle = $dispatch->getDispatchPacks()->count() . ' unités logistiques' . ' - ' . $requestType;
         $requestDate = $dispatch->getCreationDate();
         $requestDateStr = $requestDate
             ? (

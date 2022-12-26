@@ -96,7 +96,7 @@
 </div>
 
 <div class="wii-section-title">
-    Colis écartés
+    Unités logistiques écartées
 </div>
 
 <div class="wii-section row">
@@ -198,12 +198,12 @@
 </div>
 
 <div class="wii-section-title">
-    Dépose des colis non livrés
+    Dépose des unités logistiques non livrées
 </div>
 
 <div class="wii-section row">
     <div class="col-8">
-        {{ form.select(setting('TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS'), 'Emplacements de retour des colis non livrés', false, {
+        {{ form.select(setting('TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS'), 'Emplacements de retour des UL non livrés', false, {
             labelClass: 'wii-field-name w-100',
             items: transportRoundRejectedPacksLocations,
             values: transportRoundRejectedPacksLocations,

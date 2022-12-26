@@ -76,7 +76,7 @@ class PackService {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
 
-        $filters = $params->get("codeUl") ? [["field"=> "colis", "value"=> $params->get("codeUl")]] : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
+        $filters = $params->get("codeUl") ? [["field"=> "UL", "value"=> $params->get("codeUl")]] : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
@@ -365,7 +365,7 @@ class PackService {
 
         $totalPacks = Stream::from($packByNatures)->sum();
         if($totalPacks > 500) {
-            throw new FormException("Vous ne pouvez pas ajouter plus de 500 colis");
+            throw new FormException("Vous ne pouvez pas ajouter plus de 500 UL");
         }
 
         $now = new DateTime('now');
@@ -411,11 +411,11 @@ class PackService {
             $lastDrop = $pack->getLastDrop();
 
             $this->mailerService->sendMail(
-                "Follow GT // Colis non récupéré$titleSuffix",
-                $this->templating->render('mailPackDeliveryDone.html.twig', [
-                    'title' => 'Votre colis est toujours présent dans votre magasin',
+                "Follow GT // Unité logistique non récupéré$titleSuffix",
+                $this->templating->render('mails/contents/mailPackDeliveryDone.html.twig', [
+                    'title' => 'Votre unité logistique est toujours présente dans votre magasin',
                     'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
-                    'colis' => $this->formatService->pack($pack),
+                    'pack' => $this->formatService->pack($pack),
                     'emplacement' => $lastDrop->getEmplacement(),
                     'date' => $lastDrop->getDatetime(),
                     'fournisseur' => $this->formatService->supplier($arrival->getFournisseur()),

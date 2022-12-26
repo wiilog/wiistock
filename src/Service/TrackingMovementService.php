@@ -235,11 +235,11 @@ class TrackingMovementService extends AbstractController
         if ($parentPack && !$parentPack->isGroup()) {
             return [
                 'success' => false,
-                'msg' => 'Le colis contenant choisi est un colis, veuillez choisir un groupage valide.',
+                'msg' => 'Le contenant choisie est une unité logistique, veuillez choisir un groupage valide.',
             ];
         } else {
             $errors = [];
-            $packCodes = explode(',', $data['colis']);
+            $packCodes = explode(',', $data['pack']);
             foreach ($packCodes as $packCode) {
                 $pack = $packRepository->findOneBy(['code' => $packCode]);
                 $isParentPack = $pack && $pack->isGroup();
@@ -252,9 +252,9 @@ class TrackingMovementService extends AbstractController
             if (!empty($errors)) {
                 return [
                     'success' => false,
-                    'msg' => 'Les colis '
+                    'msg' => 'Les UL '
                         . implode(', ', $errors)
-                        . ' sont des groupages ou sont déjà présents dans un groupe, veuillez choisir des colis valides.',
+                        . ' sont des groupages ou sont déjà présents dans un groupe, veuillez choisir des UL valides.',
                 ];
             }
             else {
@@ -526,7 +526,7 @@ class TrackingMovementService extends AbstractController
             ? $lastTrackingMovements[1]
             : null;
 
-        // si c'est une prise ou une dépose on vide ses colis liés
+        // si c'est une prise ou une dépose on vide ses UL liés
         $packsAlreadyExisting = $tracking->getLinkedPackLastDrop();
         if ($packsAlreadyExisting) {
             $packsAlreadyExisting->setLastDrop(null);
@@ -1038,7 +1038,7 @@ class TrackingMovementService extends AbstractController
             $this->projectHistoryRecordService->changeProject($entityManager, $movement->getPack(), null, $date);
         }
 
-        // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+        // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir l'UL
         if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && ($location && !$location->ableToBeDropOff($movement->getPack()))) {
             $packTranslation = $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false);
             $natureTranslation = $this->translation->translate('Traçabilité', 'Mouvements', 'natures requises', false);

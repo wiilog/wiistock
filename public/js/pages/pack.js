@@ -75,7 +75,7 @@ const groupsTableConfig = {
 const TAB_PACKS = 1;
 const TAB_GROUPS = 2;
 
-const HASH_PACKS = `#colis`;
+const HASH_PACKS = `#unites-logistiques`;
 const HASH_GROUPS = `#groupes`;
 
 let selectedTab = TAB_PACKS;

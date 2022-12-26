@@ -893,7 +893,7 @@ class ArrivageController extends AbstractController {
             $arrivage = $arrivageRepository->find($data['arrivageId']);
             $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
 
-            $natures = json_decode($data['colis'], true);
+            $natures = json_decode($data['pack'], true);
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
@@ -1059,7 +1059,7 @@ class ArrivageController extends AbstractController {
             $dispute->setType($typeRepository->find($typeAfter));
         }
 
-        if (!empty($newPack = $post->get('colis'))) {
+        if (!empty($newPack = $post->get('pack'))) {
             // on détache les UL existants...
             $existingPacks = $dispute->getPacks();
             foreach ($existingPacks as $existingPack) {
@@ -1205,10 +1205,10 @@ class ArrivageController extends AbstractController {
             : null;
 
         if (!isset($pack)) {
-            $printPack = $request->query->getBoolean('printPack');
+            $printPacks = $request->query->getBoolean('printPacks');
             $printArrivage = $request->query->getBoolean('printArrivage');
 
-            if ($printPack) {
+            if ($printPacks) {
                 $barcodeConfigs = $this->getBarcodeConfigPrintAllPacks(
                     $arrivage,
                     $packService,
@@ -1227,7 +1227,7 @@ class ArrivageController extends AbstractController {
                 );
             }
 
-            if (empty($barcodeConfigs) && $printPack) {
+            if (empty($barcodeConfigs) && $printPacks) {
                 throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
             }
 

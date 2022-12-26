@@ -93,8 +93,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'inSplitCell' => false,
             'exampleValues' => [
                 'tableData' => [
-                    ['pack' => 'COLIS1', 'date' => '06/04/2020 10:27:09', 'delay' => '10000', 'location' => "EMP1"],
-                    ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:29', 'delay' => '10000', 'location' => "EMP2"]
+                    ['pack' => 'UL1', 'date' => '06/04/2020 10:27:09', 'delay' => '10000', 'location' => "EMP1"],
+                    ['pack' => 'UL2', 'date' => '06/08/2020 20:57:29', 'delay' => '10000', 'location' => "EMP2"]
                 ],
                 'textColor-1' => "#000000",
                 'textBold-1' => false,
@@ -316,7 +316,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     Dashboard\ComponentType::DEFAULT_CHART_COLOR
                 ],
                 'chartColorsLabels' => [
-                    'Colis'
+                    'Unité logistique'
                 ],
                 'chartData' => [
                     '04/01' => 6,

@@ -141,7 +141,7 @@ class PackController extends AbstractController
                         $pack['fromTo'] = $mvtData['from'];
                         $this->putPackLine($output, $CSVExportService, $pack);
                     }
-                }, 'export_colis.csv',
+                }, 'export_UL.csv',
                 $csvHeader
             );
         }
@@ -391,7 +391,7 @@ class PackController extends AbstractController
             $tag = null;
         }
         $config = $packService->getBarcodePackConfig($pack);
-        $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'colis', $tag?->getPrefix() ?? 'ETQ');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($config, 'UL', $tag?->getPrefix() ?? 'ETQ');
         $render = $PDFGeneratorService->generatePDFBarCodes($fileName, [$config], false, $tag);
         return new PdfResponse(
             $render,

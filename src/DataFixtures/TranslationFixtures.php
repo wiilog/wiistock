@@ -2144,11 +2144,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Message succès Supprimer la ligne",
                         ],
                         [
-                            "fr" => "L'unité logistique {1} a bien été modifié",
+                            "fr" => "L'unité logistique {1} a bien été modifiée",
                             "en" => "Logistic unit {1} has been modified successfully",
                         ],
                         [
-                            "fr" => "L'unité logistique {1} a bien été ajouté",
+                            "fr" => "L'unité logistique {1} a bien été ajoutée",
                             "en" => "Logistic unit {1} has been added",
                         ],
                     ],

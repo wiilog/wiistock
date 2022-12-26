@@ -520,7 +520,7 @@ class IOTService
             [$location->getId()],
             [
                 'isCount' => false,
-                'field' => 'colis',
+                'field' => 'pack',
             ]
         );
 
@@ -857,7 +857,7 @@ class IOTService
                 $locations,
                 [
                     'isCount' => false,
-                    'field' => 'colis',
+                    'field' => 'pack',
                 ]
             );
             $packs = Stream::from($packs)

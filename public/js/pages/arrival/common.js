@@ -140,10 +140,10 @@ function treatArrivalCreation({redirectAfterAlert, printPacks, printArrivage, ar
 function createArrivageShowUrl(arrivageShowUrl, printPacks, printArrivage) {
     const printPacksNumber = (printPacks === true) ? '1' : '0';
     const printArrivageNumber = (printArrivage === true) ? '1' : '0';
-    return `${arrivageShowUrl}?printColis=${printPacksNumber}&printArrivage=${printArrivageNumber}`;
+    return `${arrivageShowUrl}?printPacks=${printPacksNumber}&printArrivage=${printArrivageNumber}`;
 }
 
-function printArrival({arrivageId, printColis, printArrivage}) {
+function printArrival({arrivageId, printPacks, printArrivage}) {
     let templates;
     try {
         templates = JSON.parse($('#tagTemplates').val());
@@ -152,7 +152,7 @@ function printArrival({arrivageId, printColis, printArrivage}) {
     }
     let params = {
         arrivage: arrivageId,
-        printColis: printColis ? 1 : 0,
+        printPacks: printPacks ? 1 : 0,
         printArrivage: printArrivage ? 1 : 0
     };
     if (templates.length > 0) {
@@ -166,7 +166,7 @@ function printArrival({arrivageId, printColis, printArrivage}) {
                 }))
         ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
     } else {
-        if (printArrivage || printColis) {
+        if (printArrivage || printPacks) {
             window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
         }
     }
@@ -253,8 +253,8 @@ function checkPossibleCustoms($modal) {
                 undefined,
                 $('<div/>', {
                     class: 'text-center',
-                    html: `Attention, ce fournisseur livre habituellement des colis sous douanes.`
-                        + ` Voulez-vous modifier votre saisie pour déclarer le colis sous douanes ?`
+                    html: `Attention, ce fournisseur livre habituellement des unités logistiques sous douanes.`
+                        + ` Voulez-vous modifier votre saisie pour déclarer l'unité logistique' sous douanes ?`
                 }),
                 [
                     {

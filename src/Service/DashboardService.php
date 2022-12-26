@@ -620,7 +620,7 @@ class DashboardService {
                     [
                         'natures' => $naturesFilter,
                         'isCount' => false,
-                        'field' => 'colis.id, emplacement.label'
+                        'field' => 'pack.id, emplacement.label'
                     ]
                 )
             )->reduce(function(array $carry, array $pack) {
@@ -666,7 +666,7 @@ class DashboardService {
 
                         if (isset($countDownHours)
                             && (
-                                ($countDownHours < 0 && $beginSpan === -1) // count colis en retard
+                                ($countDownHours < 0 && $beginSpan === -1) // count late pack
                                 || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
                             )) {
 

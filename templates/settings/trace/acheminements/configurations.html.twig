@@ -7,10 +7,10 @@
             {{ form.checkbox(setting('PREFILL_DUE_DATE_TODAY'), 'Pré-remplir la date du jour dans le champ à échéance Du et échéance Au', false, setting_value('PREFILL_DUE_DATE_TODAY')) }}
         </div>
         <div class="col-md-6 col-12 d-flex align-items-center my-1">
-            {{ form.checkbox(setting('PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER'), "Ajouter le numéro d'acheminement en préfixe du colis lors de l'ajout de colis", false, setting_value('PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER')) }}
+            {{ form.checkbox(setting('PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER'), "Ajouter le numéro d'acheminement en préfixe de l'UL lors de l'ajout de l'UL", false, setting_value('PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER')) }}
         </div>
         <div class="col-md-6 col-12 d-flex align-items-center my-1">
-            {{ form.checkbox(setting('PACK_MUST_BE_NEW'), "Le colis ajouté dans l'acheminement ne peut pas exister en base (doit être nouveau)", false, setting_value('PACK_MUST_BE_NEW')) }}
+            {{ form.checkbox(setting('PACK_MUST_BE_NEW'), "L'UL ajouté dans l'acheminement ne peut pas exister en base (doit être nouveau)", false, setting_value('PACK_MUST_BE_NEW')) }}
         </div>
     </div>
 </div>

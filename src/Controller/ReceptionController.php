@@ -1017,7 +1017,7 @@ class ReceptionController extends AbstractController {
             ->setType($typeRepository->find($post->get('disputeType')))
             ->setStatus($statutAfter);
 
-        $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('colis'), $dispute);
+        $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('pack'), $dispute);
         if($errorResponse) {
             return $errorResponse;
         }
@@ -2025,7 +2025,7 @@ class ReceptionController extends AbstractController {
         if(isset($demande) && $demande->getType()->getSendMail()) {
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
-                'FOLLOW GT // Réception d\'un colis ' . 'de type «' . $demande->getType()->getLabel() . '».',
+                'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
                 $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
                     'fournisseur' => $reception->getFournisseur(),

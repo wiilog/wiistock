@@ -190,10 +190,10 @@ class PackRepository extends EntityRepository
                         ->andWhere('mFilter2.datetime <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
-                case 'colis':
+                case 'UL':
                     $queryBuilder
-                        ->andWhere('pack.code LIKE :colis')
-                        ->setParameter('colis', '%' . $filter['value'] . '%');
+                        ->andWhere('pack.code LIKE :UL')
+                        ->setParameter('UL', '%' . $filter['value'] . '%');
                     break;
                 case 'numArrivage':
                     $queryBuilder
@@ -379,16 +379,16 @@ class PackRepository extends EntityRepository
     }
 
     public function countPacksByArrival(DateTime $from, DateTime $to) {
-        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilder = $this->createQueryBuilder('pack');
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
-            ->select('count(colis.id) as nbColis')
+            ->select('count(pack.id) as nbUL')
             ->addSelect('nature.id AS natureId')
             ->addSelect('arrivage.id AS arrivageId')
-            ->join('colis.nature', 'nature')
-            ->join('colis.arrivage', 'arrivage')
+            ->join('pack.nature', 'nature')
+            ->join('pack.arrivage', 'arrivage')
             ->where($queryBuilderExpr->between('arrivage.date', ':dateFrom', ':dateTo'))
-            ->andWhere('colis.groupIteration IS NULL')
+            ->andWhere('pack.groupIteration IS NULL')
             ->groupBy('nature.id')
             ->addGroupBy('arrivage.id')
             ->setParameter('dateFrom', $from)
@@ -401,11 +401,11 @@ class PackRepository extends EntityRepository
             function (array $carry, $counter) {
                 $arrivageId = $counter['arrivageId'];
                 $natureId = $counter['natureId'];
-                $nbColis = $counter['nbColis'];
+                $nbPacks = $counter['nbUL'];
                 if (!isset($carry[$arrivageId])) {
                     $carry[$arrivageId] = [];
                 }
-                $carry[$arrivageId][$natureId] = intval($nbColis);
+                $carry[$arrivageId][$natureId] = intval($nbPacks);
                 return $carry;
             },
             []

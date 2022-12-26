@@ -126,7 +126,7 @@ function runDispatchPrint() {
     })
         .then(function({packsCounter}) {
             if(!packsCounter) {
-                showBSAlert('Vous ne pouvez pas imprimer un acheminement sans colis', 'danger');
+                showBSAlert('Vous ne pouvez pas imprimer un acheminement sans UL', 'danger');
             } else {
                 window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
             }

@@ -494,7 +494,7 @@ class SelectController extends AbstractController {
         if($packMustBeNew) {
             if($packRepository->findOneBy(["code" => $packCode])) {
                 return $this->json([
-                    "error" => "Ce colis existe déjà en base de données"
+                    "error" => "Cette unité logistique existe déjà en base de données"
                 ]);
             } else {
                 $results = [];
@@ -512,7 +512,7 @@ class SelectController extends AbstractController {
 
         array_unshift($results, [
             "id" => "new-item",
-            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau colis</b></div>",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
         ]);
 
         if(isset($results[1])) {

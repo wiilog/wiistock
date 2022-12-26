@@ -9,7 +9,7 @@
                data-id='{{ arrivage.id }}'
                data-target='#modalListPacks'
                data-toggle='modal'
-               onclick="listColis($(this))">
+               onclick="listPacks($(this))">
                 <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Impression') }}
             </a>
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) and arrivage.reception is null %}

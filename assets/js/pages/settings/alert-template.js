@@ -138,7 +138,7 @@ const replacements = {
     '@empdepose': 'EMPLACEMENT-D',
     '@dateecheance': '05/01/2021 au 06/01/2021',
     '@numcommande': '123456789',
-    '@nbcolis': '5',
+    '@nbUL': '5',
     '@chargement': 'Chargement 1',
     '@dechargement': 'Déchargement 1',
     '@dateattendue': '05/01/2021 14:01:02',

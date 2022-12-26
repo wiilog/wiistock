@@ -767,7 +767,7 @@ class DispatchController extends AbstractController {
             if($isNotInDispatch) {
                 return $this->json([
                     "success" => false,
-                    "msg" => "Le colis <strong>${packCode}</strong> existe déjà en base de données"
+                    "msg" => "L'unité logistique <strong>${packCode}</strong> existe déjà en base de données"
                 ]);
             }
         }
@@ -795,7 +795,7 @@ class DispatchController extends AbstractController {
         $pack->setVolume($volume ? round($volume, 3) : null);
 
         $success = true;
-        $toTranslate = 'Le colis {1} a bien été ' . ($dispatchPack->getId() ? "modifié" : "ajouté");
+        $toTranslate = 'L\'unité logistique {1} a bien été ' . ($dispatchPack->getId() ? "modifiée" : "ajoutée");
         $message = $translationService->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', $toTranslate, [1 => '<strong>{$pack->getCode()}</strong>']);
 
         $entityManager->flush();
@@ -1235,7 +1235,7 @@ class DispatchController extends AbstractController {
         if($dispatch->getDispatchPacks()->count() === 0) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->translate('Demande', 'Acheminements', 'Lettre de voiture', 'Des colis sont nécessaires pour générer une lettre de voiture', false) . '.'
+                'msg' => $translation->translate('Demande', 'Acheminements', 'Lettre de voiture', 'Des unités logistiques sont nécessaires pour générer une lettre de voiture', false) . '.'
             ]);
         } else {
             return new JsonResponse([

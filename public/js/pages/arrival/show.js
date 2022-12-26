@@ -1,6 +1,6 @@
 $('.select2').select2();
 let tableHistoLitige;
-let tableColis;
+let tablePacks;
 
 $(function () {
     let addPacks = $('#addPacks').val();
@@ -8,13 +8,13 @@ $(function () {
         $('#btnModalAddPacks').click();
     }
 
-    let printColis = Number(Boolean(Number($('#printColis').val())));
+    let printPacks = Number(Boolean(Number($('#printPacks').val())));
     let printArrivage = Number(Boolean(Number($('#printArrivage').val())));
 
-    if (printColis || printArrivage) {
+    if (printPacks || printArrivage) {
         let params = {
             arrivageId: Number($('#arrivageId').val()),
-            printColis: printColis,
+            printPacks: printPacks,
             printArrivage: printArrivage
         };
         SetRequestQuery({});
@@ -40,10 +40,10 @@ $(function () {
     });
 
     $.post(Routing.generate('arrival_list_packs_api_columns'), function(columns){
-        let pathColis = Routing.generate('packs_api', {arrivage: $('#arrivageId').val()}, true);
-        let tableColisConfig = {
+        let pathPacks = Routing.generate('packs_api', {arrivage: $('#arrivageId').val()}, true);
+        let tablePacksConfig = {
             ajax: {
-                "url": pathColis,
+                "url": pathPacks,
                 "type": "POST"
             },
             domConfig: {
@@ -56,17 +56,17 @@ $(function () {
             columns: columns,
             hideColumnConfig: {
                 columns,
-                tableFilter: 'tableColis'
+                tableFilter: 'tablePacks'
             },
             order: [['code', 'asc']]
         };
-        tableColis = initDataTable('tableColis', tableColisConfig);
+        tablePacks = initDataTable('tablePacks', tablePacksConfig);
 
         let modalAddPacks = $('#modalAddPacks');
         let submitAddPacks = $('#submitAddPacks');
         let urlAddPacks = Routing.generate('arrivage_add_pack', true);
         InitModal(modalAddPacks, submitAddPacks, urlAddPacks, {
-            tables: [tableColis],
+            tables: [tablePacks],
             waitDatatable: true,
             success: (data) => {
                 if (data.packs && data.packs.length > 0) {
@@ -82,22 +82,22 @@ $(function () {
             }
         });
 
-        //édition de colis
+        //édition d'UL
         const $modalEditPack = $('#modalEditPack');
         const $submitEditPack = $('#submitEditPack');
         const urlEditPack = Routing.generate('pack_edit', true);
         InitModal($modalEditPack, $submitEditPack, urlEditPack, {
-            tables: [tableColis],
+            tables: [tablePacks],
             waitForUserAction: () => {
                 return checkPossibleCustoms($modalEditPack);
             },
         });
 
-        //suppression de colis
+        //suppression d'UL
         let modalDeletePack = $("#modalDeletePack");
         let SubmitDeletePack = $("#submitDeletePack");
         let urlDeletePack = Routing.generate('pack_delete', true);
-        InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [tableColis], clearOnClose: true});
+        InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [tablePacks], clearOnClose: true});
     });
 
     let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
