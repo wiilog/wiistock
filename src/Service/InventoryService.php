@@ -3,12 +3,15 @@
 namespace App\Service;
 
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
@@ -23,6 +26,9 @@ class InventoryService {
     #[Required]
     public EntityManagerInterface $entityManager;
 
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
     public function doTreatAnomaly(int         $idEntry,
                                    string      $barCode,
                                    bool        $isRef,
@@ -31,10 +37,11 @@ class InventoryService {
                                    Utilisateur $user): array {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
+        $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
 
         $quantitiesAreEqual = true;
-
+        $consumedStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
         if ($isRef) {
             $refOrArt = $referenceArticleRepository->findOneBy(['barCode' => $barCode])
                 ?: $referenceArticleRepository->findOneBy(['reference' => $barCode]);
@@ -85,6 +92,50 @@ class InventoryService {
                 $mvt->setArticle($refOrArt);
                 //TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
                 $refOrArt->setQuantite($newQuantity);
+                if ($newQuantity === 0) {
+                    $refOrArt
+                        ->setStatut($consumedStatus);
+
+                    $articleLeave = new MouvementStock();
+                    $articleLeave
+                        ->setUser($user)
+                        ->setArticle($refOrArt)
+                        ->setEmplacementFrom($emplacement)
+                        ->setEmplacementTo($emplacement)
+                        ->setDate(new DateTime('now'))
+                        ->setComment(StringHelper::cleanedComment($comment))
+                        ->setType(MouvementStock::TYPE_SORTIE)
+                        ->setQuantity(abs($diff));
+
+                    $this->entityManager->persist($articleLeave);
+                    $this->entityManager->flush();
+
+                    if ($refOrArt->getCurrentLogisticUnit()) {
+                        $refOrArt
+                            ->setCurrentLogisticUnit(null);
+
+                        $movement = $this->trackingMovementService->persistTrackingMovement(
+                            $this->entityManager,
+                            $refOrArt->getBarCode(),
+                            $emplacement,
+                            $user,
+                            new DateTime('now'),
+                            true,
+                            TrackingMovement::TYPE_PICK_LU,
+                            false,
+                            [
+                                'entityManager' => $this->entityManager,
+                                'mouvementStock' => $articleLeave
+                            ]
+                        );
+
+                        if ($movement['movement']) {
+                            $this->entityManager->persist($movement['movement']);
+                            $this->entityManager->flush();
+                        }
+
+                    }
+                }
             }
 
             $typeMvt = $diff < 0 ? MouvementStock::TYPE_INVENTAIRE_SORTIE : MouvementStock::TYPE_INVENTAIRE_ENTREE;
