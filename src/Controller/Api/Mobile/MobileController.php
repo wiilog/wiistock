@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Emplacement;
@@ -1181,6 +1182,29 @@ class MobileController extends AbstractApiController
 
         return $this->json([
             'extraArticles' => $articlesNotInTransit
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/check-delivery-logistic-unit-content", name="api_check_delivery_logistic_unit_content", methods={"GET"},condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function checkDeliveryLogisticUnitContent(Request                  $request,
+                                             ExceptionLoggerService   $exceptionLoggerService,
+                                             EntityManagerInterface   $entityManager,
+                                             LivraisonsManagerService $livraisonsManager): Response
+    {
+        $delivery = $entityManager->getRepository(Livraison::class)->findOneBy(['id' => $request->query->get('livraisonId')]);
+
+        $articlesLines = $delivery->getDemande()->getArticleLines();
+        $numberArticlesInLU = Stream::from($articlesLines)
+            ->filter(fn(DeliveryRequestArticleLine $line) => $line->getPack())
+            ->keymap(fn(DeliveryRequestArticleLine $line) => [$line->getPack()->getCode(), $line->getPack()->getChildArticles()->count()])
+            ->toArray();
+
+        return $this->json([
+            'numberArticlesInLU' => $numberArticlesInLU
         ]);
     }
 
