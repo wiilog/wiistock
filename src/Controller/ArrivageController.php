@@ -743,7 +743,6 @@ class ArrivageController extends AbstractController {
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'acheteurs' => $acheteursNames,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'),
-            'allColis' => $arrivage->getPacks(),
             'natures' => $natures,
             'printPacks' => $printPacks,
             'printArrivage' => $printArrivage,
