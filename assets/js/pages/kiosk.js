@@ -59,7 +59,7 @@ $(function () {
         }
     });
 
-    $referenceRefInput.on('keypress keyup search', function (event) {
+    $referenceRefInput.on('keypress keyup search', () => {
         $referenceLabelInput.val($referenceRefInput.val());
     });
 
@@ -87,6 +87,31 @@ $(function () {
             }
         });
 
+        if($current.hasClass('reference-container')){
+            const {token, scannedreference} = GetRequestQuery();
+            if (!scannedreference) {
+                $modalWaiting.modal('show');
+                AJAX.route(GET, `reference_article_check_quantity`, {token, scannedReference: $referenceRefInput.val()})
+                    .json()
+                    .then(({exists, inStock, referenceForErrorModal, codeArticle}) => {
+                        $modalWaiting.modal('hide');
+                        if (exists && inStock) {
+                            let $errorMessage = $modalInStockWarning.find('#stock-error-message');
+                            $errorMessage.html(originalMessage
+                                .replace('@reference', `<span class="bold">${referenceForErrorModal}</span>`)
+                                .replace('@codearticle', `<span class="bold">${codeArticle}</span>`)
+                            );
+                            $modalInStockWarning.modal('show');
+                            $modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
+                            $modalInStockWarning.find('button.outline').on('click', function () {
+                                window.location.href = Routing.generate('kiosk_index', {token}, true);
+                            });
+                        } else if (exists) {
+                            window.location.href = Routing.generate('kiosk_form', {token, scannedReference: $referenceRefInput.val()});
+                        }
+                    });
+            }
+        }
         if ($current.find('.invalid').length === 0) {
             if ($($current.next()[0]).hasClass('summary-container')) {
                 const $articleDataInput = $('input[name=reference-article-input]');
