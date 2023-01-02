@@ -202,7 +202,7 @@ class TrackingMovementService extends AbstractController
                 : ($movement->getPackArticle()
                     ? $movement->getPackArticle()->getLabel()
                     : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getLabel()),
-            "quantity" => $movement->getPackArticle()?->getQuantite() ?: '',
+            "quantity" => $movement->getPackArticle()?->getQuantite() ?: $movement->getPack()?->getQuantity(),
             "article" => $article,
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => $this->formatService->user($movement->getOperateur()),
