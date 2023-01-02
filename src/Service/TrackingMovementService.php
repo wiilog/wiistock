@@ -173,21 +173,23 @@ class TrackingMovementService extends AbstractController
 
         $article = $movement->getPackArticle()?->getBarCode();
 
-        $packCode = "";
-        if($movement->getLogisticUnitParent()) {
-            if(in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
-                $packCode = "";
+        if ($movement->getLogisticUnitParent()) {
+            if (in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
+                $pack = "";
             } else {
-                $packCode = $movement->getLogisticUnitParent()->getCode();
+                $pack = $movement->getLogisticUnitParent()->getCode();
             }
         } else {
-            $packCode = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
+            $pack = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
+            if ($movement->getPackArticle() && $movement->getLinkedPackLastTracking()?->getCode() && $movement->getType()->getCode() === TrackingMovement::TYPE_DEPOSE) {
+                $pack = $movement->getPack()->getCode();
+            }
         }
 
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'packCode' => $packCode == "" ? $article : $packCode,
+            'packCode' => $pack,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
