@@ -1428,6 +1428,7 @@ class DashboardService {
                 [
                     'displayDeliveryOrderContent' => $config['displayDeliveryOrderContent'],
                     'date' => $date,
+                    'period' => $period
                 ]
             );
 
@@ -1466,7 +1467,8 @@ class DashboardService {
             function(DateTime $dateMin, DateTime $dateMax) use ($deliveryOrderRepository, $deliveryOrderStatusesFilter, $deliveryOrderTypesFilter, $options) {
                 return $deliveryOrderRepository->countContentByDates($dateMin, $dateMax, $deliveryOrderStatusesFilter, $deliveryOrderTypesFilter, $options);
             },
-            $workFreeDays
+            $workFreeDays,
+            $options['period']
         );
 
         $contentStack[] = [
