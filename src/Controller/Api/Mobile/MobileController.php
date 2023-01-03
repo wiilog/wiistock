@@ -12,6 +12,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryEntry;
@@ -23,6 +24,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -1834,11 +1836,16 @@ class MobileController extends AbstractApiController
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
         $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
+
+        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DEMANDE])
+            ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+            ->toArray();
 
         if ($rights['inventoryManager']) {
             $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
@@ -1928,6 +1935,12 @@ class MobileController extends AbstractApiController
             $refArticlesInventory = $inventoryMissionRepository->getCurrentMissionRefNotTreated();
             // prises en cours
             $stockTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
+
+            $projects = Stream::from($entityManager->getRepository(Project::class)->findAll())
+                ->map(fn(Project $project) => [
+                    'id' => $project->getId(),
+                    'code' => $project->getCode(),
+                ])->toArray();
         }
 
         if ($rights['demande']) {
@@ -2039,6 +2052,8 @@ class MobileController extends AbstractApiController
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
             'status' => $status,
+            'projects' => $projects ?? [],
+            'fieldsParam' => $fieldsParam ?? [],
         ];
     }
 
