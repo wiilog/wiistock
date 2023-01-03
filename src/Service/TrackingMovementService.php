@@ -173,14 +173,14 @@ class TrackingMovementService extends AbstractController
 
         $article = $movement->getPackArticle()?->getBarCode();
 
-        if($movement->getLogisticUnitParent()) {
-            if(in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
+        if ($movement->getLogisticUnitParent()) {
+            if (in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
                 $pack = "";
             } else {
                 $pack = $movement->getLogisticUnitParent()->getCode();
             }
         } else {
-            $pack = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
+            $pack = $movement->getPackArticle()?->getBarCode() ?? $movement->getPack()->getCode();
         }
 
         $row = [
@@ -202,7 +202,7 @@ class TrackingMovementService extends AbstractController
                 : ($movement->getPackArticle()
                     ? $movement->getPackArticle()->getLabel()
                     : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getLabel()),
-            "quantity" => $movement->getPackArticle()?->getQuantite() ?: '',
+            "quantity" => $movement->getPackArticle()?->getQuantite() ?: $movement->getPack()?->getQuantity(),
             "article" => $article,
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => $this->formatService->user($movement->getOperateur()),
@@ -1078,8 +1078,38 @@ class TrackingMovementService extends AbstractController
                 return $this->persistLogisticUnitMovements($entityManager, $packOrCode, $location, $options["articles"], $operator, $options);
             } else {
                 $newMovements = [];
+                $movement = null;
                 $trackingType = $this->getTrackingType($entityManager, $trackingType);
                 $packArticle = $pack?->getArticle();
+                $pickMvtOnArticleWithLU = $trackingType->getCode() === TrackingMovement::TYPE_PRISE && $packArticle?->getCurrentLogisticUnit();
+
+                if($pickMvtOnArticleWithLU) {
+                    $movement = $this->persistTrackingMovement(
+                        $entityManager,
+                        $pack ?? $packOrCode,
+                        $location,
+                        $operator,
+                        $date,
+                        $finished,
+                        TrackingMovement::TYPE_PICK_LU,
+                        $forced,
+                        $options
+                    );
+
+                    if($movement["movement"] ?? null) {
+                        $movement["movement"]->setLogisticUnitParent($packArticle?->getCurrentLogisticUnit());
+                    }
+
+                    $packArticle->setCurrentLogisticUnit(null);
+
+                    if($movement["success"]) {
+                        $newMovements[] = $movement["movement"];
+                    } else {
+                        return $movement;
+                    }
+                }
+
+                $pickLU = $movement["movement"] ?? null;
 
                 $movement = $this->persistTrackingMovement(
                     $entityManager,
@@ -1095,6 +1125,9 @@ class TrackingMovementService extends AbstractController
 
                 if($movement["movement"] ?? null) {
                     $movement["movement"]->setLogisticUnitParent($packArticle?->getCurrentLogisticUnit());
+                    if(isset($pickLU)) {
+                        $movement["movement"]->setMainMovement($pickLU);
+                    }
                 }
 
                 if($movement["success"]) {
@@ -1103,35 +1136,7 @@ class TrackingMovementService extends AbstractController
                     return $movement;
                 }
 
-                if($trackingType->getCode() === TrackingMovement::TYPE_PRISE && $packArticle?->getCurrentLogisticUnit()) {
-                    $pick = $movement["movement"];
-                    $movement = $this->persistTrackingMovement(
-                        $entityManager,
-                        $pack ?? $packOrCode,
-                        $location,
-                        $operator,
-                        $date,
-                        $finished,
-                        TrackingMovement::TYPE_PICK_LU,
-                        $forced,
-                        $options
-                    );
-
-                    $pick->setMainMovement($movement["movement"]);
-
-                    if($movement["movement"] ?? null) {
-                        $movement["movement"]->setLogisticUnitParent($packArticle?->getCurrentLogisticUnit());
-                    }
-
-                    $packArticle->setCurrentLogisticUnit(null);
-
-                    if($movement["success"]) {
-                        $newMovements[] = $movement["movement"];
-                    } else {
-                        return $movement;
-                    }
-                }
-                else if(in_array($trackingType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]) && $pack?->getChildArticles()?->count()) {
+                if(!$pickMvtOnArticleWithLU && in_array($trackingType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]) && $pack?->getChildArticles()?->count()) {
                     foreach($pack->getChildArticles() as $childArticle) {
                         /** @var TrackingMovement $movement */
                         $movement = $this->persistTrackingMovement(

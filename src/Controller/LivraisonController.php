@@ -35,6 +35,7 @@ use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use phpDocumentor\Reflection\Types\Collection;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,6 +46,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Throwable;
 use WiiCommon\Helper\Stream;
+use function PHPUnit\Framework\isEmpty;
 
 
 /**
@@ -86,37 +88,33 @@ class LivraisonController extends AbstractController {
                            EntityManagerInterface   $entityManager): Response {
         if ($livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER) {
             // get the logistic units to deliver
-            $articleLines = $livraison->getDemande()->getArticleLines();
-            $packs = stream::from($articleLines)
-                ->map(fn(DeliveryRequestArticleLine $line) => $line->getPack())
-                ->filter(fn(?Pack $pack) => $pack !== null)
-                ->unique()
+            $articlesId = Stream::from($livraison->getDemande()->getArticleLines())
+                ->map(fn(DeliveryRequestArticleLine $line) => $line->getArticle()->getId())
                 ->toArray();
 
-            // for each logistic unit, check if it is fully delivered
-            $notRequestedArticles = [];
-            foreach ($packs as $pack){
-                $packsArticles = $pack->getChildArticles()->toArray();
-                $deliverPacksArticles = stream::from($articleLines)
-                    ->filter(fn(DeliveryRequestArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() === $pack)
-                    ->map(fn(DeliveryRequestArticleLine $line) => $line->getArticle())
-                    ->toArray();
-                $notRequestedArticles += array_diff($packsArticles, $deliverPacksArticles);
-            }
+            $notRequestedArticles = Stream::from($livraison->getDemande()->getArticleLines())
+                ->keyMap(fn(DeliveryRequestArticleLine $line) => [
+                    $line->getPack()?->getCode(),
+                    $line->getPack()?->getChildArticles()?->toArray() ?: []
+                ])
+                ->map(function (array $articles) use ($articlesId) {
+                    return Stream::from($articles)
+                        ->filter(fn(Article $article) => !in_array($article->getId(), $articlesId))
+                        ->map(fn(Article $article) => [
+                            'barCode' => $article->getBarCode(),
+                            'label' => $article->getLabel(),
+                            'lu' => '<select class="ajax-autocomplete data w-100 form-control" name="logisticUnit" data-s2="pack" data-parent="body"></select>',
+                            'location' => '<select class="ajax-autocomplete data w-100 form-control" name="location" data-s2="location" data-parent="body"></select>',
+                        ])
+                        ->values();
+                })
+                ->filter()
+                ->toArray();
 
             if ( !empty($notRequestedArticles) ) {
-                $ArticlesNotRequestedByLu = [];
-                foreach ($notRequestedArticles as $article){
-                    $ArticlesNotRequestedByLu[$article->getCurrentLogisticUnit()->getCode()][] = [
-                        'barCode' => $article->getBarCode(),
-                        'label' => $article->getLabel(),
-                        'lu' => '<select class="ajax-autocomplete data w-100 form-control" name="logisticUnit" data-s2="pack" data-parent="body"></select>',
-                        'location' => '<select class="ajax-autocomplete data w-100 form-control" name="location" data-s2="location" data-parent="body"></select>',
-                    ];
-                }
                 return $this->json([
                     'success' => false,
-                    'tableArticlesNotRequestedDataBylu' => $ArticlesNotRequestedByLu,
+                    'tableArticlesNotRequestedDataBylu' => $notRequestedArticles,
                 ]);
             }
             else {

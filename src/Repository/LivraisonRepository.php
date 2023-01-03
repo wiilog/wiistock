@@ -426,7 +426,7 @@ class LivraisonRepository extends EntityRepository
 
         if($options['displayDeliveryOrderContent'] === 'displayLogisticUnitsCount') {
             $queryBuilder
-                ->select('COUNT(DISTINCT(join_article.currentLogisticUnit)) AS count');
+                ->select('COUNT(DISTINCT(join_article_lines.pack)) AS count');
         } else {
             $queryBuilder
                 ->select('COUNT(join_article.id) AS count')

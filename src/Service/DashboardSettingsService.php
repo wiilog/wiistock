@@ -1069,7 +1069,7 @@ class DashboardSettingsService {
                     $displayDeliveryOrderContentValue === 'displayLogisticUnitsCount'
                         ? '<span>Nombre d\'unités logistiques</span>'
                         : '<span>Nombre d\'articles</span>',
-                    '<span class="text-wii-black dashboard-stats dashboard-stats-counter">5</span>'
+                    '<span class="dashboard-stats dashboard-stats-counter">5</span>'
                 ];
             } else {
                 unset($values['subCounts']);
@@ -1096,6 +1096,7 @@ class DashboardSettingsService {
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {
             unset($values['delay']);
         }
+
         return $values;
     }
 
