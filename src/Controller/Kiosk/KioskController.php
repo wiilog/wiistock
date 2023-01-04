@@ -73,14 +73,15 @@ class KioskController extends AbstractController
             $article = $articleRepository->findOneBy(['barCode' => $scannedReference]);
             $reference = $article->getArticleFournisseur()->getReferenceArticle();
         } else {
-            $reference = $referenceArticleRepository->findOneBy(['barCode' => $scannedReference]) ?? new ReferenceArticle();
+            $reference = $referenceArticleRepository->findOneBy(['barCode' => $scannedReference])
+                ?? $referenceArticleRepository->findOneBy(['reference' => $scannedReference])
+                ?? new ReferenceArticle();
         }
         $freeField = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE) ? $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE)) : '';
-
         return $this->render('kiosk/form.html.twig', [
             'reference' => $reference,
             'scannedReference' => $scannedReference,
-            'freeField' => $reference?->getType() ? ($reference?->getType()?->getId() === $freeField?->getType()?->getId() ? $freeField : null) : $freeField,
+            'freeField' => $reference?->getType() && $freeField instanceof FreeField ? ($reference?->getType()?->getId() === $freeField?->getType()?->getId() ? $freeField : null) : $freeField,
             'inStock' => $reference?->getQuantiteStock() > 0,
             'article' => $article ?? null
         ]);

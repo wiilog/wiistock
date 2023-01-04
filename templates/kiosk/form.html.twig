@@ -212,6 +212,10 @@
         message: "Des champs obligatoires n'ont pas été renseignés, impossible de valider l'entrée de stock.",
         id: 'modal-missing-required-fields',
     }%}
+    {% include 'kiosk/modalWarning.html.twig' with {
+        message: setting_value('QUANTITY_ERROR_MESSAGE'),
+        id: 'modal-in-stock-warning',
+    }%}
 {% endblock %}
 
 {% block javascripts %}

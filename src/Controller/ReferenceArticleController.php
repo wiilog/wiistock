@@ -900,12 +900,14 @@ class ReferenceArticleController extends AbstractController
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
 
-        if(str_starts_with($request->query->get('scannedReference'), 'ART')){
-            $article = $articleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+        $scannedReference = $request->query->get('scannedReference');
+        if(str_starts_with($scannedReference, 'ART')){
+            $article = $articleRepository->findOneBy(['barCode' => $scannedReference]);
             $reference = $article->getArticleFournisseur()->getReferenceArticle();
         } else {
             $article = null;
-            $reference = $referenceArticleRepository->findOneBy(['barCode' => $request->query->get('scannedReference')]);
+            $reference = $referenceArticleRepository->findOneBy(['barCode' => $scannedReference])
+                ?? $referenceArticleRepository->findOneBy(['reference' => $scannedReference]);
         }
 
         return $this->json([
