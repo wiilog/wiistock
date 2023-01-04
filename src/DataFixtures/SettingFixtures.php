@@ -162,7 +162,15 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE => [
                 'default' => Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE
             ],
+            Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE => [
+                'default' => Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE
+            ],
+            Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [
+                'default' => Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE
+            ],
             Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE => [],
+            Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE => [],
+            Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [],
             Setting::DEFAULT_LOCATION_RECEPTION => [],
             Setting::DEFAULT_LOCATION_REFERENCE => [],
             Setting::DEFAULT_LOCATION_LIVRAISON => [

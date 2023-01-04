@@ -900,7 +900,11 @@ function withoutExtension(fileName) {
     return array[0];
 }
 
-function removeAttachment($elem) {
+function removeAttachment($elem, callback = null) {
+    console.log(callback);
+    if (callback) {
+        callback($elem);
+    }
     let deleted = false;
     let fileName = $elem.closest('.attachement').find('a').first().text().trim();
     $elem.closest('.attachement').remove();

@@ -15,7 +15,9 @@ class Setting {
     const DEFAULT_TOP_LEFT_VALUE = '/img/followGTblack.svg';
     const DEFAULT_LABEL_EXAMPLE_VALUE = '/img/exemple_etiquette_article.png';
 
-    const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = '/modele/waybill/template.dotx';
+    const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = '/modele/waybill/delivery_template.dotx';
+    const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE = '/modele/waybill/dispatch_template.dotx';
+    const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE = '/modele/waybill/dispatch_arrival_template.dotx';
 
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";
@@ -195,6 +197,14 @@ class Setting {
     const CUSTOM_DELIVERY_WAYBILL_TEMPLATE = "CUSTOM_DELIVERY_WAYBILL_TEMPLATE";
     const CUSTOM_DELIVERY_WAYBILL_TEMPLATE_FILE_NAME = "CUSTOM_DELIVERY_WAYBILL_TEMPLATE_FILE_NAME";
 
+    const DEFAULT_DISPATCH_WAYBILL_TEMPLATE = "DEFAULT_DISPATCH_WAYBILL_TEMPLATE";
+    const CUSTOM_DISPATCH_WAYBILL_TEMPLATE = "CUSTOM_DISPATCH_WAYBILL_TEMPLATE";
+    const CUSTOM_DISPATCH_WAYBILL_TEMPLATE_FILE_NAME = "CUSTOM_DISPATCH_WAYBILL_TEMPLATE_FILE_NAME";
+
+    const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE = "DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE";
+    const CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE = "CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE";
+    const CUSTOM_DISPATCH_WAYBILL_TEMPLATE_FILE_NAME_WITH_RUPTURE = "CUSTOM_DISPATCH_WAYBILL_TEMPLATE_FILE_NAME_WITH_RUPTURE";
+
     const QR_CODE = [
         "value" => false,
         "label" => 'QR Code',
@@ -245,34 +255,77 @@ class Setting {
     const TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE = 'TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE';
 
     const WAYBILL_VARIABLES = [
-        "Champs fixes livraison" => [
-            "numordreliv" => "numéro de l'ordre de livraison",
-            "qrcodenumordreliv" => "QR Code du numéro de l'ordre de livraison",
-            "typeliv" => "type de la livraison",
-            "demandeurliv" => "demandeur de la livraison",
-            "projetliv" => "numéro de projet de la livraison",
+        "delivery" => [
+            "Champs fixes livraison" => [
+                "numordreliv" => "numéro de l'ordre de livraison",
+                "qrcodenumordreliv" => "QR Code du numéro de l'ordre de livraison",
+                "typeliv" => "type de la livraison",
+                "demandeurliv" => "demandeur de la livraison",
+                "projetliv" => "numéro de projet de la livraison",
+            ],
+            "Champs formulaire lettre de voiture" => [
+                "dateacheminement" => "date renseignée dans le champ \"Date d'acheminement\" sur le formulaire de création de lettre de voiture",
+                "transporteur" => "chaîne de caractères renseignée dans le champ \"Transporteur\" sur le formulaire de création de lettre de voiture",
+                "expediteur" => "chaîne de caractères renseignée dans le champ \"Expéditeur\" sur le formulaire de création de lettre de voiture",
+                "destinataire" => "chaîne de caractères renseignée dans le champ \"Destinataire\" sur le formulaire de création de lettre de voiture",
+                "nomexpediteur" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
+                "telemailexpediteur" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
+                "nomdestinataire" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact destinataire\" sur le formulaire de création de lettre de voiture",
+                "telemaildestinataire" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact destinataire\" sur le formulaire de création delettre de voiture",
+            ],
+            "Champs Liste des unités logistiques acheminements" => [
+                "UL" => "code d'une unité logistiques contenue dans la livraison",
+                "nature" => "nature d'une unité logistique contenue dans la livraison",
+                "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
+                "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
+                "poids" => "poids d'une unité logistique contenue dans la livraison",
+                "poidstotal" => "total du poids des unités logistiques contenues dans la livraison",
+                "volume" => "volume d'une unité logistique contenue dans la livraison",
+                "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
+                "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
+            ],
         ],
-        "Champs formulaire lettre de voiture" => [
-            "dateacheminement" => "date renseignée dans le champ \"Date d'acheminement\" sur le formulaire de création de lettre de voiture",
-            "transporteur" => "chaîne de caractères renseignée dans le champ \"Transporteur\" sur le formulaire de création de lettre de voiture",
-            "expediteur" => "chaîne de caractères renseignée dans le champ \"Expéditeur\" sur le formulaire de création de lettre de voiture",
-            "destinataire" => "chaîne de caractères renseignée dans le champ \"Destinataire\" sur le formulaire de création de lettre de voiture",
-            "nomexpediteur" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
-            "telemailexpediteur" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
-            "nomdestinataire" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact destinataire\" sur le formulaire de création de lettre de voiture",
-            "telemaildestinataire" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact destinataire\" sur le formulaire de création delettre de voiture",
-        ],
-        "Champs Liste des unités logistiques livraison" => [
-            "UL" => "code d'une unité logistiques contenue dans la livraison",
-            "nature" => "nature d'une unité logistique contenue dans la livraison",
-            "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
-            "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
-            "poids" => "poids d'une unité logistique contenue dans la livraison",
-            "poidstotal" => "total du poids des unités logistiques contenues dans la livraison",
-            "volume" => "volume d'une unité logistique contenue dans la livraison",
-            "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
-            "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
-        ],
+        "dispatch" => [
+            "Champs fixes acheminement" => [
+                "numach" => "numéro de l'acheminement",
+                "qrcodenumach" => "QR Code du numéro de l'acheminement",
+                "typeach" => "type de l'acheminement",
+                "transporteurach" => "transporteur de l'acheminement",
+                "numtracktransach" => "numéro de tracking transporteur de l'acheminement",
+                "demandeurach" => "demandeur de l'acheminement",
+                "destinatairesach" => "destinataires de l'acheminement",
+                "numprojetach" => "numéro de projet de l'acheminement",
+                "numcommandeach" => "numéro de commande de l'acheminement ",
+                "date1ach" => "date d'échéance 1 de l'acheminement",
+                "date2ach" => "date d'échéance 2 de l'acheminement",
+            ],
+            "Champs formulaire lettre de voiture" => [
+                "dateacheminement" => "date renseignée dans le champ \"Date d'acheminement\" sur le formulaire de création de lettre de voiture",
+                "transporteur" => "chaîne de caractères renseignée dans le champ \"Transporteur\" sur le formulaire de création de lettre de voiture",
+                "expediteur" => "chaîne de caractères renseignée dans le champ \"Expéditeur\" sur le formulaire de création de lettre de voiture",
+                "destinataire" => "chaîne de caractères renseignée dans le champ \"Destinataire\" sur le formulaire de création de lettre de voiture",
+                "nomexpediteur" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
+                "telemailexpediteur" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
+                "nomdestinataire" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact destinataire\" sur le formulaire de création de lettre de voiture",
+                "telemaildestinataire" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact destinataire\" sur le formulaire de création delettre de voiture",
+            ],
+            "Champs Liste des unités logistiques livraison" => [
+                "UL" => "code d'une unité logistiques contenue dans la livraison",
+                "nature" => "nature d'une unité logistique contenue dans la livraison",
+                "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
+                "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
+                "poids" => "poids d'une unité logistique contenue dans la livraison",
+                "poidstotal" => "total du poids des unités logistiques contenues dans la livraison",
+                "volume" => "volume d'une unité logistique contenue dans la livraison",
+                "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
+                "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
+            ],
+            "Champs de l'arrivage de provenance des unités logistiques" => [
+                "numarrivage" => "numéro de l'arrivage dont est issue l'unité logistique",
+                "numcommandearrivage" => "numéros de commande de l'arrivage dont est issue l'unité logistique",
+                "tableauULarrivage" => "tableau contenant la liste des unités logistiques contenues dans l'arrivage de provenance. Le tableau contient les colonnes : Unité de tracking, Nature, Quantité, Poids",
+            ],
+        ]
     ];
 
     #[ORM\Id]

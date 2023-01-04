@@ -13,7 +13,7 @@
             <div class="attachment-item show" style="width: fit-content !important;">
                 <i class="fa fa-file-pdf mr-2"></i>
                 <a target="_blank" class="wii-small-text"
-                   href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ constant('App\\Entity\\Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE') }}"
+                   href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('DEFAULT_DELIVERY_WAYBILL_TEMPLATE') }}"
                    download="lettre_de_voiture_defaut">
                     lettre_de_voiture_defaut.dotx
                 </a>
@@ -24,12 +24,14 @@
             <div class="wii-field-name">Modèle personnalisé</div>
             <div class="custom-template-preview">
                 {% if setting_value('CUSTOM_DELIVERY_WAYBILL_TEMPLATE') %}
-                    <p class="attachement" style="width: fit-content !important;">
-                        <a class="wii-small-text" href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('CUSTOM_DELIVERY_WAYBILL_TEMPLATE') }}">
+                    <p class="attachement pointer" style="width: fit-content !important;">
+                        <a class="wii-small-text"
+                           download="{{ setting_value('CUSTOM_DELIVERY_WAYBILL_TEMPLATE_FILE_NAME') }}"
+                           href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('CUSTOM_DELIVERY_WAYBILL_TEMPLATE') }}">
                             <i class="fa fa-file-pdf mr-2"></i>{{ setting_value('CUSTOM_DELIVERY_WAYBILL_TEMPLATE_FILE_NAME') }}
                         </a>
                         <i class="fa fa-times red pointer ml-1 remove-attachment"
-                           onclick="removeAttachment($(this))"></i>
+                           onclick="removeAttachment($(this), deleteTemplate)"></i>
                     </p>
                 {% else %}
                     <span class="wii-small-text my-2">Aucun modèle personnalisé.</span>
@@ -53,7 +55,7 @@
 <div class="wii-section-title">Variables disponibles</div>
 <div class="wii-section">
     <div class="row">
-        {% for section, fields in constant('App\\Entity\\Setting::WAYBILL_VARIABLES') %}
+        {% for section, fields in constant('App\\Entity\\Setting::WAYBILL_VARIABLES')['delivery'] %}
             <div class="col-md-6 col-12">
                 <div class="wii-field-name">{{ section }}</div>
                 {% for variable, description in fields %}

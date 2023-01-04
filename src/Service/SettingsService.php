@@ -362,7 +362,9 @@ class SettingsService {
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],
             [Setting::FILE_SHIPMENT_NOTE_LOGO, null],
             [Setting::LABEL_LOGO, null],
-            [Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE, null]
+            [Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE, null],
+            [Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE, null],
+            [Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE, null],
         ];
 
         foreach ($logosToSave as [$settingLabel, $default]) {
