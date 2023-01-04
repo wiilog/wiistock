@@ -176,8 +176,35 @@ class LivraisonsManagerService
                     true,
                     TrackingMovement::TYPE_PRISE,
                     false,
-                    []
+                    ['delivery' => $livraison]
                 );
+
+                foreach ($pack->getChildArticles() as $article) {
+                    $this->trackingMovementService->persistTrackingMovement(
+                        $this->entityManager,
+                        $article->getBarCode(),
+                        $article->getEmplacement(),
+                        $user,
+                        $dateEnd,
+                        true,
+                        TrackingMovement::TYPE_PRISE,
+                        false,
+                        ['delivery' => $livraison]
+                    );
+
+                    $this->trackingMovementService->persistTrackingMovement(
+                        $this->entityManager,
+                        $article->getBarCode(),
+                        $nextLocation,
+                        $user,
+                        $dateEnd,
+                        true,
+                        TrackingMovement::TYPE_DEPOSE,
+                        false,
+                        ['delivery' => $livraison]
+                    );
+                }
+
                 $dropMovement = $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
                     $pack,
@@ -187,7 +214,7 @@ class LivraisonsManagerService
                     true,
                     TrackingMovement::TYPE_DEPOSE,
                     false,
-                    []
+                    ['delivery' => $livraison]
                 );
                 $pack
                     ->setLastDrop($dropMovement['movement'])
@@ -223,71 +250,6 @@ class LivraisonsManagerService
                 $movement->setDate($dateEnd);
                 if (isset($nextLocation)) {
                     $movement->setEmplacementTo($nextLocation);
-                }
-
-                $trackingMovementPick = $this->trackingMovementService->createTrackingMovement(
-                    $movement->getArticle()->getBarCode(),
-                    $movement->getEmplacementFrom(),
-                    $user,
-                    $dateEnd,
-                    false,
-                    true,
-                    TrackingMovement::TYPE_DEPOSE,
-                    [
-                        'mouvementStock' => $movement,
-                        'delivery' => $livraison,
-                    ],
-                );
-                $this->entityManager->persist($trackingMovementPick);
-
-                $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
-                    $movement->getArticle()->getBarCode(),
-                    $movement->getEmplacementTo(),
-                    $user,
-                    $dateEnd,
-                    false,
-                    true,
-                    TrackingMovement::TYPE_DEPOSE,
-                    [
-                        'mouvementStock' => $movement,
-                        'delivery' => $livraison,
-                    ],
-                );
-
-                $this->entityManager->persist($trackingMovementDrop);
-                $ulToMove[] = $movement->getArticle()?->getCurrentLogisticUnit();
-
-                $this->entityManager->flush();
-            }
-
-            if (isset($ulToMove)){
-                foreach (array_unique($ulToMove) as $lu) {
-                    if ($lu != null){
-                        $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
-                            $lu,
-                            $lu->getLastDrop()->getEmplacement(),
-                            $user,
-                            $dateEnd,
-                            true,
-                            true,
-                            TrackingMovement::TYPE_PRISE,
-                            [ 'delivery' => $livraison,]
-                        );
-                        $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
-                            $lu,
-                            $nextLocation,
-                            $user,
-                            $dateEnd,
-                            true,
-                            true,
-                            TrackingMovement::TYPE_DEPOSE,
-                            [ 'delivery' => $livraison,]
-                        );
-                        $this->entityManager->persist($pickTrackingMovement);
-                        $this->entityManager->persist($DropTrackingMovement);
-
-                        $lu->setLastDrop($DropTrackingMovement)->setLastTracking($DropTrackingMovement);
-                    }
                 }
             }
 

@@ -218,6 +218,16 @@ class PreparationsManagerService
             $article = $articleLine->getArticle();
             if ($articleLine->getPickedQuantity() > 0) {
                 $article->setEmplacement($emplacement);
+                $transferMovement = (new MouvementStock())
+                    ->setUser($userNomade)
+                    ->setArticle($article)
+                    ->setQuantity($articleLine->getPickedQuantity())
+                    ->setEmplacementFrom($article->getEmplacement())
+                    ->setEmplacementTo($emplacement)
+                    ->setType(MouvementStock::TYPE_TRANSFER)
+                    ->setDate(new DateTime('now'))
+                    ->setPreparationOrder($preparation);
+                $entityManager->persist($transferMovement);
             }
         }
 
