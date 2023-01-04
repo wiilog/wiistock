@@ -33,6 +33,7 @@ global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
+global.deleteTemplate = deleteTemplate;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -91,7 +92,8 @@ const initializers = {
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
     track_tournees: initializeTransportRound,
-    modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate
+    modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
+    modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate
 };
 
 const saveCallbacks = {
@@ -1104,17 +1106,18 @@ function initializeDeliveryWaybillTemplate() {
                         <i class="fa fa-file-pdf mr-2"></i>${name}
                     </a>
                     <i class="fa fa-times red pointer ml-1"
-                       onclick="removeAttachment($(this))"></i>
+                       onclick="removeAttachment($(this), deleteTemplate)"></i>
                 </p>
             `)
         } else {
             Flash.add(`danger`, `Veuillez sélectionner un fichier Microsoft Word valide.`)
         }
     });
+}
 
-    $(document).on(`click`, `.remove-attachment`, () => {
-        const $parent = $(`.custom-template`);
-        $parent.find(`.custom-template-preview`).html(`<span class="wii-small-text my-2">Aucun modèle personnalisé.</span>`);
-        $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
-    });
+function deleteTemplate($elem) {
+    const $parent = $elem.parents(`.custom-template`);
+    console.log($elem, $parent);
+    $parent.find(`.custom-template-preview`).html(`<span class="wii-small-text my-2">Aucun modèle personnalisé.</span>`);
+    $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
 }

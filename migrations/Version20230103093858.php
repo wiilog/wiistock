@@ -46,9 +46,14 @@ final class Version20230103093858 extends AbstractMigration
                 SELECT value
                 FROM setting
                 WHERE setting.label = '$dispatchWaybillSettings[$counter]'
-            ")->fetchFirstColumn()[0];
-            dump($value);
-            $this->addSql("INSERT INTO setting (label, value) VALUES ('$deliveryWaybillSetting', '$value')");
+            ")->fetchFirstColumn();
+
+            if (!empty($value)) {
+                $this->addSql("INSERT INTO setting (label, value) VALUES (':deliveryWaybillSetting', ':value')", [
+                    "deliveryWaybillSetting" => $deliveryWaybillSetting,
+                    "value" => $value[0],
+                ]);
+            }
         }
     }
 
