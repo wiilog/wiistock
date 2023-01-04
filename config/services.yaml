@@ -50,6 +50,9 @@ services:
     App\Service\Kiosk\KioskService:
         arguments:
             $barcodeGenerator: '@sgk_barcode.generator'
+    App\Service\Document\TemplateDocumentService:
+        arguments:
+            $barcodeGenerator: '@sgk_barcode.generator'
     App\Service\PDFGeneratorService:
         arguments:
             $PDFGenerator: '@knp_snappy.pdf'

@@ -164,6 +164,9 @@ class Setting {
 
     // document
     const DELIVERY_NOTE_LOGO = 'DELIVERY_NOTE_LOGO';
+
+
+//    TODO WIIS-8753 remove usage ?
     const FILE_WAYBILL_LOGO = 'WAYBILL_LOGO';
 
     // étiquettes
@@ -274,7 +277,10 @@ class Setting {
                 "nomexpediteur" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
                 "telemailexpediteur" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
                 "nomdestinataire" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact destinataire\" sur le formulaire de création de lettre de voiture",
-                "telemaildestinataire" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact destinataire\" sur le formulaire de création delettre de voiture",
+                "telemaildestinataire" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact destinataire\" sur le formulaire de création de lettre de voiture",
+                "note" => "chaîne de caractères renseignée dans le champ \"Note de bas de page\" sur le formulaire de création de lettre de voiture",
+                "lieuchargement" => "chaîne de caractères renseignée dans le champ \"Lieu de chargement\" sur le formulaire de création de lettre de voiture",
+                "lieudechargement" => "chaîne de caractères renseignée dans le champ \"Lieu de déchargement\" sur le formulaire de création de lettre de voiture",
             ],
             "Champs Liste des unités logistiques acheminements" => [
                 "UL" => "code d'une unité logistiques contenue dans la livraison",
@@ -282,7 +288,7 @@ class Setting {
                 "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
                 "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
                 "poids" => "poids d'une unité logistique contenue dans la livraison",
-                "poidstotal" => "total du poids des unités logistiques contenues dans la livraison",
+                "totalpoids" => "total du poids des unités logistiques contenues dans la livraison",
                 "volume" => "volume d'une unité logistique contenue dans la livraison",
                 "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
                 "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
@@ -311,6 +317,9 @@ class Setting {
                 "telemailexpediteur" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
                 "nomdestinataire" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact destinataire\" sur le formulaire de création de lettre de voiture",
                 "telemaildestinataire" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact destinataire\" sur le formulaire de création delettre de voiture",
+                "note" => "chaîne de caractères renseignée dans le champ \"Note de bas de page\" sur le formulaire de création de lettre de voiture",
+                "lieuchargement" => "chaîne de caractères renseignée dans le champ \"Lieu de chargement\" sur le formulaire de création de lettre de voiture",
+                "lieudechargement" => "chaîne de caractères renseignée dans le champ \"Lieu de déchargement\" sur le formulaire de création de lettre de voiture",
             ],
             "Champs Liste des unités logistiques livraison" => [
                 "UL" => "code d'une unité logistiques contenue dans la livraison",
@@ -318,7 +327,7 @@ class Setting {
                 "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
                 "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
                 "poids" => "poids d'une unité logistique contenue dans la livraison",
-                "poidstotal" => "total du poids des unités logistiques contenues dans la livraison",
+                "totalpoids" => "total du poids des unités logistiques contenues dans la livraison",
                 "volume" => "volume d'une unité logistique contenue dans la livraison",
                 "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
                 "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",

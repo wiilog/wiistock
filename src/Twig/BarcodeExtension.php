@@ -10,7 +10,7 @@ use SGK\BarcodeBundle\Generator\Generator as BarcodeGenerator;
 class BarcodeExtension extends AbstractExtension
 {
 
-    private $barcodeGenerator;
+    private BarcodeGenerator $barcodeGenerator;
 
     public function __construct(BarcodeGenerator $barcodeGenerator) {
         $this->barcodeGenerator = $barcodeGenerator;

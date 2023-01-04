@@ -24,7 +24,6 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
@@ -1352,69 +1351,50 @@ class DispatchController extends AbstractController {
      * )
      */
     public function postDispatchWaybill(EntityManagerInterface $entityManager,
-                                        Dispatch $dispatch,
-                                        PDFGeneratorService $pdf,
-                                        DispatchService $dispatchService,
-                                        Request $request,
-                                        TranslationService $translationService,
-                                        SpecificService $specificService): JsonResponse {
+                                        Dispatch               $dispatch,
+                                        DispatchService        $dispatchService,
+                                        Request                $request,
+                                        TranslationService     $translationService): JsonResponse {
 
         if($dispatch->getDispatchPacks()->count() > DispatchService::WAYBILL_MAX_PACK) {
             $message = $translationService->translate('Demande', 'Acheminements', 'Général', "Attention : L'acheminement contient plus de {1} unités logistiques, cette lettre de voiture ne peut contenir plus de {1} lignes.", [
                 1 => DispatchService::WAYBILL_MAX_PACK
             ]);
-            $success = false;
-        } else {
-            /** @var Utilisateur $loggedUser */
-            $loggedUser = $this->getUser();
 
-            $data = json_decode($request->getContent(), true);
+            return $this->json([
+                'success' => false,
+                'msg' => $message,
+            ]);
+        }
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
 
-            $userDataToSave = [];
-            $dispatchDataToSave = [];
-            foreach(array_keys(Dispatch::WAYBILL_DATA) as $wayBillKey) {
-                if(isset(Dispatch::WAYBILL_DATA[$wayBillKey])) {
-                    $value = $data[$wayBillKey] ?? null;
-                    $dispatchDataToSave[$wayBillKey] = $value;
-                    if(Dispatch::WAYBILL_DATA[$wayBillKey]) {
-                        $userDataToSave[$wayBillKey] = $value;
-                    }
+        $data = json_decode($request->getContent(), true);
+
+        $userDataToSave = [];
+        $dispatchDataToSave = [];
+        foreach(array_keys(Dispatch::WAYBILL_DATA) as $wayBillKey) {
+            if(isset(Dispatch::WAYBILL_DATA[$wayBillKey])) {
+                $value = $data[$wayBillKey] ?? null;
+                $dispatchDataToSave[$wayBillKey] = $value;
+                if(Dispatch::WAYBILL_DATA[$wayBillKey]) {
+                    $userDataToSave[$wayBillKey] = $value;
                 }
             }
-            $loggedUser->setSavedDispatchWaybillData($userDataToSave);
-            $dispatch->setWaybillData($dispatchDataToSave);
-
-            $entityManager->flush();
-
-            $message = 'Le téléchargement de votre lettre de voiture va commencer...';
-            $success = true;
         }
+        $loggedUser->setSavedDispatchWaybillData($userDataToSave);
+        $dispatch->setWaybillData($dispatchDataToSave);
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
+        $entityManager->flush();
 
-        $nowDate = new DateTime('now');
-
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
-
-        $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
-        $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch);
-
-        $wayBillAttachment = new Attachment();
-        $wayBillAttachment
-            ->setDispatch($dispatch)
-            ->setFileName($fileName)
-            ->setOriginalName($title . '.pdf');
-
-        $entityManager->persist($wayBillAttachment);
-
+        $wayBillAttachment = $dispatchService->persistNewWaybillAttachment($entityManager, $dispatch);
         $entityManager->flush();
 
         $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
 
         return new JsonResponse([
-            'success' => $success,
-            'msg' => $message,
+            'success' => true,
+            'msg' => 'Le téléchargement de votre lettre de voiture va commencer...',
             'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
                 'dispatch' => $dispatch,
                 'showDetails' => $detailsConfig,
@@ -1513,7 +1493,7 @@ class DispatchController extends AbstractController {
 
             $additionalField[] = [
                 "label" => "Flux",
-                "value" => $flow ? FormatHelper::freeField($freeFieldValues[$flow->getId()] ?? null, $flow) : null,
+                "value" => $flow ? $this->formatService->freeField($freeFieldValues[$flow->getId()] ?? null, $flow) : null,
             ];
 
             $requestType = current(array_filter($freeFields, function($field) {
@@ -1522,7 +1502,7 @@ class DispatchController extends AbstractController {
 
             $additionalField[] = [
                 "label" => "Type de demande",
-                "value" => $requestType ? FormatHelper::freeField($freeFieldValues[$requestType->getId()] ?? null, $requestType) : null,
+                "value" => $requestType ? $this->formatService->freeField($freeFieldValues[$requestType->getId()] ?? null, $requestType) : null,
             ];
         }
 

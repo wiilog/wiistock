@@ -266,6 +266,12 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::QUANTITY_ERROR_MESSAGE => [
                 'default' => 'La référence @reference est déjà en stock en quantité 1, vous ne pouvez donc pas faire une nouvelle entrée en stock pour cet article. Contactez GT au 8 45 65 pour plus d’informations.'
             ],
+            Setting::DISPATCH_USE_REGULAR_WAYBILL => [
+                'default' => 1
+            ],
+            Setting::DISPATCH_USE_RUPTURE_WAYBILL => [
+                'default' => 0
+            ],
         ];
 
         foreach ($globalParameterLabels as $globalParameterLabel => $values) {
