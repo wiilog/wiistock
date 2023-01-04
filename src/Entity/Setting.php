@@ -15,7 +15,7 @@ class Setting {
     const DEFAULT_TOP_LEFT_VALUE = '/img/followGTblack.svg';
     const DEFAULT_LABEL_EXAMPLE_VALUE = '/img/exemple_etiquette_article.png';
 
-    const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = '/modele/waybill/template.docx';
+    const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = '/modele/waybill/template.dotx';
 
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";
