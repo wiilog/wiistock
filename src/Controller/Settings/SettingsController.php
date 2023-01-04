@@ -462,6 +462,34 @@ class SettingsController extends AbstractController {
                 ],
             ],
         ],
+        self::CATEGORY_TEMPLATES => [
+            "label" => "Modèles de document",
+            "icon" => "menu-donnees",
+            "menus" => [
+                self::MENU_TEMPLATE_DISPATCH => [
+                    "label" => "Acheminements",
+                    "right" => Action::SETTINGS_DISPLAY_DISPATCH_TEMPLATE,
+                    "menus" => [
+                        self::MENU_TEMPLATE_DISTPACH_WAYBILL => [
+                            "label" => "Lettre de voiture",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                    ],
+                ],
+                self::MENU_TEMPLATE_DELIVERY => [
+                    "label" => "Livraisons",
+                    "right" => Action::SETTINGS_DISPLAY_DELIVERY_TEMPLATE,
+                    "menus" => [
+                        self::MENU_TEMPLATE_DELIVERY_WAYBILL => [
+                            "label" => "Lettre de voiture",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                    ],
+                ],
+            ],
+        ],
     ];
 
     public const CATEGORY_GLOBAL = "global";
@@ -474,6 +502,7 @@ class SettingsController extends AbstractController {
     public const CATEGORY_NOTIFICATIONS = "notifications";
     public const CATEGORY_USERS = "utilisateurs";
     public const CATEGORY_DATA = "donnees";
+    public const CATEGORY_TEMPLATES = "modeles";
 
     public const MENU_SITE_APPEARANCE = "apparence_site";
     public const MENU_WORKING_HOURS = "heures_travaillees";
@@ -538,6 +567,11 @@ class SettingsController extends AbstractController {
     public const MENU_CSV_EXPORTS = "exports_csv";
     public const MENU_IMPORTS = "imports";
     public const MENU_INVENTORIES_IMPORTS = "imports_inventaires";
+
+    public const MENU_TEMPLATE_DISPATCH = "acheminement";
+    public const MENU_TEMPLATE_DELIVERY = "livraison";
+    public const MENU_TEMPLATE_DISTPACH_WAYBILL = "lettre_de_voiture";
+    public const MENU_TEMPLATE_DELIVERY_WAYBILL = "lettre_de_voiture";
 
     /**
      * @Required

@@ -130,11 +130,10 @@ class SettingsService {
         $updated = [];
         $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
+        $this->manager->flush();
         $this->saveFiles($request, $settings, $allFormSettingNames, $updated);
-
         $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $updated);
         $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
-
         $this->clearSettings($settingToClear);
 
         $this->manager->flush();
@@ -374,6 +373,20 @@ class SettingsService {
                 }
             }
             $updated[] = $settingLabel;
+        }
+
+        foreach($request->request->all() as $key => $value) {
+            if (str_ends_with($key, '_DELETED')) {
+                $settingLabel = str_replace('_DELETED', '', $key);
+                $linkedLabel = $settingLabel . '_FILE_NAME';
+                $setting = $this->getSetting($settings, $settingLabel);
+                $linkedSetting = $this->getSetting($settings, $linkedLabel);
+                if ($value === "1") {
+                    $setting->setValue(null);
+                    $linkedSetting->setValue(null);
+                }
+                $updated[] = $settingLabel;
+            }
         }
     }
 
