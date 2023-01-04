@@ -1098,7 +1098,7 @@ function initializeDeliveryWaybillTemplate() {
         if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.template') {
             const name = file.name;
             const $parent = $(this).parent();
-
+            const deleted_name = $parent.data('name') + '_DELETED';
             $parent.find(`.custom-template-file-name`).val(name);
             $parent.find(`.custom-template-preview`).html(`
                 <p class="attachement" style="width: fit-content !important;">
@@ -1109,15 +1109,24 @@ function initializeDeliveryWaybillTemplate() {
                        onclick="removeAttachment($(this), deleteTemplate)"></i>
                 </p>
             `)
+            $(`input[name=${deleted_name}]`).val("0");
         } else {
             Flash.add(`danger`, `Veuillez sélectionner un fichier Microsoft Word valide.`)
         }
     });
+
+    $('.wii-checkbox').on('click', function() {
+        const $checkbox = $(this).find('input[type=checkbox]');
+        const check = $checkbox.is(':checked');
+        $('.wii-checkbox').find('input[type=checkbox]').prop("checked", !check);
+        $checkbox.prop('checked', check);
+    })
 }
 
 function deleteTemplate($elem) {
     const $parent = $elem.parents(`.custom-template`);
-    console.log($elem, $parent);
+    const name = $parent.data('name') + '_DELETED';
     $parent.find(`.custom-template-preview`).html(`<span class="wii-small-text my-2">Aucun modèle personnalisé.</span>`);
     $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
+    $(`input[name=${name}]`).val('1');
 }

@@ -130,11 +130,10 @@ class SettingsService {
         $updated = [];
         $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
+        $this->manager->flush();
         $this->saveFiles($request, $settings, $allFormSettingNames, $updated);
-
         $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $updated);
         $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
-
         $this->clearSettings($settingToClear);
 
         $this->manager->flush();
@@ -362,20 +361,32 @@ class SettingsService {
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],
             [Setting::FILE_SHIPMENT_NOTE_LOGO, null],
             [Setting::LABEL_LOGO, null],
-            [Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE, null],
-            [Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE, null],
-            [Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE, null],
         ];
 
         foreach ($logosToSave as [$settingLabel, $default]) {
             if (in_array($settingLabel, $allFormSettingNames)) {
                 $setting = $this->getSetting($settings, $settingLabel);
-                if (!$request->request->getBoolean('keep-' . $settingLabel)
+                if (isset($default)
+                    && !$request->request->getBoolean('keep-' . $settingLabel)
                     && !$request->files->has($settingLabel)) {
                     $setting->setValue($default);
                 }
             }
             $updated[] = $settingLabel;
+        }
+
+        foreach($request->request->all() as $key => $value) {
+            if (str_ends_with($key, '_DELETED')) {
+                $settingLabel = str_replace('_DELETED', '', $key);
+                $linkedLabel = $settingLabel . '_FILE_NAME';
+                $setting = $this->getSetting($settings, $settingLabel);
+                $linkedSetting = $this->getSetting($settings, $linkedLabel);
+                if ($value === "1") {
+                    $setting->setValue(null);
+                    $linkedSetting->setValue(null);
+                }
+                $updated[] = $settingLabel;
+            }
         }
     }
 

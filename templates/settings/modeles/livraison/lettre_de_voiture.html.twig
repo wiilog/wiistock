@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <div class="custom-template col-md-6 col-12 mt-3">
+        <div class="custom-template col-md-6 col-12 mt-3" data-name="{{ constant('App\\Entity\\Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE') }}">
             <div class="wii-field-name">Modèle personnalisé</div>
             <div class="custom-template-preview">
                 {% if setting_value('CUSTOM_DELIVERY_WAYBILL_TEMPLATE') %}
@@ -37,6 +37,7 @@
                     <span class="wii-small-text my-2">Aucun modèle personnalisé.</span>
                 {% endif %}
             </div>
+            <input type="hidden" class="data" name="{{ constant('App\\Entity\\Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE') ~ '_DELETED' }}" value="0">
             <button class="btn btn-primary load-custom-template mt-2 d-flex align-items-center">
                 <span class="wii-icon wii-icon-plus mr-2"></span>Charger un modèle
             </button>
@@ -47,6 +48,7 @@
                    hidden>
             <input type="hidden"
                    class="custom-template-file-name data"
+                   value="{{ setting_value('CUSTOM_DELIVERY_WAYBILL_TEMPLATE_FILE_NAME') }}"
                    name="{{ constant('App\\Entity\\Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE_FILE_NAME') }}">
         </div>
     </div>
