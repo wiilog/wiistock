@@ -1093,7 +1093,7 @@ function initializeDeliveryWaybillTemplate() {
     $(`.custom-template-file`).on(`change`, function () {
         const file = $(this)[0].files.length > 0 ? $(this)[0].files[0] : undefined;
         const link = $(this).val();
-        if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.template') {
             const name = file.name;
             const $parent = $(this).parent();
 

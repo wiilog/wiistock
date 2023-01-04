@@ -52,9 +52,9 @@
 
 <div class="wii-section-title">Variables disponibles</div>
 <div class="wii-section">
-    <div class="row">
+    <div class="d-block">
         {% for section, fields in constant('App\\Entity\\Setting::WAYBILL_VARIABLES') %}
-            <div class="col-md-6 col-12">
+            <div class="d-inline-block w-50 {{ loop.index == 2 ? 'float-right' }} {{ loop.index == 1 ? 'pr-2' }} {{ loop.index == 3 ? 'pr-2 mt-3' }}">
                 <div class="wii-field-name">{{ section }}</div>
                 {% for variable, description in fields %}
                     <div><span class="wii-body-text text-primary">{{ '${' ~ variable ~ '}' }}</span> : <span class="wii-body-text">{{ description }}</span></div>
