@@ -15,6 +15,8 @@ class Setting {
     const DEFAULT_TOP_LEFT_VALUE = '/img/followGTblack.svg';
     const DEFAULT_LABEL_EXAMPLE_VALUE = '/img/exemple_etiquette_article.png';
 
+    const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = '/modele/waybill/template.docx';
+
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";
 
@@ -45,6 +47,13 @@ class Setting {
     const MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST = "MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST";
     const SET_PREPARED_UPON_DELIVERY_VALIDATION = "SET_PREPARED_UPON_DELIVERY_VALIDATION";
     const MANAGE_PREPARATIONS_WITH_PLANNING = "MANAGE_PREPARATIONS_WITH_PLANNING";
+    const DELIVERY_WAYBILL_CARRIER = 'DELIVERY_WAYBILL_CARRIER';
+    const DELIVERY_WAYBILL_CONSIGNER = 'DELIVERY_WAYBILL_CONSIGNER';
+    const DELIVERY_WAYBILL_RECEIVER = 'DELIVERY_WAYBILL_RECEIVER';
+    const DELIVERY_WAYBILL_LOCATION_TO = 'DELIVERY_WAYBILL_LOCATION_TO';
+    const DELIVERY_WAYBILL_LOCATION_FROM = 'DELIVERY_WAYBILL_LOCATION_FROM';
+    const DELIVERY_WAYBILL_CONTACT_NAME = 'DELIVERY_WAYBILL_CONTACT_NAME';
+    const DELIVERY_WAYBILL_CONTACT_PHONE_OR_MAIL = 'DELIVERY_WAYBILL_CONTACT_PHONE_OR_MAIL';
 
     // collectes
     const MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST = 'MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST';
@@ -186,6 +195,11 @@ class Setting {
     const INCLUDE_BUSINESS_UNIT_IN_LABEL = "INCLURE_BUSINESS_UNIT_SUR_ETIQUETTE";
     const INCLUDE_PROJECT_IN_LABEL = "INCLUDE_PROJECT_IN_LABEL";
 
+    // modèles de document
+    const DEFAULT_DELIVERY_WAYBILL_TEMPLATE = "DEFAULT_DELIVERY_WAYBILL_TEMPLATE";
+    const CUSTOM_DELIVERY_WAYBILL_TEMPLATE = "CUSTOM_DELIVERY_WAYBILL_TEMPLATE";
+    const CUSTOM_DELIVERY_WAYBILL_TEMPLATE_FILE_NAME = "CUSTOM_DELIVERY_WAYBILL_TEMPLATE_FILE_NAME";
+
     const QR_CODE = [
         "value" => false,
         "label" => 'QR Code',
@@ -234,6 +248,37 @@ class Setting {
     const TRANSPORT_ROUND_HOURLY_BILLING_START_POINT = 'TRANSPORT_ROUND_HOURLY_BILLING_START_POINT';
     const TRANSPORT_ROUND_END_POINT = 'TRANSPORT_ROUND_END_POINT';
     const TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE = 'TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE';
+
+    const WAYBILL_VARIABLES = [
+        "Champs fixes livraison" => [
+            "numordreliv" => "numéro de l'ordre de livraison",
+            "qrcodenumordreliv" => "QR Code du numéro de l'ordre de livraison",
+            "typeliv" => "type de la livraison",
+            "demandeurliv" => "demandeur de la livraison",
+            "projetliv" => "numéro de projet de la livraison",
+        ],
+        "Champs formulaire lettre de voiture" => [
+            "dateacheminement" => "date renseignée dans le champ \"Date d'acheminement\" sur le formulaire de création de lettre de voiture",
+            "transporteur" => "chaîne de caractères renseignée dans le champ \"Transporteur\" sur le formulaire de création de lettre de voiture",
+            "expediteur" => "chaîne de caractères renseignée dans le champ \"Expéditeur\" sur le formulaire de création de lettre de voiture",
+            "destinataire" => "chaîne de caractères renseignée dans le champ \"Destinataire\" sur le formulaire de création de lettre de voiture",
+            "nomexpediteur" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
+            "telemailexpediteur" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
+            "nomdestinataire" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact destinataire\" sur le formulaire de création de lettre de voiture",
+            "telemaildestinataire" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact destinataire\" sur le formulaire de création delettre de voiture",
+        ],
+        "Champs Liste des unités logistiques livraison" => [
+            "UL" => "code d'une unité logistiques contenue dans la livraison",
+            "nature" => "nature d'une unité logistique contenue dans la livraison",
+            "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
+            "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
+            "poids" => "poids d'une unité logistique contenue dans la livraison",
+            "poidstotal" => "total du poids des unités logistiques contenues dans la livraison",
+            "volume" => "volume d'une unité logistique contenue dans la livraison",
+            "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
+            "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
+        ],
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

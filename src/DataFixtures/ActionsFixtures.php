@@ -27,6 +27,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_NOTIFICATIONS = 'modèles de notifications';
     const SUB_MENU_USERS = 'utilisateurs';
     const SUB_MENU_DATA = 'données';
+    const SUB_MENU_TEMPLATES = 'modèles';
     const SUB_MENU_PAGE = 'page';
     const SUB_MENU_TRACKING = 'track';
     const SUB_MENU_TRACING = 'trace';
@@ -318,6 +319,10 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_EXPORT,
                 Action::SETTINGS_DISPLAY_IMPORTS_MAJS,
                 Action::SETTINGS_DISPLAY_INVENTORIES_IMPORT
+            ],
+            self::SUB_MENU_TEMPLATES => [
+                Action::SETTINGS_DISPLAY_DISPATCH_TEMPLATE,
+                Action::SETTINGS_DISPLAY_DELIVERY_TEMPLATE,
             ],
         ],
         Menu::NOMADE => [

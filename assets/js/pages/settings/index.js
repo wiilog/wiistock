@@ -91,6 +91,7 @@ const initializers = {
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
     track_tournees: initializeTransportRound,
+    modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate
 };
 
 const saveCallbacks = {
@@ -165,7 +166,6 @@ $(function() {
         const config = {ignored: `[data-table-processing]`,};
 
         const data = Form.process(form.element, config);
-
         let hasErrors = false;
         if(data) {
             const fieldNames = Form.getFieldNames(form.element, config);
@@ -1139,4 +1139,39 @@ function verifyAlreadyDefineTypes(select2) {
     if ($handlingTypeContainer.length >= $types.length) {
         $('.add-row-type').attr("disabled", true);
     }
+}
+
+function initializeDeliveryWaybillTemplate() {
+    $(`.load-custom-template`).on(`click`, function () {
+        $(this).parent().find(`.custom-template-file`).click();
+    });
+
+    $(`.custom-template-file`).on(`change`, function () {
+        const file = $(this)[0].files.length > 0 ? $(this)[0].files[0] : undefined;
+        const link = $(this).val();
+        if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            console.log(file);
+            const name = file.name;
+            const $parent = $(this).parent();
+
+            $parent.find(`.custom-template-file-name`).val(name);
+            $parent.find(`.custom-template-preview`).html(`
+                <p class="attachement" style="width: fit-content !important;">
+                    <a class="wii-small-text" href="${link}" download="test">
+                        <i class="fa fa-file-pdf mr-2"></i>${name}
+                    </a>
+                    <i class="fa fa-times red pointer ml-1"
+                       onclick="removeAttachment($(this))"></i>
+                </p>
+            `)
+        } else {
+            Flash.add(`danger`, `Veuillez sélectionner un fichier Microsoft Word valide.`)
+        }
+    });
+
+    $(document).on(`click`, `.remove-attachment`, () => {
+        const $parent = $(`.custom-template`);
+        $parent.find(`.custom-template-preview`).html(`<span class="wii-small-text my-2">Aucun modèle personnalisé.</span>`);
+        $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
+    });
 }

@@ -165,6 +165,9 @@ class Action {
     const SETTINGS_DISPLAY_IMPORTS_MAJS = 'afficher imports & mises à jour';
     const SETTINGS_DISPLAY_INVENTORIES_IMPORT = "afficher imports d'inventaires";
 
+    const SETTINGS_DISPLAY_DISPATCH_TEMPLATE = "afficher acheminements";
+    const SETTINGS_DISPLAY_DELIVERY_TEMPLATE = "afficher livraisons";
+
     // menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';
     const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
