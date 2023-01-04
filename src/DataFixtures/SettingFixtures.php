@@ -159,6 +159,10 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::FILE_MOBILE_LOGO_HEADER => [
                 'default' => Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE
             ],
+            Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE => [
+                'default' => Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE
+            ],
+            Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE => [],
             Setting::DEFAULT_LOCATION_RECEPTION => [],
             Setting::DEFAULT_LOCATION_REFERENCE => [],
             Setting::DEFAULT_LOCATION_LIVRAISON => [

@@ -502,7 +502,7 @@ class SettingsController extends AbstractController {
     public const CATEGORY_NOTIFICATIONS = "notifications";
     public const CATEGORY_USERS = "utilisateurs";
     public const CATEGORY_DATA = "donnees";
-    public const CATEGORY_TEMPLATES = "templates";
+    public const CATEGORY_TEMPLATES = "modeles";
 
     public const MENU_SITE_APPEARANCE = "apparence_site";
     public const MENU_WORKING_HOURS = "heures_travaillees";
@@ -568,10 +568,10 @@ class SettingsController extends AbstractController {
     public const MENU_IMPORTS = "imports";
     public const MENU_INVENTORIES_IMPORTS = "imports_inventaires";
 
-    public const MENU_TEMPLATE_DISPATCH = "dispatch_template";
-    public const MENU_TEMPLATE_DELIVERY = "delivery_template";
-    public const MENU_TEMPLATE_DISTPACH_WAYBILL = "dispatch_template_waybill";
-    public const MENU_TEMPLATE_DELIVERY_WAYBILL = "delivery_template_waybill";
+    public const MENU_TEMPLATE_DISPATCH = "acheminement";
+    public const MENU_TEMPLATE_DELIVERY = "livraison";
+    public const MENU_TEMPLATE_DISTPACH_WAYBILL = "lettre_de_voiture";
+    public const MENU_TEMPLATE_DELIVERY_WAYBILL = "lettre_de_voiture";
 
     /**
      * @Required

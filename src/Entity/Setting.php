@@ -15,6 +15,8 @@ class Setting {
     const DEFAULT_TOP_LEFT_VALUE = '/img/followGTblack.svg';
     const DEFAULT_LABEL_EXAMPLE_VALUE = '/img/exemple_etiquette_article.png';
 
+    const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = '/modele/waybill/template.docx';
+
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";
 
@@ -181,6 +183,11 @@ class Setting {
     const CL_USED_IN_LABELS = "CL_USED_IN_LABELS";
     const INCLUDE_BUSINESS_UNIT_IN_LABEL = "INCLURE_BUSINESS_UNIT_SUR_ETIQUETTE";
 
+    // modèles de document
+    const DEFAULT_DELIVERY_WAYBILL_TEMPLATE = "DEFAULT_DELIVERY_WAYBILL_TEMPLATE";
+    const CUSTOM_DELIVERY_WAYBILL_TEMPLATE = "CUSTOM_DELIVERY_WAYBILL_TEMPLATE";
+    const CUSTOM_DELIVERY_WAYBILL_TEMPLATE_FILE_NAME = "CUSTOM_DELIVERY_WAYBILL_TEMPLATE_FILE_NAME";
+
     const QR_CODE = [
         "value" => false,
         "label" => 'QR Code',
@@ -229,6 +236,37 @@ class Setting {
     const TRANSPORT_ROUND_HOURLY_BILLING_START_POINT = 'TRANSPORT_ROUND_HOURLY_BILLING_START_POINT';
     const TRANSPORT_ROUND_END_POINT = 'TRANSPORT_ROUND_END_POINT';
     const TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE = 'TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE';
+
+    const WAYBILL_VARIABLES = [
+        "Champs fixes livraison" => [
+            "numordreliv" => "numéro de l'ordre de livraison",
+            "qrcodenumordreliv" => "QR Code du numéro de l'ordre de livraison",
+            "typeliv" => "type de la livraison",
+            "demandeurliv" => "demandeur de la livraison",
+            "projetliv" => "numéro de projet de la livraison",
+        ],
+        "Champs formulaire lettre de voiture" => [
+            "dateacheminement" => "date renseignée dans le champ \"Date d'acheminement\" sur le formulaire de création de lettre de voiture",
+            "transporteur" => "chaîne de caractères renseignée dans le champ \"Transporteur\" sur le formulaire de création de lettre de voiture",
+            "expediteur" => "chaîne de caractères renseignée dans le champ \"Expéditeur\" sur le formulaire de création de lettre de voiture",
+            "destinataire" => "chaîne de caractères renseignée dans le champ \"Destinataire\" sur le formulaire de création de lettre de voiture",
+            "nomexpediteur" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
+            "telemailexpediteur" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
+            "nomdestinataire" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact destinataire\" sur le formulaire de création de lettre de voiture",
+            "telemaildestinataire" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact destinataire\" sur le formulaire de création delettre de voiture",
+        ],
+        "Champs Liste des unités logistiques livraison" => [
+            "UL" => "code d'une unité logistiques contenue dans la livraison",
+            "nature" => "nature d'une unité logistique contenue dans la livraison",
+            "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
+            "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
+            "poids" => "poids d'une unité logistique contenue dans la livraison",
+            "poidstotal" => "total du poids des unités logistiques contenues dans la livraison",
+            "volume" => "volume d'une unité logistique contenue dans la livraison",
+            "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
+            "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
+        ],
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

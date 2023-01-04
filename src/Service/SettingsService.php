@@ -362,13 +362,13 @@ class SettingsService {
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],
             [Setting::FILE_SHIPMENT_NOTE_LOGO, null],
             [Setting::LABEL_LOGO, null],
+            [Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE, null]
         ];
 
         foreach ($logosToSave as [$settingLabel, $default]) {
             if (in_array($settingLabel, $allFormSettingNames)) {
                 $setting = $this->getSetting($settings, $settingLabel);
-                if (isset($default)
-                    && !$request->request->getBoolean('keep-' . $settingLabel)
+                if (!$request->request->getBoolean('keep-' . $settingLabel)
                     && !$request->files->has($settingLabel)) {
                     $setting->setValue($default);
                 }
