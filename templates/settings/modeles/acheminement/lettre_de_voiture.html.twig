@@ -1,4 +1,6 @@
 {% import 'form.html.twig' as form %}
+{% import 'settings/modeles/variables-section.html.twig' as macro %}
+
 
 <div class="wii-section-title">Choix du modèle</div>
 <div class="wii-section">
@@ -14,7 +16,7 @@
             <span class="wii-field-name">Modèle par défaut</span>
             <div class="attachment-item show" style="width: fit-content !important;">
                 <i class="fa fa-file-pdf mr-2"></i>
-                <a target="_blank" class="wii-small-text"
+                <a class="wii-small-text"
                    href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('DEFAULT_DISPATCH_WAYBILL_TEMPLATE') }}"
                    download="lettre_de_voiture_defaut.dotx">
                     lettre_de_voiture_defaut.dotx
@@ -60,7 +62,7 @@
             <span class="wii-field-name">Modèle par défaut</span>
             <div class="attachment-item show" style="width: fit-content !important;">
                 <i class="fa fa-file-pdf mr-2"></i>
-                <a target="_blank" class="wii-small-text"
+                <a class="wii-small-text"
                    href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE') }}"
                    download="lettre_de_voiture_defaut_with_rupture.dotx">
                     lettre_de_voiture_defaut_rupture.dotx
@@ -105,14 +107,17 @@
 <div class="wii-section-title">Variables disponibles</div>
 <div class="wii-section">
     <div class="row">
-        {% for section, fields in constant('App\\Entity\\Setting::WAYBILL_VARIABLES')['dispatch'] %}
-            <div class="col-md-6 col-12">
-                <div class="wii-field-name">{{ section }}</div>
-                {% for variable, description in fields %}
-                    <div><span class="wii-body-text text-primary">{{ '${' ~ variable ~ '}' }}</span> : <span class="wii-body-text">{{ description }}</span></div>
-                {% endfor %}
-            </div>
-        {% endfor %}
+        {% set sections = constant('App\\Entity\\Setting::WAYBILL_VARIABLES')['dispatch'] %}
+        <div class="col-lg-6 col-12">
+            {% for section, fields in sections|slice(0, 2) %}
+                {{ macro.variablesSection(section, fields) }}
+            {% endfor %}
+        </div>
+        <div class="col-lg-6 col-12">
+            {% for section, fields in sections|slice(2, 2) %}
+                {{ macro.variablesSection(section, fields) }}
+            {% endfor %}
+        </div>
     </div>
 </div>
 <div class="wii-section-title">Champs par défaut</div>
