@@ -903,31 +903,6 @@ class DispatchService {
         ];
     }
 
-    public function getWaybillData(Dispatch $dispatch): array {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
-
-        $packs = Stream::from($dispatch->getDispatchPacks())
-            ->map(fn(DispatchPack $dispatchPack) => [
-                'quantity' => $dispatchPack->getQuantity(),
-                'code' => $dispatchPack->getPack()->getCode(),
-                'weight' => $dispatchPack->getPack()->getWeight(),
-                'volume' => $dispatchPack->getPack()->getVolume(),
-                'comment' => $dispatchPack->getPack()->getComment(),
-                'nature' => $this->formatService->nature($dispatchPack->getPack()->getNature(), "", $this->userService->getUser())
-            ])->toArray();
-
-        $now = new DateTime();
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
-
-        $name = "LDV - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
-
-        return [
-            'file' => $this->PDFGeneratorService->generatePDFWaybill($name, $logo, $dispatch, $packs),
-            'name' => $name
-        ];
-    }
-
     public function getDeliveryNoteData(Dispatch $dispatch): array {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
