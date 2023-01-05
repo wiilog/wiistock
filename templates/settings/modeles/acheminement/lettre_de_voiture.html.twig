@@ -10,7 +10,11 @@
             <span class="wii-small-text">Si aucun modèle personnalisé n'est paramétré, le modèle par défaut sera automatiquement utilisé pour générer la lettre de voiture.</span>
         </div>
         <div class="col-12 mb-1 mt-2">
-            {{ form.checkbox(setting('DISPATCH_USE_REGULAR_WAYBILL'), 'Modèle standard', false, setting_value('DISPATCH_USE_REGULAR_WAYBILL')) }}
+            {{ form.radio(setting('DISPATCH_WAYBILL_TYPE_TO_USE'), null, false, [{
+                label: 'Modèle standard',
+                value: setting('DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD'),
+                checked: setting_value('DISPATCH_WAYBILL_TYPE_TO_USE') == setting('DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD')
+            }]) }}
         </div>
         <div class="default-template col-md-6 col-12 mt-3">
             <span class="wii-field-name">Modèle par défaut</span>
@@ -56,7 +60,11 @@
                    name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_FILE_NAME') }}">
         </div>
         <div class="col-12 my-1">
-            {{ form.checkbox(setting('DISPATCH_USE_RUPTURE_WAYBILL'), 'Modèle avec rupture à l\'arrivage', false, setting_value('DISPATCH_USE_RUPTURE_WAYBILL')) }}
+            {{ form.radio(setting('DISPATCH_WAYBILL_TYPE_TO_USE'), null, false, [{
+                label: 'Modèle avec rupture à l\'arrivage',
+                value: setting('DISPATCH_WAYBILL_TYPE_TO_USE_RUPTURE'),
+                checked: setting_value('DISPATCH_WAYBILL_TYPE_TO_USE') == setting('DISPATCH_WAYBILL_TYPE_TO_USE_RUPTURE')
+            }]) }}
         </div>
         <div class="default-template col-md-6 col-12 mt-3">
             <span class="wii-field-name">Modèle par défaut</span>
