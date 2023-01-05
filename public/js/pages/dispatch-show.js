@@ -30,7 +30,8 @@ $(function() {
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
     let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: dispatchId}, true);
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
-        success: ({attachmentId}) => {
+        success: ({attachmentId, headerDetailsConfig}) => {
+            $(`.zone-entete`).html(headerDetailsConfig);
             window.location.href = Routing.generate('print_delivery_note_dispatch', {
                 dispatch: dispatchId,
                 attachment: attachmentId,
@@ -43,7 +44,8 @@ $(function() {
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: dispatchId}, true);
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
-        success: ({attachmentId}) => {
+        success: ({attachmentId, headerDetailsConfig}) => {
+            $(`.zone-entete`).html(headerDetailsConfig);
             window.location.href = Routing.generate('print_waybill_dispatch', {
                 dispatch: dispatchId,
                 attachment: attachmentId,
@@ -119,51 +121,62 @@ function openTreatDispatchModal() {
     $modal.modal('show');
 }
 
-function runDispatchPrint() {
+function runDispatchPrint($button) {
     const dispatchId = $('#dispatchId').val();
-    $.get({
-        url: Routing.generate('get_dispatch_packs_counter', {dispatch: dispatchId}),
-    })
-        .then(function({packsCounter}) {
-            if(!packsCounter) {
-                showBSAlert('Vous ne pouvez pas imprimer un acheminement sans colis', 'danger');
-            } else {
-                window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
-            }
-        });
+
+    wrapLoadingOnActionButton($button, () => (
+        AJAX.route(`GET`, `get_dispatch_packs_counter`, {dispatch: dispatchId})
+            .json()
+            .then(({packsCounter}) => {
+                if (!packsCounter) {
+                    showBSAlert('Vous ne pouvez pas imprimer un acheminement sans colis', 'danger');
+                } else {
+                    AJAX.route(`GET`, `dispatch_note`, {dispatch: dispatchId})
+                        .json()
+                        .then(({success, headerDetailsConfig}) => {
+                            if (success) {
+                                $(`.zone-entete`).html(headerDetailsConfig);
+                                window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
+                            }
+                        });
+                }
+            })));
 }
 
 function openDeliveryNoteModal($button, fromDelivery = false) {
     const dispatchId = $button.data('dispatch-id');
-    $
-        .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId, fromDelivery}))
-        .then((result) => {
-            if(result.success) {
-                const $modal = $('#modalPrintDeliveryNote');
-                const $modalBody = $modal.find('.modal-body');
-                $modalBody.html(result.html);
-                $modal.modal('show');
 
-                $('select[name=buyer]').on('change', function (){
-                    const data = $(this).select2('data');
-                    if(data.length > 0){
-                        const {fax, phoneNumber, address} = data[0];
-                        const $modal = $(this).closest('.modal');
-                        if(fax){
-                            $modal.find('input[name=buyerFax]').val(fax);
+    wrapLoadingOnActionButton($button, () => (
+        AJAX.route(`GET`, `api_delivery_note_dispatch`, {dispatch: dispatchId, fromDelivery})
+            .json()
+            .then((result) => {
+                if (result.success) {
+                    const $modal = $('#modalPrintDeliveryNote');
+                    const $modalBody = $modal.find('.modal-body');
+                    $modalBody.html(result.html);
+                    $modal.modal('show');
+
+                    $('select[name=buyer]').on('change', function () {
+                        const data = $(this).select2('data');
+                        if (data.length > 0) {
+                            const {fax, phoneNumber, address} = data[0];
+                            const $modal = $(this).closest('.modal');
+                            if (fax) {
+                                $modal.find('input[name=buyerFax]').val(fax);
+                            }
+                            if (phoneNumber) {
+                                $modal.find('input[name=buyerPhone]').val(phoneNumber);
+                            }
+                            if (address) {
+                                $modal.find('[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo] ').val(address);
+                            }
                         }
-                        if(phoneNumber){
-                            $modal.find('input[name=buyerPhone]').val(phoneNumber);
-                        }
-                        if(address){
-                            $modal.find('[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo] ').val(address);
-                        }
-                    }
-                });
-            } else {
-                showBSAlert(result.msg, "danger");
-            }
-        });
+                    });
+                } else {
+                    showBSAlert(result.msg, "danger");
+                }
+            })
+    ))
 }
 
 function openWaybillModal($button) {

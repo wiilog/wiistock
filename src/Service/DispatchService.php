@@ -91,6 +91,9 @@ class DispatchService {
     #[Required]
     public SpecificService $specificService;
 
+    #[Required]
+    public PDFGeneratorService $PDFGeneratorService;
+
     private ?array $freeFieldsConfig = null;
 
     public function getDataForDatatable(InputBag $params) {
@@ -856,6 +859,99 @@ class DispatchService {
             $this->CSVExportService->putLine($handle, $row);
         }
 
+    }
+
+    public function getOverconsumptionBillData(Dispatch $dispatch): array {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
+
+        $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
+        $overConsumptionLogo = $settingRepository->getOneParamByLabel(Setting::FILE_OVERCONSUMPTION_LOGO);
+
+        $additionalField = [];
+        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS_VERNON)) {
+            $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
+            $freeFieldValues = $dispatch->getFreeFields();
+
+            $flow = current(array_filter($freeFields, function($field) {
+                return $field->getLabel() === "Flux";
+            }));
+
+            $additionalField[] = [
+                "label" => "Flux",
+                "value" => $flow ? $this->formatService->freeField($freeFieldValues[$flow->getId()] ?? null, $flow) : null,
+            ];
+
+            $requestType = current(array_filter($freeFields, function($field) {
+                return $field->getLabel() === "Type de demande";
+            }));
+
+            $additionalField[] = [
+                "label" => "Type de demande",
+                "value" => $requestType ? $this->formatService->freeField($freeFieldValues[$requestType->getId()] ?? null, $requestType) : null,
+            ];
+        }
+
+        $now = new DateTime();
+        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+
+        $name = "BS - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+
+        return [
+            'file' => $this->PDFGeneratorService->generatePDFOverconsumption($dispatch, $appLogo, $overConsumptionLogo, $additionalField),
+            'name' => $name
+        ];
+    }
+
+    public function getWaybillData(Dispatch $dispatch): array {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
+
+        $packs = Stream::from($dispatch->getDispatchPacks())
+            ->map(fn(DispatchPack $dispatchPack) => [
+                'quantity' => $dispatchPack->getQuantity(),
+                'code' => $dispatchPack->getPack()->getCode(),
+                'weight' => $dispatchPack->getPack()->getWeight(),
+                'volume' => $dispatchPack->getPack()->getVolume(),
+                'comment' => $dispatchPack->getPack()->getComment(),
+                'nature' => $this->formatService->nature($dispatchPack->getPack()->getNature(), "", $this->userService->getUser())
+            ])->toArray();
+
+        $now = new DateTime();
+        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+
+        $name = "LDV - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+
+        return [
+            'file' => $this->PDFGeneratorService->generatePDFWaybill($name, $logo, $dispatch, $packs),
+            'name' => $name
+        ];
+    }
+
+    public function getDeliveryNoteData(Dispatch $dispatch): array {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
+        $now = new DateTime();
+        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+
+        $name = "BL - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+
+        return [
+            'file' => $this->PDFGeneratorService->generatePDFDeliveryNote($name, $logo, $dispatch),
+            'name' => $name
+        ];
+    }
+
+    public function getDispatchNoteData(Dispatch $dispatch): array {
+        $now = new DateTime();
+        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+
+        $name = "BA - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+
+        return [
+            'file' => $this->PDFGeneratorService->generatePDFDispatchNote($dispatch),
+            'name' => $name
+        ];
     }
 
     public function persistNewWaybillAttachment(EntityManagerInterface $entityManager,

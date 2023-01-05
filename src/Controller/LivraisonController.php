@@ -528,7 +528,7 @@ class LivraisonController extends AbstractController {
 
         $title = "BL - {$deliveryOrder->getNumero()} - $client - {$now->format('dmYHis')}";
 
-        $fileName = $PDFGeneratorService->generatePDFDeliveryNote($title, $logo, $deliveryOrder, $packs);
+        $fileName = $PDFGeneratorService->generatePDFDeliveryNote($title, $logo, $deliveryOrder);
 
         $deliveryNoteAttachment = new Attachment();
         $deliveryNoteAttachment
@@ -567,18 +567,17 @@ class LivraisonController extends AbstractController {
             ]);
         }
 
-        $fileName = uniqid() . '.pdf';
         $settingRepository = $entityManager->getRepository(Setting::class);
         $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
 
         $nowDate = new DateTime('now');
         $client = SpecificService::CLIENTS[$specificService->getAppClient()];
 
-        $documentTitle = "BL - {$deliveryOrder->getNumero()} - {$client} - {$nowDate->format('dmYHis')}";
+        $title = "BL - {$deliveryOrder->getNumero()} - $client - {$nowDate->format('dmYHis')}";
 
         return new PdfResponse(
-            $pdfService->generatePDFDeliveryNote($documentTitle, $logo, $deliveryOrder),
-            $fileName
+            $pdfService->generatePDFDeliveryNote($title, $logo, $deliveryOrder),
+            "$title.pdf"
         );
     }
 
