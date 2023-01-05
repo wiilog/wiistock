@@ -56,6 +56,7 @@ use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
 use App\Service\PackService;
 use App\Service\PreparationsManagerService;
+use App\Service\ProjectHistoryRecordService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
@@ -424,6 +425,7 @@ class MobileController extends AbstractApiController
                                        ExceptionLoggerService  $exceptionLoggerService,
                                        TrackingMovementService $trackingMovementService,
                                        FreeFieldService        $freeFieldService,
+                                       ProjectHistoryRecordService    $projectHistoryRecordService,
                                        AttachmentService       $attachmentService,
                                        EntityManagerInterface  $entityManager)
     {
@@ -448,6 +450,7 @@ class MobileController extends AbstractApiController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $packRepository = $entityManager->getRepository(Pack::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
 
         $mustReloadLocation = false;
@@ -462,13 +465,13 @@ class MobileController extends AbstractApiController
                 ->toArray()
             : [];
 
-        dump($mouvementsNomade);
         foreach ($mouvementsNomade as $index => $mvt) {
-            dump($mvt);
             $invalidLocationTo = '';
             try {
                 $entityManager->transactional(function ()
                 use (
+                    $projectHistoryRecordService,
+                    $projectRepository,
                     $freeFieldService,
                     $mouvementStockService,
                     &$numberOfRowsInserted,
@@ -501,6 +504,7 @@ class MobileController extends AbstractApiController
                             'uniqueIdForMobile' => $mvt['date'],
                             'entityManager' => $entityManager,
                             'quantity' => $mvt['quantity'],
+                            'commentaire' => isset($mvt['comment']) ? $mvt['comment'] : '',
                         ];
 
                         /** @var Statut $type */
@@ -518,8 +522,15 @@ class MobileController extends AbstractApiController
                         //mouvement de stock sur l'UL donc on ignore la partie stock et
                         //on créé juste un mouvement de prise sur l'UL et ses articles
                         if($pack) {
-                            dump('IN IF');
-                            // TODO rajouter le commentaire et changer le projet de tout les childArticles
+                            if(isset($mvt['projectId']) && $type->getCode() === TrackingMovement::TYPE_PRISE){
+                                $project = $projectRepository->find($mvt['projectId']);
+                                $projectHistoryRecordService->changeProject($entityManager, $pack, $project, $date);
+
+                                foreach($pack->getChildArticles() as $article) {
+                                    $projectHistoryRecordService->changeProject($entityManager, $article, $project, $date);
+                                }
+                            }
+
                             $packMvt = $trackingMovementService->treatLUPicking(
                                 $pack,
                                 $location,
@@ -544,6 +555,21 @@ class MobileController extends AbstractApiController
                                 $emptyGroups,
                                 $numberOfRowsInserted
                             );
+
+                            $signatureFile = $request->files->get("signature_$index");
+                            $photoFile = $request->files->get("photo_$index");
+                            $fileNames = [];
+                            if (!empty($signatureFile)) {
+                                $fileNames = array_merge($fileNames, $attachmentService->saveFile($signatureFile));
+                            }
+                            if (!empty($photoFile)) {
+                                $fileNames = array_merge($fileNames, $attachmentService->saveFile($photoFile));
+                            }
+                            $attachments = $attachmentService->createAttachements($fileNames);
+                            foreach ($attachments as $attachment) {
+                                $entityManager->persist($attachment);
+                                $packMvt->addAttachment($attachment);
+                            }
                             $entityManager->persist($packMvt);
                             $entityManager->flush();
                         } else { //cas mouvement stock classique sur un article ou une ref
