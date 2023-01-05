@@ -93,9 +93,6 @@ class DispatchService {
     #[Required]
     public SpecificService $specificService;
 
-    #[Required]
-    public PDFGeneratorService $PDFGeneratorService;
-
     private ?array $freeFieldsConfig = null;
 
     public function getDataForDatatable(InputBag $params) {
