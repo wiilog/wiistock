@@ -917,7 +917,7 @@ class ReferenceArticleController extends AbstractController
         }
 
         return $this->json([
-            'referenceForErrorModal' => $reference ? $reference->getLibelle() : '',
+            'referenceForErrorModal' => $reference ? $reference->getReference() : '',
             'codeArticle' => $article ? $article->getBarCode() : 'Non défini',
             'exists' => $reference !== null,
             'inStock' => $reference?->getQuantiteStock() > 0,
