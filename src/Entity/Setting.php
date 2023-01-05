@@ -15,9 +15,9 @@ class Setting {
     const DEFAULT_TOP_LEFT_VALUE = '/img/followGTblack.svg';
     const DEFAULT_LABEL_EXAMPLE_VALUE = '/img/exemple_etiquette_article.png';
 
-    const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = '/modele/waybill/delivery_template.dotx';
-    const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE = '/modele/waybill/dispatch_template.dotx';
-    const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE = '/modele/waybill/dispatch_arrival_template.dotx';
+    const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/delivery_template.dotx';
+    const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/dispatch_template.dotx';
+    const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE = 'modele/waybill/dispatch_arrival_template.dotx';
 
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";

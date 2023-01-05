@@ -2,6 +2,8 @@
 
 namespace App\Service\Document;
 
+use PhpOffice\PhpWord\Element\Table;
+use PhpOffice\PhpWord\SimpleType\TblWidth;
 use PhpOffice\PhpWord\TemplateProcessor;
 use SGK\BarcodeBundle\Generator\Generator as BarcodeGenerator;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -27,22 +29,22 @@ class TemplateDocumentService {
         $templateProcessor = new TemplateProcessor($templatePath);
 
         $barcodeVariables = $options['barcodes'] ?? [];
+
         $availableVariables = $templateProcessor->getVariables();
         foreach ($variables as $name => $value) {
             if (in_array($name, $availableVariables)) {
                 if (is_array($value)) {
-                    $templateProcessor->cloneRowAndSetValues($name, $value);
+                    $templateProcessor->cloneRow($name, count($value));
+
+                    foreach ($value as $rowKey => $rowData) {
+                        $rowNumber = $rowKey + 1;
+                        foreach ($rowData as $macro => $replace) {
+                            $this->setTemplateProcessorValue($templateProcessor, $macro . '#' . $rowNumber, $replace, $barcodeVariables);
+                        }
+                    }
                 }
                 else {
-                    if (in_array($name, $barcodeVariables)) {
-                        $templateDocumentImagePath = $this->generateBarcodeTmpImage($value);
-                        $templateProcessor->setImageValue($name, $templateDocumentImagePath);
-                        unlink($templateDocumentImagePath);
-                    }
-                    else {
-                        $value = $this->docxTextMapper($value);
-                    }
-                    $templateProcessor->setValue($name, $value);
+                    $this->setTemplateProcessorValue($templateProcessor, $name, $value, $barcodeVariables);
                 }
             }
         }
@@ -50,7 +52,39 @@ class TemplateDocumentService {
         return $templateProcessor->save();
     }
 
-    private function docxTextMapper($value): string {
+    private function setTemplateProcessorValue(TemplateProcessor $templateProcessor,
+                                              string             $name,
+                                                                 $value,
+                                              array              $barcodeVariables): void {
+        if (in_array($name, $barcodeVariables)) {
+            $templateDocumentImagePath = $this->generateBarcodeTmpImage($value);
+            $templateProcessor->setImageValue($name, $templateDocumentImagePath);
+            unlink($templateDocumentImagePath);
+        }
+        else if (is_array($value)) { // it's a nested array
+            $table = new Table(["borderColor" => "000000", "borderSize" => 2]);
+            $headerTreated = false;
+            foreach ($value as $row) {
+                $table->addRow();
+                if (!$headerTreated) {
+                    $cellStyle = ["bgColor" => "000000", "color" => "FFFFFF"];
+                    $headerTreated = true;
+                }
+                foreach ($row as $cell) {
+                    $table
+                        ->addCell(null, $cellStyle ?? null)
+                        ->addText($this->docxTextMapper($cell));
+                }
+                $cellStyle = null;
+            }
+            $templateProcessor->setComplexBlock($name, $table);
+        }
+        else {
+            $templateProcessor->setValue($name, $this->docxTextMapper($value));
+        }
+    }
+
+    public function docxTextMapper($value): string {
         return $value
             ? str_replace("\n", "<w:br/>", $value)
             : '';

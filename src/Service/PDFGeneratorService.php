@@ -312,4 +312,13 @@ class PDFGeneratorService {
             "encoding" => "UTF-8",
         ]);
     }
+
+    public function generatePDFromDoc(string $docx) {
+        $output = null;
+        $return = null;
+
+        $command = '"' . $_SERVER["LIBREOFFICE_EXEC"] . '"' . " --headless --convert-to pdf " . $docx;
+
+        exec($command, $output, $return);
+    }
 }
