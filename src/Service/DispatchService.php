@@ -90,6 +90,9 @@ class DispatchService {
     public TemplateDocumentService $wordTemplateDocument;
 
     #[Required]
+    public PDFGeneratorService $PDFGeneratorService;
+
+    #[Required]
     public SpecificService $specificService;
 
     private ?array $freeFieldsConfig = null;
@@ -970,16 +973,20 @@ class DispatchService {
         }
 
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
-            "${projectDir}/public$waybillTemplatePath",
+            "${projectDir}/public/$waybillTemplatePath",
             $variables,
             [
                 "barcodes" => ["qrcodenumach"],
             ]
         );
 
-        $fileName = uniqid() . '.docx';
-        rename($tmpDocxPath, "{$projectDir}/public/uploads/attachements/{$fileName}");
+        $nakedFileName = uniqid();
 
+        $fullPath = "{$projectDir}/public/uploads/attachements/$nakedFileName";
+        rename($tmpDocxPath, $fullPath . '.docx');
+
+        $this->PDFGeneratorService->generatePDFromDoc($fullPath . '.docx');
+        rename("$projectDir/public/$nakedFileName.pdf", $fullPath . '.pdf');
         $nowDate = new DateTime('now');
 
         $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
@@ -989,8 +996,8 @@ class DispatchService {
         $wayBillAttachment = new Attachment();
         $wayBillAttachment
             ->setDispatch($dispatch)
-            ->setFileName($fileName)
-            ->setOriginalName($title . '.docx');
+            ->setFileName($nakedFileName . '.pdf')
+            ->setOriginalName($title . '.pdf');
 
         $entityManager->persist($wayBillAttachment);
 
