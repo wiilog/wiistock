@@ -2005,11 +2005,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "You have not configured a status {1} for this transfer type",
                             "tooltip" => "Modale Nouvelle demande d'acheminement",
                         ],
-                        [
-                            "fr" => "Attention : L'acheminement contient plus de {1} unités logistiques, cette lettre de voiture ne peut contenir plus de {1} lignes.",
-                            "en" => "Warning: The tranfer contains more than {1} logistics units, this consignment note cannot contain more than {1} lines.",
-                            "tooltip" => "Modale Création\nModification Lettre de voiture",
-                        ],
                     ],
                 ],
                 "Champs fixes" => [

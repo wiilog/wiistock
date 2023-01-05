@@ -1356,16 +1356,6 @@ class DispatchController extends AbstractController {
                                         Request                $request,
                                         TranslationService     $translationService): JsonResponse {
 
-        if($dispatch->getDispatchPacks()->count() > DispatchService::WAYBILL_MAX_PACK) {
-            $message = $translationService->translate('Demande', 'Acheminements', 'Général', "Attention : L'acheminement contient plus de {1} unités logistiques, cette lettre de voiture ne peut contenir plus de {1} lignes.", [
-                1 => DispatchService::WAYBILL_MAX_PACK
-            ]);
-
-            return $this->json([
-                'success' => false,
-                'msg' => $message,
-            ]);
-        }
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
