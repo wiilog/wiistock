@@ -1055,7 +1055,8 @@ class DispatchService {
         $fullPath = "{$projectDir}/public/uploads/attachements/$nakedFileName";
         rename($tmpDocxPath, $fullPath . '.docx');
 
-        $this->PDFGeneratorService->generatePDFromDoc($fullPath . '.docx');
+        $this->PDFGeneratorService->generateFromDocx($fullPath . '.docx');
+        unlink($fullPath . '.docx');
         rename("$projectDir/public/$nakedFileName.pdf", $fullPath . '.pdf');
         $nowDate = new DateTime('now');
 
