@@ -62,7 +62,6 @@ class TemplateDocumentService {
             unlink($templateDocumentImagePath);
         }
         else if (is_array($value)) { // it's a nested array
-            dump($name, $value);
             $table = new Table(["borderColor" => "000000", "borderSize" => 2]);
             $headerTreated = false;
             foreach ($value as $row) {

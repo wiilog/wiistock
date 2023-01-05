@@ -36,8 +36,6 @@ use WiiCommon\Helper\StringHelper;
 
 class DispatchService {
 
-    const WAYBILL_MAX_PACK = 20;
-
     #[Required]
     public Twig_Environment $templating;
 
