@@ -23,6 +23,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -461,7 +462,9 @@ class MobileController extends AbstractApiController
                 ->toArray()
             : [];
 
+        dump($mouvementsNomade);
         foreach ($mouvementsNomade as $index => $mvt) {
+            dump($mvt);
             $invalidLocationTo = '';
             try {
                 $entityManager->transactional(function ()
@@ -515,6 +518,8 @@ class MobileController extends AbstractApiController
                         //mouvement de stock sur l'UL donc on ignore la partie stock et
                         //on créé juste un mouvement de prise sur l'UL et ses articles
                         if($pack) {
+                            dump('IN IF');
+                            // TODO rajouter le commentaire et changer le projet de tout les childArticles
                             $packMvt = $trackingMovementService->treatLUPicking(
                                 $pack,
                                 $location,
@@ -1834,6 +1839,7 @@ class MobileController extends AbstractApiController
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -1928,6 +1934,13 @@ class MobileController extends AbstractApiController
             $refArticlesInventory = $inventoryMissionRepository->getCurrentMissionRefNotTreated();
             // prises en cours
             $stockTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
+
+            $projects = Stream::from($projectRepository->findAll())
+                ->map(fn(Project $project) => [
+                    'id' => $project->getId(),
+                    'code' => $project->getCode(),
+                ])
+                ->toArray();
         }
 
         if ($rights['demande']) {
@@ -2039,6 +2052,7 @@ class MobileController extends AbstractApiController
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
             'status' => $status,
+            'projects' => $projects ?? [],
         ];
     }
 
@@ -2193,6 +2207,7 @@ class MobileController extends AbstractApiController
             'label' => $article->getLabel(),
             'location' => $article->getEmplacement()?->getLabel(),
             'quantity' => $article->getQuantite(),
+            'reference' => $article->getReference()
         ]);
 
         return $this->json($articles);
