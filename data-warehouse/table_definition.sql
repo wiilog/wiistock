@@ -207,6 +207,7 @@ CREATE TABLE dw_tracabilite
 (
     date_mouvement        timestamp(0),
     code_colis            varchar(255),
+    code_barre_article    varchar(255),
     type_mouvement        varchar(255),
     groupe                varchar(255),
     quantite_mouvement    integer,
@@ -214,7 +215,8 @@ CREATE TABLE dw_tracabilite
     operateur             varchar(255),
     mouvement_traca_id    integer,
     arrivage_id           integer,
-    acheminement_id       integer
+    acheminement_id       integer,
+    reception_id          integer
 );
 
 CREATE TABLE dw_tracabilite_champs_libres
