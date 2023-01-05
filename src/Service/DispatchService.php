@@ -892,6 +892,8 @@ class DispatchService {
             ->filter()
             ->sum();
 
+        $waybillDate = $this->formatService->parseDatetime($waybillData['dispatchDate'] ?? null, ["Y-m-d"]);
+
         $variables = [
             "numach" => $dispatch->getNumber(),
             "qrcodenumach" => $dispatch->getNumber(),
@@ -905,7 +907,7 @@ class DispatchService {
             "date1ach" => $this->formatService->date($dispatch->getStartDate()),
             "date2ach" => $this->formatService->date($dispatch->getEndDate()),
             // dispatch waybill data
-            "dateacheminement" => $waybillData['dispatchDate'] ?? '',
+            "dateacheminement" => $this->formatService->date($waybillDate),
             "transporteur" => $waybillData['carrier'] ?? '',
             "expediteur" => $waybillData['consignor'] ?? '',
             "destinataire" => $waybillData['receiver'] ?? '',
@@ -973,9 +975,7 @@ class DispatchService {
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "${projectDir}/public/$waybillTemplatePath",
             $variables,
-            [
-                "barcodes" => ["qrcodenumach"],
-            ]
+            ["barcodes" => ["qrcodenumach"],]
         );
 
         $nakedFileName = uniqid();
