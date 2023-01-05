@@ -318,6 +318,15 @@ class FormatService
                 ?: $else;
     }
 
+    public function decimal(?float $decimal, array $options = [], string $else = ""): string {
+        $decimals = $options['decimals'] ?? 2;
+        $decimalSeparator = $options['decimalSeparator'] ?? ',';
+        $thousandsSeparator = $options['thousandsSeparator'] ?? ' ';
+        return isset($decimal)
+            ? number_format($decimal, $decimals, $decimalSeparator, $thousandsSeparator)
+            : $else;
+    }
+
 
     public function messageContent(SensorMessage $sensorMessage) {
         $type = $sensorMessage->getSensor() ? self::type($sensorMessage->getSensor()->getType()) : '';

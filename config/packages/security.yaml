@@ -86,4 +86,6 @@ security:
         - { path: ^/dashboard/statistics, role: PUBLIC_ACCESS }
         - { path: ^/dashboard/externe, role: PUBLIC_ACCESS }
         - { path: ^/verification-connexion, role: PUBLIC_ACCESS }
+        - { path: ^/borne, role: PUBLIC_ACCESS }
+        - { path: /reference-article/validate-stock-entry, role: PUBLIC_ACCESS }
         - { path: ^/, role: IS_AUTHENTICATED_FULLY }

@@ -1,7 +1,124 @@
 {% import 'form.html.twig' as form %}
-<div class="wii-section-title">Expéditeur & Destinataire</div>
+
+<div class="wii-section-title">Choix du modèle</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 d-flex align-items-center">
+            <span class="wii-icon wii-icon-info wii-icon-13px bg-black mr-2"></span>
+            <span class="wii-small-text">Si aucun modèle personnalisé n'est paramétré, le modèle par défaut sera automatiquement utilisé pour générer la lettre de voiture.</span>
+        </div>
+        <div class="col-12 mb-1 mt-2">
+            {{ form.checkbox(setting('DISPATCH_USE_REGULAR_WAYBILL'), 'Modèle standard', false, setting_value('DISPATCH_USE_REGULAR_WAYBILL')) }}
+        </div>
+        <div class="default-template col-md-6 col-12 mt-3">
+            <span class="wii-field-name">Modèle par défaut</span>
+            <div class="attachment-item show" style="width: fit-content !important;">
+                <i class="fa fa-file-pdf mr-2"></i>
+                <a target="_blank" class="wii-small-text"
+                   href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('DEFAULT_DISPATCH_WAYBILL_TEMPLATE') }}"
+                   download="lettre_de_voiture_defaut">
+                    lettre_de_voiture_defaut.dotx
+                </a>
+            </div>
+        </div>
+
+        <div class="custom-template col-md-6 col-12 mt-3" data-name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE') }}">
+            <div class="wii-field-name">Modèle personnalisé</div>
+            <div class="custom-template-preview">
+                {% if setting_value('CUSTOM_DISPATCH_WAYBILL_TEMPLATE') %}
+                    <p class="attachement pointer" style="width: fit-content !important;">
+                        <a class="wii-small-text"
+                           download="{{ setting_value('CUSTOM_DISPATCH_WAYBILL_TEMPLATE_FILE_NAME') }}"
+                           href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('CUSTOM_DISPATCH_WAYBILL_TEMPLATE') }}">
+                            <i class="fa fa-file-pdf mr-2"></i>{{ setting_value('CUSTOM_DISPATCH_WAYBILL_TEMPLATE_FILE_NAME') }}
+                        </a>
+                        <i class="fa fa-times red pointer ml-1 remove-attachment"
+                           onclick="removeAttachment($(this), deleteTemplate)"></i>
+                    </p>
+                {% else %}
+                    <span class="wii-small-text my-2">Aucun modèle personnalisé.</span>
+                {% endif %}
+            </div>
+            <input type="hidden" class="data" name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE') ~ '_DELETED' }}" value="0">
+            <button class="btn btn-primary load-custom-template mt-2 d-flex align-items-center">
+                <span class="wii-icon wii-icon-plus mr-2"></span>Charger un modèle
+            </button>
+            <input type="file"
+                   class="custom-template-file data force-data"
+                   name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE') }}"
+                   accept=".dotx"
+                   hidden>
+            <input type="hidden"
+                   class="custom-template-file-name data"
+                   value="{{ setting_value('CUSTOM_DISPATCH_WAYBILL_TEMPLATE_FILE_NAME') }}"
+                   name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_FILE_NAME') }}">
+        </div>
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('DISPATCH_USE_RUPTURE_WAYBILL'), 'Modèle avec rupture à l\'arrivage', false, setting_value('DISPATCH_USE_RUPTURE_WAYBILL')) }}
+        </div>
+        <div class="default-template col-md-6 col-12 mt-3">
+            <span class="wii-field-name">Modèle par défaut</span>
+            <div class="attachment-item show" style="width: fit-content !important;">
+                <i class="fa fa-file-pdf mr-2"></i>
+                <a target="_blank" class="wii-small-text"
+                   href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE') }}"
+                   download="lettre_de_voiture_defaut_with_rupture">
+                    lettre_de_voiture_defaut_rupture.dotx
+                </a>
+            </div>
+        </div>
+
+        <div class="custom-template col-md-6 col-12 mt-3" data-name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE') }}">
+            <div class="wii-field-name">Modèle personnalisé</div>
+            <div class="custom-template-preview">
+                {% if setting_value('CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE') %}
+                    <p class="attachement pointer" style="width: fit-content !important;">
+                        <a class="wii-small-text"
+                           download="{{ setting_value('CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE_FILE_NAME') }}"
+                           href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE') }}">
+                            <i class="fa fa-file-pdf mr-2"></i>{{ setting_value('CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE_FILE_NAME') }}
+                        </a>
+                        <i class="fa fa-times red pointer ml-1 remove-attachment"
+                           onclick="removeAttachment($(this), deleteTemplate)"></i>
+                    </p>
+                {% else %}
+                    <span class="wii-small-text my-2">Aucun modèle personnalisé.</span>
+                {% endif %}
+            </div>
+            <input type="hidden" class="data" name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE') ~ '_DELETED' }}" value="0">
+            <button class="btn btn-primary load-custom-template mt-2 d-flex align-items-center">
+                <span class="wii-icon wii-icon-plus mr-2"></span>Charger un modèle
+            </button>
+            <input type="file"
+                   class="custom-template-file data force-data"
+                   name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE') }}"
+                   accept=".dotx"
+                   hidden>
+            <input type="hidden"
+                   class="custom-template-file-name data"
+                   value="{{ setting_value('CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE_FILE_NAME') }}"
+                   name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE_FILE_NAME') }}">
+        </div>
+    </div>
+</div>
+
+<div class="wii-section-title">Variables disponibles</div>
+<div class="wii-section">
+    <div class="row">
+        {% for section, fields in constant('App\\Entity\\Setting::WAYBILL_VARIABLES')['dispatch'] %}
+            <div class="col-md-6 col-12">
+                <div class="wii-field-name">{{ section }}</div>
+                {% for variable, description in fields %}
+                    <div><span class="wii-body-text text-primary">{{ '${' ~ variable ~ '}' }}</span> : <span class="wii-body-text">{{ description }}</span></div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<div class="wii-section-title">Champs par défaut</div>
 
 <div class="wii-section">
+    <div>Expéditeur & Destinataire</div>
     <div class="row">
         <div class="col-md-4 col-12">
             {{ form.textarea(setting('DISPATCH_WAYBILL_CONSIGNER'), 'Expéditeur par défaut', false, setting_value('DISPATCH_WAYBILL_CONSIGNER')) }}

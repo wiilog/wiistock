@@ -33,6 +33,7 @@ global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
+global.deleteTemplate = deleteTemplate;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -91,7 +92,8 @@ const initializers = {
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
     track_tournees: initializeTransportRound,
-    modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate
+    modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
+    modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate
 };
 
 const saveCallbacks = {
@@ -1149,11 +1151,10 @@ function initializeDeliveryWaybillTemplate() {
     $(`.custom-template-file`).on(`change`, function () {
         const file = $(this)[0].files.length > 0 ? $(this)[0].files[0] : undefined;
         const link = $(this).val();
-        if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-            console.log(file);
+        if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.template') {
             const name = file.name;
             const $parent = $(this).parent();
-
+            const deleted_name = $parent.data('name') + '_DELETED';
             $parent.find(`.custom-template-file-name`).val(name);
             $parent.find(`.custom-template-preview`).html(`
                 <p class="attachement" style="width: fit-content !important;">
@@ -1161,17 +1162,27 @@ function initializeDeliveryWaybillTemplate() {
                         <i class="fa fa-file-pdf mr-2"></i>${name}
                     </a>
                     <i class="fa fa-times red pointer ml-1"
-                       onclick="removeAttachment($(this))"></i>
+                       onclick="removeAttachment($(this), deleteTemplate)"></i>
                 </p>
             `)
+            $(`input[name=${deleted_name}]`).val("0");
         } else {
             Flash.add(`danger`, `Veuillez sélectionner un fichier Microsoft Word valide.`)
         }
     });
 
-    $(document).on(`click`, `.remove-attachment`, () => {
-        const $parent = $(`.custom-template`);
-        $parent.find(`.custom-template-preview`).html(`<span class="wii-small-text my-2">Aucun modèle personnalisé.</span>`);
-        $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
-    });
+    $('.wii-checkbox').on('click', function() {
+        const $checkbox = $(this).find('input[type=checkbox]');
+        const check = $checkbox.is(':checked');
+        $('.wii-checkbox').find('input[type=checkbox]').prop("checked", !check);
+        $checkbox.prop('checked', check);
+    })
+}
+
+function deleteTemplate($elem) {
+    const $parent = $elem.parents(`.custom-template`);
+    const name = $parent.data('name') + '_DELETED';
+    $parent.find(`.custom-template-preview`).html(`<span class="wii-small-text my-2">Aucun modèle personnalisé.</span>`);
+    $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
+    $(`input[name=${name}]`).val('1');
 }

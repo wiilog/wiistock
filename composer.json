@@ -28,6 +28,7 @@
         "nelmio/cors-bundle": "^2.2",
         "ovh/ovh": "^3.0",
         "phpdocumentor/reflection-docblock": "^5.3",
+        "phpoffice/phpword": "^1.0",
         "phpseclib/phpseclib": "^3.0",
         "scienta/doctrine-json-functions": "^5.0",
         "sensio/framework-extra-bundle": "^6.2",

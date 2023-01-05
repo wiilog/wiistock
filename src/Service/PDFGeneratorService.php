@@ -11,6 +11,7 @@ use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use Doctrine\ORM\EntityManagerInterface;
+use JetBrains\PhpStorm\Deprecated;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
@@ -119,6 +120,8 @@ class PDFGeneratorService {
         );
     }
 
+    // TODO WIIS-8753
+    #[Deprecated]
     public function generatePDFWaybill(string $title, ?string $logo, Dispatch|Livraison $entity, array $packs): string {
         $fileName = uniqid() . '.pdf';
 

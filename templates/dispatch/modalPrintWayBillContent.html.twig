@@ -10,7 +10,7 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Nom") }}*</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Contact expéditeur") }} {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Nom") }}"
+                <input title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Contact expéditeur", false) }} {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Nom", false) }}"
                        name="consignorUsername"
                        class="form-control data needed"
                        value="{{ consignorUsername }}"/>
@@ -19,7 +19,7 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Téléphone - Email") }}*</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Contact expéditeur") }} {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Téléphone - Email") }}"
+                <input title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Contact expéditeur") }} {{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Téléphone - Email", false) }}"
                        name="consignorEmail"
                        class="form-control data forbidden-phone-numbers needed"
                        value="{{ consignorEmail }}"/>
@@ -68,7 +68,7 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Lettre de voiture', 'Transporteur') }}</label>
-                <textarea title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', 'Transporteur') }}"
+                <textarea title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', 'Transporteur', false) }}"
                           name="carrier"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
@@ -84,7 +84,7 @@
                 <input type="date"
                        class="form-control data"
                        name="dispatchDate"
-                       title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Date d'acheminement") }}"
+                       title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Date d'acheminement", false) }}"
                        value="{{ dispatchDate }}"/>
             </div>
         </div>
@@ -94,7 +94,7 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Expéditeur") }}*</label>
-                <textarea title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Expéditeur") }}"
+                <textarea title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Expéditeur", false) }}"
                           name="consignor"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
@@ -113,7 +113,7 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Destinataire") }}*</label>
-                <textarea title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Destinataire") }}"
+                <textarea title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Destinataire", false) }}"
                           name="receiver"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
@@ -129,7 +129,7 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lieu de chargement") }}*</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lieu de chargement") }}"
+                <input title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lieu de chargement", false) }}"
                        name="locationFrom"
                        class="form-control data needed"
                        value="{{ locationFrom }}"/>
@@ -145,9 +145,7 @@
         <div class="form-group row">
             <div class="col-12">
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lieu de déchargement") }}*</label>
-            </div>
-            <div class="col-12">
-                <input title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lieu de déchargement") }}"
+                <input title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Lieu de déchargement", false) }}"
                        name="locationTo"
                        class="form-control data needed"
                        value="{{ locationTo }}"/>
@@ -164,7 +162,7 @@
                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Note de bas de page") }}</label>
                 <textarea class="form-control data"
                           name="notes"
-                          title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Note de bas de page") }}"
+                          title="{{ trans('Demande', 'Acheminements', 'Lettre de voiture', "Note de bas de page", false) }}"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 2, 100)"
                           rows="2">{{ notes }}</textarea>

@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\DispatchPack;
 use App\Entity\FreeField;
@@ -20,9 +21,11 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
+use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -78,6 +81,15 @@ class DispatchService {
 
     #[Required]
     public CSVExportService $CSVExportService;
+
+    #[Required]
+    public KernelInterface $kernel;
+
+    #[Required]
+    public TemplateDocumentService $wordTemplateDocument;
+
+    #[Required]
+    public SpecificService $specificService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -844,6 +856,106 @@ class DispatchService {
             $this->CSVExportService->putLine($handle, $row);
         }
 
+    }
+
+    public function persistNewWaybillAttachment(EntityManagerInterface $entityManager,
+                                                Dispatch               $dispatch): Attachment {
+
+        $projectDir = $this->kernel->getProjectDir();
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $useRuptureWaybill = $settingRepository->getOneParamByLabel(Setting::DISPATCH_USE_RUPTURE_WAYBILL) == 1;
+
+        // TODO CHANGE
+        $waybillTemplatePath = match (false && $useRuptureWaybill) {
+            true => $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
+                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE),
+            false => $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE)
+                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE)
+        };
+
+        $waybillData = $dispatch->getWaybillData();
+
+        $totalWeight = Stream::from($dispatch->getDispatchPacks())
+            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getWeight())
+            ->filter()
+            ->sum();
+        $totalVolume = Stream::from($dispatch->getDispatchPacks())
+            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getVolume())
+            ->filter()
+            ->sum();
+        $totalQuantities = Stream::from($dispatch->getDispatchPacks())
+            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getQuantity())
+            ->filter()
+            ->sum();
+
+        $variables = [
+            "numach" => $dispatch->getNumber(),
+            "qrcodenumach" => $dispatch->getNumber(),
+            "typeach" => $this->formatService->type($dispatch->getType()),
+            "transporteurach" => $this->formatService->carriers([$dispatch->getType()]),
+            "numtracktransach" => $dispatch->getCarrierTrackingNumber() ?: '',
+            "demandeurach" => $this->formatService->user($dispatch->getRequester()),
+            "destinatairesach" => $this->formatService->users($dispatch->getReceivers()),
+            "numprojetach" => $dispatch->getProjectNumber() ?: '',
+            "numcommandeach" => $dispatch->getCommandNumber() ?: '',
+            "date1ach" => $this->formatService->date($dispatch->getStartDate()),
+            "date2ach" => $this->formatService->date($dispatch->getEndDate()),
+            // dispatch waybill data
+            "dateacheminement" => $waybillData['dispatchDate'] ?? '',
+            "transporteur" => $waybillData['carrier'] ?? '',
+            "expediteur" => $waybillData['consignor'] ?? '',
+            "destinataire" => $waybillData['receiver'] ?? '',
+            "nomexpediteur" => $waybillData['consignorUsername'] ?? '',
+            "telemailexpediteur" => $waybillData['consignorEmail'] ?? '',
+            "nomdestinataire" => $waybillData['receiverUsername'] ?? '',
+            "telemaildestinataire" => $waybillData['receiverEmail'] ?? '',
+            "lieuchargement" => $waybillData['locationFrom'] ?? '',
+            "lieudechargement" => $waybillData['locationTo'] ?? '',
+            "note" => $waybillData['notes'] ?? '',
+            "totalpoids" => $this->formatService->decimal($totalWeight, [], '-'),
+            "totalvolume" => $this->formatService->decimal($totalVolume, [], '-'),
+            "totalquantite" => $this->formatService->decimal($totalQuantities, [], '-'),
+        ];
+
+        if (!$useRuptureWaybill) {
+            $variables['UL'] = $dispatch->getDispatchPacks()
+                ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
+                ->map(fn(DispatchPack $dispatchPack) => [
+                    "UL" => $dispatchPack->getPack()->getCode(),
+                    "nature" => $this->formatService->nature($dispatchPack->getPack()->getNature()),
+                    "quantite" => $dispatchPack->getQuantity(),
+                    "poids" => $this->formatService->decimal($dispatchPack->getPack()->getWeight(), [], '-'),
+                    "volume" => $this->formatService->decimal($dispatchPack->getPack()->getVolume(), [], '-'),
+                    "commentaire" => strip_tags($dispatchPack->getPack()->getComment()) ?: '-',
+                ])
+                ->toArray();
+        }
+
+        $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
+            "${projectDir}/public$waybillTemplatePath",
+            $variables,
+            ["barcodes" => ["qrcodenumach", "qrcodenumeroarrivage"]]
+        );
+
+        $fileName = uniqid() . '.docx';
+        rename($tmpDocxPath, "{$projectDir}/public/uploads/attachements/{$fileName}");
+
+        $nowDate = new DateTime('now');
+
+        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+
+        $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
+
+        $wayBillAttachment = new Attachment();
+        $wayBillAttachment
+            ->setDispatch($dispatch)
+            ->setFileName($fileName)
+            ->setOriginalName($title . '.docx');
+
+        $entityManager->persist($wayBillAttachment);
+
+        return $wayBillAttachment;
     }
 
 }
