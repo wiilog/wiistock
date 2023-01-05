@@ -20,6 +20,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
@@ -865,9 +866,7 @@ class DispatchService {
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $useRuptureWaybill = $settingRepository->getOneParamByLabel(Setting::DISPATCH_USE_RUPTURE_WAYBILL) == 1;
-
-        // TODO CHANGE
-        $waybillTemplatePath = match (false && $useRuptureWaybill) {
+        $waybillTemplatePath = match ($useRuptureWaybill) {
             true => $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
                 ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE),
             false => $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE)
@@ -877,14 +876,17 @@ class DispatchService {
         $waybillData = $dispatch->getWaybillData();
 
         $totalWeight = Stream::from($dispatch->getDispatchPacks())
+            ->filter(fn(DispatchPack $dispatchPack) => (!$useRuptureWaybill || $dispatchPack->getPack()?->getArrivage()))
             ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getWeight())
             ->filter()
             ->sum();
         $totalVolume = Stream::from($dispatch->getDispatchPacks())
+            ->filter(fn(DispatchPack $dispatchPack) => (!$useRuptureWaybill || $dispatchPack->getPack()?->getArrivage()))
             ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getVolume())
             ->filter()
             ->sum();
         $totalQuantities = Stream::from($dispatch->getDispatchPacks())
+            ->filter(fn(DispatchPack $dispatchPack) => (!$useRuptureWaybill || $dispatchPack->getPack()?->getArrivage()))
             ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getQuantity())
             ->filter()
             ->sum();
@@ -931,11 +933,48 @@ class DispatchService {
                 ])
                 ->toArray();
         }
+        else {
+            $packs = Stream::from($dispatch->getDispatchPacks())
+                ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()?->getArrivage())
+                ->keymap(fn(DispatchPack $dispatchPack) => [
+                    $dispatchPack->getPack()->getArrivage()->getId(),
+                    $dispatchPack
+                ],true)
+                ->map(function(array $dispatchPacks) {
+                    /** @var DispatchPack $firstDispatchPack */
+                    $firstDispatchPack = $dispatchPacks[0];
+                    $arrival = $firstDispatchPack->getPack()->getArrivage();
+                    return [
+                        "numarrivage" => $arrival->getNumeroArrivage(),
+                        "numcommandearrivage" => Stream::from($arrival->getNumeroCommandeList())->join("\n"),
+                        "tableauULarrivage" => [
+                            ["Unité de tracking", "Nature", "Quantité", "Poids"],
+                            ...Stream::from($dispatchPacks)
+                                ->map(fn(DispatchPack $dispatchPack) => [
+                                    $dispatchPack->getPack()->getCode(),
+                                    $this->formatService->nature($dispatchPack->getPack()->getNature()),
+                                    $dispatchPack->getQuantity(),
+                                    $this->formatService->decimal($dispatchPack->getPack()->getWeight(), [], '-'),
+                                ])
+                                ->toArray()
+                        ]
+                    ];
+                })
+                ->values();
+
+            if (empty($packs)) {
+                throw new FormException("Il n'y a pas d'arrivage lié à cet acheminement, le modèle de rupture à l'arrivage ne peut pas être utilisé");
+            }
+
+            $variables['numarrivage'] = $packs;
+        }
 
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "${projectDir}/public$waybillTemplatePath",
             $variables,
-            ["barcodes" => ["qrcodenumach", "qrcodenumeroarrivage"]]
+            [
+                "barcodes" => ["qrcodenumach"],
+            ]
         );
 
         $fileName = uniqid() . '.docx';
