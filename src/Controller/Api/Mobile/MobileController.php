@@ -522,15 +522,6 @@ class MobileController extends AbstractApiController
                         //mouvement de stock sur l'UL donc on ignore la partie stock et
                         //on créé juste un mouvement de prise sur l'UL et ses articles
                         if($pack) {
-                            if(isset($mvt['projectId']) && $type->getCode() === TrackingMovement::TYPE_PRISE){
-                                $project = $projectRepository->find($mvt['projectId']);
-                                $projectHistoryRecordService->changeProject($entityManager, $pack, $project, $date);
-
-                                foreach($pack->getChildArticles() as $article) {
-                                    $projectHistoryRecordService->changeProject($entityManager, $article, $project, $date);
-                                }
-                            }
-
                             $packMvt = $trackingMovementService->treatLUPicking(
                                 $pack,
                                 $location,
@@ -556,20 +547,31 @@ class MobileController extends AbstractApiController
                                 $numberOfRowsInserted
                             );
 
-                            $signatureFile = $request->files->get("signature_$index");
-                            $photoFile = $request->files->get("photo_$index");
-                            $fileNames = [];
-                            if (!empty($signatureFile)) {
-                                $fileNames = array_merge($fileNames, $attachmentService->saveFile($signatureFile));
+                            if($type->getCode() === TrackingMovement::TYPE_PRISE){
+                                if (isset($mvt['projectId'])) {
+                                    $project = $projectRepository->find($mvt['projectId']);
+                                    $projectHistoryRecordService->changeProject($entityManager, $pack, $project, $date);
+
+                                    foreach ($pack->getChildArticles() as $article) {
+                                        $projectHistoryRecordService->changeProject($entityManager, $article, $project, $date);
+                                    }
+                                }
+                                $signatureFile = $request->files->get("signature_$index");
+                                $photoFile = $request->files->get("photo_$index");
+                                $fileNames = [];
+                                if (!empty($signatureFile)) {
+                                    $fileNames = array_merge($fileNames, $attachmentService->saveFile($signatureFile));
+                                }
+                                if (!empty($photoFile)) {
+                                    $fileNames = array_merge($fileNames, $attachmentService->saveFile($photoFile));
+                                }
+                                $attachments = $attachmentService->createAttachements($fileNames);
+                                foreach ($attachments as $attachment) {
+                                    $entityManager->persist($attachment);
+                                    $packMvt->addAttachment($attachment);
+                                }
                             }
-                            if (!empty($photoFile)) {
-                                $fileNames = array_merge($fileNames, $attachmentService->saveFile($photoFile));
-                            }
-                            $attachments = $attachmentService->createAttachements($fileNames);
-                            foreach ($attachments as $attachment) {
-                                $entityManager->persist($attachment);
-                                $packMvt->addAttachment($attachment);
-                            }
+
                             $entityManager->persist($packMvt);
                             $entityManager->flush();
                         } else { //cas mouvement stock classique sur un article ou une ref
