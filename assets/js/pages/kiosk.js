@@ -286,4 +286,8 @@ $(function () {
                 reprint: true
             }).json()));
     });
+
+    if( $('input[name=reference-article-input]').val()){
+        $('.button-next').trigger('click');
+    }
 });
