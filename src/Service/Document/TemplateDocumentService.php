@@ -3,7 +3,6 @@
 namespace App\Service\Document;
 
 use PhpOffice\PhpWord\Element\Table;
-use PhpOffice\PhpWord\SimpleType\TblWidth;
 use PhpOffice\PhpWord\TemplateProcessor;
 use SGK\BarcodeBundle\Generator\Generator as BarcodeGenerator;
 use Symfony\Component\HttpKernel\KernelInterface;

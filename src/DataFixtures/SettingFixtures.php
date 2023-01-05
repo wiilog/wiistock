@@ -281,11 +281,8 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE => [
                 'default' => '#cf2a27'
             ],
-            Setting::DISPATCH_USE_REGULAR_WAYBILL => [
-                'default' => 1
-            ],
-            Setting::DISPATCH_USE_RUPTURE_WAYBILL => [
-                'default' => 0
+            Setting::DISPATCH_WAYBILL_TYPE_TO_USE => [
+                'default' => Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD
             ],
         ];
 

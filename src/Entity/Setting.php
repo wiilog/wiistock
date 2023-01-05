@@ -140,8 +140,10 @@ class Setting {
     const DISPATCH_EXPECTED_DATE_COLOR_AFTER = 'DISPATCH_EXPECTED_DATE_COLOR_AFTER';
     const DISPATCH_EXPECTED_DATE_COLOR_D_DAY = 'DISPATCH_EXPECTED_DATE_COLOR_D_DAY';
     const DISPATCH_EXPECTED_DATE_COLOR_BEFORE = 'DISPATCH_EXPECTED_DATE_COLOR_BEFORE';
-    const DISPATCH_USE_REGULAR_WAYBILL = 'DISPATCH_USE_REGULAR_WAYBILL';
-    const DISPATCH_USE_RUPTURE_WAYBILL = 'DISPATCH_USE_RUPTURE_WAYBILL';
+
+    const DISPATCH_WAYBILL_TYPE_TO_USE = 'DISPATCH_WAYBILL_TYPE_TO_USE';
+    const DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD = 'STANDARD';
+    const DISPATCH_WAYBILL_TYPE_TO_USE_RUPTURE = 'RUPTURE';
 
     const DELIVERY_WAYBILL_CARRIER = 'DELIVERY_WAYBILL_CARRIER';
     const DELIVERY_WAYBILL_CONSIGNER = 'DELIVERY_WAYBILL_CONSIGNER';
@@ -274,6 +276,17 @@ class Setting {
                 "demandeurliv" => "demandeur de la livraison",
                 "projetliv" => "numéro de projet de la livraison",
             ],
+            "Champs Liste des unités logistiques acheminements" => [
+                "UL" => "code d'une unité logistiques contenue dans la livraison",
+                "nature" => "nature d'une unité logistique contenue dans la livraison",
+                "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
+                "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
+                "poids" => "poids d'une unité logistique contenue dans la livraison",
+                "totalpoids" => "total du poids des unités logistiques contenues dans la livraison",
+                "volume" => "volume d'une unité logistique contenue dans la livraison",
+                "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
+                "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
+            ],
             "Champs formulaire lettre de voiture" => [
                 "dateacheminement" => "date renseignée dans le champ \"Date d'acheminement\" sur le formulaire de création de lettre de voiture",
                 "transporteur" => "chaîne de caractères renseignée dans le champ \"Transporteur\" sur le formulaire de création de lettre de voiture",
@@ -286,17 +299,6 @@ class Setting {
                 "note" => "chaîne de caractères renseignée dans le champ \"Note de bas de page\" sur le formulaire de création de lettre de voiture",
                 "lieuchargement" => "chaîne de caractères renseignée dans le champ \"Lieu de chargement\" sur le formulaire de création de lettre de voiture",
                 "lieudechargement" => "chaîne de caractères renseignée dans le champ \"Lieu de déchargement\" sur le formulaire de création de lettre de voiture",
-            ],
-            "Champs Liste des unités logistiques acheminements" => [
-                "UL" => "code d'une unité logistiques contenue dans la livraison",
-                "nature" => "nature d'une unité logistique contenue dans la livraison",
-                "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
-                "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
-                "poids" => "poids d'une unité logistique contenue dans la livraison",
-                "totalpoids" => "total du poids des unités logistiques contenues dans la livraison",
-                "volume" => "volume d'une unité logistique contenue dans la livraison",
-                "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
-                "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
             ],
         ],
         "dispatch" => [
@@ -313,6 +315,17 @@ class Setting {
                 "date1ach" => "date d'échéance 1 de l'acheminement",
                 "date2ach" => "date d'échéance 2 de l'acheminement",
             ],
+            "Champs Liste des unités logistiques livraison" => [
+                "UL" => "code d'une unité logistiques contenue dans la livraison",
+                "nature" => "nature d'une unité logistique contenue dans la livraison",
+                "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
+                "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
+                "poids" => "poids d'une unité logistique contenue dans la livraison",
+                "totalpoids" => "total du poids des unités logistiques contenues dans la livraison",
+                "volume" => "volume d'une unité logistique contenue dans la livraison",
+                "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
+                "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
+            ],
             "Champs formulaire lettre de voiture" => [
                 "dateacheminement" => "date renseignée dans le champ \"Date d'acheminement\" sur le formulaire de création de lettre de voiture",
                 "transporteur" => "chaîne de caractères renseignée dans le champ \"Transporteur\" sur le formulaire de création de lettre de voiture",
@@ -325,17 +338,6 @@ class Setting {
                 "note" => "chaîne de caractères renseignée dans le champ \"Note de bas de page\" sur le formulaire de création de lettre de voiture",
                 "lieuchargement" => "chaîne de caractères renseignée dans le champ \"Lieu de chargement\" sur le formulaire de création de lettre de voiture",
                 "lieudechargement" => "chaîne de caractères renseignée dans le champ \"Lieu de déchargement\" sur le formulaire de création de lettre de voiture",
-            ],
-            "Champs Liste des unités logistiques livraison" => [
-                "UL" => "code d'une unité logistiques contenue dans la livraison",
-                "nature" => "nature d'une unité logistique contenue dans la livraison",
-                "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
-                "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
-                "poids" => "poids d'une unité logistique contenue dans la livraison",
-                "totalpoids" => "total du poids des unités logistiques contenues dans la livraison",
-                "volume" => "volume d'une unité logistique contenue dans la livraison",
-                "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
-                "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
             ],
             "Champs de l'arrivage de provenance des unités logistiques" => [
                 "numarrivage" => "numéro de l'arrivage dont est issue l'unité logistique",

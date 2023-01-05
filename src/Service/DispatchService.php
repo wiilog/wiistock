@@ -934,31 +934,37 @@ class DispatchService {
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $useRuptureWaybill = $settingRepository->getOneParamByLabel(Setting::DISPATCH_USE_RUPTURE_WAYBILL) == 1;
-        $waybillTemplatePath = match ($useRuptureWaybill) {
-            true => $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
-                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE),
-            false => $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE)
+        $waybillTypeToUse = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_TYPE_TO_USE);
+        $waybillTemplatePath = match ($waybillTypeToUse) {
+            Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD => (
+                $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE)
                 ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE)
+            ),
+            Setting::DISPATCH_WAYBILL_TYPE_TO_USE_RUPTURE => (
+                $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
+                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
+            )
         };
 
         $waybillData = $dispatch->getWaybillData();
 
         $totalWeight = Stream::from($dispatch->getDispatchPacks())
-            ->filter(fn(DispatchPack $dispatchPack) => (!$useRuptureWaybill || $dispatchPack->getPack()?->getArrivage()))
+            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
             ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getWeight())
             ->filter()
             ->sum();
         $totalVolume = Stream::from($dispatch->getDispatchPacks())
-            ->filter(fn(DispatchPack $dispatchPack) => (!$useRuptureWaybill || $dispatchPack->getPack()?->getArrivage()))
+            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
             ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getVolume())
             ->filter()
             ->sum();
         $totalQuantities = Stream::from($dispatch->getDispatchPacks())
-            ->filter(fn(DispatchPack $dispatchPack) => (!$useRuptureWaybill || $dispatchPack->getPack()?->getArrivage()))
+            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
             ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getQuantity())
             ->filter()
             ->sum();
+
+        $waybillDate = $this->formatService->parseDatetime($waybillData['dispatchDate'] ?? null, ["Y-m-d"]);
 
         $variables = [
             "numach" => $dispatch->getNumber(),
@@ -973,7 +979,7 @@ class DispatchService {
             "date1ach" => $this->formatService->date($dispatch->getStartDate()),
             "date2ach" => $this->formatService->date($dispatch->getEndDate()),
             // dispatch waybill data
-            "dateacheminement" => $waybillData['dispatchDate'] ?? '',
+            "dateacheminement" => $this->formatService->date($waybillDate),
             "transporteur" => $waybillData['carrier'] ?? '',
             "expediteur" => $waybillData['consignor'] ?? '',
             "destinataire" => $waybillData['receiver'] ?? '',
@@ -989,7 +995,7 @@ class DispatchService {
             "totalquantite" => $this->formatService->decimal($totalQuantities, [], '-'),
         ];
 
-        if (!$useRuptureWaybill) {
+        if ($waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD) {
             $variables['UL'] = $dispatch->getDispatchPacks()
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
                 ->map(fn(DispatchPack $dispatchPack) => [
@@ -1002,7 +1008,7 @@ class DispatchService {
                 ])
                 ->toArray();
         }
-        else {
+        else { // $waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_RUPTURE
             $packs = Stream::from($dispatch->getDispatchPacks())
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()?->getArrivage())
                 ->keymap(fn(DispatchPack $dispatchPack) => [
@@ -1041,9 +1047,7 @@ class DispatchService {
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "${projectDir}/public/$waybillTemplatePath",
             $variables,
-            [
-                "barcodes" => ["qrcodenumach"],
-            ]
+            ["barcodes" => ["qrcodenumach"],]
         );
 
         $nakedFileName = uniqid();
