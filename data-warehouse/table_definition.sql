@@ -143,7 +143,8 @@ CREATE TABLE dw_reception
     code_barre_reference     varchar(255),
     urgence_reference        varchar(3),
     urgence_reception        varchar(3),
-    numero_demande_achat     varchar(255)
+    numero_demande_achat     varchar(255),
+    arrivage_id              integer
 );
 
 CREATE TABLE dw_reference_article
@@ -264,7 +265,8 @@ CREATE TABLE dw_arrivage
     commentaire              text,
     utilisateur              varchar(255),
     numero_projet            varchar(255),
-    business_unit            varchar(255)
+    business_unit            varchar(255),
+    reception_id             integer
 );
 
 CREATE TABLE dw_acheminement

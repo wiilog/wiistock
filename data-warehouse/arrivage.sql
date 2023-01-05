@@ -23,7 +23,8 @@ SELECT
     arrivage.cleaned_comment AS commentaire,
     utilisateur.username AS utilisateur,
     arrivage.project_number AS numero_projet,
-    arrivage.business_unit AS business_unit
+    arrivage.business_unit AS business_unit,
+    reception.id AS reception_id
 
 FROM arrivage
          LEFT JOIN utilisateur AS destinataire ON arrivage.destinataire_id = destinataire.id
@@ -35,6 +36,7 @@ FROM arrivage
          LEFT JOIN statut ON arrivage.statut_id = statut.id
          LEFT JOIN arrivage_utilisateur ON arrivage.id = arrivage_utilisateur.arrivage_id
          LEFT JOIN utilisateur AS acheteurs ON arrivage_utilisateur.utilisateur_id = acheteurs.id
+         LEFT JOIN reception ON arrivage.id = reception.arrival_id
 
 GROUP BY
     id,
