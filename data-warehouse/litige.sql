@@ -39,7 +39,8 @@ FROM dispute
          LEFT JOIN reception_reference_article
                    ON article.reception_reference_article_id = reception_reference_article.id
          LEFT JOIN reference_article ON reception_reference_article.reference_article_id = reference_article.id
-         LEFT JOIN reception ON reception_reference_article.reception_id = reception.id
+         LEFT JOIN reception_line ON reception_reference_article.reception_line_id = reception_line.id
+         LEFT JOIN reception ON reception_line.reception_id = reception.id
          LEFT JOIN fournisseur AS fournisseur_reception ON reception.fournisseur_id = fournisseur_reception.id
          LEFT JOIN transporteur AS transporteur_reception ON reception.transporteur_id = transporteur_reception.id
          LEFT JOIN pack ON dispute_pack.pack_id = pack.id
