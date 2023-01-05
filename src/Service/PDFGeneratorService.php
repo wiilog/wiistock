@@ -280,7 +280,7 @@ class PDFGeneratorService {
         ]);
     }
 
-    public function generatePDFromDoc(string $docx) {
+    public function generateFromDocx(string $docx) {
 
         $command = '"' . ($_SERVER["LIBREOFFICE_EXEC"] ?? 'libreoffice') . '"' . " --headless --convert-to pdf " . $docx;
 
