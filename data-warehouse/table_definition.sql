@@ -339,6 +339,8 @@ CREATE TABLE dw_demande_livraison
     date_creation       timestamp(0),
     date_traitement     timestamp(0),
     date_validation     timestamp(0),
+    date_attendue       date,
+    projet              varchar(255),
     demandeur           varchar(255),
     type                varchar(255),
     statut              varchar(255),
@@ -351,7 +353,8 @@ CREATE TABLE dw_demande_livraison
     code_barre          varchar(255),
     quantite_disponible integer,
     quantite_a_prelever integer,
-    delais_traitement   float
+    delais_traitement   float,
+    code_UL             varchar(255)
 );
 
 CREATE TABLE dw_ordre_transfert

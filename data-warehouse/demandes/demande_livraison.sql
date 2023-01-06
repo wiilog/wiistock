@@ -3,6 +3,8 @@ SELECT id,
        date_creation,
        date_validation,
        date_traitement,
+       date_attendue,
+       projet,
        demandeur,
        type,
        statut,
@@ -14,7 +16,8 @@ SELECT id,
        libelle,
        code_barre,
        quantite_disponible,
-       quantite_a_prelever
+       quantite_a_prelever,
+       code_UL
 FROM (
          SELECT demande.id                                     AS id,
                 demande.numero                                 AS numero,
@@ -25,6 +28,8 @@ FROM (
                           LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                           LEFT JOIN livraison ON preparation.id = livraison.preparation_id
                  WHERE sub_demande.id = demande.id)                AS date_traitement,
+                demande.expected_at                            AS date_attendue,
+                project.code                                   AS projet,
                 demandeur.username                             AS demandeur,
                 type.label                                     AS type,
                 statut.nom                                     AS statut,
@@ -46,7 +51,8 @@ FROM (
                 article.label                                  AS libelle,
                 article.bar_code                               AS code_barre,
                 article.quantite                               AS quantite_disponible,
-                delivery_request_article_line.quantity_to_pick AS quantite_a_prelever
+                delivery_request_article_line.quantity_to_pick AS quantite_a_prelever,
+                pack.code                                      AS code_UL
 
          FROM demande
 
@@ -59,6 +65,8 @@ FROM (
                   INNER JOIN article ON delivery_request_article_line.article_id = article.id
                   LEFT JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
                   LEFT JOIN reference_article ON article_fournisseur.reference_article_id = reference_article.id
+                  LEFT JOIN pack ON article.current_logistic_unit_id = pack.id
+                  LEFT JOIN project ON pack.project_id = project.id
 
          UNION
          SELECT demande.id                                       AS id,
@@ -70,6 +78,8 @@ FROM (
                           LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                           LEFT JOIN livraison ON preparation.id = livraison.preparation_id
                  WHERE sub_demande.id = demande.id)                AS date_traitement,
+                demande.expected_at                              AS date_attendue,
+                project.code                                     AS projet,
                 demandeur.username                               AS demandeur,
                 type.label                                       AS type,
                 statut.nom                                       AS statut,
@@ -91,7 +101,8 @@ FROM (
                 reference_article.libelle                        AS libelle,
                 reference_article.bar_code                       AS code_barre,
                 reference_article.quantite_disponible            AS quantite_disponible,
-                delivery_request_reference_line.quantity_to_pick AS quantite_a_prelever
+                delivery_request_reference_line.quantity_to_pick AS quantite_a_prelever,
+                NULL                                             AS code_UL
 
          FROM demande
 
@@ -102,5 +113,6 @@ FROM (
                   INNER JOIN delivery_request_reference_line
                              ON demande.id = delivery_request_reference_line.request_id
                   LEFT JOIN reference_article ON delivery_request_reference_line.reference_id = reference_article.id
+                  LEFT JOIN project ON demande.project_id = project.id
          WHERE demande.manual = 0
      ) AS requests
