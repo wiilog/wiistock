@@ -117,7 +117,7 @@ class PreparationsManagerService
                                                     Preparation            $preparation,
                                                     Livraison              $livraison,
                                                     ?Emplacement           $locationEndPrepa,
-                                                    Utilisateur            $user,) {
+                                                    Utilisateur            $user) {
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $now = new DateTime('now');
