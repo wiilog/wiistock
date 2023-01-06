@@ -1204,7 +1204,7 @@ class ArrivageController extends AbstractController {
             : null;
 
         if (!isset($pack)) {
-            $printPacks = $request->query->getBoolean('printPacks');
+            $printPacks = $request->query->getBoolean('printPack');
             $printArrivage = $request->query->getBoolean('printArrivage');
 
             if ($printPacks) {

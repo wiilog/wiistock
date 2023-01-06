@@ -1676,11 +1676,11 @@ class ReceptionController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $packRepository = $entityManager->getRepository(Pack::class);
 
-        $location = $packRepository->find($data['pack'])->getLastDrop()?->getEmplacement();
-        if (isset($location) && !$location->ableToBeDropOff(new Pack())) {
+        $location = isset($data['pack']) ? $packRepository->find($data['pack'])?->getLastDrop()?->getEmplacement() : null;
+        if ($location && !$location->ableToBeDropOff(new Pack())) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => "Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement ".$location->getLabel(),
+                'msg' => "Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement " . $location->getLabel(),
             ]);
         }
         $createDirectDelivery = $settingRepository->getOneParamByLabel(Setting::DIRECT_DELIVERY);

@@ -44,5 +44,9 @@ final class Version20221213103323 extends AbstractMigration
         $this->addSql("UPDATE translation_source SET tooltip = 'Détails acheminements - Liste des unités logistiques - Nom de colonnes\\nPDF bon acheminement\\nPDF lettre de voiture' WHERE tooltip LIKE 'Détails acheminements - Liste des colis - Nom de colonnes\\nPDF bon acheminement\\nPDF lettre de voiture'");
         $this->addSql("UPDATE translation_source SET tooltip = 'L\'acheminement contient plus de {1} UL' WHERE tooltip LIKE 'L\'acheminement contient plus de {1} colis'");
 
+        $this->addSql("UPDATE setting SET label = 'AUTO_PRINT_LU' WHERE label LIKE 'AUTO_PRINT_COLIS'");
+        $this->addSql("UPDATE setting SET label = 'INCLURE_NOMBRE_DE_UL_SUR_ETIQUETTE' WHERE label LIKE 'INCLURE_NOMBRE_DE_COLIS_SUR_ETIQUETTE'");
+
+        $this->addSql("UPDATE filtre_sup SET field = 'UL' WHERE label LIKE 'colis'");
     }
 }
