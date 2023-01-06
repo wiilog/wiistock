@@ -313,10 +313,8 @@ class PDFGeneratorService {
         ]);
     }
 
-    public function generateFromDocx(string $docx) {
-
-        $command = '"' . ($_SERVER["LIBREOFFICE_EXEC"] ?? 'libreoffice') . '"' . " --headless --convert-to pdf " . $docx;
-
-        exec($command);
+    public function generateFromDocx(string $docx, string $outdir) {
+        $command = !empty($_SERVER["LIBREOFFICE_EXEC"]) ? $_SERVER["LIBREOFFICE_EXEC"] : 'libreoffice';
+        exec("\"{$command}\" --headless --convert-to pdf \"{$docx}\" --outdir \"{$outdir}\"");
     }
 }
