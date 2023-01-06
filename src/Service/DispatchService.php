@@ -924,7 +924,7 @@ class DispatchService {
             "note" => $waybillData['notes'] ?? '',
             "totalpoids" => $this->formatService->decimal($totalWeight, [], '-'),
             "totalvolume" => $this->formatService->decimal($totalVolume, [], '-'),
-            "totalquantite" => $this->formatService->decimal($totalQuantities, [], '-'),
+            "totalquantite" => $totalQuantities,
         ];
 
         if ($waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD) {
@@ -988,7 +988,7 @@ class DispatchService {
         rename($tmpDocxPath, $fullPath . '.docx');
 
         $this->PDFGeneratorService->generateFromDocx($fullPath . '.docx');
-        unlink($fullPath . '.docx');
+// TODO revert        unlink($fullPath . '.docx');
         rename("$projectDir/public/$nakedFileName.pdf", $fullPath . '.pdf');
         $nowDate = new DateTime('now');
 
