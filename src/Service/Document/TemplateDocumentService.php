@@ -85,7 +85,7 @@ class TemplateDocumentService {
 
     public function docxTextMapper($value): string {
         return $value
-            ? str_replace("\n", "<w:br/>", $value)
+            ? str_replace("\n", "</w:t><w:br/><w:t>", $value)
             : '';
     }
 
