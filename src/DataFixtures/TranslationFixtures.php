@@ -625,7 +625,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Ajouter des unités logistiques",
                             "en" => "Add logistic units",
-                            "tooltip" => "Page Flux - Arrivages :\nDétails arrivages - Liste des colis - Bouton\nDétails arrivages - Liste des colis - Modale Ajouter colis ",
+                            "tooltip" => "Page Flux - Arrivages :\nDétails arrivages - Liste des unités logistiques - Bouton\nDétails arrivages - Liste des unités logistiques - Modale Ajouter unité logistique",
                         ],
                         [
                             "fr" => "Liste des unités logistiques",
@@ -1261,7 +1261,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
-                            "fr" => "Liste des colis",
+                            "fr" => "Liste des unités logistiques",
                             "en" => "L.U. list",
                         ],
                         [
@@ -1316,8 +1316,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Onglet \"Groupes\"",
                         ],
                         [
-                            "fr" => "Vous êtes sur le point de dégrouper le groupe {1}. Les colis suivant seront déposés sur l'emplacement sélectionné : {2}.",
-                            "en" => "You are about to ungroup the group {1}. The following packages will be dropped off at the selected location : {2}.",
+                            "fr" => "Vous êtes sur le point de dégrouper le groupe {1}. Les unités logistiques suivant seront déposés sur l'emplacement sélectionné : {2}.",
+                            "en" => "You are about to ungroup the group {1}. The following logistic units will be dropped off at the selected location : {2}.",
                             "tooltip" => "Modale Dégrouper",
                         ],
                         [
@@ -1952,12 +1952,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Traité",
                             "en" => "Processed",
-                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nEmails",
+                            "tooltip" => "Détails acheminements - Liste des unités logistiques - Nom de colonnes\nEmails",
                         ],
                         [
                             "fr" => "À traiter",
                             "en" => "To process",
-                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nEmails",
+                            "tooltip" => "Détails acheminements - Liste des unités logistiques - Nom de colonnes\nEmails",
                         ],
                         [
                             "fr" => "L'acheminement a bien été créé",
@@ -2116,7 +2116,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Unité logistique",
                             "en" => "Logistic unit",
-                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture",
+                            "tooltip" => "Détails acheminements - Liste des unités logistiques - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture",
                         ],
                         [
                             "fr" => "Nouvelle UL",
@@ -2139,11 +2139,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Message succès Supprimer la ligne",
                         ],
                         [
-                            "fr" => "L'unité logistique {1} a bien été modifié",
+                            "fr" => "L'unité logistique {1} a bien été modifiée",
                             "en" => "Logistic unit {1} has been modified successfully",
                         ],
                         [
-                            "fr" => "L'unité logistique {1} a bien été ajouté",
+                            "fr" => "L'unité logistique {1} a bien été ajoutée",
                             "en" => "Logistic unit {1} has been added",
                         ],
                     ],
@@ -2244,7 +2244,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Logistic units are necessary to create a consignment note",
                         ],
                         [
-                            "fr" => "L'acheminement contient plus de {1} colis",
+                            "fr" => "L'acheminement contient plus de {1} UL",
                             "en" => "The transfer contains more than {1} LU",
                         ],
                         [

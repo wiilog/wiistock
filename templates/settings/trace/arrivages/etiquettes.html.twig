@@ -9,7 +9,7 @@
     </div>
 </div>
 
-<div class="wii-section-title">Sur l'étiquette colis d'arrivage</div>
+<div class="wii-section-title">Sur l'étiquette unité logistique d'arrivage</div>
 <div class="wii-section">
     <div class="row">
         <div class="col-12 col-md-6">
@@ -18,7 +18,7 @@
                     {{ form.checkbox(setting('INCLUDE_RECIPIENT_IN_LABEL'), "Afficher le destinataire", false, setting_value('INCLUDE_RECIPIENT_IN_LABEL')) }}
                 </div>
                 <div class="col-12 my-1">
-                    {{ form.checkbox(setting('INCLUDE_PACK_COUNT_IN_LABEL'), "Afficher le numéro du colis dans l'arrivage", false, setting_value('INCLUDE_PACK_COUNT_IN_LABEL')) }}
+                    {{ form.checkbox(setting('INCLUDE_PACK_COUNT_IN_LABEL'), "Afficher le numéro de l'UL dans l'arrivage", false, setting_value('INCLUDE_PACK_COUNT_IN_LABEL')) }}
                 </div>
                 <div class="col-12 my-1">
                     {{ form.checkbox(setting('INCLUDE_DZ_LOCATION_IN_LABEL'), "Afficher l’emplacement de dropzone", false, setting_value('INCLUDE_DZ_LOCATION_IN_LABEL')) }}

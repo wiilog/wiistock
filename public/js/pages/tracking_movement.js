@@ -171,7 +171,7 @@ function initPageModal(tableMvt) {
             keepForm: true,
             confirmMessage: $modal => {
                 return new Promise((resolve, reject) => {
-                    const pack = $modal.find(`[name="colis"]`).val();
+                    const pack = $modal.find(`[name="pack"]`).val();
                     const type = $modal.find(`[name="type"] option:selected`).text().trim();
 
                     if(type !== `prise`) {
@@ -221,9 +221,9 @@ function initNewModal($modal) {
     if ($moreMassMvtContainer.length > 0) {
         const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-prise"]');
         const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-depose"]');
-        const $colis = $moreMassMvtContainer.find('.select2-free[name="colis"]');
-        Select2Old.location($emplacementPrise, {autoSelect: true, $nextField: $colis});
-        Select2Old.initFree($colis);
+        const $pack = $moreMassMvtContainer.find('.select2-free[name="pack"]');
+        Select2Old.location($emplacementPrise, {autoSelect: true, $nextField: $pack});
+        Select2Old.initFree($pack);
         Select2Old.location($emplacementDepose, {autoSelect: true});
     }
 }
@@ -275,7 +275,7 @@ function switchMvtCreationType($input) {
 
             const $emptyRound = $modal.find('input[name=empty-round]');
             if ($input.find(':selected').text().trim() === $emptyRound.val()) {
-                const $packInput = $modal.find('input[name=colis]');
+                const $packInput = $modal.find('select[name=pack]');
                 $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
                 $packInput.val('passageavide');
                 $packInput.prop('disabled', true);
@@ -296,7 +296,7 @@ function displayConfirmationModal(group) {
         undefined,
         $('<div/>', {
             class: 'text-center',
-            html: `Ce colis est présent dans le groupe <strong>${group}</strong>. Confirmer le mouvement l\'enlèvera du groupe. <br>Voulez-vous continuer ?`
+            html: `Cette unité logistique est présente dans le groupe <strong>${group}</strong>. Confirmer le mouvement l\'enlèvera du groupe. <br>Voulez-vous continuer ?`
         }),
         [
             {

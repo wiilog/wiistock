@@ -772,7 +772,7 @@ class TransportController extends AbstractApiController
         if (!$patient) {
             $patient = (new Emplacement())
                 ->setLabel("Patient")
-                ->setDescription("Colis livrés chez un patient")
+                ->setDescription("Unités logistiques livrées chez un patient")
                 ->setIsActive(true);
 
             $manager->persist($patient);

@@ -97,7 +97,7 @@ class FiltreSupController extends AbstractController
                 'emplacement' => FiltreSup::FIELD_EMPLACEMENT,
                 'reference' => FiltreSup::FIELD_REFERENCE,
                 'statut' => FiltreSup::FIELD_STATUT,
-                'colis' => FiltreSup::FIELD_COLIS,
+                'UL' => FiltreSup::FIELD_PACK,
                 'carriers' => FiltreSup::FIELD_CARRIERS,
                 'providers' => FiltreSup::FIELD_PROVIDERS,
                 'demCollecte' => FiltreSup::FIELD_DEM_COLLECTE,

@@ -412,9 +412,9 @@
                             <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
                                 <input
                                     class="checkbox no-clear mr-2"
-                                    type="checkbox" name="printColis"
-                                    id="printColis" {{ checked }}>
-                                <input hidden value="{{ checked }}" id="printColisChecked">
+                                    type="checkbox" name="printPacks"
+                                    id="printPacks" {{ checked }}>
+                                <input hidden value="{{ checked }}" id="printPacksChecked">
                                 <label class="text-break text-wrap">
                                     {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques') }}
                                 </label>
@@ -438,7 +438,7 @@
                                         </label>
                                         <input type="number"
                                                class="form-control input-sm data-array needed-positiv needs-default {{ isClientSafranED ? "no-clear" }}"
-                                               name="colis"
+                                               name="packs"
                                                data-custom-label="{{ trans('Traçabilité', 'Général', 'Unité logistique') }}"
                                                data-custom-needed-positiv-error="{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Veuillez renseigner au moins une unité logistique') }}"
                                                data-id="{{ nature.id }}"
@@ -457,7 +457,7 @@
                                 warningLabel: 'Attention ! Aucune nature n\'a été créée',
                                 redirectPath: path('nature_param_index'),
                                 redirectLabel: 'Aller vers la création des natures',
-                                title: 'de colis',
+                                title: 'd\'unité logistique',
                                 rights: {
                                     menu: constant('App\\Entity\\Menu::REFERENTIEL'),
                                     action: constant('App\\Entity\\Action::CREATE')

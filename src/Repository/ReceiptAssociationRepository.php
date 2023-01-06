@@ -47,7 +47,7 @@ class ReceiptAssociationRepository extends EntityRepository
                         ->andWhere("filter_user.id in (:value)")
                         ->setParameter('value', $value);
                     break;
-                case 'colis':
+                case 'UL':
                     $value = $filter['value'];
                     $qb
                         ->andWhere("receipt_association.packCode LIKE :value")

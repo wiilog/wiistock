@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-12">
             {% set packs = group.children | map(pack => pack.code) | join(',') %}
-            {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Vous êtes sur le point de dégrouper le groupe {1}. Les colis suivant seront déposés sur l'emplacement sélectionné : {2}.", {
+            {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Vous êtes sur le point de dégrouper le groupe {1}. Les unités logistiques suivantes seront déposées sur l'emplacement sélectionné : {2}.", {
                 '1': "<strong>" ~  (group.code)  ~ "</strong>",
                 '2': "<strong>" ~  (packs)  ~ "</strong>",
             }) }}

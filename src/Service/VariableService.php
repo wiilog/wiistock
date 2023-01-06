@@ -54,7 +54,7 @@ class VariableService
     public const DEPOSIT_LOCATION = "empdepose";
     public const DUE_DATE = "dateecheance";
     public const ORDER_NUMBER = "numcommande";
-    public const PACK_COUNT = "nbcolis";
+    public const PACK_COUNT = "nbUL";
     public const LOADING = "chargement";
     public const UNLOADING = "dechargement";
     public const EXPECTED_DATE = "dateattendue";
@@ -119,7 +119,7 @@ class VariableService
         self::VALIDATION_DATE => "Date de validation de la demande d'acheminement",
         self::DUE_DATE => "Date d'échéance de la demande d'acheminement",
         self::ORDER_NUMBER => "Numéro de commande de la demande d'acheminement",
-        self::PACK_COUNT => "Nombre de colis (lignes) dans la demande d'acheminement",
+        self::PACK_COUNT => "Nombre d'unités logistiques (lignes) dans la demande d'acheminement",
     ];
 
     public const HANDLING_DICTIONARY = [

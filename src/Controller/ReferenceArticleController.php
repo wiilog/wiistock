@@ -478,7 +478,7 @@ class ReferenceArticleController extends AbstractController
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
-                        Cette référence article est lié à un colis, des mouvements, une collecte,
+                        Cette référence article est lié à unu unité logistique, des mouvements, une collecte,
                         une livraison, une réception ou un article fournisseur et ne peut pas être supprimée.
                     '
                 ]);

@@ -103,7 +103,7 @@
     <input id="arrivalForm" value="{{ initial_form|json_encode }}" hidden>
     <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
 
-    {% include "arrivage/modalListColis.html.twig" %}
+    {% include "arrivage/modalListPacks.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
         'table': 'arrivalsTable',

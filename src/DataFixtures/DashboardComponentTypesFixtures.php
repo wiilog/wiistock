@@ -25,7 +25,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::EXTERNAL_IMAGE,
         ],
         'Quantité en cours sur n emplacement(s)' => [
-            'hint' => 'Nombre de colis en encours sur les emplacements sélectionnés',
+            'hint' => 'Nombre d\'unités logistiques en encours sur les emplacements sélectionnés',
             'exampleValues' => [
                 'title' => 'Litige en cours',
                 'count' => 5,
@@ -89,12 +89,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
         'UL en retard' => [
-            'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
+            'hint' => 'Les 100 unités logistiques les plus anciennes ayant dépassé le délai de présence sur leur emplacement',
             'inSplitCell' => false,
             'exampleValues' => [
                 'tableData' => [
-                    ['pack' => 'COLIS1', 'date' => '06/04/2020 10:27:09', 'delay' => '10000', 'location' => "EMP1"],
-                    ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:29', 'delay' => '10000', 'location' => "EMP2"]
+                    ['pack' => 'UL1', 'date' => '06/04/2020 10:27:09', 'delay' => '10000', 'location' => "EMP1"],
+                    ['pack' => 'UL2', 'date' => '06/08/2020 20:57:29', 'delay' => '10000', 'location' => "EMP2"]
                 ],
                 'textColor-1' => "#000000",
                 'textBold-1' => false,
@@ -263,8 +263,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
         ],
-        'Colis à traiter en provenance' => [
-            'hint' => 'Nombre de colis à traiter en fonction des emplacements d\'origine et de destination paramétrés',
+        'Unité logistique à traiter en provenance' => [
+            'hint' => 'Nombre d\'unités logistiques à traiter en fonction des emplacements d\'origine et de destination paramétrés',
             'exampleValues' => [
                 'chartColors' => [
                     'Legende1' => '#77933C',
@@ -309,14 +309,14 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
             'template' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
         ],
-        'Nombre de colis distribués en dépose' => [
-            'hint' => 'Nombre de colis présents sur les emplacements de dépose paramétrés',
+        'Nombre d\'unités logistiques distribuées en dépose' => [
+            'hint' => 'Nombre d\'unités logistiques présentes sur les emplacements de dépose paramétrés',
             'exampleValues' => [
                 'chartColors' => [
                     Dashboard\ComponentType::DEFAULT_CHART_COLOR
                 ],
                 'chartColorsLabels' => [
-                    'Colis'
+                    'Unité logistique'
                 ],
                 'chartData' => [
                     '04/01' => 6,
@@ -424,7 +424,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::PENDING_REQUESTS,
         ],
         'Entrées à effectuer' => [
-            'hint' => "Nombre de colis par natures paramétrées présents sur la durée paramétrée sur l'ensemble des emplacements paramétrés",
+            'hint' => "Nombre d\'unités logistiques par natures paramétrées présentes sur la durée paramétrée sur l\'ensemble des emplacements paramétrés",
             'exampleValues' => [
                 'count' => 72,
                 'segments' => ['4', '8', '12', '16'],

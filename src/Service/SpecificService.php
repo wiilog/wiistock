@@ -39,7 +39,7 @@ class SpecificService
         self::CLIENT_SAFRAN_MC => 'Safran MC',
     ];
 
-	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS';
+	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT UL';
 
     public const EVERY_MINUTE_REFRESH_RATE_CLIENTS = [
         self::CLIENT_SAFRAN_MC,

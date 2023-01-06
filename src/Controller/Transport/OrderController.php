@@ -401,11 +401,11 @@ class OrderController extends AbstractController {
                 'Commentaire'];
 
             $packsHeader = [
-                'Nature colis',
-                'Nombre de colis à livrer',
+                'Nature UL',
+                'Nombre d\'UL à livrer',
                 'Températures',
                 'Dépassement température',
-                'Code colis',
+                'Code UL',
                 'Ecarté',
                 'Motif écartement',
                 'Retourné le',
@@ -438,7 +438,7 @@ class OrderController extends AbstractController {
             ];
 
             $csvLines = [
-                'Nature colis',
+                'Nature UL',
                 'Quantité à collecter',
                 'Quantités collectées',
             ];
