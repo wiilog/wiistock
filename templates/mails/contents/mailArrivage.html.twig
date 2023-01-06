@@ -90,12 +90,12 @@
             </p>
         {% else %}
             <p style="font-weight: bold">
-                Votre colis sera livré en dropzone en milieu d'après-midi.
+                Votre unité logistique sera livrée en dropzone en milieu d'après-midi.
             </p>
         {% endif %}
     {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
         <p>
-            Votre colis est disponible auprès du magasin.
+            Votre unité logistique est disponible auprès du magasin.
         </p>
     {% endif %}
     {%  if packsNatureNb is not empty %}

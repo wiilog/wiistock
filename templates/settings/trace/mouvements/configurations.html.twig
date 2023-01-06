@@ -11,7 +11,7 @@
 <div class="wii-section">
     <div class="row align-items-center justify-content-center">
         <div class="col-lg col-12 my-1">
-            {{ form.checkbox(setting('SEND_PACK_DELIVERY_REMIND'), "Déclencher un mail de relance si colis sur point de livraison dropzone à 7j, 15j, 30j, et 42j", false, setting_value('SEND_PACK_DELIVERY_REMIND')) }}
+            {{ form.checkbox(setting('SEND_PACK_DELIVERY_REMIND'), "Déclencher un mail de relance si UL sur point de livraison dropzone à 7j, 15j, 30j, et 42j", false, setting_value('SEND_PACK_DELIVERY_REMIND')) }}
         </div>
         <div class="col-auto my-1">
             <button class="btn btn-outline-primary" onclick="triggerReminderEmails($(this))">Déclencher les mails de relance</button>

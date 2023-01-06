@@ -124,7 +124,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPATCH_WAYBILL_CONTACT_NAME => [
                 'default' => null,
             ],
-            Setting::AUTO_PRINT_COLIS => [
+            Setting::AUTO_PRINT_LU => [
                 'default' => true,
             ],
             Setting::SEND_MAIL_MANAGER_WARNING_THRESHOLD => [

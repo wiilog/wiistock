@@ -5,7 +5,7 @@
 <form>
     <div class="row">
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name" style="margin-bottom:5px" title="Numéro colis">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL') }}</label>
+            <label class="wii-field-name" style="margin-bottom:5px" title="Numéro UL">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL') }}</label>
             <input type="text"
                    class="form-control"
                    value="{{ pack.code }}"
@@ -41,7 +41,7 @@
                 placeholder: 'Sélectionnez un projet',
                 emptyOption: {text: '', value: ''},
                 disabled: disabledProject,
-                tooltip: disabledProject ? 'Le projet ne peut pas être modifié car le colis est dans une réception en cours, une livraison en cours ou un panier' : null
+                tooltip: disabledProject ? 'Le projet ne peut pas être modifié car l\'unité logistique est dans une réception en cours, une livraison en cours ou un panier' : null
             }) }}
         </div>
         <div class="form-group col-md-6 col-12">

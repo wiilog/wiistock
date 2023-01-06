@@ -26,9 +26,9 @@
     <div class="form-group col-md-6 col-12">
         {% set pack = mvt.pack %}
         {% set code = pack ? pack.code %}
-        <label class="wii-field-name" title="Colis">{{ trans('Traçabilité', 'Général', 'Unité logistique', false) }}*</label>
+        <label class="wii-field-name" title="UL">{{ trans('Traçabilité', 'Général', 'Unité logistique', false) }}*</label>
         <input type="text"
-               title="Colis"
+               title="UL"
                class="form-control w-100 data"
                name="pack"
             {{ not canEditFully ? 'disabled' }}

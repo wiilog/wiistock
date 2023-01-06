@@ -30,7 +30,7 @@ class Sensor {
     const COLLECT_ORDER = 'collect-order';
     const PAIRING_CATEGORIES = [
         'Emplacement' => self::LOCATION,
-        'Colis' => self::PACK,
+        'Unité logistique' => self::PACK,
         'Article' => self::ARTICLE,
         'Véhicule' => self::VEHICLE,
         'Préparation' => self::PREPARATION,

@@ -360,7 +360,7 @@ class MobileController extends AbstractApiController
                             }
                         }
 
-                        // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
+                        // envoi de mail si c'est une dépose + l'UL existe + l'emplacement est un point de livraison
                         $arrivageDataService->sendMailForDeliveredPack($location, $associatedPack, $nomadUser, $type->getNom(), $date);
 
                         $entityManager->flush();
@@ -385,7 +385,7 @@ class MobileController extends AbstractApiController
                 if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
                     $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
                 } else if ($throwable->getMessage() === Pack::PACK_IS_GROUP) {
-                    $successData['data']['errors'][$mvt['ref_article']] = 'Le colis scanné est un groupe';
+                    $successData['data']['errors'][$mvt['ref_article']] = 'L\'unité logistique scannée est un groupe';
                 } else {
                     $exceptionLoggerService->sendLog($throwable, $request);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
@@ -507,7 +507,7 @@ class MobileController extends AbstractApiController
                         $dateArray = explode('_', $mvt['date']);
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
 
-                        //trouve les colis sans association à un article car les colis
+                        //trouve les ULs sans association à un article car les ULs
                         //associés a des articles SONT des articles donc on les traite normalement
                         $pack = $packRepository->findWithoutArticle($mvt['ref_article']);
 
@@ -626,7 +626,7 @@ class MobileController extends AbstractApiController
                 if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
                     $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
                 } else if ($throwable->getMessage() === Pack::PACK_IS_GROUP) {
-                    $successData['data']['errors'][$mvt['ref_article']] = 'Le colis scanné est un groupe';
+                    $successData['data']['errors'][$mvt['ref_article']] = 'L\'unité logistique scannée est un groupe';
                 } else {
                     $exceptionLoggerService->sendLog($throwable, $request);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];

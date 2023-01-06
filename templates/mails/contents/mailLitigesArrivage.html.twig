@@ -48,17 +48,17 @@
                     {{ dispute.status.labelIn(defaultLanguageSlug,defaultLanguageSlug) }}
                 </td>
 
-                {% set firstColis = dispute.packs|first %}
+                {% set firstPack = dispute.packs|first %}
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {% for numeroBL in firstColis.arrivage.numeroCommandeList %}
+                    {% for numeroBL in firstPack.arrivage.numeroCommandeList %}
                         {{ numeroBL }}
                         {% if loop.last %}<br/>{% endif %}
                     {% endfor %}
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ firstColis.code }}
+                    {{ firstPack.code }}
                 </td>
             </tr>
             {% for pack in dispute.packs %}

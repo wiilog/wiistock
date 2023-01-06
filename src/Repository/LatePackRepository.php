@@ -27,7 +27,7 @@ class LatePackRepository extends EntityRepository
     public function findAllForDatatable() {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT l.delay, l.colis as pack, l.date, l.emp as location
+            "SELECT l.delay, l.LU as pack, l.date, l.emp as location
             FROM App\Entity\LatePack l
            "
         );

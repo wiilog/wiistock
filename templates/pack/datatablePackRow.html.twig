@@ -4,7 +4,7 @@
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if pack.arrivage %}
             <a class="dropdown-item  d-flex align-items-center"
-               href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: pack.arrivage.id, colis: pack.id}) }}">
+               href="{{ path('print_arrivage_single_pack_bar_codes', {arrivage: pack.arrivage.id, pack: pack.id}) }}">
                 <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Général', null, 'Zone liste', 'Imprimer') }}
             </a>
             {% endif %}

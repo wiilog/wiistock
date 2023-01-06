@@ -4,7 +4,7 @@
 {% block showHiddenInputs %}
     <input hidden value="{{ arrivage.id }}" id="arrivageId">
     <input hidden value="{{ arrivage.numeroarrivage }}" id="numeroArrivage">
-    <input hidden value="{{ printColis is defined ? printColis : false }}" id="printColis">
+    <input hidden value="{{ printPacks is defined ? printPacks : false }}" id="printPacks">
     <input hidden value="{{ printArrivage is defined ? printArrivage : false }}" id="printArrivage">
 {% endblock %}
 

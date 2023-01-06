@@ -182,8 +182,8 @@
                     {% elseif order and order.hasRejectedPacks %}
                         <img src="{{ asset('svg/rejected-pack.svg') }}"
                              class="transport-status-icon"
-                             alt="Colis écarté"
-                             title="Colis écarté"/>
+                             alt="UL écartée"
+                             title="UL écartée"/>
                     {% endif %}
 
                     <span class="wii-small-text white-space-wrap">Créée le : {{ request.createdAt | format_helper('longDate', {short: true, time: true, year: false}) }}</span><br>

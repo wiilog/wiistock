@@ -135,7 +135,7 @@ class TrackingMovementRepository extends EntityRepository
                             ->andWhere('tracking_movement.datetime <= :dateMax')
                             ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                         break;
-                    case 'colis':
+                    case 'UL':
                         $qb
                             ->leftJoin('tracking_movement.pack', 'filter_pack')
                             ->leftJoin('filter_pack.article', 'filter_pack_article')

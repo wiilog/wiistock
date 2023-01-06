@@ -129,7 +129,7 @@ function runDispatchPrint($button) {
             .json()
             .then(({packsCounter}) => {
                 if (!packsCounter) {
-                    showBSAlert('Vous ne pouvez pas imprimer un acheminement sans colis', 'danger');
+                    showBSAlert('Vous ne pouvez pas imprimer un acheminement sans UL', 'danger');
                 } else {
                     AJAX.route(`GET`, `dispatch_note`, {dispatch: dispatchId})
                         .json()

@@ -244,7 +244,7 @@ class SelectController extends AbstractController {
     }
 
     /**
-     * @Route("/select/colis", name="ajax_select_packs", options={"expose": true})
+     * @Route("/select/unites-logistiques", name="ajax_select_packs", options={"expose": true})
      */
     public function packs(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"));
@@ -328,7 +328,7 @@ class SelectController extends AbstractController {
     }
 
     /**
-     * @Route("/select/colis-sans-association", name="ajax_select_packs_without_pairing", options={"expose"=true})
+     * @Route("/select/unites-logistiques-sans-association", name="ajax_select_packs_without_pairing", options={"expose"=true})
      */
     public function packsWithoutPairing(Request $request, EntityManagerInterface $entityManager): Response {
         $results = $entityManager->getRepository(Pack::class)->findWithNoPairing($request->query->get("term"));
@@ -494,7 +494,7 @@ class SelectController extends AbstractController {
         if($packMustBeNew) {
             if($packRepository->findOneBy(["code" => $packCode])) {
                 return $this->json([
-                    "error" => "Ce colis existe déjà en base de données"
+                    "error" => "Cette unité logistique existe déjà en base de données"
                 ]);
             } else {
                 $results = [];
@@ -512,7 +512,7 @@ class SelectController extends AbstractController {
 
         array_unshift($results, [
             "id" => "new-item",
-            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau colis</b></div>",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
         ]);
 
         if(isset($results[1])) {
