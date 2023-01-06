@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\DispatchPack;
 use App\Entity\FreeField;
@@ -19,10 +20,13 @@ use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
+use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -31,8 +35,6 @@ use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 class DispatchService {
-
-    const WAYBILL_MAX_PACK = 20;
 
     #[Required]
     public Twig_Environment $templating;
@@ -78,6 +80,18 @@ class DispatchService {
 
     #[Required]
     public CSVExportService $CSVExportService;
+
+    #[Required]
+    public KernelInterface $kernel;
+
+    #[Required]
+    public TemplateDocumentService $wordTemplateDocument;
+
+    #[Required]
+    public PDFGeneratorService $PDFGeneratorService;
+
+    #[Required]
+    public SpecificService $specificService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -612,7 +626,7 @@ class DispatchService {
         }
         $href = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
 
-        $bodyTitle = $dispatch->getDispatchPacks()->count() . ' colis' . ' - ' . $requestType;
+        $bodyTitle = $dispatch->getDispatchPacks()->count() . ' unités logistiques' . ' - ' . $requestType;
         $requestDate = $dispatch->getCreationDate();
         $requestDateStr = $requestDate
             ? (
@@ -844,6 +858,222 @@ class DispatchService {
             $this->CSVExportService->putLine($handle, $row);
         }
 
+    }
+
+    public function getOverconsumptionBillData(Dispatch $dispatch): array {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
+
+        $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
+        $overConsumptionLogo = $settingRepository->getOneParamByLabel(Setting::FILE_OVERCONSUMPTION_LOGO);
+
+        $additionalField = [];
+        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS_VERNON)) {
+            $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
+            $freeFieldValues = $dispatch->getFreeFields();
+
+            $flow = current(array_filter($freeFields, function($field) {
+                return $field->getLabel() === "Flux";
+            }));
+
+            $additionalField[] = [
+                "label" => "Flux",
+                "value" => $flow ? $this->formatService->freeField($freeFieldValues[$flow->getId()] ?? null, $flow) : null,
+            ];
+
+            $requestType = current(array_filter($freeFields, function($field) {
+                return $field->getLabel() === "Type de demande";
+            }));
+
+            $additionalField[] = [
+                "label" => "Type de demande",
+                "value" => $requestType ? $this->formatService->freeField($freeFieldValues[$requestType->getId()] ?? null, $requestType) : null,
+            ];
+        }
+
+        $now = new DateTime();
+        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+
+        $name = "BS - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+
+        return [
+            'file' => $this->PDFGeneratorService->generatePDFOverconsumption($dispatch, $appLogo, $overConsumptionLogo, $additionalField),
+            'name' => $name
+        ];
+    }
+
+    public function getDeliveryNoteData(Dispatch $dispatch): array {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
+        $now = new DateTime();
+        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+
+        $name = "BL - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+
+        return [
+            'file' => $this->PDFGeneratorService->generatePDFDeliveryNote($name, $logo, $dispatch),
+            'name' => $name
+        ];
+    }
+
+    public function getDispatchNoteData(Dispatch $dispatch): array {
+        $now = new DateTime();
+        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+
+        $name = "BA - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+
+        return [
+            'file' => $this->PDFGeneratorService->generatePDFDispatchNote($dispatch),
+            'name' => $name
+        ];
+    }
+
+    public function persistNewWaybillAttachment(EntityManagerInterface $entityManager,
+                                                Dispatch               $dispatch): Attachment {
+
+        $projectDir = $this->kernel->getProjectDir();
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $waybillTypeToUse = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_TYPE_TO_USE);
+        $waybillTemplatePath = match ($waybillTypeToUse) {
+            Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD => (
+                $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE)
+                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE)
+            ),
+            Setting::DISPATCH_WAYBILL_TYPE_TO_USE_RUPTURE => (
+                $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
+                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
+            )
+        };
+
+        $waybillData = $dispatch->getWaybillData();
+
+        $totalWeight = Stream::from($dispatch->getDispatchPacks())
+            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
+            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getWeight())
+            ->filter()
+            ->sum();
+        $totalVolume = Stream::from($dispatch->getDispatchPacks())
+            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
+            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getVolume())
+            ->filter()
+            ->sum();
+        $totalQuantities = Stream::from($dispatch->getDispatchPacks())
+            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
+            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getQuantity())
+            ->filter()
+            ->sum();
+
+        $waybillDate = $this->formatService->parseDatetime($waybillData['dispatchDate'] ?? null, ["Y-m-d"]);
+
+        $variables = [
+            "numach" => $dispatch->getNumber(),
+            "qrcodenumach" => $dispatch->getNumber(),
+            "typeach" => $this->formatService->type($dispatch->getType()),
+            "transporteurach" => $this->formatService->carriers([$dispatch->getType()]),
+            "numtracktransach" => $dispatch->getCarrierTrackingNumber() ?: '',
+            "demandeurach" => $this->formatService->user($dispatch->getRequester()),
+            "destinatairesach" => $this->formatService->users($dispatch->getReceivers()),
+            "numprojetach" => $dispatch->getProjectNumber() ?: '',
+            "numcommandeach" => $dispatch->getCommandNumber() ?: '',
+            "date1ach" => $this->formatService->date($dispatch->getStartDate()),
+            "date2ach" => $this->formatService->date($dispatch->getEndDate()),
+            // dispatch waybill data
+            "dateacheminement" => $this->formatService->date($waybillDate),
+            "transporteur" => $waybillData['carrier'] ?? '',
+            "expediteur" => $waybillData['consignor'] ?? '',
+            "destinataire" => $waybillData['receiver'] ?? '',
+            "nomexpediteur" => $waybillData['consignorUsername'] ?? '',
+            "telemailexpediteur" => $waybillData['consignorEmail'] ?? '',
+            "nomdestinataire" => $waybillData['receiverUsername'] ?? '',
+            "telemaildestinataire" => $waybillData['receiverEmail'] ?? '',
+            "lieuchargement" => $waybillData['locationFrom'] ?? '',
+            "lieudechargement" => $waybillData['locationTo'] ?? '',
+            "note" => $waybillData['notes'] ?? '',
+            "totalpoids" => $this->formatService->decimal($totalWeight, [], '-'),
+            "totalvolume" => $this->formatService->decimal($totalVolume, [], '-'),
+            "totalquantite" => $totalQuantities,
+        ];
+
+        if ($waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD) {
+            $variables['UL'] = $dispatch->getDispatchPacks()
+                ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
+                ->map(fn(DispatchPack $dispatchPack) => [
+                    "UL" => $dispatchPack->getPack()->getCode(),
+                    "nature" => $this->formatService->nature($dispatchPack->getPack()->getNature()),
+                    "quantite" => $dispatchPack->getQuantity(),
+                    "poids" => $this->formatService->decimal($dispatchPack->getPack()->getWeight(), [], '-'),
+                    "volume" => $this->formatService->decimal($dispatchPack->getPack()->getVolume(), [], '-'),
+                    "commentaire" => strip_tags($dispatchPack->getPack()->getComment()) ?: '-',
+                ])
+                ->toArray();
+        }
+        else { // $waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_RUPTURE
+            $packs = Stream::from($dispatch->getDispatchPacks())
+                ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()?->getArrivage())
+                ->keymap(fn(DispatchPack $dispatchPack) => [
+                    $dispatchPack->getPack()->getArrivage()->getId(),
+                    $dispatchPack
+                ],true)
+                ->map(function(array $dispatchPacks) {
+                    /** @var DispatchPack $firstDispatchPack */
+                    $firstDispatchPack = $dispatchPacks[0];
+                    $arrival = $firstDispatchPack->getPack()->getArrivage();
+                    return [
+                        "numarrivage" => $arrival->getNumeroArrivage(),
+                        "numcommandearrivage" => Stream::from($arrival->getNumeroCommandeList())->join("\n"),
+                        "tableauULarrivage" => [
+                            ["Unité de tracking", "Nature", "Quantité", "Poids"],
+                            ...Stream::from($dispatchPacks)
+                                ->map(fn(DispatchPack $dispatchPack) => [
+                                    $dispatchPack->getPack()->getCode(),
+                                    $this->formatService->nature($dispatchPack->getPack()->getNature()),
+                                    $dispatchPack->getQuantity(),
+                                    $this->formatService->decimal($dispatchPack->getPack()->getWeight(), [], '-'),
+                                ])
+                                ->toArray()
+                        ]
+                    ];
+                })
+                ->values();
+
+            if (empty($packs)) {
+                throw new FormException("Il n'y a pas d'arrivage lié à cet acheminement, le modèle de rupture à l'arrivage ne peut pas être utilisé");
+            }
+
+            $variables['numarrivage'] = $packs;
+        }
+
+        $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
+            "${projectDir}/public/$waybillTemplatePath",
+            $variables,
+            ["barcodes" => ["qrcodenumach"],]
+        );
+
+        $nakedFileName = uniqid();
+
+        $waybillOutdir = "{$projectDir}/public/uploads/attachements";
+        $docxPath = "{$waybillOutdir}/{$nakedFileName}.docx";
+        rename($tmpDocxPath, $docxPath);
+
+        $this->PDFGeneratorService->generateFromDocx($docxPath, $waybillOutdir);
+        unlink($docxPath);
+
+        $nowDate = new DateTime('now');
+
+        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+
+        $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
+
+        $wayBillAttachment = new Attachment();
+        $wayBillAttachment
+            ->setDispatch($dispatch)
+            ->setFileName($nakedFileName . '.pdf')
+            ->setOriginalName($title . '.pdf');
+
+        $entityManager->persist($wayBillAttachment);
+
+        return $wayBillAttachment;
     }
 
 }

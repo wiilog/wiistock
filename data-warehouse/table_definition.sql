@@ -472,3 +472,10 @@ CREATE TABLE dw_informations
 (
     version varchar(255)
 );
+
+CREATE TABLE dw_article_champs_libres
+(
+    article_id 		   integer,
+    libelle            varchar(255),
+    valeur             text
+);

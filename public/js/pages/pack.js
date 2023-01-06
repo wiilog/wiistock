@@ -75,7 +75,7 @@ const groupsTableConfig = {
 const TAB_PACKS = 1;
 const TAB_GROUPS = 2;
 
-const HASH_PACKS = `#colis`;
+const HASH_PACKS = `#unites-logistiques`;
 const HASH_GROUPS = `#groupes`;
 
 let selectedTab = TAB_PACKS;
@@ -97,7 +97,7 @@ $(function() {
 
     const codeUl = $('#lu-code').val();
     if(codeUl) {
-        displayFiltersSup([{field: 'colis', value: codeUl}], true);
+        displayFiltersSup([{field: 'LU', value: codeUl}], true);
     }
     else {
         $.post(path, params, function(data) {

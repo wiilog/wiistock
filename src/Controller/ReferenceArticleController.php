@@ -478,7 +478,7 @@ class ReferenceArticleController extends AbstractController
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
-                        Cette référence article est lié à un colis, des mouvements, une collecte,
+                        Cette référence article est lié à unu unité logistique, des mouvements, une collecte,
                         une livraison, une réception ou un article fournisseur et ne peut pas être supprimée.
                     '
                 ]);
@@ -911,7 +911,7 @@ class ReferenceArticleController extends AbstractController
         }
 
         return $this->json([
-            'referenceForErrorModal' => $reference ? $reference->getBarCode() : '',
+            'referenceForErrorModal' => $reference ? $reference->getReference() : '',
             'codeArticle' => $article ? $article->getBarCode() : 'Non défini',
             'exists' => $reference !== null,
             'inStock' => $reference?->getQuantiteStock() > 0,
@@ -1043,13 +1043,14 @@ class ReferenceArticleController extends AbstractController
                     ->setInactiveSince($date)
                     ->setCreatedOnKioskAt($date);
                 $entityManager->persist($article);
-
-                $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
-                $options['barcode'] = $article->getBarCode();
-                $kioskService->printLabel($options, $entityManager);
             } else {
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
+                $article->setQuantite(1)->setCreatedOnKioskAt($date);
             }
+            $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
+            $options['barcode'] = $article->getBarCode();
+            $kioskService->printLabel($options, $entityManager);
+
             $ordreCollecte->addArticle($article);
             $entityManager->persist($ordreCollecte);
         } catch(Exception $exception) {

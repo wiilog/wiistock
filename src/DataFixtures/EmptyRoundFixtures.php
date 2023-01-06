@@ -22,7 +22,7 @@ class EmptyRoundFixtures extends Fixture implements FixtureGroupInterface
                 ->setCode('passageavide');
 
             $manager->persist($pack);
-            $output->writeln('Création du colis passageavide');
+            $output->writeln('Création de l\'unité logistique passageavide');
 
             $manager->flush();
         }

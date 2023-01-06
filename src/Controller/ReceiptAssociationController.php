@@ -175,7 +175,7 @@ class ReceiptAssociationController extends AbstractController
 
             $headers = [
                 'date',
-                'colis',
+                'unité logistique',
                 'réception(s)',
                 'utilisateur',
             ];

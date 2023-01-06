@@ -106,19 +106,19 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
         $modal.find('.error-msg').html('');
         $modal.find('.modal-body').html(data.html);
         if (isArrivage) {
-            $modal.find('#colisEditLitige').val(data.colis).select2();
+            $modal.find('#packEditLitige').val(data.packs).select2();
         } else {
             Select2Old.articleReception($modal.find('.select2-autocomplete-articles'), arrivageOrReceptionId);
 
             let values = [];
-            data.colis.forEach(val => {
+            data.packs.forEach(val => {
                 values.push({
                     id: val.id,
                     text: val.text
                 })
             });
             values.forEach(value => {
-                $('#colisEditLitige').select2("trigger", "select", {
+                $('#packEditLitige').select2("trigger", "select", {
                     data: value
                 });
             });

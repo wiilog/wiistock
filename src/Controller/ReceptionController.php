@@ -1017,7 +1017,7 @@ class ReceptionController extends AbstractController {
             ->setType($typeRepository->find($post->get('disputeType')))
             ->setStatus($statutAfter);
 
-        $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('colis'), $dispute);
+        $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('pack'), $dispute);
         if($errorResponse) {
             return $errorResponse;
         }
@@ -1026,7 +1026,7 @@ class ReceptionController extends AbstractController {
             $dispute->setEmergencyTriggered($post->get('emergency') === 'true');
         }
         if(!empty($buyers = $post->get('acheteursLitige'))) {
-            // on détache les colis existants...
+            // on détache les UL existants...
             $existingBuyers = $dispute->getBuyers();
             foreach($existingBuyers as $buyer) {
                 $dispute->removeBuyer($buyer);
@@ -1184,13 +1184,13 @@ class ReceptionController extends AbstractController {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $dispute = $disputeRepository->find($data['disputeId']);
-            $colisCode = [];
+            $packsCode = [];
             $acheteursCode = [];
 
-            foreach($dispute->getArticles() as $colis) {
-                $colisCode[] = [
-                    'id' => $colis->getId(),
-                    'text' => $colis->getBarCode(),
+            foreach($dispute->getArticles() as $pack) {
+                $packsCode[] = [
+                    'id' => $pack->getId(),
+                    'text' => $pack->getBarCode(),
                 ];
             }
             foreach($dispute->getBuyers() as $buyer) {
@@ -1204,7 +1204,7 @@ class ReceptionController extends AbstractController {
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
             ]);
 
-            return new JsonResponse(['html' => $html, 'colis' => $colisCode, 'acheteurs' => $acheteursCode]);
+            return new JsonResponse(['html' => $html, 'packs' => $packsCode, 'acheteurs' => $acheteursCode]);
         }
         throw new BadRequestHttpException();
     }
@@ -1676,11 +1676,11 @@ class ReceptionController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $packRepository = $entityManager->getRepository(Pack::class);
 
-        $location = $packRepository->find($data['pack'])->getLastDrop()?->getEmplacement();
-        if (isset($location) && !$location->ableToBeDropOff(new Pack())) {
+        $location = isset($data['pack']) ? $packRepository->find($data['pack'])?->getLastDrop()?->getEmplacement() : null;
+        if ($location && !$location->ableToBeDropOff(new Pack())) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => "Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement ".$location->getLabel(),
+                'msg' => "Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement " . $location->getLabel(),
             ]);
         }
         $createDirectDelivery = $settingRepository->getOneParamByLabel(Setting::DIRECT_DELIVERY);
@@ -2025,7 +2025,7 @@ class ReceptionController extends AbstractController {
         if(isset($demande) && $demande->getType()->getSendMail()) {
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
-                'FOLLOW GT // Réception d\'un colis ' . 'de type «' . $demande->getType()->getLabel() . '».',
+                'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
                 $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
                     'fournisseur' => $reception->getFournisseur(),
@@ -2065,7 +2065,7 @@ class ReceptionController extends AbstractController {
             $articleStatusAvailable = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             $articleStatusDispute = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_LITIGE);
 
-            // on détache les colis existants...
+            // on détache les UL existants...
             $existingArticles = $dispute->getArticles();
             foreach($existingArticles as $article) {
                 $article->removeDispute($dispute);

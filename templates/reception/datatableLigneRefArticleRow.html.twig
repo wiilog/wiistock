@@ -4,7 +4,7 @@
             {
                 icon: "fas fa-list",
                 title: "Voir mouvements de traçabilité",
-                href: path('mvt_traca_index', packFilter is not empty ? {colis: packFilter} : {}),
+                href: path('mvt_traca_index', packFilter is not empty ? {pack: packFilter} : {}),
                 hasRight: isReferenceTypeLinked,
             },
             {

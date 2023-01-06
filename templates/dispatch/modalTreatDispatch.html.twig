@@ -13,7 +13,6 @@
                             <select class="form-control data needed"
                                     name="status"
                                     title="Statut">
-                                <option value=""></option>
                                 {% for status in treatedStatus %}
                                     <option value="{{ status.id }}">{{ status.getLabelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
                                 {% endfor %}

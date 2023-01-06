@@ -28,7 +28,7 @@ use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 /**
- * @Route("/nature-colis")
+ * @Route("/nature-unite-logistique")
  */
 class NatureController extends AbstractController
 {

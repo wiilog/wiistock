@@ -124,7 +124,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPATCH_WAYBILL_CONTACT_NAME => [
                 'default' => null,
             ],
-            Setting::AUTO_PRINT_COLIS => [
+            Setting::AUTO_PRINT_LU => [
                 'default' => true,
             ],
             Setting::SEND_MAIL_MANAGER_WARNING_THRESHOLD => [
@@ -168,7 +168,15 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE => [
                 'default' => Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE
             ],
+            Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE => [
+                'default' => Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE
+            ],
+            Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [
+                'default' => Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE
+            ],
             Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE => [],
+            Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE => [],
+            Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [],
             Setting::DEFAULT_LOCATION_RECEPTION => [],
             Setting::DEFAULT_LOCATION_REFERENCE => [],
             Setting::DEFAULT_LOCATION_LIVRAISON => [
@@ -272,6 +280,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE => [
                 'default' => '#cf2a27'
+            ],
+            Setting::DISPATCH_WAYBILL_TYPE_TO_USE => [
+                'default' => Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD
             ],
         ];
 

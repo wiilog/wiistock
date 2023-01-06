@@ -11,6 +11,7 @@ use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use Doctrine\ORM\EntityManagerInterface;
+use JetBrains\PhpStorm\Deprecated;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
@@ -119,6 +120,8 @@ class PDFGeneratorService {
         );
     }
 
+    // TODO WIIS-8753
+    #[Deprecated]
     public function generatePDFWaybill(string $title, ?string $logo, Dispatch|Livraison $entity, array $packs): string {
         $fileName = uniqid() . '.pdf';
 
@@ -191,18 +194,18 @@ class PDFGeneratorService {
     }
 
     public function generatePDFOverconsumption(Dispatch $dispatch, ?string $appLogo, ?string $overconsumptionLogo, array $additionalFields = []): string {
-        $content = $this->templating->render("overconsumptionTemplate.html.twig", [
+        $content = $this->templating->render("prints/overconsumptionTemplate.html.twig", [
             "dispatch" => $dispatch,
             "additionalFields" => $additionalFields
         ]);
 
-        $header = $this->templating->render("overconsumptionTemplateHeader.html.twig", [
+        $header = $this->templating->render("prints/overconsumptionTemplateHeader.html.twig", [
             "app_logo" => $appLogo ?? "",
             "overconsumption_logo" => $overconsumptionLogo ?? "",
             "commandNumber" => $dispatch->getCommandNumber() ?? ""
         ]);
 
-        $footer = $this->templating->render("overconsumptionTemplateFooter.html.twig");
+        $footer = $this->templating->render("prints/overconsumptionTemplateFooter.html.twig");
 
         return $this->PDFGenerator->getOutputFromHtml($content, [
             "page-size" => "A4",
@@ -218,7 +221,7 @@ class PDFGeneratorService {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
 
-        $content = $this->templating->render("dispatchNoteTemplate.html.twig", [
+        $content = $this->templating->render("prints/dispatchNoteTemplate.html.twig", [
             "app_logo" => $appLogo ?? "",
             "dispatch" => $dispatch,
         ]);
@@ -258,7 +261,7 @@ class PDFGeneratorService {
         $originator = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_ORIGINATOR);
         $sender = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_SENDER_DETAILS);
 
-        $content = $this->templating->render("transportTemplate.html.twig", [
+        $content = $this->templating->render("prints/transportTemplate.html.twig", [
             "app_logo" => $appLogo ?? "",
             "society" => $society,
             "requestNumber" => TransportRequest::NUMBER_PREFIX . $transportRequest->getNumber(),
@@ -290,7 +293,7 @@ class PDFGeneratorService {
             $request = $line->getOrder()?->getRequest();
             if ($request instanceof TransportDeliveryRequest) {
                 $requestNumber = TransportRequest::NUMBER_PREFIX . $request?->getNumber();
-                $content .= $this->templating->render("transportTemplate.html.twig", [
+                $content .= $this->templating->render("prints/transportTemplate.html.twig", [
                         "app_logo" => $appLogo ?? "",
                         "society" => $society,
                         "requestNumber" => $requestNumber,
@@ -308,5 +311,10 @@ class PDFGeneratorService {
             "enable-local-file-access" => true,
             "encoding" => "UTF-8",
         ]);
+    }
+
+    public function generateFromDocx(string $docx, string $outdir) {
+        $command = !empty($_SERVER["LIBREOFFICE_EXEC"]) ? $_SERVER["LIBREOFFICE_EXEC"] : 'libreoffice';
+        exec("\"{$command}\" --headless --convert-to pdf \"{$docx}\" --outdir \"{$outdir}\"");
     }
 }

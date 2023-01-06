@@ -1231,7 +1231,11 @@ label.required:after {
                 }
             }
 
-            &.first-history-line:before {
+            &.first-history-line::before {
+                background-color: white;
+            }
+
+            &.first-history-line.last-history-line::before {
                 display: none;
             }
 

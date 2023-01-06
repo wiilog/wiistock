@@ -244,11 +244,6 @@ class SettingsController extends AbstractController {
                             "save" => true,
                         ],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
-                        self::MENU_WAYBILL => [
-                            "label" => "Lettre de voiture",
-                            "save" => true,
-                            "discard" => true,
-                        ],
                         self::MENU_OVERCONSUMPTION_BILL => [
                             "label" => "Bon de surconsommation",
                             "save" => true,
@@ -535,7 +530,6 @@ class SettingsController extends AbstractController {
     public const MENU_DISPATCHES = "acheminements";
     public const MENU_STATUSES = "statuts";
     public const MENU_FIXED_FIELDS = "champs_fixes";
-    public const MENU_WAYBILL = "lettre_voiture";
     public const MENU_OVERCONSUMPTION_BILL = "bon_surconsommation";
     public const MENU_ARRIVALS = "arrivages";
     public const MENU_MOVEMENTS = "mouvements";

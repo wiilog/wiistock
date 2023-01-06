@@ -103,7 +103,7 @@ class DisputeController extends AbstractController
             'Statut',
             'Date création',
             'Date modification',
-            'Colis / Réferences',
+            'Unité logistiques / Réferences',
             'Code barre',
             'QteArticle',
             'Ordre arrivage / réception',

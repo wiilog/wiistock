@@ -122,7 +122,7 @@ class EnCoursController extends AbstractController
     {
         $headers = [
             'Emplacement',
-            'Colis',
+            'Unité logistique',
             'Date de dépose',
             'Delai',
             'Retard',

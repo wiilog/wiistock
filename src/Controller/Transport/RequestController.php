@@ -515,7 +515,7 @@ class RequestController extends AbstractController {
         $success = $transportRequest->canBeDeleted();
 
         if ($success) {
-            // TODO supprimer la demande et toutes les données liées, il faut attendre que tout soit effectif (liaisons colis, ordres, ....)
+            // TODO supprimer la demande et toutes les données liées, il faut attendre que tout soit effectif (liaisons UL, ordres, ....)
             $msg = 'Demande supprimée.';
 
             /**
@@ -813,10 +813,10 @@ class RequestController extends AbstractController {
             ];
 
             $packsHeader = [
-                'Nature colis',
-                'Nombre de colis à livrer',
+                'Nature UL',
+                'Nombre d\'UL à livrer',
                 'Températures',
-                'Code colis',
+                'Code UL',
                 'Ecarté',
                 'Motif écartement',
                 'Retourné le',
@@ -846,7 +846,7 @@ class RequestController extends AbstractController {
             ];
 
             $naturesHeader = [
-                'Nature colis',
+                'Nature UL',
                 'Quantité à collecter',
                 'Quantités collectées',
             ];
