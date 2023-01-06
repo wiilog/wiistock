@@ -1677,7 +1677,7 @@ class ReceptionController extends AbstractController {
         $packRepository = $entityManager->getRepository(Pack::class);
 
         $location = isset($data['pack']) ? $packRepository->find($data['pack'])?->getLastDrop()?->getEmplacement() : null;
-        if ($location && !$location->ableToBeDropOff(new Pack())) {
+        if (isset($location) && !$location->ableToBeDropOff(new Pack())) {
             return new JsonResponse([
                 'success' => false,
                 'msg' => "Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement " . $location->getLabel(),

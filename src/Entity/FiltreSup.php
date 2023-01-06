@@ -23,7 +23,7 @@ class FiltreSup {
     const FIELD_CONTACT = 'contact';
     const FIELD_PROJECT = 'project';
     const FIELD_EMPLACEMENT = 'emplacement';
-    const FIELD_PACK = 'pack';
+    const FIELD_PACK = 'UL';
     const FIELD_REFERENCE = 'reference';
     const FIELD_DEM_COLLECTE = 'demCollecte';
     const FIELD_DEMANDE = 'demande';
