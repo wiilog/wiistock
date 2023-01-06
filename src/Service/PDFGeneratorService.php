@@ -282,7 +282,7 @@ class PDFGeneratorService {
 
     public function generateFromDocx(string $docx, string $outdir) {
 
-        $command = $_SERVER["LIBREOFFICE_EXEC"] ?? 'libreoffice';
+        $command = $_SERVER["LIBREOFFICE_EXEC"] ?? '/usr/bin/libreoffice';
         exec("\"{$command}\" --headless --convert-to pdf \"{$docx}\" --outdir \"{$outdir}\"");
     }
 }
