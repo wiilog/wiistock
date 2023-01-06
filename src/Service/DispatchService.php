@@ -984,12 +984,13 @@ class DispatchService {
 
         $nakedFileName = uniqid();
 
-        $fullPath = "{$projectDir}/public/uploads/attachements/$nakedFileName";
-        rename($tmpDocxPath, $fullPath . '.docx');
+        $waybillOutdir = "{$projectDir}/public/uploads/attachements";
+        $docxPath = "{$waybillOutdir}/{$nakedFileName}.docx";
+        rename($tmpDocxPath, $docxPath);
 
-        $this->PDFGeneratorService->generateFromDocx($fullPath . '.docx');
-// TODO revert        unlink($fullPath . '.docx');
-        rename("$projectDir/public/$nakedFileName.pdf", $fullPath . '.pdf');
+        $this->PDFGeneratorService->generateFromDocx($docxPath, $waybillOutdir);
+        unlink($docxPath);
+
         $nowDate = new DateTime('now');
 
         $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
