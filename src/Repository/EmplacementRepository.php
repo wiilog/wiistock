@@ -29,6 +29,7 @@ class EmplacementRepository extends EntityRepository
         'maxDelay' => 'dateMaxTime',
         'active' => 'isActive',
         'pairing' => 'pairing',
+        'description' => 'description',
     ];
 
     public function getForSelect(?string $term, array $options = []) {
