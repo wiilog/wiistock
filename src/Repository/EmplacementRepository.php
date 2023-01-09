@@ -170,7 +170,6 @@ class EmplacementRepository extends EntityRepository
             }
             if (!empty($params->all('order'))) {
                 $order = $params->all('order')[0]['dir'];
-                dump($params->all('columns'));
                 $field = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['name']];
                 if (!empty($order) && $field) {
                     if($field === 'pairing') {
