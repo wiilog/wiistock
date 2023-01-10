@@ -55,6 +55,18 @@ final class Version20221213103323 extends AbstractMigration
             ]);
         }
 
+        $dashboardComponentTypes = [
+            "Unité logistique à traiter en provenance" => "Colis à traiter en provenance",
+            "Nombre d'unités logistiques distribuées en dépose" => "Nombre de colis distribués en dépose"
+        ];
+
+        foreach ($dashboardComponentTypes as $new => $old) {
+            $this->addSql("UPDATE dashboard_component_type SET name = :new WHERE name LIKE :old", [
+                'new' => $new,
+                'old' => $old,
+            ]);
+        }
+
         $translations = [
             "Liste des unités logistiques" => "Liste des colis",
             "Vous êtes sur le point de dégrouper le groupe {1}. Les unités logistiques suivantes seront déposées sur l'emplacement sélectionné : {2}." => "Vous êtes sur le point de dégrouper le groupe {1}. Les colis suivant seront déposés sur l'emplacement sélectionné : {2}.",
