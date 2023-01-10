@@ -130,20 +130,24 @@ CREATE TABLE dw_reception
     statut                   varchar(255),
     commentaire              text,
     date                     timestamp(0),
+    date_attendue            date,
     numero                   varchar(255),
     fournisseur              varchar(255),
+    emplacement              varchar(255),
     reference                varchar(255),
     libelle                  varchar(255),
     quantite_reference       integer,
     quantite_article_associe integer,
     code_barre_article       varchar(255),
+    code_UL                  varchar(255),
     type_flux                varchar(255),
     quantite_recue           integer,
     quantite_a_recevoir      integer,
     code_barre_reference     varchar(255),
     urgence_reference        varchar(3),
     urgence_reception        varchar(3),
-    numero_demande_achat     varchar(255)
+    numero_demande_achat     varchar(255),
+    arrivage_id              integer
 );
 
 CREATE TABLE dw_reference_article
@@ -207,6 +211,7 @@ CREATE TABLE dw_tracabilite
 (
     date_mouvement        timestamp(0),
     code_colis            varchar(255),
+    code_barre_article    varchar(255),
     type_mouvement        varchar(255),
     groupe                varchar(255),
     quantite_mouvement    integer,
@@ -214,7 +219,8 @@ CREATE TABLE dw_tracabilite
     operateur             varchar(255),
     mouvement_traca_id    integer,
     arrivage_id           integer,
-    acheminement_id       integer
+    acheminement_id       integer,
+    reception_id          integer
 );
 
 CREATE TABLE dw_tracabilite_champs_libres
@@ -262,7 +268,8 @@ CREATE TABLE dw_arrivage
     commentaire              text,
     utilisateur              varchar(255),
     numero_projet            varchar(255),
-    business_unit            varchar(255)
+    business_unit            varchar(255),
+    reception_id             integer
 );
 
 CREATE TABLE dw_acheminement
