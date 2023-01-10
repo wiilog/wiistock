@@ -904,6 +904,7 @@ class DispatchService {
 
     public function getDeliveryNoteData(Dispatch $dispatch): array {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
+        // TODO WIIS-8882
         $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
         $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];

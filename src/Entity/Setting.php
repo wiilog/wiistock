@@ -172,7 +172,7 @@ class Setting {
     const DELIVERY_NOTE_LOGO = 'DELIVERY_NOTE_LOGO';
 
 
-//    TODO WIIS-8753 remove usage ?
+    // TODO WIIS-8882
     const FILE_WAYBILL_LOGO = 'WAYBILL_LOGO';
 
     // étiquettes

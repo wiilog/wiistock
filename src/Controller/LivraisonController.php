@@ -522,6 +522,7 @@ class LivraisonController extends AbstractController {
         $entityManager->flush();
 
         $settingRepository = $entityManager->getRepository(Setting::class);
+        // TODO WIIS-8882
         $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
         $client = SpecificService::CLIENTS[$specificService->getAppClient()];

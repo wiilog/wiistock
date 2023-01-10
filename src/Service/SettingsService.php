@@ -359,7 +359,7 @@ class SettingsService {
             [Setting::FILE_TOP_LEFT_LOGO, Setting::DEFAULT_TOP_LEFT_VALUE],
             [Setting::FILE_TOP_RIGHT_LOGO, null],
             [Setting::FILE_LABEL_EXAMPLE_LOGO, Setting::DEFAULT_LABEL_EXAMPLE_VALUE],
-            [Setting::FILE_WAYBILL_LOGO, null],
+            [Setting::FILE_WAYBILL_LOGO, null], // TODO WIIS-8882
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],
             [Setting::FILE_SHIPMENT_NOTE_LOGO, null],
             [Setting::LABEL_LOGO, null],

@@ -201,7 +201,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::CUSTOM_TEXT_LABEL => [],
             Setting::EMERGENCY_TEXT_LABEL => [],
             Setting::DELIVERY_NOTE_LOGO => [],
-            Setting::FILE_WAYBILL_LOGO => [],
+            Setting::FILE_WAYBILL_LOGO => [], // TODO WIIS-8882
             Setting::DISPATCH_EXPECTED_DATE_COLOR_AFTER => [
                 'default' => null,
                 SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#2b78e4'
