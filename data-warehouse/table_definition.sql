@@ -479,3 +479,28 @@ CREATE TABLE dw_article_champs_libres
     libelle            varchar(255),
     valeur             text
 );
+
+CREATE TABLE dw_article
+(
+    id                   		integer,
+    reference 			 		varchar(255),
+    libelle				 		varchar(255),
+    code_barre            		varchar(255),
+    statut              		varchar(255),
+    quantite            		integer,
+    commentaire                 varchar(255),
+    emplacement     			text,
+    date_dernier_inventaire		timestamp(0),
+    lot							varchar(255),
+    date_entree_stock			timestamp(0),
+    date_peremption				date,
+    code_fournisseur			varchar(255),
+    reference_fournisseur		varchar(255),
+    label_fournisseur			varchar(255),
+    label_reference_fournisseur	varchar(255),
+    projet						varchar(255),
+    date_assignation_projet		timestamp(0),
+    code_UL						varchar(255),
+    prix_unitaire				integer,
+    anomalie					varchar(255)
+);
