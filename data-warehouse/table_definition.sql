@@ -518,3 +518,15 @@ CREATE TABLE dw_article
     prix_unitaire				integer,
     anomalie					varchar(255)
 );
+
+CREATE TABLE dw_unite_logistique
+(
+    code_unite_logistique   varchar(255),
+    nature                  varchar(255),
+    quantite                integer,
+    projet                  varchar(255),
+    acheminement_id         integer,
+    arrivage_id             integer,
+    nb_articles_contenus    integer,
+    code_barre_article      varchar(255)
+);
