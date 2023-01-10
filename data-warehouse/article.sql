@@ -15,7 +15,7 @@ SELECT article.id                            AS id,
        article_fournisseur.label             AS label_fournisseur,
        fournisseur.nom                       AS label_reference_fournisseur,
        project.code                          AS projet,
-       phr.created_at                        AS date_assignation_projet,
+       project_history_record.created_at     AS date_assignation_projet,
        pack.code                             AS code_UL,
        article.prix_unitaire                 AS prix_unitaire,
        IF(article.conform = 1, 'oui', 'non') AS anomalie
@@ -26,6 +26,6 @@ FROM article
          LEFT JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
          LEFT JOIN fournisseur ON article_fournisseur.fournisseur_id = fournisseur.id
          LEFT JOIN reference_article ON article_fournisseur.reference = reference_article.reference
-         LEFT JOIN pack on article.id = pack.article_id
-         LEFT JOIN project on pack.project_id = project.id
-         LEFT JOIN project_history_record phr on pack.id = phr.pack_id
+         LEFT JOIN pack ON article.id = pack.article_id
+         LEFT JOIN project ON pack.project_id = project.id
+         LEFT JOIN project_history_record ON pack.id = project_history_record.pack_id

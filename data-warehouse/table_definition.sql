@@ -489,7 +489,7 @@ CREATE TABLE dw_article
     statut              		varchar(255),
     quantite            		integer,
     commentaire                 varchar(255),
-    emplacement     			varchar(255),
+    emplacement     			text,
     date_dernier_inventaire		timestamp(0),
     lot							varchar(255),
     date_entree_stock			timestamp(0),
