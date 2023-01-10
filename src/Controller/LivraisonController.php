@@ -672,96 +672,36 @@ class LivraisonController extends AbstractController {
      */
     public function postDeliveryOrderWaybill(EntityManagerInterface $entityManager,
                                              Livraison              $deliveryOrder,
-                                             PDFGeneratorService    $pdf,
                                              LivraisonService       $livraisonService,
-                                             Request                $request,
-                                             TranslationService     $translationService,
-                                             SpecificService        $specificService): JsonResponse {
-        $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
-        $deliveryOrderHasPacks = Stream::from($preparationArticleLines)
-            ->some(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit());
+                                             Request                $request): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
 
-        if($deliveryOrderHasPacks > LivraisonService::WAYBILL_MAX_PACK) {
-            $message = $translationService->translate('Demande', 'Acheminements', 'Général', "Attention : L'acheminement contient plus de {1} unités logistiques, cette lettre de voiture ne peut contenir plus de {1} lignes.", [
-                1 => LivraisonService::WAYBILL_MAX_PACK
-            ]);
-            $success = false;
-        } else {
-            /** @var Utilisateur $loggedUser */
-            $loggedUser = $this->getUser();
+        $data = json_decode($request->getContent(), true);
 
-            $data = json_decode($request->getContent(), true);
-
-            $userDataToSave = [];
-            $deliveryDataToSave = [];
-            foreach(array_keys(Livraison::WAYBILL_DATA) as $wayBillKey) {
-                if(isset(Livraison::WAYBILL_DATA[$wayBillKey])) {
-                    $value = $data[$wayBillKey] ?? null;
-                    $deliveryDataToSave[$wayBillKey] = $value;
-                    if(Livraison::WAYBILL_DATA[$wayBillKey]) {
-                        $userDataToSave[$wayBillKey] = $value;
-                    }
+        $userDataToSave = [];
+        $deliveryDataToSave = [];
+        foreach(array_keys(Livraison::WAYBILL_DATA) as $wayBillKey) {
+            if(isset(Livraison::WAYBILL_DATA[$wayBillKey])) {
+                $value = $data[$wayBillKey] ?? null;
+                $deliveryDataToSave[$wayBillKey] = $value;
+                if(Livraison::WAYBILL_DATA[$wayBillKey]) {
+                    $userDataToSave[$wayBillKey] = $value;
                 }
             }
-            $loggedUser->setSavedDeliveryWaybillData($userDataToSave);
-            $deliveryOrder->setWaybillData($deliveryDataToSave);
-
-            $entityManager->flush();
-
-            $message = 'Le téléchargement de votre lettre de voiture va commencer...';
-            $success = true;
         }
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
-
-        $nowDate = new DateTime('now');
-
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
-        $title = "LDV - {$deliveryOrder->getNumero()} - {$client} - {$nowDate->format('dmYHis')}";
-
-        $packsQuantity = Stream::from($deliveryOrder->getPreparation()->getArticleLines())
-            ->filter()
-            ->reduce(function(array $carry, PreparationOrderArticleLine $articleLine) {
-                if(isset($carry[$articleLine->getArticle()->getCurrentLogisticUnit()->getId()])){
-                    $carry[$articleLine->getArticle()->getCurrentLogisticUnit()->getId()] += $articleLine->getPickedQuantity();
-                } else {
-                    $carry[$articleLine->getArticle()->getCurrentLogisticUnit()->getId()] = $articleLine->getPickedQuantity();
-
-                }
-                return $carry;
-            }, []) ;
-
-
-        $packs = Stream::from($deliveryOrder->getPreparation()->getArticleLines())
-            ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit())
-            ->unique()
-            ->map(fn(Pack $pack) => [
-                'quantity' => $packsQuantity[$pack->getId()],
-                'code' => $pack->getCode(),
-                'weight' => $pack->getWeight(),
-                'volume' => $pack->getVolume(),
-                'comment' => $pack->getComment(),
-                'nature' => $this->getFormatter()->nature($pack->getNature(), "", $loggedUser)
-            ])->toArray();
-
-        $fileName = $pdf->generatePDFWaybill($title, $logo, $deliveryOrder, $packs);
-
-        $wayBillAttachment = new Attachment();
-        $wayBillAttachment
-            ->setDeliveryOrder($deliveryOrder)
-            ->setFileName($fileName)
-            ->setOriginalName($title . '.pdf');
-
-        $entityManager->persist($wayBillAttachment);
+        $loggedUser->setSavedDeliveryWaybillData($userDataToSave);
+        $deliveryOrder->setWaybillData($deliveryDataToSave);
+        $wayBillAttachment = $livraisonService->persistNewWaybillAttachment($entityManager, $deliveryOrder);
 
         $entityManager->flush();
 
         $detailsConfig =  $livraisonService->createHeaderDetailsConfig($deliveryOrder);
 
         return new JsonResponse([
-            'success' => $success,
-            'msg' => $message,
+            'success' => true,
+            'msg' => 'Le téléchargement de votre lettre de voiture va commencer...',
             'headerDetailsConfig' => $this->renderView("livraison/livraison-show-header.html.twig", [
                 'livraison' => $deliveryOrder,
                 'showDetails' => $detailsConfig,

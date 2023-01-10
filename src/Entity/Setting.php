@@ -276,7 +276,7 @@ class Setting {
                 "demandeurliv" => "demandeur de la livraison",
                 "projetliv" => "numéro de projet de la livraison",
             ],
-            "Champs Liste des unités logistiques acheminements" => [
+            "Champs Liste des unités logistiques livraison" => [
                 "UL" => "code d'une unité logistiques contenue dans la livraison",
                 "nature" => "nature d'une unité logistique contenue dans la livraison",
                 "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",

@@ -12,11 +12,18 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class SettingFixtures extends Fixture implements FixtureGroupInterface {
 
-    /** @Required */
+    #[Required]
     public SpecificService $specificService;
+
+    private const FORCE_RESET_CONSTANTS = [
+        Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE,
+        Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE,
+        Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE,
+    ];
 
     public function load(ObjectManager $manager) {
         $output = new ConsoleOutput();
@@ -286,23 +293,26 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
         ];
 
+        $appClient = $this->specificService->getAppClient();
         foreach ($globalParameterLabels as $globalParameterLabel => $values) {
             $globalParam = $parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
 
+            $value = $values[$appClient] ?? ($values['default'] ?? null);
+
+            $value = is_array($value)
+                ? json_encode($value)
+                : $value;
             if (empty($globalParam)) {
-                $appClient = $this->specificService->getAppClient();
-                $value = $values[$appClient] ?? ($values['default'] ?? null);
-
-                $value = is_array($value)
-                    ? json_encode($value)
-                    : $value;
-
                 $globalParam = new Setting();
                 $globalParam
                     ->setLabel($globalParameterLabel)
                     ->setValue($value);
                 $manager->persist($globalParam);
                 $output->writeln("Création du paramètre " . $globalParameterLabel);
+            }
+            else if (in_array($globalParameterLabel, self::FORCE_RESET_CONSTANTS)) {
+                $globalParam[0]->setValue($value);
+                $output->writeln("Mise à jour du paramètre " . $globalParameterLabel);
             }
         }
 
