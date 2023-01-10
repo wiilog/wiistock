@@ -480,6 +480,13 @@ CREATE TABLE dw_article_champs_libres
     valeur             text
 );
 
+CREATE TABLE dw_projet_article
+(
+    article_id          integer,
+    projet              varchar(255),
+    date_assignation    timestamp(0)
+);
+
 CREATE TABLE dw_article
 (
     id                   		integer,
