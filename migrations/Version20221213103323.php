@@ -30,7 +30,7 @@ final class Version20221213103323 extends AbstractMigration
         ];
 
         foreach ($actions as $new => $old) {
-            $this->addSql("UPDATE action SET label = ':new' WHERE label LIKE ':old'", [
+            $this->addSql("UPDATE action SET label = :new WHERE label LIKE :old", [
                 'new' => $new,
                 'old' => $old,
             ]);
@@ -49,7 +49,7 @@ final class Version20221213103323 extends AbstractMigration
         ];
 
         foreach ($dashboardComponentTypes as $new => $old) {
-            $this->addSql("UPDATE dashboard_component_type SET hint = ':new' WHERE hint LIKE ':old'", [
+            $this->addSql("UPDATE dashboard_component_type SET hint = :new WHERE hint LIKE :old", [
                 'new' => $new,
                 'old' => $old,
             ]);
@@ -62,7 +62,7 @@ final class Version20221213103323 extends AbstractMigration
         ];
 
         foreach ($translations as $new => $old) {
-            $this->addSql("UPDATE translation SET translation = ':new' WHERE translation LIKE ':old'", [
+            $this->addSql("UPDATE translation SET translation = :new WHERE translation LIKE :old", [
                 'new' => $new,
                 'old' => $old,
             ]);
@@ -76,7 +76,7 @@ final class Version20221213103323 extends AbstractMigration
         ];
 
         foreach ($translationSources as $new => $old) {
-            $this->addSql("UPDATE translation_source SET tooltip = ':new' WHERE tooltip LIKE ':old'", [
+            $this->addSql("UPDATE translation_source SET tooltip = :new WHERE tooltip LIKE :old", [
                 'new' => $new,
                 'old' => $old,
             ]);
