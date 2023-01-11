@@ -188,10 +188,11 @@ class LivraisonsManagerService
                     ['delivery' => $livraison]
                 );
 
-                $movement = $tracking["movement"];
-                $this->trackingMovementService->persistTrackingMovement(
+                $pickingMovement = $tracking["movement"];
+
+                $tracking = $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
-                    $movement->getPack(), // same pack of picking
+                    $pickingMovement->getPack(), // same pack of picking
                     $nextLocation,
                     $user,
                     $dateEnd,
@@ -200,6 +201,13 @@ class LivraisonsManagerService
                     false,
                     ['delivery' => $livraison]
                 );
+
+                $dropMovement = $tracking["movement"];
+
+                if ($articleLine->getPack()) {
+                    $pickingMovement->setLogisticUnitParent($articleLine->getPack());
+                    $dropMovement->setLogisticUnitParent($articleLine->getPack());
+                }
             }
 
             foreach ($packs as $pack) {
@@ -252,10 +260,10 @@ class LivraisonsManagerService
 
             // on termine les mouvements de livraison
             $movements = $movementRepository->findBy(['livraisonOrder' => $livraison]);
-            foreach ($movements as $movement) {
-                $movement->setDate($dateEnd);
+            foreach ($movements as $pickingMovement) {
+                $pickingMovement->setDate($dateEnd);
                 if (isset($nextLocation)) {
-                    $movement->setEmplacementTo($nextLocation);
+                    $pickingMovement->setEmplacementTo($nextLocation);
                 }
             }
 
