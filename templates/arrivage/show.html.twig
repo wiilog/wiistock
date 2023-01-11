@@ -119,7 +119,7 @@
     {% include 'pack/modalDeletePack.html.twig' %}
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
-        'table': 'tableUL',
+        'table': 'tablePacks',
         'route': 'save_column_visible_for_pack',
     } %}
     <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
