@@ -2739,7 +2739,7 @@ class SettingsController extends AbstractController {
 
                 $data[] = [
                     "actions" => "
-                        <button class='btn btn-silent delete-row w-50' data-id='{$tagTemplate->getId()}'>
+                        <button class='btn btn-silent delete-row w-100' data-id='{$tagTemplate->getId()}'>
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>
                         <input type='hidden' name='tagTemplateId' class='data' value='{$tagTemplate->getId()}'/>
