@@ -23,6 +23,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -55,6 +56,7 @@ use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
 use App\Service\PackService;
 use App\Service\PreparationsManagerService;
+use App\Service\ProjectHistoryRecordService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
@@ -423,6 +425,7 @@ class MobileController extends AbstractApiController
                                        ExceptionLoggerService  $exceptionLoggerService,
                                        TrackingMovementService $trackingMovementService,
                                        FreeFieldService        $freeFieldService,
+                                       ProjectHistoryRecordService    $projectHistoryRecordService,
                                        AttachmentService       $attachmentService,
                                        EntityManagerInterface  $entityManager)
     {
@@ -447,6 +450,7 @@ class MobileController extends AbstractApiController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $packRepository = $entityManager->getRepository(Pack::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
 
         $mustReloadLocation = false;
@@ -466,6 +470,8 @@ class MobileController extends AbstractApiController
             try {
                 $entityManager->transactional(function ()
                 use (
+                    $projectHistoryRecordService,
+                    $projectRepository,
                     $freeFieldService,
                     $mouvementStockService,
                     &$numberOfRowsInserted,
@@ -498,6 +504,7 @@ class MobileController extends AbstractApiController
                             'uniqueIdForMobile' => $mvt['date'],
                             'entityManager' => $entityManager,
                             'quantity' => $mvt['quantity'],
+                            'commentaire' => isset($mvt['comment']) ? $mvt['comment'] : '',
                         ];
 
                         /** @var Statut $type */
@@ -539,6 +546,32 @@ class MobileController extends AbstractApiController
                                 $emptyGroups,
                                 $numberOfRowsInserted
                             );
+
+                            if($type->getCode() === TrackingMovement::TYPE_PRISE){
+                                if (isset($mvt['projectId'])) {
+                                    $project = $projectRepository->find($mvt['projectId']);
+                                    $projectHistoryRecordService->changeProject($entityManager, $pack, $project, $date);
+
+                                    foreach ($pack->getChildArticles() as $article) {
+                                        $projectHistoryRecordService->changeProject($entityManager, $article, $project, $date);
+                                    }
+                                }
+                                $signatureFile = $request->files->get("signature_$index");
+                                $photoFile = $request->files->get("photo_$index");
+                                $fileNames = [];
+                                if (!empty($signatureFile)) {
+                                    $fileNames = array_merge($fileNames, $attachmentService->saveFile($signatureFile));
+                                }
+                                if (!empty($photoFile)) {
+                                    $fileNames = array_merge($fileNames, $attachmentService->saveFile($photoFile));
+                                }
+                                $attachments = $attachmentService->createAttachements($fileNames);
+                                foreach ($attachments as $attachment) {
+                                    $entityManager->persist($attachment);
+                                    $packMvt->addAttachment($attachment);
+                                }
+                            }
+
                             $entityManager->persist($packMvt);
                             $entityManager->flush();
                         } else { //cas mouvement stock classique sur un article ou une ref
@@ -1834,6 +1867,7 @@ class MobileController extends AbstractApiController
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -1928,6 +1962,13 @@ class MobileController extends AbstractApiController
             $refArticlesInventory = $inventoryMissionRepository->getCurrentMissionRefNotTreated();
             // prises en cours
             $stockTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
+
+            $projects = Stream::from($projectRepository->findAll())
+                ->map(fn(Project $project) => [
+                    'id' => $project->getId(),
+                    'code' => $project->getCode(),
+                ])
+                ->toArray();
         }
 
         if ($rights['demande']) {
@@ -2039,6 +2080,7 @@ class MobileController extends AbstractApiController
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
             'status' => $status,
+            'projects' => $projects ?? [],
         ];
     }
 
@@ -2193,6 +2235,7 @@ class MobileController extends AbstractApiController
             'label' => $article->getLabel(),
             'location' => $article->getEmplacement()?->getLabel(),
             'quantity' => $article->getQuantite(),
+            'reference' => $article->getReference()
         ]);
 
         return $this->json($articles);
