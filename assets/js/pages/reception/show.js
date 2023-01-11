@@ -5,6 +5,7 @@ import AJAX, {GET, POST} from "@app/ajax";
 import Select2 from "@app/select2";
 import Modal from "@app/modal";
 import Flash, {ERROR} from "@app/flash";
+import {LOADING_CLASS} from "@app/loading";
 
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
@@ -542,6 +543,7 @@ function initNewLigneReception() {
             reception: $('#receptionId').val()
         }
     });
+    $(`.modal-footer`).find(`.submit`).removeClass(LOADING_CLASS);
 
     if ($('#locationDemandeLivraison').length > 0) {
         Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
