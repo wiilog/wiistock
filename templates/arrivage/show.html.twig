@@ -29,47 +29,44 @@
                     <div class="content">
                         <div class="row wii-page-card-header">
                             <div class="col-auto ml-auto">
-                                <div class="btn-group">
-                                    {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
-                                    {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
-                                    {% if hasRightEdit and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_PACK')) %}
-                                        <button type="button"
-                                                data-toggle="modal"
-                                                data-target="#modalAddPacks"
-                                                class="btn btn-primary d-flex align-items-center {{ hasRightEdit ? 'split-button' }}"
-                                                id="btnModalAddPacks">
-                                            <span class="wii-icon wii-icon-plus mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Ajouter des unités logistiques') }}</span>
-                                        </button>
-                                    {% endif %}
-                                    <button type="button"
-                                            class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                            data-toggle="dropdown"
-                                            aria-haspopup="true"
-                                            aria-expanded="false">
-                                        <span class="fa fa-angle-down"></span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                                        <a class="dropdown-item pointer"
-                                           data-toggle="modal"
-                                           data-target="#modalColumnVisible">
-                                            <i class="fa fa-cog mr-2"></i>
-                                            {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
-                                        </a>
-                                        {% if hasRightExport %}
-                                            <a id="printPacksBtn"
-                                               class="{{ hasRightEdit ? 'dropdown-item' }} btn btn-primary d-flex align-items-center"
-                                               onclick="printArrival({
-                                                   'arrivageId': {{ arrivage.id }},
-                                                   'printPacks' : true,
-                                                   'printArrivage' : true
-                                               })">
-                                                <span
-                                                    class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques') }}
-                                                </span>
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                </div>
+                                {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+                                {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+                                {% include "utils/action-buttons/header-buttons.html.twig" with {
+                                    actions: [
+                                        {
+                                            hasRight: hasRightEdit and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_PACK')),
+                                            title: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Ajouter des unités logistiques'),
+                                            icon: "wii-icon wii-icon-plus",
+                                            attributes: {
+                                                "data-toggle": "modal",
+                                                "data-target": "#modalAddPacks",
+                                            },
+                                        },
+                                        {
+                                            title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                                            icon: "fa fa-cog",
+                                            dropdownOnly: true,
+                                            attributes: {
+                                                "data-toggle": "modal",
+                                                "data-target": "#modalColumnVisible",
+                                            },
+                                        },
+                                        {
+                                            hasRight: hasRightExport,
+                                            title: trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques'),
+                                            icon: "wii-icon wii-icon-printer-black",
+                                            attributes: {
+                                            "data-toggle": "modal",
+                                            "data-target": "#modalColumnVisible",
+                                            "onclick": "printArrival({
+                                                    'arrivageId': " ~ arrivage.id ~ ",
+                                                    'printPacks' : true,
+                                                    'printArrivage' : true
+                                                })"
+                                        },
+                                        }
+                                    ]
+                                } %}
                             </div>
                         </div>
                         <div class="row">
