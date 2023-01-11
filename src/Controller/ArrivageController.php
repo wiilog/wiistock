@@ -904,7 +904,7 @@ class ArrivageController extends AbstractController {
                 if ($statusCode === Reception::STATUT_EN_ATTENTE) {
                     $persistedPack = $packService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project, $reception);
                     $entityManager->flush();
-                } elseif ($statusCode === Reception::STATUT_RECEPTION_TOTALE || $statusCode === Reception::STATUT_RECEPTION_PARTIELLE) {
+                } elseif ($statusCode === Reception::STATUT_RECEPTION_TOTALE) {
                     $response = [
                         'success' => false,
                         'msg' => "Vous ne pouvez pas ajouter d'unité(s) logistique(s) à un arrivage receptionné."
@@ -1204,7 +1204,7 @@ class ArrivageController extends AbstractController {
             : null;
 
         if (!isset($pack)) {
-            $printPacks = $request->query->getBoolean('printPack');
+            $printPacks = $request->query->getBoolean('printPacks');
             $printArrivage = $request->query->getBoolean('printArrivage');
 
             if ($printPacks) {

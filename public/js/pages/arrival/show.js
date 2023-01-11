@@ -75,7 +75,7 @@ $(function () {
                         {
                             packs: data.packs.map(({id}) => id),
                             arrivage: data.arrivageId,
-                            printPack: 1
+                            printPacks: 1
                         },
                         true);
                 }

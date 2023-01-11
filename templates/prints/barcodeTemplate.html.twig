@@ -15,22 +15,15 @@
         }
 
         .landscape {
-            width: 20%;
             float: left;
-            margin-top:20px;
-         }
-
-        .landscape:last-of-type {
-            width: 80%;
         }
+
         .landscape.barcode {
-            height: 75% !important;
-            margin-top:15px;
+            width: 20%;
         }
 
         .landscape.labels {
-            height: 75% !important;
-            font-size: 1.2px !important;
+            width: 80%;
         }
 
         .barcode {
@@ -75,13 +68,15 @@
             height: 20%;
             max-height: 35%;
             width: 100%;
+            position: relative;
         }
 
         .header-wrapper .header {
             width: 100%;
             height: 100%;
-            padding-top: 5px;
+            position: relative;
         }
+
         .header-wrapper .header .logo {
             display: inline-block;
             height: 100%;
@@ -154,20 +149,22 @@
     {% set hasHeader = logo or firstCustomIconIsDefined or secondCustomIconIsDefined %}
 
     {% set labelsLength = config.labels|length %}
-    {% set barcodeHeight = (labelsLength == 0
+    {% set barcodeHeight = (labelsLength == 0 or landscape
         ? (hasHeader ? "80%" : "100%")
-            : (labelsLength < 3
+        : (labelsLength < 3
             ? (hasHeader ? "55%" : "75%")
             : (hasHeader ? "45%" : "65%")
-            )
-        ) %}
+        )
+    ) %}
     {% set labelsStyle = (labelsLength == 0
         ? "display: none;"
-        : (labelsLength < 3
-            ? "height: 25%;"
-            : "height: 35%;"
-            )
-        ) %}
+        : (
+            landscape
+                ? (hasHeader ? "height: 80%;" : "height: 100%;")
+                : (labelsLength < 3 ? "height: 25%;" : "height: 35%;")
+        )
+    ) %}
+
     {% if not loop.first %}
         <div class="page-breaker"></div>
     {% endif %}
@@ -177,7 +174,7 @@
             <div class="header-wrapper">
                 <div class="header">
                     {% if logo %}
-                        <img class="logo" src="{{ 'https://'~ app.request.httpHost ~ "/" ~ logo }}" alt="logo">
+                        <img class="logo" src="{{ app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ logo }}" alt="logo">
                     {% endif %}
 
                     {% if firstCustomIconIsDefined or secondCustomIconIsDefined %}
@@ -223,13 +220,13 @@
                 })|raw }}
             </div>
 
-            <div class="barcode-code {{ landscape ? 'landscape' }}" style="{{ landscape ? 'padding-top: 10px'}}">
+            <div class="barcode-code">
                 <svg viewBox="0 0 {{ config.barcode.code|length }} 2"
                      xmlns="http://www.w3.org/2000/svg">
                     <text y="1"
                           x="50%"
                           text-anchor="middle"
-                          font-size={{ landscape ? "1.2" : "1"}}>
+                          font-size="{{ landscape ? 1.2 : 1}}">
                         {{ config.barcode.code }}
                     </text>
                 </svg>
