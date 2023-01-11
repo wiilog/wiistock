@@ -48,6 +48,7 @@
                     div.main-ul-data {
                         border: 1px solid var(--row-color);
                         border-top-right-radius: 0.35rem;
+                        border-bottom-right-radius: 0.35rem;
                         height: 100%;
                         z-index: 2;
                         background-color: #f2f3f7;
@@ -64,7 +65,10 @@
 
                             &:nth-child(2){
                                 border-left: $medium-grey solid 1px;
-                                border-right: $medium-grey solid 1px;
+
+                                &:not(:last-child) {
+                                    border-right: $medium-grey solid 1px;
+                                }
                             }
                         }
                     }
