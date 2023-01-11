@@ -1766,7 +1766,7 @@ class ReceptionController extends AbstractController {
 
                             $locationEndPreparation = $demande->getDestination();
 
-                            $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
+                            $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
                             $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
 
                                 $mouvementRepository = $entityManager->getRepository(MouvementStock::class);

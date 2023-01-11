@@ -144,7 +144,9 @@ class LivraisonsManagerService
             );
 
             $statutLivre = $statutRepository->findOneByCategorieNameAndStatutCode(
-                CategorieStatut::DEM_LIVRAISON, $demandeIsPartial ? Demande::STATUT_LIVRE_INCOMPLETE : Demande::STATUT_LIVRE);
+                CategorieStatut::DEM_LIVRAISON,
+                $demandeIsPartial ? Demande::STATUT_LIVRE_INCOMPLETE : Demande::STATUT_LIVRE
+            );
             $demande->setStatut($statutLivre);
 
             $preparation = $livraison->getPreparation();
@@ -152,17 +154,9 @@ class LivraisonsManagerService
             $inactiveArticleStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
             $articleLines = $preparation->getArticleLines();
 
-            /** @var PreparationOrderArticleLine $articleLine */
-            foreach ($articleLines as $articleLine) {
-                $article = $articleLine->getArticle();
-                $article
-                    ->setStatut($inactiveArticleStatus)
-                    ->setEmplacement($demande->getDestination());
-            }
-
             $packs = stream::from($articleLines)
                 ->map(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit())
-                ->filter(fn(?Pack $pack) => $pack !== null)
+                ->filter()
                 ->unique()
                 ->toArray();
 
@@ -178,33 +172,37 @@ class LivraisonsManagerService
                     false,
                     ['delivery' => $livraison]
                 );
+            }
 
-                foreach ($pack->getChildArticles() as $article) {
-                    $this->trackingMovementService->persistTrackingMovement(
-                        $this->entityManager,
-                        $article->getBarCode(),
-                        $article->getEmplacement(),
-                        $user,
-                        $dateEnd,
-                        true,
-                        TrackingMovement::TYPE_PRISE,
-                        false,
-                        ['delivery' => $livraison]
-                    );
+            foreach ($articleLines as $articleLine) {
+                $article = $articleLine->getArticle();
+                $tracking = $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $article->getTrackingPack() ?? $article->getBarCode(),
+                    $article->getEmplacement(),
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    false,
+                    ['delivery' => $livraison]
+                );
 
-                    $this->trackingMovementService->persistTrackingMovement(
-                        $this->entityManager,
-                        $article->getBarCode(),
-                        $nextLocation,
-                        $user,
-                        $dateEnd,
-                        true,
-                        TrackingMovement::TYPE_DEPOSE,
-                        false,
-                        ['delivery' => $livraison]
-                    );
-                }
+                $movement = $tracking["movement"];
+                $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $movement->getPack(), // same pack of picking
+                    $nextLocation,
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    false,
+                    ['delivery' => $livraison]
+                );
+            }
 
+            foreach ($packs as $pack) {
                 $dropMovement = $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
                     $pack,
@@ -219,6 +217,14 @@ class LivraisonsManagerService
                 $pack
                     ->setLastDrop($dropMovement['movement'])
                     ->setLastTracking($dropMovement['movement']);
+            }
+
+            /** @var PreparationOrderArticleLine $articleLine */
+            foreach ($articleLines as $articleLine) {
+                $article = $articleLine->getArticle();
+                $article
+                    ->setStatut($inactiveArticleStatus)
+                    ->setEmplacement($demande->getDestination());
             }
 
             $referenceLines = $preparation->getReferenceLines();

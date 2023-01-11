@@ -723,6 +723,7 @@ class MobileController extends AbstractApiController
     public function finishPrepa(Request $request,
                                 ExceptionLoggerService $exceptionLoggerService,
                                 LivraisonsManagerService $livraisonsManager,
+                                TrackingMovementService $trackingMovementService,
                                 PreparationsManagerService $preparationsManager,
                                 EntityManagerInterface $entityManager)
     {
@@ -755,7 +756,8 @@ class MobileController extends AbstractApiController
                         $preparation,
                         $nomadUser,
                         $dateEnd,
-                        $entityManager
+                        $entityManager,
+                        $trackingMovementService
                     ) {
 
                         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -799,7 +801,7 @@ class MobileController extends AbstractApiController
                                     $emplacementPrepa
                                 );
 
-                                $trackingMovementPick = $this->trackingMovementService->createTrackingMovement(
+                                $trackingMovementPick = $trackingMovementService->createTrackingMovement(
                                     $movement->getArticle()->getBarCode(),
                                     $movement->getEmplacementFrom(),
                                     $nomadUser,
@@ -814,7 +816,7 @@ class MobileController extends AbstractApiController
                                 );
                                 $entityManager->persist($trackingMovementPick);
 
-                                $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
+                                $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
                                     $movement->getArticle()->getBarCode(),
                                     $movement->getEmplacementTo(),
                                     $nomadUser,
@@ -837,7 +839,7 @@ class MobileController extends AbstractApiController
                         if (isset($ulToMove)){
                             foreach (array_unique($ulToMove) as $lu) {
                                 if ($lu != null){
-                                    $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                                    $pickTrackingMovement = $trackingMovementService->createTrackingMovement(
                                         $lu,
                                         $lu->getLastDrop()->getEmplacement(),
                                         $nomadUser,
@@ -848,7 +850,7 @@ class MobileController extends AbstractApiController
                                         ['preparation' => $preparation]
 
                                     );
-                                    $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
+                                    $DropTrackingMovement = $trackingMovementService->createTrackingMovement(
                                         $lu,
                                         $emplacementPrepa,
                                         $nomadUser,
@@ -872,7 +874,10 @@ class MobileController extends AbstractApiController
                             $preparationsManager->deleteLigneRefOrNot($ligneArticle, $preparation, $entityManager);
                         }
 
-                        $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep, $entityManager);
+                        $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, [
+                            "articleLinesToKeep" => $articlesToKeep,
+                            "entityManager" => $entityManager
+                        ]);
 
                         if ($insertedPreparation) {
                             $insertedPrepasIds[] = $insertedPreparation->getId();
@@ -1160,11 +1165,11 @@ class MobileController extends AbstractApiController
                         $livraisonsManager->setEntityManager($entityManager);
                     }
 
-                    $message = (
-                    ($throwable->getMessage() === LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
-                        (($throwable->getMessage() === LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN) ? "La livraison a déjà été commencée" :
-                            false)
-                    );
+                    $message = match ($throwable->getMessage()) {
+                        LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION => "L'emplacement que vous avez sélectionné n'existe plus.",
+                        LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN => "La livraison a déjà été commencée",
+                        default => false,
+                    };
 
                     if (!$message) {
                         $exceptionLoggerService->sendLog($throwable, $request);
@@ -1563,6 +1568,7 @@ class MobileController extends AbstractApiController
                                      LivraisonsManagerService   $livraisonsManagerService,
                                      MouvementStockService      $mouvementStockService,
                                      FreeFieldService           $freeFieldService,
+                                     TrackingMovementService    $trackingMovementService,
                                      PreparationsManagerService $preparationsManagerService): Response
     {
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -1619,8 +1625,29 @@ class MobileController extends AbstractApiController
             $entityManager->flush();
             return new JsonResponse($response);
         }
-        $preparation = $request->getPreparations()->first();
-        $order = $livraisonsManagerService->createLivraison($now, $preparation, $entityManager);
+        $preparationOrder = $request->getPreparations()->first();
+        $deliveryOrder = $livraisonsManagerService->createLivraison($now, $preparationOrder, $entityManager);
+
+        // articles in delivery  which the logistics unit is not in delivery
+        foreach ($delivery['articles'] as $articleArray) {
+            $barcode = $articleArray['barCode'];
+            $article = $articleRepository->findOneBy(['barCode' => $articleArray['barCode']]);
+            if($article && $article->getCurrentLogisticUnit()) {
+                $article->setCurrentLogisticUnit(null);
+
+                $trackingMovementService->persistTrackingMovement(
+                    $entityManager,
+                    $article->getTrackingPack() ?? $barcode,
+                    $location,
+                    $nomadUser,
+                    $now,
+                    false,
+                    TrackingMovement::TYPE_PICK_LU,
+                    false,
+                    ["delivery" => $deliveryOrder]
+                );
+            }
+        }
 
         foreach ($request->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
@@ -1628,37 +1655,22 @@ class MobileController extends AbstractApiController
                 $entityManager,
                 $article->getQuantite(),
                 $nomadUser,
-                $order,
+                $deliveryOrder,
                 false,
                 $article,
-                $preparation,
+                $preparationOrder,
                 true,
                 $article->getEmplacement()
             );
             $entityManager->persist($outMovement);
             $mouvementStockService->finishMouvementStock($outMovement, $now, $request->getDestination());
         }
-        $preparationsManagerService->treatPreparation($preparation, $nomadUser, $request->getDestination(), [], $entityManager);
-        $preparationsManagerService->updateRefArticlesQuantities($preparation, $entityManager);
-
-        foreach ($delivery['articles'] as $article) {
-            $article = $articleRepository->findOneBy(['barCode' => $article['barCode']]);
-            if($article && $article->getCurrentLogisticUnit()) {
-                $article->setCurrentLogisticUnit(null);
-                $this->trackingMovementService->persistTrackingMovement(
-                    $entityManager,
-                    $article,
-                    $location,
-                    $this->getUser(),
-                    new DateTime('now'),
-                    true,
-                    TrackingMovement::TYPE_PICK_LU,
-                    false,
-                );
-            }
-        }
-
-        $livraisonsManagerService->finishLivraison($nomadUser, $order, $now, $request->getDestination());
+        $preparationsManagerService->treatPreparation($preparationOrder, $nomadUser, $request->getDestination(), [
+            "entityManager" => $entityManager,
+            "changeArticleLocation" => false,
+        ]);
+        $preparationsManagerService->updateRefArticlesQuantities($preparationOrder, $entityManager);
+        $livraisonsManagerService->finishLivraison($nomadUser, $deliveryOrder, $now, $request->getDestination());
         $entityManager->flush();
 
         return new JsonResponse([
@@ -2349,6 +2361,7 @@ class MobileController extends AbstractApiController
                     } else if ($createIfNotExist) {
                         $pack = [
                             'barCode' => $barCode,
+                            'articlesCount' => null,
                             'is_lu' => "1",
                             'project' => null,
                             'location' => null,

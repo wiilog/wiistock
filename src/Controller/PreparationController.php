@@ -82,7 +82,7 @@ class PreparationController extends AbstractController
         $dateEnd = new DateTime('now');
         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
 
-        $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, $articlesNotPicked);
+        $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, ["articleLinesToKeep" => $articlesNotPicked]);
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
         $entityManager->flush();

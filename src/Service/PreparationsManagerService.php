@@ -224,24 +224,26 @@ class PreparationsManagerService
         }
     }
 
-    public function treatPreparation(Preparation            $preparation,
-                                                            $userNomade,
-                                     Emplacement            $emplacement,
-                                     array                  $articleLinesToKeep,
-                                     EntityManagerInterface $entityManager = null): ?Preparation
+    public function treatPreparation(Preparation $preparation,
+                                                 $user,
+                                     Emplacement $emplacement,
+                                     array       $options = []): ?Preparation
     {
-        if (!isset($entityManager)) {
-            $entityManager = $this->entityManager;
-        }
+        $entityManager = $options["entityManager"] ?? $this->entityManager;
+        $articleLinesToKeep = $options["articleLinesToKeep"] ?? [];
+        $changeArticleLocation = $options["changeArticleLocation"] ?? true;
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
         $demande = $preparation->getDemande();
-        /** @var PreparationOrderArticleLine $articleLine */
-        foreach ($preparation->getArticleLines() as $articleLine) {
-            $article = $articleLine->getArticle();
-            if ($articleLine->getPickedQuantity() > 0) {
-                $article->setEmplacement($emplacement);
+
+        if ($changeArticleLocation) {
+            /** @var PreparationOrderArticleLine $articleLine */
+            foreach ($preparation->getArticleLines() as $articleLine) {
+                $article = $articleLine->getArticle();
+                if ($articleLine->getPickedQuantity() > 0) {
+                    $article->setEmplacement($emplacement);
+                }
             }
         }
 
@@ -256,7 +258,7 @@ class PreparationsManagerService
         }
 
         $preparation
-            ->setUtilisateur($userNomade)
+            ->setUtilisateur($user)
             ->setStatut($statutPreparePreparation)
             ->setEndLocation($emplacement);
 

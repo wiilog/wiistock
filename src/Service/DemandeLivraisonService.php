@@ -586,7 +586,7 @@ class DemandeLivraisonService
 
             $livraison = $this->livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
 
-            $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa, []);
+            $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa);
             $this->preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
             $entityManager->flush();

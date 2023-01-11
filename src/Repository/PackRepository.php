@@ -683,6 +683,7 @@ class PackRepository extends EntityRepository
             ->addSelect("pack.quantity AS quantity")
             ->addSelect("pack_location.label AS location")
             ->addSelect("GROUP_CONCAT(child_articles.barCode SEPARATOR ';') AS articles")
+            ->addSelect("COUNT(child_articles.id) AS articlesCount")
             ->addSelect("0 AS is_ref")
             ->addSelect("1 AS is_lu")
             ->addSelect("pack_project.code AS project")
