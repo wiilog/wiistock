@@ -12,6 +12,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryEntry;
@@ -1565,33 +1566,44 @@ class MobileController extends AbstractApiController
                                      PreparationsManagerService $preparationsManagerService): Response
     {
         $articleRepository = $entityManager->getRepository(Article::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $logisticUnitRepository = $entityManager->getRepository(Pack::class);
 
         $nomadUser = $this->getUser();
         $location = json_decode($request->request->get('location'), true);
         $delivery = json_decode($request->request->get('delivery'), true);
         $now = new DateTime();
+
         $request = $demandeLivraisonService->newDemande([
             'isManual' => true,
             'type' => $delivery['type'],
             'demandeur' => $nomadUser,
             'destination' => $location['id'],
-            'expectedAt' => $now->format('Y-m-d H:i:s'),
+            'expectedAt' => $delivery['expectedAt'] ?? $now->format('Y-m-d'),
+            'project' => $delivery['project'] ?? null,
             'commentaire' => $delivery['comment'] ?? null,
         ], $entityManager, $freeFieldService, true);
 
         $entityManager->persist($request);
-        foreach ($delivery['articles'] as $article) {
-            $article = $articleRepository->findOneBy([
-                'barCode' => $article['barCode']
-            ]);
 
-            $line = $demandeLivraisonService->createArticleLine($article, $request, [
-                'quantityToPick' => $article->getQuantite(),
-                'pickedQuantity' => $article->getQuantite(),
-            ]);
-            $entityManager->persist($line);
+        $location = $entityManager->find(Emplacement::class, $location['id']);
+        foreach ($delivery['articles'] as $article) {
+            $barcode = $article['barCode'];
+            $article = $articleRepository->findOneBy(['barCode' => $barcode]);
+
+            if(!$article) {
+                $logisticUnit = $logisticUnitRepository->findOneBy(['code' => $barcode]);
+            }
+
+            $articles = $article ? [$article] : $logisticUnit->getChildArticles();
+            foreach ($articles as $art) {
+                $line = $demandeLivraisonService->createArticleLine($art, $request, [
+                    'quantityToPick' => $art->getQuantite(),
+                    'pickedQuantity' => $art->getQuantite(),
+                ]);
+                $entityManager->persist($line);
+            }
         }
+
         $entityManager->flush();
         $response = $demandeLivraisonService->checkDLStockAndValidate(
             $entityManager,
@@ -1628,6 +1640,23 @@ class MobileController extends AbstractApiController
         }
         $preparationsManagerService->treatPreparation($preparation, $nomadUser, $request->getDestination(), [], $entityManager);
         $preparationsManagerService->updateRefArticlesQuantities($preparation, $entityManager);
+
+        foreach ($delivery['articles'] as $article) {
+            $article = $articleRepository->findOneBy(['barCode' => $article['barCode']]);
+            if($article && $article->getCurrentLogisticUnit()) {
+                $article->setCurrentLogisticUnit(null);
+                $this->trackingMovementService->persistTrackingMovement(
+                    $entityManager,
+                    $article,
+                    $location,
+                    $this->getUser(),
+                    new DateTime('now'),
+                    true,
+                    TrackingMovement::TYPE_PICK_LU,
+                    false,
+                );
+            }
+        }
 
         $livraisonsManagerService->finishLivraison($nomadUser, $order, $now, $request->getDestination());
         $entityManager->flush();
@@ -1868,11 +1897,16 @@ class MobileController extends AbstractApiController
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $projectRepository = $entityManager->getRepository(Project::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
         $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
+
+        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DEMANDE])
+            ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+            ->toArray();
 
         if ($rights['inventoryManager']) {
             $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
@@ -2081,6 +2115,7 @@ class MobileController extends AbstractApiController
             'dispatchPacks' => $dispatchPacks ?? [],
             'status' => $status,
             'projects' => $projects ?? [],
+            'fieldsParam' => $fieldsParam ?? [],
         ];
     }
 
@@ -2260,10 +2295,23 @@ class MobileController extends AbstractApiController
         $resData = [];
 
         $barCode = $request->query->get('barCode');
+        $barcodes = $request->query->get('barcodes');
         $location = $request->query->get('location');
         $createIfNotExist = $request->query->get('createIfNotExist');
 
-        if (!empty($barCode)) {
+        if(!empty($barcodes)) {
+            $barcodes = json_decode($barcodes, true);
+            $articles = Stream::from($articleRepository->findBy(['barCode' => $barcodes]))
+                ->map(fn(Article $article) => [
+                    'barcode' => $article->getBarCode(),
+                    'quantity' => $article->getQuantite(),
+                    'reference' => $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+                ])->toArray();
+
+            return $this->json([
+                'articles' => $articles
+            ]);
+        } else if (!empty($barCode)) {
             $statusCode = Response::HTTP_OK;
             $referenceArticle = $referenceArticleRepository->findOneBy([
                 'barCode' => $barCode,

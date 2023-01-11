@@ -683,13 +683,17 @@ class PackRepository extends EntityRepository
             ->addSelect("pack.quantity AS quantity")
             ->addSelect("pack_location.label AS location")
             ->addSelect("GROUP_CONCAT(child_articles.barCode SEPARATOR ';') AS articles")
-            ->addSelect("0 as is_ref")
-            ->addSelect("1 as is_lu")
-            ->addSelect("pack_project.code as project")
+            ->addSelect("0 AS is_ref")
+            ->addSelect("1 AS is_lu")
+            ->addSelect("pack_project.code AS project")
+            ->addSelect("join_nature.code AS natureCode")
+            ->addSelect("join_nature.color AS natureColor")
+            ->addSelect("DATE_FORMAT(last_tracking.datetime, '%d/%m/%Y %H:%i:%s') AS lastTrackingDate")
             ->join("pack.lastTracking", "last_tracking")
             ->join("last_tracking.emplacement", "pack_location")
             ->leftJoin("pack.childArticles", "child_articles")
             ->leftJoin("pack.project", "pack_project")
+            ->leftJoin("pack.nature", 'join_nature')
             ->andWhere("pack.code = :barcode")
             ->andWhere("pack.groupIteration IS NULL")
             ->groupBy("pack")
@@ -706,21 +710,6 @@ class PackRepository extends EntityRepository
             ->getArrayResult();
 
         return !empty($result) ? $result[0] : null;
-    }
-
-    public function findOneByBarCodeAndLocation(string $barCode, ?string $location) {
-        return $this->createQueryBuilder("pack")
-            ->join("pack.lastTracking", "last_tracking")
-            ->join("last_tracking.emplacement", "pack_location")
-            ->leftJoin("pack.childArticles", "child_articles")
-            ->andWhere("pack.code = :barcode")
-            ->andWhere("pack_location.label = :location")
-            ->andWhere("pack.groupIteration IS NULL")
-            ->groupBy("pack")
-            ->setParameter("barcode", $barCode)
-            ->setParameter("location", $location)
-            ->getQuery()
-            ->getOneOrNullResult();
     }
 
     public function findWithoutArticle(string $code): ?Pack {

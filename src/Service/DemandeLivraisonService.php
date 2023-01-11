@@ -285,7 +285,7 @@ class DemandeLivraisonService
         $date = new DateTime('now');
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
-        $project = $projectRepository->find(isset($data['project']) ? intval($data['project']) : -1);
+        $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
         $number = $this->uniqueNumberService->create(
             $entityManager,
             Demande::NUMBER_PREFIX,
@@ -400,7 +400,7 @@ class DemandeLivraisonService
                 $articleRef = $line->getReference();
                 if ($line->getQuantityToPick() > $articleRef->getQuantiteDisponible()) {
                     $response['success'] = false;
-                    $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
+                    $response['nomadMessage'] = "Erreur de quantité sur l'article : " . $articleRef->getBarCode();
                     $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
                 }
             }
