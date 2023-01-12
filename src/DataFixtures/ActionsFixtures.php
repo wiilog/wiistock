@@ -130,6 +130,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DELETE_DRAFT_DISPATCH,
                 Action::DELETE_UNPROCESSED_DISPATCH,
                 Action::DELETE_PROCESSED_DISPATCH,
+                Action::GROUPED_SIGNATURE,
                 Action::MANAGE_PACK,
                 Action::SHOW_CARRIER_FIELD,
                 Action::GENERATE_DISPATCH_BILL,
