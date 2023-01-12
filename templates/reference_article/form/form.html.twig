@@ -284,14 +284,13 @@
                                             data-s2
                                             data-editable
                                             multiple
-                                            data-default-values="{{ attributes['defaultValues']|join(',') }}">
-                                        {% if description[name] is defined %}
+                                            {% if not reference.id %}
+                                                data-default-values="{{ attributes['defaultValues']|join(',') }}"
+                                            {% endif %}>
+                                        {% if reference.id and description[name] is defined %}
                                             {% set values = description[name]|split(',') %}
                                             {% for value in values %}
                                                 <option value="{{ value }}" selected>{{ value }}</option>
-                                            {% endfor %}
-                                            {% for value in diff(attributes['defaultValues'], values) %}
-                                                <option value="{{ value }}">{{ value }}</option>
                                             {% endfor %}
                                         {% else %}
                                             {% for value in attributes['defaultValues'] %}
