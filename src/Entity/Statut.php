@@ -95,7 +95,7 @@ class Statut {
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $sendNotifToDeclarant = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
     private ?bool $sendReport = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'statuts')]
