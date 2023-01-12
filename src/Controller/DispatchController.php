@@ -420,10 +420,10 @@ class DispatchController extends AbstractController {
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC'])
             ],
             'dispatchValidate' => [
-                'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED, Statut::PARTIAL])
+                'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])
             ],
             'dispatchTreat' => [
-                'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
+                'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED, Statut::PARTIAL])
             ],
             'printBL' => $printBL,
             'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
@@ -909,7 +909,7 @@ class DispatchController extends AbstractController {
             $treatedStatus = $statusRepository->find($statusId);
 
             if($treatedStatus
-                && $treatedStatus->isTreated()
+                && ($treatedStatus->isTreated() || $treatedStatus->isPartial())
                 && $treatedStatus->getType() === $dispatch->getType()) {
 
                 /** @var Utilisateur $loggedUser */
