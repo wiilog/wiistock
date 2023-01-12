@@ -67,6 +67,7 @@ class Action {
     const EDIT_DRAFT_PURCHASE_REQUEST = "modifier demandes d'achat brouillon";
     const DELETE_ONGOING_PURCHASE_REQUESTS = "supprimer demandes d'achat à traiter et en cours";
     const TRACK_SENSOR = "suivre un capteur";
+    const GROUPED_SIGNATURE = "signature groupée";
 
     const DISPLAY_TRANSPORT = 'afficher transport';
     const CREATE_TRANSPORT = 'créer transport';
