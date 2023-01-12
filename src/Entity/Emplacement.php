@@ -133,6 +133,12 @@ class Emplacement implements PairedEntity {
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Vehicle $vehicle = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $email = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $signatory = null;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -963,6 +969,30 @@ class Emplacement implements PairedEntity {
         }
         $this->vehicle = $vehicle;
         $vehicle?->addLocation($this);
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): self
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getSignatory(): ?Utilisateur
+    {
+        return $this->signatory;
+    }
+
+    public function setSignatory(?Utilisateur $signatory): self
+    {
+        $this->signatory = $signatory;
 
         return $this;
     }
