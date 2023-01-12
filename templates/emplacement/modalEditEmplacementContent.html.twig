@@ -76,3 +76,17 @@
         <span class="slider round"></span>
     </label>
 </div>
+
+<div class="form-group">
+    <label class="wii-field-name">Signataire</label>
+    <select class="form-control data" name="signatory" data-s2="user">
+        {% if location.signatory %}
+            <option selected value="{{ location.signatory.id }}">{{ location.signatory.username }}</option>
+        {% endif %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label class="wii-field-name">Email</label>
+    <input class="form-control data" type="text" value='{{ location.email }}' name="email" id="mail">
+</div>
