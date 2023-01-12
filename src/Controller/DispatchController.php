@@ -420,7 +420,7 @@ class DispatchController extends AbstractController {
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC'])
             ],
             'dispatchValidate' => [
-                'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])
+                'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED, Statut::PARTIAL])
             ],
             'dispatchTreat' => [
                 'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
@@ -529,16 +529,6 @@ class DispatchController extends AbstractController {
                 }
             }
         }
-        $dispatchStatus = $dispatch->getStatut();
-        $status = $entityManager->getRepository(Statut::class)->find($post->get('statut'));
-        if ($status
-            && $status->getId() !== $dispatch->getStatut()->getId()
-            && $status->isPartial()
-            && !$dispatchStatus->isDraft()
-            && !$dispatchStatus->isTreated()) {
-            $dispatch->setStatut($status);
-        }
-
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
@@ -570,6 +560,7 @@ class DispatchController extends AbstractController {
 
         $entityManager->flush();
 
+        $dispatchStatus = $dispatch->getStatut();
 
         return new JsonResponse([
             'entete' => $this->renderView('dispatch/dispatch-show-header.html.twig', [
@@ -608,8 +599,8 @@ class DispatchController extends AbstractController {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $statuses = (!$dispatchStatus || $dispatchStatus->isNotTreated() || $dispatchStatus->isPartial())
-                ? $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::PARTIAL])
+            $statuses = (!$dispatchStatus || !$dispatchStatus->isTreated())
+                ? $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::DRAFT, Statut::NOT_TREATED])
                 : [];
 
             $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);

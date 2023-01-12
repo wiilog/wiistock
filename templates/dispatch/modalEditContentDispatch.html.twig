@@ -13,16 +13,17 @@
     <div class="col-md-4 col-12">
         <div class="form-group">
             <label class="wii-field-name">{{ trans('Demande', 'Général', 'Statut') }}*</label>
-            {% set partialStatuses = statuses | filter(statut => statut.state == constant('App\\Entity\\Statut::PARTIAL') and statut.id != dispatch.statut.id) %}
             <select name="statut"
-                    {{ partialStatuses | length == 0 ? 'disabled' }}
+                    disabled
                     class="form-control data d-block needed"
                     title="Statut">
                 {# outside the for if status is treated #}
                 <option value="{{ dispatch.statut.id }}" selected>{{ dispatch.statut|format_helper('status')  }}</option>
 
-                {% for status in partialStatuses %}
-                    <option value="{{ status.id }}">{{ status|format_helper('status') }}</option>
+                {% for status in statuses %}
+                    {% if not dispatch.statut or dispatch.statut.id != status.id %}
+                        <option value="{{ status.id }}">{{ status|format_helper('status') }}</option>
+                    {% endif %}
                 {% endfor %}
             </select>
         </div>
