@@ -102,8 +102,9 @@ class LocationController extends AbstractController {
                 return $errorResponse;
             }
 
-            $user = $data['signatory'] ? $userRepository->find($data['signatory']) : null;
-            if($data['email'] && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $signatory = !empty($data['signatory']) ? $userRepository->find($data['signatory']) : null;
+            $email = $data['email'] ?? null;
+            if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
                     "success" => false,
                     "msg" => "L'adresse email renseignée est invalide.",
@@ -119,8 +120,8 @@ class LocationController extends AbstractController {
                 ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatory($user)
-                ->setEmail($data['email'] ?? null);
+                ->setSignatory($signatory)
+                ->setEmail($email);
 
             if (!empty($data['allowed-natures'])) {
                 foreach ($data['allowed-natures'] as $allowedNatureId) {
@@ -200,8 +201,9 @@ class LocationController extends AbstractController {
                 return $errorResponse;
             }
 
-            $user = $data['signatory'] ? $userRepository->find($data['signatory']) : null;
-            if($data['email'] && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $signatory = !empty($data['signatory']) ? $userRepository->find($data['signatory']) : null;
+            $email = $data['email'] ?? null;
+            if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
                     "success" => false,
                     "msg" => "L'adresse email renseignée est invalide.",
@@ -217,8 +219,8 @@ class LocationController extends AbstractController {
                 ->setIsActive($data['isActive'])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatory($user)
-                ->setEmail($data['email'] ?? null);
+                ->setSignatory($signatory)
+                ->setEmail($email);
 
             $emplacement->getAllowedNatures()->clear();
 

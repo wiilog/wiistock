@@ -973,28 +973,21 @@ class Emplacement implements PairedEntity {
         return $this;
     }
 
-    public function getEmail(): ?string
-    {
+    public function getEmail(): ?string {
         return $this->email;
     }
 
-    public function setEmail(?string $email): self
-    {
+    public function setEmail(?string $email): self {
         $this->email = $email;
-
         return $this;
     }
 
-    public function getSignatory(): ?Utilisateur
-    {
+    public function getSignatory(): ?Utilisateur {
         return $this->signatory;
     }
 
-    public function setSignatory(?Utilisateur $signatory): self
-    {
+    public function setSignatory(?Utilisateur $signatory): self {
         $this->signatory = $signatory;
-
         return $this;
     }
-
 }

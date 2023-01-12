@@ -33,8 +33,8 @@ const locationsTableConfig = {
         {data: 'active', title: 'Actif / Inactif'},
         {data: 'allowedNatures', title: `Natures autorisées`, orderable: false},
         {data: 'allowedTemperatures', title: 'Températures autorisées', orderable: false},
-        {data: 'signatory', title: 'Signataire', orderable: false},
-        {data: 'email', title: 'Email', orderable: false},
+        {data: 'signatory', title: 'Signataire'},
+        {data: 'email', title: 'Email'},
     ]
 };
 
