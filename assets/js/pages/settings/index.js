@@ -93,7 +93,8 @@ const initializers = {
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
     track_tournees: initializeTransportRound,
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
-    modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate
+    modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
+    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate
 };
 
 const saveCallbacks = {
