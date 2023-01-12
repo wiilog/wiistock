@@ -304,6 +304,16 @@ class RefArticleDataService {
             }
         }
 
+        $descriptionData = Stream::from(ReferenceArticle::DESCRIPTION)
+            ->map(fn(array $attributes) => $attributes['name'])
+            ->flip()
+            ->intersect($data, true)
+            ->toArray();
+
+        if(!empty($descriptionData)) {
+            $refArticle->setDescription($descriptionData);
+        }
+
         $isVisible = $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS;
         if (isset($data['frl'])) {
             $supplierReferenceLines = json_decode($data['frl'], true);

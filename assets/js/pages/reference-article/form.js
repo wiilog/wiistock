@@ -13,6 +13,7 @@ $(document).ready(() => {
     })
 
     buildQuantityPredictions();
+    computeFieldValues();
 
     $(`.add-supplier-article`).click(function() {
         $(this).siblings(`.supplier-articles`).append($(`#supplier-article-template`).html());
@@ -83,6 +84,10 @@ $(document).ready(() => {
             $suppliersToRemove.val($suppliersToRemove.val() + ',' + supplierArticleId);
         }
         $(this).closest('.supplier-container').remove();
+    });
+
+    $(`input[name=length], input[name=width], input[name=height]`).on(`keyup`, () => {
+        computeFieldValues();
     });
 });
 
@@ -189,3 +194,14 @@ function changeNewReferenceStatus($select){
         }
     }
 }
+
+function computeFieldValues() {
+    const length = Number($(`input[name=length]`).val());
+    const width = Number($(`input[name=width]`).val());
+    const heigth = Number($(`input[name=height]`).val());
+
+    const volume = length * width * heigth;
+    $(`input[name=volume]`).val(volume);
+    $(`input[name=size]`).val(`${length}x${width}x${heigth}`);
+}
+
