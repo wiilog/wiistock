@@ -73,6 +73,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $password = null;
 
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $signatoryPassword = null;
+
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $token = null;
 
@@ -1942,6 +1945,15 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
         $this->kioskToken = $kioskToken;
 
+        return $this;
+    }
+
+    public function getSignatoryPassword(): ?string {
+        return $this->signatoryPassword;
+    }
+
+    public function setSignatoryPassword(?string $signatoryPassword): self {
+        $this->signatoryPassword = $signatoryPassword;
         return $this;
     }
 }
