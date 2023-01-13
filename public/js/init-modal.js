@@ -901,7 +901,6 @@ function withoutExtension(fileName) {
 }
 
 function removeAttachment($elem, callback = null) {
-    console.log(callback);
     if (callback) {
         callback($elem);
     }
