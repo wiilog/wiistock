@@ -104,6 +104,8 @@ class EmplacementDataService {
             'active' => $emplacement->getIsActive() ? 'actif' : 'inactif',
             'allowedNatures' => $allowedNatures,
             'allowedTemperatures' => $allowedTemperatures,
+            'signatory' => $this->formatService->user($emplacement->getSignatory()),
+            'email' => $emplacement->getEmail(),
             'actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
                 'url' => $url,
                 'emplacementId' => $emplacement->getId(),

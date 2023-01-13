@@ -23,6 +23,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Service\PDFGeneratorService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
@@ -87,6 +88,7 @@ class LocationController extends AbstractController {
         if ($data = json_decode($request->getContent(), true)) {
             $naturesRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
             $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null);
@@ -100,6 +102,14 @@ class LocationController extends AbstractController {
                 return $errorResponse;
             }
 
+            $signatory = !empty($data['signatory']) ? $userRepository->find($data['signatory']) : null;
+            $email = $data['email'] ?? null;
+            if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "L'adresse email renseignée est invalide.",
+                ]);
+            }
             $emplacement = new Emplacement();
             $emplacement
                 ->setLabel($data["Label"])
@@ -109,7 +119,9 @@ class LocationController extends AbstractController {
                 ->setIsDeliveryPoint($data["isDeliveryPoint"])
                 ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
-                ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]));
+                ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
+                ->setSignatory($signatory)
+                ->setEmail($email);
 
             if (!empty($data['allowed-natures'])) {
                 foreach ($data['allowed-natures'] as $allowedNatureId) {
@@ -175,6 +187,7 @@ class LocationController extends AbstractController {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $naturesRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
             $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null, $data['id']);
@@ -188,6 +201,14 @@ class LocationController extends AbstractController {
                 return $errorResponse;
             }
 
+            $signatory = !empty($data['signatory']) ? $userRepository->find($data['signatory']) : null;
+            $email = $data['email'] ?? null;
+            if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "L'adresse email renseignée est invalide.",
+                ]);
+            }
             $emplacement = $emplacementRepository->find($data['id']);
             $emplacement
                 ->setLabel($data["Label"])
@@ -197,7 +218,9 @@ class LocationController extends AbstractController {
                 ->setDateMaxTime($dateMaxTime)
                 ->setIsActive($data['isActive'])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
-                ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]));
+                ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
+                ->setSignatory($signatory)
+                ->setEmail($email);
 
             $emplacement->getAllowedNatures()->clear();
 

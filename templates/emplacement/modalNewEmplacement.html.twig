@@ -74,6 +74,16 @@
                         <span class="slider round"></span>
                     </label>
                 </div>
+
+                <div class="form-group">
+                    <label class="wii-field-name">Signataire</label>
+                    <select class="form-control data select2 w-100" name="signatory" data-s2="user"></select>
+                </div>
+
+                <div class="form-group">
+                    <label class="wii-field-name">Email</label>
+                    <input class="form-control data" type="text" name="email">
+                </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
