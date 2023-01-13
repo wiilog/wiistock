@@ -1,0 +1,42 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" id="modalGroupedSignature" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Signature groupée d'acheminements"
+            } %}
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 col-12 form-group">
+                        {{ form.select('status', 'Statut', true, {
+                            items: dispatchStatusesForSelect,
+                            onChange: 'displayCommentNeededAttributes($(this))'
+                        } ) }}
+                    </div>
+                    <div class="col-md-6 col-12 form-group">
+                        {{ form.select('signatoryTrigram', 'Trigramme signataire', true, {
+                            type: 'user'
+                        } ) }}
+                    </div>
+                    <div class="col-md-6 col-12 form-group">
+                        {{ form.input('signatoryPassword', 'Code signataire', true, null, {
+                            type: 'password'
+                        } ) }}
+                    </div>
+                    <div class="col-md-6 col-12 form-group">
+                        {{ form.input('comment', 'Commentaire', false, null, {}) }}
+                    </div>
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data submit-button', type: 'submit', id: 'submitGroupedSignature', text: 'Valider'}
+                ],
+            } %}
+
+        </div>
+    </div>
+</div>

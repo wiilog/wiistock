@@ -95,7 +95,7 @@ class DispatchService {
 
     private ?array $freeFieldsConfig = null;
 
-    public function getDataForDatatable(InputBag $params) {
+    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
@@ -114,7 +114,9 @@ class DispatchService {
 
         $rows = [];
         foreach ($dispatchesArray as $dispatch) {
-            $rows[] = $this->dataRowDispatch($dispatch);
+            $rows[] = $this->dataRowDispatch($dispatch, [
+                'groupedSignatureMode' => $groupedSignatureMode
+            ]);
         }
 
         return [
@@ -124,7 +126,7 @@ class DispatchService {
         ];
     }
 
-    public function dataRowDispatch(Dispatch $dispatch) {
+    public function dataRowDispatch(Dispatch $dispatch, array $options = []) {
 
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
         $receivers = $dispatch->getReceivers() ?? null;
@@ -161,11 +163,17 @@ class DispatchService {
             'emergency' => $dispatch->getEmergency() ?? '',
             'treatedBy' => $this->formatService->user($dispatch->getTreatedBy()),
             'treatmentDate' => $this->formatService->datetime($dispatch->getTreatmentDate()),
-            'actions' => $this->templating->render('dispatch/list/actions.html.twig', [
+        ];
+
+        if(isset($options['groupedSignatureMode']) && $options['groupedSignatureMode']) {
+            $dispatchId = $dispatch->getId();
+            $row['actions'] = "<td><input type='checkbox' class='checkbox dispatch-checkbox' value='$dispatchId'></td>";
+        } else {
+            $row['actions'] = $this->templating->render('dispatch/list/actions.html.twig', [
                 'dispatch' => $dispatch,
                 'url' => $url
-            ]),
-        ];
+            ]);
+        }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
@@ -566,14 +574,13 @@ class DispatchService {
         }
     }
 
-    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser, bool $groupedSignatureMode = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $columnsVisible = $currentUser->getVisibleColumns()['dispatch'];
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, CategorieCL::DEMANDE_DISPATCH);
 
         $columns = [
-            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° demande', false), 'name' => 'number'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Transporteur', false), 'name' => 'carrier'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° tracking transporteur', false), 'name' => 'carrierTrackingNumber'],
@@ -593,6 +600,19 @@ class DispatchService {
             ['title' => $this->translationService->translate('Demande', 'Général', 'Urgence', false), 'name' => 'emergency'],
             ['title' => $this->translationService->translate('Général', null, 'Zone liste', 'Traité par', false), 'name' => 'treatedBy'],
         ];
+
+        if($groupedSignatureMode) {
+            $dispatchCheckboxLine = [
+                'title' => "<input type='checkbox' class='checkbox check-all'>",
+                'name' => 'actions',
+                'alwaysVisible' => true,
+                'orderable' => false,
+                'class' => 'noVis'
+            ];
+            array_unshift($columns, $dispatchCheckboxLine);
+        } else {
+            array_unshift($columns, ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis']);
+        }
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }

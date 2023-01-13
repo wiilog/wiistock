@@ -24,9 +24,11 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Exceptions\FormException;
 use App\Service\ArrivageService;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
@@ -61,6 +63,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use WiiCommon\Helper\StringHelper;
+use function PHPUnit\Framework\throwException;
 
 /**
  * @Route("/acheminements")
@@ -113,11 +116,12 @@ class DispatchController extends AbstractController {
      * @Route("/api-columns", name="dispatch_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
      */
-    public function apiColumns(EntityManagerInterface $entityManager, DispatchService $service): Response {
+    public function apiColumns(Request $request, EntityManagerInterface $entityManager, DispatchService $service): Response {
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
-            $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
+            $groupedSignatureMode = $request->query->getBoolean('groupedSignatureMode');
+            $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser, $groupedSignatureMode);
 
             return $this->json(array_values($columns));
     }
@@ -166,7 +170,8 @@ class DispatchController extends AbstractController {
      */
     public function api(Request $request,
                         DispatchService $dispatchService): Response {
-        $data = $dispatchService->getDataForDatatable($request->request);
+        $groupedSignatureMode = $request->query->getBoolean('groupedSignatureMode');
+        $data = $dispatchService->getDataForDatatable($request->request, $groupedSignatureMode);
 
         return new JsonResponse($data);
     }
@@ -1559,6 +1564,69 @@ class DispatchController extends AbstractController {
                 'selectedDispatch' => $dispatch,
                 'freeFields' => $freeFields
             ]),
+        ]);
+    }
+
+    /**
+     * @Route("/grouped-signature-modal-content", name="grouped_signature_modal_content", options={"expose"=true}, methods="POST")
+     */
+    public function groupedSignatureModalContent(Request $request, EntityManagerInterface $entityManager): JsonResponse {
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $filteredStatut = $statutRepository->find($request->query->get('statusId'));
+        $states = match ($filteredStatut->getState()) {
+            Statut::DRAFT => [Statut::NOT_TREATED],
+            Statut::NOT_TREATED, Statut::PARTIAL =>  [Statut::TREATED, Statut::PARTIAL],
+            default => []
+        };
+        $dispatchStatusesForSelect = $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, $states);
+
+        $formattedStatusToDisplay =
+            Stream::from($dispatchStatusesForSelect)
+                ->keymap(fn(Statut $status) => [$status->getId(), [
+                    "label" => $status->getCode(),
+                    "value" => $status->getId(),
+                    "needed-comment" => $status->getCommentNeeded(),
+            ]])
+            ->toArray();
+
+        return $this->json([
+            'success' => true,
+            'content' => $this->renderView('dispatch/modalGroupedSignature.html.twig', [
+                'dispatchStatusesForSelect' => $formattedStatusToDisplay
+            ])
+        ]);
+    }
+
+    /**
+     * @Route("/finish-grouped-signature", name="finish_grouped_signature", options={"expose"=true}, methods="POST")
+     */
+    public function finishGroupedSignature(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $encoder): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+
+        $user = $data['signatoryTrigram'] ? $userRepository->find($data['signatoryTrigram']) : null;
+//        if(!$user || $user->getSignatoryPassword() !== $encoder->hashPassword($user, $data['signatoryPassword'])){
+//            throw new FormException("Code signataire invalide");
+//        }
+
+        $dispatchsToSignIds = $request->query->all('dispatchsToSign');
+        $groupedSignatureStatus = $statusRepository->find($data['status']);
+        $dispatchsToSign = $dispatchRepository->findBy(['id' => $dispatchsToSignIds]);
+
+        foreach ($dispatchsToSign as $dispatch){
+            $dispatch->setStatut($groupedSignatureStatus);
+            $dispatch->setCommentaire($data['comment']);
+        }
+
+        $entityManager->flush();
+        //TODO compte rendu à envoyer aux 3 emails ( emplacement de prise, emplacement de dépose et chef de gare )
+        return new JsonResponse([
+            'success' => true,
+            'redirect' => $this->generateUrl('dispatch_index'),
+            'msg' => 'Signature groupée effectuée avec succès'
         ]);
     }
 }
