@@ -167,6 +167,15 @@ export default class Select2 {
                         } else {
                             $option.remove();
                         }
+
+                        if($element.is(`[data-default-values]`)) {
+                            const defaultValues = $element.data(`default-values`).split(`,`);
+                            const $option = $(event.params.args.data.element);
+
+                            if(defaultValues.includes($option.val())) {
+                                $element.append($option);
+                            }
+                        }
                     });
                 }
 
