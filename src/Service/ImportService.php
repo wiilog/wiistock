@@ -32,6 +32,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Exceptions\FormException;
 use App\Exceptions\ImportException;
 use Closure;
 use DateTime;
@@ -41,6 +42,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
@@ -97,7 +99,14 @@ class ImportService
             "statut",
             "needsMobileSync",
             "type",
-            "typeQuantite"
+            "outFormatEquipment",
+            "ADR",
+            "manufacturerCode",
+            "length",
+            "width",
+            "height",
+            "weight",
+            "associatedDocumentTypes",
         ],
         Import::ENTITY_FOU => [
             'nom',
@@ -140,7 +149,8 @@ class ImportService
             "dispatchTypes",
             "deliveryTypes",
             "handlingTypes",
-            "deliverer"
+            "deliverer",
+            'signatoryCode'
         ],
         Import::ENTITY_DELIVERY => [
             "articleCode",
@@ -163,7 +173,9 @@ class ImportService
             "name",
             "isDeliveryPoint",
             "allowedCollectTypes",
-            "allowedDeliveryTypes"
+            "allowedDeliveryTypes",
+            "signatory",
+            "email",
         ]
     ];
 
@@ -214,6 +226,9 @@ class ImportService
 
     #[Required]
     public LanguageService $languageService;
+
+    #[Required]
+    public UserPasswordHasherInterface $encoder;
 
     private Import $currentImport;
     private EntityManagerInterface $entityManager;
@@ -1086,6 +1101,38 @@ class ImportService
             }
         }
 
+        $original = $refArt->getDescription();
+
+        $length = $data['length'] ?? $original['length'];
+        $width = $data['width'] ?? $original['width'];
+        $height = $data['height'] ?? $original['height'];
+        $weight = $data['weight'] ?? $original['weight'];
+
+        if (!empty($length) && !is_numeric($length)) {
+            $this->throwError('Champ longueur non valide.');
+        }
+        if (!empty($width) && !is_numeric($width)) {
+            $this->throwError('Champ largeur non valide.');
+        }
+        if (!empty($height) && !is_numeric($height)) {
+            $this->throwError('Champ hauteur non valide.');
+        }
+        if (!empty($weight) && !is_numeric($weight)) {
+            $this->throwError('Champ poids non valide.');
+        }
+
+        $description = [
+            "outFormatEquipment" => $data['outFormatEquipment'] ?? $original['outFormatEquipment'],
+            "ADR" => $data['ADR'] ?? $original['ADR'],
+            "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'],
+            "length" => $length,
+            "width" => $width,
+            "height" => $height,
+            "weight" => $weight,
+            "associatedDocumentTypes" => $data['associatedDocumentTypes'] ?? $original['associatedDocumentTypes'],
+        ];
+        $refArt
+            ->setDescription($description);
         // champs libres
         $this->checkAndSetChampsLibres($colChampsLibres, $refArt, $isNewEntity, $row);
 
@@ -1400,6 +1447,16 @@ class ImportService
             $user->setStatus($status);
         }
 
+        if (!empty($data['signatoryCode'])) {
+            $plainSignatoryPassword = $data['signatoryCode'];
+            if (strlen($plainSignatoryPassword) < 6) {
+                $this->throwError("Le code signataire doit contenir au moins 6 caractères");
+            }
+
+            $signatoryPassword = $this->encoder->hashPassword($user, $plainSignatoryPassword);
+            $user->setSignatoryPassword($signatoryPassword);
+        }
+
         $this->entityManager->persist($user);
 
         $this->updateStats($stats, !$user->getId());
@@ -1590,6 +1647,7 @@ class ImportService
         $locationRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
         $isNewEntity = false;
         $location = $locationRepository->findOneBy(['label' => $data['name']]);
@@ -1695,6 +1753,22 @@ class ImportService
                 || strtolower($data['isOngoingVisibleOnMobile']) === "oui"
             );
         }
+
+        if (!empty($data['signatory'])) {
+            $signatory = $userRepository->findOneBy(['username' => $data['signatory']]);
+            if (!$signatory) {
+                $this->throwError('Nom d\'utilisateur de signataire inconnu.');
+            }
+            $location->setSignatory($signatory);
+        }
+
+        if (!empty($data['email'])) {
+            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $this->throwError('Le format de l\'adresse email est incorrect');
+            }
+            $location->setEmail($data['email']);
+        }
+
         if (isset($data['isActive'])) {
             $value = strtolower($data['isActive']);
             if ($value !== 'oui' && $value !== 'non') {
