@@ -93,6 +93,9 @@ class DispatchService {
     #[Required]
     public SpecificService $specificService;
 
+    #[Required]
+    public StatusHistoryService $statusHistoryService;
+
     private ?array $freeFieldsConfig = null;
 
     public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false) {
@@ -512,9 +515,12 @@ class DispatchService {
         $date = new DateTime('now');
 
         $dispatch
-            ->setStatut($treatedStatus)
             ->setTreatmentDate($date)
             ->setTreatedBy($loggedUser);
+
+        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $treatedStatus, [
+            "forceCreation" => false,
+        ]);
 
         foreach ($dispatchPacks as $dispatchPack) {
             if (!$dispatchPack->isTreated()
