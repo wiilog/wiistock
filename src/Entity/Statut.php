@@ -530,7 +530,7 @@ class Statut {
     public function addDispatch(Dispatch $dispatch): self {
         if(!$this->dispatches->contains($dispatch)) {
             $this->dispatches[] = $dispatch;
-            $dispatch->setStatut($this);
+            $dispatch->setStatus($this);
         }
 
         return $this;
@@ -541,7 +541,7 @@ class Statut {
             $this->dispatches->removeElement($dispatch);
             // set the owning side to null (unless already changed)
             if($dispatch->getStatut() === $this) {
-                $dispatch->setStatut(null);
+                $dispatch->setStatus(null);
             }
         }
 
