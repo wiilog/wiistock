@@ -194,6 +194,9 @@ class ReferenceArticle
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $upToDateInventory;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $description = [];
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -1074,6 +1077,16 @@ class ReferenceArticle
 
     public function setUpToDateInventory(?bool $upToDateInventory): self {
         $this->upToDateInventory = $upToDateInventory;
+
+        return $this;
+    }
+
+    public function getDescription(): ?array {
+        return $this->description;
+    }
+
+    public function setDescription(?array $description): self {
+        $this->description = $description;
 
         return $this;
     }

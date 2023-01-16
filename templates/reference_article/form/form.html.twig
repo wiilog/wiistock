@@ -248,6 +248,57 @@
                     </div>
                 </div>
             </div>
+            <div class="wii-box">
+                <div class="header wii-title">Description</div>
+                <div class="content">
+                    <div class="row">
+                        {% set description = reference.description %}
+                        {% for field, attributes in descriptionConfig %}
+                            {% set name = attributes.name %}
+                            {% set disabled = name in ['size', 'volume'] %}
+                            <div class="col-6 d-flex flex-column mb-2">
+                                <label class="wii-field-name">{{ field }}</label>
+                                {% if attributes.type in ['text', 'number'] %}
+                                    <input type="{{ attributes.type }}"
+                                           class="form-control {{ attributes.persisted ? "data" }}"
+                                           name="{{ name }}"
+                                           value="{{ attributes.persisted ? (description[name] ?? '') }}"
+                                        {{ disabled ? 'disabled' }}>
+                                {% elseif attributes.type == 'bool' %}
+                                    <div class="wii-switch w-fit-content" data-title="{{ field }}">
+                                        <input type="radio"
+                                               name="{{ name }}"
+                                               value="0"
+                                               content="Non"
+                                               data-title="non"
+                                            {{ (attributes.persisted and description[name] is defined and description[name] == '0') ? 'checked' }}>
+                                        <input type="radio"
+                                               name="{{ name }}"
+                                               value="1"
+                                               content="Oui"
+                                               data-title="oui"
+                                            {{ (attributes.persisted and description[name] is defined and description[name] == '1') ? 'checked' }}>
+                                    </div>
+                                {% elseif attributes.type == 'select-free' %}
+                                    {% set values = attributes.values ?? [] %}
+                                    {% set selectedValues = description[name] is defined and description[name]
+                                        ? (description[name]|split(','))
+                                        : [] %}
+                                    <select name="{{ name }}"
+                                            class="form-control {{ attributes.persisted ? "data" }} w-100"
+                                            data-s2
+                                            multiple
+                                            data-default-values="{{ selectedValues|join(',') }}">
+                                        {% for value in values %}
+                                            <option value="{{ value }}" {{ attributes.persisted and value in selectedValues ? "selected" }}>{{ value }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-12 col-md-6">
             <div class="wii-box">
