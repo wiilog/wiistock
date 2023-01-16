@@ -25,10 +25,12 @@ use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -267,26 +269,25 @@ class RefArticleDataService {
         ]);
     }
 
-    public function editRefArticle(ReferenceArticle $refArticle,
-                                   $data,
-                                   Utilisateur $user,
-                                   FreeFieldService $champLibreService,
-                                   MouvementStockService $mouvementStockService,
-                                   ?Request $request = null) {
-        $typeRepository = $this->entityManager->getRepository(Type::class);
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
-        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
-        $visibilityGroupRepository = $this->entityManager->getRepository(VisibilityGroup::class);
+    public function editRefArticle(EntityManagerInterface $entityManager,
+                                   ReferenceArticle      $refArticle,
+                                                         $data,
+                                   Utilisateur           $user,
+                                   ?Request              $request = null) {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
+        $supplierArticleRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
         //modification champsFixes
-        $entityManager = $this->entityManager;
         if (isset($data['reference'])) {
             $refArticle->setReference($data['reference']);
         }
 
         if (isset($data['suppliers-to-remove']) && $data['suppliers-to-remove'] !== "") {
-            $suppliers = $this->entityManager->getRepository(ArticleFournisseur::class)->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
+            $suppliers = $supplierArticleRepository->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
             foreach ($suppliers as $supplier) {
                 $refArticle->removeArticleFournisseur($supplier);
             }
@@ -304,22 +305,14 @@ class RefArticleDataService {
             }
         }
 
-        $descriptionData = Stream::from(ReferenceArticle::DESCRIPTION)
-            ->map(fn(array $attributes) => $attributes['name'])
-            ->flip()
-            ->intersect($data, true)
-            ->toArray();
-
-        if(!empty($descriptionData)) {
-            $refArticle->setDescription($descriptionData);
-        }
+        $this->updateDescriptionField($entityManager, $refArticle, $data);
 
         $isVisible = $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS;
         if (isset($data['frl'])) {
             $supplierReferenceLines = json_decode($data['frl'], true);
             foreach ($supplierReferenceLines as $supplierReferenceLine) {
                 $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
-                $existingSupplierArticle = $entityManager->getRepository(ArticleFournisseur::class)->findOneBy([
+                $existingSupplierArticle = $supplierArticleRepository->findOneBy([
                     'reference' => $referenceArticleFournisseur
                 ]);
 
@@ -444,14 +437,14 @@ class RefArticleDataService {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
             $wasDraft && $refArticle->getStatut()->getCode() === ReferenceArticle::STATUT_ACTIF) {
-            $mvtStock = $mouvementStockService->createMouvementStock(
+            $mvtStock = $this->mouvementStockService->createMouvementStock(
                 $user,
                 null,
                 $refArticle->getQuantiteStock(),
                 $refArticle,
                 MouvementStock::TYPE_ENTREE
             );
-            $mouvementStockService->finishMouvementStock(
+            $this->mouvementStockService->finishMouvementStock(
                 $mvtStock,
                 new DateTime('now'),
                 $refArticle->getEmplacement()
@@ -467,7 +460,7 @@ class RefArticleDataService {
         $entityManager->flush();
         //modification ou création des champsLibres
 
-        $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
+        $this->freeFieldService->manageFreeFields($refArticle, $data, $entityManager);
         if(isset($request)) {
             if($request->files->has('image')) {
                 $file = $request->files->get('image');
@@ -594,7 +587,8 @@ class RefArticleDataService {
                                           bool                   $fromNomade,
                                           EntityManagerInterface $entityManager,
                                           Demande                $demande,
-                                          ?FreeFieldService      $champLibreService, $editRef = true, $fromCart = false) {
+                                                                 $editRef = true,
+                                                                 $fromCart = false) {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
         $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
@@ -622,7 +616,7 @@ class RefArticleDataService {
             }
 
             if(!$fromNomade && $editRef) {
-                $this->editRefArticle($referenceArticle, $data, $user, $champLibreService, $this->mouvementStockService);
+                $this->editRefArticle($entityManager, $referenceArticle, $data, $user);
             }
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             if($fromNomade || $loggedUserRole->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE || $fromCart) {
@@ -1164,6 +1158,80 @@ class RefArticleDataService {
         }
 
         $this->CSVExportService->putLine($handle, $line);
+    }
+
+    public function getDescriptionConfig(EntityManagerInterface $entityManager): array {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+        $associatedDocumentTypes = Stream::explode(',', $associatedDocumentTypesStr ?: '')
+            ->filter()
+            ->toArray();
+        return [
+            "Matériel hors format" => [
+                "name" => "outFormatEquipment",
+                "type" => "bool",
+                "persisted" => true,
+            ],
+            "ADR" => [
+                "name" => "ADR",
+                "type" => "bool",
+                "persisted" => true,
+            ],
+            "Code fabriquant" => [
+                "name" => "manufacturerCode",
+                "type" => "text",
+                "persisted" => true,
+            ],
+            "Longueur (cm)" => [
+                "name" => "length",
+                "type" => "number",
+                "persisted" => true,
+            ],
+            "Largeur (cm)" => [
+                "name" => "width",
+                "type" => "number",
+                "persisted" => true,
+            ],
+            "Hauteur (cm)" => [
+                "name" => "height",
+                "type" => "number",
+                "persisted" => true,
+            ],
+            "Dimensions (Lxlxh cm)" => [
+                "name" => "size",
+                "type" => "text",
+                "persisted" => false,
+            ],
+            "Volume (m3)" => [
+                "name" => "volume",
+                "type" => "number",
+                "persisted" => false,
+            ],
+            "Poids (kg)" => [
+                "name" => "weight",
+                "type" => "number",
+                "persisted" => true,
+            ],
+            "Types de documents associés" => [
+                "name" => "associatedDocumentTypes",
+                "type" => "select-free",
+                "values" => $associatedDocumentTypes,
+                "persisted" => true,
+            ],
+        ];
+    }
+
+    public function updateDescriptionField(EntityManagerInterface $entityManager,
+                                           ReferenceArticle       $referenceArticle,
+                                           array                  $data): void {
+        $descriptionConfig = $this->getDescriptionConfig($entityManager);
+        $descriptionData = Stream::from($descriptionConfig)
+            ->filter(fn(array $config) => $config["persisted"] ?? true)
+            ->map(fn(array $attributes) => $attributes['name'])
+            ->flip()
+            ->intersect($data, true)
+            ->toArray();
+        $referenceArticle->setDescription($descriptionData);
     }
 
 }

@@ -42,50 +42,6 @@ class ReferenceArticle
     const PURCHASE_IN_PROGRESS_ORDER_STATE = "purchaseInProgress";
     const WAIT_FOR_RECEPTION_ORDER_STATE = "waitForReception";
 
-    public const DESCRIPTION = [
-        "Matériel hors format" => [
-            "name" => "outFormatEquipment",
-            "type" => "bool"
-        ],
-        "ADR" => [
-            "name" => "ADR",
-            "type" => "bool"
-        ],
-        "Code fabriquant" => [
-            "name" => "manufacturerCode",
-            "type" => "text"
-        ],
-        "Longueur (cm)" => [
-            "name" => "length",
-            "type" => "number"
-        ],
-        "Largeur (cm)" => [
-            "name" => "width",
-            "type" => "number"
-        ],
-        "Hauteur (cm)" => [
-            "name" => "height",
-            "type" => "number"
-        ],
-        "Dimensions (Lxlxh cm)" => [
-            "name" => "size",
-            "type" => "text"
-        ],
-        "Volume (m3)" => [
-            "name" => "volume",
-            "type" => "number"
-        ],
-        "Poids (kg)" => [
-            "name" => "weight",
-            "type" => "number"
-        ],
-        "Types de documents associés" => [
-            "name" => "associatedDocumentTypes",
-            "type" => "select-free",
-            "defaultValues" => ["FME", "JAM", "CC", "Autres"]
-        ],
-    ];
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]

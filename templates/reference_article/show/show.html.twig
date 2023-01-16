@@ -29,6 +29,7 @@
         hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) or
         hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
     <input type="hidden" name="reference-id" value="{{ referenceArticle.id }}">
+    <input type="hidden" name="page-type" value="SHOW"/>
     <div class="ra-container d-flex justify-content-center align-content-center">
         <div class="row wii-column">
             <div class="col-12 col-md-6">
@@ -129,19 +130,18 @@
                 <div class="wii-box mt-3">
                     <div class="header wii-title">Description</div>
                     <div class="content">
-                        <div class="row">
+                        <div class="row description-container">
                             {% set description = referenceArticle.description %}
-                            {% dump description %}
-                            {% for field, attributes in constant('App\\Entity\\ReferenceArticle::DESCRIPTION') %}
-                                {% set rawValue = description[attributes['name']] ?? null %}
-                                {% set value = attributes['type'] == 'bool'
+                            {% for field, attributes in descriptionConfig %}
+                                {% set rawValue = description[attributes.name] ?? null %}
+                                {% set value = attributes.type == 'bool'
                                     ? (rawValue == 1
                                         ? 'oui'
                                         : 'non')
                                     : rawValue %}
                                 <div class="col-6 d-flex flex-column mb-2">
                                     <span class="wii-field-name">{{ field }}</span>
-                                    <span class="wii-field-text">{{ value ?: '-' }}</span>
+                                    <span class="wii-field-text {{ attributes.name }}">{{ value ?: '-' }}</span>
                                 </div>
                             {% endfor %}
                         </div>

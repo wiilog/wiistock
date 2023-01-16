@@ -253,50 +253,45 @@
                 <div class="content">
                     <div class="row">
                         {% set description = reference.description %}
-                        {% for field, attributes in constant('App\\Entity\\ReferenceArticle::DESCRIPTION') %}
-                            {% set name = attributes['name'] %}
+                        {% for field, attributes in descriptionConfig %}
+                            {% set name = attributes.name %}
                             {% set disabled = name in ['size', 'volume'] %}
                             <div class="col-6 d-flex flex-column mb-2">
                                 <label class="wii-field-name">{{ field }}</label>
-                                {% if attributes['type'] in ['text', 'number'] %}
-                                    <input type="{{ attributes['type'] }}"
-                                           class="form-control data"
+                                {% if attributes.type in ['text', 'number'] %}
+                                    <input type="{{ attributes.type }}"
+                                           class="form-control {{ attributes.persisted ? "data" }}"
                                            name="{{ name }}"
-                                           value="{{ description[name] ?? '' }}"
+                                           value="{{ attributes.persisted ? (description[name] ?? '') }}"
                                         {{ disabled ? 'disabled' }}>
-                                {% elseif attributes['type'] == 'bool' %}
+                                {% elseif attributes.type == 'bool' %}
                                     <div class="wii-switch w-fit-content" data-title="{{ field }}">
                                         <input type="radio"
                                                name="{{ name }}"
                                                value="0"
                                                content="Non"
                                                data-title="non"
-                                            {{ description[name] is not defined or (description[name] is defined and description[name] == '0') ? 'checked' }}>
+                                            {{ (attributes.persisted and description[name] is defined and description[name] == '0') ? 'checked' }}>
                                         <input type="radio"
                                                name="{{ name }}"
                                                value="1"
                                                content="Oui"
                                                data-title="oui"
-                                            {{ description[name] is defined and description[name] == '1' ? 'checked' }}>
+                                            {{ (attributes.persisted and description[name] is defined and description[name] == '1') ? 'checked' }}>
                                     </div>
-                                {% elseif attributes['type'] == 'select-free' %}
-                                    <select name="{{ name }}" class="form-control data w-100"
+                                {% elseif attributes.type == 'select-free' %}
+                                    {% set values = attributes.values ?? [] %}
+                                    {% set selectedValues = description[name] is defined and description[name]
+                                        ? (description[name]|split(','))
+                                        : [] %}
+                                    <select name="{{ name }}"
+                                            class="form-control {{ attributes.persisted ? "data" }} w-100"
                                             data-s2
-                                            data-editable
                                             multiple
-                                            {% if not reference.id %}
-                                                data-default-values="{{ attributes['defaultValues']|join(',') }}"
-                                            {% endif %}>
-                                        {% if reference.id and description[name] is defined %}
-                                            {% set values = description[name]|split(',') %}
-                                            {% for value in values %}
-                                                <option value="{{ value }}" selected>{{ value }}</option>
-                                            {% endfor %}
-                                        {% else %}
-                                            {% for value in attributes['defaultValues'] %}
-                                                <option value="{{ value }}">{{ value }}</option>
-                                            {% endfor %}
-                                        {% endif %}
+                                            data-default-values="{{ selectedValues|join(',') }}">
+                                        {% for value in values %}
+                                            <option value="{{ value }}" {{ attributes.persisted and value in selectedValues ? "selected" }}>{{ value }}</option>
+                                        {% endfor %}
                                     </select>
                                 {% endif %}
                             </div>

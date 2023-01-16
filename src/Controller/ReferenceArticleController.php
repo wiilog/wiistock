@@ -194,6 +194,8 @@ class ReferenceArticleController extends AbstractController
                 ->setCreatedBy($loggedUser)
                 ->setCreatedAt(new DateTime('now'));
 
+            $refArticleDataService->updateDescriptionField($entityManager, $refArticle, $data);
+
             $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
 
 
@@ -394,11 +396,9 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function edit(Request $request,
+    public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         FreeFieldService $champLibreService,
-                         UserService $userService,
-                         MouvementStockService $stockMovementService): Response {
+                         UserService            $userService): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
             && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
             return $this->json([
@@ -426,7 +426,7 @@ class ReferenceArticleController extends AbstractController
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
                     $refArticle->removeIfNotIn($data['files'] ?? []);
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService,$stockMovementService, $request);
+                    $response = $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     $response = [
@@ -634,10 +634,13 @@ class ReferenceArticleController extends AbstractController
      * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
-    public function showPage(Request $request, ReferenceArticle $referenceArticle, RefArticleDataService $refArticleDataService, EntityManagerInterface $manager): Response {
+    public function showPage(Request                $request,
+                             ReferenceArticle       $referenceArticle,
+                             RefArticleDataService  $refArticleDataService,
+                             EntityManagerInterface $entityManager): Response {
         $type = $referenceArticle->getType();
         $showOnly = $request->query->getBoolean('showOnly');
-        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
                 $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
@@ -664,7 +667,8 @@ class ReferenceArticleController extends AbstractController
             'referenceArticle' => $referenceArticle,
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
-            'showOnly' => $showOnly
+            'showOnly' => $showOnly,
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager)
         ]);
     }
 
@@ -821,7 +825,7 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/nouveau-page", name="reference_article_new_page", options={"expose"=true})
      */
-    public function newTemplate(Request $request,
+    public function newTemplate(Request                $request,
                                 EntityManagerInterface $entityManager,
                                 RefArticleDataService  $refArticleDataService,
                                 SettingsService        $settingsService) {
@@ -861,16 +865,19 @@ class ReferenceArticleController extends AbstractController
             "categories" => $inventoryCategories,
             "freeFieldTypes" => $typeChampLibre,
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
+            "descriptionConfig" => $refArticleDataService->getDescriptionConfig($entityManager),
         ]);
     }
 
     /**
      * @Route("/modifier-page/{reference}", name="reference_article_edit_page", options={"expose"=true})
      */
-    public function editTemplate(EntityManagerInterface $manager, ReferenceArticle $reference) {
-        $typeRepository = $manager->getRepository(Type::class);
-        $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
-        $freeFieldRepository = $manager->getRepository(FreeField::class);
+    public function editTemplate(EntityManagerInterface $entityManager,
+                                 RefArticleDataService  $refArticleDataService,
+                                 ReferenceArticle       $reference) {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
@@ -878,13 +885,7 @@ class ReferenceArticleController extends AbstractController
         $freeFieldsGroupedByTypes = [];
 
         foreach ($types as $type) {
-            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-            $typeChampLibre[] = [
-                'typeLabel' =>  $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
-            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
+            $freeFieldsGroupedByTypes[$type->getId()] = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
         }
 
         return $this->render("reference_article/form/edit.html.twig", [
@@ -897,6 +898,7 @@ class ReferenceArticleController extends AbstractController
             ],
             "categories" => $inventoryCategories,
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
+            "descriptionConfig" => $refArticleDataService->getDescriptionConfig($entityManager),
         ]);
     }
 

@@ -344,8 +344,7 @@ class DemandeLivraisonService
                         $demandeArray['demandeur'],
                         true,
                         $entityManager,
-                        $demande,
-                        $champLibreService
+                        $demande
                     );
                 }
             } else {
