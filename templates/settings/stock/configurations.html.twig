@@ -4,11 +4,27 @@
 <div class="wii-section">
     <div class="row">
         <div class="col-md-6 col-12">
-            {% set defaultLocation = setting_value('DEFAULT_LOCATION_REFERENCE','App\\Entity\\Emplacement') %}
+            {% set defaultLocation = setting_value('DEFAULT_LOCATION_REFERENCE', 'App\\Entity\\Emplacement') %}
             {{ form.select(setting('DEFAULT_LOCATION_REFERENCE'), 'Emplacement par défaut pour les Références en gestion quantité par référence à la création en Brouillon', false, {
                 type: 'location',
                 value: defaultLocation ? defaultLocation.id : null,
                 items: defaultLocation ? {(defaultLocation.id): defaultLocation.label} : null,
+            }) }}
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-6 col-12">
+            {% set associatedDocumentTypesStr = setting_value('REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES') %}
+            {% set associatedDocumentTypes = associatedDocumentTypesStr ? (associatedDocumentTypesStr|split(',')) : [] %}
+            {{ form.select(setting('REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES'), "Valeurs du champ \"Types de documents associés\" d'une référence article", false, {
+                type: null,
+                editable: true,
+                multiple: true,
+                items: associatedDocumentTypes|map((item) => ({
+                    label: item,
+                    value: item,
+                })),
+                value: associatedDocumentTypes,
             }) }}
         </div>
     </div>

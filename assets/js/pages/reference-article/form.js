@@ -1,5 +1,6 @@
 import '../../../scss/pages/reference-article.scss';
 import AJAX from "@app/ajax";
+import {computeDescriptionFormValues, computeDescriptionShowValues} from "./common";
 
 window.onTypeQuantityChange = onTypeQuantityChange;
 window.toggleEmergency = toggleEmergency;
@@ -13,6 +14,19 @@ $(document).ready(() => {
     })
 
     buildQuantityPredictions();
+    const pageType = $('[name=page-type]').val();
+    if (pageType === 'SHOW') {
+        computeDescriptionShowValues();
+    }
+    else {
+        computeDescriptionFormValues({
+            $length: $(`input[name=length]`),
+            $width: $(`input[name=width]`),
+            $height: $(`input[name=height]`),
+            $volume: $(`input[name=volume]`),
+            $size: $(`input[name=size]`),
+        });
+    }
 
     $(`.add-supplier-article`).click(function() {
         $(this).siblings(`.supplier-articles`).append($(`#supplier-article-template`).html());
@@ -83,6 +97,16 @@ $(document).ready(() => {
             $suppliersToRemove.val($suppliersToRemove.val() + ',' + supplierArticleId);
         }
         $(this).closest('.supplier-container').remove();
+    });
+
+    $(`input[name=length], input[name=width], input[name=height]`).on(`keyup`, () => {
+        computeDescriptionFormValues({
+            $length: $(`input[name=length]`).val(),
+            $width: $(`input[name=width]`).val(),
+            $height: $(`input[name=height]`).val(),
+            $volume: $(`input[name=volume]`).val(),
+            $size: $(`input[name=size]`).val(),
+        });
     });
 });
 
@@ -189,3 +213,4 @@ function changeNewReferenceStatus($select){
         }
     }
 }
+

@@ -244,6 +244,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.destination AS destination')
             ->addSelect('type.label AS typeLabel')
             ->addSelect('type.id AS typeId')
+            ->addSelect('status.id AS statusId')
             ->addSelect('status.nom AS statusLabel')
             ->join('dispatch.requester', 'dispatch_requester')
             ->leftJoin('dispatch.locationFrom', 'locationFrom')

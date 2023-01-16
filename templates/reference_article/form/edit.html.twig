@@ -9,8 +9,9 @@
 {% endblock %}
 
 {% block page_content %}
-    {% include 'reference_article/form/form.html.twig' with{
+    {% include 'reference_article/form/form.html.twig' with {
         'edit': true,
+        descriptionConfig: descriptionConfig,
     }%}
 {% endblock %}
 
