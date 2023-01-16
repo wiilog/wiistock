@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
@@ -499,7 +500,7 @@ class SelectController extends AbstractController {
         } else {
             $results = $packRepository->getForSelect(
                 $packCode,
-                $request->query->all("pack")
+                ['exclude'=> $request->query->all("pack")]
             );
             foreach($results as &$result) {
                 $result["stripped_comment"] = strip_tags($result["comment"]);
@@ -589,4 +590,21 @@ class SelectController extends AbstractController {
             "results" => $vehicles
         ]);
     }
+
+    /**
+     * @Route("/select/dispatch-packs", name="ajax_select_dispatch_packs", options={"expose"=true})
+     */
+    public function dispatchPacks(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $dispatchId = $request->query->get("dispatch-id");
+
+        $search = $request->query->get('term');
+        $packs = $entityManager->getRepository(Pack::class)->getForSelect($search, ['dispatchId' => $dispatchId]);
+
+        return $this->json([
+            "results" => $packs
+        ]);
+    }
+
 }

@@ -61,6 +61,22 @@ $(function() {
         validator: forbiddenPhoneNumberValidator,
     });
 
+    let $modalAddReference = $('#modalAddReference');
+    let $submitAddReference = $modalAddReference.find('#submitAddReference');
+    let urlAddReference = Routing.generate('dispatch_delete', {}, true);
+    InitModal($modalAddReference, $submitAddReference, urlAddReference, {});
+
+    let $inputWidth =$modalAddReference.find('input[name="width"]');
+    let $inputHeight =$modalAddReference.find('input[name="height"]');
+    let $inputLength =$modalAddReference.find('input[name="length"]');
+    let $inputWeight =$modalAddReference.find('input[name="size"]');
+    let $inputVolume =$modalAddReference.find('input[name="volume"]');
+
+    $modalAddReference.find('input[name="width"], input[name="height"], input[name="length"]').on('change', function() {
+
+    });
+
+
     const queryParams = GetRequestQuery();
     const {'print-delivery-note': printDeliveryNote} = queryParams;
     if(Number(printDeliveryNote)) {
@@ -115,6 +131,15 @@ function forbiddenPhoneNumberValidator($modal) {
 
 function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch';
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
+
+    $modal.modal('show');
+}
+
+function openAddReferenceModal() {
+    const modalSelector = '#modalAddReference';
     const $modal = $(modalSelector);
 
     clearModal(modalSelector);
