@@ -12,6 +12,7 @@ use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
+use App\Entity\Language;
 use App\Entity\Menu;
 
 use App\Entity\Nature;
@@ -19,13 +20,16 @@ use App\Entity\Pack;
 use App\Entity\DispatchPack;
 use App\Entity\Setting;
 use App\Entity\Attachment;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Service\ArrivageService;
+use App\Helper\FormatHelper;
+use App\Service\LanguageService;
 use App\Service\NotificationService;
+use App\Service\StatusHistoryService;
 use App\Service\VisibleColumnService;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -181,7 +185,8 @@ class DispatchController extends AbstractController {
                         EntityManagerInterface $entityManager,
                         TranslationService $translationService,
                         UniqueNumberService $uniqueNumberService,
-                        RedirectService $redirectService): Response {
+                        RedirectService $redirectService,
+                        StatusHistoryService $statusHistoryService): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
             !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
             return $this->json([
@@ -283,7 +288,6 @@ class DispatchController extends AbstractController {
         $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $dispatch
             ->setCreationDate($date)
-            ->setStatut($status)
             ->setType($type)
             ->setRequester($utilisateurRepository->find($post->get('requester')))
             ->setLocationFrom($locationTake)
@@ -291,6 +295,10 @@ class DispatchController extends AbstractController {
             ->setBusinessUnit($businessUnit)
             ->setNumber($dispatchNumber)
             ->setDestination($destination);
+
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $status, [
+            "forceCreation" => false,
+        ]);
 
         if(!empty($comment)) {
             $dispatch->setCommentaire(StringHelper::cleanedComment($comment));
@@ -404,13 +412,15 @@ class DispatchController extends AbstractController {
                          RedirectService $redirectService,
                          UserService $userService,
                          bool $printBL) {
-        $extra = $redirectService->load();
 
         $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $dispatchStatus = $dispatch->getStatut();
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
 
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
@@ -428,6 +438,8 @@ class DispatchController extends AbstractController {
             'printBL' => $printBL,
             'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
+            'fieldsParam' => $fieldsParam,
+            'freeFields' => $freeFields
         ]);
     }
 
@@ -560,14 +572,7 @@ class DispatchController extends AbstractController {
 
         $entityManager->flush();
 
-        $dispatchStatus = $dispatch->getStatut();
-
         return new JsonResponse([
-            'entete' => $this->renderView('dispatch/dispatch-show-header.html.twig', [
-                'dispatch' => $dispatch,
-                'modifiable' => !$dispatchStatus || $dispatchStatus->isDraft(),
-                'showDetails' => $dispatchService->createHeaderDetailsConfig($dispatch)
-            ]),
             'success' => true,
             'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'L\'acheminement a bien été modifié', false) . '.'
         ]);
@@ -839,7 +844,8 @@ class DispatchController extends AbstractController {
                                             Dispatch $dispatch,
                                             TranslationService $translationService,
                                             DispatchService $dispatchService,
-                                            NotificationService $notificationService): Response {
+                                            NotificationService $notificationService,
+                                            StatusHistoryService $statusHistoryService): Response {
         $status = $dispatch->getStatut();
 
         if(!$status || $status->isDraft()) {
@@ -857,8 +863,11 @@ class DispatchController extends AbstractController {
                         $notificationService->toTreat($dispatch);
                     }
                     $dispatch
-                        ->setStatut($untreatedStatus)
                         ->setValidationDate(new DateTime('now'));
+
+                    $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
+                        "forceCreation" => false,
+                    ]);
                     $entityManager->flush();
                     $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
                 } catch (Exception $e) {
@@ -897,8 +906,7 @@ class DispatchController extends AbstractController {
                                          EntityManagerInterface $entityManager,
                                          DispatchService $dispatchService,
                                          Dispatch $dispatch,
-                                         TranslationService $translationService,
-                                         ArrivageService $arrivalService): Response {
+                                         TranslationService $translationService): Response {
         $status = $dispatch->getStatut();
 
         if(!$status || $status->isNotTreated() || $status->isPartial()) {
@@ -946,11 +954,10 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/{dispatch}/rollback-draft", name="rollback_draft", methods="GET")z
-     * @param EntityManagerInterface $entityManager
-     * @param Dispatch $dispatch
-     * @return Response
      */
-    public function rollbackToDraftStatus(EntityManagerInterface $entityManager, Dispatch $dispatch): Response {
+    public function rollbackToDraftStatus(EntityManagerInterface $entityManager,
+                                          Dispatch $dispatch,
+                                          StatusHistoryService $statusHistoryService): Response {
         $dispatchType = $dispatch->getType();
         $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -959,7 +966,9 @@ class DispatchController extends AbstractController {
             'state' => 0
         ]);
 
-        $dispatch->setStatut($draftStatus);
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
+            "forceCreation" => false,
+        ]);
         $entityManager->flush();
 
         return $this->redirectToRoute('dispatch_show', [
@@ -1191,16 +1200,9 @@ class DispatchController extends AbstractController {
 
         $entityManager->flush();
 
-        $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
-
         return new JsonResponse([
             'success' => true,
             'msg' => 'Le téléchargement de votre bon de livraison va commencer...',
-            'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
-                'dispatch' => $dispatch,
-                'showDetails' => $detailsConfig,
-                'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
-            ]),
             'attachmentId' => $deliveryNoteAttachment->getId()
         ]);
     }
@@ -1353,8 +1355,7 @@ class DispatchController extends AbstractController {
     public function postDispatchWaybill(EntityManagerInterface $entityManager,
                                         Dispatch               $dispatch,
                                         DispatchService        $dispatchService,
-                                        Request                $request,
-                                        TranslationService     $translationService): JsonResponse {
+                                        Request                $request): JsonResponse {
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -1380,16 +1381,9 @@ class DispatchController extends AbstractController {
         $wayBillAttachment = $dispatchService->persistNewWaybillAttachment($entityManager, $dispatch);
         $entityManager->flush();
 
-        $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
-
         return new JsonResponse([
             'success' => true,
             'msg' => 'Le téléchargement de votre lettre de voiture va commencer...',
-            'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
-                'dispatch' => $dispatch,
-                'showDetails' => $detailsConfig,
-                'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
-            ]),
             'attachmentId' => $wayBillAttachment->getId()
         ]);
     }
@@ -1422,7 +1416,11 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/bon-de-surconsommation/{dispatch}", name="generate_overconsumption_bill", options={"expose"=true}, methods="POST")
      */
-    public function updateOverconsumption(EntityManagerInterface $entityManager, DispatchService $dispatchService, UserService $userService, Dispatch $dispatch): Response {
+    public function updateOverconsumption(EntityManagerInterface $entityManager,
+                                          DispatchService $dispatchService,
+                                          UserService $userService,
+                                          Dispatch $dispatch,
+                                          StatusHistoryService $statusHistoryService): Response {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -1434,8 +1432,9 @@ class DispatchController extends AbstractController {
 
             if ($dispatch->getType()->getId() === $typeId) {
                 $untreatedStatus = $statutRepository->find($statutsId);
-                $dispatch
-                    ->setStatut($untreatedStatus);
+                $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
+                    "forceCreation" => false,
+                ]);
                 if (!$dispatch->getValidationDate()) {
                     $dispatch->setValidationDate(new DateTime('now'));
                 }
@@ -1445,15 +1444,8 @@ class DispatchController extends AbstractController {
             }
         }
 
-        $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
         $dispatchStatus = $dispatch->getStatut();
-
         return $this->json([
-            'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
-                'dispatch' => $dispatch,
-                'showDetails' => $detailsConfig,
-                'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
-            ]),
            'modifiable' => (!$dispatchStatus || $dispatchStatus->isDraft()) && $userService->hasRightFunction(Menu::DEM, Action::MANAGE_PACK),
         ]);
     }
@@ -1558,6 +1550,30 @@ class DispatchController extends AbstractController {
             'content' => $this->renderView('dispatch/details.html.twig', [
                 'selectedDispatch' => $dispatch,
                 'freeFields' => $freeFields
+            ]),
+        ]);
+    }
+
+    #[Route("/{id}/status-history-api", name: "dispatch_status_history_api", options: ['expose' => true], methods: "GET")]
+    public function statusHistoryApi(int $id,
+                                     EntityManagerInterface $entityManager,
+                                     LanguageService $languageService): JsonResponse {
+        $dispatch = $entityManager->find(Dispatch::class, $id);
+        $user = $this->getUser();
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView('dispatch/status-history.html.twig', [
+                "userLanguage" => $user->getLanguage(),
+                "defaultLanguage" => $languageService->getDefaultLanguage(),
+                "statusesHistory" => Stream::from($dispatch->getStatusHistory())
+                    ->map(fn(StatusHistory $statusHistory) => [
+                        "status" => $this->getFormatter()->status($statusHistory->getStatus()),
+                        "date" => $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG
+                            ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                            : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user),
+                    ])
+                    ->toArray(),
+                "dispatch" => $dispatch,
             ]),
         ]);
     }
