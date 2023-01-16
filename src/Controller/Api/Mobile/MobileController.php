@@ -11,6 +11,7 @@ use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryEntry;
@@ -57,6 +58,7 @@ use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
 use App\Service\TransferOrderService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use DateTimeInterface;
@@ -1607,11 +1609,17 @@ class MobileController extends AbstractApiController
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
         $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
+
+        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH])
+            ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+            ->toArray();
 
         if ($rights['inventoryManager']) {
             $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
@@ -1731,6 +1739,14 @@ class MobileController extends AbstractApiController
 
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $deliveryFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
+
+            $dispatchTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+                ->map(fn(Type $type) => [
+                    'id' => $type->getId(),
+                    'label' => $type->getLabel(),
+                ])->toArray();
+
+            $users = $userRepository->getAll();
         }
 
         if ($rights['tracking']) {
@@ -1756,6 +1772,8 @@ class MobileController extends AbstractApiController
         }
 
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
+
+        dump($translations);
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
@@ -1801,6 +1819,9 @@ class MobileController extends AbstractApiController
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
             'status' => $status,
+            'dispatchTypes' => $dispatchTypes ?? [],
+            'users' => $users ?? [],
+            'fieldsParam' => $fieldsParam ?? [],
         ];
     }
 
@@ -2470,6 +2491,84 @@ class MobileController extends AbstractApiController
             }
         }
         return $color;
+    }
+
+    /**
+     * @Rest\Post("/api/dispatch-emergencies", name="api_dispatch_emergencies", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function dispatchEmergencies(EntityManagerInterface $manager): Response {
+        $elements = $manager->getRepository(FieldsParam::class)->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+        $emergencies = Stream::from($elements)
+            ->map(fn(string $element) => [
+                'id' => $element,
+                'label' => $element,
+            ])->toArray();
+
+        return $this->json($emergencies);
+    }
+
+    /**
+     * @Rest\Post("/api/new-dispatch", name="api_new_dispatch", methods="POST", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function newDispatch(Request $request,
+                                EntityManagerInterface $manager,
+                                UniqueNumberService $uniqueNumberService): Response {
+        $data = $request->request->all();
+
+        $typeRepository = $manager->getRepository(Type::class);
+        $statusRepository = $manager->getRepository(Statut::class);
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $userRepository = $manager->getRepository(Utilisateur::class);
+        $dispatchRepository = $manager->getRepository(Dispatch::class);
+
+        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $type = $typeRepository->find($data['type']);
+        $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
+        $pickLocation = isset($data['dropLocation']) ? $locationRepository->find($data['pickLocation']) : null;
+        $dropLocation = isset($data['dropLocation']) ? $locationRepository->find($data['dropLocation']) : null;
+        $receiver = isset($data['receiver']) ? $userRepository->find($data['receiver']) : null;
+        $emails = isset($data['emails']) ? explode(",", $data['emails']) : null;
+
+        if(empty($draftStatuses)) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Il n'y a aucun statut brouillon paramétré pour ce type."
+            ]);
+        }
+
+        $dispatch = (new Dispatch())
+            ->setNumber($dispatchNumber)
+            ->setCreationDate(new DateTime())
+            ->setRequester($this->getUser())
+            ->setType($type)
+            ->setStatut($draftStatuses[0])
+            ->setLocationFrom($pickLocation)
+            ->setLocationTo($dropLocation)
+            ->setCarrierTrackingNumber($data['carrierTrackingNumber'] ?? null)
+            ->setCommentaire($data['comment'] ?? null)
+            ->setEmergency($data['emergency'] ?? null)
+            ->setEmails($emails);
+
+        if($receiver) {
+            $dispatch->addReceiver($receiver);
+        }
+
+        $manager->persist($dispatch);
+        $manager->flush();
+
+        if(!empty($data['emergency']) && $receiver) {
+            // TODO Envoyer le mail de compte rendu
+        }
+
+        $serializedDispatch = $dispatchRepository->getMobileDispatches(null, $dispatch);
+        return $this->json([
+            'success' => true,
+            'dispatch' => $serializedDispatch
+        ]);
     }
 
 }

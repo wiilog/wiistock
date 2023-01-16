@@ -235,4 +235,12 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 
         return $result->getQuery()->getOneOrNullResult();
     }
+
+    public function getAll(): array {
+        return $this->createQueryBuilder("user")
+            ->select("user.id AS id")
+            ->addSelect("user.username AS username")
+            ->getQuery()
+            ->getResult();
+    }
 }

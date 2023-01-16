@@ -160,6 +160,9 @@ class Dispatch {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $destination = null;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $emails = [];
+
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
@@ -527,6 +530,16 @@ class Dispatch {
 
     public function setDestination(?string $destination): self {
         $this->destination = $destination;
+
+        return $this;
+    }
+
+    public function getEmails(): ?array {
+        return $this->emails;
+    }
+
+    public function setEmails(?array $emails): self {
+        $this->emails = $emails;
 
         return $this;
     }
