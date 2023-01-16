@@ -10,6 +10,7 @@ use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Exceptions\FormException;
 use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
@@ -252,6 +253,7 @@ class UserController extends AbstractController {
             } elseif($dropzone[0] === 'locationGroup') {
                 $dropzone = $entityManager->find(LocationGroup::class, $dropzone[1]);
             }
+
             $user
                 ->setSecondaryEmails($secondaryEmails)
                 ->setRole($role)
@@ -278,6 +280,16 @@ class UserController extends AbstractController {
                     $entityManager->remove($filter);
                 }
             }
+
+            $plainSignatoryPassword = $data['signatoryPassword'] ?? null;
+            if (!empty($plainSignatoryPassword)) {
+                if (strlen($plainSignatoryPassword) < 6) {
+                    throw new FormException("Le code signataire doit contenir au moins 6 caractères");
+                }
+                $signatoryPassword = $encoder->hashPassword($user, $plainSignatoryPassword);
+                $user->setSignatoryPassword($signatoryPassword);
+            }
+
 
             if ($data['password'] !== '') {
                 $password = $encoder->hashPassword($user, $data['password']);
@@ -423,7 +435,7 @@ class UserController extends AbstractController {
             $password = $data['password'];
             $password2 = $data['password2'];
             // validation du mot de passe
-            $result = $passwordService->checkPassword($password,$password2);
+            $result = $passwordService->checkPassword($password, $password2);
             if($result['response'] == false){
                 return new JsonResponse([
                     'success' => false,
@@ -487,6 +499,14 @@ class UserController extends AbstractController {
                 : $languageService->getNewUserLanguage($entityManager);
             $role = $roleRepository->find($data['role']);
 
+            $plainSignatoryPassword = $data['signatoryPassword'] ?? null;
+
+            if (!empty($plainSignatoryPassword) && strlen($plainSignatoryPassword) < 6) {
+                throw new FormException("Le code signataire doit contenir au moins 6 caractères");
+            }
+
+            $signatoryPassword = $plainSignatoryPassword ? $encoder->hashPassword($utilisateur, $plainSignatoryPassword) : null;
+
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
@@ -499,7 +519,8 @@ class UserController extends AbstractController {
                 ->setLanguage($language)
                 ->setDateFormat($data['dateFormat'] ?? Utilisateur::DEFAULT_DATE_FORMAT)
                 ->setMobileLoginKey($uniqueMobileKey)
-                ->setDeliverer($data['deliverer'] ?? false);
+                ->setDeliverer($data['deliverer'] ?? false)
+                ->setSignatoryPassword($signatoryPassword);
 
             if ($password !== '') {
                 $password = $encoder->hashPassword($utilisateur, $data['password']);

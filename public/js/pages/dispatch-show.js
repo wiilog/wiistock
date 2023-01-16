@@ -4,12 +4,15 @@ $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
+    getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, isEdit);
 
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
     const urlDispatchEdit = Routing.generate('dispatch_edit', true);
-    InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
+    InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit, {
+        success: () => window.location.reload()
+    });
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     const $submitValidatedDispatch = $modalValidateDispatch.find('.submit-button');
@@ -31,10 +34,13 @@ $(function() {
     let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: dispatchId}, true);
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
         success: ({attachmentId}) => {
-            window.location.href = Routing.generate('print_delivery_note_dispatch', {
+            AJAX.route(`GET`, `print_delivery_note_dispatch`, {
                 dispatch: dispatchId,
                 attachment: attachmentId,
-            });
+            }).file({
+                success: "Votre bon de livraison a bien été imprimée.",
+                error: "Erreur lors de l'impression du bon de livraison."
+            }).then(() => window.location.reload());
         },
         validator: forbiddenPhoneNumberValidator,
     });
@@ -44,10 +50,13 @@ $(function() {
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: dispatchId}, true);
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
         success: ({attachmentId}) => {
-            window.location.href = Routing.generate('print_waybill_dispatch', {
+            AJAX.route(`GET`, `print_waybill_dispatch`, {
                 dispatch: dispatchId,
                 attachment: attachmentId,
-            });
+            }).file({
+                success: "Votre lettre de voiture a bien été imprimée.",
+                error: "Erreur lors de l'impression de la lettre de voiture."
+            }).then(() => window.location.reload());
         },
         validator: forbiddenPhoneNumberValidator,
     });
@@ -61,16 +70,19 @@ $(function() {
     }
 });
 
-function generateOverconsumptionBill(dispatchId) {
+function generateOverconsumptionBill($button, dispatchId) {
     $.post(Routing.generate('generate_overconsumption_bill', {dispatch: dispatchId}), {}, function(data) {
-        $('.zone-entete').html(data.entete);
-        $('.zone-entete [data-toggle="popover"]').popover();
         $('button[name="newPack"]').addClass('d-none');
 
         packsTable.destroy();
         packsTable = initializePacksTable(dispatchId, data.modifiable);
 
-        Wiistock.download(Routing.generate('print_overconsumption_bill', {dispatch: dispatchId}));
+        AJAX.route(`GET`, `print_overconsumption_bill`, {dispatch: dispatchId})
+            .file({
+                success: "Votre bon de surconsommation a bien été imprimé.",
+                error: "Erreur lors de l'impression du bon de surconsommation."
+            })
+            .then(() => window.location.reload())
     });
 }
 
@@ -459,4 +471,12 @@ function addPackRow(table, $button) {
 
 function scrollToBottom() {
     window.scrollTo(0, document.body.scrollHeight);
+}
+
+function getStatusHistory(id) {
+    return $.get(Routing.generate(`dispatch_status_history_api`, {id}, true))
+        .then(({template}) => {
+            const $statusHistoryContainer = $(`.status-history-container`);
+            $statusHistoryContainer.html(template);
+        });
 }
