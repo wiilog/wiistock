@@ -99,13 +99,13 @@ $(document).ready(() => {
         $(this).closest('.supplier-container').remove();
     });
 
-    $(`input[name=length], input[name=width], input[name=height]`).on(`keyup`, () => {
+    $(`input[name=length], input[name=width], input[name=height]`).on(`input`, () => {
         computeDescriptionFormValues({
-            $length: $(`input[name=length]`).val(),
-            $width: $(`input[name=width]`).val(),
-            $height: $(`input[name=height]`).val(),
-            $volume: $(`input[name=volume]`).val(),
-            $size: $(`input[name=size]`).val(),
+            $length: $(`input[name=length]`),
+            $width: $(`input[name=width]`),
+            $height: $(`input[name=height]`),
+            $volume: $(`input[name=volume]`),
+            $size: $(`input[name=size]`),
         });
     });
 });
