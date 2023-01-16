@@ -33,6 +33,10 @@ class StatusHistory {
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Handling $Handling = null;
 
+    #[ORM\ManyToOne(targetEntity: Dispatch::class, inversedBy: 'statusHistory')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?Dispatch $dispatch = null;
+
     #[ORM\Column(type: 'datetime')]
     private ?DateTime $date;
 
@@ -155,6 +159,16 @@ class StatusHistory {
         foreach($transportHistory as $history) {
             $this->addTransportHistory($history);
         }
+
+        return $this;
+    }
+
+    public function getDispatch(): ?Dispatch {
+        return $this->dispatch;
+    }
+
+    public function setDispatch(?Dispatch $dispatch): self {
+        $this->dispatch = $dispatch;
 
         return $this;
     }

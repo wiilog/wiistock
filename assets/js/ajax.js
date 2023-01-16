@@ -103,7 +103,9 @@ export default class AJAX {
                 }
                 return response.blob().then((blob) => {
                     const fileName = response.headers.get("content-disposition").split("filename=")[1];
-                    saveAs(blob, fileName);
+                    const cleanedFileName = fileName.replace(/^"+|"+$/g, ``);
+
+                    saveAs(blob, cleanedFileName);
                     Flash.add(SUCCESS, success);
                 });
             });

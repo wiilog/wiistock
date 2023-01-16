@@ -1,0 +1,43 @@
+{% set entityStatusName = dispatch.statut.labelIn(userLanguage, defaultLanguage) %}
+<div class="timeline d-flex justify-content-center bg-green-light p-1 mb-2">
+    <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
+    <span> {{ trans('Demande', 'Général', 'Demande') }} <strong>{{ entityStatusName }}</strong></span>
+</div>
+{% if statusesHistory is empty%}
+    {% if dispatch.statut.treated == 1 %}
+        <div class="history-line">
+            <div class="history-date">
+                <div class="title-left last current">{{ dispatch.statut.labelIn(userLanguage, defaultLanguage) }}</div>
+            </div>
+            <div class="history-status last-status-history last state current">
+                <div class="title-right current text-left">
+                    <span class="ml-2">{{ dispatch.validationDate | format_helper('longDate', {short: true, time: true}) }}</span>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="content text-center wii-small-text">
+            Timeline à venir
+        </div>
+    {% endif %}
+{% else %}
+    {% for history in statusesHistory %}
+        {% set state = (entityStatusName == history.status and loop.last
+            ? 'current'
+            : 'past')
+        %}
+        <div class="history-line">
+            <div class="history-date">
+                <div class="title-left {{ state == 'current' and loop.last ? 'last' }} {{ state }}">{{ history['status'] }}</div>
+            </div>
+            <div class="history-status
+                {{ loop.last ? 'last-status-history' }}
+                {{ loop.last ? 'last' }}
+                {{ state }}">
+                <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }} text-left">
+                    <span class="ml-2">{{ history['date'] }}</span>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
