@@ -1,0 +1,140 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" id="modalAddReference">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: 'Ajouter une référence'
+            } %}
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-4 d-flex no-gutters">
+                        {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
+                        <div class="{{ hasRightToCreate ? "col-8" : "col-12" }}">
+                            {{ form.select('reference', 'Référence', true, {
+                                type: 'referenceType',
+                            }) }}
+                        </div>
+                        {% if hasRightToCreate %}
+                            <div class="col-4 d-flex justify-content-end align-self-end">
+                                <a href="{{ path('reference_article_new_page') }}"
+                                   class="">
+                                    <button class="btn btn-primary m-0 d-flex align-items-center">
+                                        <span class="wii-icon wii-icon-plus mr-1"></span>
+                                        <span>Créer</span>
+                                    </button>
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.select('pack', 'Unité logistique', true, {
+                            type: 'dispatchPacks',
+                            additionalAttributes: [{
+                                name :"data-other-params"
+                            },{
+                                name :"data-other-params-dispatch-id",
+                                value: dispatch.id,
+                            }]
+                        }) }}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.number('quantity', 'Quantité', true, null, {
+                            labelClass: 'w-100',
+                            min: 1,
+                        }) }}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.input('batch', 'N° de lot', true, null, {})}}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.input('sealing', 'N° de plombage / scellée', true, null, {})}}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.input('series', 'N° de série', true, null, {})}}
+                    </div>
+                </div>
+                <div class="wii-section-title mt-2">Informations référence</div>
+                <div class="row">
+                    <div class="col-4 d-flex">
+                        {# TODO name the input #}
+                        {{ form.switch('is', 'Matériel hors format', false, [
+                            {label: 'Oui', value: '1'},
+                            {label: 'Non', value: '0'},
+                        ]) }}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {# TODO name the input #}
+                        {{ form.switch('is2', 'ADR', false, [
+                            {label: 'Oui', value: '1'},
+                            {label: 'Non', value: '0'},
+                        ]) }}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {# TODO name the input #}
+                        {{ form.input('jjj', 'Code fabriquant', false, null, {})}}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.input('lenght', 'Longueur (cm)', false, null, {
+                            labelClass: 'w-100',
+                            type: 'number',
+                            min: 0,
+                        })}}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.input('width', 'Largeur (cm)', false, null, {
+                            labelClass: 'w-100',
+                            type: 'number',
+                            min: 0,
+                        })}}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.input('height', 'Hauteur (cm)', false, null, {
+                            labelClass: 'w-100',
+                            type: 'number',
+                            min: 0,
+                        })}}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.input('size', 'Dimensions (Lxlxh cm)', false, null, {
+                            additionalAttributes: [{
+                                name :"disabled"
+                            }]
+                        })}}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.input('volume', 'Volume (m3)', false, null, {
+                            additionalAttributes: [{
+                                name :"disabled"
+                            }]
+                        })}}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.input('weight', 'Poids (kg)', false, null, {
+                            type: 'number',
+                            min: 0,
+                        }) }}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {{ form.select('TypeOfAssociatedDocuments', 'Type de documents associés', false, {
+                            multiple: true,
+                            type: null,
+                            items: [
+                                'FME',
+                                'JAM',
+                                'CC',
+                                'Autre',
+                            ],
+                        }) }}
+                    </div>
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), name: 'id', id: 'submitAddReference'}
+                ],
+            } %}
+        </div>
+    </div>
+</div>

@@ -83,7 +83,7 @@ class DispatchPack {
     /**
      * @return Collection<int, DispatchReferenceArticle>
      */
-    public function getReferenceArticle(): Collection
+    public function getReferenceArticles(): Collection
     {
         return $this->dispatchReferenceArticles;
     }

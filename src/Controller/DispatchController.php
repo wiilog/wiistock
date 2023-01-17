@@ -9,6 +9,7 @@ use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\DispatchReferenceArticle;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -1644,6 +1645,41 @@ class DispatchController extends AbstractController {
             'success' => true,
             'redirect' => $this->generateUrl('dispatch_index'),
             'msg' => 'Signature groupée effectuée avec succès'
+        ]);
+    }
+
+    #[Route("/{dispatch}/dispatch-packs-api", name: "dispatch_packs_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
+    public function getReceptionLinesApi(EntityManagerInterface $entityManager,
+                                         Dispatch               $dispatch,
+                                         Request                $request): JsonResponse {
+
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+
+        $dispatchPacks = $dispatch->getDispatchPacks();
+
+        $start = $request->query->get('start') ?: 0;
+        $search = $request->query->get('search') ?: 0;
+
+        $listLength = 5;
+
+        $result = $dispatchPackRepository->getByDispatch($dispatch, [
+            "start" => $start,
+            "length" => $listLength,
+            "search" => $search,
+        ]);
+
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("dispatch/line-list.html.twig", [
+                "dispatch" => $dispatch,
+                "dispatchPacks" => $result["data"],
+                "total" => $result["total"],
+                "current" => $start,
+                "currentPage" => floor($start / $listLength),
+                "pageLength" => $listLength,
+                "pagesCount" => ceil($result["total"] / $listLength),
+            ]),
         ]);
     }
 }

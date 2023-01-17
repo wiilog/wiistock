@@ -4,6 +4,7 @@ $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
+    loadDispatchReferenceArticle();
     getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, isEdit);
 
@@ -61,6 +62,22 @@ $(function() {
         validator: forbiddenPhoneNumberValidator,
     });
 
+    let $modalAddReference = $('#modalAddReference');
+    let $submitAddReference = $modalAddReference.find('#submitAddReference');
+    let urlAddReference = Routing.generate('dispatch_delete', {}, true);
+    InitModal($modalAddReference, $submitAddReference, urlAddReference, {});
+
+    let $inputWidth =$modalAddReference.find('input[name="width"]');
+    let $inputHeight =$modalAddReference.find('input[name="height"]');
+    let $inputLength =$modalAddReference.find('input[name="length"]');
+    let $inputWeight =$modalAddReference.find('input[name="size"]');
+    let $inputVolume =$modalAddReference.find('input[name="volume"]');
+
+    $modalAddReference.find('input[name="width"], input[name="height"], input[name="length"]').on('change', function() {
+
+    });
+
+
     const queryParams = GetRequestQuery();
     const {'print-delivery-note': printDeliveryNote} = queryParams;
     if(Number(printDeliveryNote)) {
@@ -115,6 +132,15 @@ function forbiddenPhoneNumberValidator($modal) {
 
 function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch';
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
+
+    $modal.modal('show');
+}
+
+function openAddReferenceModal() {
+    const modalSelector = '#modalAddReference';
     const $modal = $(modalSelector);
 
     clearModal(modalSelector);
@@ -479,4 +505,96 @@ function getStatusHistory(id) {
             const $statusHistoryContainer = $(`.status-history-container`);
             $statusHistoryContainer.html(template);
         });
+}
+
+function clearPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+    $searchInput.val(null);
+}
+
+function loadDispatchReferenceArticle({start, search} = {}) {
+    start = start || 0;
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const dispatch = $('#dispatchId').val();
+
+    const params = {dispatch, start};
+    if (search) {
+        params.search = search;
+    }
+    else {
+        clearPackListSearching();
+    }
+
+    wrapLoadingOnActionButton(
+        $logisticUnitsContainer,
+        () => (
+            AJAX.route('GET', 'dispatch_packs_api', params)
+                .json()
+                .then(data => {
+                    $logisticUnitsContainer.html(data.html);
+                    $logisticUnitsContainer.find('.reference-articles-container table')
+                        .each(function() {
+                            const $table = $(this);
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                order: [['emergency', "desc"], ['reference', "desc"]],
+                                columns: [
+                                    {data: 'actions', className: 'noVis hideOrder', orderable: false},
+                                    {data: 'reference', title: 'Référence'},
+                                    {data: 'orderNumber', title: 'Commande'},
+                                    {data: 'quantityToReceive', title: 'À recevoir'},
+                                    {data: 'receivedQuantity', title: 'Reçu'},
+                                    {data: 'emergency', visible: false},
+                                    {data: 'comment', visible: false},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                    needsPaginationRemoval: true,
+                                    removeLength: true,
+                                    removeTableHeader: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                    needsColor: true,
+                                    dataToCheck: 'emergency',
+                                    color: 'danger',
+                                    callback: (row, data) => {
+                                        if (data.emergency && data.comment) {
+                                            const $row = $(row);
+                                            $row.attr('title', data.comment);
+                                            initTooltips($row);
+                                        }
+                                    }
+                                },
+                            })
+                        });
+
+                    $logisticUnitsContainer
+                        .find('.paginate_button:not(.disabled)')
+                        .on('click', function() {
+                            const $button = $(this);
+                            loadDispatchReferenceArticle({
+                                start: $button.data('page'),
+                                search: referenceArticleSearch
+                            });
+                        });
+                })
+        )
+    )
+}
+
+function initAddReferenceEditor(modal, options = {}) {
+    const $modal = $(modal);
+    clearModal(modal);
+
+    if (options['unitCode'] && options['unitId']) {
+        let $selectUl = $modal.find('[name="pack"]');
+        $selectUl.append(new Option(options['unitCode'], options['unitId'], true, true)).trigger('change');
+    }
 }
