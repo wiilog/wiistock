@@ -360,12 +360,12 @@
 
                     <div class="p-3">
                         {% if dispatch.hasReferenceArticle %}
-                            <table id="packTable" class="wii-table w-100"></table>
-                        {% else %}
                             <div class="col-12 logistic-units-container wii-multiple-loading"
                                  data-loader-color="primary"
                                  data-loader-size="normal">
                             </div>
+                        {% else %}
+                            <table id="packTable" class="wii-table w-100"></table>
                         {% endif %}
                     </div>
                 </div>
