@@ -948,17 +948,19 @@ class DispatchService {
                     /** @var DispatchPack $firstDispatchPack */
                     $firstDispatchPack = $dispatchPacks[0];
                     $arrival = $firstDispatchPack->getPack()->getArrivage();
+                    $numeroCommandeArrivage = Stream::from($arrival->getNumeroCommandeList())->join("\n");
                     return [
                         "numarrivage" => $arrival->getNumeroArrivage(),
-                        "numcommandearrivage" => Stream::from($arrival->getNumeroCommandeList())->join("\n"),
+                        "numcommandearrivage" => $numeroCommandeArrivage,
                         "tableauULarrivage" => [
-                            ["Unité de tracking", "Nature", "Quantité", "Poids"],
+                            ["Unité de tracking", "Nature", "Quantité", "Poids", "Numero commande arrivage"],
                             ...Stream::from($dispatchPacks)
                                 ->map(fn(DispatchPack $dispatchPack) => [
                                     $dispatchPack->getPack()->getCode(),
                                     $this->formatService->nature($dispatchPack->getPack()->getNature()),
                                     $dispatchPack->getQuantity(),
                                     $this->formatService->decimal($dispatchPack->getPack()->getWeight(), [], '-'),
+                                    $numeroCommandeArrivage,
                                 ])
                                 ->toArray()
                         ]
