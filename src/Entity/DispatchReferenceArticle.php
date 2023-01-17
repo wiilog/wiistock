@@ -54,7 +54,7 @@ class DispatchReferenceArticle
         return $this->batchNumber;
     }
 
-    public function setBatch(?string $batchNumber): self
+    public function setBatchNumber(?string $batchNumber): self
     {
         $this->batchNumber = $batchNumber;
 

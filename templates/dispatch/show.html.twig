@@ -31,6 +31,12 @@
 {% set hasRightToGenerateWayBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_WAY_BILL')) %}
 {% set hasRightToGenerateDispatchBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_BILL')) %}
 
+
+{% block stylesheets %}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
+
 {% block page_content %}
     <input type="hidden" id="forbiddenPhoneNumbers" value="{{ app_forbidden_phones }}"/>
     <input type="hidden" id="dispatchId" value="{{ dispatch.id }}"/>
@@ -353,7 +359,14 @@
                     </div>
 
                     <div class="p-3">
-                        <table id="packTable" class="wii-table w-100"></table>
+                        {% if dispatch.hasReferenceArticle %}
+                            <table id="packTable" class="wii-table w-100"></table>
+                        {% else %}
+                            <div class="col-12 logistic-units-container wii-multiple-loading"
+                                 data-loader-color="primary"
+                                 data-loader-size="normal">
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -374,4 +387,5 @@
     {{ parent() }}
 
     <script src="{{ asset('js/pages/dispatch-show.js') }}?v={{ web_version }}"></script>
+
 {% endblock %}
