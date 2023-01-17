@@ -64,18 +64,8 @@ $(function() {
 
     let $modalAddReference = $('#modalAddReference');
     let $submitAddReference = $modalAddReference.find('#submitAddReference');
-    let urlAddReference = Routing.generate('dispatch_delete', {}, true);
+    let urlAddReference = Routing.generate('dispatch_add_reference', true);
     InitModal($modalAddReference, $submitAddReference, urlAddReference, {});
-
-    let $inputWidth =$modalAddReference.find('input[name="width"]');
-    let $inputHeight =$modalAddReference.find('input[name="height"]');
-    let $inputLength =$modalAddReference.find('input[name="length"]');
-    let $inputWeight =$modalAddReference.find('input[name="size"]');
-    let $inputVolume =$modalAddReference.find('input[name="volume"]');
-
-    $modalAddReference.find('input[name="width"], input[name="height"], input[name="length"]').on('change', function() {
-
-    });
 
 
     const queryParams = GetRequestQuery();

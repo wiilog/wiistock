@@ -1,4 +1,5 @@
 {% import 'form.html.twig' as form %}
+{% import 'reference_article/form/form.html.twig' as referenceArticleForm %}
 
 <div class="modal fade" id="modalAddReference">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
@@ -7,6 +8,7 @@
                 title: 'Ajouter une référence'
             } %}
             <div class="modal-body">
+                <input type="text" hidden name="dispatch" value="{{ dispatch.id }}">
                 <div class="row">
                     <div class="col-4 d-flex no-gutters">
                         {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
@@ -45,96 +47,38 @@
                         }) }}
                     </div>
                     <div class="col-4 d-flex">
-                        {{ form.input('batch', 'N° de lot', true, null, {})}}
+                        {{ form.input('batch', 'N° de lot', false, null, {})}}
                     </div>
                     <div class="col-4 d-flex">
-                        {{ form.input('sealing', 'N° de plombage / scellée', true, null, {})}}
+                        {{ form.input('sealing', 'N° de plombage / scellée', false, null, {})}}
                     </div>
                     <div class="col-4 d-flex">
-                        {{ form.input('series', 'N° de série', true, null, {})}}
+                        {{ form.input('series', 'N° de série', false, null, {})}}
                     </div>
+                    <div class="col-4 d-flex">
+                        {{ form.textarea('comment', 'Commentaire', false, null, {})}}
+                    </div>
+                    <div class="col-4 d-flex">
+                        {% include 'attachment/attachment.html.twig' with {
+                            fieldNameClass: 'w-100',
+                            isNew: true,
+                        } %}
+                    </div>
+
+
                 </div>
                 <div class="wii-section-title mt-2">Informations référence</div>
-                <div class="row">
-                    <div class="col-4 d-flex">
-                        {# TODO name the input #}
-                        {{ form.switch('is', 'Matériel hors format', false, [
-                            {label: 'Oui', value: '1'},
-                            {label: 'Non', value: '0'},
-                        ]) }}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {# TODO name the input #}
-                        {{ form.switch('is2', 'ADR', false, [
-                            {label: 'Oui', value: '1'},
-                            {label: 'Non', value: '0'},
-                        ]) }}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {# TODO name the input #}
-                        {{ form.input('jjj', 'Code fabriquant', false, null, {})}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('lenght', 'Longueur (cm)', false, null, {
-                            labelClass: 'w-100',
-                            type: 'number',
-                            min: 0,
-                        })}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('width', 'Largeur (cm)', false, null, {
-                            labelClass: 'w-100',
-                            type: 'number',
-                            min: 0,
-                        })}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('height', 'Hauteur (cm)', false, null, {
-                            labelClass: 'w-100',
-                            type: 'number',
-                            min: 0,
-                        })}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('size', 'Dimensions (Lxlxh cm)', false, null, {
-                            additionalAttributes: [{
-                                name :"disabled"
-                            }]
-                        })}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('volume', 'Volume (m3)', false, null, {
-                            additionalAttributes: [{
-                                name :"disabled"
-                            }]
-                        })}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('weight', 'Poids (kg)', false, null, {
-                            type: 'number',
-                            min: 0,
-                        }) }}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.select('TypeOfAssociatedDocuments', 'Type de documents associés', false, {
-                            multiple: true,
-                            type: null,
-                            items: [
-                                'FME',
-                                'JAM',
-                                'CC',
-                                'Autre',
-                            ],
-                        }) }}
-                    </div>
+                <div class="row mt-2">
+                    {{ referenceArticleForm.descriptionForm( null, descriptionConfig, 4) }}
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                    {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), name: 'id', id: 'submitAddReference'}
+                    {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), id: 'submitAddReference'},
                 ],
             } %}
         </div>
     </div>
 </div>
+
