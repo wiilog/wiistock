@@ -14,19 +14,6 @@ $(document).ready(() => {
     })
 
     buildQuantityPredictions();
-    const pageType = $('[name=page-type]').val();
-    if (pageType === 'SHOW') {
-        computeDescriptionShowValues();
-    }
-    else {
-        computeDescriptionFormValues({
-            $length: $(`input[name=length]`),
-            $width: $(`input[name=width]`),
-            $height: $(`input[name=height]`),
-            $volume: $(`input[name=volume]`),
-            $size: $(`input[name=size]`),
-        });
-    }
 
     $(`.add-supplier-article`).click(function() {
         $(this).siblings(`.supplier-articles`).append($(`#supplier-article-template`).html());

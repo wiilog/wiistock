@@ -1,8 +1,11 @@
 
 export function computeDescriptionValues({length, width, height}) {
-    const volume = length * width * height;
+    const volumeCentimeters = length * width * height;
+    const volumeMeters = volumeCentimeters / Math.pow(10, 6);
     return {
-        volume: volume ? volume.toFixed(3) : volume,
+        volume: volumeMeters
+            ? volumeMeters.toFixed(6)
+            : volumeMeters,
         size: `${length}x${width}x${height}`,
     };
 }

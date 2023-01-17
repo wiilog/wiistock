@@ -99,12 +99,11 @@ class ImportService
             "statut",
             "needsMobileSync",
             "type",
+            "typeQuantite",
             "outFormatEquipment",
             "ADR",
             "manufacturerCode",
-            "length",
-            "width",
-            "height",
+            "volume",
             "weight",
             "associatedDocumentTypes",
         ],
@@ -232,6 +231,7 @@ class ImportService
 
     private Import $currentImport;
     private EntityManagerInterface $entityManager;
+    private array $importCache = [];
 
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
@@ -327,6 +327,7 @@ class ImportService
     public function treatImport(Import $import, ?Utilisateur $user, int $mode = self::IMPORT_MODE_PLAN): int
     {
         $this->currentImport = $import;
+        $this->resetCache();
 
         $csvFile = $this->currentImport->getCsvFile();
 
@@ -1101,35 +1102,52 @@ class ImportService
             }
         }
 
-        $original = $refArt->getDescription();
+        $original = $refArt->getDescription() ?? [];
 
-        $length = $data['length'] ?? $original['length'];
-        $width = $data['width'] ?? $original['width'];
-        $height = $data['height'] ?? $original['height'];
-        $weight = $data['weight'] ?? $original['weight'];
+        $outFormatEquipmentData = isset($data['outFormatEquipment'])
+            ? (int) (
+                filter_var($data['outFormatEquipment'], FILTER_VALIDATE_BOOLEAN)
+                || in_array($data['outFormatEquipment'], self::POSITIVE_ARRAY)
+            )
+            : null;
+        $ADRData = isset($data['ADR'])
+            ? (int) (
+                filter_var($data['ADR'], FILTER_VALIDATE_BOOLEAN)
+                || in_array($data['ADR'], self::POSITIVE_ARRAY)
+            )
+            : null;
 
-        if (!empty($length) && !is_numeric($length)) {
-            $this->throwError('Champ longueur non valide.');
-        }
-        if (!empty($width) && !is_numeric($width)) {
-            $this->throwError('Champ largeur non valide.');
-        }
-        if (!empty($height) && !is_numeric($height)) {
-            $this->throwError('Champ hauteur non valide.');
+        $outFormatEquipment = $outFormatEquipmentData ?? $original['outFormatEquipment'] ?? null;
+        $ADR = $ADRData ?? $original['ADR'] ?? null;
+        $volume = $data['volume'] ?? $original['volume'] ?? null;
+        $weight = $data['weight'] ?? $original['weight'] ?? null;
+        $associatedDocumentTypesStr = $data['associatedDocumentTypes'] ?? $original['associatedDocumentTypes'] ?? null;
+        $associatedDocumentTypes = $associatedDocumentTypesStr
+            ? Stream::explode(',', $associatedDocumentTypesStr)
+                ->filter()
+                ->toArray()
+            : [];
+
+        if (!empty($volume) && !is_numeric($volume)) {
+            $this->throwError('Champ volume non valide.');
         }
         if (!empty($weight) && !is_numeric($weight)) {
             $this->throwError('Champ poids non valide.');
         }
 
+        $invalidAssociatedDocumentType = Stream::from($associatedDocumentTypes)
+            ->find(fn(string $type) => !in_array($type, $this->importCache[Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES]));
+        if (!empty($invalidAssociatedDocumentType)) {
+            $this->throwError("Le type de document n'est pas valide : $invalidAssociatedDocumentType");
+        }
+
         $description = [
-            "outFormatEquipment" => $data['outFormatEquipment'] ?? $original['outFormatEquipment'],
-            "ADR" => $data['ADR'] ?? $original['ADR'],
-            "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'],
-            "length" => $length,
-            "width" => $width,
-            "height" => $height,
+            "outFormatEquipment" => $outFormatEquipment,
+            "ADR" => $ADR,
+            "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'] ?? null,
+            "volume" => $volume,
             "weight" => $weight,
-            "associatedDocumentTypes" => $data['associatedDocumentTypes'] ?? $original['associatedDocumentTypes'],
+            "associatedDocumentTypes" => $associatedDocumentTypes,
         ];
         $refArt
             ->setDescription($description);
@@ -2104,5 +2122,19 @@ class ImportService
         }
 
         return $fieldsToAssociate;
+    }
+
+    public function resetCache(): void {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+        $associatedDocumentTypes = $associatedDocumentTypesStr
+            ? Stream::explode(',', $associatedDocumentTypesStr)
+                ->filter()
+                ->toArray()
+            : [];
+
+        $this->importCache = [
+            Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => $associatedDocumentTypes,
+        ];
     }
 }

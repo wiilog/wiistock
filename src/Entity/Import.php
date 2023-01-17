@@ -137,9 +137,7 @@ class Import {
         "outFormatEquipment" => 'Materiel hors format',
         "ADR" => 'ADR',
         "manufacturerCode" => 'Code Fabriquant',
-        "length" => 'Longueur (cm)',
-        "width" => 'Largeur (cm)',
-        "height" => 'Hauteur (cm)',
+        "volume" => 'Volume (m3)',
         "weight" => 'Poids (kg)',
         "associatedDocumentTypes" => 'Type de documents associés',
 
