@@ -101,6 +101,8 @@ class MobileController extends AbstractApiController
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $globalParametersRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
         $mobileKey = $request->request->get('loginKey');
 
         $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey, 'status' => true]);
@@ -141,6 +143,10 @@ class MobileController extends AbstractApiController
 
             $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
 
+            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DEMANDE])
+                ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+                ->toArray();
+
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,
@@ -149,6 +155,7 @@ class MobileController extends AbstractApiController
                 'parameters' => $parameters,
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId(),
+                'fieldsParam' => $fieldsParam ?? [],
             ];
         } else {
             $data['success'] = false;
