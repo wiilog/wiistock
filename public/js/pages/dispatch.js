@@ -88,15 +88,12 @@ $(function() {
                     $(`body`).append(content);
 
                     let $modalGroupedSignature = $("#modalGroupedSignature");
-
                     $modalGroupedSignature.modal(`show`);
-
 
                     let $submitGroupedSignature = $("#submitGroupedSignature");
                     let urlGroupedSignature = Routing.generate('finish_grouped_signature', {dispatchsToSign}, true);
                     InitModal($modalGroupedSignature, $submitGroupedSignature, urlGroupedSignature);
                     displayCommentNeededAttributes($modalGroupedSignature.find('select[name=status]'));
-
                 }).catch(() => {
                     $(this).popLoader();
             });

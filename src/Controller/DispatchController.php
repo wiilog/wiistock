@@ -1618,29 +1618,32 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/finish-grouped-signature", name="finish_grouped_signature", options={"expose"=true}, methods="POST")
      */
-    public function finishGroupedSignature(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $encoder): Response
+    public function finishGroupedSignature(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $encoder, DispatchService $dispatchService): Response
     {
         $data = json_decode($request->getContent(), true);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $user = $data['signatoryTrigram'] ? $userRepository->find($data['signatoryTrigram']) : null;
-//        if(!$user || $user->getSignatoryPassword() !== $encoder->hashPassword($user, $data['signatoryPassword'])){
-//            throw new FormException("Code signataire invalide");
-//        }
+        $signatory = $data['signatoryTrigram'] ? $userRepository->find($data['signatoryTrigram']) : null;
+        if(!$signatory || !password_verify($data['signatoryPassword'], $signatory->getSignatoryPassword())){
+            throw new FormException("Code signataire invalide");
+        }
 
         $dispatchsToSignIds = $request->query->all('dispatchsToSign');
         $groupedSignatureStatus = $statusRepository->find($data['status']);
         $dispatchsToSign = $dispatchRepository->findBy(['id' => $dispatchsToSignIds]);
 
         foreach ($dispatchsToSign as $dispatch){
-            $dispatch->setStatut($groupedSignatureStatus);
+            $dispatch->setTreatmentDate(new DateTime());
+            $dispatch->setStatus($groupedSignatureStatus);
             $dispatch->setCommentaire($data['comment']);
+            if($groupedSignatureStatus->getSendReport()){
+                $dispatchService->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
+            }
         }
 
         $entityManager->flush();
-        //TODO compte rendu à envoyer aux 3 emails ( emplacement de prise, emplacement de dépose et chef de gare )
         return new JsonResponse([
             'success' => true,
             'redirect' => $this->generateUrl('dispatch_index'),

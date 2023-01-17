@@ -88,7 +88,7 @@ class MailerService
                 ->setContentType('text/html');
 
             foreach ($attachments as $attachment) {
-                $message->attach(\Swift_Attachment::fromPath($attachment));
+                $message->attach(\Swift_Attachment::fromPath($attachment->getFullPath()));
             }
 
             $mailer = (new \Swift_Mailer($transport));
