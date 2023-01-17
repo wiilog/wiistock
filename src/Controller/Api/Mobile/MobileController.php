@@ -143,7 +143,7 @@ class MobileController extends AbstractApiController
 
             $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
 
-            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DEMANDE])
+            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH])
                 ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
                 ->toArray();
 
@@ -1782,7 +1782,6 @@ class MobileController extends AbstractApiController
 
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
 
-        dump($translations);
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
