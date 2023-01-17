@@ -17,13 +17,13 @@ class DispatchReferenceArticle
     private ?int $quantity = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $batch = null;
+    private ?string $batchNumber = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $sealing = null;
+    private ?string $sealingNumber = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $series = null;
+    private ?string $serialNumber = null;
 
     #[ORM\ManyToOne( targetEntity: DispatchPack::class, inversedBy: 'dispatchReferenceArticles')]
     private ?DispatchPack $dispatchPack = null;
@@ -49,38 +49,38 @@ class DispatchReferenceArticle
         return $this;
     }
 
-    public function getBatch(): ?string
+    public function getBatchNumber(): ?string
     {
-        return $this->batch;
+        return $this->batchNumber;
     }
 
-    public function setBatch(?string $batch): self
+    public function setBatch(?string $batchNumber): self
     {
-        $this->batch = $batch;
+        $this->batchNumber = $batchNumber;
 
         return $this;
     }
 
-    public function getSealing(): ?string
+    public function getSealingNumber(): ?string
     {
-        return $this->sealing;
+        return $this->sealingNumber;
     }
 
-    public function setSealing(?string $sealing): self
+    public function setSealingNumber(?string $sealingNumber): self
     {
-        $this->sealing = $sealing;
+        $this->sealingNumber = $sealingNumber;
 
         return $this;
     }
 
-    public function getSeries(): ?string
+    public function getSerialNumber(): ?string
     {
-        return $this->series;
+        return $this->serialNumber;
     }
 
-    public function setSeries(?string $series): self
+    public function setSerialNumber(?string $serialNumber): self
     {
-        $this->series = $series;
+        $this->serialNumber = $serialNumber;
 
         return $this;
     }
