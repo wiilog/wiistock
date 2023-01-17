@@ -2,12 +2,21 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
+use App\Entity\Traits\CommentTrait;
 use App\Repository\DispatchReferenceArticleRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DispatchReferenceArticleRepository::class)]
 class DispatchReferenceArticle
 {
+    use AttachmentTrait;
+
+    use CommentTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -25,10 +34,10 @@ class DispatchReferenceArticle
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $serialNumber = null;
 
-    #[ORM\ManyToOne( targetEntity: DispatchPack::class, inversedBy: 'dispatchReferenceArticles')]
+    #[ORM\ManyToOne(targetEntity: DispatchPack::class, inversedBy: 'dispatchReferenceArticles')]
     private ?DispatchPack $dispatchPack = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?ReferenceArticle $referenceArticle = null;
 
