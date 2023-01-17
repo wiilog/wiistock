@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
+use App\Entity\Traits\CommentTrait;
 use App\Repository\DispatchReferenceArticleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,6 +13,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: DispatchReferenceArticleRepository::class)]
 class DispatchReferenceArticle
 {
+    use AttachmentTrait;
+
+    use CommentTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -34,17 +40,6 @@ class DispatchReferenceArticle
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?ReferenceArticle $referenceArticle = null;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $comment = null;
-
-    #[ORM\OneToMany(targetEntity: Attachment::class)]
-    private Collection $attachments;
-
-    public function __construct()
-    {
-        $this->attachments = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
@@ -119,42 +114,6 @@ class DispatchReferenceArticle
     public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
     {
         $this->referenceArticle = $referenceArticle;
-
-        return $this;
-    }
-
-    public function getComment(): ?string
-    {
-        return $this->comment;
-    }
-
-    public function setComment(?string $comment): self
-    {
-        $this->comment = $comment;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Attachment>
-     */
-    public function getAttachments(): Collection
-    {
-        return $this->attachments;
-    }
-
-    public function addAttachment(Attachment $attachment): self
-    {
-        if (!$this->attachments->contains($attachment)) {
-            $this->attachments->add($attachment);
-        }
-
-        return $this;
-    }
-
-    public function removeAttachment(Attachment $attachment): self
-    {
-        $this->attachments->removeElement($attachment);
 
         return $this;
     }
