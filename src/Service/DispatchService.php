@@ -99,6 +99,12 @@ class DispatchService {
     #[Required]
     public StatusHistoryService $statusHistoryService;
 
+    #[Required]
+    public AttachmentService $attachmentService;
+
+    #[Required]
+    public RefArticleDataService $refArticleDataService;
+
     private ?array $freeFieldsConfig = null;
 
     public function getDataForDatatable(InputBag $params) {
@@ -1019,33 +1025,60 @@ class DispatchService {
 
     public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, $data): JsonResponse
     {
+        $dispatchId = $data['dispatch'] ?? null;
         $packId = $data['pack'] ?? null;
-        $referenceId = $data['reference'] ?? null;
+        $referenceArticleId = $data['reference'] ?? null;
         $quantity = $data['quantity'] ?? null;
 
-        if (!$packId || !$referenceId || !$quantity) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'Données manquantes'
-            ]);
-        } elseif ($quantity <= 0) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'La quantité doit être supérieure à 0'
-            ]);
-        } else {
-            $pack = $entityManager->getRepository(Pack::class)->find($packId);
-            $reference = $entityManager->getRepository(ReferenceArticle::class)->find($referenceId);
-
-            $dispatchReferenceArticle = new DispatchReferenceArticle();
-            $dispatchReferenceArticle
-                ->setPack($pack->getDispatchPack()->getDispatch())
-                ->setReference($reference)
-                ->setQuantity($quantity);
-
-            $entityManager->persist($dispatchReferenceArticle);
+        if (!$dispatchId) {
+            throw new FormException("Une erreur est survenue");
         }
+        if (!$packId || !$referenceArticleId || !$quantity ) {
+            throw new FormException("Une erreur est survenue, des données sont manquantes");
+        }
+        if ($quantity <= 0) {
+            throw new FormException('La quantité doit être supérieure à 0');
+        }
+        $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $referenceArticle = $referenceRepository->find($referenceArticleId);
+        $dispatchPack = $dispatchPackRepository->findOneBy(['dispatch' => $dispatchId, 'pack' => $packId]);
 
+        if (!$dispatchPack) {
+            throw new FormException('Une erreur est survenue lors du traitement de votre demande');
+        }
+        $dispatchReferenceArticle = new DispatchReferenceArticle();
+        $dispatchReferenceArticle
+            ->setDispatchPack($dispatchPack)
+            ->setReferenceArticle($referenceArticle)
+            ->setQuantity($quantity)
+            ->setBatchNumber($data['batch'] ?? null)
+            ->setSealingNumber($data['sealing'] ?? null)
+            ->setSerialNumber($data['series'] ?? null)
+            ->setComment($data['comment'] ?? null);
 
+        $attachments = $this->attachmentService->createAttachements($data['files']);
+        foreach ($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $dispatchReferenceArticle->addAttachment($attachment);
+        }
+        $entityManager->persist($dispatchReferenceArticle);
+
+        $description = [
+            'outFormatEquipment' => $data['outFormatEquipment'] ?? null,
+            'ADR' => $data['ADR'] ?? null,
+            'manufacturerCode' => $data['manufacturerCode'] ?? null,
+            'volume' => $data['volume'] ?? null,
+            'weight' => $data['weight'] ?? null,
+            'associatedDocumentTypes' => $data['associatedDocumentTypes'] ?? null,
+        ];
+        $this->refArticleDataService->updateDescriptionField($entityManager, $referenceArticle, $description);
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Référence ajoutée'
+        ]);
     }
 }

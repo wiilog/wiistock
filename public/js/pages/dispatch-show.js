@@ -63,9 +63,18 @@ $(function() {
     });
 
     let $modalAddReference = $('#modalAddReference');
-    let $submitAddReference = $modalAddReference.find('#submitAddReference');
-    let urlAddReference = Routing.generate('dispatch_add_reference', true);
-    InitModal($modalAddReference, $submitAddReference, urlAddReference, {});
+    Form.create($modalAddReference).onSubmit((data, form) => {
+        form.loading(() => {
+            return AJAX
+                .route(AJAX.POST, `dispatch_add_reference`)
+                .json(data)
+                .then((response) => {
+                    if(response.success) {
+                        $modalAddReference.modal('hide');
+                    }
+                })
+        });
+    });
 
 
     const queryParams = GetRequestQuery();

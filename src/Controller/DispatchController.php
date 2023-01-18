@@ -1624,7 +1624,7 @@ class DispatchController extends AbstractController {
                                  DispatchService $dispatchService): JsonResponse
     {
         $data = $request->request->all();
-
+        $data['files'] = $request->files ?? [];
 
         return $dispatchService->createDispatchReferenceArticle($entityManager, $data);
     }

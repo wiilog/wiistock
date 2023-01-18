@@ -42,6 +42,11 @@ class DispatchReferenceArticle
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
+    public function __construct()
+    {
+        $this->attachments = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
