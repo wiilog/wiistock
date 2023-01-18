@@ -1731,6 +1731,12 @@ class MobileController extends AbstractApiController
 
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $deliveryFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
+
+            $dispatchTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+                ->map(fn(Type $type) => [
+                    'id' => $type->getId(),
+                    'label' => $type->getLabel(),
+                ])->toArray();
         }
 
         if ($rights['tracking']) {
@@ -1801,6 +1807,7 @@ class MobileController extends AbstractApiController
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
             'status' => $status,
+            'dispatchTypes' => $dispatchTypes ?? [],
         ];
     }
 
