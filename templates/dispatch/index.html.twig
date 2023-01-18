@@ -25,7 +25,7 @@
                             class="btn btn-primary split-button"
                             onclick="saveExportFile('get_dispatches_csv', true, {}, false, '{{ trans('Général', '', 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
                         <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                        {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV', false) }}
+                        {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                     </button>
                     <button type="button"
                             class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
@@ -39,10 +39,11 @@
                            data-toggle="modal"
                            data-target="#modalColumnVisible">
                             <i class="fa fa-cog mr-2"></i>
-                            {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
+                            {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes') }}
                         </a>
                         {% if hasRightGroupedSignature %}
-                            <a class="dropdown-item pointer grouped-signature-mode-button">
+                            <a class="dropdown-item pointer grouped-signature-mode-button"
+                               data-loader-color="black">
                                 <i class="wii-icon wii-icon-signature wii-icon-15px-black mr-2"></i>
                                 Signature groupée
                             </a>
@@ -53,17 +54,20 @@
                        data-toggle="modal"
                        data-target="#modalColumnVisible">
                         <i class="fa fa-cog mr-2"></i>
-                        {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes', false) }}
+                        {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes') }}
                     </button>
                 {% endif %}
             </div>
             <div class="col-auto ml-auto btn-group grouped-signature-button-container d-none">
                 <button type="button"
+                        data-loader-color="primary"
                         class="btn btn-outline-primary cancel">
                     Annuler
                 </button>
                 <button type="button"
-                        class="btn btn-primary validate" disabled>
+                        data-loader-color="white"
+                        class="btn btn-primary validate"
+                        disabled>
                     <span class="wii-icon wii-icon-check-white mr-2 align-self-center"></span>
                     Signature groupée
                 </button>
@@ -75,8 +79,6 @@
             </div>
         </div>
     </div>
-
-    <input type="hidden" name="destination-translation" value="{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Destination', false) }}">
 
     {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
     {% include "utils/visible_columns.html.twig" with {

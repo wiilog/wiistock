@@ -138,79 +138,84 @@
                 </tr>
             {% endif %}
             {% for dispatchPack in dispatch.dispatchPacks %}
-                {% dump dispatchPack %}
-                {% dump dispatchPack.dispatchReferenceArticles %}
                 {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.labelIn(language, getDefaultLanguage()) : '' %}
                 {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
                 {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
-                {% set dispatchReferenceArticle = dispatchPack.dispatchReferenceArticles.first %}
-                {% set description = dispatchReferenceArticle ? dispatchReferenceArticle.referenceArticle.description : false %}
-                <tr>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.code }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.dispatch.locationFrom.label }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.dispatch.locationTo.label }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchReferenceArticle ? dispatchReferenceArticle.referenceArticle.reference }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchReferenceArticle ? dispatchReferenceArticle.quantity }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchReferenceArticle ? dispatchReferenceArticle.serialNumber }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchReferenceArticle ? dispatchReferenceArticle.batchNumber }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ description and description['manufacturerCode'] ? description['manufacturerCode'] : '' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchReferenceArticle ? dispatchReferenceArticle.sealingNumber }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ description and description['volume'] is defined ? description['volume'] : '' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ description and description['weight'] ? description['weight'] : '' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ description and description['ADR'] ? 'Oui' : 'Non' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ description ? description['associatedDocumentTypes'] : '' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchReferenceArticle ? dispatchReferenceArticle.comment }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {% if dispatchReferenceArticle %}
-                            {% for attachement in dispatchReferenceArticle.attachments %}
-                                {{ attachment.originalName }}
-                            {% endfor %}
-                        {% endif %}
-                    </td>
-                </tr>
+                {% set dispatchReferenceArticles = dispatchPack.dispatchReferenceArticles is not empty ? dispatchPack.dispatchReferenceArticles : [null] %}
+
+                {% for dispatchReferenceArticle in dispatchReferenceArticles %}
+                    {% set description = dispatchReferenceArticle ? dispatchReferenceArticle.referenceArticle.description : null %}
+                    <tr>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchPack.pack.code }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatch.locationFrom ? dispatch.locationFrom.label }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatch.locationTo ? dispatch.locationTo.label }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.referenceArticle.reference }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.quantity }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.serialNumber }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.batchNumber }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ description and description['manufacturerCode'] ? description['manufacturerCode'] : '' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.sealingNumber }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ description and description['volume'] is defined ? description['volume'] : '' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ description and description['weight'] ? description['weight'] : '' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{
+                                description and description['ADR']
+                                    ? translateIn(language, 'Général', null, 'Modale', 'Oui')
+                                    : translateIn(language, 'Général', null, 'Modale', 'Non')
+                            }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ description ? description['associatedDocumentTypes'] : '' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.comment }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {% if dispatchReferenceArticle %}
+                                {% for attachement in dispatchReferenceArticle.attachments %}
+                                    {{ attachment.originalName }}
+                                {% endfor %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
             {% endfor %}
             </tbody>
         </table>
@@ -310,8 +315,8 @@
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
                         {{ dispatchPack.treated
-                        ? translateIn(language, 'Demande', 'Acheminements', 'Général', 'Traité')
-                        : translateIn(language, 'Demande', 'Acheminements', 'Général', 'À traiter')
+                            ? translateIn(language, 'Demande', 'Acheminements', 'Général', 'Traité')
+                            : translateIn(language, 'Demande', 'Acheminements', 'Général', 'À traiter')
                         }}
                     </td>
                 </tr>

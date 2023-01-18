@@ -39,71 +39,87 @@ $(function() {
     const $groupedSignatureModeContainer = $(`.grouped-signature-button-container`);
     const $filtersInputs = $(`.filters-container`).find(`select, input, button, .checkbox-filter`);
     $(`.grouped-signature-mode-button`).on(`click`, function() {
-        const $statutFilterOptionSelected = $(`.filters-container select[name=statut] option:selected`);
-        const pickLocationFilterValue = $(`.filters-container select[name=pickLocation]`).val();
-        const dropLocationFilterValue = $(`.filters-container select[name=dropLocation]`).val();
+        const $button = $(this);
+        const $filtersContainer = $(".filters-container");
+        const $statutFilterOptionSelected = $filtersContainer.find(`select[name=statut] option:selected`);
+        const pickLocationFilterValue = $filtersContainer.find(`select[name=pickLocation]`).val();
+        const dropLocationFilterValue = $filtersContainer.find(`select[name=dropLocation]`).val();
 
-        if($statutFilterOptionSelected.data('allowed-state') && $statutFilterOptionSelected.length === 1 && (pickLocationFilterValue !== null || dropLocationFilterValue !== null)){
-            saveFilters('acheminement', '#tableDispatches', null, 1).then(() => {
-                $(this).pushLoader(`black`);
-                tableDispatches.clear().destroy();
-                initTableDispatch(true).then((returnedDispatchsTable) => {
-                    tableDispatches = returnedDispatchsTable;
-                    $(`.dataTables_filter`).parent().remove();
-                    $dispatchModeContainer.addClass(`d-none`);
-                    $groupedSignatureModeContainer.removeClass(`d-none`);
-                    $filtersInputs.prop(`disabled`, true).addClass(`disabled`);
-                    $(this).popLoader();
+        // check if page filters valids
+        if ($statutFilterOptionSelected.data('allowed-state')
+            && $statutFilterOptionSelected.length === 1
+            && (pickLocationFilterValue !== null || dropLocationFilterValue !== null)){
+            wrapLoadingOnActionButton($button, () => {
+                return saveFilters('acheminement', '#tableDispatches', null, 1).then(() => {
+                    tableDispatches.clear().destroy();
+                    return initTableDispatch(true).then((returnedDispatchsTable) => {
+                        tableDispatches = returnedDispatchsTable;
+                        $(`.dataTables_filter`).parent().remove();
+                        $dispatchModeContainer.addClass(`d-none`);
+                        $groupedSignatureModeContainer.removeClass(`d-none`);
+                        $filtersInputs.prop(`disabled`, true).addClass(`disabled`);
+                    });
                 });
-            });
+            })
         } else {
-            showBSAlert("Veuillez saisir un statut en état Brouillon ou A Traité ainsi qu'un Emplacement de prise ou de dépose dans les filtres en haut de page.", 'danger');
-
+            Flash.add(
+                Flash.ERROR,
+                "Veuillez saisir un statut en état Brouillon ou A Traité ainsi qu'un Emplacement de prise ou de dépose dans les filtres en haut de page."
+            );
         }
     });
 
     $groupedSignatureModeContainer.find(`.cancel`).on(`click`, function() {
+        const $button = $(this);
         $groupedSignatureModeContainer.find(`.validate`).prop(`disabled`, true);
-        $(this).pushLoader(`primary`);
-        tableDispatches.clear().destroy();
-        initTableDispatch(false).then((returnedArrivalsTable) => {
-            tableDispatches = returnedArrivalsTable;
-            $dispatchModeContainer.removeClass(`d-none`);
-            $groupedSignatureModeContainer.addClass(`d-none`);
-            $filtersInputs.prop(`disabled`, false).removeClass(`disabled`);
-            $(this).popLoader();
-        });
+        wrapLoadingOnActionButton($button, () => {
+            tableDispatches.clear().destroy();
+            return initTableDispatch(false).then((returnedArrivalsTable) => {
+                tableDispatches = returnedArrivalsTable;
+                $dispatchModeContainer.removeClass(`d-none`);
+                $groupedSignatureModeContainer.addClass(`d-none`);
+                $filtersInputs.prop(`disabled`, false).removeClass(`disabled`);
+            });
+        })
     });
 
     $groupedSignatureModeContainer.find(`.validate`).on(`click`, function() {
+        const $button = $(this);
         const $checkedCheckboxes = $dispatchsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
-        const dispatchsToSign = $checkedCheckboxes.toArray().map((element) => $(element).val());
-        if(dispatchsToSign.length > 0) {
-            $(this).pushLoader(`white`);
-            $.post(Routing.generate(`grouped_signature_modal_content`, {
-                statusId: $(`.filters-container select[name=statut] option:selected`).first().val(),
-            }, true))
-                .then(({content}) => {
-                    $(this).popLoader();
-                    $(`body`).append(content);
+        const dispatchesToSign = $checkedCheckboxes.toArray().map((element) => $(element).val());
+        if(dispatchesToSign.length > 0) {
+            wrapLoadingOnActionButton($button, () => (
+                AJAX.route(AJAX.GET, `grouped_signature_modal_content`, {
+                    statusId: $(`.filters-container select[name=statut] option:selected`).first().val(),
+                    dispatchesToSign,
+                })
+                    .json()
+                    .then(({content}) => {
+                        $(`body`).append(content);
 
-                    let $modalGroupedSignature = $("#modalGroupedSignature");
-                    $modalGroupedSignature.modal(`show`);
+                        let $modalGroupedSignature = $("#modalGroupedSignature");
 
-                    const pickLocationFilterValue = $(`.filters-container select[name=pickLocation]`).val();
-                    const dropLocationFilterValue = $(`.filters-container select[name=dropLocation]`).val();
-                    let location = pickLocationFilterValue !== null
-                        ? pickLocationFilterValue
-                        : (dropLocationFilterValue !== null
-                            ? dropLocationFilterValue
-                            : '');
-                    let $submitGroupedSignature = $("#submitGroupedSignature");
-                    let urlGroupedSignature = Routing.generate('finish_grouped_signature', {dispatchsToSign, location}, true);
-                    InitModal($modalGroupedSignature, $submitGroupedSignature, urlGroupedSignature);
-                    displayCommentNeededAttributes($modalGroupedSignature.find('select[name=status]'));
-                }).catch(() => {
-                    $(this).popLoader();
-            });
+                        const pickLocationFilterValue = $(`.filters-container select[name=pickLocation]`).val();
+                        const dropLocationFilterValue = $(`.filters-container select[name=dropLocation]`).val();
+                        const location = pickLocationFilterValue !== null
+                            ? pickLocationFilterValue
+                            : (dropLocationFilterValue !== null
+                                ? dropLocationFilterValue
+                                : '');
+                        displayCommentNeededAttributes($modalGroupedSignature.find('select[name=status]'));
+                        Form.create($modalGroupedSignature)
+                            .clearSubmitListeners()
+                            .onSubmit((data, form) => {
+                                form.loading(() => (
+                                    AJAX.route(AJAX.POST, 'finish_grouped_signature', {dispatchesToSign, location})
+                                        .json(data)
+                                ))
+                            })
+
+                        $modalGroupedSignature.modal(`show`);
+                    })
+            ));
+
         }
     });
 
@@ -194,8 +210,14 @@ function toggleValidateGroupedSignatureButton($dispatchsTable, $groupedSignature
 }
 
 function displayCommentNeededAttributes(statusSelect){
-    let $modalGroupedSignature = $("#modalGroupedSignature");
-    Boolean(statusSelect.find('option:selected').data('needed-comment'))
-        ? $modalGroupedSignature.find('input[name=comment]').addClass('needed')
-        : $modalGroupedSignature.find('input[name=comment]').removeClass('needed');
+    const $modalGroupedSignature = $("#modalGroupedSignature");
+    const $comment = $modalGroupedSignature.find('input[name=comment]');
+    const required = Boolean(statusSelect.find('option:selected').data('needed-comment'));
+    $comment.toggleClass('needed', required);
+
+    const $labelContainer = $comment.closest('.form-group').find('.field-label');
+    $labelContainer.find('.required-mark').remove();
+    if (required) {
+        $labelContainer.append($('<span class="required-mark">*</span>'))
+    }
 }

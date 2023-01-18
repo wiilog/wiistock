@@ -1590,25 +1590,45 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/grouped-signature-modal-content", name="grouped_signature_modal_content", options={"expose"=true}, methods="POST")
+     * @Route("/grouped-signature-modal-content", name="grouped_signature_modal_content", options={"expose"=true}, methods="GET")
      */
-    public function groupedSignatureModalContent(Request $request, EntityManagerInterface $entityManager): JsonResponse {
-        $statutRepository = $entityManager->getRepository(Statut::class);
-        $filteredStatut = $statutRepository->find($request->query->get('statusId'));
+    public function getGroupedSignatureModalContent(Request $request, EntityManagerInterface $entityManager): JsonResponse {
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+
+        $filteredStatut = $statusRepository->find($request->query->get('statusId'));
+
+        $dispatchIdsToSign = $request->query->all('dispatchesToSign');
+        $dispatchesToSign = Stream::from($dispatchIdsToSign
+            ? $dispatchRepository->findBy(["id" => $dispatchIdsToSign])
+            : []);
+
+        if ($dispatchesToSign->isEmpty()) {
+            throw new FormException("Vous devez sélectionner des acheminements pour réaliser une signature groupée");
+        }
+
+        $dispatchTypes = $dispatchesToSign
+            ->filterMap(fn(Dispatch $dispatch) => $dispatch->getType())
+            ->keymap(fn(Type $type) => [$type->getId(), $type])
+            ->reindex();
+
+        if ($dispatchTypes->count() !== 1) {
+            throw new FormException("Vous ne pouvez sélectionner qu'un seul type d'acheminement pour réaliser une signature groupée");
+        }
+
         $states = match ($filteredStatut->getState()) {
             Statut::DRAFT => [Statut::NOT_TREATED],
             Statut::NOT_TREATED, Statut::PARTIAL =>  [Statut::TREATED, Statut::PARTIAL],
             default => []
         };
-        $dispatchStatusesForSelect = $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, $states);
+        $dispatchStatusesForSelect = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatchTypes->first(), $states);
 
-        $formattedStatusToDisplay =
-            Stream::from($dispatchStatusesForSelect)
-                ->keymap(fn(Statut $status) => [$status->getId(), [
-                    "label" => $status->getCode(),
-                    "value" => $status->getId(),
-                    "needed-comment" => $status->getCommentNeeded(),
-            ]])
+        $formattedStatusToDisplay = Stream::from($dispatchStatusesForSelect)
+            ->map(fn(Statut $status) => [
+                "label" => $this->getFormatter()->status($status),
+                "value" => $status->getId(),
+                "needed-comment" => $status->getCommentNeeded(),
+            ])
             ->toArray();
 
         return $this->json([
@@ -1622,42 +1642,82 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/finish-grouped-signature", name="finish_grouped_signature", options={"expose"=true}, methods="POST")
      */
-    public function finishGroupedSignature(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $encoder, DispatchService $dispatchService): Response
-    {
-        $data = json_decode($request->getContent(), true);
+    public function finishGroupedSignature(Request                $request,
+                                           StatusHistoryService   $statusHistoryService,
+                                           EntityManagerInterface $entityManager,
+                                           DispatchService        $dispatchService): Response {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $location = $locationRepository->find($request->query->get('location'));
-        $signatory = $data['signatoryTrigram'] ? $userRepository->find($data['signatoryTrigram']) : null;
-        if(!$signatory || !password_verify($data['signatoryPassword'], $signatory->getSignatoryPassword())){
+        $locationData = $request->query->get('location');
+        $signatoryTrigramData = $request->request->get("signatoryTrigram");
+        $signatoryPasswordData = $request->request->get("signatoryPassword");
+        $statusData = $request->request->get("status");
+        $commentData = $request->request->get("comment");
+
+        $location = $locationRepository->find($locationData);
+        $signatory = $signatoryTrigramData ? $userRepository->find($signatoryTrigramData) : null;
+        if(!$signatory || !password_verify($signatoryPasswordData, $signatory->getSignatoryPassword())){
             throw new FormException("Code signataire invalide");
         }
 
-        if(!$location->getSignatory() && $location->getSignatory() !== $signatory){
-            throw new FormException("Votre emplacement de prise n'a pas de signataire renseigné ou le signataire renseignée n'es pas correct.");
+        if(!$location?->getSignatory()){
+            $locationLabel = $location?->getLabel() ?: "invalide";
+            throw new FormException("L'emplacement filtré {$locationLabel} n'a pas de signataire renseigné");
         }
 
-        $dispatchsToSignIds = $request->query->all('dispatchsToSign');
-        $groupedSignatureStatus = $statusRepository->find($data['status']);
-        $dispatchsToSign = $dispatchRepository->findBy(['id' => $dispatchsToSignIds]);
+        if($location->getSignatory() !== $signatory){
+            throw new FormException("Le signataire renseigné n'est pas correct");
+        }
 
-        foreach ($dispatchsToSign as $dispatch){
-            $dispatch->setTreatmentDate(new DateTime());
-            $dispatch->setStatus($groupedSignatureStatus);
-            $dispatch->setCommentaire($data['comment']);
+        $dispatchesToSignIds = $request->query->all('dispatchesToSign');
+        $groupedSignatureStatus = $statusRepository->find($statusData);
+        $dispatchesToSign = $dispatchesToSignIds
+            ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
+            : [];
+
+        $dispatchTypes = Stream::from($dispatchesToSign)
+            ->filterMap(fn(Dispatch $dispatch) => $dispatch->getType())
+            ->keymap(fn(Type $type) => [$type->getId(), $type])
+            ->reindex();
+
+        if ($dispatchTypes->count() !== 1) {
+            throw new FormException("Vous ne pouvez sélectionner qu'un seul type d'acheminement pour réaliser une signature groupée");
+        }
+
+        $now = new DateTime();
+
+        foreach ($dispatchesToSign as $dispatch){
+            $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
+                ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
+                ->isEmpty());
+
+            if (!$containsReferences) {
+                throw new FormException("L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée");
+            }
+
+            $statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus);
+
+            $newCommentDispatch = $dispatch->getCommentaire()
+                ? ($dispatch->getCommentaire() . "<br/>")
+                : "";
+
+            $dispatch
+                ->setTreatmentDate($now)
+                ->setCommentaire($newCommentDispatch . $commentData);
+
             if($groupedSignatureStatus->getSendReport()){
                 $dispatchService->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
             }
         }
 
         $entityManager->flush();
-        return new JsonResponse([
+        return $this->json([
             'success' => true,
             'redirect' => $this->generateUrl('dispatch_index'),
-            'msg' => 'Signature groupée effectuée avec succès'
+            'msg' => 'Signature groupée effectuée avec succès',
         ]);
     }
 
@@ -1668,8 +1728,6 @@ class DispatchController extends AbstractController {
                                          Request                $request): JsonResponse {
 
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
-
-        $dispatchPacks = $dispatch->getDispatchPacks();
 
         $start = $request->query->get('start') ?: 0;
         $search = $request->query->get('search') ?: 0;

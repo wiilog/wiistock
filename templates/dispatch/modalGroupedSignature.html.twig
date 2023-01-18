@@ -26,14 +26,14 @@
                         } ) }}
                     </div>
                     <div class="col-md-6 col-12 form-group">
-                        {{ form.input('comment', 'Commentaire', false, null, {}) }}
+                        {{ form.input('comment', 'Commentaire', false) }}
                     </div>
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success data submit-button', type: 'submit', id: 'submitGroupedSignature', text: 'Valider'}
+                    {classes: 'btn btn-success', type: 'submit', text: 'Valider'}
                 ],
             } %}
 

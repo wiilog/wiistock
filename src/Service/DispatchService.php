@@ -430,7 +430,10 @@ class DispatchService {
         return $date ?: null;
     }
 
-    public function sendEmailsAccordingToStatus(Dispatch $dispatch, bool $isUpdate, bool $fromGroupedSignature = false, ?Utilisateur $signatory = null )
+    public function sendEmailsAccordingToStatus(Dispatch $dispatch,
+                                                bool $isUpdate,
+                                                bool $fromGroupedSignature = false,
+                                                ?Utilisateur $signatory = null)
     {
         $status = $dispatch->getStatut();
         $recipientAbleToReceivedMail = $status && $status->getSendNotifToRecipient();
@@ -454,19 +457,14 @@ class DispatchService {
                 $receiverEmailUses = [];
                 $receiverEmailUses[] = $dispatch->getLocationFrom()->getEmail();
                 $receiverEmailUses[] = $dispatch->getLocationTo()->getEmail();
-                if($signatory){
-                    $receiverEmailUses[] = $signatory;
-                }
+                $receiverEmailUses[] = $signatory;
                 $receiverEmailUses = Stream::from($receiverEmailUses)->filter()->toArray();
-                //TODO rajouter les emails libres des acheminments dans la liste des personnes à qui envoyer le mail
             }
 
             $partialDispatch = !(
                 $dispatch
                     ->getDispatchPacks()
-                    ->filter(function(DispatchPack $dispatchPack) {
-                        return !$dispatchPack->isTreated();
-                    })
+                    ->filter(fn(DispatchPack $dispatchPack) => !$dispatchPack->isTreated())
                     ->isEmpty()
             ) || $status->isPartial();
 
@@ -1068,9 +1066,14 @@ class DispatchService {
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $reportTemplatePath =
+        $reportTemplatePath = (
             $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_RECAP_TEMPLATE)
-                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE);
+                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE)
+        );
+
+        $referenceArticlesStream = Stream::from($dispatch->getDispatchPacks())
+            ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() && !$dispatchPack->getDispatchReferenceArticles()->isEmpty())
+            ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray());
 
         $variables = [
             "numach" => $dispatch->getNumber(),
@@ -1082,7 +1085,9 @@ class DispatchService {
             "transporteurach" => $this->formatService->carriers([$dispatch->getType()]),
             "numtracktransach" => $dispatch->getCarrierTrackingNumber() ?: '',
             "demandeurach" => $this->formatService->user($dispatch->getRequester()),
-//            "materielhorsformatref" => $dispatch->getDispatchPacks()->toArray()[0]->getReferenceArticles()->toArray()[0]->getReferenceArticle()->getDescription()['outFormatEquipment'] ? 'Oui' : 'Non',
+            "materielhorsformatref" => $referenceArticlesStream->count() === 1
+                ? $this->formatService->bool($referenceArticlesStream->first()->getReferenceArticle()->getDescription()['outFormatEquipment'] ?? null)
+                : '',
             "destinatairesach" => $this->formatService->users($dispatch->getReceivers()),
             "signataireach" => $signatory->getUsername(),
             "numprojetach" => $dispatch->getProjectNumber() ?: '',
@@ -1094,27 +1099,27 @@ class DispatchService {
             "datestatutach" => $this->formatService->date($dispatch->getTreatmentDate()),
         ];
 
-        $variables['UL'] = $dispatch->getDispatchPacks()
-            ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() && !$dispatchPack->getDispatchReferenceArticles()->isEmpty())
-            ->map(function(DispatchPack $dispatchPack) {
-                $refArticleInLu = $dispatchPack->getDispatchReferenceArticles()->first();
-                $description = $refArticleInLu->getReferenceArticle()->getDescription();
+        $variables['UL'] = $referenceArticlesStream
+            ->map(function(DispatchReferenceArticle $dispatchReferenceArticle) {
+                $dispatchPack = $dispatchReferenceArticle->getDispatchPack();
+                $referenceArticle = $dispatchReferenceArticle->getReferenceArticle();
+                $description = $referenceArticle->getDescription() ?: [];
                 return [
                     "UL" => $dispatchPack->getPack()->getCode(),
                     "natureul" => $this->formatService->nature($dispatchPack->getPack()->getNature()),
                     "quantiteul" => $dispatchPack->getQuantity(),
-                    "referenceref" => $refArticleInLu->getReferenceArticle()->getReference(),
-                    "quantiteref" => $refArticleInLu->getQuantity(),
-                    "numeroserieref" => $refArticleInLu->getSerialNumber(),
-                    "numerolotref" => $refArticleInLu->getBatchNumber(),
-                    "numeroscelleref" => $refArticleInLu->getSealingNumber(),
-                    "poidsref" => $description ? $description['weight'] : '',
-                    "volumeref" => $description && $description['volume'] ? $description['volume'] : '',
-                    "adrref" => isset($description['ADR']) && $description['ADR'] ? 'Oui' : 'Non',
-                    "documentsref" => $description ? $description['associatedDocumentTypes'] : '',
-                    "codefabricantref" => $description ? $description['manufacturerCode'] : '',
-                    "materielhorsformatref" => isset($description['outFormatEquipment']) && $description['outFormatEquipment'] ? 'Oui' : 'Non',
-                    "commentaireref" => $refArticleInLu->getCommentaire(),
+                    "referenceref" => $referenceArticle->getReference(),
+                    "quantiteref" => $dispatchReferenceArticle->getQuantity(),
+                    "numeroserieref" => $dispatchReferenceArticle->getSerialNumber(),
+                    "numerolotref" => $dispatchReferenceArticle->getBatchNumber(),
+                    "numeroscelleref" => $dispatchReferenceArticle->getSealingNumber(),
+                    "poidsref" => $description['weight'] ?? '',
+                    "volumeref" => $description['volume'] ?? '',
+                    "adrref" => $this->formatService->bool($description['ADR'] ?? null),
+                    "documentsref" => $description['associatedDocumentTypes'] ?? '',
+                    "codefabricantref" => $description['manufacturerCode'] ?? '',
+                    "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null),
+                    "commentaireref" => $dispatchReferenceArticle->getComment(),
                 ];
             })
             ->toArray();
@@ -1189,7 +1194,7 @@ class DispatchService {
         }
         $entityManager->persist($dispatchReferenceArticle);
 
-        $description = [
+        $description = [ // TODO romain ajouter profondeur largeur hauteur
             'outFormatEquipment' => $data['outFormatEquipment'] ?? null,
             'ADR' => $data['ADR'] ?? null,
             'manufacturerCode' => $data['manufacturerCode'] ?? null,
