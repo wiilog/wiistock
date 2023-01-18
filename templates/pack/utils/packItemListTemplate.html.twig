@@ -68,6 +68,7 @@
                 <td></td>
                 <td style="font-size: 1em;">
                     <div class="reference-articles-wrapper {{ header ? 'sub-reference-articles-wrapper' }}">
+                        {% dump({data: content}|json_encode) %}
                         <table class="table w-100"
                                data-initial-data="{{ {data: content}|json_encode }}"></table>
                     </div>

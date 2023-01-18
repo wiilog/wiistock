@@ -6,6 +6,7 @@ use App\Entity\Arrivage;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\DispatchPack;
+use App\Entity\DispatchReferenceArticle;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
@@ -15,6 +16,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Statut;
@@ -27,6 +29,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -1139,4 +1142,35 @@ class DispatchService {
         return $reportAttachment;
     }
 
+    public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, $data): JsonResponse
+    {
+        $packId = $data['pack'] ?? null;
+        $referenceId = $data['reference'] ?? null;
+        $quantity = $data['quantity'] ?? null;
+
+        if (!$packId || !$referenceId || !$quantity) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Données manquantes'
+            ]);
+        } elseif ($quantity <= 0) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'La quantité doit être supérieure à 0'
+            ]);
+        } else {
+            $pack = $entityManager->getRepository(Pack::class)->find($packId);
+            $reference = $entityManager->getRepository(ReferenceArticle::class)->find($referenceId);
+
+            $dispatchReferenceArticle = new DispatchReferenceArticle();
+            $dispatchReferenceArticle
+                ->setPack($pack->getDispatchPack()->getDispatch())
+                ->setReference($reference)
+                ->setQuantity($quantity);
+
+            $entityManager->persist($dispatchReferenceArticle);
+        }
+
+
+    }
 }

@@ -1,4 +1,5 @@
 {% import 'form.html.twig' as form %}
+{% import 'reference_article/form/macros.html.twig' as referenceArticleMacros %}
 
 <div class="modal fade" id="modalAddReference">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
@@ -8,7 +9,10 @@
             } %}
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-4 d-flex no-gutters">
+                    {{ form.input('dispatch', '', false, dispatch.id, {
+                        type: 'hidden'
+                    }) }}
+                    <div class="col-4 d-flex no-gutters mt-2">
                         {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
                         <div class="{{ hasRightToCreate ? "col-8" : "col-12" }}">
                             {{ form.select('reference', 'Référence', true, {
@@ -27,7 +31,7 @@
                             </div>
                         {% endif %}
                     </div>
-                    <div class="col-4 d-flex">
+                    <div class="col-4 d-flex mt-2">
                         {{ form.select('pack', 'Unité logistique', true, {
                             type: 'dispatchPacks',
                             additionalAttributes: [{
@@ -38,103 +42,45 @@
                             }]
                         }) }}
                     </div>
-                    <div class="col-4 d-flex">
-                        {{ form.number('quantity', 'Quantité', true, null, {
+                    <div class="col-4 d-flex mt-2">
+                        {{ form.input('quantity', 'Quantité', true, null, {
                             labelClass: 'w-100',
                             min: 1,
+                            type: 'number',
                         }) }}
                     </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('batch', 'N° de lot', true, null, {})}}
+                    <div class="col-4 d-flex mt-2">
+                        {{ form.input('batch', 'N° de lot', false, null, {})}}
                     </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('sealing', 'N° de plombage / scellée', true, null, {})}}
+                    <div class="col-4 d-flex mt-2">
+                        {{ form.input('sealing', 'N° de plombage / scellée', false, null, {})}}
                     </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('series', 'N° de série', true, null, {})}}
+                    <div class="col-4 d-flex mt-2">
+                        {{ form.input('series', 'N° de série', false, null, {})}}
+                    </div>
+                    <div class="col-8 mt-2">
+                        {{ form.wysiwyg('comment', 'Commentaire', false, null, {})}}
+                    </div>
+                    <div class="col-4 d-flex mt-3">
+                        {% include 'attachment/attachment.html.twig' with {
+                            fieldNameClass: 'w-100',
+                            isNew: true,
+                            bigger: "w-100",
+                        } %}
                     </div>
                 </div>
                 <div class="wii-section-title mt-2">Informations référence</div>
-                <div class="row">
-                    <div class="col-4 d-flex">
-                        {# TODO name the input #}
-                        {{ form.switch('is', 'Matériel hors format', false, [
-                            {label: 'Oui', value: '1'},
-                            {label: 'Non', value: '0'},
-                        ]) }}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {# TODO name the input #}
-                        {{ form.switch('is2', 'ADR', false, [
-                            {label: 'Oui', value: '1'},
-                            {label: 'Non', value: '0'},
-                        ]) }}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {# TODO name the input #}
-                        {{ form.input('jjj', 'Code fabriquant', false, null, {})}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('lenght', 'Longueur (cm)', false, null, {
-                            labelClass: 'w-100',
-                            type: 'number',
-                            min: 0,
-                        })}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('width', 'Largeur (cm)', false, null, {
-                            labelClass: 'w-100',
-                            type: 'number',
-                            min: 0,
-                        })}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('height', 'Hauteur (cm)', false, null, {
-                            labelClass: 'w-100',
-                            type: 'number',
-                            min: 0,
-                        })}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('size', 'Dimensions (Lxlxh cm)', false, null, {
-                            additionalAttributes: [{
-                                name :"disabled"
-                            }]
-                        })}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('volume', 'Volume (m3)', false, null, {
-                            additionalAttributes: [{
-                                name :"disabled"
-                            }]
-                        })}}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.input('weight', 'Poids (kg)', false, null, {
-                            type: 'number',
-                            min: 0,
-                        }) }}
-                    </div>
-                    <div class="col-4 d-flex">
-                        {{ form.select('TypeOfAssociatedDocuments', 'Type de documents associés', false, {
-                            multiple: true,
-                            type: null,
-                            items: [
-                                'FME',
-                                'JAM',
-                                'CC',
-                                'Autre',
-                            ],
-                        }) }}
-                    </div>
+                <div class="row mt-2">
+                    {{ referenceArticleMacros.descriptionForm( null, descriptionConfig, 4) }}
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                    {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), name: 'id', id: 'submitAddReference'}
+                    {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), id: 'submitAddReference'},
                 ],
             } %}
         </div>
     </div>
 </div>
+

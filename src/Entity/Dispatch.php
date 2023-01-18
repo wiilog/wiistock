@@ -570,9 +570,9 @@ class Dispatch extends StatusHistoryContainer {
         return $this;
     }
 
-    public function hasReferenceArticle() {
+    public function hasReferenceArticles() {
         return Stream::from($this->dispatchPacks)
-            ->some(fn(DispatchPack $dispatchPack) => count($dispatchPack->getReferenceArticles()) > 0
+            ->some(fn(DispatchPack $dispatchPack) => count($dispatchPack->getDispatchReferenceArticles()) > 0
         );
     }
 }

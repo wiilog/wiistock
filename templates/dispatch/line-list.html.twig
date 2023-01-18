@@ -5,8 +5,9 @@
 {% else %}
     {% for dispatchPack in dispatchPacks %}
         {% set pack = dispatchPack.pack ?? null %}
-        {% set references = dispatchPack.dispatchReferenceArticles ?? [] %}
-
+        {% dump(dispatchPack) %}
+        {% set references = dispatchPack.references ?? [] %}
+        {% dump(references) %}
         {% include 'pack/utils/packItemListTemplate.html.twig' with {
             header: pack
             ? {
@@ -27,7 +28,6 @@
                         ligneId: reference.id,
                         ligneArticleQuantity: reference.quantity,
                         dispatchId: dispatch.id,
-                        packFilter:  reference.quantityType,
                     }
                 )
             })),

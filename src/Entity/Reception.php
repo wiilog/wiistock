@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Traits\AttachmentTrait;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ReceptionRepository;
 use DateTime;
@@ -19,7 +19,7 @@ class Reception {
 
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
-    use CommentTrait;
+    use CleanedCommentTrait;
 
     const NUMBER_PREFIX = 'R';
     const STATUT_EN_ATTENTE = 'en attente de réception';

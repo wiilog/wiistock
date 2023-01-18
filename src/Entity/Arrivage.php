@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArrivageRepository;
 use DateTime;
@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ArrivageRepository::class)]
 class Arrivage {
 
-    use CommentTrait;
+    use CleanedCommentTrait;
     use FreeFieldsManagerTrait;
 
     #[ORM\Id]

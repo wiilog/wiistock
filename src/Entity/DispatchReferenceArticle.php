@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Traits\AttachmentTrait;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Repository\DispatchReferenceArticleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -14,8 +14,6 @@ use Doctrine\ORM\Mapping as ORM;
 class DispatchReferenceArticle
 {
     use AttachmentTrait;
-
-    use CommentTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -40,6 +38,9 @@ class DispatchReferenceArticle
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?ReferenceArticle $referenceArticle = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $comment = null;
 
     public function getId(): ?int
     {
@@ -114,6 +115,18 @@ class DispatchReferenceArticle
     public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
     {
         $this->referenceArticle = $referenceArticle;
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self
+    {
+        $this->comment = $comment;
 
         return $this;
     }

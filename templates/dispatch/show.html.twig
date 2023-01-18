@@ -359,7 +359,7 @@
                     </div>
 
                     <div class="p-3">
-                        {% if dispatch.hasReferenceArticle %}
+                        {% if dispatch.hasReferenceArticles %}
                             <div class="col-12 logistic-units-container wii-multiple-loading"
                                  data-loader-color="primary"
                                  data-loader-size="normal">
@@ -380,7 +380,7 @@
     {% include "dispatch/modalDeletePack.html.twig" %}
     {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
     {% include "dispatch/modalPrintWayBill.html.twig" %}
-    {% include "dispatch/modalAddReference.html.twig" %}
+    {% include "dispatch/modalAddReference.html.twig" with {descriptionConfig: descriptionFormConfig } %}
 {% endblock %}
 
 {% block javascripts %}
