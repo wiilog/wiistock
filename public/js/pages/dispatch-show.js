@@ -618,22 +618,48 @@ function refArticleChanged($select) {
     let $modalAddReference = $("#modalAddReference");
 
     if (selectedReference.length > 0) {
+        const $lengthInput = $modalAddReference.find("input[name=length]");
+        const $widthInput = $modalAddReference.find("input[name=width]");
+        const $heightInput = $modalAddReference.find("input[name=height]");
+
         const description = selectedReference[0]["description"] || [];
+
         $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"]}']`).prop('checked', true);
         $modalAddReference.find(`input[name=ADR][value='${description["ADR"]}']`).prop('checked', true);
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
-        $modalAddReference.find("[name=length]").val(description["length"]).attr("disabled", true);
-        $modalAddReference.find("[name=width]").val(description["width"]).attr("disabled", true);
-        $modalAddReference.find("[name=height]").val(description["height"]).attr("disabled", true);
-        $modalAddReference.find("[name=volume]").val(description["volume"]);
+        $lengthInput.val(description["length"]).attr("disabled", true);
+        $widthInput.val(description["width"]).attr("disabled", true);
+        $heightInput.val(description["height"]).attr("disabled", true);
         $modalAddReference.find("[name=weight]").val(description["weight"]);
         const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
         let $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
-        // delete all options
         $associatedDocumentTypesSelect.find('option').remove();
         associatedDocumentTypes.forEach(function (associatedDocumentType) {
             let newOption = new Option(associatedDocumentType, associatedDocumentType, true, true);
             $associatedDocumentTypesSelect.append(newOption);
         });
+
+        const volume = description["volume"];
+        const $sizeInputs = $modalAddReference.find(`input[name=length], input[name=width], input[name=height]`)
+        const $volumeInput = $modalAddReference.find(`input[name=volume]`);
+
+        if (volume) {
+            $volumeInput.val(volume);
+            $sizeInputs.attr('disabled', true);
+            $sizeInputs.off('input');
+        }
+        else {
+            $volumeInput.val(null);
+            $sizeInputs.attr('disabled', false);
+            $lengthInput.attr("disabled", false);
+            $sizeInputs.on(`input`, () => {
+                const length = $lengthInput.val();
+                const width = $widthInput.val();
+                const height = $heightInput.val();
+                if (length && width && height) {
+                    $volumeInput.val(length * width * height);
+                }
+            });
+        }
     }
 }
