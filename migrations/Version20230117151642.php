@@ -31,8 +31,11 @@ final class Version20230117151642 extends AbstractMigration
                     HAVING COUNT(*) > 1)
             ")->fetchAllAssociative();
 
-        foreach ($requests as $index=>$request) {
-            $this->addSql("UPDATE transport_request SET number = CONCAT(number, '-', {$index}) WHERE id = {$request['id']}");
+        foreach ($requests as $index => $request) {
+            $this->addSql("UPDATE transport_request SET number = CONCAT(number, '-', :index) WHERE id = :id", [
+                "index" => $index + 1,
+                "id" => $request['id']
+            ]);
         }
     }
 }
