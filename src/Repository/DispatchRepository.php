@@ -102,6 +102,20 @@ class DispatchRepository extends EntityRepository
                     $qb->andWhere('dispatch.destination LIKE :filter_destination_value')
                         ->setParameter("filter_destination_value", '%' . $filter['value'] . '%');
                     break;
+                case 'pickLocation':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('dispatch.locationFrom', 'filter_pick_location')
+                        ->andWhere("filter_pick_location.id in (:pickLocationId)")
+                        ->setParameter('pickLocationId', $value);
+                    break;
+                case 'dropLocation':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('dispatch.locationTo', 'filter_drop_location')
+                        ->andWhere("filter_drop_location.id in (:dropLocationId)")
+                        ->setParameter('dropLocationId', $value);
+                    break;
             }
         }
         if (!empty($params)) {
