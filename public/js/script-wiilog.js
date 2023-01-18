@@ -815,6 +815,8 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'statut':
                 case 'carriers':
                 case 'emplacement':
+                case 'pickLocation':
+                case 'dropLocation':
                 case 'demCollecte':
                 case 'disputeNumber':
                 case 'demande':

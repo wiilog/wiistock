@@ -1163,9 +1163,11 @@ class RefArticleDataService {
     public function getDescriptionConfig(EntityManagerInterface $entityManager): array {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
-        $associatedDocumentTypes = Stream::explode(',', $associatedDocumentTypesStr ?: '')
-            ->filter()
-            ->toArray();
+        $associatedDocumentTypes = $associatedDocumentTypesStr
+            ? Stream::explode(',', $associatedDocumentTypesStr)
+                ->filter()
+                ->toArray()
+            : [];
         return [
             "Matériel hors format" => [
                 "name" => "outFormatEquipment",
@@ -1185,31 +1187,31 @@ class RefArticleDataService {
             "Longueur (cm)" => [
                 "name" => "length",
                 "type" => "number",
+                "step" => "0.01",
                 "persisted" => true,
             ],
             "Largeur (cm)" => [
                 "name" => "width",
                 "type" => "number",
+                "step" => "0.01",
                 "persisted" => true,
             ],
             "Hauteur (cm)" => [
                 "name" => "height",
                 "type" => "number",
+                "step" => "0.01",
                 "persisted" => true,
-            ],
-            "Dimensions (Lxlxh cm)" => [
-                "name" => "size",
-                "type" => "text",
-                "persisted" => false,
             ],
             "Volume (m3)" => [
                 "name" => "volume",
                 "type" => "number",
-                "persisted" => false,
+                "step" => "0.000001",
+                "persisted" => true,
             ],
             "Poids (kg)" => [
                 "name" => "weight",
                 "type" => "number",
+                "step" => "0.01",
                 "persisted" => true,
             ],
             "Types de documents associés" => [

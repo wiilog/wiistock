@@ -48,7 +48,6 @@ class FilterSupService
             foreach ($filters as $index => $filter) {
                 if (isset($translations[$filter['value']])) {
                     $filters[$index]['value'] = $translations[$filter['value']];
-                    $filters[$index]['value'] = $translations[$filter['value']];
                 }
             }
         }

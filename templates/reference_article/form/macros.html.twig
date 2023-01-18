@@ -1,0 +1,87 @@
+{% macro supplier_article_line(reference, line, editable = false, index = 0) %}
+    <div class="ligneFournisseurArticle"
+         data-multiple-key="frl"
+         data-multiple-object-index="{{ index }}">
+        <div class="row">
+            <div class="form-group col-md-6 col-12">
+                <label class="wii-field-name">Nom fournisseur*</label>
+                <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierLabel"
+                        onchange="loadAndDisplayLabels($(this))"
+                        name="fournisseurLabel">
+                    {% if line and line.fournisseur %}
+                        <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.nom }}</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="form-group col-md-6 col-12">
+                <label class="wii-field-name">Code fournisseur*</label>
+                <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierCode"
+                        onchange="loadAndDisplayInfos($(this))"
+                        name="fournisseur">
+                    {% if line and line.fournisseur %}
+                        <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.codeReference }}</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="form-group col-md-6 col-12">
+                <label class="wii-field-name">Ref article fournisseur*</label>
+                <input class="form-control data w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
+                       name="referenceFournisseur" value="{{ line ? line.reference }}">
+            </div>
+            <div class="form-group col-md-6 col-12">
+                <label class="wii-field-name">Libellé*</label>
+                <input class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
+                       name="labelFournisseur" value="{{ line ? line.label }}">
+            </div>
+        </div>
+        {% if index > 0 %}
+            <span class="delete-supplier-article">Supprimer l'article fournisseur</span>
+        {% endif %}
+        <hr>
+    </div>
+{% endmacro %}
+
+{% macro descriptionForm(description, descriptionConfig, col = 6) %}
+    {% for field, attributes in descriptionConfig %}
+        {% set name = attributes.name %}
+        <div class="col-{{ col }} d-flex flex-column mb-2">
+            <label class="wii-field-name">{{ field }}</label>
+            {% if attributes.type in ['text', 'number'] %}
+                <input type="{{ attributes.type }}"
+                       class="form-control {{ attributes.persisted ? "data" }}"
+                       name="{{ name }}"
+                       value="{{ attributes.persisted ? (description[name] ?? '') }}"
+                       {% if attributes.step is defined %}step="{{ attributes.step }}"{% endif %}>
+            {% elseif attributes.type == 'bool' %}
+                <div class="wii-switch w-fit-content" data-title="{{ field }}">
+                    <input type="radio"
+                           name="{{ name }}"
+                           value="0"
+                           content="Non"
+                           data-title="non"
+                        {{ (attributes.persisted and description[name] is defined and description[name] == '0') ? 'checked' }}>
+                    <input type="radio"
+                           name="{{ name }}"
+                           value="1"
+                           content="Oui"
+                           data-title="oui"
+                        {{ (attributes.persisted and description[name] is defined and description[name] == '1') ? 'checked' }}>
+                </div>
+            {% elseif attributes.type == 'select-free' %}
+                {% set values = attributes.values ?? [] %}
+                {% set selectedValues = description[name] is defined and description[name]
+                    ? (description[name]|split(','))
+                    : [] %}
+                <select name="{{ name }}"
+                        class="form-control {{ attributes.persisted ? "data" }} w-100"
+                        data-s2
+                        multiple
+                        data-default-values="{{ selectedValues|join(',') }}">
+                    {% for value in values %}
+                        <option value="{{ value }}" {{ attributes.persisted and value in selectedValues ? "selected" }}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% endmacro %}
