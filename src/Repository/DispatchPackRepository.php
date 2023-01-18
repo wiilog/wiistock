@@ -68,7 +68,7 @@ class DispatchPackRepository extends EntityRepository {
             ->addSelect('join_dispatchReferenceArticle.batchNumber AS batchNumber')
             ->addSelect('join_dispatchReferenceArticle.sealingNumber AS sealingNumber')
             ->addSelect('join_dispatchReferenceArticle.serialNumber AS serialNumber')
-            ->addSelect('join_dispatchReferenceArticle.cleanedComment AS cleaned_comment')
+            ->addSelect('join_dispatchReferenceArticle.comment AS comment')
             ->addSelect('join_referenceArticle.description AS description')
             //->addSelect('join_dispatchReferenceArticle.attachments AS attachments')
 
@@ -139,7 +139,7 @@ class DispatchPackRepository extends EntityRepository {
                             "weight" => $reference["description"] ? $reference["description"]["weight"] : '',
                             "ADR" => $reference["description"] ? $reference["description"]["ADR"] : '',
                             "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] : '',
-                            "cleaned_comment" => $reference["cleaned_comment"],
+                            "comment" => $reference["comment"],
                             //"attachments" => $reference["attachments"],
                         ]
                             : null

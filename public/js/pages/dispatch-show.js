@@ -517,11 +517,9 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                 .json()
                 .then(data => {
                     $logisticUnitsContainer.html(data.html);
-                    console.log($logisticUnitsContainer.find('.reference-articles-container table'));
                     $logisticUnitsContainer.find('.reference-articles-container table')
                         .each(function() {
                             const $table = $(this);
-                            console.log($table);
                             initDataTable($table, {
                                 serverSide: false,
                                 ordering: true,
@@ -542,7 +540,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     {data: 'weight', title: 'Poids (kg)'},
                                     {data: 'ADR', title: 'ADR'},
                                     {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
-                                    {data: 'cleaned_comment', title: 'Commentaire'},
+                                    {data: 'comment', title: 'Commentaire'},
                                 ],
                                 domConfig: {
                                     removeInfo: true,
@@ -555,7 +553,6 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     needsColor: true,
                                 },
                             });
-                            console.log($table);
                         });
 
                     $logisticUnitsContainer
@@ -604,27 +601,26 @@ function initAddReferenceEditor(modal, options = {}) {
 }
 
 function refArticleChanged($select) {
-    // const $modal = $select.closest(`.modal`);
-    // if(!$select.data(`select2`)) {
-    //     return;
-    // }
-    //
-    // const selectedReference = $select.select2(`data`);
-    // let $modalAddReference = $("#modalAddReference");
-    // let $addRefLigneSubmit = $modalAddReference.find("[type=submit]");
-    //
-    // if (selectedReference.length > 0) {
-    //     const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
-    //
-    //     $addRefLigneSubmit.prop(`disabled`, false);
-    //     $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantity !== `article`)
-    //
-    // }
-    // else {
-    //     $addArticleAndRedirectSubmit.addClass(`d-none`);
-    //     $addArticleLigneSubmit.prop(`disabled`, true);
-    //     $modal.find(`.body-add-ref`)
-    //         .addClass(`d-none`)
-    //         .removeClass(`d-flex`);
-    // }
+    if (!$select.data(`select2`)) {
+        return;
+    }
+
+    const selectedReference = $select.select2(`data`);
+    let $modalAddReference = $("#modalAddReference");
+
+    if (selectedReference.length > 0) {
+        const description = selectedReference[0]["description"];
+
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"]}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=ADR][value='${description["ADR"]}']`).prop('checked', true);
+        $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
+        $modalAddReference.find("[name=length]").val(description["length"]).attr("disabled", true);
+        $modalAddReference.find("[name=width]").val(description["width"]).attr("disabled", true);
+        $modalAddReference.find("[name=height]").val(description["height"]).attr("disabled", true);
+        $modalAddReference.find("[name=volume]").val(description["volume"]);
+        $modalAddReference.find("[name=weight]").val(description["weight"]);
+        $modalAddReference.find("[name=associatedDocumentTypes]").val(description["associatedDocumentTypes"]);
+
+
+    }
 }
