@@ -1623,7 +1623,7 @@ class DispatchController extends AbstractController {
                                  EntityManagerInterface $entityManager,
                                  DispatchService $dispatchService): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request->all();
 
 
         return $dispatchService->createDispatchReferenceArticle($entityManager, $data);

@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
