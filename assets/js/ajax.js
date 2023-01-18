@@ -12,6 +12,13 @@ export default class AJAX {
     url;
     params;
 
+    static GET = GET;
+    static POST = POST;
+    static PUT = PUT;
+    static PATCH = PATCH;
+    static DELETE = DELETE;
+
+
     static route(method, route, params = {}) {
         const ajax = new AJAX();
         ajax.method = method;

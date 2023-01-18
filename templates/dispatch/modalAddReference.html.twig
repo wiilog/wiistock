@@ -16,7 +16,11 @@
                         {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
                         <div class="{{ hasRightToCreate ? "col-8" : "col-12" }}">
                             {{ form.select('reference', 'Référence', true, {
-                                type: 'referenceType',
+                                type: 'reference',
+                                additionalAttributes: [{
+                                    name :"onchange",
+                                    value: "refArticleChanged($(this))",
+                                }]
                             }) }}
                         </div>
                         {% if hasRightToCreate %}
@@ -59,7 +63,7 @@
                         {{ form.input('series', 'N° de série', false, null, {})}}
                     </div>
                     <div class="col-8 mt-2">
-                        {{ form.wysiwyg('comment', 'Commentaire', false, null, {})}}
+                        {{ form.wysiwyg('comment', 'Commentaire', false)}}
                     </div>
                     <div class="col-4 d-flex mt-3">
                         {% include 'attachment/attachment.html.twig' with {
@@ -71,13 +75,13 @@
                 </div>
                 <div class="wii-section-title mt-2">Informations référence</div>
                 <div class="row mt-2">
-                    {{ referenceArticleMacros.descriptionForm( null, descriptionConfig, 4) }}
+                    {{ referenceArticleMacros.descriptionForm(description ?? null, descriptionConfig, 4) }}
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                    {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), id: 'submitAddReference'},
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
                 ],
             } %}
         </div>

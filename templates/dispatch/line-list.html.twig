@@ -5,9 +5,8 @@
 {% else %}
     {% for dispatchPack in dispatchPacks %}
         {% set pack = dispatchPack.pack ?? null %}
-        {% dump(dispatchPack) %}
         {% set references = dispatchPack.references ?? [] %}
-        {% dump(references) %}
+
         {% include 'pack/utils/packItemListTemplate.html.twig' with {
             header: pack
             ? {

@@ -63,9 +63,18 @@ $(function() {
     });
 
     let $modalAddReference = $('#modalAddReference');
-    let $submitAddReference = $modalAddReference.find('#submitAddReference');
-    let urlAddReference = Routing.generate('dispatch_add_reference', true);
-    InitModal($modalAddReference, $submitAddReference, urlAddReference, {});
+    Form.create($modalAddReference).onSubmit((data, form) => {
+        form.loading(() => {
+            return AJAX
+                .route(AJAX.POST, `dispatch_add_reference`)
+                .json(data)
+                .then((response) => {
+                    if(response.success) {
+                        $modalAddReference.modal('hide');
+                    }
+                })
+        });
+    });
 
 
     const queryParams = GetRequestQuery();
@@ -517,11 +526,9 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                 .json()
                 .then(data => {
                     $logisticUnitsContainer.html(data.html);
-                    console.log($logisticUnitsContainer.find('.reference-articles-container table'));
                     $logisticUnitsContainer.find('.reference-articles-container table')
                         .each(function() {
                             const $table = $(this);
-                            console.log($table);
                             initDataTable($table, {
                                 serverSide: false,
                                 ordering: true,
@@ -542,7 +549,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     {data: 'weight', title: 'Poids (kg)'},
                                     {data: 'ADR', title: 'ADR'},
                                     {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
-                                    {data: 'cleaned_comment', title: 'Commentaire'},
+                                    {data: 'comment', title: 'Commentaire'},
                                 ],
                                 domConfig: {
                                     removeInfo: true,
@@ -555,7 +562,6 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     needsColor: true,
                                 },
                             });
-                            console.log($table);
                         });
 
                     $logisticUnitsContainer
@@ -604,27 +610,56 @@ function initAddReferenceEditor(modal, options = {}) {
 }
 
 function refArticleChanged($select) {
-    // const $modal = $select.closest(`.modal`);
-    // if(!$select.data(`select2`)) {
-    //     return;
-    // }
-    //
-    // const selectedReference = $select.select2(`data`);
-    // let $modalAddReference = $("#modalAddReference");
-    // let $addRefLigneSubmit = $modalAddReference.find("[type=submit]");
-    //
-    // if (selectedReference.length > 0) {
-    //     const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
-    //
-    //     $addRefLigneSubmit.prop(`disabled`, false);
-    //     $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantity !== `article`)
-    //
-    // }
-    // else {
-    //     $addArticleAndRedirectSubmit.addClass(`d-none`);
-    //     $addArticleLigneSubmit.prop(`disabled`, true);
-    //     $modal.find(`.body-add-ref`)
-    //         .addClass(`d-none`)
-    //         .removeClass(`d-flex`);
-    // }
+    if (!$select.data(`select2`)) {
+        return;
+    }
+
+    const selectedReference = $select.select2(`data`);
+    let $modalAddReference = $("#modalAddReference");
+
+    if (selectedReference.length > 0) {
+        const $lengthInput = $modalAddReference.find("input[name=length]");
+        const $widthInput = $modalAddReference.find("input[name=width]");
+        const $heightInput = $modalAddReference.find("input[name=height]");
+
+        const description = selectedReference[0]["description"] || [];
+
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"]}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=ADR][value='${description["ADR"]}']`).prop('checked', true);
+        $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
+        $lengthInput.val(description["length"]).attr("disabled", true);
+        $widthInput.val(description["width"]).attr("disabled", true);
+        $heightInput.val(description["height"]).attr("disabled", true);
+        $modalAddReference.find("[name=weight]").val(description["weight"]);
+        const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
+        let $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
+        $associatedDocumentTypesSelect.find('option').remove();
+        associatedDocumentTypes.forEach(function (associatedDocumentType) {
+            let newOption = new Option(associatedDocumentType, associatedDocumentType, true, true);
+            $associatedDocumentTypesSelect.append(newOption);
+        });
+
+        const volume = description["volume"];
+        const $sizeInputs = $modalAddReference.find(`input[name=length], input[name=width], input[name=height]`)
+        const $volumeInput = $modalAddReference.find(`input[name=volume]`);
+
+        if (volume) {
+            $volumeInput.val(volume);
+            $sizeInputs.attr('disabled', true);
+            $sizeInputs.off('input');
+        }
+        else {
+            $volumeInput.val(null);
+            $sizeInputs.attr('disabled', false);
+            $lengthInput.attr("disabled", false);
+            $sizeInputs.on(`input`, () => {
+                const length = $lengthInput.val();
+                const width = $widthInput.val();
+                const height = $heightInput.val();
+                if (length && width && height) {
+                    $volumeInput.val(length * width * height);
+                }
+            });
+        }
+    }
 }
