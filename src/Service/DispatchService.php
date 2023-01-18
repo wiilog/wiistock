@@ -459,6 +459,7 @@ class DispatchService {
                 $receiverEmailUses[] = $dispatch->getLocationTo()->getEmail();
                 $receiverEmailUses[] = $signatory;
                 $receiverEmailUses = Stream::from($receiverEmailUses)->filter()->toArray();
+                // TODO WIIS-8832 ajouter les emails du nouveau champ sur les ache nomade
             }
 
             $partialDispatch = !(
@@ -1078,9 +1079,9 @@ class DispatchService {
         $variables = [
             "numach" => $dispatch->getNumber(),
             "qrcodenumach" => $dispatch->getNumber(),
-            "statutach" => $dispatch->getStatut()->getCode(),
-            "emppriseach" => $dispatch->getLocationFrom()->getLabel(),
-            "empdeposeach" => $dispatch->getLocationTo()->getLabel(),
+            "statutach" => $this->formatService->status($dispatch->getStatut()),
+            "emppriseach" => $this->formatService->location($dispatch->getLocationFrom()),
+            "empdeposeach" => $this->formatService->location($dispatch->getLocationTo()),
             "typeach" => $this->formatService->type($dispatch->getType()),
             "transporteurach" => $this->formatService->carriers([$dispatch->getType()]),
             "numtracktransach" => $dispatch->getCarrierTrackingNumber() ?: '',
@@ -1095,7 +1096,8 @@ class DispatchService {
             "date1ach" => $this->formatService->date($dispatch->getStartDate()),
             "date2ach" => $this->formatService->date($dispatch->getEndDate()),
             "urgenceach" => $dispatch->getEmergency(),
-            "commentaireach" => $dispatch->getCommentaire(),
+            // keep line breaking in docx
+            "commentaireach" => $this->formatService->html(str_replace("<br/>", "\n", $dispatch->getCommentaire())),
             "datestatutach" => $this->formatService->date($dispatch->getTreatmentDate()),
         ];
 
@@ -1119,7 +1121,8 @@ class DispatchService {
                     "documentsref" => $description['associatedDocumentTypes'] ?? '',
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
                     "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null),
-                    "commentaireref" => $dispatchReferenceArticle->getComment(),
+                    // keep line breaking in docx
+                    "commentaireref" => $this->formatService->html(str_replace("<br/>", "\n", $dispatchReferenceArticle->getComment())),
                 ];
             })
             ->toArray();
