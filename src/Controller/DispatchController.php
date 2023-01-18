@@ -963,7 +963,7 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/{dispatch}/rollback-draft", name="rollback_draft", methods="GET")z
+     * @Route("/{dispatch}/rollback-draft", name="rollback_draft", methods="GET")
      */
     public function rollbackToDraftStatus(EntityManagerInterface $entityManager,
                                           Dispatch $dispatch,
