@@ -618,8 +618,7 @@ function refArticleChanged($select) {
     let $modalAddReference = $("#modalAddReference");
 
     if (selectedReference.length > 0) {
-        const description = selectedReference[0]["description"];
-
+        const description = selectedReference[0]["description"] || [];
         $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"]}']`).prop('checked', true);
         $modalAddReference.find(`input[name=ADR][value='${description["ADR"]}']`).prop('checked', true);
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
@@ -628,16 +627,13 @@ function refArticleChanged($select) {
         $modalAddReference.find("[name=height]").val(description["height"]).attr("disabled", true);
         $modalAddReference.find("[name=volume]").val(description["volume"]);
         $modalAddReference.find("[name=weight]").val(description["weight"]);
-        const associatedDocumentTypes = description["associatedDocumentTypes"].length === 2
-            ? []
-            : description["associatedDocumentTypes"]
-                .substring(2, description["associatedDocumentTypes"].length-2)
-                .split(',');
-        if (associatedDocumentTypes.length > 0 ) {
-            for (const associatedDocumentType in associatedDocumentTypes) {
-                let newOption = new Option(associatedDocumentType, associatedDocumentType, true, true);
-                $modalAddReference.find("[name=associatedDocumentTypes]").append(newOption);
-            }
-        }
+        const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
+        let $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
+        // delete all options
+        $associatedDocumentTypesSelect.find('option').remove();
+        associatedDocumentTypes.forEach(function (associatedDocumentType) {
+            let newOption = new Option(associatedDocumentType, associatedDocumentType, true, true);
+            $associatedDocumentTypesSelect.append(newOption);
+        });
     }
 }
