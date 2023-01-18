@@ -1624,10 +1624,16 @@ class DispatchController extends AbstractController {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
+        $location = $locationRepository->find($request->query->get('location'));
         $signatory = $data['signatoryTrigram'] ? $userRepository->find($data['signatoryTrigram']) : null;
         if(!$signatory || !password_verify($data['signatoryPassword'], $signatory->getSignatoryPassword())){
             throw new FormException("Code signataire invalide");
+        }
+
+        if(!$location->getSignatory() && $location->getSignatory() !== $signatory){
+            throw new FormException("Votre emplacement de prise n'a pas de signataire renseigné ou le signataire renseignée n'es pas correct.");
         }
 
         $dispatchsToSignIds = $request->query->all('dispatchsToSign');

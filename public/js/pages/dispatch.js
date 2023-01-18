@@ -90,8 +90,15 @@ $(function() {
                     let $modalGroupedSignature = $("#modalGroupedSignature");
                     $modalGroupedSignature.modal(`show`);
 
+                    const pickLocationFilterValue = $(`.filters-container select[name=pickLocation]`).val();
+                    const dropLocationFilterValue = $(`.filters-container select[name=dropLocation]`).val();
+                    let location = pickLocationFilterValue !== null
+                        ? pickLocationFilterValue
+                        : (dropLocationFilterValue !== null
+                            ? dropLocationFilterValue
+                            : '');
                     let $submitGroupedSignature = $("#submitGroupedSignature");
-                    let urlGroupedSignature = Routing.generate('finish_grouped_signature', {dispatchsToSign}, true);
+                    let urlGroupedSignature = Routing.generate('finish_grouped_signature', {dispatchsToSign, location}, true);
                     InitModal($modalGroupedSignature, $submitGroupedSignature, urlGroupedSignature);
                     displayCommentNeededAttributes($modalGroupedSignature.find('select[name=status]'));
                 }).catch(() => {
