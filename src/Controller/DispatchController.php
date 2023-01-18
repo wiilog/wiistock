@@ -9,6 +9,7 @@ use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\DispatchReferenceArticle;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -29,6 +30,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
+use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\VisibleColumnService;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -411,7 +413,8 @@ class DispatchController extends AbstractController {
                          DispatchService $dispatchService,
                          RedirectService $redirectService,
                          UserService $userService,
-                         bool $printBL) {
+                         bool $printBL,
+                         RefArticleDataService $refArticleDataService) {
 
         $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -439,7 +442,8 @@ class DispatchController extends AbstractController {
             'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
             'fieldsParam' => $fieldsParam,
-            'freeFields' => $freeFields
+            'freeFields' => $freeFields,
+            "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager),
         ]);
     }
 
@@ -1557,7 +1561,8 @@ class DispatchController extends AbstractController {
     #[Route("/{id}/status-history-api", name: "dispatch_status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(int $id,
                                      EntityManagerInterface $entityManager,
-                                     LanguageService $languageService): JsonResponse {
+                                     LanguageService $languageService): JsonResponse
+    {
         $dispatch = $entityManager->find(Dispatch::class, $id);
         $user = $this->getUser();
         return $this->json([
@@ -1576,5 +1581,51 @@ class DispatchController extends AbstractController {
                 "dispatch" => $dispatch,
             ]),
         ]);
+    }
+
+    #[Route("/{dispatch}/dispatch-packs-api", name: "dispatch_packs_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
+    public function getDispatchPacksApi(EntityManagerInterface  $entityManager,
+                                         Dispatch               $dispatch,
+                                         Request                $request): JsonResponse {
+
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+
+        $dispatchPacks = $dispatch->getDispatchPacks();
+
+        $start = $request->query->get('start') ?: 0;
+        $search = $request->query->get('search') ?: 0;
+
+        $listLength = 5;
+
+        $result = $dispatchPackRepository->getByDispatch($dispatch, [
+            "start" => $start,
+            "length" => $listLength,
+            "search" => $search,
+        ]);
+
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("dispatch/line-list.html.twig", [
+                "dispatch" => $dispatch,
+                "dispatchPacks" => $result["data"],
+                "total" => $result["total"],
+                "current" => $start,
+                "currentPage" => floor($start / $listLength),
+                "pageLength" => $listLength,
+                "pagesCount" => ceil($result["total"] / $listLength),
+            ]),
+        ]);
+    }
+
+    #[Route("/add-reference", name:"dispatch_add_reference", options: ['expose' => true], methods: "POST")]
+    public function addReference(Request $request,
+                                 EntityManagerInterface $entityManager,
+                                 DispatchService $dispatchService): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+
+        return $dispatchService->createDispatchReferenceArticle($entityManager, $data);
     }
 }

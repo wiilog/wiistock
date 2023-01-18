@@ -1,0 +1,80 @@
+{% set header = header ?? null %}
+{% set content = content ?? null %}
+
+{% macro dataAttributes(data) %}
+    {% for key, value in data %}
+        data-{{ key }}="{{ value }}"
+    {% endfor %}
+{% endmacro %}
+
+<div class="logistic-unit-wrapper"
+    {{ _self.dataAttributes(data ?? []) }}>
+    <table>
+        {% if header %}
+            {% set sideLabel = header.sideLabel ?? '' %}
+            <tr class="ul"
+                style="--row-color: {{ header.color ?? 'var(--primary)' }};"
+                {{ _self.dataAttributes(header.data ?? []) }}>
+                <td class="side-unit-label">
+                    <div title="{{ sideLabel }}">{{ sideLabel }}</div>
+                </td>
+                <td>
+                    <div class="col-12 h-100">
+                        <div class="main-ul-data row {{ header.classes ?? '' }}" onclick="{{ header.actionOnClick ?? null }}"
+                             data-logistic-unit-id="{{ header.data['pack-id'] }}">
+                            {% set headerLength = header.content|length %}
+                            {% for item in header.content %}
+                                {% if not item['actions'] ?? false %}
+                                    <div class="col d-flex"
+                                        {# TODO NECESSAIRE ? #}
+                                        {#style="flex: 0 0 {{ 100 / headerLength }}%; max-width: {{ 100 / headerLength }}%;"#}>
+                                        {% if item.icon is defined %}
+                                            <div class="mr-2">
+                                                <i class="wii-icon wii-icon-{{ item.icon }} wii-icon-15px"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="d-flex h-100 align-items-start text-break flex-column">
+                                            <div class="wii-body-text flex-fill {{ item.bold == 'label' ? 'font-weight-bold' : 'font-weight-normal' }}">{{ item.label }}</div>
+                                            <div class="wii-label flex-fill {{ item.bold == 'value' ? 'font-weight-bold' : 'font-weight-normal' }}">{{ item.value }}</div>
+                                        </div>
+                                    </div>
+                                {% else %}
+{#                                    TODO: faire attention au merge avec terega : décommenter cette partie#}
+{#                                    <div class="col d-flex no-action-click" style="flex: 0 0 5%;">#}
+{#                                        {% include "utils/action-buttons/dropdown.html.twig" with {#}
+{#                                            actions: item['actions']#}
+{#                                        } %}#}
+{#                                    </div>#}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </td>
+                {% if action is defined and action['onclick'] ?? false %}
+                    <td>
+                        <button type="button"
+                                data-toggle="modal"
+                                {% if action.datatarget ?? false %}data-target="{{ action.datatarget }}"{% endif %}
+                                class="btn btn-outline-primary ml-2 h-100 p-1"
+                                onclick="{{ action.onclick }}">
+                            <i class="{{ action.icon }}"></i>
+                        </button>
+                    </td>
+                {% endif %}
+            </tr>
+        {% endif %}
+        {% if content|length > 0 %}
+            <tr class="reference-articles-container">
+                <td></td>
+                <td style="font-size: 1em;">
+                    <div class="reference-articles-wrapper {{ header ? 'sub-reference-articles-wrapper' }}">
+                        {% dump({data: content}|json_encode) %}
+                        <table class="table w-100"
+                               data-initial-data="{{ {data: content}|json_encode }}"></table>
+                    </div>
+                </td>
+                <td></td>
+            </tr>
+        {% endif %}
+    </table>
+</div>

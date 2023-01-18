@@ -4,6 +4,7 @@ $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
+    loadDispatchReferenceArticle();
     getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, isEdit);
 
@@ -61,6 +62,12 @@ $(function() {
         validator: forbiddenPhoneNumberValidator,
     });
 
+    let $modalAddReference = $('#modalAddReference');
+    let $submitAddReference = $modalAddReference.find('#submitAddReference');
+    let urlAddReference = Routing.generate('dispatch_add_reference', true);
+    InitModal($modalAddReference, $submitAddReference, urlAddReference, {});
+
+
     const queryParams = GetRequestQuery();
     const {'print-delivery-note': printDeliveryNote} = queryParams;
     if(Number(printDeliveryNote)) {
@@ -115,6 +122,15 @@ function forbiddenPhoneNumberValidator($modal) {
 
 function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch';
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
+
+    $modal.modal('show');
+}
+
+function openAddReferenceModal() {
+    const modalSelector = '#modalAddReference';
     const $modal = $(modalSelector);
 
     clearModal(modalSelector);
@@ -479,4 +495,136 @@ function getStatusHistory(id) {
             const $statusHistoryContainer = $(`.status-history-container`);
             $statusHistoryContainer.html(template);
         });
+}
+
+function loadDispatchReferenceArticle({start, search} = {}) {
+    start = start || 0;
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const dispatch = $('#dispatchId').val();
+
+    const params = {dispatch, start};
+    if (search) {
+        params.search = search;
+    }
+    else {
+        clearPackListSearching();
+    }
+
+    wrapLoadingOnActionButton(
+        $logisticUnitsContainer,
+        () => (
+            AJAX.route('GET', 'dispatch_packs_api', params)
+                .json()
+                .then(data => {
+                    $logisticUnitsContainer.html(data.html);
+                    console.log($logisticUnitsContainer.find('.reference-articles-container table'));
+                    $logisticUnitsContainer.find('.reference-articles-container table')
+                        .each(function() {
+                            const $table = $(this);
+                            console.log($table);
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                order: [['reference', "desc"]],
+                                columns: [
+                                    {data: 'actions', className: 'noVis hideOrder', orderable: false},
+                                    {data: 'reference', title: 'Référence'},
+                                    {data: 'quantity', title: 'Quantité'},
+                                    {data: 'batchNumber', title: 'N° de lot'},
+                                    {data: 'manufacturerCode', title: 'Code fabriquant'},
+                                    {data: 'sealingNumber', title: 'N° de plombage / scellée'},
+                                    {data: 'serialNumber', title: 'N° de série'},
+                                    {data: 'length', title: 'Longueur'},
+                                    {data: 'width', title: 'Largeur'},
+                                    {data: 'volume', title: 'Volume (m3)'},
+                                    {data: 'weight', title: 'Poids (kg)'},
+                                    {data: 'ADR', title: 'ADR'},
+                                    {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
+                                    {data: 'cleaned_comment', title: 'Commentaire'},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                    needsPaginationRemoval: true,
+                                    removeLength: true,
+                                    removeTableHeader: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                    needsColor: true,
+                                },
+                            });
+                            console.log($table);
+                        });
+
+                    $logisticUnitsContainer
+                        .find('.paginate_button:not(.disabled)')
+                        .on('click', function() {
+                            const $button = $(this);
+                            loadDispatchReferenceArticle({
+                                start: $button.data('page'),
+                                search: search
+                            });
+                        });
+                })
+        )
+    )
+}
+
+function launchPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+
+    $searchInput.on('input', function () {
+        const $input = $(this);
+        const referenceArticleSearch = $input.val();
+        loadReceptionLines({search: referenceArticleSearch});
+    });
+}
+
+function clearPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+    $searchInput.val(null);
+}
+
+function initAddReferenceEditor(modal, options = {}) {
+    const $modal = $(modal);
+    clearModal(modal);
+
+    if (options['unitCode'] && options['unitId']) {
+        let $selectUl = $modal.find('[name="pack"]');
+        $selectUl.append(new Option(options['unitCode'], options['unitId'], true, true)).trigger('change');
+    }
+}
+
+function refArticleChanged($select) {
+    // const $modal = $select.closest(`.modal`);
+    // if(!$select.data(`select2`)) {
+    //     return;
+    // }
+    //
+    // const selectedReference = $select.select2(`data`);
+    // let $modalAddReference = $("#modalAddReference");
+    // let $addRefLigneSubmit = $modalAddReference.find("[type=submit]");
+    //
+    // if (selectedReference.length > 0) {
+    //     const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
+    //
+    //     $addRefLigneSubmit.prop(`disabled`, false);
+    //     $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantity !== `article`)
+    //
+    // }
+    // else {
+    //     $addArticleAndRedirectSubmit.addClass(`d-none`);
+    //     $addArticleLigneSubmit.prop(`disabled`, true);
+    //     $modal.find(`.body-add-ref`)
+    //         .addClass(`d-none`)
+    //         .removeClass(`d-flex`);
+    // }
 }
