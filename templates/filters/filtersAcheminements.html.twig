@@ -39,14 +39,14 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterLocation.html.twig' with {
             name: 'pickLocation',
-            id: 'pickLocation'
+            removeId: true,
         } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterLocation.html.twig' with {
             name: 'dropLocation',
-            id: 'dropLocation'
+            removeId: true,
         } %}
     {% endif %}
 {% endblock %}

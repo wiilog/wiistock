@@ -12,8 +12,8 @@ $(function() {
     Select2Old.initFree(filtersContainer.find('.filter-select2[name="commandList"]'), Translation.of('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false));
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), Translation.of('Demande', 'Général', 'Destinataire(s)', false));
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), Translation.of('Demande', 'Général', 'Demandeurs', false));
-    Select2Old.location($('#pickLocation'), {}, Translation.of('Demande', 'Acheminements', 'Champs fixes','Emplacement de prise', false));
-    Select2Old.location($('#dropLocation'), {}, Translation.of('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false));
+    Select2Old.location(filtersContainer.find('[name=pickLocation]'), {}, Translation.of('Demande', 'Acheminements', 'Champs fixes','Emplacement de prise', false));
+    Select2Old.location(filtersContainer.find('[name=dropLocation]'), {}, Translation.of('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false));
     const $userFormat = $('#userDateFormat');
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
