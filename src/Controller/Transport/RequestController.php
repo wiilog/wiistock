@@ -38,6 +38,7 @@ use App\Service\StatusHistoryService;
 use App\Service\StringService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UserService;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Utilisateur;
@@ -292,7 +293,16 @@ class RequestController extends AbstractController {
             ";
         }
 
-        $entityManager->flush();
+        try {
+            $entityManager->flush();
+        }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (UniqueConstraintViolationException) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Une autre demande de transport est en cours de création, veuillez réessayer'
+            ]);
+        }
 
         return $this->json([
             "success" => true,

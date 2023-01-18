@@ -435,7 +435,7 @@ class DispatchService {
                         return !$dispatchPack->isTreated();
                     })
                     ->isEmpty()
-            );
+            ) || $status->isPartial();
 
             $translatedTitle = $partialDispatch
                 ? 'Acheminement {1} traité partiellement le {2}'
@@ -507,7 +507,7 @@ class DispatchService {
             ->setStatut($treatedStatus)
             ->setTreatmentDate($date)
             ->setTreatedBy($loggedUser);
-
+        $parsedPacks = [];
         foreach ($dispatchPacks as $dispatchPack) {
             if (!$dispatchPack->isTreated()
                 && (
@@ -551,17 +551,14 @@ class DispatchService {
                 $entityManager->persist($trackingDrop);
 
                 $dispatchPack->setTreated(true);
+                $parsedPacks[] = $pack;
             }
         }
         $entityManager->flush();
 
         $this->sendEmailsAccordingToStatus($dispatch, true);
 
-        $packs = Stream::from($dispatch->getDispatchPacks())
-            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
-            ->toArray();
-
-        foreach ($packs as $pack) {
+        foreach ($parsedPacks as $pack) {
             $this->arrivalService->sendMailForDeliveredPack($dispatch->getLocationTo(), $pack, $loggedUser, TrackingMovement::TYPE_DEPOSE, $date);
         }
     }
@@ -1020,17 +1017,19 @@ class DispatchService {
                     /** @var DispatchPack $firstDispatchPack */
                     $firstDispatchPack = $dispatchPacks[0];
                     $arrival = $firstDispatchPack->getPack()->getArrivage();
+                    $numeroCommandeArrivage = Stream::from($arrival->getNumeroCommandeList())->join("\n");
                     return [
                         "numarrivage" => $arrival->getNumeroArrivage(),
-                        "numcommandearrivage" => Stream::from($arrival->getNumeroCommandeList())->join("\n"),
+                        "numcommandearrivage" => $numeroCommandeArrivage,
                         "tableauULarrivage" => [
-                            ["Unité de tracking", "Nature", "Quantité", "Poids"],
+                            ["Unité de tracking", "Nature", "Quantité", "Poids", "Numero commande arrivage"],
                             ...Stream::from($dispatchPacks)
                                 ->map(fn(DispatchPack $dispatchPack) => [
                                     $dispatchPack->getPack()->getCode(),
                                     $this->formatService->nature($dispatchPack->getPack()->getNature()),
                                     $dispatchPack->getQuantity(),
                                     $this->formatService->decimal($dispatchPack->getPack()->getWeight(), [], '-'),
+                                    $numeroCommandeArrivage,
                                 ])
                                 ->toArray()
                         ]

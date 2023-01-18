@@ -342,7 +342,7 @@ class Setting {
             "Champs de l'arrivage de provenance des unités logistiques" => [
                 "numarrivage" => "numéro de l'arrivage dont est issue l'unité logistique",
                 "numcommandearrivage" => "numéros de commande de l'arrivage dont est issue l'unité logistique",
-                "tableauULarrivage" => "tableau contenant la liste des unités logistiques contenues dans l'arrivage de provenance. Le tableau contient les colonnes : Unité de tracking, Nature, Quantité, Poids",
+                "tableauULarrivage" => "tableau contenant la liste des unités logistiques contenues dans l'arrivage de provenance. Le tableau contient les colonnes : Unité de tracking, Nature, Quantité, Poids, Numero commande arrivage.",
             ],
         ]
     ];
