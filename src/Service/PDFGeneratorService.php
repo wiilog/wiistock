@@ -120,50 +120,6 @@ class PDFGeneratorService {
         );
     }
 
-    // TODO WIIS-8753
-    #[Deprecated]
-    public function generatePDFWaybill(string $title, ?string $logo, Dispatch|Livraison $entity, array $packs): string {
-        $fileName = uniqid() . '.pdf';
-
-        $this->PDFGenerator->generateFromHtml(
-            $this->templating->render('prints/waybillTemplate.html.twig', [
-                'title' => $title,
-                'entity' => $entity,
-                'logo' => $logo,
-                'packs' => $packs,
-                'number' => $entity instanceof Dispatch ? $entity->getNumber() : ($entity instanceof Livraison ? $entity->getNumero() : ''),
-                'fromDelivery' => $entity instanceof Livraison
-            ]),
-            ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),
-            [
-                'page-size' => "A4",
-                'encoding' => 'UTF-8'
-            ]
-        );
-
-        return $fileName;
-    }
-    /*public function generatePDFDeliveryNote(string $title,
-                                            ?string $logo,
-                                            Dispatch|Livraison $entity): string {
-        $fileName = uniqid() . '.pdf';
-
-        $this->PDFGenerator->generateFromHtml(
-            $this->templating->render('prints/deliveryNoteTemplate.html.twig', [
-                'title' => $title,
-                'entity' => $entity,
-                'logo' => $logo
-            ]),
-            ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),
-            [
-                'page-size' => "A4",
-                'encoding' => 'UTF-8'
-            ]
-        );
-
-        return $fileName;
-    }*/
-
     public function generatePDFDeliveryNote(string $title,
                                             ?string $logo,
                                             Dispatch|Livraison $entity): string {

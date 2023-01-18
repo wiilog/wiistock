@@ -1192,11 +1192,11 @@ class DispatchController extends AbstractController {
         if(!$dispatch->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
-                "msg" => 'Le bon de livraison n\'existe pas pour cette ordre de livraison'
+                "msg" => 'Le bon de livraison n\'existe pas pour cet acheminement'
             ]);
         }
 
-        $data = $dispatchService->getWaybillData($dispatch);
+        $data = $dispatchService->getDeliveryNoteData($dispatch);
 
         return new PdfResponse($data['file'], "{$data['name']}.pdf");
     }
@@ -1310,12 +1310,11 @@ class DispatchController extends AbstractController {
                 }
             }
         }
+
         $loggedUser->setSavedDispatchWaybillData($userDataToSave);
         $dispatch->setWaybillData($dispatchDataToSave);
-
-        $entityManager->flush();
-
         $wayBillAttachment = $dispatchService->persistNewWaybillAttachment($entityManager, $dispatch);
+
         $entityManager->flush();
 
         $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
