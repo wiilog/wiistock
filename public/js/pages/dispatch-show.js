@@ -619,8 +619,16 @@ function refArticleChanged($select) {
         $modalAddReference.find("[name=height]").val(description["height"]).attr("disabled", true);
         $modalAddReference.find("[name=volume]").val(description["volume"]);
         $modalAddReference.find("[name=weight]").val(description["weight"]);
-        $modalAddReference.find("[name=associatedDocumentTypes]").val(description["associatedDocumentTypes"]);
-
-
+        const associatedDocumentTypes = description["associatedDocumentTypes"].length === 2
+            ? []
+            : description["associatedDocumentTypes"]
+                .substring(2, description["associatedDocumentTypes"].length-2)
+                .split(',');
+        if (associatedDocumentTypes.length > 0 ) {
+            for (const associatedDocumentType in associatedDocumentTypes) {
+                let newOption = new Option(associatedDocumentType, associatedDocumentType, true, true);
+                $modalAddReference.find("[name=associatedDocumentTypes]").append(newOption);
+            }
+        }
     }
 }
