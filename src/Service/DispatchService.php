@@ -505,8 +505,12 @@ class DispatchService {
                 ['type' => $dispatch->getType()]
             );
 
-            $updateStatusAttachment = $this->persistNewReportAttachmentForEmail($this->entityManager, $dispatch, $signatory);
-            if (!empty($receiverEmailUses)) {
+            if($isUpdate){
+                $updateStatusAttachment = $this->persistNewReportAttachmentForEmail($this->entityManager, $dispatch, $signatory);
+            } else {
+                $updateStatusAttachment = [];
+            }
+            if (!empty($receiverEmailUses)){
                 $this->mailerService->sendMail(
                     $subject,
                     [
@@ -1090,7 +1094,7 @@ class DispatchService {
                 ? $this->formatService->bool($referenceArticlesStream->first()->getReferenceArticle()->getDescription()['outFormatEquipment'] ?? null)
                 : '',
             "destinatairesach" => $this->formatService->users($dispatch->getReceivers()),
-            "signataireach" => $signatory->getUsername(),
+            "signataireach" => $this->formatService->user($signatory),
             "numprojetach" => $dispatch->getProjectNumber() ?: '',
             "numcommandeach" => $dispatch->getCommandNumber() ?: '',
             "date1ach" => $this->formatService->date($dispatch->getStartDate()),
@@ -1197,7 +1201,7 @@ class DispatchService {
         }
         $entityManager->persist($dispatchReferenceArticle);
 
-        $description = [ // TODO romain ajouter profondeur largeur hauteur
+        $description = [
             'outFormatEquipment' => $data['outFormatEquipment'] ?? null,
             'ADR' => $data['ADR'] ?? null,
             'manufacturerCode' => $data['manufacturerCode'] ?? null,
