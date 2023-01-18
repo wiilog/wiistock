@@ -25,6 +25,7 @@ use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -98,7 +99,7 @@ class DispatchService {
 
     private ?array $freeFieldsConfig = null;
 
-    public function getDataForDatatable(InputBag $params) {
+    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
@@ -117,7 +118,9 @@ class DispatchService {
 
         $rows = [];
         foreach ($dispatchesArray as $dispatch) {
-            $rows[] = $this->dataRowDispatch($dispatch);
+            $rows[] = $this->dataRowDispatch($dispatch, [
+                'groupedSignatureMode' => $groupedSignatureMode
+            ]);
         }
 
         return [
@@ -127,7 +130,7 @@ class DispatchService {
         ];
     }
 
-    public function dataRowDispatch(Dispatch $dispatch) {
+    public function dataRowDispatch(Dispatch $dispatch, array $options = []) {
 
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
         $receivers = $dispatch->getReceivers() ?? null;
@@ -164,11 +167,17 @@ class DispatchService {
             'emergency' => $dispatch->getEmergency() ?? '',
             'treatedBy' => $this->formatService->user($dispatch->getTreatedBy()),
             'treatmentDate' => $this->formatService->datetime($dispatch->getTreatmentDate()),
-            'actions' => $this->templating->render('dispatch/list/actions.html.twig', [
+        ];
+
+        if(isset($options['groupedSignatureMode']) && $options['groupedSignatureMode']) {
+            $dispatchId = $dispatch->getId();
+            $row['actions'] = "<td><input type='checkbox' class='checkbox dispatch-checkbox' value='$dispatchId'></td>";
+        } else {
+            $row['actions'] = $this->templating->render('dispatch/list/actions.html.twig', [
                 'dispatch' => $dispatch,
                 'url' => $url
-            ]),
-        ];
+            ]);
+        }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
@@ -412,14 +421,15 @@ class DispatchService {
         return $date ?: null;
     }
 
-    public function sendEmailsAccordingToStatus(Dispatch $dispatch, bool $isUpdate)
+    public function sendEmailsAccordingToStatus(Dispatch $dispatch, bool $isUpdate, bool $fromGroupedSignature = false, ?Utilisateur $signatory = null )
     {
-        $defaultLanguage = $this->languageService->getDefaultSlug();
         $status = $dispatch->getStatut();
-        $recipientAbleToReceivedMail = $status ? $status->getSendNotifToRecipient() : false;
-        $requesterAbleToReceivedMail = $status ? $status->getSendNotifToDeclarant() : false;
+        $recipientAbleToReceivedMail = $status && $status->getSendNotifToRecipient();
+        $requesterAbleToReceivedMail = $status && $status->getSendNotifToDeclarant();
+        $sendReport = $status && $status->getSendReport();
+        $validationDate = new DateTime();
 
-        if ($recipientAbleToReceivedMail || $requesterAbleToReceivedMail) {
+        if ($recipientAbleToReceivedMail || $requesterAbleToReceivedMail || $sendReport) {
             if ($recipientAbleToReceivedMail && !$dispatch->getReceivers()->isEmpty()) {
                 $receiverEmailUses = $dispatch->getReceivers()->toArray();
             }
@@ -429,6 +439,17 @@ class DispatchService {
 
             if ($requesterAbleToReceivedMail && $dispatch->getRequester()) {
                 $receiverEmailUses[] = $dispatch->getRequester();
+            }
+
+            if($sendReport){
+                $receiverEmailUses = [];
+                $receiverEmailUses[] = $dispatch->getLocationFrom()->getEmail();
+                $receiverEmailUses[] = $dispatch->getLocationTo()->getEmail();
+                if($signatory){
+                    $receiverEmailUses[] = $signatory;
+                }
+                $receiverEmailUses = Stream::from($receiverEmailUses)->filter()->toArray();
+                //TODO rajouter les emails libres des acheminments dans la liste des personnes à qui envoyer le mail
             }
 
             $partialDispatch = !(
@@ -445,7 +466,9 @@ class DispatchService {
                 : 'Acheminement {1} traité le {2}';
 
             $title = fn(string $slug) => (
-                $status->isTreated()
+                $fromGroupedSignature
+                ? ["Bon d'enlèvement ". $dispatch->getNumber() . " validé le ". $validationDate->format('d/m/y H:i'), false]
+                : ($status->isTreated()
                     ? ['Demande', 'Acheminements', 'Emails', $translatedTitle, [
                         1 => $dispatch->getNumber(),
                         2 => $this->formatService->datetime($dispatch->getTreatmentDate(), "", false, $this->security->getUser())
@@ -456,10 +479,10 @@ class DispatchService {
                         ], false]
                         : ["Demande", "Acheminements", "Emails", "Changement de statut d'une demande d'acheminement de type {1} vous concernant :", [
                             1 => $this->formatService->type($dispatch->getType())
-                        ], false])
+                        ], false]))
             );
 
-            $subject = ($status->isTreated() || $status->isPartial())
+            $subject = ($status->isTreated() || $status->isPartial() || $sendReport)
                 ? ['Demande','Acheminements', 'Emails', 'Follow GT // Notification de traitement d\'une demande d\'acheminement', false]
                 : (!$isUpdate
                     ? ['Demande','Acheminements', 'Emails', 'Follow GT // Création d\'une demande d\'acheminement', false]
@@ -474,6 +497,7 @@ class DispatchService {
                 ['type' => $dispatch->getType()]
             );
 
+            $updateStatusAttachment = $this->persistNewReportAttachmentForEmail($this->entityManager, $dispatch, $signatory);
             if (!empty($receiverEmailUses)) {
                 $this->mailerService->sendMail(
                     $subject,
@@ -486,10 +510,12 @@ class DispatchService {
                             'hideNumber' => $isTreatedStatus,
                             'hideTreatmentDate' => $isTreatedStatus,
                             'hideTreatedBy' => $isTreatedByOperator,
-                            'totalCost' => $freeFieldArray
+                            'totalCost' => $freeFieldArray,
+                            'reportTable' => true,
                         ]
                     ],
-                    $receiverEmailUses
+                    $receiverEmailUses,
+                    [$updateStatusAttachment]
                 );
             }
         }
@@ -570,14 +596,13 @@ class DispatchService {
         }
     }
 
-    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser, bool $groupedSignatureMode = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $columnsVisible = $currentUser->getVisibleColumns()['dispatch'];
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, CategorieCL::DEMANDE_DISPATCH);
 
         $columns = [
-            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° demande', false), 'name' => 'number'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Transporteur', false), 'name' => 'carrier'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° tracking transporteur', false), 'name' => 'carrierTrackingNumber'],
@@ -597,6 +622,19 @@ class DispatchService {
             ['title' => $this->translationService->translate('Demande', 'Général', 'Urgence', false), 'name' => 'emergency'],
             ['title' => $this->translationService->translate('Général', null, 'Zone liste', 'Traité par', false), 'name' => 'treatedBy'],
         ];
+
+        if($groupedSignatureMode) {
+            $dispatchCheckboxLine = [
+                'title' => "<input type='checkbox' class='checkbox check-all'>",
+                'name' => 'actions',
+                'alwaysVisible' => true,
+                'orderable' => false,
+                'class' => 'noVis'
+            ];
+            array_unshift($columns, $dispatchCheckboxLine);
+        } else {
+            array_unshift($columns, ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis']);
+        }
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
@@ -1012,6 +1050,93 @@ class DispatchService {
         $entityManager->persist($wayBillAttachment);
 
         return $wayBillAttachment;
+    }
+
+    public function persistNewReportAttachmentForEmail(EntityManagerInterface $entityManager,
+                                                       Dispatch $dispatch,
+                                                       ?Utilisateur $signatory = null): Attachment {
+
+        $projectDir = $this->kernel->getProjectDir();
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $reportTemplatePath =
+            $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_RECAP_TEMPLATE)
+                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE);
+
+        $variables = [
+            "numach" => $dispatch->getNumber(),
+            "qrcodenumach" => $dispatch->getNumber(),
+            "statutach" => $dispatch->getStatut()->getCode(),
+            "emppriseach" => $dispatch->getLocationFrom()->getLabel(),
+            "empdeposeach" => $dispatch->getLocationTo()->getLabel(),
+            "typeach" => $this->formatService->type($dispatch->getType()),
+            "transporteurach" => $this->formatService->carriers([$dispatch->getType()]),
+            "numtracktransach" => $dispatch->getCarrierTrackingNumber() ?: '',
+            "demandeurach" => $this->formatService->user($dispatch->getRequester()),
+//            "materielhorsformatref" => $dispatch->getDispatchPacks()->toArray()[0]->getReferenceArticles()->toArray()[0]->getReferenceArticle()->getDescription()['outFormatEquipment'] ? 'Oui' : 'Non',
+            "destinatairesach" => $this->formatService->users($dispatch->getReceivers()),
+            "signataireach" => $signatory->getUsername(),
+            "numprojetach" => $dispatch->getProjectNumber() ?: '',
+            "numcommandeach" => $dispatch->getCommandNumber() ?: '',
+            "date1ach" => $this->formatService->date($dispatch->getStartDate()),
+            "date2ach" => $this->formatService->date($dispatch->getEndDate()),
+            "urgenceach" => $dispatch->getEmergency(),
+            "commentaireach" => $dispatch->getCommentaire(),
+            "datestatutach" => $this->formatService->date($dispatch->getTreatmentDate()),
+        ];
+
+        $variables['UL'] = $dispatch->getDispatchPacks()
+            ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() && !$dispatchPack->getDispatchReferenceArticles()->isEmpty())
+            ->map(function(DispatchPack $dispatchPack) {
+                $refArticleInLu = $dispatchPack->getDispatchReferenceArticles()->first();
+                $description = $refArticleInLu->getReferenceArticle()->getDescription();
+                return [
+                    "UL" => $dispatchPack->getPack()->getCode(),
+                    "natureul" => $this->formatService->nature($dispatchPack->getPack()->getNature()),
+                    "quantiteul" => $dispatchPack->getQuantity(),
+                    "referenceref" => $refArticleInLu->getReferenceArticle()->getReference(),
+                    "quantiteref" => $refArticleInLu->getQuantity(),
+                    "numeroserieref" => $refArticleInLu->getSerialNumber(),
+                    "numerolotref" => $refArticleInLu->getBatchNumber(),
+                    "numeroscelleref" => $refArticleInLu->getSealingNumber(),
+                    "poidsref" => $description ? $description['weight'] : '',
+                    "volumeref" => $description && $description['volume'] ? $description['volume'] : '',
+                    "adrref" => isset($description['ADR']) && $description['ADR'] ? 'Oui' : 'Non',
+                    "documentsref" => $description ? $description['associatedDocumentTypes'] : '',
+                    "codefabricantref" => $description ? $description['manufacturerCode'] : '',
+                    "materielhorsformatref" => isset($description['outFormatEquipment']) && $description['outFormatEquipment'] ? 'Oui' : 'Non',
+                    "commentaireref" => $refArticleInLu->getCommentaire(),
+                ];
+            })
+            ->toArray();
+
+        $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
+            "${projectDir}/public/$reportTemplatePath",
+            $variables,
+            ["barcodes" => ["qrcodenumach"],]
+        );
+
+        $nakedFileName = uniqid();
+
+        $reportOutdir = "{$projectDir}/public/uploads/attachements";
+        $docxPath = "{$reportOutdir}/{$nakedFileName}.docx";
+        rename($tmpDocxPath, $docxPath);
+        $this->PDFGeneratorService->generateFromDocx($docxPath, $reportOutdir);
+        unlink($docxPath);
+
+        $title = "Bon d'enlèvement - {$dispatch->getNumber()}";
+
+        $reportAttachment = new Attachment();
+        $reportAttachment
+            ->setDispatch($dispatch)
+            ->setFileName($nakedFileName . '.pdf')
+            ->setFullPath($reportOutdir . '/' . $nakedFileName . '.pdf')
+            ->setOriginalName($title . '.pdf');
+
+        $entityManager->persist($reportAttachment);
+        $entityManager->flush();
+
+        return $reportAttachment;
     }
 
 }

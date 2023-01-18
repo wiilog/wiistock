@@ -31,6 +31,12 @@
 {% set hasRightToGenerateWayBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_WAY_BILL')) %}
 {% set hasRightToGenerateDispatchBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_BILL')) %}
 
+
+{% block stylesheets %}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
+
 {% block page_content %}
     <input type="hidden" id="forbiddenPhoneNumbers" value="{{ app_forbidden_phones }}"/>
     <input type="hidden" id="dispatchId" value="{{ dispatch.id }}"/>
@@ -343,9 +349,24 @@
             </div>
             <div class="col-12">
                 <div class="wii-box focus-shadow drop-below">
-                    <div class="header wii-title">{{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Liste des UL', false) }}</div>
+                    <div class="header wii-title d-flex justify-content-between align-items-center">
+                        {{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Liste des UL', false) }}
+                        <button class="btn btn-primary ml-auto d-flex align-items-center"
+                            onclick="openAddReferenceModal()">
+                            <span class="wii-icon-add-reference wii-icon wii-icon-17px mr-2"></span>
+                            Ajouter une référence
+                        </button>
+                    </div>
+
                     <div class="p-3">
-                        <table id="packTable" class="wii-table w-100"></table>
+                        {% if dispatch.hasReferenceArticle %}
+                            <div class="col-12 logistic-units-container wii-multiple-loading"
+                                 data-loader-color="primary"
+                                 data-loader-size="normal">
+                            </div>
+                        {% else %}
+                            <table id="packTable" class="wii-table w-100"></table>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -359,10 +380,12 @@
     {% include "dispatch/modalDeletePack.html.twig" %}
     {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
     {% include "dispatch/modalPrintWayBill.html.twig" %}
+    {% include "dispatch/modalAddReference.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
 
     <script src="{{ asset('js/pages/dispatch-show.js') }}?v={{ web_version }}"></script>
+
 {% endblock %}

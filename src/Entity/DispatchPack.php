@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\DispatchPackRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DispatchPackRepository::class)]
@@ -27,8 +29,12 @@ class DispatchPack {
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private $treated;
 
+    #[ORM\OneToMany(mappedBy: 'dispatchPack', targetEntity: DispatchReferenceArticle::class)]
+    private Collection $dispatchReferenceArticles;
+
     public function __construct() {
         $this->quantity = 1;
+        $this->dispatchReferenceArticles = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -70,6 +76,36 @@ class DispatchPack {
 
     public function setTreated(bool $treated): self {
         $this->treated = $treated;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DispatchReferenceArticle>
+     */
+    public function getDispatchReferenceArticles(): Collection
+    {
+        return $this->dispatchReferenceArticles;
+    }
+
+    public function addReferenceArticle(DispatchReferenceArticle $referenceArticle): self
+    {
+        if (!$this->dispatchReferenceArticles->contains($referenceArticle)) {
+            $this->dispatchReferenceArticles->add($referenceArticle);
+            $referenceArticle->setDispatchPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReferenceArticle(DispatchReferenceArticle $referenceArticle): self
+    {
+        if ($this->dispatchReferenceArticles->removeElement($referenceArticle)) {
+            // set the owning side to null (unless already changed)
+            if ($referenceArticle->getDispatchPack() === $this) {
+                $referenceArticle->setDispatchPack(null);
+            }
+        }
 
         return $this;
     }

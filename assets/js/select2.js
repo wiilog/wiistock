@@ -36,6 +36,7 @@ const ROUTES = {
     types: 'ajax_select_types',
     vehicles: 'ajax_select_vehicles',
     inventoryCategories: 'ajax_select_inventory_categories',
+    dispatchPacks: 'ajax_select_dispatch_packs',
 }
 
 const INSTANT_SELECT_TYPES = {

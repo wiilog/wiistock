@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
@@ -522,10 +523,13 @@ class PackRepository extends EntityRepository
         return $res[0]['count'] ?? 0;
     }
 
-    public function getForSelect(?string $term, $exclude) {
+    public function getForSelect(?string $term, array $options = []) {
+        $exclude = $options['exclude'] ?? null;
         if($exclude && !is_array($exclude)) {
             $exclude = [$exclude];
         }
+
+        $dispatchId = $options['dispatchId'] ?? null;
 
         $qb = $this->createQueryBuilder("pack")
             ->select("pack.id AS id")
@@ -548,6 +552,12 @@ class PackRepository extends EntityRepository
         if($exclude) {
             $qb->andWhere("pack.code NOT IN (:exclude)")
                 ->setParameter("exclude", $exclude);
+        }
+
+        if($dispatchId) {
+            $qb->leftJoin("pack.dispatchPacks", "dispatch_packs")
+                ->andWhere("dispatch_packs.dispatch = :dispatch")
+                ->setParameter("dispatch", $dispatchId);
         }
 
         return $qb->getQuery()->getResult();

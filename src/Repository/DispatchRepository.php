@@ -194,6 +194,11 @@ class DispatchRepository extends EntityRepository
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
+        $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
+        if ($pageLength) {
+            $qb->setMaxResults($pageLength);
+        }
+
         $query = $qb->getQuery();
 
         return [
