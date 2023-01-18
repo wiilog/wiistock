@@ -497,14 +497,6 @@ function getStatusHistory(id) {
         });
 }
 
-function clearPackListSearching() {
-    const $logisticUnitsContainer = $('.logistic-units-container');
-    const $searchInput = $logisticUnitsContainer
-        .closest('.content')
-        .find('input[type=search]');
-    $searchInput.val(null);
-}
-
 function loadDispatchReferenceArticle({start, search} = {}) {
     start = start || 0;
     const $logisticUnitsContainer = $('.logistic-units-container');
@@ -525,23 +517,32 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                 .json()
                 .then(data => {
                     $logisticUnitsContainer.html(data.html);
+                    console.log($logisticUnitsContainer.find('.reference-articles-container table'));
                     $logisticUnitsContainer.find('.reference-articles-container table')
                         .each(function() {
                             const $table = $(this);
+                            console.log($table);
                             initDataTable($table, {
                                 serverSide: false,
                                 ordering: true,
                                 paging: false,
                                 searching: false,
-                                order: [['emergency', "desc"], ['reference', "desc"]],
+                                order: [['reference', "desc"]],
                                 columns: [
                                     {data: 'actions', className: 'noVis hideOrder', orderable: false},
                                     {data: 'reference', title: 'Référence'},
-                                    {data: 'orderNumber', title: 'Commande'},
-                                    {data: 'quantityToReceive', title: 'À recevoir'},
-                                    {data: 'receivedQuantity', title: 'Reçu'},
-                                    {data: 'emergency', visible: false},
-                                    {data: 'comment', visible: false},
+                                    {data: 'quantity', title: 'Quantité'},
+                                    {data: 'batchNumber', title: 'N° de lot'},
+                                    {data: 'manufacturerCode', title: 'Code fabriquant'},
+                                    {data: 'sealingNumber', title: 'N° de plombage / scellée'},
+                                    {data: 'serialNumber', title: 'N° de série'},
+                                    {data: 'length', title: 'Longueur'},
+                                    {data: 'width', title: 'Largeur'},
+                                    {data: 'volume', title: 'Volume (m3)'},
+                                    {data: 'weight', title: 'Poids (kg)'},
+                                    {data: 'ADR', title: 'ADR'},
+                                    {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
+                                    {data: 'cleaned_comment', title: 'Commentaire'},
                                 ],
                                 domConfig: {
                                     removeInfo: true,
@@ -552,17 +553,9 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                 rowConfig: {
                                     needsRowClickAction: true,
                                     needsColor: true,
-                                    dataToCheck: 'emergency',
-                                    color: 'danger',
-                                    callback: (row, data) => {
-                                        if (data.emergency && data.comment) {
-                                            const $row = $(row);
-                                            $row.attr('title', data.comment);
-                                            initTooltips($row);
-                                        }
-                                    }
                                 },
-                            })
+                            });
+                            console.log($table);
                         });
 
                     $logisticUnitsContainer
@@ -571,12 +564,33 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                             const $button = $(this);
                             loadDispatchReferenceArticle({
                                 start: $button.data('page'),
-                                search: referenceArticleSearch
+                                search: search
                             });
                         });
                 })
         )
     )
+}
+
+function launchPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+
+    $searchInput.on('input', function () {
+        const $input = $(this);
+        const referenceArticleSearch = $input.val();
+        loadReceptionLines({search: referenceArticleSearch});
+    });
+}
+
+function clearPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+    $searchInput.val(null);
 }
 
 function initAddReferenceEditor(modal, options = {}) {
@@ -587,4 +601,30 @@ function initAddReferenceEditor(modal, options = {}) {
         let $selectUl = $modal.find('[name="pack"]');
         $selectUl.append(new Option(options['unitCode'], options['unitId'], true, true)).trigger('change');
     }
+}
+
+function refArticleChanged($select) {
+    // const $modal = $select.closest(`.modal`);
+    // if(!$select.data(`select2`)) {
+    //     return;
+    // }
+    //
+    // const selectedReference = $select.select2(`data`);
+    // let $modalAddReference = $("#modalAddReference");
+    // let $addRefLigneSubmit = $modalAddReference.find("[type=submit]");
+    //
+    // if (selectedReference.length > 0) {
+    //     const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
+    //
+    //     $addRefLigneSubmit.prop(`disabled`, false);
+    //     $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantity !== `article`)
+    //
+    // }
+    // else {
+    //     $addArticleAndRedirectSubmit.addClass(`d-none`);
+    //     $addArticleLigneSubmit.prop(`disabled`, true);
+    //     $modal.find(`.body-add-ref`)
+    //         .addClass(`d-none`)
+    //         .removeClass(`d-flex`);
+    // }
 }

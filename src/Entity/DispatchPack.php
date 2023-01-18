@@ -83,12 +83,12 @@ class DispatchPack {
     /**
      * @return Collection<int, DispatchReferenceArticle>
      */
-    public function getReferenceArticles(): Collection
+    public function getDispatchReferenceArticles(): Collection
     {
         return $this->dispatchReferenceArticles;
     }
 
-    public function addReferenceArticle(DispatchReferenceArticle $referenceArticle): self
+    public function addDispatchReferenceArticles(DispatchReferenceArticle $referenceArticle): self
     {
         if (!$this->dispatchReferenceArticles->contains($referenceArticle)) {
             $this->dispatchReferenceArticles->add($referenceArticle);
@@ -98,7 +98,7 @@ class DispatchPack {
         return $this;
     }
 
-    public function removeReferenceArticle(DispatchReferenceArticle $referenceArticle): self
+    public function removeDispatchReferenceArticles(DispatchReferenceArticle $referenceArticle): self
     {
         if ($this->dispatchReferenceArticles->removeElement($referenceArticle)) {
             // set the owning side to null (unless already changed)

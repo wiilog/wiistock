@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
+use App\Entity\Traits\CommentTrait;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
@@ -52,25 +53,34 @@ class DispatchPackRepository extends EntityRepository {
 
         $queryBuilder
             ->select('dispatch_pack.id AS id')
+
             ->addSelect('join_pack.id AS packId')
             ->addSelect('join_pack.code AS packCode')
+
             ->addSelect('join_locationLastDrop.label AS packLocation')
             ->addSelect('join_nature.label AS packNature')
             ->addSelect('join_nature.color AS packColor')
+
             ->addSelect('join_dispatchReferenceArticle.id AS referenceId')
             ->addSelect('join_referenceArticle.reference AS reference')
-            ->addSelect('join_referenceArticle.typeQuantite AS quantityType')
             ->addSelect('join_referenceArticle.barCode AS barCode')
-            ->addSelect('join_dispatchReferenceArticle.batchNumber AS batchNumber')
             ->addSelect('join_dispatchReferenceArticle.quantity AS quantity')
+            ->addSelect('join_dispatchReferenceArticle.batchNumber AS batchNumber')
             ->addSelect('join_dispatchReferenceArticle.sealingNumber AS sealingNumber')
-            ->addSelect('join_dispatchReferenceArticle.serialNumber AS seriesNumber')
+            ->addSelect('join_dispatchReferenceArticle.serialNumber AS serialNumber')
+            ->addSelect('join_dispatchReferenceArticle.cleanedComment AS cleaned_comment')
+            ->addSelect('join_referenceArticle.description AS description')
+            //->addSelect('join_dispatchReferenceArticle.attachments AS attachments')
+
             ->leftJoin('dispatch_pack.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_nature')
             ->leftJoin('join_pack.lastDrop', 'join_lastDrop')
             ->leftJoin('join_lastDrop.emplacement', 'join_locationLastDrop')
+
             ->leftJoin('dispatch_pack.dispatchReferenceArticles', 'join_dispatchReferenceArticle')
             ->leftJoin('join_dispatchReferenceArticle.referenceArticle', 'join_referenceArticle')
+
+
             ->andWhere('dispatch_pack.dispatch = :dispatch')
             ->addOrderBy('IF(join_pack.id IS NULL, 0, 1)') // show receptionLine without pack first
             ->addOrderBy('dispatch_pack.id')
@@ -83,7 +93,6 @@ class DispatchPackRepository extends EntityRepository {
                     'join_locationLastDrop.label LIKE :search',
                     'join_project.code LIKE :search',
                     'join_referenceArticle.reference LIKE :search',
-                    'join_dispatchReferenceArticle.batchNumber LIKE :search',
                 ))
                 ->setParameter('search', "%$search%");
         }
@@ -112,6 +121,30 @@ class DispatchPackRepository extends EntityRepository {
                             "color" => $packColor ?? null,
                         ]
                         : null,
+                    "references" => Stream::from($references)
+                        ->filterMap(fn(array $reference) => (
+                        isset($reference["reference"])
+                            ? [
+                            "id" => $reference["referenceId"],
+                            "reference" => $reference["reference"],
+                            "quantity" => $reference["quantity"],
+                            "batchNumber" => $reference["batchNumber"],
+                            "serialNumber" => $reference["serialNumber"],
+                            "sealingNumber" => $reference["sealingNumber"],
+                            "manufacturerCode" => $reference["description"] ? $reference["description"]["manufacturerCode"] : '',
+                            "length" => $reference["description"] ? $reference["description"]["length"] : '',
+                            "width" => $reference["description"] ? $reference["description"]["width"] : '',
+                            "heigth" => $reference["description"] ? $reference["description"]["height"] : '',
+                            "volume" => $reference["description"] ? $reference["description"]["volume"] : '',
+                            "weight" => $reference["description"] ? $reference["description"]["weight"] : '',
+                            "ADR" => $reference["description"] ? $reference["description"]["ADR"] : '',
+                            "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] : '',
+                            "cleaned_comment" => $reference["cleaned_comment"],
+                            //"attachments" => $reference["attachments"],
+                        ]
+                            : null
+                        ))
+                        ->toArray()
                 ];
             });
 

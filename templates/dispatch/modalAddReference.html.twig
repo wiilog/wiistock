@@ -1,5 +1,5 @@
 {% import 'form.html.twig' as form %}
-{% import 'reference_article/form/form.html.twig' as referenceArticleForm %}
+{% import 'reference_article/form/macros.html.twig' as referenceArticleMacros %}
 
 <div class="modal fade" id="modalAddReference">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
@@ -69,7 +69,7 @@
                 </div>
                 <div class="wii-section-title mt-2">Informations référence</div>
                 <div class="row mt-2">
-                    {{ referenceArticleForm.descriptionForm( null, descriptionConfig, 4) }}
+                    {{ referenceArticleMacros.descriptionForm( null, descriptionConfig, 4) }}
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {

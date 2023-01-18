@@ -1,47 +1,4 @@
-{% macro supplier_article_line(reference, line, editable = false, index = 0) %}
-    <div class="ligneFournisseurArticle"
-         data-multiple-key="frl"
-         data-multiple-object-index="{{ index }}">
-        <div class="row">
-            <div class="form-group col-md-6 col-12">
-                <label class="wii-field-name">Nom fournisseur*</label>
-                <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierLabel"
-                        onchange="loadAndDisplayLabels($(this))"
-                        name="fournisseurLabel">
-                    {% if line and line.fournisseur %}
-                        <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.nom }}</option>
-                    {% endif %}
-                </select>
-            </div>
-            <div class="form-group col-md-6 col-12">
-                <label class="wii-field-name">Code fournisseur*</label>
-                <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierCode"
-                        onchange="loadAndDisplayInfos($(this))"
-                        name="fournisseur">
-                    {% if line and line.fournisseur %}
-                        <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.codeReference }}</option>
-                    {% endif %}
-                </select>
-            </div>
-            <div class="form-group col-md-6 col-12">
-                <label class="wii-field-name">Ref article fournisseur*</label>
-                <input class="form-control data w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
-                       name="referenceFournisseur" value="{{ line ? line.reference }}">
-            </div>
-            <div class="form-group col-md-6 col-12">
-                <label class="wii-field-name">Libellé*</label>
-                <input class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
-                       name="labelFournisseur" value="{{ line ? line.label }}">
-            </div>
-        </div>
-        {% if index > 0 %}
-            <span class="delete-supplier-article">Supprimer l'article fournisseur</span>
-        {% endif %}
-        <hr>
-    </div>
-{% endmacro %}
-
-{% import _self as macros %}
+{% import "reference_article/form/macros.html.twig" as macros %}
 
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
 {% set partialEdit = reference.id and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
@@ -103,13 +60,12 @@
                     <div class="col-md-8 col-12">
                         {% if not partialEdit %}
                             <label class="wii-field-name" title="Référence">Référence*</label>
-                            <input type="text"
-                                   name="reference"
-                                   class="form-control data needed"
-                                   placeholder="Référence"
-                                   data-draft-default="{{ draftDefaultReference ?? null }}"
-                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference ?? null) }}"
-                                {{ hasRightCreateDraft ? 'disabled' : ' ' }}>
+                                <select class="w-100 data form-control needed wii-field-text"
+                                        onchange="refArticleChanged($(this))"
+                                        id="reception-add-ligne"
+                                        data-s2="reference"
+                                        name="referenceArticle">
+                                </select>
                         {% else %}
                             <span class="wii-field-name" style="font-size: 20px;">Ref : {{ reference.reference }}</span>
                             <input type="hidden" name="reference" class="data" value="{{ reference.reference }}">
