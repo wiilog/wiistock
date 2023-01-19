@@ -44,13 +44,15 @@
 {% macro descriptionForm(description, descriptionConfig, col = 6) %}
     {% for field, attributes in descriptionConfig %}
         {% set name = attributes.name %}
+        {% set disabled = attributes.disabled ?? false %}
         <div class="col-{{ col }} d-flex flex-column mb-2">
             <label class="wii-field-name">{{ field }}</label>
             {% if attributes.type in ['text', 'number'] %}
                 <input type="{{ attributes.type }}"
-                       class="form-control {{ attributes.persisted ? "data" }}"
+                       class="form-control {{ attributes.persisted and not disabled ? "data" }}"
                        name="{{ name }}"
                        value="{{ attributes.persisted ? (description[name] ?? '') }}"
+                       {{ disabled ? 'disabled' }}
                        {% if attributes.step is defined %}step="{{ attributes.step }}"{% endif %}>
             {% elseif attributes.type == 'bool' %}
                 <div class="wii-switch w-fit-content" data-title="{{ field }}">
@@ -59,13 +61,15 @@
                            value="0"
                            content="Non"
                            data-title="non"
-                        {{ (attributes.persisted and description[name] is defined and description[name] == '0') ? 'checked' }}>
+                           {{ disabled ? 'disabled' }}
+                           {{ (attributes.persisted and description[name] is defined and description[name] == '0') ? 'checked' }}>
                     <input type="radio"
                            name="{{ name }}"
                            value="1"
                            content="Oui"
                            data-title="oui"
-                        {{ (attributes.persisted and description[name] is defined and description[name] == '1') ? 'checked' }}>
+                           {{ disabled ? 'disabled' }}
+                           {{ (attributes.persisted and description[name] is defined and description[name] == '1') ? 'checked' }}>
                 </div>
             {% elseif attributes.type == 'select-free' %}
                 {% set values = attributes.values ?? [] %}
@@ -73,10 +77,11 @@
                     ? (description[name]|split(','))
                     : [] %}
                 <select name="{{ name }}"
-                        class="form-control {{ attributes.persisted ? "data" }} w-100"
+                        class="form-control {{ attributes.persisted and not disabled ? "data" }} w-100"
                         data-s2
                         multiple
-                        data-default-values="{{ selectedValues|join(',') }}">
+                        data-default-values="{{ selectedValues|join(',') }}"
+                        {{ disabled ? 'disabled' }}>
                     {% for value in values %}
                         <option value="{{ value }}" {{ attributes.persisted and value in selectedValues ? "selected" }}>{{ value }}</option>
                     {% endfor %}

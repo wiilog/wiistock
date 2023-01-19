@@ -1207,6 +1207,7 @@ class RefArticleDataService {
                 "type" => "number",
                 "step" => "0.000001",
                 "persisted" => true,
+                "disabled" => true,
             ],
             "Poids (kg)" => [
                 "name" => "weight",
