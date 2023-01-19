@@ -62,15 +62,31 @@ $(function() {
         validator: forbiddenPhoneNumberValidator,
     });
 
+    let $modalEditReference = $('#modalEditReference');
+    Form.create($modalEditReference).onSubmit((data, form) => {
+        form.loading(() => {
+            return AJAX
+                .route(AJAX.POST, `dispatch_form_reference`)
+                .json(data)
+                .then((response) => {
+                    if (response.success) {
+                        $modalEditReference.modal('hide');
+                        loadDispatchReferenceArticle();
+                    }
+                })
+        });
+    });
+
     let $modalAddReference = $('#modalAddReference');
     Form.create($modalAddReference).onSubmit((data, form) => {
         form.loading(() => {
             return AJAX
-                .route(AJAX.POST, `dispatch_add_reference`)
+                .route(AJAX.POST, `dispatch_form_reference`)
                 .json(data)
                 .then((response) => {
                     if(response.success) {
                         $modalAddReference.modal('hide');
+                        loadDispatchReferenceArticle();
                     }
                 })
         });
@@ -546,6 +562,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     {data: 'volume', title: 'Volume (m3)'},
                                     {data: 'weight', title: 'Poids (kg)'},
                                     {data: 'ADR', title: 'ADR'},
+                                    {data: 'outFormatEquipment', title: 'Matériel hors format'},
                                     {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
                                     {data: 'comment', title: 'Commentaire'},
                                 ],
@@ -622,8 +639,8 @@ function refArticleChanged($select) {
 
         const description = selectedReference[0]["description"] || [];
 
-        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"]}']`).prop('checked', true);
-        $modalAddReference.find(`input[name=ADR][value='${description["ADR"]}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] ?? 0}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=ADR][value='${description["ADR"] ?? 0}']`).prop('checked', true);
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
         $lengthInput.val(description["length"]).attr("disabled", true);
         $widthInput.val(description["width"]).attr("disabled", true);
@@ -660,4 +677,20 @@ function refArticleChanged($select) {
             });
         }
     }
+}
+
+function deleteRefArticle(dispatchReferenceArticle) {
+    Modal.confirm({
+        ajax: {
+            method: 'DELETE',
+            route: 'dispatch_delete_reference',
+            params: {dispatchReferenceArticle},
+        },
+        message: 'Voulez-vous réellement supprimer cette référence article ?',
+        title: 'Supprimer la référence article',
+        validateButton: {
+            color: 'danger',
+            label: 'Supprimer'
+        },
+    });
 }

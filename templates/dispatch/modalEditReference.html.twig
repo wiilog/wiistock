@@ -1,11 +1,10 @@
-<div class="modal fade" id="modalAddReference">
+<div class="modal fade" id="modalEditReference">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: 'Ajouter une référence'
+                title: 'Modifier une référence'
             } %}
             <div class="modal-body">
-                {% include 'dispatch/modalFormReferenceContent.html.twig' %}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
