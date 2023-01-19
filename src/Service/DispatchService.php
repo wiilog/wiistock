@@ -7,6 +7,7 @@ use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
+use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
@@ -1099,7 +1100,7 @@ class DispatchService {
             "numcommandeach" => $dispatch->getCommandNumber() ?: '',
             "date1ach" => $this->formatService->date($dispatch->getStartDate()),
             "date2ach" => $this->formatService->date($dispatch->getEndDate()),
-            "urgenceach" => $dispatch->getEmergency(),
+            "urgenceach" => $dispatch->getEmergency() ?? 'Non',
             // keep line breaking in docx
             "commentaireach" => $this->formatService->html(str_replace("<br/>", "\n", $dispatch->getCommentaire())),
             "datestatutach" => $this->formatService->date($dispatch->getTreatmentDate()),
@@ -1121,7 +1122,7 @@ class DispatchService {
                     "numeroscelleref" => $dispatchReferenceArticle->getSealingNumber(),
                     "poidsref" => $description['weight'] ?? '',
                     "volumeref" => $description['volume'] ?? '',
-                    "adrref" => $this->formatService->bool($description['ADR'] ?? null),
+                    "adrref" => isset($description['ADR']) && $description['ADR'] === "1" ? 'Oui' : 'Non' ,
                     "documentsref" => $description['associatedDocumentTypes'] ?? '',
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
                     "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null),
@@ -1217,5 +1218,113 @@ class DispatchService {
             'success' => true,
             'msg' => 'Référence ajoutée'
         ]);
+    }
+
+    public function finishGroupedSignature(EntityManagerInterface $entityManager,
+                                           $locationData,
+                                           $signatoryTrigramData,
+                                           $signatoryPasswordData,
+                                           $statusData,
+                                           $commentData,
+                                           $dispatchesToSignIds,
+                                           $fromNomade = false){
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $location = $locationRepository->find($locationData);
+        $signatory = $signatoryTrigramData && !$fromNomade
+            ? $userRepository->find($signatoryTrigramData)
+            : ( $signatoryTrigramData
+                ? $userRepository->findOneBy(['username' => $signatoryTrigramData])
+                :  null);
+        if(!$signatory || !password_verify($signatoryPasswordData, $signatory->getSignatoryPassword())){
+            if($fromNomade){
+                return [
+                    'success' => false,
+                    'msg' => 'Code signataire invalide'
+                ];
+            }
+            throw new FormException("Code signataire invalide");
+        }
+
+        if(!$location?->getSignatory()){
+            $locationLabel = $location?->getLabel() ?: "invalide";
+            if($fromNomade){
+                return [
+                    'success' => false,
+                    'msg' => "L'emplacement filtré {$locationLabel} n'a pas de signataire renseigné"
+                ];
+            }
+            throw new FormException("L'emplacement filtré {$locationLabel} n'a pas de signataire renseigné");
+        }
+
+        if($location->getSignatory() !== $signatory){
+            if($fromNomade){
+                return [
+                    'success' => false,
+                    'msg' => "Le signataire renseigné n'est pas correct"
+                ];
+            }
+            throw new FormException("Le signataire renseigné n'est pas correct");
+        }
+
+        $groupedSignatureStatus = $statusRepository->find($statusData);
+        $dispatchesToSign = $dispatchesToSignIds
+            ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
+            : [];
+
+        $dispatchTypes = Stream::from($dispatchesToSign)
+            ->filterMap(fn(Dispatch $dispatch) => $dispatch->getType())
+            ->keymap(fn(Type $type) => [$type->getId(), $type])
+            ->reindex();
+
+        if ($dispatchTypes->count() !== 1) {
+            if($fromNomade){
+                return [
+                    'success' => false,
+                    'msg' => "Vous ne pouvez sélectionner qu'un seul type d'acheminement pour réaliser une signature groupée"
+                ];
+            }
+            throw new FormException("Vous ne pouvez sélectionner qu'un seul type d'acheminement pour réaliser une signature groupée");
+        }
+
+        $now = new DateTime();
+
+        foreach ($dispatchesToSign as $dispatch){
+            $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
+                ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
+                ->isEmpty());
+
+            if (!$containsReferences) {
+                if($fromNomade){
+                    return [
+                        'success' => false,
+                        'msg' => "L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée"
+                    ];
+                }
+                throw new FormException("L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée");
+            }
+
+            $this->statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus);
+
+            $newCommentDispatch = $dispatch->getCommentaire()
+                ? ($dispatch->getCommentaire() . "<br/>")
+                : "";
+
+            $dispatch
+                ->setTreatmentDate($now)
+                ->setCommentaire($newCommentDispatch . $commentData);
+
+            if($groupedSignatureStatus->getSendReport()){
+                $this->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
+            }
+        }
+
+        return [
+            'success' => true,
+            'msg' => "Signature groupée effectuée avec succès."
+        ];
     }
 }
