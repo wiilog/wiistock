@@ -42,12 +42,14 @@ $(function() {
         const $button = $(this);
         const $filtersContainer = $(".filters-container");
         const $statutFilterOptionSelected = $filtersContainer.find(`select[name=statut] option:selected`);
+        const $typeFilterOptionSelected = $filtersContainer.find(`select[name=multipleTypes] option:selected`);
         const pickLocationFilterValue = $filtersContainer.find(`select[name=pickLocation]`).val();
         const dropLocationFilterValue = $filtersContainer.find(`select[name=dropLocation]`).val();
 
         // check if page filters valids
         if ($statutFilterOptionSelected.data('allowed-state')
             && $statutFilterOptionSelected.length === 1
+            && $typeFilterOptionSelected.length === 1
             && (pickLocationFilterValue !== null || dropLocationFilterValue !== null)){
             wrapLoadingOnActionButton($button, () => {
                 return saveFilters('acheminement', '#tableDispatches', null, 1).then(() => {
@@ -64,7 +66,7 @@ $(function() {
         } else {
             Flash.add(
                 Flash.ERROR,
-                "Veuillez saisir un statut en état Brouillon ou A Traité ainsi qu'un Emplacement de prise ou de dépose dans les filtres en haut de page."
+                "Veuillez saisir un statut, un type ainsi qu'un Emplacement de prise ou de dépose dans les filtres en haut de page."
             );
         }
     });
