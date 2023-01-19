@@ -1153,7 +1153,7 @@ class DispatchService {
         $reportAttachment
             ->setDispatch($dispatch)
             ->setFileName($nakedFileName . '.pdf')
-            ->setFullPath($reportOutdir . '/' . $nakedFileName . '.pdf')
+            ->setFullPath('/uploads/attachements/' . $nakedFileName . '.pdf')
             ->setOriginalName($title . '.pdf');
 
         $entityManager->persist($reportAttachment);
