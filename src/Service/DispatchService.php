@@ -979,7 +979,7 @@ class DispatchService {
             "totalvolume" => $this->formatService->decimal($totalVolume, [], '-'),
             "totalquantite" => $totalQuantities,
         ];
-        dump($waybillTypeToUse);
+
         if ($waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD) {
             $variables['UL'] = $dispatch->getDispatchPacks()
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
@@ -1037,12 +1037,12 @@ class DispatchService {
             ["barcodes" => ["qrcodenumach"],]
         );
 
+
         $nakedFileName = uniqid();
 
         $waybillOutdir = "{$projectDir}/public/uploads/attachements";
         $docxPath = "{$waybillOutdir}/{$nakedFileName}.docx";
         rename($tmpDocxPath, $docxPath);
-
         $this->PDFGeneratorService->generateFromDocx($docxPath, $waybillOutdir);
         unlink($docxPath);
 
