@@ -6,7 +6,6 @@ use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Repository\DispatchReferenceArticleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -14,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 class DispatchReferenceArticle
 {
     use AttachmentTrait;
+    use CleanedCommentTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -42,8 +42,7 @@ class DispatchReferenceArticle
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->attachments = new ArrayCollection();
     }
 

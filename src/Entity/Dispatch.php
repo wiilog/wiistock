@@ -166,6 +166,9 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\OneToMany(mappedBy: 'dispatch', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $emails = [];
+
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
@@ -566,6 +569,16 @@ class Dispatch extends StatusHistoryContainer {
                 $statusHistory->setHandling(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEmails(): ?array {
+        return $this->emails;
+    }
+
+    public function setEmails(?array $emails): self {
+        $this->emails = $emails;
 
         return $this;
     }
