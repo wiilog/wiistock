@@ -1037,12 +1037,12 @@ class DispatchService {
             ["barcodes" => ["qrcodenumach"],]
         );
 
+
         $nakedFileName = uniqid();
 
         $waybillOutdir = "{$projectDir}/public/uploads/attachements";
         $docxPath = "{$waybillOutdir}/{$nakedFileName}.docx";
         rename($tmpDocxPath, $docxPath);
-
         $this->PDFGeneratorService->generateFromDocx($docxPath, $waybillOutdir);
         unlink($docxPath);
 
@@ -1159,7 +1159,27 @@ class DispatchService {
         return $reportAttachment;
     }
 
-    public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, $data): JsonResponse
+    public function generateWayBill(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager, array $data) {
+        $userDataToSave = [];
+        $dispatchDataToSave = [];
+        foreach(array_keys(Dispatch::WAYBILL_DATA) as $wayBillKey) {
+            if(isset(Dispatch::WAYBILL_DATA[$wayBillKey])) {
+                $value = $data[$wayBillKey] ?? null;
+                $dispatchDataToSave[$wayBillKey] = $value;
+                if(Dispatch::WAYBILL_DATA[$wayBillKey]) {
+                    $userDataToSave[$wayBillKey] = $value;
+                }
+            }
+        }
+        $user->setSavedDispatchWaybillData($userDataToSave);
+        $dispatch->setWaybillData($dispatchDataToSave);
+
+        $entityManager->flush();
+
+        return $this->persistNewWaybillAttachment($entityManager, $dispatch);
+    }
+
+    public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
     {
         $dispatchId = $data['dispatch'] ?? null;
         $packId = $data['pack'] ?? null;

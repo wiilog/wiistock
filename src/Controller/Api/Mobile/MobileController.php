@@ -10,7 +10,9 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
+use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryEntry;
@@ -52,11 +54,14 @@ use App\Service\MouvementStockService;
 use App\Service\NatureService;
 use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
+use App\Service\PackService;
 use App\Service\PreparationsManagerService;
+use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
 use App\Service\TransferOrderService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use DateTimeInterface;
@@ -65,9 +70,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -97,6 +104,8 @@ class MobileController extends AbstractApiController
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $globalParametersRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
         $mobileKey = $request->request->get('loginKey');
 
         $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey, 'status' => true]);
@@ -137,6 +146,10 @@ class MobileController extends AbstractApiController
 
             $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
 
+            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH])
+                ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+                ->toArray();
+
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,
@@ -145,6 +158,7 @@ class MobileController extends AbstractApiController
                 'parameters' => $parameters,
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId(),
+                'fieldsParam' => $fieldsParam ?? [],
             ];
         } else {
             $data['success'] = false;
@@ -1607,11 +1621,17 @@ class MobileController extends AbstractApiController
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
         $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
+
+        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH])
+            ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+            ->toArray();
 
         if ($rights['inventoryManager']) {
             $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
@@ -1737,6 +1757,8 @@ class MobileController extends AbstractApiController
                     'id' => $type->getId(),
                     'label' => $type->getLabel(),
                 ])->toArray();
+
+            $users = $userRepository->getAll();
         }
 
         if ($rights['tracking']) {
@@ -1762,6 +1784,7 @@ class MobileController extends AbstractApiController
         }
 
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
+
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
@@ -1808,6 +1831,8 @@ class MobileController extends AbstractApiController
             'dispatchPacks' => $dispatchPacks ?? [],
             'status' => $status,
             'dispatchTypes' => $dispatchTypes ?? [],
+            'users' => $users ?? [],
+            'fieldsParam' => $fieldsParam ?? [],
         ];
     }
 
@@ -2509,6 +2534,270 @@ class MobileController extends AbstractApiController
             }
         }
         return $color;
+    }
+
+    /**
+     * @Rest\Post("/api/dispatch-emergencies", name="api_dispatch_emergencies", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function dispatchEmergencies(EntityManagerInterface $manager): Response {
+        $elements = $manager->getRepository(FieldsParam::class)->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+        $emergencies = Stream::from($elements)
+            ->map(fn(string $element) => [
+                'id' => $element,
+                'label' => $element,
+            ])->toArray();
+
+        return $this->json($emergencies);
+    }
+
+    /**
+     * @Rest\Post("/api/waybill/{dispatch}", name="api_waybill_dispatch", methods="POST", condition="request.isXmlHttpRequest()", options={"expose"=true})
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function dispatchWaybill(EntityManagerInterface $manager, Dispatch $dispatch, Request $request, DispatchService $dispatchService, KernelInterface $kernel): Response {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $data = $request->request->all();
+        $wayBillAttachment = $dispatchService->generateWayBill($loggedUser, $dispatch, $manager, $data);
+        $manager->flush();
+        $file = '/uploads/attachements/' . $wayBillAttachment->getFileName();
+
+        return $this->json([
+            'filePath' => $file,
+            'fileName' => $wayBillAttachment->getOriginalName(),
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/new-dispatch", name="api_new_dispatch", methods="POST", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function newDispatch(Request $request,
+                                EntityManagerInterface $manager,
+                                UniqueNumberService $uniqueNumberService): Response {
+        $data = $request->request->all();
+
+        $typeRepository = $manager->getRepository(Type::class);
+        $statusRepository = $manager->getRepository(Statut::class);
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $userRepository = $manager->getRepository(Utilisateur::class);
+        $dispatchRepository = $manager->getRepository(Dispatch::class);
+
+        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $type = $typeRepository->find($data['type']);
+        $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
+        $pickLocation = isset($data['dropLocation']) ? $locationRepository->find($data['pickLocation']) : null;
+        $dropLocation = isset($data['dropLocation']) ? $locationRepository->find($data['dropLocation']) : null;
+        $receiver = isset($data['receiver']) ? $userRepository->find($data['receiver']) : null;
+        $emails = isset($data['emails']) ? explode(",", $data['emails']) : null;
+
+        if(empty($draftStatuses)) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Il n'y a aucun statut brouillon paramétré pour ce type."
+            ]);
+        }
+
+        $dispatch = (new Dispatch())
+            ->setNumber($dispatchNumber)
+            ->setCreationDate(new DateTime())
+            ->setRequester($this->getUser())
+            ->setType($type)
+            ->setStatus($draftStatuses[0])
+            ->setLocationFrom($pickLocation)
+            ->setLocationTo($dropLocation)
+            ->setCarrierTrackingNumber($data['carrierTrackingNumber'] ?? null)
+            ->setCommentaire($data['comment'] ?? null)
+            ->setEmergency($data['emergency'] ?? null)
+            ->setEmails($emails);
+
+        if($receiver) {
+            $dispatch->addReceiver($receiver);
+        }
+
+        $manager->persist($dispatch);
+        $manager->flush();
+
+        if(!empty($data['emergency']) && $receiver) {
+            // TODO Envoyer le mail de compte rendu
+        }
+
+        $serializedDispatch = $dispatchRepository->getMobileDispatches(null, $dispatch);
+        return $this->json([
+            'success' => true,
+            'dispatch' => $serializedDispatch
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/get-reference", name="api_get_reference", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getReference(Request $request, EntityManagerInterface $manager): Response {
+        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
+        $settingRepository = $manager->getRepository(Setting::class);
+
+        $text = $request->query->get("reference");
+        $reference = $referenceArticleRepository->findOneBy(['reference' => $request->query->get("reference")]);
+        if($reference) {
+            $description = $reference->getDescription();
+            $serializedReference = [
+                'reference' => $reference->getReference(),
+                'quantity' => $reference->getQuantiteDisponible(),
+                'outFormatEquipment' => $description['outFormatEquipment'] ?? '',
+                'manufacturerCode' => $description['manufacturerCode'] ?? '',
+                'width' => $description['width'] ?? '',
+                'height' => $description['height'] ?? '',
+                'length' => $description['length'] ?? '',
+                'volume' => $description['volume'] ?? '',
+                'weight' => $description['weight'] ?? '',
+                'adr' => $description['ADR'] ?? '',
+                'associatedDocumentTypes' => $description['associatedDocumentTypes'] ?? '',
+            ];
+        } else {
+            $serializedReference = [
+                'reference' => $text
+            ];
+        }
+
+        $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+        $serializedReference['associatedDocumentTypeElements'] = $associatedDocumentTypeElements;
+
+        return $this->json([
+            "success" => true,
+            "reference" => $serializedReference
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/dispatch-validate", name="api_dispatch_validate", methods="POST", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function dispatchValidate(Request                $request,
+                                     EntityManagerInterface $manager,
+                                     RefArticleDataService  $refArticleDataService,
+                                     PackService            $packService,
+                                     StatusHistoryService   $statusHistoryService,
+                                     AttachmentService      $attachmentService,
+                                     KernelInterface        $kernel): Response {
+        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
+        $packRepository = $manager->getRepository(Pack::class);
+        $statusRepository = $manager->getRepository(Statut::class);
+
+        $references = json_decode($request->request->get('references'), true);
+        $user = $this->getUser();
+        $now = new DateTime();
+
+        $dispatch = $manager->find(Dispatch::class, $request->request->get('dispatch'));
+        $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
+
+        if($toTreatStatus) {
+            foreach ($references as $data) {
+                $reference = $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
+                if($reference) {
+                    $description = [
+                        'outFormatEquipment' => $data['outFormatEquipment'],
+                        'manufacturerCode' => $data['manufacturerCode'],
+                        'volume' => $data['volume'],
+                        'length' => $data['length'],
+                        'width' => $data['width'],
+                        'height' => $data['height'],
+                        'weight' => $data['weight'],
+                        'ADR' => $data['adr'],
+                        'associatedDocumentTypes' => $data['associatedDocumentTypes'],
+                    ];
+
+                    $reference->setDescription($description);
+                } else {
+                    $reference = (new ReferenceArticle())
+                        ->setReference($data['reference'])
+                        ->setLibelle($data['reference'])
+                        ->setCreatedBy($user)
+                        ->setCreatedAt($now)
+                        ->setBarCode($refArticleDataService->generateBarCode())
+                        ->setQuantiteStock(0)
+                        ->setQuantiteDisponible(0);
+
+                    $manager->persist($reference);
+                }
+
+                if ($data['logisticUnit']) {
+                    $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']]) ?? $packService->createPackWithCode($data['logisticUnit']);
+
+                    $manager->persist($logisticUnit);
+
+                    $dispatchPack = (new DispatchPack())
+                        ->setDispatch($dispatch)
+                        ->setPack($logisticUnit)
+                        ->setTreated(false);
+
+                    $manager->persist($dispatchPack);
+
+                    $dispatchReferenceArticle = (new DispatchReferenceArticle())
+                        ->setReferenceArticle($reference)
+                        ->setDispatchPack($dispatchPack)
+                        ->setQuantity($data['quantity'])
+                        ->setBatchNumber($data['batchNumber'])
+                        ->setSerialNumber($data['serialNumber'])
+                        ->setSealingNumber($data['sealingNumber']);
+
+                    $maxNbFilesSubmitted = 10;
+                    $fileCounter = 1;
+                    // upload of photo_1 to photo_10
+                    do {
+                        $photoFile = $data["photo_$fileCounter"] ?? [];
+                        if (!empty($photoFile)) {
+                            $name = uniqid();
+                            $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+                            file_put_contents($path, file_get_contents($photoFile));
+                            $attachment = new Attachment();
+                            $attachment
+                                ->setOriginalName("photo_$fileCounter.jpeg")
+                                ->setFileName("$name.jpeg")
+                                ->setFullPath("/uploads/attachements/$name.jpeg");
+
+                            $dispatchReferenceArticle->addAttachment($attachment);
+                            $manager->persist($attachment);
+                        }
+                        $fileCounter++;
+                    } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
+
+                    $manager->persist($dispatchReferenceArticle);
+                }
+            }
+
+            $statusHistoryService->updateStatus($manager, $dispatch, $toTreatStatus);
+
+            $manager->flush();
+
+            return $this->json([
+                'success' => true
+            ]);
+        } else {
+            return $this->json([
+                'success' => false,
+                'msg' => "Il n'y a aucun statut à traiter paramétré pour ce type."
+            ]);
+        }
+    }
+
+    /**
+     * @Rest\Post("/api/get-associated-document-type-elements", name="api_get_associated_document_type_elements", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getAssociatedDocumentTypeElements(EntityManagerInterface $manager): Response {
+        $settingRepository = $manager->getRepository(Setting::class);
+        $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+
+        return $this->json($associatedDocumentTypeElements);
     }
 
 }
