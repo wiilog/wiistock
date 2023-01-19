@@ -4,10 +4,10 @@
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
 
-                <div class="action-on-click" data-id='{{ ligneId }}' data-toggle='modal' data-target='#modalEditReference'
+                <div class="dropdown-item d-flex align-items-center action-on-click" data-id='{{ ligneId }}' data-toggle='modal' data-target='#modalEditReference'
                      onclick="editRow($(this), Routing.generate('dispatch_edit_reference_api', {dispatchReferenceArticle: {{ ligneId }}}, true), $('#modalEditReference'), $('#submitEditReference')),
                               clearModal('#modalEditReference')">
-                    <i class='fas fa-pencil-alt'></i>Modifier
+                    <i class='fas fa-pencil-alt mr-2'></i>Modifier
                 </div>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
