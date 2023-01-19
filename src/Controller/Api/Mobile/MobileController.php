@@ -1930,7 +1930,7 @@ class MobileController extends AbstractApiController
 
         $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
 
-        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, ENTITY_CODE_DEMANDE])
+        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
             ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
             ->toArray();
 
