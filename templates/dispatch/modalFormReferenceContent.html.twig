@@ -48,7 +48,10 @@
             }],
             emptyOption: packs|length == 1 ? false : true,
             items: packs,
-            value: dispatchReferenceArticle ? dispatchReferenceArticle.dispatchPack.pack.id : null
+            value: dispatchReferenceArticle
+                    ? dispatchReferenceArticle.dispatchPack.pack.id
+                    : pack.id
+                        ?? null,
         }) }}
     </div>
     <div class="col-4 d-flex mt-2">

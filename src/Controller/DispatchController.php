@@ -1755,9 +1755,10 @@ class DispatchController extends AbstractController {
         return new JsonResponse($html);
     }
 
-    #[Route("/add-reference-api/{dispatch}", name:"dispatch_add_reference_api", options: ['expose' => true], methods: "POST")]
+    #[Route("/add-reference-api/{dispatch}/{pack}", name:"dispatch_add_reference_api", options: ['expose' => true], methods: "POST")]
     #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function addReferenceApi(Dispatch $dispatch,
+                                    Pack $pack,
                                     RefArticleDataService $refArticleDataService,
                                     EntityManagerInterface $entityManager): JsonResponse
     {
@@ -1772,10 +1773,9 @@ class DispatchController extends AbstractController {
             'dispatch' => $dispatch,
             'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
             'packs' => $packs,
+            'pack' => $pack,
         ]);
 
         return new JsonResponse($html);
     }
-
-
 }
