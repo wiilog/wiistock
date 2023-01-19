@@ -62,7 +62,7 @@
                            content="Non"
                            data-title="non"
                            {{ disabled ? 'disabled' }}
-                           {{ (attributes.persisted and description[name] is defined and description[name] == '0') ? 'checked' }}>
+                           {{ (attributes.persisted and description[name] is defined and (description[name] == '0' and description[name] == null)) ? 'checked' }}>
                     <input type="radio"
                            name="{{ name }}"
                            value="1"

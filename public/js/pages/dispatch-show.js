@@ -546,6 +546,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     {data: 'volume', title: 'Volume (m3)'},
                                     {data: 'weight', title: 'Poids (kg)'},
                                     {data: 'ADR', title: 'ADR'},
+                                    {data: 'outFormatEquipment', title: 'Matériel hors format'},
                                     {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
                                     {data: 'comment', title: 'Commentaire'},
                                 ],
@@ -622,8 +623,8 @@ function refArticleChanged($select) {
 
         const description = selectedReference[0]["description"] || [];
 
-        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"]}']`).prop('checked', true);
-        $modalAddReference.find(`input[name=ADR][value='${description["ADR"]}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] ?? 0}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=ADR][value='${description["ADR"] ?? 0}']`).prop('checked', true);
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
         $lengthInput.val(description["length"]).attr("disabled", true);
         $widthInput.val(description["width"]).attr("disabled", true);
