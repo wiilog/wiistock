@@ -1365,24 +1365,7 @@ class DispatchController extends AbstractController {
         $loggedUser = $this->getUser();
 
         $data = json_decode($request->getContent(), true);
-
-        $userDataToSave = [];
-        $dispatchDataToSave = [];
-        foreach(array_keys(Dispatch::WAYBILL_DATA) as $wayBillKey) {
-            if(isset(Dispatch::WAYBILL_DATA[$wayBillKey])) {
-                $value = $data[$wayBillKey] ?? null;
-                $dispatchDataToSave[$wayBillKey] = $value;
-                if(Dispatch::WAYBILL_DATA[$wayBillKey]) {
-                    $userDataToSave[$wayBillKey] = $value;
-                }
-            }
-        }
-        $loggedUser->setSavedDispatchWaybillData($userDataToSave);
-        $dispatch->setWaybillData($dispatchDataToSave);
-
-        $entityManager->flush();
-
-        $wayBillAttachment = $dispatchService->persistNewWaybillAttachment($entityManager, $dispatch);
+        $wayBillAttachment = $dispatchService->generateWayBill($loggedUser, $dispatch, $entityManager, $data);
         $entityManager->flush();
 
         return new JsonResponse([

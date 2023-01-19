@@ -935,7 +935,7 @@ class DispatchService {
             "totalvolume" => $this->formatService->decimal($totalVolume, [], '-'),
             "totalquantite" => $totalQuantities,
         ];
-
+        dump($waybillTypeToUse);
         if ($waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD) {
             $variables['UL'] = $dispatch->getDispatchPacks()
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
@@ -1017,6 +1017,26 @@ class DispatchService {
         return $wayBillAttachment;
     }
 
+    public function generateWayBill(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager, array $data) {
+        $userDataToSave = [];
+        $dispatchDataToSave = [];
+        foreach(array_keys(Dispatch::WAYBILL_DATA) as $wayBillKey) {
+            if(isset(Dispatch::WAYBILL_DATA[$wayBillKey])) {
+                $value = $data[$wayBillKey] ?? null;
+                $dispatchDataToSave[$wayBillKey] = $value;
+                if(Dispatch::WAYBILL_DATA[$wayBillKey]) {
+                    $userDataToSave[$wayBillKey] = $value;
+                }
+            }
+        }
+        $user->setSavedDispatchWaybillData($userDataToSave);
+        $dispatch->setWaybillData($dispatchDataToSave);
+
+        $entityManager->flush();
+
+        return $this->persistNewWaybillAttachment($entityManager, $dispatch);
+    }
+
     public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
     {
         $packId = $data['pack'] ?? null;
@@ -1045,7 +1065,6 @@ class DispatchService {
 
             $entityManager->persist($dispatchReferenceArticle);
         }
-
 
     }
 }

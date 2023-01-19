@@ -70,9 +70,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -102,6 +104,8 @@ class MobileController extends AbstractApiController
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $globalParametersRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
         $mobileKey = $request->request->get('loginKey');
 
         $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey, 'status' => true]);
@@ -142,6 +146,10 @@ class MobileController extends AbstractApiController
 
             $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
 
+            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH])
+                ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+                ->toArray();
+
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,
@@ -150,6 +158,7 @@ class MobileController extends AbstractApiController
                 'parameters' => $parameters,
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId(),
+                'fieldsParam' => $fieldsParam ?? [],
             ];
         } else {
             $data['success'] = false;
@@ -2509,6 +2518,26 @@ class MobileController extends AbstractApiController
             ])->toArray();
 
         return $this->json($emergencies);
+    }
+
+    /**
+     * @Rest\Post("/api/waybill/{dispatch}", name="api_waybill_dispatch", methods="POST", condition="request.isXmlHttpRequest()", options={"expose"=true})
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function dispatchWaybill(EntityManagerInterface $manager, Dispatch $dispatch, Request $request, DispatchService $dispatchService, KernelInterface $kernel): Response {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $data = $request->request->all();
+        $wayBillAttachment = $dispatchService->generateWayBill($loggedUser, $dispatch, $manager, $data);
+        $manager->flush();
+        $file = '/uploads/attachements/' . $wayBillAttachment->getFileName();
+
+        return $this->json([
+            'filePath' => $file,
+            'fileName' => $wayBillAttachment->getOriginalName(),
+        ]);
     }
 
     /**
