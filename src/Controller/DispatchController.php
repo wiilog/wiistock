@@ -453,7 +453,7 @@ class DispatchController extends AbstractController {
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
             'fieldsParam' => $fieldsParam,
             'freeFields' => $freeFields,
-            "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager),
+            "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
         ]);
     }
 
@@ -1726,11 +1726,39 @@ class DispatchController extends AbstractController {
                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
+        $packs = [];
+        foreach ($dispatchPacks as $dispatchPack) {
+            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
+        }
 
         $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
             'dispatch' => $dispatch,
             'dispatchReferenceArticle' => $dispatchReferenceArticle,
-            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager),
+            'packs' => $packs,
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
+        ]);
+
+        return new JsonResponse($html);
+    }
+
+    #[Route("/add-reference-api/{dispatch}", name:"dispatch_add_reference_api", options: ['expose' => true], methods: "POST")]
+    public function addReferenceApi(Dispatch $dispatch,
+                                    RefArticleDataService $refArticleDataService,
+                                    EntityManagerInterface $entityManager): JsonResponse
+    {
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
+        $packs = [];
+        foreach ($dispatchPacks as $dispatchPack) {
+            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
+        }
+
+        $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
+            'dispatch' => $dispatch,
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
+            'packs' => $packs,
         ]);
 
         return new JsonResponse($html);

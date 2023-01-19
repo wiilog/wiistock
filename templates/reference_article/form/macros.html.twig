@@ -45,14 +45,16 @@
     {% for field, attributes in descriptionConfig %}
         {% set name = attributes.name %}
         {% set disabled = attributes.disabled ?? false %}
+        {% set required = attributes.required ?? false %}
         <div class="col-{{ col }} d-flex flex-column mb-2">
-            <label class="wii-field-name">{{ field }}</label>
+            <label class="wii-field-name">{{ field }}{{ required ? "*" }}</label>
             {% if attributes.type in ['text', 'number'] %}
                 <input type="{{ attributes.type }}"
                        class="form-control {{ attributes.persisted ? "data" }}"
                        name="{{ name }}"
                        value="{{ attributes.persisted ? (description[name] ?? '') }}"
                        {{ disabled ? 'disabled' }}
+                       {{ required ? 'required' }}
                        {% if attributes.step is defined %}step="{{ attributes.step }}"{% endif %}>
             {% elseif attributes.type == 'bool' %}
                 <div class="wii-switch w-fit-content" data-title="{{ field }}">
@@ -76,12 +78,13 @@
                 {% set selectedValues = description[name] is defined and description[name]
                     ? (description[name]|split(','))
                     : [] %}
-                <select name="{{ name }}"
+                <select name="{{ name }}{{ required ? "*" }}"
                         class="form-control {{ attributes.persisted ? "data" }} w-100"
                         data-s2
                         multiple
                         data-default-values="{{ selectedValues|join(',') }}"
                         {{ disabled ? 'disabled' }}>
+                        {{ required ? 'required' }}>
                     {% for value in values %}
                         <option value="{{ value }}" {{ attributes.persisted and value in selectedValues ? "selected" }}>{{ value }}</option>
                     {% endfor %}
