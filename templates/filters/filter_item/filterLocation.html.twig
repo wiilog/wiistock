@@ -1,9 +1,12 @@
-{% set isPreFilled = isPreFilled is defined ? isPreFilled : false %}
+{% set isPreFilled = isPreFilled ?? false %}
+{% set removeId = removeId ?? false %}
 <div class="col-auto m-1 select-filter pr-0">
     <div {{ multiple is defined ? 'class="select2-overflow"' }}>
         <div class="input-group w-100 cursor-default">
-            <select class="form-control data min-150px cursor-default filter-select2 ajax-autocomplete-emplacements" name="emplacement"
-                    id="emplacement" {{ multiple is defined ? 'multiple' }}
+            <select class="form-control data min-150px cursor-default filter-select2 ajax-autocomplete-emplacements"
+                    name="{{ name ?? 'emplacement' }}"
+                    {% if not removeId %}id="emplacement"{% endif %}
+                    {{ multiple is defined ? 'multiple' }}
                     {{ disabled }}
                     {{ isPreFilled ? 'disabled' }}>
                 {% if isPreFilled %}

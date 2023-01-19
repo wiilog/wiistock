@@ -124,6 +124,26 @@
                         </div>
                     </div>
                 </div>
+                <div class="wii-box mt-3">
+                    <div class="header wii-title">Description</div>
+                    <div class="content">
+                        <div class="row description-container">
+                            {% set description = referenceArticle.description %}
+                            {% for field, attributes in descriptionConfig %}
+                                {% set rawValue = description[attributes.name] ?? null %}
+                                {% set value = attributes.type == 'bool'
+                                    ? (rawValue == 1
+                                        ? 'oui'
+                                        : 'non')
+                                    : rawValue %}
+                                <div class="col-6 d-flex flex-column mb-2">
+                                    <span class="wii-field-name">{{ field }}</span>
+                                    <span class="wii-field-text {{ attributes.name }}">{{ value ?: '-' }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-12 col-md-6">
                 <div class="wii-box">

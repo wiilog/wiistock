@@ -4,12 +4,16 @@ $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
+    loadDispatchReferenceArticle();
+    getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, isEdit);
 
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
     const urlDispatchEdit = Routing.generate('dispatch_edit', true);
-    InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
+    InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit, {
+        success: () => window.location.reload()
+    });
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     const $submitValidatedDispatch = $modalValidateDispatch.find('.submit-button');
@@ -32,10 +36,13 @@ $(function() {
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
         success: ({attachmentId, headerDetailsConfig}) => {
             $(`.zone-entete`).html(headerDetailsConfig);
-            window.location.href = Routing.generate('print_delivery_note_dispatch', {
+            AJAX.route(`GET`, `print_delivery_note_dispatch`, {
                 dispatch: dispatchId,
                 attachment: attachmentId,
-            });
+            }).file({
+                success: "Votre bon de livraison a bien été imprimée.",
+                error: "Erreur lors de l'impression du bon de livraison."
+            }).then(() => window.location.reload());
         },
         validator: forbiddenPhoneNumberValidator,
     });
@@ -46,13 +53,47 @@ $(function() {
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
         success: ({attachmentId, headerDetailsConfig}) => {
             $(`.zone-entete`).html(headerDetailsConfig);
-            window.location.href = Routing.generate('print_waybill_dispatch', {
+            AJAX.route(`GET`, `print_waybill_dispatch`, {
                 dispatch: dispatchId,
                 attachment: attachmentId,
-            });
+            }).file({
+                success: "Votre lettre de voiture a bien été imprimée.",
+                error: "Erreur lors de l'impression de la lettre de voiture."
+            }).then(() => window.location.reload());
         },
         validator: forbiddenPhoneNumberValidator,
     });
+
+    let $modalEditReference = $('#modalEditReference');
+    Form.create($modalEditReference).onSubmit((data, form) => {
+        form.loading(() => {
+            return AJAX
+                .route(AJAX.POST, `dispatch_form_reference`)
+                .json(data)
+                .then((response) => {
+                    if (response.success) {
+                        $modalEditReference.modal('hide');
+                        loadDispatchReferenceArticle();
+                    }
+                })
+        });
+    });
+
+    let $modalAddReference = $('#modalAddReference');
+    Form.create($modalAddReference).onSubmit((data, form) => {
+        form.loading(() => {
+            return AJAX
+                .route(AJAX.POST, `dispatch_form_reference`)
+                .json(data)
+                .then((response) => {
+                    if(response.success) {
+                        $modalAddReference.modal('hide');
+                        loadDispatchReferenceArticle();
+                    }
+                })
+        });
+    });
+
 
     const queryParams = GetRequestQuery();
     const {'print-delivery-note': printDeliveryNote} = queryParams;
@@ -63,16 +104,19 @@ $(function() {
     }
 });
 
-function generateOverconsumptionBill(dispatchId) {
+function generateOverconsumptionBill($button, dispatchId) {
     $.post(Routing.generate('generate_overconsumption_bill', {dispatch: dispatchId}), {}, function(data) {
-        $('.zone-entete').html(data.entete);
-        $('.zone-entete [data-toggle="popover"]').popover();
         $('button[name="newPack"]').addClass('d-none');
 
         packsTable.destroy();
         packsTable = initializePacksTable(dispatchId, data.modifiable);
 
-        Wiistock.download(Routing.generate('print_overconsumption_bill', {dispatch: dispatchId}));
+        AJAX.route(`GET`, `print_overconsumption_bill`, {dispatch: dispatchId})
+            .file({
+                success: "Votre bon de surconsommation a bien été imprimé.",
+                error: "Erreur lors de l'impression du bon de surconsommation."
+            })
+            .then(() => window.location.reload())
     });
 }
 
@@ -105,6 +149,15 @@ function forbiddenPhoneNumberValidator($modal) {
 
 function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch';
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
+
+    $modal.modal('show');
+}
+
+function openAddReferenceModal() {
+    const modalSelector = '#modalAddReference';
     const $modal = $(modalSelector);
 
     clearModal(modalSelector);
@@ -503,4 +556,184 @@ function addPackRow(table, $button) {
 
 function scrollToBottom() {
     window.scrollTo(0, document.body.scrollHeight);
+}
+
+function getStatusHistory(id) {
+    return $.get(Routing.generate(`dispatch_status_history_api`, {id}, true))
+        .then(({template}) => {
+            const $statusHistoryContainer = $(`.status-history-container`);
+            $statusHistoryContainer.html(template);
+        });
+}
+
+function loadDispatchReferenceArticle({start, search} = {}) {
+    start = start || 0;
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const dispatch = $('#dispatchId').val();
+
+    const params = {dispatch, start};
+    if (search) {
+        params.search = search;
+    }
+    else {
+        clearPackListSearching();
+    }
+
+    wrapLoadingOnActionButton(
+        $logisticUnitsContainer,
+        () => (
+            AJAX.route('GET', 'dispatch_packs_api', params)
+                .json()
+                .then(data => {
+                    $logisticUnitsContainer.html(data.html);
+                    $logisticUnitsContainer.find('.reference-articles-container table')
+                        .each(function() {
+                            const $table = $(this);
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                order: [['reference', "desc"]],
+                                columns: [
+                                    {data: 'actions', className: 'noVis hideOrder', orderable: false},
+                                    {data: 'reference', title: 'Référence'},
+                                    {data: 'quantity', title: 'Quantité'},
+                                    {data: 'batchNumber', title: 'N° de lot'},
+                                    {data: 'manufacturerCode', title: 'Code fabriquant'},
+                                    {data: 'sealingNumber', title: 'N° de plombage / scellée'},
+                                    {data: 'serialNumber', title: 'N° de série'},
+                                    {data: 'volume', title: 'Volume (m3)'},
+                                    {data: 'weight', title: 'Poids (kg)'},
+                                    {data: 'ADR', title: 'ADR'},
+                                    {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
+                                    {data: 'comment', title: 'Commentaire'},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                    needsPaginationRemoval: true,
+                                    removeLength: true,
+                                    removeTableHeader: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                    needsColor: true,
+                                },
+                            });
+                        });
+
+                    $logisticUnitsContainer
+                        .find('.paginate_button:not(.disabled)')
+                        .on('click', function() {
+                            const $button = $(this);
+                            loadDispatchReferenceArticle({
+                                start: $button.data('page'),
+                                search: search
+                            });
+                        });
+                })
+        )
+    )
+}
+
+function launchPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+
+    $searchInput.on('input', function () {
+        const $input = $(this);
+        const referenceArticleSearch = $input.val();
+        loadReceptionLines({search: referenceArticleSearch});
+    });
+}
+
+function clearPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+    $searchInput.val(null);
+}
+
+function initAddReferenceEditor(modal, options = {}) {
+    const $modal = $(modal);
+    clearModal(modal);
+
+    if (options['unitCode'] && options['unitId']) {
+        let $selectUl = $modal.find('[name="pack"]');
+        $selectUl.append(new Option(options['unitCode'], options['unitId'], true, true)).trigger('change');
+    }
+}
+
+function refArticleChanged($select) {
+    if (!$select.data(`select2`)) {
+        return;
+    }
+
+    const selectedReference = $select.select2(`data`);
+    let $modalAddReference = $("#modalAddReference");
+
+    if (selectedReference.length > 0) {
+        const $lengthInput = $modalAddReference.find("input[name=length]");
+        const $widthInput = $modalAddReference.find("input[name=width]");
+        const $heightInput = $modalAddReference.find("input[name=height]");
+
+        const description = selectedReference[0]["description"] || [];
+
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"]}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=ADR][value='${description["ADR"]}']`).prop('checked', true);
+        $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
+        $lengthInput.val(description["length"]).attr("disabled", true);
+        $widthInput.val(description["width"]).attr("disabled", true);
+        $heightInput.val(description["height"]).attr("disabled", true);
+        $modalAddReference.find("[name=weight]").val(description["weight"]);
+        const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
+        let $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
+        $associatedDocumentTypesSelect.find('option').remove();
+        associatedDocumentTypes.forEach(function (associatedDocumentType) {
+            let newOption = new Option(associatedDocumentType, associatedDocumentType, true, true);
+            $associatedDocumentTypesSelect.append(newOption);
+        });
+
+        const volume = description["volume"];
+        const $sizeInputs = $modalAddReference.find(`input[name=length], input[name=width], input[name=height]`)
+        const $volumeInput = $modalAddReference.find(`input[name=volume]`);
+
+        if (volume) {
+            $volumeInput.val(volume);
+            $sizeInputs.attr('disabled', true);
+            $sizeInputs.off('input');
+        }
+        else {
+            $volumeInput.val(null);
+            $sizeInputs.attr('disabled', false);
+            $lengthInput.attr("disabled", false);
+            $sizeInputs.on(`input`, () => {
+                const length = $lengthInput.val();
+                const width = $widthInput.val();
+                const height = $heightInput.val();
+                if (length && width && height) {
+                    $volumeInput.val(length * width * height);
+                }
+            });
+        }
+    }
+}
+
+function deleteRefArticle(dispatchReferenceArticle) {
+    Modal.confirm({
+        ajax: {
+            method: 'DELETE',
+            route: 'dispatch_delete_reference',
+            params: {dispatchReferenceArticle},
+        },
+        message: 'Voulez-vous réellement supprimer cette référence article ?',
+        title: 'Supprimer la référence article',
+        validateButton: {
+            color: 'danger',
+            label: 'Supprimer'
+        },
+    });
 }

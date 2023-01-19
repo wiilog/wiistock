@@ -476,6 +476,11 @@ class SettingsController extends AbstractController {
                             "save" => true,
                             "discard" => true,
                         ],
+                        self::MENU_TEMPLATE_RECAP_WAYBILL => [
+                            "label" => "Compte rendu",
+                            "save" => true,
+                            "discard" => true,
+                        ],
                     ],
                 ],
                 self::MENU_TEMPLATE_DELIVERY => [
@@ -572,6 +577,7 @@ class SettingsController extends AbstractController {
     public const MENU_TEMPLATE_DISPATCH = "acheminement";
     public const MENU_TEMPLATE_DELIVERY = "livraison";
     public const MENU_TEMPLATE_DISTPACH_WAYBILL = "lettre_de_voiture";
+    public const MENU_TEMPLATE_RECAP_WAYBILL = "compte_rendu";
     public const MENU_TEMPLATE_DELIVERY_WAYBILL = "lettre_de_voiture";
 
     /**

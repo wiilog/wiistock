@@ -43,6 +43,7 @@ const ROUTES = {
     deliveryLogisticUnits: 'ajax_select_delivery_logistic_units',
     customers: 'ajax_select_customers',
     natureOrTypeSelect: 'ajax_select_nature_or_type',
+    dispatchPacks: 'ajax_select_dispatch_packs',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -177,6 +178,15 @@ export default class Select2 {
                             Flash.add(`danger`, `Cet élément est utilisé, vous ne pouvez pas le supprimer.`);
                         } else {
                             $option.remove();
+                        }
+
+                        if($element.is(`[data-default-values]`)) {
+                            const defaultValues = $element.data(`default-values`).split(`,`);
+                            const $option = $(event.params.args.data.element);
+
+                            if(defaultValues.includes($option.val())) {
+                                $element.append($option);
+                            }
                         }
                     });
                 }

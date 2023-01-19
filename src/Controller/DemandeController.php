@@ -526,11 +526,10 @@ class DemandeController extends AbstractController
      * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function addArticle(Request $request,
+    public function addArticle(Request                $request,
                                EntityManagerInterface $entityManager,
-                               ArticleDataService $articleDataService,
-                               RefArticleDataService $refArticleDataService,
-                               FreeFieldService $champLibreService): Response
+                               ArticleDataService     $articleDataService,
+                               RefArticleDataService  $refArticleDataService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -547,8 +546,7 @@ class DemandeController extends AbstractController
                 $currentUser,
                 false,
                 $entityManager,
-                $demande,
-                $champLibreService
+                $demande
             );
             if ($resp === 'article') {
                 $articleDataService->editArticle($data);

@@ -12,6 +12,13 @@ export default class AJAX {
     url;
     params;
 
+    static GET = GET;
+    static POST = POST;
+    static PUT = PUT;
+    static PATCH = PATCH;
+    static DELETE = DELETE;
+
+
     static route(method, route, params = {}) {
         const ajax = new AJAX();
         ajax.method = method;
@@ -105,7 +112,9 @@ export default class AJAX {
                 }
                 return response.blob().then((blob) => {
                     const fileName = response.headers.get("content-disposition").split("filename=")[1];
-                    saveAs(blob, fileName);
+                    const cleanedFileName = fileName.replace(/^"+|"+$/g, ``);
+
+                    saveAs(blob, cleanedFileName);
                     if (success) {
                         Flash.add(SUCCESS, success);
                     }

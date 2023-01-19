@@ -112,6 +112,7 @@ class UserService
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -123,6 +124,7 @@ class UserService
         $isUsedInDispatches = $dispatchRepository->countByUser($user);
         $isUsedInArrivals = $arrivageRepository->countByUser($user);
         $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
+        $hasSignatoryLocation = $locationRepository->count(['signatory' => $user]);
 
         return [
             'demande(s) de livraison' => $isUsedInRequests,
@@ -135,6 +137,7 @@ class UserService
             'acheminement(s)' => $isUsedInDispatches,
             'arrivage(s)' => $isUsedInArrivals,
             'mouvement(s) de traçabilité' => $hasTrackingMovement,
+            'emplacement(s)' => $hasSignatoryLocation,
         ];
 	}
 

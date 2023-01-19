@@ -43,6 +43,7 @@ Encore
     .addEntry('customer-index', './assets/js/pages/customer/index.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .addEntry('kiosk', './assets/js/pages/kiosk.js')
+    .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.

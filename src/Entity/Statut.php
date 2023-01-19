@@ -95,6 +95,9 @@ class Statut {
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $sendNotifToDeclarant = null;
 
+    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
+    private ?bool $sendReport = null;
+
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'statuts')]
     private ?Type $type = null;
 
@@ -527,7 +530,7 @@ class Statut {
     public function addDispatch(Dispatch $dispatch): self {
         if(!$this->dispatches->contains($dispatch)) {
             $this->dispatches[] = $dispatch;
-            $dispatch->setStatut($this);
+            $dispatch->setStatus($this);
         }
 
         return $this;
@@ -538,7 +541,7 @@ class Statut {
             $this->dispatches->removeElement($dispatch);
             // set the owning side to null (unless already changed)
             if($dispatch->getStatut() === $this) {
-                $dispatch->setStatut(null);
+                $dispatch->setStatus(null);
             }
         }
 
@@ -617,6 +620,16 @@ class Statut {
 
     public function setSendNotifToDeclarant(?bool $sendNotifToDeclarant): self {
         $this->sendNotifToDeclarant = $sendNotifToDeclarant;
+
+        return $this;
+    }
+
+    public function getSendReport(): ?bool {
+        return $this->sendReport;
+    }
+
+    public function setSendReport(?bool $sendReport): self {
+        $this->sendReport = $sendReport;
 
         return $this;
     }

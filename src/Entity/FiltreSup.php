@@ -88,6 +88,8 @@ class FiltreSup {
     const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
     const PAGE_IMPORT = 'import';
     const PAGE_EXPORT = 'export';
+    const FIELD_PICK_LOCATION = 'pickLocation';
+    const FIELD_DROP_LOCATION = 'dropLocation';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

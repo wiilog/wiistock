@@ -74,6 +74,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('formatHistory', [$this, 'formatHistory']),
             new TwigFunction('isImage', [$this, 'isImage']),
             new TwigFunction('merge', "array_merge"),
+            new TwigFunction('diff', "array_diff"),
             new TwigFunction('getLanguage', [$this, "getLanguage"]),
             new TwigFunction('getDefaultLanguage', [$this, "getDefaultLanguage"]),
             new TwigFunction('trans', [$this, "translate"], [

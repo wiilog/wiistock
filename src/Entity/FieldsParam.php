@@ -147,6 +147,8 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_RECEIVER_DISPATCH,
         FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
         FieldsParam::FIELD_CODE_DESTINATION,
+        FieldsParam::FIELD_CODE_LOCATION_PICK,
+        FieldsParam::FIELD_CODE_LOCATION_DROP,
 
         // Services
         FieldsParam::FIELD_CODE_RECEIVERS_HANDLING,

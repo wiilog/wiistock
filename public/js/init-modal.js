@@ -482,9 +482,9 @@ function processInputsForm($modal, data, isAttachmentForm) {
         else if ($input.attr('type') === 'number') {
             if (val
                 && !$input.is(':disabled')) {
-                let val = parseInt($input.val());
-                let min = parseInt($input.attr('min'));
-                let max = parseInt($input.attr('max'));
+                let val = Number($input.val());
+                let min = Number($input.attr('min'));
+                let max = Number($input.attr('max'));
                 if (!isNaN(val)
                     && (
                         val > max
@@ -906,7 +906,6 @@ function withoutExtension(fileName) {
 }
 
 function removeAttachment($elem, callback = null) {
-    console.log(callback);
     if (callback) {
         callback($elem);
     }

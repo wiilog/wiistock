@@ -148,6 +148,12 @@ class Import {
             'orderDate' => 'date commande (jj/mm/AAAA)',
             'expectedDate' => 'date attendue (jj/mm/AAAA)',
             'buyer' => 'Acheteur',
+            "outFormatEquipment" => 'Materiel hors format',
+            "ADR" => 'ADR',
+            "manufacturerCode" => 'Code Fabriquant',
+            "volume" => 'Volume (m3)',
+            "weight" => 'Poids (kg)',
+            "associatedDocumentTypes" => 'Type de documents associés',
 
 
             'role' => 'Rôle',
@@ -156,7 +162,7 @@ class Import {
             'email' => 'Email',
             'secondaryEmail' => 'Email 2',
             'lastEmail' => 'Email 3',
-            'phone' => 'Téléphone',
+            'phone' => 'Numéro de téléphone',
             'mobileLoginKey' => 'Clé de connexion nomade',
             'address' => 'Adresse',
             'deliveryTypes' => 'Types de livraison',
@@ -169,6 +175,7 @@ class Import {
             'articleCode' => 'Code article',
             'articleReference' => 'Référence',
             'requester' => 'Demandeur',
+            'signatoryCode' => 'Code Signataire',
 
             'targetLocationPicking' => 'Emplacement cible picking',
             'name' => 'Nom',
@@ -180,6 +187,7 @@ class Import {
             'isDeliveryPoint' => 'Point de livraison',
             'isOngoingVisibleOnMobile' => 'Encours visible nomade',
             'isActive' => 'Actif',
+            'signatory' => 'Signataire',
 
             'possibleCustoms' => 'Possible douane',
             'urgent' => 'Urgent',

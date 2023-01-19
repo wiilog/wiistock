@@ -10,7 +10,7 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Traits\AttachmentTrait;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Repository\ReferenceArticleRepository;
@@ -27,7 +27,7 @@ class ReferenceArticle
 
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
-    use CommentTrait;
+    use CleanedCommentTrait;
     use LitePropertiesSetterTrait;
 
     const CATEGORIE = 'referenceArticle';
@@ -193,6 +193,9 @@ class ReferenceArticle
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $upToDateInventory;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $description = [];
 
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
@@ -1062,6 +1065,16 @@ class ReferenceArticle
 
     public function setUpToDateInventory(?bool $upToDateInventory): self {
         $this->upToDateInventory = $upToDateInventory;
+
+        return $this;
+    }
+
+    public function getDescription(): ?array {
+        return $this->description;
+    }
+
+    public function setDescription(?array $description): self {
+        $this->description = $description;
 
         return $this;
     }

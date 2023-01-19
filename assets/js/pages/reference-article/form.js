@@ -1,5 +1,6 @@
 import '@styles/details-page.scss';
 import AJAX from "@app/ajax";
+import {computeDescriptionFormValues, computeDescriptionShowValues} from "./common";
 
 window.onTypeQuantityChange = onTypeQuantityChange;
 window.toggleEmergency = toggleEmergency;
@@ -83,6 +84,16 @@ $(document).ready(() => {
             $suppliersToRemove.val($suppliersToRemove.val() + ',' + supplierArticleId);
         }
         $(this).closest('.supplier-container').remove();
+    });
+
+    $(`input[name=length], input[name=width], input[name=height]`).on(`input`, () => {
+        computeDescriptionFormValues({
+            $length: $(`input[name=length]`),
+            $width: $(`input[name=width]`),
+            $height: $(`input[name=height]`),
+            $volume: $(`input[name=volume]`),
+            $size: $(`input[name=size]`),
+        });
     });
 });
 
@@ -189,3 +200,4 @@ function changeNewReferenceStatus($select){
         }
     }
 }
+

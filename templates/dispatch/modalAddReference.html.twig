@@ -1,0 +1,19 @@
+<div class="modal fade" id="modalAddReference">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: 'Ajouter une référence'
+            } %}
+            <div class="modal-body">
+                {% include 'dispatch/modalFormReferenceContent.html.twig' %}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+                ],
+            } %}
+        </div>
+    </div>
+</div>
+

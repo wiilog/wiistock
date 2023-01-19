@@ -29,9 +29,11 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Exceptions\FormException;
 use App\Exceptions\ImportException;
 use Closure;
 use DateTime;
@@ -42,6 +44,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
@@ -98,7 +101,13 @@ class ImportService
             "statut",
             "needsMobileSync",
             "type",
-            "typeQuantite"
+            "typeQuantite",
+            "outFormatEquipment",
+            "ADR",
+            "manufacturerCode",
+            "volume",
+            "weight",
+            "associatedDocumentTypes",
         ],
         Import::ENTITY_FOU => [
             'nom',
@@ -141,7 +150,8 @@ class ImportService
             "dispatchTypes",
             "deliveryTypes",
             "handlingTypes",
-            "deliverer"
+            "deliverer",
+            'signatoryCode'
         ],
         Import::ENTITY_DELIVERY => [
             "articleCode",
@@ -164,7 +174,9 @@ class ImportService
             "name",
             "isDeliveryPoint",
             "allowedCollectTypes",
-            "allowedDeliveryTypes"
+            "allowedDeliveryTypes",
+            "signatory",
+            "email",
         ],
         Import::ENTITY_CUSTOMER => [
             "name",
@@ -215,6 +227,9 @@ class ImportService
     public UserService $userService;
 
     #[Required]
+    public FormService $formService;
+
+    #[Required]
     public UniqueNumberService $uniqueNumberService;
 
     #[Required]
@@ -229,8 +244,12 @@ class ImportService
     #[Required]
     public ReceptionLineService $receptionLineService;
 
+    #[Required]
+    public UserPasswordHasherInterface $encoder;
+
     private Import $currentImport;
     private EntityManagerInterface $entityManager;
+    private array $importCache = [];
 
     private array $cache = [];
 
@@ -328,9 +347,8 @@ class ImportService
 
     public function treatImport(Import $import, int $mode = self::IMPORT_MODE_PLAN): int
     {
-        $this->resetCache();
-
         $this->currentImport = $import;
+        $this->resetCache();
 
         $csvFile = $this->currentImport->getCsvFile();
 
@@ -1056,6 +1074,55 @@ class ImportService
             }
         }
 
+        $original = $refArt->getDescription() ?? [];
+
+        $outFormatEquipmentData = isset($data['outFormatEquipment'])
+            ? (int) (
+                filter_var($data['outFormatEquipment'], FILTER_VALIDATE_BOOLEAN)
+                || in_array($data['outFormatEquipment'], self::POSITIVE_ARRAY)
+            )
+            : null;
+        $ADRData = isset($data['ADR'])
+            ? (int) (
+                filter_var($data['ADR'], FILTER_VALIDATE_BOOLEAN)
+                || in_array($data['ADR'], self::POSITIVE_ARRAY)
+            )
+            : null;
+
+        $outFormatEquipment = $outFormatEquipmentData ?? $original['outFormatEquipment'] ?? null;
+        $ADR = $ADRData ?? $original['ADR'] ?? null;
+        $volume = $data['volume'] ?? $original['volume'] ?? null;
+        $weight = $data['weight'] ?? $original['weight'] ?? null;
+        $associatedDocumentTypesStr = $data['associatedDocumentTypes'] ?? $original['associatedDocumentTypes'] ?? null;
+        $associatedDocumentTypes = $associatedDocumentTypesStr
+            ? Stream::explode(',', $associatedDocumentTypesStr)
+                ->filter()
+                ->toArray()
+            : [];
+
+        if (!empty($volume) && !is_numeric($volume)) {
+            $this->throwError('Champ volume non valide.');
+        }
+        if (!empty($weight) && !is_numeric($weight)) {
+            $this->throwError('Champ poids non valide.');
+        }
+
+        $invalidAssociatedDocumentType = Stream::from($associatedDocumentTypes)
+            ->find(fn(string $type) => !in_array($type, $this->importCache[Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES]));
+        if (!empty($invalidAssociatedDocumentType)) {
+            $this->throwError("Le type de document n'est pas valide : $invalidAssociatedDocumentType");
+        }
+
+        $description = [
+            "outFormatEquipment" => $outFormatEquipment,
+            "ADR" => $ADR,
+            "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'] ?? null,
+            "volume" => $volume,
+            "weight" => $weight,
+            "associatedDocumentTypes" => $associatedDocumentTypes,
+        ];
+        $refArt
+            ->setDescription($description);
         // champs libres
         $this->checkAndSetChampsLibres($colChampsLibres, $refArt, $isNewEntity, $row);
 
@@ -1370,6 +1437,16 @@ class ImportService
             $user->setStatus($status);
         }
 
+        if (!empty($data['signatoryCode'])) {
+            $plainSignatoryPassword = $data['signatoryCode'];
+            if (strlen($plainSignatoryPassword) < 6) {
+                $this->throwError("Le code signataire doit contenir au moins 6 caractères");
+            }
+
+            $signatoryPassword = $this->encoder->hashPassword($user, $plainSignatoryPassword);
+            $user->setSignatoryPassword($signatoryPassword);
+        }
+
         $this->entityManager->persist($user);
 
         $this->updateStats($stats, !$user->getId());
@@ -1600,6 +1677,7 @@ class ImportService
         $locationRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
         $isNewEntity = false;
         $location = $locationRepository->findOneBy(['label' => $data['name']]);
@@ -1705,6 +1783,22 @@ class ImportService
                 || strtolower($data['isOngoingVisibleOnMobile']) === "oui"
             );
         }
+
+        if (!empty($data['signatory'])) {
+            $signatory = $userRepository->findOneBy(['username' => $data['signatory']]);
+            if (!$signatory) {
+                $this->throwError('Nom d\'utilisateur de signataire inconnu.');
+            }
+            $location->setSignatory($signatory);
+        }
+
+        if (!empty($data['email'])) {
+            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $this->throwError('Le format de l\'adresse email est incorrect');
+            }
+            $location->setEmail($data['email']);
+        }
+
         if (isset($data['isActive'])) {
             $value = strtolower($data['isActive']);
             if ($value !== 'oui' && $value !== 'non') {
@@ -2092,10 +2186,17 @@ class ImportService
         return $fieldsToAssociate;
     }
 
-    private function resetCache(): void {
-        $this->cache = [
-            'receptions' => [],
-            'deliveries' => [],
+    public function resetCache(): void {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+        $associatedDocumentTypes = $associatedDocumentTypesStr
+            ? Stream::explode(',', $associatedDocumentTypesStr)
+                ->filter()
+                ->toArray()
+            : [];
+
+        $this->importCache = [
+            Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => $associatedDocumentTypes,
         ];
     }
 }

@@ -102,6 +102,20 @@ class DispatchRepository extends EntityRepository
                     $qb->andWhere('dispatch.destination LIKE :filter_destination_value')
                         ->setParameter("filter_destination_value", '%' . $filter['value'] . '%');
                     break;
+                case 'pickLocation':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('dispatch.locationFrom', 'filter_pick_location')
+                        ->andWhere("filter_pick_location.id in (:pickLocationId)")
+                        ->setParameter('pickLocationId', $value);
+                    break;
+                case 'dropLocation':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('dispatch.locationTo', 'filter_drop_location')
+                        ->andWhere("filter_drop_location.id in (:dropLocationId)")
+                        ->setParameter('dropLocationId', $value);
+                    break;
             }
         }
         if (!empty($params)) {
@@ -180,6 +194,11 @@ class DispatchRepository extends EntityRepository
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
+        $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
+        if ($pageLength) {
+            $qb->setMaxResults($pageLength);
+        }
+
         $query = $qb->getQuery();
 
         return [
@@ -244,6 +263,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.destination AS destination')
             ->addSelect('type.label AS typeLabel')
             ->addSelect('type.id AS typeId')
+            ->addSelect('status.id AS statusId')
             ->addSelect('status.nom AS statusLabel')
             ->join('dispatch.requester', 'dispatch_requester')
             ->leftJoin('dispatch.locationFrom', 'locationFrom')

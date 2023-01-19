@@ -13,7 +13,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\Statut;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -36,7 +36,7 @@ class Demande implements PairedEntity {
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
-    use CommentTrait;
+    use CleanedCommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
 

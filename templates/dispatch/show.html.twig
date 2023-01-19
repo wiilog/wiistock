@@ -4,6 +4,39 @@
 {% block title_tooltip %}Demande | Acheminement | Détails{% endblock %}
 {% block titleLink path('dispatch_index') %}
 
+{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+{% set hasRightExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+
+{# droit de modification/suppression pour les acheminements brouillons #}
+{% if dispatch.statut.draft %}
+    {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_DRAFT_DISPATCH')) %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_DRAFT_DISPATCH')) %}
+{% endif %}
+
+{# droit de modification/suppression pour les acheminements à traiter #}
+{% if not dispatch.statut.treated and not dispatch.statut.draft %}
+    {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_UNPROCESSED_DISPATCH')) %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_DISPATCH')) %}
+{% endif %}
+
+{# droit de modification/suppression pour les acheminements traités #}
+{% if dispatch.statut.treated %}
+    {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_PROCESSED_DISPATCH')) %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_DISPATCH')) %}
+{% endif %}
+
+{% set hasRightToGenerateDeliveryNote = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DELIVERY_NOTE')) %}
+{% set hasRightToGenerateOverconsumptionBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_OVERCONSUMPTION_BILL')) %}
+{% set hasRightToGenerateWayBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_WAY_BILL')) %}
+{% set hasRightToGenerateDispatchBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_BILL')) %}
+
+
+{% block stylesheets %}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
+
 {% block page_content %}
     <input type="hidden" id="forbiddenPhoneNumbers" value="{{ app_forbidden_phones }}"/>
     <input type="hidden" id="dispatchId" value="{{ dispatch.id }}"/>
@@ -11,24 +44,330 @@
     <input type="hidden" id="newPackRow" value="{{ newPackRow | json_encode }}"/>
     <input type="hidden" id="isEdit" value="{{ modifiable }}"/>
 
-    <div class="m-4" style="padding-bottom: 175px;">
-        <div class="row">
-            <div class="col-12">
-                <div class="zone-entete">
-                    {% include "dispatch/dispatch-show-header.html.twig" with {
-                        dispatch: dispatch,
-                        showDetails: detailsConfig,
-                        modifiable: modifiable
-                    } %}
+    <div class="mb-4 ra-container d-flex justify-content-center align-content-center">
+        <div class="row wii-column w-100">
+            <div class="col-md-4 col-12">
+                <div class="wii-box">
+                    <div class="d-flex align-items-center mr-3">
+                        <div class="mx-2">
+                            <div class="dropdown dropright">
+                                <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+                                </div>
+                                <div class="dropdown-menu dropdown-follow-gt pointer">
+                                    {% if hasRightEdit %}
+                                        {% if dispatch.statut.notTreated and not dispatch.statut.draft %}
+                                            <a class="dropdown-item"
+                                               href="{{ path('rollback_draft', {'dispatch': dispatch.id}) }}">
+                                                <i class="fas fa-undo-alt mr-2"></i>
+                                                {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Retour au statut Brouillon', false) }}
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if hasRightToGenerateDeliveryNote %}
+                                        <a type="button"
+                                           data-dispatch-id='{{ dispatch.id }}'
+                                           onclick="openDeliveryNoteModal($(this))"
+                                           id="generateDeliveryNoteButton"
+                                           title="Générer un bon de livraison"
+                                           class="dropdown-item  d-flex align-items-center">
+                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                                            {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer un bon de livraison', false) }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightToGenerateOverconsumptionBill %}
+                                        <a class="dropdown-item d-flex align-items-center"
+                                           onclick="generateOverconsumptionBill($(this), {{ dispatch.id }})">
+                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                                            {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer un bon de surconsommation', false) }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightToGenerateWayBill %}
+                                        <a type="button"
+                                           data-dispatch-id='{{ dispatch.id }}'
+                                           onclick="openWaybillModal($(this))"
+                                           title="Générer une lettre de voiture"
+                                           class="dropdown-item d-flex align-items-center">
+                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                                            {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer une lettre de voiture', false) }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightToGenerateDispatchBill %}
+                                        <a class="dropdown-item  d-flex align-items-center"
+                                           title="Générer un bon d'acheminement"
+                                           onclick="runDispatchPrint()">
+                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                                            {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', "Générer un bon d'acheminement", false) }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightEdit %}
+                                        <a data-id='{{ dispatch.id }}'
+                                           data-target='#modalEditDispatch'
+                                           data-toggle='modal'
+                                           onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), false, initDatePickers)"
+                                           class="dropdown-item pointer">
+                                            <i class="fa fa-pen mr-2"></i>
+                                            {{ trans('Général', null, 'Modale', 'Modifier') }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightDelete %}
+                                        <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
+                                           class="dropdown-item d-flex align-items-center">
+                                            <span class="wii-icon wii-icon-trash-black mr-2"></span>
+                                            {{ trans('Général', null, 'Modale', 'Supprimer') }}
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex py-2 w-100 justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-column">
+                                    <span class="wii-title">{{ trans('Demande', 'Acheminements', null, 'Acheminement') }}</span>
+                                    <span class="wii-small-text">
+                                    {{ dispatch.number }}
+                                </span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-end">
+                            <span class="wii-field-name">
+                                {{ dispatch.requester.username }}
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content bordered p-0">
+                        <div class="content status-history-container p-0">
+                            <div class="d-flex align-items-center justify-content-center p-3">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <span class="ml-3">Génération de l'historique en cours</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content bordered">
+                        <div class="d-flex flex-wrap w-100">
+                            {% include 'attachment/attachment.html.twig' with {
+                                'isNew': false,
+                                attachments : dispatch.attachments,
+                                editAttachments : false,
+                                fullWidth: true,
+                                fieldNameClass : 'wii-subtitle',
+                                override: true,
+                            } %}
+                        </div>
+                        {% if dispatch.attachments is empty %}
+                            <div class="wii-small-text">
+                                Cet acheminement n'a aucune pièce jointe
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="content comment-container">
+                        <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
+                        <div>
+                            {% if dispatch.commentaire != '<p><br></p>' %}
+                                {{ dispatch.commentaire | raw | nl2br }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="wii-box">
+                    <div class="header wii-title">{{ trans('Général', null, 'Modale', 'Champs libres') }}</div>
+                    <div class="content row no-gutters">
+                        {% include 'free_field/freeFieldsShow.html.twig' with {
+                            wrapperClass: 'col-6 d-flex flex-column',
+                            values: dispatch.freeFields,
+                            freeFields: freeFields,
+                            emptyTitle: "Cet acheminement n'a aucun champ libre",
+                            emptyLabel: "Cet acheminement n'a aucun champ libre",
+                            needsDateFormatting: true
+                        } %}
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="row mt-3">
+
+            <div class="col-md-8 col-12">
+                <div class="wii-box">
+                    <div class="header wii-title d-flex justify-content-between {{ dispatch.statut.draft or not dispatch.statut.treated ? 'p-2' }}">
+                        <span class="d-flex align-items-center pl-2">Informations</span>
+                        {% if hasRightEdit %}
+                            {% if dispatch.statut.draft %}
+                                <button type="button"
+                                        data-id='{{ dispatch.id }}'
+                                        onclick="openValidateDispatchModal()"
+                                        class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
+                                    <span class="wii-icon wii-icon-check-white mr-2"></span>
+                                    {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Valider la demande', false) }}
+                                </button>
+                            {% elseif not dispatch.statut.treated %}
+                                <button type="button"
+                                        data-id='{{ dispatch.id }}'
+                                        onclick="openTreatDispatchModal()"
+                                        class="btn btn-primary align-items-center justify-content-center split-button mr-0">
+                                    <span class="wii-icon wii-icon-check-white mr-2"></span>
+                                    {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Terminer la demande', false) }}
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% if dispatch.emergency %}
+                        <div class="d-flex align-items-center justify-content-center emergency-container pl-3">
+                            <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
+                            <span class="wii-body-text">Cet acheminement est urgent : <strong>{{ dispatch.emergency }}</strong></span>
+                        </div>
+                    {% endif %}
+                    <div class="content row no-gutters">
+                        <div class="col-4 d-flex flex-column">
+                            <div class="box-item my-2">
+                                <span class="wii-field-name">{{ trans('Demande', 'Général', 'Type') }}</span>
+                                <span class="wii-field-text">
+                                {{ dispatch.type.label }}
+                            </span>
+                            </div>
+                        </div>
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Transporteur') }}</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.carrier ? dispatch.carrier.label : '-' }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">{{ trans('Demande', 'Général', 'N° tracking transporteur') }}</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.carrierTrackingNumber ?? '-' }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'Destinataire(s)') }}</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.receivers is not empty ? dispatch.receivers|map((user) => user.username)|join(', ') : '-' }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'N° projet') }}</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.projectNumber ?? '-' }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'Business unit') }}</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.businessUnit ?: '-' }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande') }}</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.commandNumber ?? '-' }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_PICK') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise') }}</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.locationFrom|format_helper('location', '-') }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose') }}</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.locationTo|format_helper('location', '-') }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', "Dates d'échéance") }}</span>
+                                    <span class="wii-field-text">
+                                    Du {{ dispatch.startDate|format_helper('date', '-') }} au {{ dispatch.endDate|format_helper('date', '-') }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="col-4 d-flex flex-column">
+                            <div class="box-item my-2">
+                                <span class="wii-field-name">Traité par</span>
+                                <span class="wii-field-text">
+                                {{ dispatch.treatedBy|format_helper('user', '-') }}
+                            </span>
+                            </div>
+                        </div>
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DESTINATION') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">{{ trans( 'Demande', 'Acheminements', 'Champs fixes', 'Destination') }}</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.destination ?? '-' }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
             <div class="col-12">
                 <div class="wii-box focus-shadow drop-below">
-                    <div class="header wii-title">{{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Liste des UL', false) }}</div>
+                    {% if hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::ADD_REFERENCE_IN_LU')) %}
+                        <div class="header wii-title d-flex justify-content-between align-items-center">
+                            {{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Liste des UL', false) }}
+                            <button class="btn btn-primary ml-auto d-flex align-items-center"
+                                onclick="openAddReferenceModal()">
+                                <span class="wii-icon-add-reference wii-icon wii-icon-17px mr-2"></span>
+                                Ajouter une référence
+                            </button>
+                        </div>
+                    {% endif %}
                     <div class="p-3">
-                        <table id="packTable" class="wii-table w-100"></table>
+                        {% if dispatch.hasReferenceArticles %}
+                            <div class="col-12 logistic-units-container wii-multiple-loading"
+                                 data-loader-color="primary"
+                                 data-loader-size="normal">
+                            </div>
+                        {% else %}
+                            <table id="packTable" class="wii-table w-100"></table>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -42,10 +381,13 @@
     {% include "dispatch/modalDeletePack.html.twig" %}
     {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
     {% include "dispatch/modalPrintWayBill.html.twig" %}
+    {% include "dispatch/modalEditReference.html.twig" %}
+    {% include "dispatch/modalAddReference.html.twig" with {descriptionConfig: descriptionFormConfig } %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
 
     <script src="{{ asset('js/pages/dispatch-show.js') }}?v={{ web_version }}"></script>
+
 {% endblock %}
