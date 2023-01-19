@@ -1731,6 +1731,12 @@ class MobileController extends AbstractApiController
 
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $deliveryFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
+
+            $dispatchTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+                ->map(fn(Type $type) => [
+                    'id' => $type->getId(),
+                    'label' => $type->getLabel(),
+                ])->toArray();
         }
 
         if ($rights['tracking']) {
@@ -1801,6 +1807,7 @@ class MobileController extends AbstractApiController
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
             'status' => $status,
+            'dispatchTypes' => $dispatchTypes ?? [],
         ];
     }
 
@@ -2412,6 +2419,38 @@ class MobileController extends AbstractApiController
             $articleRepository->getByPreparationsIds($preparationsIds),
             $referenceArticleRepository->getByPreparationsIds($preparationsIds)
         );
+    }
+
+    /**
+     * @Rest\Post("/api/finish-grouped-signature", name="api_finish_grouped_signature")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function finishGroupedSignature(Request $request,
+                                           EntityManagerInterface $manager,
+                                           DispatchService $dispatchService) {
+
+        $locationData = $request->request->get('location');
+        $signatoryTrigramData = $request->request->get("signatoryTrigram");
+        $signatoryPasswordData = $request->request->get("signatoryPassword");
+        $statusData = $request->request->get("status");
+        $commentData = $request->request->get("comment");
+        $dispatchesToSignIds = explode(',', $request->request->get('dispatchesToSign'));
+
+        $response = $dispatchService->finishGroupedSignature(
+            $manager,
+            $locationData,
+            $signatoryTrigramData,
+            $signatoryPasswordData,
+            $statusData,
+            $commentData,
+            $dispatchesToSignIds,
+            true
+        );
+
+        $manager->flush();
+
+        return $this->json($response);
     }
 
     /**

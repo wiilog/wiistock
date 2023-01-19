@@ -1638,72 +1638,24 @@ class DispatchController extends AbstractController {
                                            StatusHistoryService   $statusHistoryService,
                                            EntityManagerInterface $entityManager,
                                            DispatchService        $dispatchService): Response {
-        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
 
         $locationData = $request->query->get('location');
         $signatoryTrigramData = $request->request->get("signatoryTrigram");
         $signatoryPasswordData = $request->request->get("signatoryPassword");
         $statusData = $request->request->get("status");
         $commentData = $request->request->get("comment");
-
-        $location = $locationRepository->find($locationData);
-        $signatory = $signatoryTrigramData ? $userRepository->find($signatoryTrigramData) : null;
-        if(!$signatory || !password_verify($signatoryPasswordData, $signatory->getSignatoryPassword())){
-            throw new FormException("Code signataire invalide");
-        }
-
-        if(!$location?->getSignatory()){
-            $locationLabel = $location?->getLabel() ?: "invalide";
-            throw new FormException("L'emplacement filtré {$locationLabel} n'a pas de signataire renseigné");
-        }
-
-        if($location->getSignatory() !== $signatory){
-            throw new FormException("Le signataire renseigné n'est pas correct");
-        }
-
         $dispatchesToSignIds = $request->query->all('dispatchesToSign');
-        $groupedSignatureStatus = $statusRepository->find($statusData);
-        $dispatchesToSign = $dispatchesToSignIds
-            ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
-            : [];
 
-        $dispatchTypes = Stream::from($dispatchesToSign)
-            ->filterMap(fn(Dispatch $dispatch) => $dispatch->getType())
-            ->keymap(fn(Type $type) => [$type->getId(), $type])
-            ->reindex();
-
-        if ($dispatchTypes->count() !== 1) {
-            throw new FormException("Vous ne pouvez sélectionner qu'un seul type d'acheminement pour réaliser une signature groupée");
-        }
-
-        $now = new DateTime();
-
-        foreach ($dispatchesToSign as $dispatch){
-            $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
-                ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
-                ->isEmpty());
-
-            if (!$containsReferences) {
-                throw new FormException("L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée");
-            }
-
-            $statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus);
-
-            $newCommentDispatch = $dispatch->getCommentaire()
-                ? ($dispatch->getCommentaire() . "<br/>")
-                : "";
-
-            $dispatch
-                ->setTreatmentDate($now)
-                ->setCommentaire($newCommentDispatch . $commentData);
-
-            if($groupedSignatureStatus->getSendReport()){
-                $dispatchService->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
-            }
-        }
+        $dispatchService->finishGroupedSignature(
+            $entityManager,
+            $locationData,
+            $signatoryTrigramData,
+            $signatoryPasswordData,
+            $statusData,
+            $commentData,
+            $dispatchesToSignIds,
+        );
 
         $entityManager->flush();
         return $this->json([
