@@ -82,7 +82,7 @@ class DispatchPackRepository extends EntityRepository {
 
 
             ->andWhere('dispatch_pack.dispatch = :dispatch')
-            ->addOrderBy('IF(join_pack.id IS NULL, 0, 1)') // show receptionLine without pack first
+            ->addOrderBy('IF(join_pack.id IS NULL, 0, 1)')
             ->addOrderBy('dispatch_pack.id')
             ->setParameter('dispatch', $dispatch);
 

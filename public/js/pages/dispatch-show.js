@@ -561,7 +561,7 @@ function scrollToBottom() {
 function getStatusHistory(id) {
     return $.get(Routing.generate(`dispatch_status_history_api`, {id}, true))
         .then(({template}) => {
-            const $statusHistoryContainer = $(`.status-history-container`);
+            const $statusHistoryContainer = $(`.history-container`);
             $statusHistoryContainer.html(template);
         });
 }
@@ -586,9 +586,10 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                 .json()
                 .then(data => {
                     $logisticUnitsContainer.html(data.html);
-                    $logisticUnitsContainer.find('.reference-articles-container table')
+                    $logisticUnitsContainer.find('.articles-container table')
                         .each(function() {
                             const $table = $(this);
+                            console.log($table);
                             initDataTable($table, {
                                 serverSide: false,
                                 ordering: true,
@@ -620,6 +621,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     needsColor: true,
                                 },
                             });
+                            console.log($table);
                         });
 
                     $logisticUnitsContainer

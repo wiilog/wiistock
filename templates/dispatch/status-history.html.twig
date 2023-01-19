@@ -6,10 +6,10 @@
 {% if statusesHistory is empty%}
     {% if dispatch.statut.treated == 1 %}
         <div class="history-line">
-            <div class="history-date">
+            <div class="history-line-left-content">
                 <div class="title-left last current">{{ dispatch.statut.labelIn(userLanguage, defaultLanguage) }}</div>
             </div>
-            <div class="history-status last-status-history last state current">
+            <div class="history-line-right-content last-history-line last state current">
                 <div class="title-right current text-left">
                     <span class="ml-2">{{ dispatch.validationDate | format_helper('longDate', {short: true, time: true}) }}</span>
                 </div>
@@ -27,11 +27,11 @@
             : 'past')
         %}
         <div class="history-line">
-            <div class="history-date">
+            <div class="history-line-left-content">
                 <div class="title-left {{ state == 'current' and loop.last ? 'last' }} {{ state }}">{{ history['status'] }}</div>
             </div>
-            <div class="history-status
-                {{ loop.last ? 'last-status-history' }}
+            <div class="history-line-right-content
+                {{ loop.last ? 'last-history-line' }}
                 {{ loop.last ? 'last' }}
                 {{ state }}">
                 <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }} text-left">

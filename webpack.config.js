@@ -41,8 +41,8 @@ Encore
     .addEntry('handling-edit', './assets/js/pages/handling/edit.js')
     .addEntry('register', './assets/js/pages/register/register.js')
     .addEntry('customer-index', './assets/js/pages/customer/index.js')
-    .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .addEntry('kiosk', './assets/js/pages/kiosk.js')
+
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 
