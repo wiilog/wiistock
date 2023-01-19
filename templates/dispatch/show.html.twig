@@ -344,6 +344,17 @@
                                 </div>
                             </div>
                         {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMAILS') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Email(s)</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.emails is not empty ? dispatch.emails|join(', ') : '-' }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

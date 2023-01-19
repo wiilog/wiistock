@@ -188,6 +188,22 @@
         </div>
     {% endif %}
 
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMAILS') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+        <div class="form-group col-md-4 col-12">
+            <label class="wii-field-name" for="destinataire">Email(s){{ required ? '*' }}</label>
+            <select class="form-control data w-100 {{ required ? 'needed' }}" data-s2
+                    name="emails"
+                    multiple
+                    data-editable>
+                {% for email in dispatch.emails %}
+                    <option value="{{ email }}" selected>{{ email }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endif %}
+
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}

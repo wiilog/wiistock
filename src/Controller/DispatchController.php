@@ -263,6 +263,7 @@ class DispatchController extends AbstractController {
         $carrierTrackingNumber = $post->get('carrierTrackingNumber');
         $commandNumber = $post->get('commandNumber');
         $receivers = $post->get('receivers');
+        $emails = $post->get('emails');
         $emergency = $post->get('emergency');
         $projectNumber = $post->get('projectNumber');
         $businessUnit = $post->get('businessUnit');
@@ -332,6 +333,11 @@ class DispatchController extends AbstractController {
 
         if(!empty($commandNumber)) {
             $dispatch->setCommandNumber($commandNumber);
+        }
+
+        if(!empty($emails)) {
+            $emails = explode("," , $emails);
+            $dispatch->setEmails($emails);
         }
 
         if(!empty($receivers)) {
@@ -537,6 +543,10 @@ class DispatchController extends AbstractController {
             ? explode(",", $post->get('receivers') ?? '')
             : [];
 
+        $emails = $post->get('emails')
+            ? explode(",", $post->get('emails') ?? '')
+            : [];
+
         $existingReceivers = $dispatch->getReceivers();
         foreach($existingReceivers as $receiver) {
             $dispatch->removeReceiver($receiver);
@@ -562,7 +572,8 @@ class DispatchController extends AbstractController {
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)
             ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')) ?: '')
-            ->setDestination($destination);
+            ->setDestination($destination)
+            ->setEmails($emails);
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 

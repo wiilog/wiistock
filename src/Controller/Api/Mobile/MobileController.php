@@ -2579,7 +2579,8 @@ class MobileController extends AbstractApiController
      */
     public function newDispatch(Request $request,
                                 EntityManagerInterface $manager,
-                                UniqueNumberService $uniqueNumberService): Response {
+                                UniqueNumberService $uniqueNumberService,
+                                DispatchService $dispatchService): Response {
         $data = $request->request->all();
 
         $typeRepository = $manager->getRepository(Type::class);
@@ -2613,7 +2614,7 @@ class MobileController extends AbstractApiController
             ->setLocationTo($dropLocation)
             ->setCarrierTrackingNumber($data['carrierTrackingNumber'] ?? null)
             ->setCommentaire($data['comment'] ?? null)
-            ->setEmergency($data['emergency'] ?? null)
+            ->setEmergency($data['emergency'] && $data['emergency'] !== 'null' ? $data['emergency'] : null)
             ->setEmails($emails);
 
         if($receiver) {
@@ -2623,8 +2624,8 @@ class MobileController extends AbstractApiController
         $manager->persist($dispatch);
         $manager->flush();
 
-        if(!empty($data['emergency']) && $receiver) {
-            // TODO Envoyer le mail de compte rendu
+        if(!empty($data['emergency']) && $data['emergency'] !== 'null' && $receiver) {
+            $dispatchService->sendEmailsAccordingToStatus($dispatch, false, false, $receiver, true);
         }
 
         $serializedDispatch = $dispatchRepository->getMobileDispatches(null, $dispatch);
