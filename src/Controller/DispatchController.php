@@ -673,6 +673,15 @@ class DispatchController extends AbstractController {
                 foreach($trackingMovements as $trackingMovement) {
                     $dispatch->removeTrackingMovement($trackingMovement);
                 }
+
+                $dispatchPacks = $dispatch->getDispatchPacks()->toArray();
+                foreach($dispatchPacks as $dispatchPack) {
+                    $dispatchReferenceArticles = $dispatchPack->getDispatchReferenceArticles()->toArray();
+                    foreach($dispatchReferenceArticles as $dispatchReferenceArticle) {
+                        $entityManager->remove($dispatchReferenceArticle);
+                    }
+                    $entityManager->remove($dispatchPack);
+                }
             }
             $entityManager->flush();
             $entityManager->remove($dispatch);
