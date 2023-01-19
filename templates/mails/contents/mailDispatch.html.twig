@@ -38,11 +38,15 @@
         <li>{{ translateIn(language, "Demande", "Général", "Destinataire(s)") }} : <strong>{{ receivers }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Type") }} : <strong>{{ dispatch.type.labelIn(language, getDefaultLanguage()) }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Statut") }} : <strong>{{ dispatch.statut.labelIn(language, getDefaultLanguage()) }}</strong></li>
-        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Dates d\'échéance') }} : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
+        {% if not reportTable %}
+            <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Dates d\'échéance') }} : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
+        {% endif %}
         <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Transporteur') }} : <strong>{{ dispatch.carrier.label ?? '' }}</strong></li>
         <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° tracking transporteur') }} : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
-        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° projet') }} : <strong>{{ dispatch.projectNumber ?? '' }}</strong></li>
-        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Business unit') }} : <strong>{{ dispatch.businessUnit ?? '' }}</strong></li>
+        {% if not reportTable %}
+            <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° projet') }} : <strong>{{ dispatch.projectNumber ?? '' }}</strong></li>
+            <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Business unit') }} : <strong>{{ dispatch.businessUnit ?? '' }}</strong></li>
+        {% endif %}
         <li>{{ translateIn(language, "Demande", "Général", "Urgence") }} : <strong>{{ emergency }}</strong></li>
         <li>{{ translateIn(language, "Général", null, "Modale", "Commentaire") }} : {{ comment|striptags }}</li>
         {% if dispatch.attachments|length > 0 %}
@@ -95,7 +99,7 @@
                 </th>
                 <th class="th"
                     style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Code fournisseur') }}
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Code fabricant') }}
                 </th>
                 <th class="th"
                     style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">

@@ -1104,7 +1104,7 @@ class DispatchService {
             "urgenceach" => $dispatch->getEmergency() ?? 'Non',
             // keep line breaking in docx
             "commentaireach" => $this->formatService->html(str_replace("<br/>", "\n", $dispatch->getCommentaire())),
-            "datestatutach" => $this->formatService->date($dispatch->getTreatmentDate()),
+            "datestatutach" => $this->formatService->datetime($dispatch->getTreatmentDate()),
         ];
 
         $variables['UL'] = $referenceArticlesStream
@@ -1345,6 +1345,8 @@ class DispatchService {
             $dispatch
                 ->setTreatmentDate($now)
                 ->setCommentaire($newCommentDispatch . $commentData);
+
+            $entityManager->flush();
 
             if($groupedSignatureStatus->getSendReport()){
                 $this->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
