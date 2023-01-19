@@ -33,7 +33,7 @@
             ? {
                 icon: 'wii-icon wii-icon-new-article',
                 datatarget: "#modalAddReference",
-                onclick: "initAddReferenceEditor('#modalAddReference', { unitId : " ~ pack.id ~ ", unitCode : '" ~ pack.code ~ "' })",
+                onclick: "openAddReferenceModal($(this), { unitId : " ~ pack.id ~ "})",
             }
         } %}
     {% endfor %}
