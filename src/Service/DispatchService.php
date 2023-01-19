@@ -1017,7 +1017,7 @@ class DispatchService {
         return $wayBillAttachment;
     }
 
-    public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, $data): JsonResponse
+    public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
     {
         $packId = $data['pack'] ?? null;
         $referenceId = $data['reference'] ?? null;

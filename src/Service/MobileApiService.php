@@ -67,7 +67,6 @@ class MobileApiService {
         $translationsRepository = $entityManager->getRepository(Translation::class);
 
         $userLanguage = $user->getLanguage();
-        dump($userLanguage);
         $translations = Stream::from($translationsRepository->findBy(['language' => $userLanguage]))
             ->map(fn(Translation $translation) => [
                 'topMenu' => $translation->getSource()->getCategory()?->getParent()?->getParent()?->getLabel(),

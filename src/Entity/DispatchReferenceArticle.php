@@ -14,7 +14,6 @@ use Doctrine\ORM\Mapping as ORM;
 class DispatchReferenceArticle
 {
     use AttachmentTrait;
-
     use CommentTrait;
 
     #[ORM\Id]
@@ -40,6 +39,10 @@ class DispatchReferenceArticle
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?ReferenceArticle $referenceArticle = null;
+
+    public function __construct() {
+        $this->attachments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
