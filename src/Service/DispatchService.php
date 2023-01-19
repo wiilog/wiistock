@@ -548,9 +548,7 @@ class DispatchService {
             ->setTreatmentDate($date)
             ->setTreatedBy($loggedUser);
 
-        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $treatedStatus, [
-            "forceCreation" => false,
-        ]);
+        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $treatedStatus);
 
         $parsedPacks = [];
         foreach ($dispatchPacks as $dispatchPack) {

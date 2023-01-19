@@ -304,9 +304,7 @@ class DispatchController extends AbstractController {
             ->setNumber($dispatchNumber)
             ->setDestination($destination);
 
-        $statusHistoryService->updateStatus($entityManager, $dispatch, $status, [
-            "forceCreation" => false,
-        ]);
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
 
         if(!empty($comment)) {
             $dispatch->setCommentaire(StringHelper::cleanedComment($comment));
@@ -875,9 +873,7 @@ class DispatchController extends AbstractController {
                     $dispatch
                         ->setValidationDate(new DateTime('now'));
 
-                    $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
-                        "forceCreation" => false,
-                    ]);
+                    $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
                     $entityManager->flush();
                     $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
                 } catch (Exception $e) {
@@ -976,9 +972,7 @@ class DispatchController extends AbstractController {
             'state' => 0
         ]);
 
-        $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
-            "forceCreation" => false,
-        ]);
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus);
         $entityManager->flush();
 
         return $this->redirectToRoute('dispatch_show', [
@@ -1442,9 +1436,7 @@ class DispatchController extends AbstractController {
 
             if ($dispatch->getType()->getId() === $typeId) {
                 $untreatedStatus = $statutRepository->find($statutsId);
-                $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
-                    "forceCreation" => false,
-                ]);
+                $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
                 if (!$dispatch->getValidationDate()) {
                     $dispatch->setValidationDate(new DateTime('now'));
                 }

@@ -113,7 +113,10 @@ $(function() {
                                 form.loading(() => (
                                     AJAX.route(AJAX.POST, 'finish_grouped_signature', {dispatchesToSign, location})
                                         .json(data)
-                                ))
+                                        .then(() => {
+                                            window.location.reload();
+                                        })
+                                ), false)
                             })
 
                         $modalGroupedSignature.modal(`show`);
