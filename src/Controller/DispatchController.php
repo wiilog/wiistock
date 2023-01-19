@@ -1591,8 +1591,6 @@ class DispatchController extends AbstractController {
 
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
-        $dispatchPacks = $dispatch->getDispatchPacks();
-
         $start = $request->query->get('start') ?: 0;
         $search = $request->query->get('search') ?: 0;
 
@@ -1618,8 +1616,8 @@ class DispatchController extends AbstractController {
         ]);
     }
 
-    #[Route("/add-reference", name:"dispatch_add_reference", options: ['expose' => true], methods: "POST")]
-    public function addReference(Request $request,
+    #[Route("/form-reference", name:"dispatch_form_reference", options: ['expose' => true], methods: "POST")]
+    public function formReference(Request $request,
                                  EntityManagerInterface $entityManager,
                                  DispatchService $dispatchService): JsonResponse
     {
@@ -1628,4 +1626,39 @@ class DispatchController extends AbstractController {
 
         return $dispatchService->createDispatchReferenceArticle($entityManager, $data);
     }
+
+    #[Route("/delete-reference/{dispatchReferenceArticle}", name:"dispatch_delete_reference", options: ['expose' => true], methods: "DELETE")]
+    public function deleteReference(DispatchReferenceArticle $dispatchReferenceArticle,
+                                    EntityManagerInterface $entityManager): JsonResponse
+    {
+        $dispatchPack = $dispatchReferenceArticle->getDispatchPack();
+
+        $dispatchPack->removeDispatchReferenceArticles($dispatchReferenceArticle);
+        $entityManager->remove($dispatchReferenceArticle);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'redirect' => $this->generateUrl("dispatch_show", ['id' => $dispatchPack->getDispatch()->getId()]),
+            'msg' => 'Référence supprimée',
+        ]);
+    }
+
+    #[Route("/edit-reference-api/{dispatchReferenceArticle}", name:"dispatch_edit_reference_api", options: ['expose' => true], methods: "POST")]
+    public function editReferenceApi(DispatchReferenceArticle $dispatchReferenceArticle,
+                                    RefArticleDataService $refArticleDataService,
+                                    EntityManagerInterface $entityManager): JsonResponse
+    {
+        $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
+
+        $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
+            'dispatch' => $dispatch,
+            'dispatchReferenceArticle' => $dispatchReferenceArticle,
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager),
+        ]);
+
+        return new JsonResponse($html);
+    }
+
+
 }

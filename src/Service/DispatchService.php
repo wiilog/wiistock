@@ -1047,7 +1047,15 @@ class DispatchService {
         if (!$dispatchPack) {
             throw new FormException('Une erreur est survenue lors du traitement de votre demande');
         }
-        $dispatchReferenceArticle = new DispatchReferenceArticle();
+
+        $dispatchReferenceArticleId = $data['dispatchReferenceArticle'] ?? null;
+        if ($dispatchReferenceArticleId) {
+            $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
+            $dispatchReferenceArticle = $dispatchReferenceArticleRepository->find($dispatchReferenceArticleId);
+        } else {
+            $dispatchReferenceArticle = new DispatchReferenceArticle();
+        }
+
         $dispatchReferenceArticle
             ->setDispatchPack($dispatchPack)
             ->setReferenceArticle($referenceArticle)

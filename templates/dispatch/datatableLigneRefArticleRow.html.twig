@@ -3,17 +3,16 @@
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                <div class="d-none">
-                    <div class="action-on-click" data-id='{{ ligneId }}' data-toggle='modal' data-target='#modalAddReference'
-                         onclick="editRow($(this), Routing.generate('', true), $('#modalAddReference'), $('#submitAddReference')),
-                                  clearModal('#modalAddReference')">
-                        <i class='fas fa-pencil-alt'></i>
-                    </div>
+
+                <div class="action-on-click" data-id='{{ ligneId }}' data-toggle='modal' data-target='#modalEditReference'
+                     onclick="editRow($(this), Routing.generate('dispatch_edit_reference_api', {dispatchReferenceArticle: {{ ligneId }}}, true), $('#modalEditReference'), $('#submitEditReference')),
+                              clearModal('#modalEditReference')">
+                    <i class='fas fa-pencil-alt'></i>Modifier
                 </div>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
                 <div class="dropdown-item d-flex align-items-center"
-                     onclick="checkAndDeleteRow($(this), '#modalDeleteLigneRef', '', '#submitDeleteLigneRef')"
+                     onclick="deleteRefArticle({{ ligneId }})"
                      data-id='{{ ligneId }}' data-target='#modalDeleteLigneRef' data-toggle='modal'>
                     <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
                 </div>

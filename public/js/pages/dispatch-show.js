@@ -62,15 +62,31 @@ $(function() {
         validator: forbiddenPhoneNumberValidator,
     });
 
+    let $modalEditReference = $('#modalEditReference');
+    Form.create($modalEditReference).onSubmit((data, form) => {
+        form.loading(() => {
+            return AJAX
+                .route(AJAX.POST, `dispatch_form_reference`)
+                .json(data)
+                .then((response) => {
+                    if (response.success) {
+                        $modalEditReference.modal('hide');
+                        loadDispatchReferenceArticle();
+                    }
+                })
+        });
+    });
+
     let $modalAddReference = $('#modalAddReference');
     Form.create($modalAddReference).onSubmit((data, form) => {
         form.loading(() => {
             return AJAX
-                .route(AJAX.POST, `dispatch_add_reference`)
+                .route(AJAX.POST, `dispatch_form_reference`)
                 .json(data)
                 .then((response) => {
                     if(response.success) {
                         $modalAddReference.modal('hide');
+                        loadDispatchReferenceArticle();
                     }
                 })
         });
@@ -662,4 +678,20 @@ function refArticleChanged($select) {
             });
         }
     }
+}
+
+function deleteRefArticle(dispatchReferenceArticle) {
+    Modal.confirm({
+        ajax: {
+            method: 'DELETE',
+            route: 'dispatch_delete_reference',
+            params: {dispatchReferenceArticle},
+        },
+        message: 'Voulez-vous réellement supprimer cette référence article ?',
+        title: 'Supprimer la référence article',
+        validateButton: {
+            color: 'danger',
+            label: 'Supprimer'
+        },
+    });
 }
