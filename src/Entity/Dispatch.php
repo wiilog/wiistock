@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: DispatchRepository::class)]
 class Dispatch extends StatusHistoryContainer {
@@ -569,4 +570,9 @@ class Dispatch extends StatusHistoryContainer {
         return $this;
     }
 
+    public function hasReferenceArticles() {
+        return Stream::from($this->dispatchPacks)
+            ->some(fn(DispatchPack $dispatchPack) => count($dispatchPack->getDispatchReferenceArticles()) > 0
+        );
+    }
 }

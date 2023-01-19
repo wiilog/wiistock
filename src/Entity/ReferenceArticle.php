@@ -10,7 +10,7 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Traits\AttachmentTrait;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Repository\ReferenceArticleRepository;
@@ -27,7 +27,7 @@ class ReferenceArticle
 
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
-    use CommentTrait;
+    use CleanedCommentTrait;
     use LitePropertiesSetterTrait;
 
     const CATEGORIE = 'referenceArticle';

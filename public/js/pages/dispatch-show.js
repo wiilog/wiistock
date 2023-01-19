@@ -4,6 +4,7 @@ $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
+    loadDispatchReferenceArticle();
     getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, isEdit);
 
@@ -61,6 +62,21 @@ $(function() {
         validator: forbiddenPhoneNumberValidator,
     });
 
+    let $modalAddReference = $('#modalAddReference');
+    Form.create($modalAddReference).onSubmit((data, form) => {
+        form.loading(() => {
+            return AJAX
+                .route(AJAX.POST, `dispatch_add_reference`)
+                .json(data)
+                .then((response) => {
+                    if(response.success) {
+                        $modalAddReference.modal('hide');
+                    }
+                })
+        });
+    });
+
+
     const queryParams = GetRequestQuery();
     const {'print-delivery-note': printDeliveryNote} = queryParams;
     if(Number(printDeliveryNote)) {
@@ -115,6 +131,15 @@ function forbiddenPhoneNumberValidator($modal) {
 
 function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch';
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
+
+    $modal.modal('show');
+}
+
+function openAddReferenceModal() {
+    const modalSelector = '#modalAddReference';
     const $modal = $(modalSelector);
 
     clearModal(modalSelector);
@@ -479,4 +504,160 @@ function getStatusHistory(id) {
             const $statusHistoryContainer = $(`.status-history-container`);
             $statusHistoryContainer.html(template);
         });
+}
+
+function loadDispatchReferenceArticle({start, search} = {}) {
+    start = start || 0;
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const dispatch = $('#dispatchId').val();
+
+    const params = {dispatch, start};
+    if (search) {
+        params.search = search;
+    }
+    else {
+        clearPackListSearching();
+    }
+
+    wrapLoadingOnActionButton(
+        $logisticUnitsContainer,
+        () => (
+            AJAX.route('GET', 'dispatch_packs_api', params)
+                .json()
+                .then(data => {
+                    $logisticUnitsContainer.html(data.html);
+                    $logisticUnitsContainer.find('.reference-articles-container table')
+                        .each(function() {
+                            const $table = $(this);
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                order: [['reference', "desc"]],
+                                columns: [
+                                    {data: 'actions', className: 'noVis hideOrder', orderable: false},
+                                    {data: 'reference', title: 'Référence'},
+                                    {data: 'quantity', title: 'Quantité'},
+                                    {data: 'batchNumber', title: 'N° de lot'},
+                                    {data: 'manufacturerCode', title: 'Code fabriquant'},
+                                    {data: 'sealingNumber', title: 'N° de plombage / scellée'},
+                                    {data: 'serialNumber', title: 'N° de série'},
+                                    {data: 'volume', title: 'Volume (m3)'},
+                                    {data: 'weight', title: 'Poids (kg)'},
+                                    {data: 'ADR', title: 'ADR'},
+                                    {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
+                                    {data: 'comment', title: 'Commentaire'},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                    needsPaginationRemoval: true,
+                                    removeLength: true,
+                                    removeTableHeader: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                    needsColor: true,
+                                },
+                            });
+                        });
+
+                    $logisticUnitsContainer
+                        .find('.paginate_button:not(.disabled)')
+                        .on('click', function() {
+                            const $button = $(this);
+                            loadDispatchReferenceArticle({
+                                start: $button.data('page'),
+                                search: search
+                            });
+                        });
+                })
+        )
+    )
+}
+
+function launchPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+
+    $searchInput.on('input', function () {
+        const $input = $(this);
+        const referenceArticleSearch = $input.val();
+        loadReceptionLines({search: referenceArticleSearch});
+    });
+}
+
+function clearPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+    $searchInput.val(null);
+}
+
+function initAddReferenceEditor(modal, options = {}) {
+    const $modal = $(modal);
+    clearModal(modal);
+
+    if (options['unitCode'] && options['unitId']) {
+        let $selectUl = $modal.find('[name="pack"]');
+        $selectUl.append(new Option(options['unitCode'], options['unitId'], true, true)).trigger('change');
+    }
+}
+
+function refArticleChanged($select) {
+    if (!$select.data(`select2`)) {
+        return;
+    }
+
+    const selectedReference = $select.select2(`data`);
+    let $modalAddReference = $("#modalAddReference");
+
+    if (selectedReference.length > 0) {
+        const $lengthInput = $modalAddReference.find("input[name=length]");
+        const $widthInput = $modalAddReference.find("input[name=width]");
+        const $heightInput = $modalAddReference.find("input[name=height]");
+
+        const description = selectedReference[0]["description"] || [];
+
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"]}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=ADR][value='${description["ADR"]}']`).prop('checked', true);
+        $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
+        $lengthInput.val(description["length"]).attr("disabled", true);
+        $widthInput.val(description["width"]).attr("disabled", true);
+        $heightInput.val(description["height"]).attr("disabled", true);
+        $modalAddReference.find("[name=weight]").val(description["weight"]);
+        const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
+        let $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
+        $associatedDocumentTypesSelect.find('option').remove();
+        associatedDocumentTypes.forEach(function (associatedDocumentType) {
+            let newOption = new Option(associatedDocumentType, associatedDocumentType, true, true);
+            $associatedDocumentTypesSelect.append(newOption);
+        });
+
+        const volume = description["volume"];
+        const $sizeInputs = $modalAddReference.find(`input[name=length], input[name=width], input[name=height]`)
+        const $volumeInput = $modalAddReference.find(`input[name=volume]`);
+
+        if (volume) {
+            $volumeInput.val(volume);
+            $sizeInputs.attr('disabled', true);
+            $sizeInputs.off('input');
+        }
+        else {
+            $volumeInput.val(null);
+            $sizeInputs.attr('disabled', false);
+            $lengthInput.attr("disabled", false);
+            $sizeInputs.on(`input`, () => {
+                const length = $lengthInput.val();
+                const width = $widthInput.val();
+                const height = $heightInput.val();
+                if (length && width && height) {
+                    $volumeInput.val(length * width * height);
+                }
+            });
+        }
+    }
 }

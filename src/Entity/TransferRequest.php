@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Helper\FormatHelper;
 use App\Repository\TransferRequestRepository;
 use DateTimeInterface;
@@ -18,7 +18,7 @@ class TransferRequest implements Serializable {
     const DRAFT = "Brouillon";
     const TO_TREAT = "À traiter";
     const TREATED = "Traité";
-    use CommentTrait;
+    use CleanedCommentTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

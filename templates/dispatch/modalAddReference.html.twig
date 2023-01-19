@@ -1,0 +1,90 @@
+{% import 'form.html.twig' as form %}
+{% import 'reference_article/form/macros.html.twig' as referenceArticleMacros %}
+
+<div class="modal fade" id="modalAddReference">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: 'Ajouter une référence'
+            } %}
+            <div class="modal-body">
+                <div class="row">
+                    {{ form.input('dispatch', '', false, dispatch.id, {
+                        type: 'hidden'
+                    }) }}
+                    <div class="col-4 d-flex no-gutters mt-2">
+                        {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
+                        <div class="{{ hasRightToCreate ? "col-8" : "col-12" }}">
+                            {{ form.select('reference', 'Référence', true, {
+                                type: 'reference',
+                                additionalAttributes: [{
+                                    name :"onchange",
+                                    value: "refArticleChanged($(this))",
+                                }]
+                            }) }}
+                        </div>
+                        {% if hasRightToCreate %}
+                            <div class="col-4 d-flex justify-content-end align-self-end">
+                                <a href="{{ path('reference_article_new_page') }}"
+                                   class="">
+                                    <button class="btn btn-primary m-0 d-flex align-items-center">
+                                        <span class="wii-icon wii-icon-plus mr-1"></span>
+                                        <span>Créer</span>
+                                    </button>
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-4 d-flex mt-2">
+                        {{ form.select('pack', 'Unité logistique', true, {
+                            type: 'dispatchPacks',
+                            additionalAttributes: [{
+                                name :"data-other-params"
+                            },{
+                                name :"data-other-params-dispatch-id",
+                                value: dispatch.id,
+                            }]
+                        }) }}
+                    </div>
+                    <div class="col-4 d-flex mt-2">
+                        {{ form.input('quantity', 'Quantité', true, null, {
+                            labelClass: 'w-100',
+                            min: 1,
+                            type: 'number',
+                        }) }}
+                    </div>
+                    <div class="col-4 d-flex mt-2">
+                        {{ form.input('batch', 'N° de lot', false, null, {})}}
+                    </div>
+                    <div class="col-4 d-flex mt-2">
+                        {{ form.input('sealing', 'N° de plombage / scellée', false, null, {})}}
+                    </div>
+                    <div class="col-4 d-flex mt-2">
+                        {{ form.input('series', 'N° de série', false, null, {})}}
+                    </div>
+                    <div class="col-8 mt-2">
+                        {{ form.wysiwyg('comment', 'Commentaire', false)}}
+                    </div>
+                    <div class="col-4 d-flex mt-3">
+                        {% include 'attachment/attachment.html.twig' with {
+                            fieldNameClass: 'w-100',
+                            isNew: true,
+                            bigger: "w-100",
+                        } %}
+                    </div>
+                </div>
+                <div class="wii-section-title mt-2">Informations référence</div>
+                <div class="row mt-2">
+                    {{ referenceArticleMacros.descriptionForm(description ?? null, descriptionConfig, 4) }}
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+                ],
+            } %}
+        </div>
+    </div>
+</div>
+
