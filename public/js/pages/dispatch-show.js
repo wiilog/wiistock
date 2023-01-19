@@ -559,8 +559,6 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     {data: 'manufacturerCode', title: 'Code fabriquant'},
                                     {data: 'sealingNumber', title: 'N° de plombage / scellée'},
                                     {data: 'serialNumber', title: 'N° de série'},
-                                    {data: 'length', title: 'Longueur'},
-                                    {data: 'width', title: 'Largeur'},
                                     {data: 'volume', title: 'Volume (m3)'},
                                     {data: 'weight', title: 'Poids (kg)'},
                                     {data: 'ADR', title: 'ADR'},

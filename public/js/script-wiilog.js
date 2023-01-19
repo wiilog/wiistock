@@ -525,7 +525,7 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
         $filterDateExpectedPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
     }
 
-    $.post(path, JSON.stringify(params), function (response) {
+    return $.post(path, JSON.stringify(params), function (response) {
         if (response) {
             if (callback) {
                 callback();
@@ -815,6 +815,8 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'statut':
                 case 'carriers':
                 case 'emplacement':
+                case 'pickLocation':
+                case 'dropLocation':
                 case 'demCollecte':
                 case 'disputeNumber':
                 case 'demande':

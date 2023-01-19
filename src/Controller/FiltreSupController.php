@@ -94,6 +94,8 @@ class FiltreSupController extends AbstractController
                 'multipleTypes' => FiltreSup::FIELD_MULTIPLE_TYPES,
                 'declarants' => FiltreSup::FIELD_DECLARANTS,
                 'emplacement' => FiltreSup::FIELD_EMPLACEMENT,
+                'pickLocation' => FiltreSup::FIELD_PICK_LOCATION,
+                'dropLocation' => FiltreSup::FIELD_DROP_LOCATION,
                 'reference' => FiltreSup::FIELD_REFERENCE,
                 'statut' => FiltreSup::FIELD_STATUT,
                 'colis' => FiltreSup::FIELD_COLIS,
