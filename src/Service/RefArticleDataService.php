@@ -37,6 +37,7 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use phpDocumentor\Reflection\Types\Boolean;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -1162,7 +1163,7 @@ class RefArticleDataService {
         $this->CSVExportService->putLine($handle, $line);
     }
 
-    public function getDescriptionConfig(EntityManagerInterface $entityManager): array {
+    public function getDescriptionConfig(EntityManagerInterface $entityManager, $isFromDispatch = false): array {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
         $associatedDocumentTypes = $associatedDocumentTypesStr
@@ -1170,7 +1171,7 @@ class RefArticleDataService {
                 ->filter()
                 ->toArray()
             : [];
-        return [
+        $config = [
             "Matériel hors format" => [
                 "name" => "outFormatEquipment",
                 "type" => "bool",
@@ -1185,45 +1186,58 @@ class RefArticleDataService {
                 "name" => "manufacturerCode",
                 "type" => "text",
                 "persisted" => true,
-            ],
-            "Longueur (cm)" => [
-                "name" => "length",
-                "type" => "number",
-                "step" => "0.01",
-                "persisted" => true,
-            ],
-            "Largeur (cm)" => [
-                "name" => "width",
-                "type" => "number",
-                "step" => "0.01",
-                "persisted" => true,
-            ],
-            "Hauteur (cm)" => [
-                "name" => "height",
-                "type" => "number",
-                "step" => "0.01",
-                "persisted" => true,
+                "required" => $isFromDispatch,
             ],
             "Volume (m3)" => [
                 "name" => "volume",
                 "type" => "number",
                 "step" => "0.000001",
                 "persisted" => true,
-                "disabled" => true,
+                "disabled" => !$isFromDispatch,
+                "required" => $isFromDispatch,
             ],
             "Poids (kg)" => [
                 "name" => "weight",
                 "type" => "number",
                 "step" => "0.01",
                 "persisted" => true,
+                "required" => $isFromDispatch,
             ],
             "Types de documents associés" => [
                 "name" => "associatedDocumentTypes",
                 "type" => "select-free",
                 "values" => $associatedDocumentTypes,
                 "persisted" => true,
+                "required" => $isFromDispatch,
             ],
         ];
+
+        if (!$isFromDispatch) {
+            $config = array_merge(
+                $config,
+                [
+                    "Longueur (cm)" => [
+                        "name" => "length",
+                        "type" => "number",
+                        "step" => "0.01",
+                        "persisted" => true,
+                    ],
+                    "Largeur (cm)" => [
+                        "name" => "width",
+                        "type" => "number",
+                        "step" => "0.01",
+                        "persisted" => true,
+                    ],
+                    "Hauteur (cm)" => [
+                        "name" => "height",
+                        "type" => "number",
+                        "step" => "0.01",
+                        "persisted" => true,
+                    ],
+                ]
+            );
+        }
+        return $config;
     }
 
     public function updateDescriptionField(EntityManagerInterface $entityManager,

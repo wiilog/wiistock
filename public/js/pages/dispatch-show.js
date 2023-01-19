@@ -156,9 +156,19 @@ function openValidateDispatchModal() {
     $modal.modal('show');
 }
 
-function openAddReferenceModal() {
+function openAddReferenceModal($button) {
     const modalSelector = '#modalAddReference';
     const $modal = $(modalSelector);
+    const dispatchId = $('#dispatchId').val();
+
+    editRow(
+        $button,
+        Routing.generate('dispatch_add_reference_api', {dispatch: dispatchId}, true),
+        $modal,
+        $modal.find('button[type="submit"]'),
+    );
+    clearModal('#modalAddReference');
+    $('#modalNewReference').modal('show');
 
     clearModal(modalSelector);
 
@@ -607,6 +617,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     {data: 'volume', title: 'Volume (m3)'},
                                     {data: 'weight', title: 'Poids (kg)'},
                                     {data: 'ADR', title: 'ADR'},
+                                    {data: 'outFormatEquipment', title: 'Matériel hors format'},
                                     {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
                                     {data: 'comment', title: 'Commentaire'},
                                 ],
@@ -678,19 +689,16 @@ function refArticleChanged($select) {
     let $modalAddReference = $("#modalAddReference");
 
     if (selectedReference.length > 0) {
-        const $lengthInput = $modalAddReference.find("input[name=length]");
-        const $widthInput = $modalAddReference.find("input[name=width]");
-        const $heightInput = $modalAddReference.find("input[name=height]");
-
         const description = selectedReference[0]["description"] || [];
 
-        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"]}']`).prop('checked', true);
-        $modalAddReference.find(`input[name=ADR][value='${description["ADR"]}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] ?? 0}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=ADR][value='${description["ADR"] ?? 0}']`).prop('checked', true);
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
-        $lengthInput.val(description["length"]).attr("disabled", true);
-        $widthInput.val(description["width"]).attr("disabled", true);
-        $heightInput.val(description["height"]).attr("disabled", true);
+        $modalAddReference.find("input[name=length]").val(description["length"]).attr("disabled", true);
+        $modalAddReference.find("input[name=width]").val(description["width"]).attr("disabled", true);
+        $modalAddReference.find("input[name=height]").val(description["height"]).attr("disabled", true);
         $modalAddReference.find("[name=weight]").val(description["weight"]);
+        $modalAddReference.find("[name=volume]").val(description["volume"]);
         const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
         let $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
         $associatedDocumentTypesSelect.find('option').remove();
@@ -698,29 +706,6 @@ function refArticleChanged($select) {
             let newOption = new Option(associatedDocumentType, associatedDocumentType, true, true);
             $associatedDocumentTypesSelect.append(newOption);
         });
-
-        const volume = description["volume"];
-        const $sizeInputs = $modalAddReference.find(`input[name=length], input[name=width], input[name=height]`)
-        const $volumeInput = $modalAddReference.find(`input[name=volume]`);
-
-        if (volume) {
-            $volumeInput.val(volume);
-            $sizeInputs.attr('disabled', true);
-            $sizeInputs.off('input');
-        }
-        else {
-            $volumeInput.val(null);
-            $sizeInputs.attr('disabled', false);
-            $lengthInput.attr("disabled", false);
-            $sizeInputs.on(`input`, () => {
-                const length = $lengthInput.val();
-                const width = $widthInput.val();
-                const height = $heightInput.val();
-                if (length && width && height) {
-                    $volumeInput.val(length * width * height);
-                }
-            });
-        }
     }
 }
 

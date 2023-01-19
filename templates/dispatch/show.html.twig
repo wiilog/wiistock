@@ -30,7 +30,7 @@
 {% set hasRightToGenerateOverconsumptionBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_OVERCONSUMPTION_BILL')) %}
 {% set hasRightToGenerateWayBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_WAY_BILL')) %}
 {% set hasRightToGenerateDispatchBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_BILL')) %}
-
+{% set hasRightToAddReferenceInLu = hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::ADD_REFERENCE_IN_LU')) and dispatch.statut.state == constant('App\\Entity\\Statut::DRAFT') %}
 
 {% block stylesheets %}
     {{ encore_entry_link_tags('pack-common') }}
@@ -344,21 +344,33 @@
                                 </div>
                             </div>
                         {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMAILS') %}
+                        {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            <div class="col-4 d-flex flex-column">
+                                <div class="box-item my-2">
+                                    <span class="wii-field-name">Email(s)</span>
+                                    <span class="wii-field-text">
+                                    {{ dispatch.emails is not empty ? dispatch.emails|join(', ') : '-' }}
+                                </span>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             <div class="col-12">
                 <div class="wii-box focus-shadow drop-below">
-                    {% if hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::ADD_REFERENCE_IN_LU')) %}
-                        <div class="header wii-title d-flex justify-content-between align-items-center">
-                            {{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Liste des UL', false) }}
-                            <button class="btn btn-primary ml-auto d-flex align-items-center"
-                                onclick="openAddReferenceModal()">
+                    <div class="header wii-title d-flex justify-content-between align-items-center">
+                        {{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Liste des UL', false) }}
+                        {% if hasRightToAddReferenceInLu %}
+                            <button
+                                class="btn btn-primary ml-auto d-flex align-items-center"
+                                onclick="openAddReferenceModal($(this))">
                                 <span class="wii-icon-add-reference wii-icon wii-icon-17px mr-2"></span>
                                 Ajouter une référence
                             </button>
-                        </div>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                     <div class="p-3">
                         {% if dispatch.hasReferenceArticles %}
                             <div class="col-12 logistic-units-container wii-multiple-loading"
@@ -381,8 +393,10 @@
     {% include "dispatch/modalDeletePack.html.twig" %}
     {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
     {% include "dispatch/modalPrintWayBill.html.twig" %}
-    {% include "dispatch/modalEditReference.html.twig" %}
-    {% include "dispatch/modalAddReference.html.twig" with {descriptionConfig: descriptionFormConfig } %}
+    {% if hasRightToAddReferenceInLu %}
+        {% include "dispatch/modalEditReference.html.twig" %}
+        {% include "dispatch/modalAddReference.html.twig" with {descriptionConfig: descriptionFormConfig } %}
+    {% endif %}
 {% endblock %}
 
 {% block javascripts %}

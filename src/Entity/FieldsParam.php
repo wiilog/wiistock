@@ -87,6 +87,7 @@ class FieldsParam {
     const FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH = 'carrierTrackingNumber';
     const FIELD_CODE_RECEIVER_DISPATCH = 'receiver';
     const FIELD_CODE_DEADLINE_DISPATCH = 'deadline';
+    const FIELD_CODE_EMAILS = 'emails';
     const FIELD_CODE_EMERGENCY = 'emergency';
     const FIELD_CODE_COMMAND_NUMBER_DISPATCH = 'commandNumber';
     const FIELD_CODE_COMMENT_DISPATCH = 'comment';
@@ -98,6 +99,7 @@ class FieldsParam {
     const FIELD_LABEL_CARRIER_TRACKING_NUMBER_DISPATCH = 'numéro de tracking transporteur';
     const FIELD_LABEL_RECEIVER_DISPATCH = 'destinataire';
     const FIELD_LABEL_DEADLINE_DISPATCH = 'dates d\'échéances';
+    const FIELD_LABEL_EMAILS_DISPATCH = 'email(s)';
     const FIELD_LABEL_EMERGENCY = 'urgence';
     const FIELD_LABEL_COMMAND_NUMBER_DISPATCH = 'numéro de commande';
     const FIELD_LABEL_COMMENT_DISPATCH = 'commentaire';

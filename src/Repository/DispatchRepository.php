@@ -248,7 +248,7 @@ class DispatchRepository extends EntityRepository
         return $result ? $result[0]['number'] : null;
     }
 
-    public function getMobileDispatches(Utilisateur $user)
+    public function getMobileDispatches(?Utilisateur $user = null, ?Dispatch $dispatch = null)
     {
         $queryBuilder = $this->createQueryBuilder('dispatch');
         $queryBuilder
@@ -265,16 +265,25 @@ class DispatchRepository extends EntityRepository
             ->addSelect('type.id AS typeId')
             ->addSelect('status.id AS statusId')
             ->addSelect('status.nom AS statusLabel')
+            ->addSelect('IF(status.state = 0, 1, 0) AS draft')
             ->join('dispatch.requester', 'dispatch_requester')
             ->leftJoin('dispatch.locationFrom', 'locationFrom')
             ->leftJoin('dispatch.locationTo', 'locationTo')
             ->join('dispatch.type', 'type')
-            ->join('dispatch.statut', 'status')
-            ->where('status.needsMobileSync = true')
-            ->andWhere('status.state IN (:untreatedStates)')
-            ->andWhere('type.id IN (:dispatchTypeIds)')
-            ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL])
-            ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
+            ->join('dispatch.statut', 'status');
+
+        if ($dispatch) {
+            $queryBuilder
+                ->andWhere("dispatch = :dispatch")
+                ->setParameter("dispatch", $dispatch);
+        } else {
+            $queryBuilder
+                ->andWhere('type.id IN (:dispatchTypeIds)')
+                ->andWhere('status.needsMobileSync = true')
+                ->andWhere('status.state IN (:untreatedStates)')
+                ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds())
+                ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL]);
+        }
 
         return $queryBuilder->getQuery()->getResult();
     }

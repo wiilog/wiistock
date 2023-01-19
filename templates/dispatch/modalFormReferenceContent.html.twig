@@ -40,16 +40,14 @@
     </div>
     <div class="col-4 d-flex mt-2">
         {{ form.select('pack', 'Unité logistique', true, {
-            type: 'dispatchPacks',
             additionalAttributes: [{
                 name :"data-other-params"
             },{
                 name :"data-other-params-dispatch-id",
                 value: dispatch.id,
             }],
-            items: dispatchReferenceArticle ? {
-                (dispatchReferenceArticle.dispatchPack.pack.id) : dispatchReferenceArticle.dispatchPack.pack.code,
-            } : {},
+            emptyOption: packs|length == 1 ? false : true,
+            items: packs,
             value: dispatchReferenceArticle ? dispatchReferenceArticle.dispatchPack.pack.id : null
         }) }}
     </div>
@@ -61,13 +59,13 @@
         }) }}
     </div>
     <div class="col-4 d-flex mt-2">
-        {{ form.input('batch', 'N° de lot', false, dispatchReferenceArticle ? dispatchReferenceArticle.batchNumber : null, {})}}
+        {{ form.input('batch', 'N° de lot', true, dispatchReferenceArticle ? dispatchReferenceArticle.batchNumber : null, {})}}
     </div>
     <div class="col-4 d-flex mt-2">
         {{ form.input('sealing', 'N° de plombage / scellée', false, dispatchReferenceArticle ? dispatchReferenceArticle.sealingNumber : null, {})}}
     </div>
     <div class="col-4 d-flex mt-2">
-        {{ form.input('series', 'N° de série', false, dispatchReferenceArticle ? dispatchReferenceArticle.serialNumber : null, {})}}
+        {{ form.input('series', 'N° de série', true, dispatchReferenceArticle ? dispatchReferenceArticle.serialNumber : null, {})}}
     </div>
     <div class="col-8 mt-2">
         {{ form.wysiwyg('comment', 'Commentaire', false, dispatchReferenceArticle ? dispatchReferenceArticle.comment : null)}}
@@ -83,5 +81,9 @@
 </div>
 <div class="wii-section-title mt-2">Informations référence</div>
 <div class="row mt-2">
-    {{ referenceArticleMacros.descriptionForm(dispatchReferenceArticle.referenceArticle.description ?? null, descriptionConfig, 4) }}
+    {{ referenceArticleMacros.descriptionForm(
+        dispatchReferenceArticle.referenceArticle.description ?? null,
+        descriptionConfig,
+        4,
+    ) }}
 </div>

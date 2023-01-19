@@ -263,6 +263,7 @@ class DispatchController extends AbstractController {
         $carrierTrackingNumber = $post->get('carrierTrackingNumber');
         $commandNumber = $post->get('commandNumber');
         $receivers = $post->get('receivers');
+        $emails = $post->get('emails');
         $emergency = $post->get('emergency');
         $projectNumber = $post->get('projectNumber');
         $businessUnit = $post->get('businessUnit');
@@ -332,6 +333,11 @@ class DispatchController extends AbstractController {
 
         if(!empty($commandNumber)) {
             $dispatch->setCommandNumber($commandNumber);
+        }
+
+        if(!empty($emails)) {
+            $emails = explode("," , $emails);
+            $dispatch->setEmails($emails);
         }
 
         if(!empty($receivers)) {
@@ -447,7 +453,7 @@ class DispatchController extends AbstractController {
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
             'fieldsParam' => $fieldsParam,
             'freeFields' => $freeFields,
-            "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager),
+            "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
         ]);
     }
 
@@ -569,6 +575,10 @@ class DispatchController extends AbstractController {
             ? explode(",", $post->get('receivers') ?? '')
             : [];
 
+        $emails = $post->get('emails')
+            ? explode(",", $post->get('emails') ?? '')
+            : [];
+
         $existingReceivers = $dispatch->getReceivers();
         foreach($existingReceivers as $receiver) {
             $dispatch->removeReceiver($receiver);
@@ -594,7 +604,8 @@ class DispatchController extends AbstractController {
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)
             ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')) ?: '')
-            ->setDestination($destination);
+            ->setDestination($destination)
+            ->setEmails($emails);
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 
@@ -693,6 +704,15 @@ class DispatchController extends AbstractController {
                 $trackingMovements = $dispatch->getTrackingMovements()->toArray();
                 foreach($trackingMovements as $trackingMovement) {
                     $dispatch->removeTrackingMovement($trackingMovement);
+                }
+
+                $dispatchPacks = $dispatch->getDispatchPacks()->toArray();
+                foreach($dispatchPacks as $dispatchPack) {
+                    $dispatchReferenceArticles = $dispatchPack->getDispatchReferenceArticles()->toArray();
+                    foreach($dispatchReferenceArticles as $dispatchReferenceArticle) {
+                        $entityManager->remove($dispatchReferenceArticle);
+                    }
+                    $entityManager->remove($dispatchPack);
                 }
             }
             $entityManager->flush();
@@ -1385,26 +1405,7 @@ class DispatchController extends AbstractController {
         $loggedUser = $this->getUser();
 
         $data = json_decode($request->getContent(), true);
-
-        $userDataToSave = [];
-        $dispatchDataToSave = [];
-        foreach(array_keys(Dispatch::WAYBILL_DATA) as $wayBillKey) {
-            if(isset(Dispatch::WAYBILL_DATA[$wayBillKey])) {
-                $value = $data[$wayBillKey] ?? null;
-                $dispatchDataToSave[$wayBillKey] = $value;
-                if(Dispatch::WAYBILL_DATA[$wayBillKey]) {
-                    $userDataToSave[$wayBillKey] = $value;
-                }
-            }
-        }
-
-        $loggedUser->setSavedDispatchWaybillData($userDataToSave);
-        $dispatch->setWaybillData($dispatchDataToSave);
-
-        $entityManager->flush();
-
-        $wayBillAttachment = $dispatchService->persistNewWaybillAttachment($entityManager, $dispatch);
-
+        $wayBillAttachment = $dispatchService->generateWayBill($loggedUser, $dispatch, $entityManager, $data);
         $entityManager->flush();
 
         $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
@@ -1633,72 +1634,24 @@ class DispatchController extends AbstractController {
                                            StatusHistoryService   $statusHistoryService,
                                            EntityManagerInterface $entityManager,
                                            DispatchService        $dispatchService): Response {
-        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
 
         $locationData = $request->query->get('location');
         $signatoryTrigramData = $request->request->get("signatoryTrigram");
         $signatoryPasswordData = $request->request->get("signatoryPassword");
         $statusData = $request->request->get("status");
         $commentData = $request->request->get("comment");
-
-        $location = $locationRepository->find($locationData);
-        $signatory = $signatoryTrigramData ? $userRepository->find($signatoryTrigramData) : null;
-        if(!$signatory || !password_verify($signatoryPasswordData, $signatory->getSignatoryPassword())){
-            throw new FormException("Code signataire invalide");
-        }
-
-        if(!$location?->getSignatory()){
-            $locationLabel = $location?->getLabel() ?: "invalide";
-            throw new FormException("L'emplacement filtré {$locationLabel} n'a pas de signataire renseigné");
-        }
-
-        if($location->getSignatory() !== $signatory){
-            throw new FormException("Le signataire renseigné n'est pas correct");
-        }
-
         $dispatchesToSignIds = $request->query->all('dispatchesToSign');
-        $groupedSignatureStatus = $statusRepository->find($statusData);
-        $dispatchesToSign = $dispatchesToSignIds
-            ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
-            : [];
 
-        $dispatchTypes = Stream::from($dispatchesToSign)
-            ->filterMap(fn(Dispatch $dispatch) => $dispatch->getType())
-            ->keymap(fn(Type $type) => [$type->getId(), $type])
-            ->reindex();
-
-        if ($dispatchTypes->count() !== 1) {
-            throw new FormException("Vous ne pouvez sélectionner qu'un seul type d'acheminement pour réaliser une signature groupée");
-        }
-
-        $now = new DateTime();
-
-        foreach ($dispatchesToSign as $dispatch){
-            $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
-                ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
-                ->isEmpty());
-
-            if (!$containsReferences) {
-                throw new FormException("L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée");
-            }
-
-            $statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus);
-
-            $newCommentDispatch = $dispatch->getCommentaire()
-                ? ($dispatch->getCommentaire() . "<br/>")
-                : "";
-
-            $dispatch
-                ->setTreatmentDate($now)
-                ->setCommentaire($newCommentDispatch . $commentData);
-
-            if($groupedSignatureStatus->getSendReport()){
-                $dispatchService->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
-            }
-        }
+        $dispatchService->finishGroupedSignature(
+            $entityManager,
+            $locationData,
+            $signatoryTrigramData,
+            $signatoryPasswordData,
+            $statusData,
+            $commentData,
+            $dispatchesToSignIds,
+        );
 
         $entityManager->flush();
         return $this->json([
@@ -1775,11 +1728,39 @@ class DispatchController extends AbstractController {
                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
+        $packs = [];
+        foreach ($dispatchPacks as $dispatchPack) {
+            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
+        }
 
         $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
             'dispatch' => $dispatch,
             'dispatchReferenceArticle' => $dispatchReferenceArticle,
-            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager),
+            'packs' => $packs,
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
+        ]);
+
+        return new JsonResponse($html);
+    }
+
+    #[Route("/add-reference-api/{dispatch}", name:"dispatch_add_reference_api", options: ['expose' => true], methods: "POST")]
+    public function addReferenceApi(Dispatch $dispatch,
+                                    RefArticleDataService $refArticleDataService,
+                                    EntityManagerInterface $entityManager): JsonResponse
+    {
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
+        $packs = [];
+        foreach ($dispatchPacks as $dispatchPack) {
+            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
+        }
+
+        $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
+            'dispatch' => $dispatch,
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
+            'packs' => $packs,
         ]);
 
         return new JsonResponse($html);
