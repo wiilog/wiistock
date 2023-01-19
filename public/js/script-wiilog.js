@@ -525,7 +525,7 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
         $filterDateExpectedPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
     }
 
-    $.post(path, JSON.stringify(params), function (response) {
+    return $.post(path, JSON.stringify(params), function (response) {
         if (response) {
             if (callback) {
                 callback();

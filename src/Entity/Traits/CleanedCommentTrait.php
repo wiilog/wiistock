@@ -5,7 +5,7 @@ namespace App\Entity\Traits;
 
 use Doctrine\ORM\Mapping as ORM;
 
-trait CommentTrait {
+trait CleanedCommentTrait {
 
     #[ORM\Column(type: 'text', nullable: true)]
     private $cleanedComment;

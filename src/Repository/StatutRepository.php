@@ -193,7 +193,7 @@ class StatutRepository extends EntityRepository {
                                      array $stateFilters = []): array {
         $qb = $this->createQueryBuilder('status')
             ->join('status.categorie', 'category')
-            ->where('category.nom = :categoryLabel')
+            ->andWhere('category.nom = :categoryLabel')
             ->addOrderBy('status.displayOrder', 'ASC')
             ->setParameter('categoryLabel', $categoryLabel);
 

@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
@@ -68,7 +68,7 @@ class DispatchPackRepository extends EntityRepository {
             ->addSelect('join_dispatchReferenceArticle.batchNumber AS batchNumber')
             ->addSelect('join_dispatchReferenceArticle.sealingNumber AS sealingNumber')
             ->addSelect('join_dispatchReferenceArticle.serialNumber AS serialNumber')
-            ->addSelect('join_dispatchReferenceArticle.cleanedComment AS cleaned_comment')
+            ->addSelect('join_dispatchReferenceArticle.comment AS comment')
             ->addSelect('join_referenceArticle.description AS description')
             //->addSelect('join_dispatchReferenceArticle.attachments AS attachments')
 
@@ -132,14 +132,14 @@ class DispatchPackRepository extends EntityRepository {
                             "serialNumber" => $reference["serialNumber"],
                             "sealingNumber" => $reference["sealingNumber"],
                             "manufacturerCode" => $reference["description"] ? $reference["description"]["manufacturerCode"] : '',
-                            "length" => $reference["description"] ? $reference["description"]["length"] : '',
-                            "width" => $reference["description"] ? $reference["description"]["width"] : '',
-                            "heigth" => $reference["description"] ? $reference["description"]["height"] : '',
-                            "volume" => $reference["description"] ? $reference["description"]["volume"] : '',
-                            "weight" => $reference["description"] ? $reference["description"]["weight"] : '',
-                            "ADR" => $reference["description"] ? $reference["description"]["ADR"] : '',
-                            "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] : '',
-                            "cleaned_comment" => $reference["cleaned_comment"],
+                            "length" => $reference["description"] ? $reference["description"]["length"] ?? '' : '',
+                            "width" => $reference["description"] ? $reference["description"]["width"] ?? '' : '',
+                            "heigth" => $reference["description"] ? $reference["description"]["height"] ?? '' : '',
+                            "volume" => $reference["description"] ? $reference["description"]["volume"] ?? '' : '',
+                            "weight" => $reference["description"] ? $reference["description"]["weight"] ?? '' : '',
+                            "ADR" => $reference["description"] ? $reference["description"]["ADR"] ?? '' : '',
+                            "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] ?? '' : '',
+                            "comment" => $reference["comment"],
                             //"attachments" => $reference["attachments"],
                         ]
                             : null

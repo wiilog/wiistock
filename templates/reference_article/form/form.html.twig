@@ -60,12 +60,13 @@
                     <div class="col-md-8 col-12">
                         {% if not partialEdit %}
                             <label class="wii-field-name" title="Référence">Référence*</label>
-                                <select class="w-100 data form-control needed wii-field-text"
-                                        onchange="refArticleChanged($(this))"
-                                        id="reception-add-ligne"
-                                        data-s2="reference"
-                                        name="referenceArticle">
-                                </select>
+                            <input type="text"
+                                   name="reference"
+                                   class="form-control data needed"
+                                   placeholder="Référence"
+                                   data-draft-default="{{ draftDefaultReference ?? null }}"
+                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference ?? null) }}"
+                                {{ hasRightCreateDraft ? 'disabled' : ' ' }}>
                         {% else %}
                             <span class="wii-field-name" style="font-size: 20px;">Ref : {{ reference.reference }}</span>
                             <input type="hidden" name="reference" class="data" value="{{ reference.reference }}">

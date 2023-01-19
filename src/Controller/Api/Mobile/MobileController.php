@@ -2447,6 +2447,38 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Post("/api/finish-grouped-signature", name="api_finish_grouped_signature")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function finishGroupedSignature(Request $request,
+                                           EntityManagerInterface $manager,
+                                           DispatchService $dispatchService) {
+
+        $locationData = $request->request->get('location');
+        $signatoryTrigramData = $request->request->get("signatoryTrigram");
+        $signatoryPasswordData = $request->request->get("signatoryPassword");
+        $statusData = $request->request->get("status");
+        $commentData = $request->request->get("comment");
+        $dispatchesToSignIds = explode(',', $request->request->get('dispatchesToSign'));
+
+        $response = $dispatchService->finishGroupedSignature(
+            $manager,
+            $locationData,
+            $signatoryTrigramData,
+            $signatoryPasswordData,
+            $statusData,
+            $commentData,
+            $dispatchesToSignIds,
+            true
+        );
+
+        $manager->flush();
+
+        return $this->json($response);
+    }
+
+    /**
      * @Rest\Post("/api/empty-round", name="api_empty_round", methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()

@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Traits\AttachmentTrait;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Repository\DispatchReferenceArticleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -39,6 +39,9 @@ class DispatchReferenceArticle
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?ReferenceArticle $referenceArticle = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $comment = null;
 
     public function __construct() {
         $this->attachments = new ArrayCollection();
@@ -117,6 +120,18 @@ class DispatchReferenceArticle
     public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
     {
         $this->referenceArticle = $referenceArticle;
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self
+    {
+        $this->comment = $comment;
 
         return $this;
     }
