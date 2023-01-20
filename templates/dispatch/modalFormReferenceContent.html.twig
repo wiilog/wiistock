@@ -50,8 +50,9 @@
             items: packs,
             value: dispatchReferenceArticle
                     ? dispatchReferenceArticle.dispatchPack.pack.id
-                    : pack.id
-                        ?? null,
+                    : pack
+                        ? pack.id
+                        : null,
         }) }}
     </div>
     <div class="col-4 d-flex mt-2">
