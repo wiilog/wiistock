@@ -1268,11 +1268,18 @@ class DispatchService {
             : ( $signatoryTrigramData
                 ? $userRepository->findOneBy(['username' => $signatoryTrigramData])
                 :  null);
+        if(!$signatoryPasswordData || !$signatoryTrigramData){
+            return [
+                'success' => false,
+                'msg' => 'Le trigramme et le code signataire doivent être rempli.'
+            ];
+        }
+
         if(!$signatory || !password_verify($signatoryPasswordData, $signatory->getSignatoryPassword())){
             if($fromNomade){
                 return [
                     'success' => false,
-                    'msg' => 'Code signataire invalide'
+                    'msg' => 'Le trigramme signataire ou le code est incorrect.'
                 ];
             }
             throw new FormException("Code signataire invalide");
