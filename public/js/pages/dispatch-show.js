@@ -88,7 +88,11 @@ $(function() {
                     if(response.success) {
                         $modalAddReference.modal('hide');
                         loadDispatchReferenceArticle();
-                        packsTable.ajax.reload();
+                        if ($('.logistic-units-container').exists()) {
+                            packsTable.ajax.reload();
+                        } else {
+                            window.location.reload();
+                        }
                     }
                 })
         });
@@ -162,9 +166,11 @@ function openAddReferenceModal($button, options = {}) {
     const dispatchId = $('#dispatchId').val();
     clearModal($modal);
 
+    const pack = options['unitId'] ?? null;
+    console.log(pack);
     editRow(
         $button,
-        Routing.generate('dispatch_add_reference_api', {dispatch: dispatchId, pack: options['unitId'] ?? null}, true),
+        Routing.generate('dispatch_add_reference_api', {dispatch: dispatchId, pack: pack}, true),
         $modal,
         $modal.find('button[type="submit"]'),
     );
@@ -627,13 +633,6 @@ function clearPackListSearching() {
     $searchInput.val(null);
 }
 
-function initAddReferenceEditor(modal, options = {}) {
-    const $modal = $(modal);
-    clearModal(modal);
-
-
-}
-
 function refArticleChanged($select) {
     if (!$select.data(`select2`)) {
         return;
@@ -676,6 +675,5 @@ function deleteRefArticle(dispatchReferenceArticle) {
             color: 'danger',
             label: 'Supprimer'
         },
-        table: packsTable,
     });
 }

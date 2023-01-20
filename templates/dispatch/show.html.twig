@@ -163,7 +163,7 @@
                     </div>
                     <div class="content comment-container">
                         <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
-                        <div>
+                        <div class="ql-editor">
                             {% if dispatch.commentaire != '<p><br></p>' %}
                                 {{ dispatch.commentaire | raw | nl2br }}
                             {% else %}
@@ -214,14 +214,14 @@
                     {% if dispatch.emergency %}
                         <div class="d-flex align-items-center justify-content-center emergency-container pl-3">
                             <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
-                            <span class="wii-body-text">Cet acheminement est urgent : <strong>{{ dispatch.emergency }}</strong></span>
+                            <span>Cet acheminement est urgent : <strong>{{ dispatch.emergency }}</strong></span>
                         </div>
                     {% endif %}
                     <div class="content row no-gutters">
                         <div class="col-4 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">{{ trans('Demande', 'Général', 'Type') }}</span>
-                                <span class="wii-field-text">
+                                <span class="wii-body-text">
                                 {{ dispatch.type.label }}
                             </span>
                             </div>
@@ -231,7 +231,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Transporteur') }}</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     {{ dispatch.carrier ? dispatch.carrier.label : '-' }}
                                 </span>
                                 </div>
@@ -242,7 +242,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Général', 'N° tracking transporteur') }}</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     {{ dispatch.carrierTrackingNumber ?? '-' }}
                                 </span>
                                 </div>
@@ -253,7 +253,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'Destinataire(s)') }}</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     {{ dispatch.receivers is not empty ? dispatch.receivers|map((user) => user.username)|join(', ') : '-' }}
                                 </span>
                                 </div>
@@ -264,7 +264,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'N° projet') }}</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     {{ dispatch.projectNumber ?? '-' }}
                                 </span>
                                 </div>
@@ -275,7 +275,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'Business unit') }}</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     {{ dispatch.businessUnit ?: '-' }}
                                 </span>
                                 </div>
@@ -286,7 +286,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande') }}</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     {{ dispatch.commandNumber ?? '-' }}
                                 </span>
                                 </div>
@@ -297,7 +297,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise') }}</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     {{ dispatch.locationFrom|format_helper('location', '-') }}
                                 </span>
                                 </div>
@@ -308,7 +308,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose') }}</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     {{ dispatch.locationTo|format_helper('location', '-') }}
                                 </span>
                                 </div>
@@ -319,7 +319,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', "Dates d'échéance") }}</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     Du {{ dispatch.startDate|format_helper('date', '-') }} au {{ dispatch.endDate|format_helper('date', '-') }}
                                 </span>
                                 </div>
@@ -328,7 +328,7 @@
                         <div class="col-4 d-flex flex-column">
                             <div class="box-item my-2">
                                 <span class="wii-field-name">Traité par</span>
-                                <span class="wii-field-text">
+                                <span class="wii-body-text">
                                 {{ dispatch.treatedBy|format_helper('user', '-') }}
                             </span>
                             </div>
@@ -338,7 +338,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans( 'Demande', 'Acheminements', 'Champs fixes', 'Destination') }}</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     {{ dispatch.destination ?? '-' }}
                                 </span>
                                 </div>
@@ -349,7 +349,7 @@
                             <div class="col-4 d-flex flex-column">
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">Email(s)</span>
-                                    <span class="wii-field-text">
+                                    <span class="wii-body-text">
                                     {{ dispatch.emails is not empty ? dispatch.emails|join(', ') : '-' }}
                                 </span>
                                 </div>
@@ -371,7 +371,7 @@
                             </button>
                         {% endif %}
                     </div>
-                    <div class="p-3">
+                    <div class="p-3 table-container">
                         {% if dispatch.hasReferenceArticles %}
                             <div class="col-12 logistic-units-container wii-multiple-loading"
                                  data-loader-color="primary"

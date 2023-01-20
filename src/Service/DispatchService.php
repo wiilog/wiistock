@@ -509,10 +509,10 @@ class DispatchService {
                 ['type' => $dispatch->getType()]
             );
 
-            if($isUpdate){
+            if($isUpdate && $status->getSendReport()){
                 $updateStatusAttachment = $this->persistNewReportAttachmentForEmail($this->entityManager, $dispatch, $signatory);
             } else {
-                $updateStatusAttachment = [];
+                $updateStatusAttachment = null;
             }
             if (!empty($receiverEmailUses)){
                 $this->mailerService->sendMail(
@@ -531,7 +531,7 @@ class DispatchService {
                         ]
                     ],
                     $receiverEmailUses,
-                    [$updateStatusAttachment]
+                    $updateStatusAttachment ? [$updateStatusAttachment] : []
                 );
             }
         }

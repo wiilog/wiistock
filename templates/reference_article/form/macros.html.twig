@@ -46,7 +46,7 @@
         {% set name = attributes.name %}
         {% set disabled = attributes.disabled ?? false %}
         {% set required = attributes.required ?? false %}
-        <div class="col-{{ col }} d-flex flex-column mb-2">
+        <div class="col-{{ col }} d-flex flex-column form-group">
             <label class="wii-field-name">{{ field }}{{ required ? "*" }}</label>
             {% if attributes.type in ['text', 'number'] %}
                 <input type="{{ attributes.type }}"
@@ -64,7 +64,7 @@
                            content="Non"
                            data-title="non"
                            {{ disabled ? 'disabled' }}
-                           {{ (attributes.persisted and description[name] is defined and (description[name] == '0' and description[name] == null)) ? 'checked' }}>
+                           {{ attributes.persisted and description[name] is defined ? (((description[name] == '0' or description[name] == null)) ? 'checked') : 'checked' }}>
                     <input type="radio"
                            name="{{ name }}"
                            value="1"
