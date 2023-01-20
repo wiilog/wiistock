@@ -1,5 +1,5 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) and dispatch.statut.state == dispatch.statut.state == constant('App\\Entity\\Statut::DRAFT') %}
+    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) and dispatch.statut.state == constant('App\\Entity\\Statut::DRAFT') %}
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
