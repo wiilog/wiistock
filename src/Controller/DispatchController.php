@@ -1687,7 +1687,6 @@ class DispatchController extends AbstractController {
             "search" => $search,
         ]);
 
-        dump($result["data"]);
         return $this->json([
             "success" => true,
             "html" => $this->renderView("dispatch/line-list.html.twig", [
