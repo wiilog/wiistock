@@ -78,10 +78,10 @@
                 {% set selectedValues = description[name] is defined and description[name]
                     ? (description[name]|split(','))
                     : [] %}
-                <select name="{{ name }}{{ required ? "*" }}"
-                        class="form-control {{ attributes.persisted ? "data" }} w-100"
+                <select name="{{ name }}"
+                        class="form-control input-sm select2-free {{ attributes.persisted ? "data" }} w-100"
                         data-s2
-                        multiple
+                        multiple="multiple"
                         data-default-values="{{ selectedValues|join(',') }}"
                         {{ disabled ? 'disabled' }}>
                         {{ required ? 'required' }}>
