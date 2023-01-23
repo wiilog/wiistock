@@ -73,7 +73,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $password = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $signatoryPassword = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]

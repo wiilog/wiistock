@@ -453,7 +453,7 @@ class DispatchController extends AbstractController {
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
             'fieldsParam' => $fieldsParam,
             'freeFields' => $freeFields,
-            "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager),
+            "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
         ]);
     }
 
@@ -672,6 +672,15 @@ class DispatchController extends AbstractController {
                 $trackingMovements = $dispatch->getTrackingMovements()->toArray();
                 foreach($trackingMovements as $trackingMovement) {
                     $dispatch->removeTrackingMovement($trackingMovement);
+                }
+
+                $dispatchPacks = $dispatch->getDispatchPacks()->toArray();
+                foreach($dispatchPacks as $dispatchPack) {
+                    $dispatchReferenceArticles = $dispatchPack->getDispatchReferenceArticles()->toArray();
+                    foreach($dispatchReferenceArticles as $dispatchReferenceArticle) {
+                        $entityManager->remove($dispatchReferenceArticle);
+                    }
+                    $entityManager->remove($dispatchPack);
                 }
             }
             $entityManager->flush();
@@ -1693,6 +1702,7 @@ class DispatchController extends AbstractController {
     }
 
     #[Route("/form-reference", name:"dispatch_form_reference", options: ['expose' => true], methods: "POST")]
+    #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function formReference(Request $request,
                                  EntityManagerInterface $entityManager,
                                  DispatchService $dispatchService): JsonResponse
@@ -1704,6 +1714,7 @@ class DispatchController extends AbstractController {
     }
 
     #[Route("/delete-reference/{dispatchReferenceArticle}", name:"dispatch_delete_reference", options: ['expose' => true], methods: "DELETE")]
+    #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function deleteReference(DispatchReferenceArticle $dispatchReferenceArticle,
                                     EntityManagerInterface $entityManager): JsonResponse
     {
@@ -1721,20 +1732,50 @@ class DispatchController extends AbstractController {
     }
 
     #[Route("/edit-reference-api/{dispatchReferenceArticle}", name:"dispatch_edit_reference_api", options: ['expose' => true], methods: "POST")]
+    #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function editReferenceApi(DispatchReferenceArticle $dispatchReferenceArticle,
                                     RefArticleDataService $refArticleDataService,
                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
+        $packs = [];
+        foreach ($dispatchPacks as $dispatchPack) {
+            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
+        }
 
         $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
             'dispatch' => $dispatch,
             'dispatchReferenceArticle' => $dispatchReferenceArticle,
-            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager),
+            'packs' => $packs,
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
         ]);
 
         return new JsonResponse($html);
     }
 
+    #[Route("/add-reference-api/{dispatch}/{?pack}", name:"dispatch_add_reference_api", options: ['expose' => true], methods: "POST")]
+    #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
+    public function addReferenceApi(Dispatch $dispatch,
+                                    ?Pack $pack,
+                                    RefArticleDataService $refArticleDataService,
+                                    EntityManagerInterface $entityManager): JsonResponse
+    {
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
+        $packs = [];
+        foreach ($dispatchPacks as $dispatchPack) {
+            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
+        }
 
+        $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
+            'dispatch' => $dispatch,
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
+            'packs' => $packs,
+            'pack' => $pack,
+        ]);
+
+        return new JsonResponse($html);
+    }
 }
