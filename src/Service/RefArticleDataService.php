@@ -1169,6 +1169,7 @@ class RefArticleDataService {
                 ->filter()
                 ->toArray()
             : [];
+
         $config = [
             "Matériel hors format" => [
                 "name" => "outFormatEquipment",

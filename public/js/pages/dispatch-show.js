@@ -167,7 +167,6 @@ function openAddReferenceModal($button, options = {}) {
     clearModal($modal);
 
     const pack = options['unitId'] ?? null;
-    console.log(pack);
     editRow(
         $button,
         Routing.generate('dispatch_add_reference_api', {dispatch: dispatchId, pack: pack}, true),
