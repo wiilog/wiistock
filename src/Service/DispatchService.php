@@ -527,7 +527,7 @@ class DispatchService {
                             'hideTreatmentDate' => $isTreatedStatus,
                             'hideTreatedBy' => $isTreatedByOperator,
                             'totalCost' => $freeFieldArray,
-                            'reportTable' => true,
+                            'reportTable' => $fromGroupedSignature,
                         ]
                     ],
                     $receiverEmailUses,
