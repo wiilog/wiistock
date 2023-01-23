@@ -509,10 +509,10 @@ class DispatchService {
                 ['type' => $dispatch->getType()]
             );
 
-            if($isUpdate){
+            if($isUpdate && $status->getSendReport()){
                 $updateStatusAttachment = $this->persistNewReportAttachmentForEmail($this->entityManager, $dispatch, $signatory);
             } else {
-                $updateStatusAttachment = [];
+                $updateStatusAttachment = null;
             }
             if (!empty($receiverEmailUses)){
                 $this->mailerService->sendMail(
@@ -527,11 +527,11 @@ class DispatchService {
                             'hideTreatmentDate' => $isTreatedStatus,
                             'hideTreatedBy' => $isTreatedByOperator,
                             'totalCost' => $freeFieldArray,
-                            'reportTable' => true,
+                            'reportTable' => $fromGroupedSignature,
                         ]
                     ],
                     $receiverEmailUses,
-                    [$updateStatusAttachment]
+                    $updateStatusAttachment ? [$updateStatusAttachment] : []
                 );
             }
         }
@@ -1173,7 +1173,7 @@ class DispatchService {
             "urgenceach" => $dispatch->getEmergency() ?? 'Non',
             // keep line breaking in docx
             "commentaireach" => $this->formatService->html(str_replace("<br/>", "\n", $dispatch->getCommentaire())),
-            "datestatutach" => $this->formatService->date($dispatch->getTreatmentDate()),
+            "datestatutach" => $this->formatService->datetime($dispatch->getTreatmentDate()),
         ];
 
         $variables['UL'] = $referenceArticlesStream
@@ -1222,7 +1222,7 @@ class DispatchService {
         $reportAttachment
             ->setDispatch($dispatch)
             ->setFileName($nakedFileName . '.pdf')
-            ->setFullPath($reportOutdir . '/' . $nakedFileName . '.pdf')
+            ->setFullPath('/uploads/attachements/' . $nakedFileName . '.pdf')
             ->setOriginalName($title . '.pdf');
 
         $entityManager->persist($reportAttachment);
@@ -1337,11 +1337,18 @@ class DispatchService {
             : ( $signatoryTrigramData
                 ? $userRepository->findOneBy(['username' => $signatoryTrigramData])
                 :  null);
+        if(!$signatoryPasswordData || !$signatoryTrigramData){
+            return [
+                'success' => false,
+                'msg' => 'Le trigramme et le code signataire doivent être rempli.'
+            ];
+        }
+
         if(!$signatory || !password_verify($signatoryPasswordData, $signatory->getSignatoryPassword())){
             if($fromNomade){
                 return [
                     'success' => false,
-                    'msg' => 'Code signataire invalide'
+                    'msg' => 'Le trigramme signataire ou le code est incorrect.'
                 ];
             }
             throw new FormException("Code signataire invalide");
@@ -1414,6 +1421,8 @@ class DispatchService {
             $dispatch
                 ->setTreatmentDate($now)
                 ->setCommentaire($newCommentDispatch . $commentData);
+
+            $entityManager->flush();
 
             if($groupedSignatureStatus->getSendReport()){
                 $this->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);

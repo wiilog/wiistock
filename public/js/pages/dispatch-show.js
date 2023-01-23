@@ -74,6 +74,7 @@ $(function() {
                     if (response.success) {
                         $modalEditReference.modal('hide');
                         loadDispatchReferenceArticle();
+                        packsTable.ajax.reload();
                     }
                 })
         });
@@ -89,6 +90,11 @@ $(function() {
                     if(response.success) {
                         $modalAddReference.modal('hide');
                         loadDispatchReferenceArticle();
+                        if ($('.logistic-units-container').exists()) {
+                            packsTable.ajax.reload();
+                        } else {
+                            window.location.reload();
+                        }
                     }
                 })
         });
@@ -156,14 +162,17 @@ function openValidateDispatchModal() {
     $modal.modal('show');
 }
 
-function openAddReferenceModal($button) {
+function openAddReferenceModal($button, options = {}) {
     const modalSelector = '#modalAddReference';
     const $modal = $(modalSelector);
     const dispatchId = $('#dispatchId').val();
+    clearModal($modal);
 
+    const pack = options['unitId'] ?? null;
+    console.log(pack);
     editRow(
         $button,
-        Routing.generate('dispatch_add_reference_api', {dispatch: dispatchId}, true),
+        Routing.generate('dispatch_add_reference_api', {dispatch: dispatchId, pack: pack}, true),
         $modal,
         $modal.find('button[type="submit"]'),
     );
@@ -668,16 +677,6 @@ function clearPackListSearching() {
         .closest('.content')
         .find('input[type=search]');
     $searchInput.val(null);
-}
-
-function initAddReferenceEditor(modal, options = {}) {
-    const $modal = $(modal);
-    clearModal(modal);
-
-    if (options['unitCode'] && options['unitId']) {
-        let $selectUl = $modal.find('[name="pack"]');
-        $selectUl.append(new Option(options['unitCode'], options['unitId'], true, true)).trigger('change');
-    }
 }
 
 function refArticleChanged($select) {

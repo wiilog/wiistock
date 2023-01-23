@@ -134,6 +134,15 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::AUTO_PRINT_LU => [
                 'default' => true,
             ],
+            Setting::DISPATCH_NEW_REFERENCE_TYPE => [
+                'default' => null,
+            ],
+            Setting::DISPATCH_NEW_REFERENCE_STATUS => [
+                'default' => null,
+            ],
+            Setting::DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT => [
+                'default' => null,
+            ],
             Setting::SEND_MAIL_MANAGER_WARNING_THRESHOLD => [
                 'default' => false,
                 SpecificService::CLIENT_ARCELOR => true

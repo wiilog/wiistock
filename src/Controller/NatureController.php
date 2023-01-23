@@ -253,6 +253,7 @@ class NatureController extends AbstractController
             $translationService->editEntityTranslations($entityManager, $labelTranslationSource, $labels);
 
             $currentNature
+                ->setLabel($frenchLabel)
                 ->setPrefix($data['prefix'] ?? null)
                 ->setDefaultQuantity($data['quantity'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)

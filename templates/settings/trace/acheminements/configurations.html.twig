@@ -14,3 +14,33 @@
         </div>
     </div>
 </div>
+
+<div class="wii-section-title">Création de référence</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-small-text">
+            Lors de l'ajout d'une référence à une unité logistique vous avez la possibilité de créer une référence avec des valeurs par défaut pour les champs obligatoires.
+        </div>
+        <div class="col-md-3 col-12 d-flex align-items-center my-1">
+            {{ form.select(setting('DISPATCH_NEW_REFERENCE_TYPE'), 'Type', false, {
+                items: referenceTypes,
+                value: setting_value('DISPATCH_NEW_REFERENCE_TYPE')
+            }) }}
+        </div>
+        <div class="col-md-3 col-12 d-flex align-items-center my-1">
+            {% set value = setting_value('DISPATCH_NEW_REFERENCE_STATUS') %}
+            {{ form.switch(setting('DISPATCH_NEW_REFERENCE_STATUS'), 'Type', true, [
+                {label: 'Brouillon', value: constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'), checked: value == constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS')},
+                {label: 'Actif', value: constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF'), checked: value == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')},
+                {label: 'Inactif', value: constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF'), checked: value == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')},
+            ]) }}
+        </div>
+        <div class="col-md-3 col-12 d-flex align-items-center my-1">
+            {% set value = setting_value('DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT') %}
+            {{ form.switch(setting('DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT'), 'Gestion quantité', true, [
+                {label: 'Référence', value: '0', checked: value == '0'},
+                {label: 'Article', value: '1', checked: value == '1'},
+            ]) }}
+        </div>
+    </div>
+</div>

@@ -1079,6 +1079,13 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_TRACING => [
                 self::MENU_DISPATCHES => [
+                    self::MENU_CONFIGURATIONS => fn() => [
+                        "referenceTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARTICLE]))
+                            ->map(fn(Type $type) => [
+                                "value" => $type->getId(),
+                                "label" => $type->getLabel(),
+                            ])->toArray(),
+                    ],
                     self::MENU_OVERCONSUMPTION_BILL => fn() => [
                         "types" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
                             ->map(fn(Type $type) => [
