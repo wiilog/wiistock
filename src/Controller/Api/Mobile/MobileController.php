@@ -2580,8 +2580,11 @@ class MobileController extends AbstractApiController
     public function newDispatch(Request $request,
                                 EntityManagerInterface $manager,
                                 UniqueNumberService $uniqueNumberService,
-                                DispatchService $dispatchService): Response {
-        $data = $request->request->all();
+                                DispatchService $dispatchService,
+                                StatusHistoryService $statusHistoryService): Response {
+        $data = Stream::from($request->request->all())
+            ->keymap(fn(?string $value, string $key) => [$key, !in_array($value, ['undefined', 'null']) ? $value : null])
+            ->toArray();
 
         $typeRepository = $manager->getRepository(Type::class);
         $statusRepository = $manager->getRepository(Statut::class);
@@ -2612,9 +2615,9 @@ class MobileController extends AbstractApiController
             ->setStatus($draftStatuses[0])
             ->setLocationFrom($pickLocation)
             ->setLocationTo($dropLocation)
-            ->setCarrierTrackingNumber($data['carrierTrackingNumber'] ?? null)
-            ->setCommentaire($data['comment'] ?? null)
-            ->setEmergency($data['emergency'] && $data['emergency'] !== 'null' ? $data['emergency'] : null)
+            ->setCarrierTrackingNumber($data['carrierTrackingNumber'])
+            ->setCommentaire($data['comment'])
+            ->setEmergency($data['emergency'])
             ->setEmails($emails);
 
         if($receiver) {
@@ -2622,9 +2625,14 @@ class MobileController extends AbstractApiController
         }
 
         $manager->persist($dispatch);
+
+        $statusHistoryService->updateStatus($manager, $dispatch, $draftStatuses[0], [
+            'setStatus' => false,
+        ]);
+
         $manager->flush();
 
-        if(!empty($data['emergency']) && $data['emergency'] !== 'null' && $receiver) {
+        if($data['emergency'] && $receiver) {
             $dispatchService->sendEmailsAccordingToStatus($dispatch, false, false, $receiver, true);
         }
 
