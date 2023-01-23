@@ -243,7 +243,7 @@
                                 <div class="box-item my-2">
                                     <span class="wii-field-name">{{ trans('Demande', 'Général', 'N° tracking transporteur') }}</span>
                                     <span class="wii-body-text">
-                                    {{ dispatch.carrierTrackingNumber ?? '-' }}
+                                    {{ dispatch.carrierTrackingNumber ?: '-' }}
                                 </span>
                                 </div>
                             </div>
