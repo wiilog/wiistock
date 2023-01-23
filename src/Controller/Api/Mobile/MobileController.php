@@ -2686,11 +2686,12 @@ class MobileController extends AbstractApiController
                                      RefArticleDataService  $refArticleDataService,
                                      PackService            $packService,
                                      StatusHistoryService   $statusHistoryService,
-                                     AttachmentService      $attachmentService,
                                      KernelInterface        $kernel): Response {
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
         $packRepository = $manager->getRepository(Pack::class);
         $statusRepository = $manager->getRepository(Statut::class);
+        $settingRepository = $manager->getRepository(Setting::class);
+        $typeRepository = $manager->getRepository(Type::class);
 
         $references = json_decode($request->request->get('references'), true);
         $user = $this->getUser();
@@ -2702,24 +2703,40 @@ class MobileController extends AbstractApiController
         if($toTreatStatus) {
             foreach ($references as $data) {
                 $reference = $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
-                if($reference) {
-                    $description = [
-                        'outFormatEquipment' => $data['outFormatEquipment'],
-                        'manufacturerCode' => $data['manufacturerCode'],
-                        'volume' => $data['volume'],
-                        'length' => $data['length'],
-                        'width' => $data['width'],
-                        'height' => $data['height'],
-                        'weight' => $data['weight'],
-                        'ADR' => $data['adr'],
-                        'associatedDocumentTypes' => $data['associatedDocumentTypes'],
-                    ];
+                if(!$reference) {
+                    $dispatchNewReferenceType = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_TYPE);
+                    $dispatchNewReferenceStatus = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_STATUS);
+                    $dispatchNewReferenceQuantityManagement = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT);
 
-                    $reference->setDescription($description);
-                } else {
+                    if($dispatchNewReferenceType === null) {
+                        return $this->json([
+                            'success' => false,
+                            'msg' => "Vous n'avez pas paramétré de type par défaut pour la création de références."
+                        ]);
+                    } elseif ($dispatchNewReferenceStatus === null) {
+                        return $this->json([
+                            'success' => false,
+                            'msg' => "Vous n'avez pas paramétré de statut par défaut pour la création de références."
+                        ]);
+                    } elseif ($dispatchNewReferenceQuantityManagement === null) {
+                        return $this->json([
+                            'success' => false,
+                            'msg' => "Vous n'avez pas paramétré de gestion de quantité par défaut pour la création de références."
+                        ]);
+                    }
+
+                    $type = $typeRepository->find($dispatchNewReferenceType);
+                    $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $dispatchNewReferenceStatus);
+
                     $reference = (new ReferenceArticle())
                         ->setReference($data['reference'])
                         ->setLibelle($data['reference'])
+                        ->setType($type)
+                        ->setStatut($status)
+                        ->setTypeQuantite($dispatchNewReferenceQuantityManagement == 0
+                            ? ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                            : ReferenceArticle::QUANTITY_TYPE_ARTICLE
+                        )
                         ->setCreatedBy($user)
                         ->setCreatedAt($now)
                         ->setBarCode($refArticleDataService->generateBarCode())
@@ -2728,6 +2745,20 @@ class MobileController extends AbstractApiController
 
                     $manager->persist($reference);
                 }
+
+                $description = [
+                    'outFormatEquipment' => $data['outFormatEquipment'],
+                    'manufacturerCode' => $data['manufacturerCode'],
+                    'volume' => $data['volume'],
+                    'length' => $data['length'],
+                    'width' => $data['width'],
+                    'height' => $data['height'],
+                    'weight' => $data['weight'],
+                    'ADR' => $data['adr'],
+                    'associatedDocumentTypes' => $data['associatedDocumentTypes'],
+                ];
+
+                $reference->setDescription($description);
 
                 if ($data['logisticUnit']) {
                     $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']]) ?? $packService->createPackWithCode($data['logisticUnit']);

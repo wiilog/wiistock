@@ -118,6 +118,15 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPATCH_WAYBILL_CONTACT_NAME => [
                 'default' => null,
             ],
+            Setting::DISPATCH_NEW_REFERENCE_TYPE => [
+                'default' => null,
+            ],
+            Setting::DISPATCH_NEW_REFERENCE_STATUS => [
+                'default' => null,
+            ],
+            Setting::DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT => [
+                'default' => null,
+            ],
             Setting::AUTO_PRINT_COLIS => [
                 'default' => true,
             ],
