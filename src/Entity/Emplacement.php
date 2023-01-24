@@ -139,7 +139,7 @@ class Emplacement implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $signatory = null;
 
-    #[ORM\ManyToOne(inversedBy: 'locations')]
+    #[ORM\ManyToOne(targetEntity: Zone::class, inversedBy: 'locations')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Zone $zone = null;
 
