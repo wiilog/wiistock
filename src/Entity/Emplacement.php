@@ -139,6 +139,10 @@ class Emplacement implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $signatory = null;
 
+    #[ORM\ManyToOne(inversedBy: 'locations')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Zone $zone = null;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -988,6 +992,20 @@ class Emplacement implements PairedEntity {
 
     public function setSignatory(?Utilisateur $signatory): self {
         $this->signatory = $signatory;
+        return $this;
+    }
+
+    public function getZone(): ?Zone {
+        return $this->zone;
+    }
+
+    public function setZone(?Zone $zone): self {
+        if($this->zone && $this->zone !== $zone) {
+            $this->zone->removeLocation($this);
+        }
+        $this->zone = $zone;
+        $zone?->addLocation($this);
+
         return $this;
     }
 }
