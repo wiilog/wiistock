@@ -146,6 +146,21 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdOnKioskAt = null;
 
+    #[ORM\Column(type: 'string', length: 15, unique: true, nullable: true)]
+    private ?string $RFIDtag = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $deliveryNote = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $purchaseOrder = null;
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?string $manifacturingDate = null;
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?string $productionDate = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
