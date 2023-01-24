@@ -3009,8 +3009,11 @@ class MobileController extends AbstractApiController
     public function newDispatch(Request $request,
                                 EntityManagerInterface $manager,
                                 UniqueNumberService $uniqueNumberService,
-                                DispatchService $dispatchService): Response {
-        $data = $request->request->all();
+                                DispatchService $dispatchService,
+                                StatusHistoryService $statusHistoryService): Response {
+        $data = Stream::from($request->request->all())
+            ->keymap(fn(?string $value, string $key) => [$key, !in_array($value, ['undefined', 'null']) ? $value : null])
+            ->toArray();
 
         $typeRepository = $manager->getRepository(Type::class);
         $statusRepository = $manager->getRepository(Statut::class);
@@ -3041,9 +3044,9 @@ class MobileController extends AbstractApiController
             ->setStatus($draftStatuses[0])
             ->setLocationFrom($pickLocation)
             ->setLocationTo($dropLocation)
-            ->setCarrierTrackingNumber($data['carrierTrackingNumber'] ?? null)
-            ->setCommentaire($data['comment'] ?? null)
-            ->setEmergency($data['emergency'] && $data['emergency'] !== 'null' ? $data['emergency'] : null)
+            ->setCarrierTrackingNumber($data['carrierTrackingNumber'])
+            ->setCommentaire($data['comment'])
+            ->setEmergency($data['emergency'])
             ->setEmails($emails);
 
         if($receiver) {
@@ -3051,9 +3054,14 @@ class MobileController extends AbstractApiController
         }
 
         $manager->persist($dispatch);
+
+        $statusHistoryService->updateStatus($manager, $dispatch, $draftStatuses[0], [
+            'setStatus' => false,
+        ]);
+
         $manager->flush();
 
-        if(!empty($data['emergency']) && $data['emergency'] !== 'null' && $receiver) {
+        if($data['emergency'] && $receiver) {
             $dispatchService->sendEmailsAccordingToStatus($dispatch, false, false, $receiver, true);
         }
 
@@ -3071,7 +3079,6 @@ class MobileController extends AbstractApiController
      */
     public function getReference(Request $request, EntityManagerInterface $manager): Response {
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
-        $settingRepository = $manager->getRepository(Setting::class);
 
         $text = $request->query->get("reference");
         $reference = $referenceArticleRepository->findOneBy(['reference' => $request->query->get("reference")]);
@@ -3079,7 +3086,6 @@ class MobileController extends AbstractApiController
             $description = $reference->getDescription();
             $serializedReference = [
                 'reference' => $reference->getReference(),
-                'quantity' => $reference->getQuantiteDisponible(),
                 'outFormatEquipment' => $description['outFormatEquipment'] ?? '',
                 'manufacturerCode' => $description['manufacturerCode'] ?? '',
                 'width' => $description['width'] ?? '',
@@ -3089,15 +3095,14 @@ class MobileController extends AbstractApiController
                 'weight' => $description['weight'] ?? '',
                 'adr' => $description['ADR'] ?? '',
                 'associatedDocumentTypes' => $description['associatedDocumentTypes'] ?? '',
+                'exists' => true,
             ];
         } else {
             $serializedReference = [
-                'reference' => $text
+                'reference' => $text,
+                'exists' => false,
             ];
         }
-
-        $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
-        $serializedReference['associatedDocumentTypeElements'] = $associatedDocumentTypeElements;
 
         return $this->json([
             "success" => true,
@@ -3207,7 +3212,8 @@ class MobileController extends AbstractApiController
                         ->setQuantity($data['quantity'])
                         ->setBatchNumber($data['batchNumber'])
                         ->setSerialNumber($data['serialNumber'])
-                        ->setSealingNumber($data['sealingNumber']);
+                        ->setSealingNumber($data['sealingNumber'])
+                        ->setComment($data['comment']);
 
                     $maxNbFilesSubmitted = 10;
                     $fileCounter = 1;

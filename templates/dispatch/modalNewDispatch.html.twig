@@ -78,31 +78,33 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-4 col-12">
-                        {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
-                            or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD')) %}
-                            {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
-                            {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                                {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
-                                <div class="form-group">
-                                    <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'Transporteur') }}{{ required ? '*' }}</label>
-                                    <select class="form-control data w-100 {{ required ? 'needed' }}"
-                                            name="carrier" data-s2="carrier">
-                                    </select>
-                                </div>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                    <div class="col-md-4 col-12">
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
+
+                    {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
+                        or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD')) %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                                <div class="col-md-4 col-12">
+                                    <div class="form-group">
+                                        <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'Transporteur') }}{{ required ? '*' }}</label>
+                                        <select class="form-control data w-100 {{ required ? 'needed' }}"
+                                                name="carrier" data-s2="carrier">
+                                        </select>
+                                    </div>
+                                </div>
+                        {% endif %}
+                    {% endif %}
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        <div class="col-md-4 col-12">
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
                                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande') }}{{ required ? '*' }}</label>
                                 <input class="form-control data {{ required ? 'needed' }}" name="commandNumber">
                             </div>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% endif %}
                     <div class="col-md-4 col-12">
                         <div class="form-group">
                             <label class="wii-field-name">{{ trans('Demande', 'Général', 'Statut') }}*</label>
@@ -137,46 +139,49 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 col-12">
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_PICK') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_PICK') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        <div class="col-md-4 col-12">
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
                                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise') }}{{ required ? '*' }}</label>
                                 <select name="prise"
                                         class="form-control data d-block {{ required ? 'needed' }} location-prise w-100" data-s2="location">
                                 </select>
                             </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-4 col-12">
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                        </div>
+                    {% endif %}
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        <div class="col-md-4 col-12">
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group w-100">
                                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose') }}{{ required ? '*' }}</label>
                                 <select name="depose"
                                         class="form-control data d-block {{ required ? 'needed' }} location-depose" data-s2="location">
                                 </select>
                             </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-4 col-12">
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                        </div>
+                    {% endif %}
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        <div class="col-md-4 col-12">
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
                                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'N° tracking transporteur') }}{{ required ? '*' }}</label>
                                 <input class="form-control data {{ required ? 'needed' }}"
                                        name="carrierTrackingNumber">
                             </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-4 col-12">
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
-                            {% set projectNumberValue = arrival ? arrival.projectNumber %}
+                        </div>
+                    {% endif %}
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                        {% set projectNumberValue = arrival ? arrival.projectNumber %}
+                        <div class="col-md-4 col-12">
                             <div class="form-group">
                                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'N° projet') }}{{ required ? '*' }}</label>
                                 <input class="project form-control data {{ required ? 'needed' }} needs-default"
@@ -184,8 +189,8 @@
                                        value="{{ projectNumberValue }}"
                                        data-init="{{ projectNumberValue }}">
                             </div>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% endif %}
                     <div class="col-md-4 col-12">
                         <div class="form-group">
                             <label class="wii-field-name">{{ trans('Demande', 'Général', 'Demandeur') }}*</label>
@@ -196,10 +201,11 @@
                                    data-id="{{ app.user.id }}"/>
                         </div>
                     </div>
-                    <div class="col-md-4 col-12">
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        <div class="col-md-4 col-12">
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
                                 <label class="wii-field-name">{{ trans('Demande', 'Général', 'Urgence') }}{{ required ? '*' }}</label>
                                 <div class="w-100">
@@ -212,21 +218,23 @@
                                     </select>
                                 </div>
                             </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-4 col-12">
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DESTINATION') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        </div>
+                    {% endif %}
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DESTINATION') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        <div class="col-md-4 col-12">
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
                                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Destination') }}{{ required ? '*' }}</label>
                                 <input name="destination" class="form-control data {{ required ? 'needed' }} w-100" maxlength="50"/>
                             </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-4 col-12">
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        </div>
+                    {% endif %}
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        <div class="col-md-4 col-12">
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
                                 <label class="wii-field-name">{{ trans('Demande', 'Général', 'Destinataire(s)') }}{{ required ? '*' }}</label>
@@ -235,13 +243,14 @@
                                         multiple>
                                 </select>
                             </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-4 col-12">
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
-                            {% set businessUnitValue = arrival ? arrival.businessUnit %}
+                        </div>
+                    {% endif %}
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                        {% set businessUnitValue = arrival ? arrival.businessUnit %}
+                        <div class="col-md-4 col-12">
                             <div class="form-group">
                                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Général', 'Business unit') }}{{ required ? '*' }}</label>
                                 <select name="businessUnit"
@@ -254,11 +263,12 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-4 col-12">
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMAILS') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        </div>
+                    {% endif %}
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMAILS') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        <div class="col-md-4 col-12">
                             <div class="form-group">
                                 <label class="wii-field-name">Email(s){{ required ? '*' }}</label>
                                 <select name="emails"
@@ -266,15 +276,16 @@
                                         multiple>
                                 </select>
                             </div>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% endif %}
+
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                         {% set placeholder = app.user.displayedDateFormat ? app.user.displayedDateFormat : 'jj/mm/aaaa' %}
-                        <div class="form-group col-md-8 col-12">
+                        <div class="form-group col-12">
                             <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Modale', 'Echéance') }}{{ required ? '*' }}</label>
-                            <div class="input-group w-100">
+                            <div class="input-group w-100 col-md-8 pl-0">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text w-50px">{{ trans('Général', null, 'Zone filtre', 'Du') }}</span>
                                 </div>
@@ -297,9 +308,9 @@
                         </div>
                     {% endif %}
 
-                    <div class="col-12 mt-3">
-                        {% if typeChampsLibres is not empty %}
-                            <!-- CHAMPS LIBRES -->
+                    {% if typeChampsLibres is not empty %}
+                        <div class="col-12 mt-3">
+                        <!-- CHAMPS LIBRES -->
                             <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
                             <div class="collapsible expanded free-fields-container mb-2">
                                 {% for type in typeChampsLibres %}
@@ -317,8 +328,8 @@
                                     </div>
                                 {% endfor %}
                             </div>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% endif %}
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENT_DISPATCH') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
