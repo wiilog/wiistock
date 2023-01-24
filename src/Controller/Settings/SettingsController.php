@@ -22,6 +22,7 @@ use App\Entity\KioskToken;
 use App\Entity\Language;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
@@ -156,6 +157,10 @@ class SettingsController extends AbstractController {
                         self::MENU_TYPES_FREE_FIELDS => [
                             "label" => "Types et champs libres",
                             "wrapped" => false,
+                        ],
+                        self::MENU_NATIVE_COUNTRY => [
+                            "label" => "Pays d'origine",
+                            "save" => true,
                         ],
                     ],
                 ],
@@ -580,6 +585,8 @@ class SettingsController extends AbstractController {
     public const MENU_TEMPLATE_RECAP_WAYBILL = "compte_rendu";
     public const MENU_TEMPLATE_DELIVERY_WAYBILL = "lettre_de_voiture";
 
+    public const MENU_NATIVE_COUNTRY = "pays_d_origine";
+
     /**
      * @Required
      */
@@ -961,6 +968,7 @@ class SettingsController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
+        $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
         return [
@@ -1021,6 +1029,15 @@ class SettingsController extends AbstractController {
                             "categories" => "<select name='category' class='form-control data'>$categories</select>",
                         ];
                     },
+                    self::MENU_NATIVE_COUNTRY => fn() => [
+                        "native_countries" => Stream::from($nativeCountryRepository->findAll())
+                            ->map(fn(NativeCountry $nativeCountry) => [
+                                "code" => $nativeCountry->getCode(),
+                                "label" => $nativeCountry->getLabel(),
+                                "active" => $nativeCountry->isActive(),
+                            ])
+                            ->toArray(),
+                    ],
                 ],
                 self::MENU_REQUESTS => [
                     self::MENU_DELIVERIES => fn() => [
@@ -2900,6 +2917,27 @@ class SettingsController extends AbstractController {
             return $this->json([
                 "success" => false,
                 "msg" => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * @Route("/frequences/supprimer/{entity}", name="settings_delete_native_country", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
+     */
+    public function deleteNativeCountry(EntityManagerInterface $entityManager, NativeCountry $entity): Response {
+        if (!$entity->isActive()) {
+            $entityManager->remove($entity);
+            $entityManager->flush();
+
+            return $this->json([
+                "success" => true,
+                "msg" => "La ligne a bien été supprimée",
+            ]);
+        } else {
+            return $this->json([
+                "success" => false,
+                "msg" => "Ce pays d'origine est lié à des articles. Vous ne pouvez pas le supprimer.",
             ]);
         }
     }

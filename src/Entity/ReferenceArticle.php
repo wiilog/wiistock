@@ -197,6 +197,9 @@ class ReferenceArticle
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $description = [];
 
+    #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: StorageRule::class, orphanRemoval: true)]
+    private Collection $storageRules;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -215,6 +218,7 @@ class ReferenceArticle
         $this->carts = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
         $this->requestTemplateLines = new ArrayCollection();
+        $this->storageRules = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
@@ -1079,4 +1083,39 @@ class ReferenceArticle
         return $this;
     }
 
+    public function getStorageRules(): Collection {
+        return $this->storageRules;
+    }
+
+    public function addStorageRule(StorageRule $storageRule): self {
+        if (!$this->storageRules->contains($storageRule)) {
+            $this->storageRules[] = $storageRule;
+            $storageRule->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStorageRule(StorageRule $storageRule): self {
+        if ($this->storageRules->removeElement($storageRule)) {
+            if ($storageRule->getReferenceArticle() === $this) {
+                $storageRule->setReferenceArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setStorageRules(?iterable $storageRules): self {
+        foreach($this->getStorageRules()->toArray() as $storageRule) {
+            $this->removeStorageRule($storageRule);
+        }
+
+        $this->storageRules = new ArrayCollection();
+        foreach($storageRules ?? [] as $storageRule) {
+            $this->addStorageRule($storageRule);
+        }
+
+        return $this;
+    }
 }

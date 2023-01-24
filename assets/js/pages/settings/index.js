@@ -1187,3 +1187,32 @@ function deleteTemplate($elem) {
     $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
     $(`input[name=${name}]`).val('1');
 }
+
+function initializeArticleNativeCountriesTable(){
+    const table = EditableDatatable.create(`#nativeCountriesTable`, {
+        route: Routing.generate('settings_frequencies_api', true),
+        deleteRoute: `settings_delete_frequency`,
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paging: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `nb_months`, title: `Nombre de mois`, required: true},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed' data-global-error="Libellé"/>`,
+            nb_months: `<input type='number' name='nbMonths' min='1' class='data form-control needed' data-global-error="Nombre de mois"/>`,
+        },
+    });
+}

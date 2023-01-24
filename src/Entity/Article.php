@@ -155,6 +155,9 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $purchaseOrder = null;
 
+    #[ORM\ManyToOne(targetEntity: NativeCountry::class)]
+    private ?NativeCountry $nativeCountry = null;
+
     #[ORM\Column(type: 'date', nullable: true)]
     private ?string $manifacturingDate = null;
 
@@ -771,5 +774,101 @@ class Article implements PairedEntity {
 
     public function isInTransit(): bool {
         return $this->getStatut()->getCode() === self::STATUT_EN_TRANSIT;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getRFIDtag(): ?string
+    {
+        return $this->RFIDtag;
+    }
+
+    /**
+     * @param string|null $RFIDtag
+     */
+    public function setRFIDtag(?string $RFIDtag): void
+    {
+        $this->RFIDtag = $RFIDtag;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDeliveryNote(): ?string
+    {
+        return $this->deliveryNote;
+    }
+
+    /**
+     * @param string|null $deliveryNote
+     */
+    public function setDeliveryNote(?string $deliveryNote): void
+    {
+        $this->deliveryNote = $deliveryNote;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPurchaseOrder(): ?string
+    {
+        return $this->purchaseOrder;
+    }
+
+    /**
+     * @param string|null $purchaseOrder
+     */
+    public function setPurchaseOrder(?string $purchaseOrder): void
+    {
+        $this->purchaseOrder = $purchaseOrder;
+    }
+
+    /**
+     * @return NativeCountry|null
+     */
+    public function getNativeCountry(): ?NativeCountry
+    {
+        return $this->nativeCountry;
+    }
+
+    /**
+     * @param NativeCountry|null $nativeCountry
+     */
+    public function setNativeCountry(?NativeCountry $nativeCountry): void
+    {
+        $this->nativeCountry = $nativeCountry;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getManifacturingDate(): ?string
+    {
+        return $this->manifacturingDate;
+    }
+
+    /**
+     * @param string|null $manifacturingDate
+     */
+    public function setManifacturingDate(?string $manifacturingDate): void
+    {
+        $this->manifacturingDate = $manifacturingDate;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getProductionDate(): ?string
+    {
+        return $this->productionDate;
+    }
+
+    /**
+     * @param string|null $productionDate
+     */
+    public function setProductionDate(?string $productionDate): void
+    {
+        $this->productionDate = $productionDate;
     }
 }
