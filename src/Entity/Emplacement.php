@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\PairedEntity;
@@ -19,6 +20,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\OneToMany;
 
 
 #[ORM\Entity(repositoryClass: EmplacementRepository::class)]
@@ -138,6 +140,13 @@ class Emplacement implements PairedEntity {
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $signatory = null;
+
+    #[OneToMany(mappedBy: "location", targetEntity: InventoryLocationMission::class)]
+    private Collection $inventoryLocationMissions;
+
+    #[ORM\ManyToOne(targetEntity: Zone::class, inversedBy: 'locations')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Zone $zone = null;
 
     public function __construct() {
         $this->clusters = new ArrayCollection();
@@ -988,6 +997,56 @@ class Emplacement implements PairedEntity {
 
     public function setSignatory(?Utilisateur $signatory): self {
         $this->signatory = $signatory;
+        return $this;
+    }
+
+    public function getInventoryLocationMissions(): Collection {
+        return $this->inventoryLocationMissions;
+    }
+
+    public function addInventoryLocationMission(InventoryLocationMission $inventoryLocationMission): self {
+        if (!$this->inventoryLocationMissions->contains($inventoryLocationMission)) {
+            $this->inventoryLocationMissions[] = $inventoryLocationMission;
+            $inventoryLocationMission->setLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryLocationMission(InventoryLocationMission $inventoryLocationMission): self {
+        if ($this->inventoryLocationMissions->removeElement($inventoryLocationMission)) {
+            if ($inventoryLocationMission->getLocation() === $this) {
+                $inventoryLocationMission->setLocation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setInventoryLocationMissions(?iterable $inventoryLocationMissions): self {
+        foreach($this->getInventoryLocationMissions()->toArray() as $inventoryLocationMission) {
+            $this->removeInventoryLocationMission($inventoryLocationMission);
+        }
+
+        $this->inventoryLocationMissions = new ArrayCollection();
+        foreach($inventoryLocationMissions ?? [] as $inventoryLocationMission) {
+            $this->addInventoryLocationMission($inventoryLocationMission);
+        }
+
+        return $this;
+    }
+
+    public function getZone(): ?Zone {
+        return $this->zone;
+    }
+
+    public function setZone(?Zone $zone): self {
+        if($this->zone && $this->zone !== $zone) {
+            $this->zone->removeLocation($this);
+        }
+        $this->zone = $zone;
+        $zone?->addLocation($this);
+
         return $this;
     }
 }
