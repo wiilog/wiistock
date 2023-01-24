@@ -55,7 +55,7 @@ class PurchaseRequest {
     #[ORM\JoinColumn(nullable: true)]
     private ?Statut $status = null;
 
-    #[ORM\OneToMany(targetEntity: PurchaseRequestLine::class, mappedBy: 'purchaseRequest', cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'purchaseRequest', targetEntity: PurchaseRequestLine::class, cascade: ['remove'])]
     private ?Collection $purchaseRequestLines;
 
     #[ORM\ManyToOne]
