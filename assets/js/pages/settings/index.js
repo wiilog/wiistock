@@ -94,7 +94,8 @@ const initializers = {
     track_tournees: initializeTransportRound,
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
-    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate
+    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
+    stock_articles_pays_d_origine: initializeArticleNativeCountriesTable
 };
 
 const saveCallbacks = {
@@ -1188,10 +1189,10 @@ function deleteTemplate($elem) {
     $(`input[name=${name}]`).val('1');
 }
 
-function initializeArticleNativeCountriesTable(){
+function initializeArticleNativeCountriesTable() {
     const table = EditableDatatable.create(`#nativeCountriesTable`, {
-        route: Routing.generate('settings_frequencies_api', true),
-        deleteRoute: `settings_delete_frequency`,
+        route: Routing.generate('settings_native_countries_api', true),
+        deleteRoute: `settings_delete_native_country`,
         mode: MODE_CLICK_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
         search: false,
@@ -1206,13 +1207,15 @@ function initializeArticleNativeCountriesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: 'code', title: 'Code', required: true},
             {data: `label`, title: `Libellé`, required: true},
-            {data: `nb_months`, title: `Nombre de mois`, required: true},
+            {data: `active`, title: `Actif`, required: true},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            code: `<input type='text' name='code' class='form-control data needed' data-global-error="Code"/>`,
             label: `<input type='text' name='label' class='form-control data needed' data-global-error="Libellé"/>`,
-            nb_months: `<input type='number' name='nbMonths' min='1' class='data form-control needed' data-global-error="Nombre de mois"/>`,
+            active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
         },
     });
 }

@@ -1,17 +1,11 @@
 {% import 'form.html.twig' as form %}
 
 <div class="wii-section">
-    <div class="row mb-3 d-flex align-items-center">
-        <div class="col-10 wii-small-text">
+    <div class="row">
+        <div class="col-12 wii-small-text mb-3">
             Pays positionnante au niveau de l'article pour information.<br>
             Table en saisie pour modification.
         </div>
-        <div class="col-2">
-            <button class="btn btn-primary mt-1 add-entity d-flex align-items-center">
-                <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter
-            </button>
-        </div>
     </div>
-    {{ native_countries ? 'oui' : 'non' }}
     <table id="nativeCountriesTable" data-table-processing="nativeCountriesTable"></table>
 </div>

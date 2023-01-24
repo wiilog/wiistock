@@ -2922,7 +2922,55 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/frequences/supprimer/{entity}", name="settings_delete_native_country", options={"expose"=true})
+     * @Route("/native-countries-api", name="settings_native_countries_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
+     */
+    public function nativeCountriesApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $data = [];
+        $nativeCountryRepository = $manager->getRepository(NativeCountry::class);
+
+        foreach ($nativeCountryRepository->findAll() as $nativeCountry) {
+            if ($edit) {
+                $isActive = $nativeCountry->isActive() == 1 ? 'checked' : "";
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row w-50' data-id='{$nativeCountry->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                        <input type='hidden' name='nativeCountryId' class='data' value='{$nativeCountry->getId()}'/>",
+                    "code" => "<input type='text' name='code' class='form-control data needed' value='{$nativeCountry->getCode()}' data-global-error='Code'/>",
+                    "label" => "<input type='text' name='label' class='form-control data needed' value='{$nativeCountry->getLabel()}' data-global-error='Libellé'/>",
+                    "active" => "<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data' {$isActive}/></div>",
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row' data-id='{$nativeCountry->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    ",
+                    "code" => $nativeCountry->getCode(),
+                    "label" => $nativeCountry->getLabel(),
+                    "active" => $nativeCountry->isActive() ? "Oui" : "Non",
+                ];
+            }
+        }
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "code" => "",
+            "label" => "",
+            "active" => "",
+        ];
+
+        return $this->json([
+            "data" => $data,
+        ]);
+    }
+
+    /**
+     * @Route("/native-countries/supprimer/{entity}", name="settings_delete_native_country", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      */
     public function deleteNativeCountry(EntityManagerInterface $entityManager, NativeCountry $entity): Response {
