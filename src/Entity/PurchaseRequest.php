@@ -58,6 +58,9 @@ class PurchaseRequest {
     #[ORM\OneToMany(targetEntity: PurchaseRequestLine::class, mappedBy: 'purchaseRequest', cascade: ['remove'])]
     private ?Collection $purchaseRequestLines;
 
+    #[ORM\ManyToOne]
+    private ?Fournisseur $supplier = null;
+
     public function __construct() {
         $this->purchaseRequestLines = new ArrayCollection();
         $this->attachments = new ArrayCollection();
@@ -242,6 +245,18 @@ class PurchaseRequest {
             'considerationDate' => FormatHelper::datetime($this->getConsiderationDate()),
             'comment' => FormatHelper::html($this->getComment()),
         ];
+    }
+
+    public function getSupplier(): ?Fournisseur
+    {
+        return $this->supplier;
+    }
+
+    public function setSupplier(?Fournisseur $supplier): self
+    {
+        $this->supplier = $supplier;
+
+        return $this;
     }
 
 }
