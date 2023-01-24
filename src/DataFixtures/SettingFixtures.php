@@ -153,7 +153,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::STOCK_EXPIRATION_DELAY => [],
             Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => [
-                "default" => [],
+                "default" => false,
                 SpecificService::CLIENT_AIA_BRETAGNE => implode(",", ["FME", "JAM", "CC", "Autres"])
             ],
             Setting::CL_USED_IN_LABELS => [

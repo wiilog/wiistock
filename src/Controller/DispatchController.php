@@ -421,10 +421,9 @@ class DispatchController extends AbstractController {
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
                          DispatchService $dispatchService,
-                         RedirectService $redirectService,
                          UserService $userService,
                          bool $printBL,
-                         RefArticleDataService $refArticleDataService) {
+                         RefArticleDataService $refArticleDataService): Response {
 
         $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -434,6 +433,20 @@ class DispatchController extends AbstractController {
         $dispatchStatus = $dispatch->getStatut();
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
+
+        $dispatchReferenceArticleAttachments = [];
+        foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
+            foreach ($dispatchPack->getDispatchReferenceArticles() as $dispatchReferenceArticle) {
+                foreach ($dispatchReferenceArticle->getAttachments() as $attachment)
+                    $dispatchReferenceArticleAttachments[] = $attachment;
+            }
+        }
+
+        $dispatchAttachments = $dispatch->getAttachments()
+            ->map(fn(Attachment $attachment) => $attachment)
+            ->toArray();
+
+        $attachments = array_merge($dispatchAttachments, $dispatchReferenceArticleAttachments);
 
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
@@ -454,6 +467,7 @@ class DispatchController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'freeFields' => $freeFields,
             "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
+            "attachments" => $attachments
         ]);
     }
 
@@ -1748,7 +1762,7 @@ class DispatchController extends AbstractController {
         return new JsonResponse($html);
     }
 
-    #[Route("/add-reference-api/{dispatch}/{?pack}", name:"dispatch_add_reference_api", options: ['expose' => true], methods: "POST")]
+    #[Route("/add-reference-api/{dispatch}/{pack}", name: "dispatch_add_reference_api", options: ['expose' => true], defaults: ['pack' => null], methods: "POST")]
     #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function addReferenceApi(Dispatch $dispatch,
                                     ?Pack $pack,
