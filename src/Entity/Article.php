@@ -159,10 +159,10 @@ class Article implements PairedEntity {
     private ?NativeCountry $nativeCountry = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private ?string $manifacturingDate = null;
+    private ?DateTime $manifacturingDate = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private ?string $productionDate = null;
+    private ?DateTime $productionDate = null;
 
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();

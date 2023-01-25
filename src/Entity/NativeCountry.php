@@ -13,14 +13,14 @@ class NativeCountry
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 15)]
-    private ?string $code = null;
+    #[ORM\Column(type: 'string', length: 15, nullable: false)]
+    private ?string $code;
 
-    #[ORM\Column(length: 255)]
-    private ?string $label = null;
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
+    private ?string $label;
 
-    #[ORM\Column]
-    private ?bool $active = null;
+    #[ORM\Column(type: 'boolean', nullable: false)]
+    private ?bool $active;
 
     public function getId(): ?int
     {
