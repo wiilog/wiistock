@@ -637,29 +637,19 @@ class ReferenceArticleController extends AbstractController
     public function showPage(Request $request, ReferenceArticle $referenceArticle, RefArticleDataService $refArticleDataService, EntityManagerInterface $manager): Response {
         $type = $referenceArticle->getType();
         $showOnly = $request->query->getBoolean('showOnly');
+        $articleRepository = $manager->getRepository(Article::class);
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
-            ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
-                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
-                    ? $providerArticle->getArticles()->toArray()
-                    : [];
+            ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle, $articleRepository) {
                 $carry[] = [
                     'providerName' => $providerArticle->getFournisseur()->getNom(),
                     'providerCode' => $providerArticle->getFournisseur()->getCodeReference(),
                     'reference' => $providerArticle->getReference(),
                     'label' => $providerArticle->getLabel(),
-                    'quantity' => Stream::from($articles)
-                        ->reduce(
-                            fn(int $carry, Article $article) => (
-                                ($article->getStatut() && $article->getStatut()?->getCode() === Article::STATUT_ACTIF)
-                                    ? $carry + $article->getQuantite()
-                                    : $carry
-                            )
-                        )
+                    'quantity' => $articleRepository->getQuantityForSupplier($providerArticle)
                 ];
                 return $carry;
                 }, []);
-
         return $this->render('reference_article/show/show.html.twig', [
             'referenceArticle' => $referenceArticle,
             'providerArticles' => $providerArticles,
