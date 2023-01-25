@@ -934,6 +934,10 @@ class DispatchService {
                     "poids" => $this->formatService->decimal($dispatchPack->getPack()->getWeight(), [], '-'),
                     "volume" => $this->formatService->decimal($dispatchPack->getPack()->getVolume(), [], '-'),
                     "commentaire" => strip_tags($dispatchPack->getPack()->getComment()) ?: '-',
+                    "numarrivage" => $dispatchPack->getPack()->getArrivage()?->getNumeroArrivage() ?: '-',
+                    "numcommandearrivage" => $dispatchPack->getPack()->getArrivage()
+                        ? Stream::from($dispatchPack->getPack()->getArrivage()->getNumeroCommandeList())->join("\n")
+                        : "-",
                 ])
                 ->toArray();
         }
