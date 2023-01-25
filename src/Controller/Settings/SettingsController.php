@@ -4,6 +4,7 @@ namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -2974,7 +2975,8 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      */
     public function deleteNativeCountry(EntityManagerInterface $entityManager, NativeCountry $entity): Response {
-        if (!$entity->isActive()) {
+        $articleRepository = $entityManager->getRepository(Article::class);
+        if (!$articleRepository->findOneBy(["nativeCountry" => $entity])) {
             $entityManager->remove($entity);
             $entityManager->flush();
 
