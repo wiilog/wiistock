@@ -67,7 +67,7 @@ class Zone
         return $this->inventoryIndicator;
     }
 
-    public function setInventoryIndicator(float $inventoryIndicator): self
+    public function setInventoryIndicator(?float $inventoryIndicator): self
     {
         $this->inventoryIndicator = $inventoryIndicator;
 

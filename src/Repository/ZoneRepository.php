@@ -3,8 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Zone;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @extends ServiceEntityRepository<Zone>
@@ -16,51 +19,68 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ZoneRepository extends ServiceEntityRepository
 {
+
+    private const DtToDbLabels = [
+        'name' => 'name',
+        'description' => 'description',
+    ];
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Zone::class);
     }
 
-    public function save(Zone $entity, bool $flush = false): void
+    public function findByParamsAndFilters(InputBag $params)
     {
-        $this->getEntityManager()->persist($entity);
+        $queryBuilder = $this->createQueryBuilder('zone');
 
-        if ($flush) {
-            $this->getEntityManager()->flush();
+        $countTotal = QueryBuilderHelper::count($queryBuilder, 'zone');
+
+        //Filter search
+        if (!empty($params)) {
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
+                if (!empty($search)) {
+                    $queryBuilder
+                        ->andWhere("(
+                            zone.name LIKE :value OR
+                            zone.description LIKE :value
+						)")
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
+
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
+                if (!empty($order)) {
+                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']] ?? 'id';
+                    if ($column === 'name') {
+                        $queryBuilder->orderBy('zone.name', $order);
+                    } else if ($column === 'description') {
+                        $queryBuilder->orderBy('zone.description', $order);
+                    } else {
+                        $queryBuilder
+                            ->orderBy('zone.' . $column, $order);
+                    }
+                    $orderId = ($column === 'datetime')
+                        ? $order
+                        : 'DESC';
+                    $queryBuilder->addOrderBy('zone.id', $orderId);
+                }
+            }
         }
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, 'zone');
+
+        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
+
+        $query = $queryBuilder->getQuery();
+        return [
+            'data' => $query?->getResult(),
+            'count' => $countFiltered,
+            'total' => $countTotal
+        ];
     }
 
-    public function remove(Zone $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
 
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-//    /**
-//     * @return Zone[] Returns an array of Zone objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('z')
-//            ->andWhere('z.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('z.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Zone
-//    {
-//        return $this->createQueryBuilder('z')
-//            ->andWhere('z.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }

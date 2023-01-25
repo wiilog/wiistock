@@ -24,6 +24,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Entity\Zone;
 use App\Service\PDFGeneratorService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
@@ -76,7 +77,8 @@ class LocationController extends AbstractController {
             "natures" => $allNatures,
             "deliveryTypes" => $deliveryTypes,
             "collectTypes" => $collectTypes,
-            "temperatures" => $temperatures
+            "temperatures" => $temperatures,
+            "newZone" => new Zone()
         ]);
     }
 
