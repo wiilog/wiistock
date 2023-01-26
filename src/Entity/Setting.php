@@ -236,6 +236,10 @@ class Setting {
         "value" => true,
         "label" => 'Code 128',
     ];
+    // Stock inventaire
+    const RFID_PREFIXE = "RFID_PREFIXE";
+    const RFID_KPI_MIN = "RFID_KPI_MIN";
+    const RFID_KPI_MAX = "RFID_KPI_MAX";
 
     // export csv
     const USES_UTF8 = 'USES_UTF8';
@@ -397,9 +401,9 @@ class Setting {
                     "documentsref" => "documents associés d'une référence contenue dans l'UL",
                     "commentaireref" => "commentaire d'une référence contenue dans l'UL",
                     "photoref" => "photo d'une référence contenue dans l'UL",
-                ]
-            ]
-        ]
+                ],
+            ],
+        ],
     ];
 
     #[ORM\Id]

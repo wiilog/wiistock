@@ -205,6 +205,10 @@ class SettingsController extends AbstractController {
                     "label" => "Inventaires",
                     "right" => Action::SETTINGS_DISPLAY_INVENTORIES,
                     "menus" => [
+                        self::MENU_INVENTORY_CONFIGURATION => [
+                            "label" => "Configuration",
+                            "save" => true,
+                        ],
                         self::MENU_FREQUENCIES => ["label" => "Fréquences"],
                         self::MENU_CATEGORIES => ["label" => "Catégories"],
                         self::MENU_MISSIONS_GENERATION => ["label" => "Gestion des missions"],
@@ -529,6 +533,7 @@ class SettingsController extends AbstractController {
     public const MENU_TOUCH_TERMINAL = "borne_tactile";
     public const MENU_INVENTORIES = "inventaires";
     public const MENU_FREQUENCIES = "frequences";
+    public const MENU_INVENTORY_CONFIGURATION = "configuration";
     public const MENU_CATEGORIES = "categories";
     public const MENU_MISSIONS_GENERATION = "missions";
     public const MENU_ARTICLES = "articles";
