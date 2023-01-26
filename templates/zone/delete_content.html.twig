@@ -1,3 +1,7 @@
 <div class="form-group">
-    Vous êtes sur le point de supprimer une zone.
+    {% if zone.locations is not empty %}
+        Êtes-vous sûr de vouloir supprimer cette zone ? Elle est liée à {{ zone.locations.count }} emplacements.
+    {% else %}
+        Êtes-vous sûr de vouloir supprimer cette zone ?
+    {% endif %}
 </div>
