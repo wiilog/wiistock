@@ -73,5 +73,14 @@ class ZoneRepository extends EntityRepository
         ];
     }
 
-
+    public function getForSelect(?string $term): array {
+        return $this->createQueryBuilder("zone")
+            ->select("zone.id AS id")
+            ->addSelect("zone.name AS text")
+            ->addSelect("zone.description AS description")
+            ->andWhere("zone.name LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

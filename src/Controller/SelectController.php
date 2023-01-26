@@ -29,6 +29,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Entity\Zone;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -620,6 +621,17 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $projects
+        ]);
+    }
+
+    /**
+     * @Route("/select/zones", name="ajax_select_zones", options={"expose": true})
+     */
+    public function zones(Request $request, EntityManagerInterface $entityManager): Response {
+        $zones = $entityManager->getRepository(Zone::class)->getForSelect($request->query->get("term"));
+
+        return $this->json([
+            "results" => $zones
         ]);
     }
 

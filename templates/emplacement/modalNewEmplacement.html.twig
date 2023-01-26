@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" id="modalNewEmplacement" role="dialog"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -22,6 +24,22 @@
                     <input type="text" id="dateMaxTime" class="form-control data" name="dateMaxTime">
                 </div>
 
+                <div class="form-group">
+                    {{ form.select('zone', 'Zone', true, {
+                        type: 'zones',
+                        items: locationZone,
+                        emptyOption: (
+                            selectZone
+                                ? {
+                                    text: selectZone.name,
+                                    value: selectZone.id,
+                                    selected: true,
+                                }
+                                : {}
+                        ),
+                        disabled: selectZone,
+                    }) }}
+                </div>
                 <div class="form-group">
                     <label class="wii-field-name">Natures autorisées</label>
                     <select name="allowed-natures" class="form-control data select2 w-100" multiple>
