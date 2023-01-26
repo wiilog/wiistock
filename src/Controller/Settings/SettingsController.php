@@ -4,6 +4,7 @@ namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -22,6 +23,7 @@ use App\Entity\KioskToken;
 use App\Entity\Language;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
@@ -156,6 +158,10 @@ class SettingsController extends AbstractController {
                         self::MENU_TYPES_FREE_FIELDS => [
                             "label" => "Types et champs libres",
                             "wrapped" => false,
+                        ],
+                        self::MENU_NATIVE_COUNTRY => [
+                            "label" => "Pays d'origine",
+                            "save" => true,
                         ],
                     ],
                 ],
@@ -580,6 +586,8 @@ class SettingsController extends AbstractController {
     public const MENU_TEMPLATE_RECAP_WAYBILL = "compte_rendu";
     public const MENU_TEMPLATE_DELIVERY_WAYBILL = "lettre_de_voiture";
 
+    public const MENU_NATIVE_COUNTRY = "pays_d_origine";
+
     /**
      * @Required
      */
@@ -961,6 +969,7 @@ class SettingsController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
+        $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
         return [
@@ -1021,6 +1030,15 @@ class SettingsController extends AbstractController {
                             "categories" => "<select name='category' class='form-control data'>$categories</select>",
                         ];
                     },
+                    self::MENU_NATIVE_COUNTRY => fn() => [
+                        "native_countries" => Stream::from($nativeCountryRepository->findAll())
+                            ->map(fn(NativeCountry $nativeCountry) => [
+                                "code" => $nativeCountry->getCode(),
+                                "label" => $nativeCountry->getLabel(),
+                                "active" => $nativeCountry->isActive(),
+                            ])
+                            ->toArray(),
+                    ],
                 ],
                 self::MENU_REQUESTS => [
                     self::MENU_DELIVERIES => fn() => [
@@ -2900,6 +2918,76 @@ class SettingsController extends AbstractController {
             return $this->json([
                 "success" => false,
                 "msg" => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * @Route("/native-countries-api", name="settings_native_countries_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
+     */
+    public function nativeCountriesApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $data = [];
+        $nativeCountryRepository = $manager->getRepository(NativeCountry::class);
+
+        foreach ($nativeCountryRepository->findAll() as $nativeCountry) {
+            if ($edit) {
+                $isActive = $nativeCountry->isActive() == 1 ? 'checked' : "";
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row w-50' data-id='{$nativeCountry->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                        <input type='hidden' name='nativeCountryId' class='data' value='{$nativeCountry->getId()}'/>",
+                    "code" => "<input type='text' name='code' class='form-control data needed' value='{$nativeCountry->getCode()}' data-global-error='Code'/>",
+                    "label" => "<input type='text' name='label' class='form-control data needed' value='{$nativeCountry->getLabel()}' data-global-error='Libellé'/>",
+                    "active" => "<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data' {$isActive}/></div>",
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row' data-id='{$nativeCountry->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    ",
+                    "code" => $nativeCountry->getCode(),
+                    "label" => $nativeCountry->getLabel(),
+                    "active" => $nativeCountry->isActive() ? "Oui" : "Non",
+                ];
+            }
+        }
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "code" => "",
+            "label" => "",
+            "active" => "",
+        ];
+
+        return $this->json([
+            "data" => $data,
+        ]);
+    }
+
+    /**
+     * @Route("/native-countries/supprimer/{entity}", name="settings_delete_native_country", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
+     */
+    public function deleteNativeCountry(EntityManagerInterface $entityManager, NativeCountry $entity): Response {
+        $articleRepository = $entityManager->getRepository(Article::class);
+        if (!$articleRepository->findOneBy(["nativeCountry" => $entity])) {
+            $entityManager->remove($entity);
+            $entityManager->flush();
+
+            return $this->json([
+                "success" => true,
+                "msg" => "La ligne a bien été supprimée",
+            ]);
+        } else {
+            return $this->json([
+                "success" => false,
+                "msg" => "Ce pays d'origine est lié à des articles. Vous ne pouvez pas le supprimer.",
             ]);
         }
     }

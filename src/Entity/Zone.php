@@ -11,6 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ZoneRepository::class)]
 class Zone
 {
+    const ACTIVITY_STANDARD_ZONE_NAME = 'Activité Standard';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

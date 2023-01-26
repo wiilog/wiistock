@@ -94,7 +94,8 @@ const initializers = {
     track_tournees: initializeTransportRound,
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
-    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate
+    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
+    stock_articles_pays_d_origine: initializeArticleNativeCountriesTable
 };
 
 const saveCallbacks = {
@@ -1186,4 +1187,35 @@ function deleteTemplate($elem) {
     $parent.find(`.custom-template-preview`).html(`<span class="wii-small-text my-2">Aucun modèle personnalisé.</span>`);
     $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
     $(`input[name=${name}]`).val('1');
+}
+
+function initializeArticleNativeCountriesTable() {
+    const table = EditableDatatable.create(`#nativeCountriesTable`, {
+        route: Routing.generate('settings_native_countries_api', true),
+        deleteRoute: `settings_delete_native_country`,
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paging: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: 'code', title: 'Code', required: true},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `active`, title: `Actif`, required: true},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            code: `<input type='text' name='code' class='form-control data needed' data-global-error="Code"/>`,
+            label: `<input type='text' name='label' class='form-control data needed' data-global-error="Libellé"/>`,
+            active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
+        },
+    });
 }

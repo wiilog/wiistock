@@ -21,6 +21,7 @@ use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
 use App\Entity\MailerServer;
+use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\Setting;
@@ -972,6 +973,37 @@ class SettingsService {
                 $this->requestTemplateService->updateRequestTemplateLine($line, $item);
 
                 $this->manager->persist($line);
+            }
+        }
+
+        if (isset($tables["nativeCountriesTable"])) {
+            $nativeCountriesData = array_filter($tables["nativeCountriesTable"]);
+            $nativeCountryRepository = $this->manager->getRepository(NativeCountry::class);
+
+            if (!empty($nativeCountriesData)) {
+                foreach ($nativeCountriesData as $nativeCountryData) {
+                    $persistedNativeCountries = [];
+                    if (isset($nativeCountryData['nativeCountryId'])) {
+                        $nativeCountry = Stream::from($persistedNativeCountries)
+                            ->filter(fn(NativeCountry $nativeCountry) => $nativeCountry->getId() == $nativeCountryData['nativeCountryId'])
+                            ->first();
+
+                        if (!$nativeCountry) {
+                            $nativeCountry = $nativeCountryRepository->find($nativeCountryData['nativeCountryId']);
+                            $persistedNativeCountries[] = $nativeCountry;
+                        }
+                    } else {
+                        $nativeCountry = new NativeCountry();
+                        $persistedNativeCountries[] = $nativeCountry;
+                    }
+
+                    $nativeCountry
+                        ->setCode($nativeCountryData['code'])
+                        ->setLabel($nativeCountryData['label'])
+                        ->setActive($nativeCountryData['active']);
+
+                    $this->manager->persist($nativeCountry);
+                }
             }
         }
     }

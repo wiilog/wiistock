@@ -33,6 +33,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Entity\Zone;
 use App\Exceptions\FormException;
 use App\Exceptions\ImportException;
 use Closure;
@@ -177,6 +178,7 @@ class ImportService
             "allowedDeliveryTypes",
             "signatory",
             "email",
+            "zone",
         ],
         Import::ENTITY_CUSTOMER => [
             "name",
@@ -1678,6 +1680,7 @@ class ImportService
         $natureRepository = $this->entityManager->getRepository(Nature::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $zoneRepository = $this->entityManager->getRepository(Zone::class);
 
         $isNewEntity = false;
         $location = $locationRepository->findOneBy(['label' => $data['name']]);
@@ -1807,6 +1810,14 @@ class ImportService
             else {
                 $location->setIsActive($value === 'oui');
             }
+        }
+
+        if (isset($data['zone'])) {
+            $zone = $zoneRepository->findOneBy(['name' => $data['zone']]);
+            if (!$zone) {
+                $this->throwError('Zone inconnue.');
+            }
+            $location->setZone($zone);
         }
 
         $this->entityManager->persist($location);

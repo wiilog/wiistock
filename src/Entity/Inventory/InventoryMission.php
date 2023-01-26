@@ -9,9 +9,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use DateTime;
+use Doctrine\ORM\Mapping\OneToMany;
 
 #[ORM\Entity(repositoryClass: InventoryMissionRepository::class)]
 class InventoryMission {
+
+    const ARTICLE_TYPE = 'article';
+    const LOCATION_TYPE = 'location';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -39,10 +43,23 @@ class InventoryMission {
     #[ORM\ManyToOne(targetEntity: InventoryMissionRule::class, inversedBy: 'createdMissions')]
     private InventoryMissionRule $creator;
 
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $done = null;
+
+    #[ORM\Column(type: 'string')]
+    private ?string $type = null;
+
+    #[OneToMany(mappedBy: "inventoryMission", targetEntity: InventoryLocationMission::class)]
+    private Collection $inventoryLocationMissions;
+
     public function __construct() {
         $this->refArticles = new ArrayCollection();
         $this->entries = new ArrayCollection();
         $this->articles = new ArrayCollection();
+        $this->inventoryLocationMissions = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -163,6 +180,72 @@ class InventoryMission {
     public function setCreator(?InventoryMissionRule $creator): self
     {
         $this->creator = $creator;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): self {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function isDone(): ?bool {
+        return $this->done;
+    }
+
+    public function setDone(bool $isDone): self {
+        $this->done = $isDone;
+
+        return $this;
+    }
+
+    public function getType(): ?string {
+        return $this->type;
+    }
+
+    public function setType(string $type): self {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getInventoryLocationMissions(): Collection {
+        return $this->inventoryLocationMissions;
+    }
+
+    public function addInventoryLocationMission(InventoryLocationMission $inventoryLocationMission): self {
+        if (!$this->inventoryLocationMissions->contains($inventoryLocationMission)) {
+            $this->inventoryLocationMissions[] = $inventoryLocationMission;
+            $inventoryLocationMission->setInventoryMission($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryLocationMission(InventoryLocationMission $inventoryLocationMission): self {
+        if ($this->inventoryLocationMissions->removeElement($inventoryLocationMission)) {
+            if ($inventoryLocationMission->getInventoryMission() === $this) {
+                $inventoryLocationMission->setInventoryMission(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setInventoryLocationMissions(?iterable $inventoryLocationMissions): self {
+        foreach($this->getInventoryLocationMissions()->toArray() as $inventoryLocationMission) {
+            $this->removeInventoryLocationMission($inventoryLocationMission);
+        }
+
+        $this->inventoryLocationMissions = new ArrayCollection();
+        foreach($inventoryLocationMissions ?? [] as $inventoryLocationMission) {
+            $this->addInventoryLocationMission($inventoryLocationMission);
+        }
 
         return $this;
     }

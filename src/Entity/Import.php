@@ -196,6 +196,8 @@ class Import {
 
             'code' => 'Code',
             'projectManager' => 'Chef de projet',
+
+            'zone' => 'Zone',
         ],
 
         self::ENTITY_CUSTOMER => [
