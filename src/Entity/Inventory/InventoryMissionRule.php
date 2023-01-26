@@ -58,7 +58,7 @@ class InventoryMissionRule {
     #[ORM\Column(type: "text")]
     private ?string $description = null;
 
-    #[ORM\OneToMany(targetEntity: Emplacement::class)]
+    #[ORM\ManyToMany(targetEntity: Emplacement::class, mappedBy: 'inventoryMissionRules')]
     private Collection $locations;
 
     #[ORM\Column(type: "datetime")]
@@ -395,20 +395,23 @@ class InventoryMissionRule {
     public function addLocation(Emplacement $location): self {
         if (!$this->locations->contains($location)) {
             $this->locations[] = $location;
+            $location->addInventoryMissionRule($this);
         }
 
         return $this;
     }
 
-    public function removeExample(Emplacement $location): self {
-        $this->locations->removeElement($location);
+    public function removeLocation(Emplacement $location): self {
+        if ($this->locations->removeElement($location)) {
+            $location->removeInventoryMissionRule($this);
+        }
 
         return $this;
     }
 
     public function setLocations(?iterable $locations): self {
         foreach($this->getLocations()->toArray() as $location) {
-            $this->removeExample($location);
+            $this->removeLocation($location);
         }
 
         $this->locations = new ArrayCollection();

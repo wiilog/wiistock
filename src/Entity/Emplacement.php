@@ -6,6 +6,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Inventory\InventoryLocationMission;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\PairedEntity;
@@ -148,6 +149,9 @@ class Emplacement implements PairedEntity {
     #[ORM\JoinColumn(nullable: true)]
     private ?Zone $zone = null;
 
+    #[ORM\ManyToMany(targetEntity: InventoryMissionRule::class, mappedBy: 'locations')]
+    private Collection $inventoryMissionRules;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -176,6 +180,8 @@ class Emplacement implements PairedEntity {
         $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
         $this->temperatureRanges = new ArrayCollection();
+
+        $this->inventoryMissionRules = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -1046,6 +1052,40 @@ class Emplacement implements PairedEntity {
         }
         $this->zone = $zone;
         $zone?->addLocation($this);
+
+        return $this;
+    }
+
+    public function getInventoryMissionRules(): Collection {
+        return $this->inventoryMissionRules;
+    }
+
+    public function addInventoryMissionRule(InventoryMissionRule $inventoryMissionRule): self {
+        if (!$this->inventoryMissionRules->contains($inventoryMissionRule)) {
+            $this->inventoryMissionRules[] = $inventoryMissionRule;
+            $inventoryMissionRule->addLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryMissionRule(InventoryMissionRule $inventoryMissionRule): self {
+        if ($this->inventoryMissionRules->removeElement($inventoryMissionRule)) {
+            $inventoryMissionRule->removeLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function setLocations(?iterable $inventoryMissionRules): self {
+        foreach($this->getInventoryMissionRules()->toArray() as $inventoryMissionRule) {
+            $this->removeInventoryMissionRule($inventoryMissionRule);
+        }
+
+        $this->inventoryMissionRules = new ArrayCollection();
+        foreach($inventoryMissionRules ?? [] as $inventoryMissionRule) {
+            $this->addInventoryMissionRule($inventoryMissionRule);
+        }
 
         return $this;
     }
