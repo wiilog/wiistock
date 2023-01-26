@@ -27,6 +27,7 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -35,6 +36,7 @@ use App\Helper\FormatHelper;
 use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use phpDocumentor\Reflection\Types\Boolean;
@@ -284,6 +286,8 @@ class RefArticleDataService {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
         $supplierArticleRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $storageRuleRepository = $entityManager->getRepository(StorageRule::class);
 
         //modification champsFixes
         if (isset($data['reference'])) {
@@ -294,6 +298,14 @@ class RefArticleDataService {
             $suppliers = $supplierArticleRepository->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
             foreach ($suppliers as $supplier) {
                 $refArticle->removeArticleFournisseur($supplier);
+            }
+        }
+
+        if (isset($data['storage-rules-to-remove']) && $data['storage-rules-to-remove'] !== "") {
+            $storageRules = $storageRuleRepository->findBy(['id' => explode(',', $data['storage-rules-to-remove'])]);
+            dump($storageRules);
+            foreach ($storageRules as $storageRule) {
+                $refArticle->removeStorageRule($storageRule);
             }
         }
 
@@ -351,6 +363,36 @@ class RefArticleDataService {
                     $existingSupplierArticle
                         ->setVisible($isVisible)
                         ->setReferenceArticle($refArticle);
+                }
+            }
+        }
+
+        if(isset($data['srl'])) {
+            $storageRuleLines = json_decode($data['srl'], true);
+            foreach ($storageRuleLines as $storageRuleLine) {
+                $storageRuleLocationId = $storageRuleLine['storageRuleLocation'] ?? null;
+                $storageRuleSecurityQuantity = $storageRuleLine['storageRuleSecurityQuantity'] ?? null;
+                $storageRuleConditioningQuantity = $storageRuleLine['storageRuleConditioningQuantity'] ?? null;
+                if ($storageRuleLocationId && $storageRuleSecurityQuantity && $storageRuleConditioningQuantity) {
+                    $storageRuleLocation = $locationRepository->find($storageRuleLocationId);
+                    if(!$storageRuleLocation) {
+                        return [
+                            'success' => false,
+                            'msg' => "Une règle de stockage n'a pas pu être créée car l'emplacement n'a pas été trouvé."
+                        ];
+                    }
+                    $storageRule = new StorageRule();
+                    $storageRule
+                        ->setLocation($storageRuleLocation)
+                        ->setSecurityQuantity($storageRuleSecurityQuantity)
+                        ->setConditioningQuantity($storageRuleConditioningQuantity)
+                        ->setReferenceArticle($refArticle);
+                    $entityManager->persist($storageRule);
+                } else {
+                    return [
+                        'success' => false,
+                        'msg' => "Une règle de stockage n'a pas pu être créée car un des champs requis n'a pas été renseigné."
+                    ];
                 }
             }
         }
@@ -426,7 +468,21 @@ class RefArticleDataService {
             }
         }
 
-        $entityManager->flush();
+        try{
+            $entityManager->flush();
+        } catch (UniqueConstraintViolationException $e) {
+            if (str_contains($e->getPrevious()->getMessage(), StorageRule::uniqueConstraintLocationReferenceArticleName)) {
+                return [
+                    'success' => false,
+                    'msg' => "Impossible de créer deux règles de stockage pour le même emplacement."
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'msg' => "Une erreur est survenue lors de la sauvegarde. Veuillez réessayer."
+                ];
+            }
+        }
 
         if (isset($data["visibility-group"])) {
             if ($data["visibility-group"] !== 'null') {
