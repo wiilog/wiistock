@@ -2,6 +2,7 @@
 
 namespace App\Entity\Inventory;
 
+use App\Entity\Emplacement;
 use App\Repository\Inventory\InventoryMissionRuleRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -11,8 +12,16 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: InventoryMissionRuleRepository::class)]
 class InventoryMissionRule {
 
+    public const ONCE = 'once-frequency';
+    public const HOURLY = 'hourly-frequency';
+    public const DAILY = 'every-day-frequency';
+    public const WEEKLY = 'every-week-frequency';
+    public const MONTHLY = 'every-month-frequency';
+
     public const WEEKS = "weeks";
     public const MONTHS = "months";
+
+    public const LAST_DAY_OF_WEEK = 'last';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -43,9 +52,50 @@ class InventoryMissionRule {
     #[ORM\OneToMany(mappedBy: 'creator', targetEntity: InventoryMission::class)]
     private Collection $createdMissions;
 
+    #[ORM\Column(type: "string")]
+    private ?string $missionType = null;
+
+    #[ORM\Column(type: "text")]
+    private ?string $description = null;
+
+    #[ORM\ManyToMany(targetEntity: Emplacement::class, mappedBy: 'inventoryMissionRules')]
+    private Collection $locations;
+
+    #[ORM\Column(type: "datetime")]
+    private ?DateTime $begin = null;
+
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    //For the "daily" and "weekly" scheduled inventories
+    private ?string $frequency = null;
+
+    #[ORM\Column(type: "integer", length: 255, nullable: true)]
+    //For the "daily" and "weekly" scheduled inventories
+    private ?int $period = null;
+
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    //For the "hourly" frequency when the hours or minutes were chosen
+    private ?string $intervalTime = null;
+
+    #[ORM\Column(type: "integer", length: 255, nullable: true)]
+    //For the "hourly" frequency when the hours or minutes were chosen
+    private ?int $intervalPeriod = null;
+
+    #[ORM\Column(type: "json", length: 255, nullable: true)]
+    //Only for the "weekly" scheduled inventories
+    private ?array $weekDays = null;
+
+    #[ORM\Column(type: "json", length: 255, nullable: true)]
+    //Only for the "month" scheduled inventories
+    private ?array $monthDays = null;
+
+    #[ORM\Column(type: "json", length: 255, nullable: true)]
+    //Only for the "month" scheduled inventories
+    private ?array $months = null;
+
     public function __construct() {
         $this->categories = new ArrayCollection();
         $this->createdMissions = new ArrayCollection();
+        $this->locations =  new ArrayCollection();
     }
 
     public function __toString(): string {
@@ -178,4 +228,197 @@ class InventoryMissionRule {
         return $this;
     }
 
+    /**
+     * @return DateTime|null
+     */
+    public function getBegin(): ?DateTime
+    {
+        return $this->begin;
+    }
+
+    /**
+     * @param DateTime|null $begin
+     */
+    public function setBegin(?DateTime $begin): void
+    {
+        $this->begin = $begin;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getFrequency(): ?string
+    {
+        return $this->frequency;
+    }
+
+    /**
+     * @param string|null $frequency
+     */
+    public function setFrequency(?string $frequency): void
+    {
+        $this->frequency = $frequency;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getPeriod(): ?int
+    {
+        return $this->period;
+    }
+
+    /**
+     * @param int|null $period
+     */
+    public function setPeriod(?int $period): void
+    {
+        $this->period = $period;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getIntervalTime(): ?string
+    {
+        return $this->intervalTime;
+    }
+
+    /**
+     * @param string|null $intervalTime
+     */
+    public function setIntervalTime(?string $intervalTime): void
+    {
+        $this->intervalTime = $intervalTime;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getIntervalPeriod(): ?int
+    {
+        return $this->intervalPeriod;
+    }
+
+    /**
+     * @param int|null $intervalPeriod
+     */
+    public function setIntervalPeriod(?int $intervalPeriod): void
+    {
+        $this->intervalPeriod = $intervalPeriod;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getWeekDays(): ?array
+    {
+        return $this->weekDays;
+    }
+
+    /**
+     * @param array|null $weekDays
+     */
+    public function setWeekDays(?array $weekDays): void
+    {
+        $this->weekDays = $weekDays;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getMonthDays(): ?array
+    {
+        return $this->monthDays;
+    }
+
+    /**
+     * @param array|null $monthDays
+     */
+    public function setMonthDays(?array $monthDays): void
+    {
+        $this->monthDays = $monthDays;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getMonths(): ?array
+    {
+        return $this->months;
+    }
+
+    /**
+     * @param array|null $months
+     */
+    public function setMonths(?array $months): void
+    {
+        $this->months = $months;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getMissionType(): ?string
+    {
+        return $this->missionType;
+    }
+
+    /**
+     * @param string|null $missionType
+     */
+    public function setMissionType(?string $missionType): void
+    {
+        $this->missionType = $missionType;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param string|null $description
+     */
+    public function setDescription(?string $description): void
+    {
+        $this->description = $description;
+    }
+
+    public function getLocations(): Collection {
+        return $this->locations;
+    }
+
+    public function addLocation(Emplacement $location): self {
+        if (!$this->locations->contains($location)) {
+            $this->locations[] = $location;
+            $location->addInventoryMissionRule($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLocation(Emplacement $location): self {
+        if ($this->locations->removeElement($location)) {
+            $location->removeInventoryMissionRule($this);
+        }
+
+        return $this;
+    }
+
+    public function setLocations(?iterable $locations): self {
+        foreach($this->getLocations()->toArray() as $location) {
+            $this->removeLocation($location);
+        }
+
+        $this->locations = new ArrayCollection();
+        foreach($locations ?? [] as $location) {
+            $this->addLocation($location);
+        }
+
+        return $this;
+    }
 }
