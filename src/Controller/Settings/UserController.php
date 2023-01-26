@@ -4,6 +4,7 @@ namespace App\Controller\Settings;
 
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Role;
@@ -137,6 +138,7 @@ class UserController extends AbstractController {
     {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $InventoryMissionRuleRepository  = $entityManager->getRepository(InventoryMissionRule::class);
 
             $user = $utilisateurRepository->find($data['user']);
 
@@ -147,6 +149,13 @@ class UserController extends AbstractController {
 
                 if (!empty($userOwnership)) {
                     return new JsonResponse(false);
+                }
+
+                if ($InventoryMissionRuleRepository->findOneBy(["creator" => $user])) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Cet utilisateur est lié à une ou plusieurs mission et ne peut pas être supprimé"
+                    ]);
                 }
 
                 $username = $user->getUsername();

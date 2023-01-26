@@ -3,6 +3,7 @@
 namespace App\Entity\Inventory;
 
 use App\Entity\Emplacement;
+use App\Entity\Utilisateur;
 use App\Repository\Inventory\InventoryMissionRuleRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -32,6 +33,7 @@ class InventoryMissionRule {
     private ?string $label = null;
 
     #[ORM\ManyToMany(targetEntity: InventoryCategory::class)]
+    #[ORM\JoinTable(name: 'inventory_mission_rule_inventory_category')]
     private Collection $categories;
 
     #[ORM\Column(type: 'integer')]
@@ -58,7 +60,7 @@ class InventoryMissionRule {
     #[ORM\Column(type: "text")]
     private ?string $description = null;
 
-    #[ORM\ManyToMany(targetEntity: Emplacement::class, mappedBy: 'inventoryMissionRules')]
+    #[ORM\ManyToMany(targetEntity: Emplacement::class, inversedBy: 'inventoryMissionRules')]
     private Collection $locations;
 
     #[ORM\Column(type: "datetime")]
@@ -91,6 +93,9 @@ class InventoryMissionRule {
     #[ORM\Column(type: "json", length: 255, nullable: true)]
     //Only for the "month" scheduled inventories
     private ?array $months = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $creator = null;
 
     public function __construct() {
         $this->categories = new ArrayCollection();
@@ -420,5 +425,24 @@ class InventoryMissionRule {
         }
 
         return $this;
+    }
+
+    /**
+     * @return Utilisateur|null
+     */
+    public function getCreator(): ?Utilisateur
+    {
+        return $this->creator;
+    }
+
+    /**
+     * @param Utilisateur|null $creator
+     */
+    public function setCreator(?Utilisateur $creator): self
+    {
+        $this->creator = $creator;
+
+        return $this;
+
     }
 }
