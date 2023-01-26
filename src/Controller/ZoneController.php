@@ -104,6 +104,21 @@ class ZoneController extends AbstractController
         throw new NotFoundHttpException();
     }
 
+    #[Route("/api-supprimer", name: "zone_delete_api", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function deleteApi(Request $request, EntityManagerInterface $manager): Response {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $zoneRepository = $manager->getRepository(Zone::class);
+            $zone = $zoneRepository->find($data["id"]);
+
+            return $this->json($this->renderView("zone/delete_content.html.twig", [
+                "zone" => $zone
+            ]));
+        }
+
+        throw new BadRequestHttpException();
+    }
+
     #[Route("/supprimer", name: "zone_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,

@@ -230,6 +230,11 @@ function switchZones() {
 function deleteZone(zoneId){
     let $modalDeleteZone = $("#modalDeleteZone");
     $modalDeleteZone.find("[name=id]").val(zoneId);
+
+    $.post(Routing.generate('zone_delete_api', true), JSON.stringify({id: zoneId}), function (resp) {
+        $modalDeleteZone.find('.modal-body').html(resp);
+    }, 'json');
+
     Form.create($modalDeleteZone)
         .clearSubmitListeners()
         .onSubmit((data, form) => {
