@@ -61,7 +61,7 @@ class InventoryMissionRule {
     #[ORM\ManyToMany(targetEntity: Emplacement::class, mappedBy: 'inventoryMissionRules')]
     private Collection $locations;
 
-    #[ORM\Column(type: "datetime")]
+    #[ORM\Column(type: "datetime", nullable: true)]
     private ?DateTime $begin = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]

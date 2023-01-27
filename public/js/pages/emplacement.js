@@ -35,6 +35,7 @@ const locationsTableConfig = {
         {data: 'allowedTemperatures', title: 'Températures autorisées', orderable: false},
         {data: 'signatory', title: 'Signataire'},
         {data: 'email', title: 'Email'},
+        {data: 'zone', title: 'Zone'},
     ]
 };
 
@@ -136,7 +137,13 @@ function switchLocations() {
         let urlNewEmplacement = Routing.generate('emplacement_new', true);
         InitModal($modalNewEmplacement, $submitNewEmplacement, urlNewEmplacement, {tables: [locationsTable]});
 
-        InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {tables: [locationsTable]});
+        InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {
+            tables: [locationsTable],
+            success: () => {},
+            error: (response) => {
+                showBSAlert(response.msg, 'danger');
+            }
+        });
 
         let $modalModifyEmplacement = $('#modalEditEmplacement');
         let $submitModifyEmplacement = $('#submitEditEmplacement');

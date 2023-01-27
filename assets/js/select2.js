@@ -44,6 +44,7 @@ const ROUTES = {
     customers: 'ajax_select_customers',
     natureOrTypeSelect: 'ajax_select_nature_or_type',
     dispatchPacks: 'ajax_select_dispatch_packs',
+    zones: 'ajax_select_zones',
 }
 
 const INSTANT_SELECT_TYPES = {

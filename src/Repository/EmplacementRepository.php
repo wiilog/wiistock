@@ -158,11 +158,13 @@ class EmplacementRepository extends EntityRepository
                 if (!empty($search)) {
                     $queryBuilder
                         ->leftJoin('location.signatory', 'search_signatory')
+                        ->leftJoin('location.zone', 'search_zone')
                         ->andWhere($exprBuilder->orX(
                             'location.label LIKE :value',
                             'location.description LIKE :value',
                             'location.email LIKE :value',
                             'search_signatory.username LIKE :value',
+                            'search_zone.name LIKE :value',
                         ))
                         ->setParameter('value', '%' . $search . '%');
                 }

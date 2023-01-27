@@ -25,6 +25,7 @@ use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
+use App\Exceptions\FormException;
 use App\Service\PDFGeneratorService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
@@ -37,6 +38,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/emplacement")
@@ -61,6 +63,7 @@ class LocationController extends AbstractController {
     public function index(EntityManagerInterface $entityManager): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
+        $zoneRepository = $entityManager->getRepository(Zone::class);
 
         $allNatures = $natureRepository->findAll();
 
@@ -72,13 +75,21 @@ class LocationController extends AbstractController {
         $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
         $temperatures = $entityManager->getRepository(TemperatureRange::class)->findBy([]);
 
+        $zones = $zoneRepository->findAll();
+
         return $this->render("emplacement/index.html.twig", [
             "active" => $active,
             "natures" => $allNatures,
             "deliveryTypes" => $deliveryTypes,
             "collectTypes" => $collectTypes,
             "temperatures" => $temperatures,
-            "newZone" => new Zone()
+            "newZone" => new Zone(),
+            "locationZone" =>  count($zones) === 1 ? [
+                "label" => $zones[0]->getName(),
+                "value" => $zones[0]->getId(),
+                "selected" => true
+            ] : [],
+            "selectZone" => count($zones) === 1 ? $zones[0] : null
         ]);
     }
 
@@ -91,6 +102,7 @@ class LocationController extends AbstractController {
             $naturesRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
+            $zoneRepository = $entityManager->getRepository(Zone::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
             $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null);
@@ -104,6 +116,7 @@ class LocationController extends AbstractController {
                 return $errorResponse;
             }
 
+            $zone = $data['zone'] ? $zoneRepository->find($data['zone']) : null;
             $signatory = !empty($data['signatory']) ? $userRepository->find($data['signatory']) : null;
             $email = $data['email'] ?? null;
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -123,7 +136,8 @@ class LocationController extends AbstractController {
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
                 ->setSignatory($signatory)
-                ->setEmail($email);
+                ->setEmail($email)
+                ->setZone($zone);
 
             if (!empty($data['allowed-natures'])) {
                 foreach ($data['allowed-natures'] as $allowedNatureId) {
@@ -161,19 +175,27 @@ class LocationController extends AbstractController {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $zoneRepository = $entityManager->getRepository(Zone::class);
 
             $allNatures = $natureRepository->findAll();
             $emplacement = $emplacementRepository->find($data['id']);
             $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
             $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
             $temperatures = $entityManager->getRepository(TemperatureRange::class)->findBy([]);
+            $zones = $zoneRepository->findAll();
 
             return $this->json($this->renderView("emplacement/modalEditEmplacementContent.html.twig", [
                 "location" => $emplacement,
                 "natures" => $allNatures,
                 "deliveryTypes" => $deliveryTypes,
                 "collectTypes" => $collectTypes,
-                "temperatures" => $temperatures
+                "temperatures" => $temperatures,
+                "locationZone" =>  $emplacement->getZone() ? [
+                        "label" => $emplacement->getZone()->getName(),
+                        "value" => $emplacement->getZone()->getId(),
+                        "selected" => true
+                    ] : [],
+                "selectZone" => count($zones) === 1 ? $zones[0] : null
             ]));
         }
 
@@ -190,6 +212,7 @@ class LocationController extends AbstractController {
             $naturesRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
+            $zoneRepository = $entityManager->getRepository(Zone::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
             $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null, $data['id']);
@@ -203,6 +226,7 @@ class LocationController extends AbstractController {
                 return $errorResponse;
             }
 
+            $zone = $zoneRepository->find($data['zone']);
             $signatory = !empty($data['signatory']) ? $userRepository->find($data['signatory']) : null;
             $email = $data['email'] ?? null;
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -222,7 +246,8 @@ class LocationController extends AbstractController {
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
                 ->setSignatory($signatory)
-                ->setEmail($email);
+                ->setEmail($email)
+                ->setZone($zone);
 
             $emplacement->getAllowedNatures()->clear();
 
@@ -338,6 +363,9 @@ class LocationController extends AbstractController {
                 $emplacement = $emplacementRepository->find($emplacementId);
 
                 if ($emplacement) {
+                    if(!$emplacement->getInventoryLocationMissions()->isEmpty()){
+                        throw new FormException("Vous ne pouvez pas supprimer cette emplacement car il est lié à une ou plusieurs missions d'inventaire.");
+                    }
                     $usedEmplacement = $this->isEmplacementUsed($entityManager, $emplacementId);
 
                     if (!empty($usedEmplacement)) {
