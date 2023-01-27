@@ -1,0 +1,12 @@
+{% if freeFields is not empty %}
+    {% include 'free_field/freeFieldsEdit.html.twig' with {
+        freeFields,
+        freeFieldValues: [],
+        colType: 'col-md-6 col-12',
+        requiredType: 'requiredCreate',
+        actionType: 'new',
+        fieldNameClass: 'wii-field-name'
+    } %}
+{% else %}
+    <div class="wii-body-text text-center py-3">Il n'y a aucun champ libre pour la référence sélectionnée.</div>
+{% endif %}

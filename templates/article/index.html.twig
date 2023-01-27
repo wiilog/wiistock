@@ -18,6 +18,12 @@
                             <span class="wii-icon wii-icon-plus mr-2"></span>
                             Nouvel article
                         </button>
+
+                        {#<button type="button" class="btn btn-primary split-button d-flex align-items-center"
+                                onclick="window.location.href = Routing.generate('article_new_page', {}, true)">
+                            <span class="wii-icon wii-icon-plus mr-2"></span>
+                            Nouvel article
+                        </button>#}
                     {% elseif hasRightToExport %}
                         <div tabindex="0" class="has-tooltip"
                              title="Veuillez faire une recherche pour imprimer.">

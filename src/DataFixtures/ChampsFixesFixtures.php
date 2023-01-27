@@ -5,10 +5,12 @@ namespace App\DataFixtures;
 
 use App\Entity\FieldsParam;
 
+use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
@@ -80,7 +82,20 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, 'label' => FieldsParam::FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FieldsParam::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true]
-            ]
+            ],
+
+            FieldsParam::ENTITY_CODE_ARTICLE => [
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_UNIT_PRICE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_UNIT_PRICE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_BATCH, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_BATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_ANOMALY, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_ANOMALY, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_EXPIRY_DATE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_EXPIRY_DATE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_COMMENT, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_COMMENT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_MANUFACTURE_DATE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_MANUFACTURE_DATE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_PRODUCTION_DATE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_PRODUCTION_DATE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_NATIVE_COUNTRY, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_NATIVE_COUNTRY, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+            ],
         ];
 
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);

@@ -44,6 +44,8 @@ const ROUTES = {
     customers: 'ajax_select_customers',
     natureOrTypeSelect: 'ajax_select_nature_or_type',
     dispatchPacks: 'ajax_select_dispatch_packs',
+    nativeCountries: 'ajax_select_native_countries',
+    supplierArticles: 'ajax_select_supplier_articles',
 }
 
 const INSTANT_SELECT_TYPES = {

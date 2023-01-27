@@ -53,6 +53,7 @@ const initializers = {
     global_etiquettes: initializeGlobalLabels,
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
+    stock_articles_champs_fixes: initializeArticleFixedFields,
     stock_demandes_types_champs_libres_livraisons: createDeliveryRequestFieldsPage,
     stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
     track_demande_transport_types_champs_libres_livraisons: createFreeFieldsPage,
@@ -602,6 +603,30 @@ function initializeDemandesFixedFields($container, canEdit) {
 function initializeDispatchFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-dispatch-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+}
+
+function initializeArticleFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-article-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `articles`}),
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
