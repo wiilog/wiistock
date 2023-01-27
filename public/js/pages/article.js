@@ -130,12 +130,12 @@ function clearNewArticleContent(button) {
     clearModal('#' + $modal.attr('id'));
 }
 
-function ajaxGetFournisseurByRefArticle(select) {
-    let refArticleId = select.val();
+function ajaxGetFournisseurByRefArticle($select) {
+    let refArticleId = $select.val();
     let json = {};
     json['refArticle'] = refArticleId;
 
-    if (select.val()) {
+    if ($select.val()) {
         let fournisseur = $('#fournisseur');
         let modalfooter = $('#modalNewArticle').find('.modal-footer');
 

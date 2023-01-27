@@ -43,7 +43,7 @@ class FournisseurRepository extends EntityRepository
         return $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function getIdAndCodeBySearch($search)
+    public function getIdAndCodeBySearch(?string $search, ?int $reference = null): array
     {
         $qb = $this->createQueryBuilder('supplier');
 
@@ -53,6 +53,14 @@ class FournisseurRepository extends EntityRepository
             ->where('supplier.nom LIKE :search')
             ->orWhere('supplier.codeReference LIKE :search')
             ->setParameter('search', '%' . $search . '%');
+
+        if($reference !== null) {
+            $qb
+                ->leftJoin("supplier.articlesFournisseur", "join_supplierArticles")
+                ->leftJoin("join_supplierArticles.referenceArticle", "join_referenceArticle")
+                ->andWhere("join_referenceArticle.id = :reference")
+                ->setParameter("reference", $reference);
+        }
 
         return $qb->getQuery()->getResult();
     }
