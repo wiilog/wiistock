@@ -88,7 +88,7 @@
             {% set settingProvider = setting_value('ARTICLE_SUPPLIER_REFERENCE', 'App\\Entity\\Fournisseur') %}
             {{ form.select(setting('ARTICLE_SUPPLIER_REFERENCE'), "Référence fournisseur", false, {
                 type: 'supplierLabel',
-                placeholder: 'Sélectionnez un fournisseur',
+                placeholder: 'Sélectionnez une référence fournisseur',
                 value: settingProvider ? settingProvider.id : null,
                 inputClass: 'w-100 ajax-autocomplete-fournisseur',
                 items: settingProvider ? {
