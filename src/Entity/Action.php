@@ -179,7 +179,7 @@ class Action {
     const MODULE_NOTIFICATIONS = 'Activer les notifications';
     const MODULE_TRACK = 'Accès Track';
     const DEMO_MODE = 'Mode découverte';
-    const CREATE_ARTICLE_FROM_NOMADE = 'Créer un article depuis l\'application nomade';
+    const CREATE_ARTICLE_FROM_NOMADE = 'Accès création article RFID';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
