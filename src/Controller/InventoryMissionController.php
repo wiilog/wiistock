@@ -8,6 +8,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
@@ -140,7 +141,30 @@ class InventoryMissionController extends AbstractController
     public function show(InventoryMission $mission): Response {
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
+            'typeLocation' => $mission->getType() === InventoryMission::LOCATION_TYPE,
         ]);
+    }
+
+    #[Route("/{mission}/mission-location-ref-api", name: "mission_location_ref_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
+    public function getMissionLocationRefApi(EntityManagerInterface  $entityManager,
+                                             InventoryMission        $mission,
+                                             Request                 $request): JsonResponse {
+
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+
+        $start = $request->query->get('start') ?: 0;
+        $search = $request->query->get('search') ?: 0;
+
+        $listLength = 5;
+
+        $result = $inventoryLocationMissionRepository->getDataByMission($mission, [
+            "start" => $start,
+            "length" => $listLength,
+            "search" => $search,
+        ]);
+
+        return new JsonResponse($result);
     }
 
     /**

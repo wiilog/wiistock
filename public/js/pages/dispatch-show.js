@@ -607,7 +607,6 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                     $logisticUnitsContainer.find('.articles-container table')
                         .each(function() {
                             const $table = $(this);
-                            console.log($table);
                             initDataTable($table, {
                                 serverSide: false,
                                 ordering: true,
@@ -640,7 +639,6 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     needsColor: true,
                                 },
                             });
-                            console.log($table);
                         });
 
                     $logisticUnitsContainer
