@@ -843,7 +843,7 @@ class Article implements PairedEntity {
     /**
      * @return string|null
      */
-    public function getManifacturingDate(): ?string
+    public function getManifacturingDate(): ?DateTime
     {
         return $this->manifacturingDate;
     }
@@ -859,7 +859,7 @@ class Article implements PairedEntity {
     /**
      * @return string|null
      */
-    public function getProductionDate(): ?string
+    public function getProductionDate(): ?DateTime
     {
         return $this->productionDate;
     }

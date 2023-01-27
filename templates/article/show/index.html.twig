@@ -52,7 +52,14 @@
                             <img src="{{ asset('svg/article-barcode.svg') }}" width="80">
                         </div>
                         <div class="specifications w-100">
-                            <div><strong class="ref text-break">{{ article.barCode }}</strong></div>
+                            <div>
+                                <strong class="ref text-break">{{ article.barCode }}</strong>
+                                {% set articleRFID = article.RFIDtag %}
+                                {% if articleRFID %}
+                                    <div class="text-break">RFID : {{ articleRFID }}</div>
+                                {% endif %}
+                            </div>
+
                             <div>
                                 <div><strong class="text-break">Ref : {{ article.referenceArticle.reference }}</strong></div>
                                 <div><strong class="text-break wii-subtitle">{{ article.referenceArticle.libelle }}</strong></div>
@@ -143,6 +150,42 @@
                         </div>
                     </div>
                 </div>
+                <div class="wii-box mt-3">
+                    <div class="header wii-title">Description</div>
+                    <div class="content row">
+                        <div class="col-6 box-item my-2">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Ligne Bon de livraison</span>
+                                <span class="wii-body-text">{{ article.deliveryNote ?? '-' }}</span>
+                            </label>
+                        </div>
+                        <div class="col-6 box-item my-2">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Date de fabrication</span>
+                                <span class="wii-body-text">{{ article.manifacturingDate ?  article.manifacturingDate|format_helper('longDate') : '-' }}</span>
+                            </label>
+                        </div>
+                        <div class="col-6 box-item my-2">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Date de production</span>
+                                <span class="wii-body-text">{{ article.productionDate ? article.productionDate|format_helper('longDate') : '-' }}</span>
+                            </label>
+                        </div>
+                        <div class="col-6 box-item my-2">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Ligne commande d’achat</span>
+                                <span class="wii-body-text">{{ article.purchaseOrder ?? '-' }}</span>
+                            </label>
+                        </div>
+                        <div class="col-6 box-item my-2">
+                            <label class="box-item ml-3">
+                                <span class="wii-field-name">Pays d’origine</span>
+                                <span class="wii-body-text">{{ article.nativeCountry.label ?? '-' }}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <div class="col-12 col-md-6">
                 <div class="wii-box">
