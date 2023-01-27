@@ -1874,9 +1874,14 @@ class MobileController extends AbstractApiController
      */
     public function getDefaultArticleLocation(EntityManagerInterface $entityManager): Response
     {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $articleDefaultLocationId = $settingRepository->getOneParamByLabel(Setting::ARTICLE_LOCATION);
+        $articleDefaultLocation = $articleDefaultLocationId ? $locationRepository->find($articleDefaultLocationId) : null;
+
         return $this->json([
             'success' => true,
-            'location' => 'Emplacement-0001'
+            'location' => $articleDefaultLocation?->getLabel()
         ]);
     }
 
