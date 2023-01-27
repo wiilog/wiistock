@@ -70,6 +70,16 @@ class InventoryMissionController extends AbstractController
                 ->setEndPrevDate(DateTime::createFromFormat('Y-m-d', $data['endDate']))
                 ->setName($data['name']);
 
+            if (isset($data['typeQuantity'])) {
+                $mission->setType(InventoryMission::ARTICLE_TYPE);
+            } else if (isset($data['typeLocation'])) {
+                $mission->setType(InventoryMission::LOCATION_TYPE);
+            }
+
+            if (isset($data['description'])) {
+                $mission->setDescription($data['description']);
+            }
+
             $em->persist($mission);
             $em->flush();
 
