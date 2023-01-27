@@ -203,6 +203,8 @@ class SelectController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
 
         $categoryType = $request->query->get('categoryType');
+        dump($request);
+        dump($categoryType);
 
         $results = $typeRepository->getForSelect(
             $categoryType,
@@ -237,8 +239,9 @@ class SelectController extends AbstractController {
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
+        $needsOnlyMobileSyncReference = $request->query->getBoolean('needs-mobile-sync');
 
-        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user);
+        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user, $needsOnlyMobileSyncReference);
 
         return $this->json([
             "results" => $results,
@@ -733,5 +736,19 @@ class SelectController extends AbstractController {
         return $this->json([
             "results" => $naturesOrTypes,
         ]);
+    }
+
+    /**
+     * @Route("/select/provider", name="ajax_select_provider", options={"expose"=true})
+     */
+    public function provider(Request $request,
+                                   EntityManagerInterface $entityManager): Response
+    {
+        $search = $request->query->get('term');
+
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search);
+
+        return $this->json(['results' => $fournisseur]);
     }
 }

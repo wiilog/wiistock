@@ -45,6 +45,7 @@ const ROUTES = {
     natureOrTypeSelect: 'ajax_select_nature_or_type',
     dispatchPacks: 'ajax_select_dispatch_packs',
     zones: 'ajax_select_zones',
+    provider: 'ajax_select_provider',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -291,6 +292,7 @@ export default class Select2 {
             const $fields = $element
                 .closest(closest)
                 .find(selector);
+
 
             const values = $fields
                 .filter((_, elem) => elem.name && elem.value)

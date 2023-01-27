@@ -62,7 +62,7 @@ class ReferenceArticleRepository extends EntityRepository {
         "availableQuantity" => "quantiteDisponible",
     ];
 
-    public function getForSelect(?string $term, Utilisateur $user) {
+    public function getForSelect(?string $term, Utilisateur $user, ?bool $needsOnlyMobileSyncReference = false) {
         $queryBuilder = $this->createQueryBuilder("reference");
 
         $visibilityGroup = $user->getVisibilityGroups();
@@ -73,6 +73,10 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->setParameter('userVisibilityGroups', Stream::from(
                     $visibilityGroup->toArray()
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
+        }
+
+        if($needsOnlyMobileSyncReference){
+            $queryBuilder->andWhere('reference.needsMobileSync = 1');
         }
 
         return $queryBuilder

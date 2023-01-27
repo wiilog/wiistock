@@ -1867,6 +1867,42 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Get("/api/default-article-location", name="api_get_default_location")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getDefaultArticleLocation(EntityManagerInterface $entityManager): Response
+    {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $articleDefaultLocationId = $settingRepository->getOneParamByLabel(Setting::ARTICLE_LOCATION);
+        $articleDefaultLocation = $articleDefaultLocationId ? $locationRepository->find($articleDefaultLocationId) : null;
+
+        return $this->json([
+            'success' => true,
+            'location' => $articleDefaultLocation?->getLabel()
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/article-by-rfid-tag/{rfid}", name="api_get_article_by_rfid_tag")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getArticleByRFIDTag(EntityManagerInterface $entityManager, string $rfid): Response
+    {
+        $article = $entityManager->getRepository(Article::class)->findOneBy([
+            'RFIDtag' => $rfid
+        ]);
+        return $this->json([
+            'success' => true,
+            'article' => $article?->getId()
+        ]);
+    }
+
+    /**
      * @Rest\Post("/api/transfer/finish", name="transfer_finish")
      * @Rest\View()
      * @Wii\RestAuthenticated()
