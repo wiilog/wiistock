@@ -159,6 +159,11 @@ class SettingsController extends AbstractController {
                             "label" => "Types et champs libres",
                             "wrapped" => false,
                         ],
+                        self::MENU_NOMADE_RFID_CREATION => [
+                            "label" => "Création nomade RFID",
+                            "wrapped" => true,
+                            "save" => true,
+                        ],
                         self::MENU_NATIVE_COUNTRY => [
                             "label" => "Pays d'origine",
                             "save" => true,
@@ -587,6 +592,7 @@ class SettingsController extends AbstractController {
     public const MENU_TEMPLATE_DELIVERY_WAYBILL = "lettre_de_voiture";
 
     public const MENU_NATIVE_COUNTRY = "pays_d_origine";
+    public const MENU_NOMADE_RFID_CREATION = "creation_nomade_rfid";
 
     /**
      * @Required

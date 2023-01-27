@@ -95,7 +95,8 @@ const initializers = {
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
-    stock_articles_pays_d_origine: initializeArticleNativeCountriesTable
+    stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
+    stock_articles_creation_nomade_rfid: initializeMobileRFIDCreation
 };
 
 const saveCallbacks = {
@@ -1218,4 +1219,7 @@ function initializeArticleNativeCountriesTable() {
             active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
         },
     });
+}
+
+function initializeMobileRFIDCreation($container){
 }

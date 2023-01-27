@@ -44,6 +44,7 @@ const ROUTES = {
     customers: 'ajax_select_customers',
     natureOrTypeSelect: 'ajax_select_nature_or_type',
     dispatchPacks: 'ajax_select_dispatch_packs',
+    provider: 'ajax_select_provider',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -291,6 +292,7 @@ export default class Select2 {
                 .closest(closest)
                 .find(selector);
 
+
             const values = $fields
                 .filter((_, elem) => elem.name && elem.value)
                 .keymap((elem) => [elem.name, elem.value], needGroup ? GROUP_EVERYTHING : GROUP_WHEN_NEEDED);
@@ -299,6 +301,9 @@ export default class Select2 {
                 ...params,
                 ...values,
             };
+            console.log($fields);
+            console.log(closest);
+            console.log(values);
         }
 
         return params;
