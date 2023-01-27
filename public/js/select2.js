@@ -159,7 +159,7 @@ class Select2Old {
         this.init(select, '', 1, {route: 'get_article_reception', param: {reception: reception}});
     }
 
-    static provider(select, placeholder = '', route = 'get_fournisseur') {
+    static provider(select, placeholder = '', route = 'ajax_select_provider') {
         this.init(select, placeholder, 1, { route });
     }
 
