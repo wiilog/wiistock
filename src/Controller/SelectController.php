@@ -203,8 +203,6 @@ class SelectController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
 
         $categoryType = $request->query->get('categoryType');
-        dump($request);
-        dump($categoryType);
 
         $results = $typeRepository->getForSelect(
             $categoryType,

@@ -131,6 +131,16 @@ class FournisseurRepository extends EntityRepository
         ];
     }
 
+    public function getForNomade() {
+        $qb = $this->createQueryBuilder('supplier');
+
+        $qb->select('supplier.id AS id')
+            ->addSelect('supplier.codeReference AS code')
+            ->addSelect('supplier.nom AS label');
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function getForExport(): iterable {
         return $this->createQueryBuilder("supplier")
             ->getQuery()

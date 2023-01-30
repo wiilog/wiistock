@@ -5,6 +5,7 @@ namespace App\Controller\Api\Mobile;
 use App\Annotation as Wii;
 use App\Controller\Api\AbstractApiController;
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -14,6 +15,7 @@ use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryEntry;
@@ -1903,6 +1905,28 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Get("/api/supplier_reference/{ref}/{supplier}", name="api_get_supplier_reference_by_ref_and_supplier")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getArticleFournisseursByRefAndSupplier(EntityManagerInterface $entityManager, int $ref, int $supplier): Response
+    {
+        $articlesFournisseurs = $entityManager->getRepository(ArticleFournisseur::class)->getByRefArticleAndFournisseur($ref, $supplier);
+        $formattedReferences = Stream::from($articlesFournisseurs)
+            ->map(function(ArticleFournisseur $supplier) {
+                return [
+                    'label' => $supplier->getReference(),
+                    'id' => $supplier->getId(),
+                ];
+            })->toArray();
+
+        return $this->json([
+            'supplierReferences' => $formattedReferences
+        ]);
+    }
+
+    /**
      * @Rest\Post("/api/transfer/finish", name="transfer_finish")
      * @Rest\View()
      * @Wii\RestAuthenticated()
@@ -1941,6 +1965,7 @@ class MobileController extends AbstractApiController
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
@@ -1969,6 +1994,13 @@ class MobileController extends AbstractApiController
         $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
             ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
             ->toArray();
+
+        $mobileTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON]))
+            ->map(fn(Type $type) => [
+                'id' => $type->getId(),
+                'label' => $type->getLabel(),
+                'category' => $type->getCategory()->getLabel()
+            ])->toArray();
 
         if ($rights['inventoryManager']) {
             $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
@@ -2032,6 +2064,11 @@ class MobileController extends AbstractApiController
                 }
                 return $collecteArray;
             }, $collectes);
+
+            $suppliers = $supplierRepository->getForNomade();
+            $refs = $referenceArticleRepository->getForNomade();
+
+
 
             $collectesIds = Stream::from($collectes)
                 ->map(function ($collecteArray) {
@@ -2189,6 +2226,9 @@ class MobileController extends AbstractApiController
             'users' => $users ?? [],
             'fieldsParam' => $fieldsParam ?? [],
             'projects' => $projects ?? [],
+            'types' => $mobileTypes,
+            'suppliers' => $suppliers ?? [],
+            'reference_articles' => $refs ?? []
         ];
     }
 
