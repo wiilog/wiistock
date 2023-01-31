@@ -67,7 +67,7 @@
             {{ attribute.name }}="{{ attribute.value ?? '' }}"
         {% endfor %}
         data-name="{{ name }}"
-        data-title="{{ label | striptags }}{{ required ? '*' }}">
+        data-title="{{ label is not iterable ? label | striptags : label.text | striptags }}{{ required ? '*' }}">
         {% for switch in switches %}
             {% set id = random(100000, 10000000) %}
             {% set disabled = switch.disabled ?? false %}

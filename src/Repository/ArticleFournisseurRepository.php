@@ -313,4 +313,22 @@ class ArticleFournisseurRepository extends EntityRepository
 
         return (int) $query->getSingleScalarResult();
     }
+
+    public function getForSelect(?string $search, ?string $supplier = null): array {
+        $qb = $this->createQueryBuilder("supplier_article")
+            ->select("supplier_article.id AS id")
+            ->addSelect("supplier_article.reference AS text")
+            ->andWhere("supplier_article.reference LIKE :search")
+            ->setParameter("search", "%$search%");
+
+        if($supplier) {
+            $qb->leftJoin("supplier_article.fournisseur", "join_supplier")
+                ->andWhere("join_supplier.id = :supplier")
+                ->setParameter("supplier", $supplier);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
 }

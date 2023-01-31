@@ -46,6 +46,8 @@ const ROUTES = {
     dispatchPacks: 'ajax_select_dispatch_packs',
     zones: 'ajax_select_zones',
     provider: 'ajax_select_provider',
+    nativeCountries: 'ajax_select_native_countries',
+    supplierArticles: 'ajax_select_supplier_articles',
 }
 
 const INSTANT_SELECT_TYPES = {

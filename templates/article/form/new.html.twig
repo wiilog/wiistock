@@ -1,0 +1,23 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Stock | Article | Créer un article{% endblock %}
+{% block titleLink path('article_index') %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('article-form') }}
+{% endblock %}
+
+{% block page_content %}
+    {% include 'article/form/form.html.twig' with {
+        article: new_article,
+        edit: false,
+    }%}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('article-form') }}
+
+    <script src="{{ asset('js/pages/article.js') }}?v={{ web_version }}"></script>
+{% endblock %}
