@@ -828,7 +828,7 @@ class Article implements PairedEntity {
         return $this->manifacturingDate;
     }
 
-    public function setManifacturingDate(?string $manifacturingDate): self
+    public function setManifacturingDate(?DateTime $manifacturingDate): self
     {
         $this->manifacturingDate = $manifacturingDate;
 
@@ -840,7 +840,7 @@ class Article implements PairedEntity {
         return $this->productionDate;
     }
 
-    public function setProductionDate(?string $productionDate): self
+    public function setProductionDate(?DateTime $productionDate): self
     {
         $this->productionDate = $productionDate;
 

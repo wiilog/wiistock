@@ -22,6 +22,7 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
+use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
@@ -42,6 +43,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\TrackingMovementRepository;
 use App\Service\ArrivageService;
+use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
 use App\Service\DispatchService;
@@ -1923,6 +1925,97 @@ class MobileController extends AbstractApiController
 
         return $this->json([
             'supplierReferences' => $formattedReferences
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/create-article", name="api_post_article")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postArticle(Request $request,
+                                EntityManagerInterface $entityManager,
+                                ArticleDataService $articleDataService,
+                                MouvementStockService $mouvementStockService): Response
+    {
+        $type = $entityManager->getRepository(Type::class)->find($request->request->get('type'));
+        $statut = $entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        $location = $entityManager->getRepository(Emplacement::class)->findOneBy([
+            'label' => $request->request->get('location')
+        ]);
+        $countryFrom = $entityManager->getRepository(NativeCountry::class)->findOneBy([
+            'code' => $request->request->get('country')
+        ]);
+        if (!$countryFrom) {
+            return $this->json([
+                'success' => false,
+                'message' => "Le code pays est inconnu"
+            ]);
+        }
+        if (!$location) {
+            return $this->json([
+                'success' => false,
+                'message' => "Erreur sur l'emplacement par défaut."
+            ]);
+        }
+        $entityManager->flush();
+        $location->setIsActive(true);
+        $ref = $entityManager->getRepository(ReferenceArticle::class)->find($request->request->get('reference'));
+        $articleSupplier = $entityManager->getRepository(ArticleFournisseur::class)->find($request->request->get('supplier_reference'));
+        $refTypeLabel = $ref->getType()->getLabel();
+        if ($ref?->getType()?->getId() !== $type?->getId()) {
+            return $this->json([
+                'success' => false,
+                'message' => "Le type selectionné est différent de celui de la référence (${refTypeLabel})"
+            ]);
+        }
+
+        $article = new Article();
+
+        $article
+            ->setStatut($statut)
+            ->setEmplacement($location)
+            ->setQuantite(intval($request->request->get('quantity')))
+            ->setArticleFournisseur($articleSupplier)
+            ->setType($type)
+            ->setStockEntryDate(new DateTime("now"))
+            ->setRFIDtag($request->request->get('rfidTag') ?? null)
+            ->setBarCode($articleDataService->generateBarCode())
+            ->setLabel($request->request->get('label'))
+            ->setPrixUnitaire(floatval($request->request->get('price')))
+            ->setExpiryDate(new DateTime($request->request->get('expiryDate')))
+            ->setBatch($request->request->get('batch'))
+            ->setPurchaseOrder($request->request->get('commandNumber'))
+            ->setDeliveryNote(intval($request->request->get('deliveryLine')))
+            ->setManifacturingDate(new DateTime($request->request->get('buildDate')))
+            ->setNativeCountry($countryFrom)
+            ->setConform(true)
+            ->setProductionDate(new DateTime($request->request->get('productionDate')))
+            ->setCommentaire($request->request->get('comment'));
+
+        $entityManager->persist($article);
+
+        $stockMovement = $mouvementStockService->createMouvementStock(
+            $this->getUser(),
+            null,
+            $article->getQuantite(),
+            $article,
+            MouvementStock::TYPE_ENTREE
+        );
+
+        $mouvementStockService->finishMouvementStock(
+            $stockMovement,
+            new DateTime('now'),
+            $article->getEmplacement()
+        );
+
+        $entityManager->persist($stockMovement);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'OK'
         ]);
     }
 
