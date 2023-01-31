@@ -17,6 +17,7 @@ use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
@@ -1955,6 +1956,7 @@ class MobileController extends AbstractApiController
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -2056,6 +2058,8 @@ class MobileController extends AbstractApiController
             // inventory
             $articlesInventory = $inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
             $refArticlesInventory = $inventoryMissionRepository->getCurrentMissionRefNotTreated();
+            $inventoryMissions = $inventoryMissionRepository->getInventoryMissions();
+            $inventoryLocationsZone = $inventoryLocationMissionRepository->getInventoryLocationZones();
             // prises en cours
             $stockTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
 
@@ -2169,10 +2173,12 @@ class MobileController extends AbstractApiController
             'transportRoundLines' => $transportRoundLines ?? [],
             'handlings' => $handlings ?? [],
             'handlingAttachments' => $handlingAttachments ?? [],
-            'inventoryMission' => array_merge(
+            'articlesInventaire' => array_merge(
                 $articlesInventory ?? [],
                 $refArticlesInventory ?? []
             ),
+            'inventoryMission' => $inventoryMissions ?? [],
+            'inventoryLocationZone' => $inventoryLocationsZone ?? [],
             'anomalies' => array_merge($refAnomalies ?? [], $artAnomalies ?? []),
             'trackingTaking' => $trackingTaking ?? [],
             'stockTaking' => $stockTaking ?? [],
