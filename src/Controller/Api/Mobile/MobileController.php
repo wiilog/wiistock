@@ -1958,7 +1958,15 @@ class MobileController extends AbstractApiController
                 $cleanedData[$key] = $datum;
             }
         }
-
+        $article = $entityManager->getRepository(Article::class)->findOneBy([
+            'RFIDtag' => $cleanedData['rfidTag']
+        ]);
+        if ($article) {
+            return $this->json([
+                'success' => false,
+                'message' => "Tag RFID déjà existant en base."
+            ]);
+        }
         $type = $entityManager->getRepository(Type::class)->find($cleanedData['type']);
         $statut = $entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
         $location = $entityManager->getRepository(Emplacement::class)->findOneBy([
@@ -1981,10 +1989,31 @@ class MobileController extends AbstractApiController
         }
         $entityManager->flush();
         $location->setIsActive(true);
-        $ref = $entityManager->getRepository(ReferenceArticle::class)->find($cleanedData['reference']);
+        $fromMatrix = $data['fromMatrix'];
+        if ($fromMatrix) {
+            $ref = $entityManager->getRepository(ReferenceArticle::class)->findOneBy(['reference' => $cleanedData['reference']]);
+        } else {
+            $ref = $entityManager->getRepository(ReferenceArticle::class)->find($cleanedData['reference']);
+        }
         $articleSupplier = $entityManager->getRepository(ArticleFournisseur::class)->find($cleanedData['supplier_reference']);
+        if (!$ref) {
+            return $this->json([
+                'success' => false,
+                'message' => "Référence scannée (${cleanedData['reference']}) inconnue."
+            ]);
+        } else if ($fromMatrix) {
+            $type = $ref->getType();
+            if ($ref->getArticlesFournisseur()->isEmpty()) {
+                return $this->json([
+                    'success' => false,
+                    'message' => "La référence scannée (${cleanedData['reference']}) n'a pas d'article fournisseur paramétré."
+                ]);
+            } else {
+                $articleSupplier = $ref->getArticlesFournisseur()->first();
+            }
+        }
         $refTypeLabel = $ref->getType()->getLabel();
-        if ($ref?->getType()?->getId() !== $type?->getId()) {
+        if ($ref->getType()?->getId() !== $type?->getId()) {
             return $this->json([
                 'success' => false,
                 'message' => "Le type selectionné est différent de celui de la référence (${refTypeLabel})"
@@ -2008,7 +2037,7 @@ class MobileController extends AbstractApiController
             ->setBatch($cleanedData['batch'])
             ->setPurchaseOrder($cleanedData['commandNumber'])
             ->setDeliveryNote(intval($cleanedData['deliveryLine']))
-            ->setManifacturingDate($cleanedData['buildDate'] ? new DateTime($cleanedData['buildDate']) : null)
+            ->setManifacturingDate($cleanedData['manufacturingDate'] ? new DateTime($cleanedData['manufacturingDate']) : null)
             ->setNativeCountry($countryFrom)
             ->setConform(true)
             ->setProductionDate($cleanedData['productionDate'] ? new DateTime($cleanedData['productionDate']) : null)
@@ -2035,7 +2064,7 @@ class MobileController extends AbstractApiController
 
         return $this->json([
             'success' => true,
-            'message' => 'OK'
+            'message' => 'Article bien généré.'
         ]);
     }
 
