@@ -1871,21 +1871,31 @@ class MobileController extends AbstractApiController
     }
 
     /**
-     * @Rest\Get("/api/default-article-location", name="api_get_default_location")
+     * @Rest\Get("/api/default-article-values", name="api_get_default_article_values")
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function getDefaultArticleLocation(EntityManagerInterface $entityManager): Response
+    public function getDefaultArticleValues(EntityManagerInterface $entityManager): Response
     {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $articleDefaultLocationId = $settingRepository->getOneParamByLabel(Setting::ARTICLE_LOCATION);
         $articleDefaultLocation = $articleDefaultLocationId ? $locationRepository->find($articleDefaultLocationId) : null;
 
+        $defaultValues = [
+            'location' => $articleDefaultLocation?->getLabel(),
+            'type' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_TYPE),
+            'reference' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_REFERENCE),
+            'label' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_LABEL),
+            'quantity' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_QUANTITY),
+            'supplier' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_SUPPLIER),
+            'supplierReference' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_SUPPLIER_REFERENCE),
+        ];
+
         return $this->json([
             'success' => true,
-            'location' => $articleDefaultLocation?->getLabel()
+            'defaultValues' => $defaultValues
         ]);
     }
 
@@ -1939,15 +1949,25 @@ class MobileController extends AbstractApiController
                                 ArticleDataService $articleDataService,
                                 MouvementStockService $mouvementStockService): Response
     {
-        $type = $entityManager->getRepository(Type::class)->find($request->request->get('type'));
+        $data = $request->request->all();
+        $cleanedData = [];
+        foreach ($data as $key => $datum) {
+            if ($datum === 'null') {
+                $cleanedData[$key] = null;
+            } else {
+                $cleanedData[$key] = $datum;
+            }
+        }
+
+        $type = $entityManager->getRepository(Type::class)->find($cleanedData['type']);
         $statut = $entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
         $location = $entityManager->getRepository(Emplacement::class)->findOneBy([
-            'label' => $request->request->get('location')
+            'label' => $cleanedData['location']
         ]);
         $countryFrom = $entityManager->getRepository(NativeCountry::class)->findOneBy([
-            'code' => $request->request->get('country')
+            'code' => $cleanedData['country']
         ]);
-        if (!$countryFrom) {
+        if (!$countryFrom && $cleanedData['country']) {
             return $this->json([
                 'success' => false,
                 'message' => "Le code pays est inconnu"
@@ -1961,8 +1981,8 @@ class MobileController extends AbstractApiController
         }
         $entityManager->flush();
         $location->setIsActive(true);
-        $ref = $entityManager->getRepository(ReferenceArticle::class)->find($request->request->get('reference'));
-        $articleSupplier = $entityManager->getRepository(ArticleFournisseur::class)->find($request->request->get('supplier_reference'));
+        $ref = $entityManager->getRepository(ReferenceArticle::class)->find($cleanedData['reference']);
+        $articleSupplier = $entityManager->getRepository(ArticleFournisseur::class)->find($cleanedData['supplier_reference']);
         $refTypeLabel = $ref->getType()->getLabel();
         if ($ref?->getType()?->getId() !== $type?->getId()) {
             return $this->json([
@@ -1976,23 +1996,23 @@ class MobileController extends AbstractApiController
         $article
             ->setStatut($statut)
             ->setEmplacement($location)
-            ->setQuantite(intval($request->request->get('quantity')))
+            ->setQuantite(intval($cleanedData['quantity']))
             ->setArticleFournisseur($articleSupplier)
             ->setType($type)
             ->setStockEntryDate(new DateTime("now"))
-            ->setRFIDtag($request->request->get('rfidTag') ?? null)
+            ->setRFIDtag($cleanedData['rfidTag'] ?? null)
             ->setBarCode($articleDataService->generateBarCode())
-            ->setLabel($request->request->get('label'))
-            ->setPrixUnitaire(floatval($request->request->get('price')))
-            ->setExpiryDate(new DateTime($request->request->get('expiryDate')))
-            ->setBatch($request->request->get('batch'))
-            ->setPurchaseOrder($request->request->get('commandNumber'))
-            ->setDeliveryNote(intval($request->request->get('deliveryLine')))
-            ->setManifacturingDate(new DateTime($request->request->get('buildDate')))
+            ->setLabel($cleanedData['label'])
+            ->setPrixUnitaire(floatval($cleanedData['price']))
+            ->setExpiryDate($cleanedData['expiryDate'] ? new DateTime($cleanedData['expiryDate']): null)
+            ->setBatch($cleanedData['batch'])
+            ->setPurchaseOrder($cleanedData['commandNumber'])
+            ->setDeliveryNote(intval($cleanedData['deliveryLine']))
+            ->setManifacturingDate($cleanedData['buildDate'] ? new DateTime($cleanedData['buildDate']) : null)
             ->setNativeCountry($countryFrom)
             ->setConform(true)
-            ->setProductionDate(new DateTime($request->request->get('productionDate')))
-            ->setCommentaire($request->request->get('comment'));
+            ->setProductionDate($cleanedData['productionDate'] ? new DateTime($cleanedData['productionDate']) : null)
+            ->setCommentaire($cleanedData['comment']);
 
         $entityManager->persist($article);
 
