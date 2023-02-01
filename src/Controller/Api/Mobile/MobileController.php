@@ -2059,7 +2059,6 @@ class MobileController extends AbstractApiController
 
         $entityManager->persist($stockMovement);
         $entityManager->flush();
-        dump($cleanedData);
         return $this->json([
             'success' => true,
             'message' => 'Article bien généré.'
