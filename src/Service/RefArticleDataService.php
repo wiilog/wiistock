@@ -181,23 +181,16 @@ class RefArticleDataService {
         ];
     }
 
-    public function getDataEditForRefArticle($articleRef) {
+    public function getDataEditForRefArticle($articleRef, $articleRepository) {
         $totalQuantity = $articleRef->getQuantiteDisponible();
         return $data = [
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
-                function(array $carry, ArticleFournisseur $articleFournisseur) use ($articleRef) {
-                    $articles = $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
-                        ? $articleFournisseur->getArticles()->toArray()
-                        : [];
+                function(array $carry, ArticleFournisseur $articleFournisseur) use ($articleRef, $articleRepository) {
                     $carry[] = [
                         'reference' => $articleFournisseur->getReference(),
                         'label' => $articleFournisseur->getLabel(),
                         'fournisseurCode' => $articleFournisseur->getFournisseur()->getCodeReference(),
-                        'quantity' => array_reduce($articles, function(int $carry, Article $article) {
-                            return $article->getStatut()?->getCode() === Article::STATUT_ACTIF
-                                ? ($carry + $article->getQuantite())
-                                : $carry;
-                        }, 0)
+                        'quantity' => $articleRepository->getQuantityForSupplier($articleFournisseur)
                     ];
                     return $carry;
                 }, []),
@@ -210,11 +203,11 @@ class RefArticleDataService {
                                           $preloadCategories = true,
                                           $showAttachments = false) {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
-
-        $data = $this->getDataEditForRefArticle($refArticle);
+        $data = $this->getDataEditForRefArticle($refArticle, $articleRepository);
         $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $editAttachments = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
@@ -240,7 +233,6 @@ class RefArticleDataService {
                 'typeId' => $type->getId()
             ];
         }
-
         return $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
