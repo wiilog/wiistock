@@ -1987,9 +1987,7 @@ class MobileController extends AbstractApiController
                 'message' => "Erreur sur l'emplacement par défaut."
             ]);
         }
-        $entityManager->flush();
-        $location->setIsActive(true);
-        $fromMatrix = $data['fromMatrix'];
+        $fromMatrix = isset($data['fromMatrix']) && $data['fromMatrix'];
         if ($fromMatrix) {
             $ref = $entityManager->getRepository(ReferenceArticle::class)->findOneBy(['reference' => $cleanedData['reference']]);
         } else {
@@ -2061,7 +2059,7 @@ class MobileController extends AbstractApiController
 
         $entityManager->persist($stockMovement);
         $entityManager->flush();
-
+        dump($cleanedData);
         return $this->json([
             'success' => true,
             'message' => 'Article bien généré.'
