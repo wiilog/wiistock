@@ -58,7 +58,7 @@ class PurchaseRequest {
     #[ORM\OneToMany(mappedBy: 'purchaseRequest', targetEntity: PurchaseRequestLine::class, cascade: ['remove'])]
     private ?Collection $purchaseRequestLines;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Fournisseur::class)]
     private ?Fournisseur $supplier = null;
 
     public function __construct() {

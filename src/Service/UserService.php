@@ -8,6 +8,7 @@ use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -113,6 +114,7 @@ class UserService
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $inventoryMissionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -125,6 +127,7 @@ class UserService
         $isUsedInArrivals = $arrivageRepository->countByUser($user);
         $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
         $hasSignatoryLocation = $locationRepository->count(['signatory' => $user]);
+        $hasInventoryMissionRules = $inventoryMissionRuleRepository->count(['creator' => $user]);
 
         return [
             'demande(s) de livraison' => $isUsedInRequests,
@@ -138,6 +141,7 @@ class UserService
             'arrivage(s)' => $isUsedInArrivals,
             'mouvement(s) de traçabilité' => $hasTrackingMovement,
             'emplacement(s)' => $hasSignatoryLocation,
+            "planification d'inventaire" => $hasInventoryMissionRules,
         ];
 	}
 
