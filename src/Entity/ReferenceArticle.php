@@ -903,6 +903,15 @@ class ReferenceArticle
         return $this->purchaseRequestLines;
     }
 
+    public function getAssociatedArticles(): array {
+        return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE
+            ? []
+            : Stream::from($this->articlesFournisseur)
+                ->flatMap(fn(ArticleFournisseur $articleFournisseur) => $articleFournisseur->getArticles()->toArray())
+                ->unique()
+                ->toArray();
+    }
+
     public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
         if(!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
             $this->purchaseRequestLines[] = $purchaseRequestLine;
