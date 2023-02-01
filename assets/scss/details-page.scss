@@ -1,20 +1,22 @@
 @import "variables";
 
-.details-page-container {
-    margin-top: 60px;
-}
-
 .details-page-header {
-    border: solid 1px;
-    border-top: none;
+    &.edit {
+        border: solid 1px;
+        border-top: none;
+
+        .header-wrapper {
+            border-radius: 0 0 5px 5px !important;
+        }
+    }
+
     border-radius: 5px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
     margin-top: 15px;
 
     .header-wrapper {
         background-color: $white;
-        border-bottom-left-radius: 5px;
-        border-bottom-right-radius: 5px;
+        border-radius: 5px;
     }
 
     /*.image-container {

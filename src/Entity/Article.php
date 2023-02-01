@@ -776,99 +776,74 @@ class Article implements PairedEntity {
         return $this->getStatut()->getCode() === self::STATUT_EN_TRANSIT;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getRFIDtag(): ?string
-    {
+    public function getRFIDtag(): ?string {
         return $this->RFIDtag;
     }
 
-    /**
-     * @param string|null $RFIDtag
-     */
-    public function setRFIDtag(?string $RFIDtag): void
+    public function setRFIDtag(?string $RFIDtag): self
     {
         $this->RFIDtag = $RFIDtag;
+
+        return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getDeliveryNote(): ?string
     {
         return $this->deliveryNote;
     }
 
-    /**
-     * @param string|null $deliveryNote
-     */
-    public function setDeliveryNote(?string $deliveryNote): void
+    public function setDeliveryNote(?string $deliveryNote): self
     {
         $this->deliveryNote = $deliveryNote;
+
+        return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getPurchaseOrder(): ?string
     {
         return $this->purchaseOrder;
     }
 
-    /**
-     * @param string|null $purchaseOrder
-     */
-    public function setPurchaseOrder(?string $purchaseOrder): void
+    public function setPurchaseOrder(?string $purchaseOrder): self
     {
         $this->purchaseOrder = $purchaseOrder;
+
+        return $this;
     }
 
-    /**
-     * @return NativeCountry|null
-     */
     public function getNativeCountry(): ?NativeCountry
     {
         return $this->nativeCountry;
     }
 
-    /**
-     * @param NativeCountry|null $nativeCountry
-     */
-    public function setNativeCountry(?NativeCountry $nativeCountry): void
+    public function setNativeCountry(?NativeCountry $nativeCountry): self
     {
         $this->nativeCountry = $nativeCountry;
+
+        return $this;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getManifacturingDate(): ?string
+    public function getManifacturingDate(): ?DateTime
     {
         return $this->manifacturingDate;
     }
 
-    /**
-     * @param string|null $manifacturingDate
-     */
-    public function setManifacturingDate(?string $manifacturingDate): void
+    public function setManifacturingDate(?DateTime $manifacturingDate): self
     {
         $this->manifacturingDate = $manifacturingDate;
+
+        return $this;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getProductionDate(): ?string
+    public function getProductionDate(): ?DateTime
     {
         return $this->productionDate;
     }
 
-    /**
-     * @param string|null $productionDate
-     */
-    public function setProductionDate(?string $productionDate): void
+    public function setProductionDate(?DateTime $productionDate): self
     {
         $this->productionDate = $productionDate;
+
+        return $this;
     }
 }

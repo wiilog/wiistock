@@ -118,6 +118,29 @@ class FieldsParam {
     const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
     const FIELD_LABEL_RECEIVERS_HANDLING = 'destinataires';
 
+    const ENTITY_CODE_ARTICLE = 'articles';
+    const FIELD_LABEL_ARTICLE_UNIT_PRICE = 'prix unitaire';
+    const FIELD_LABEL_ARTICLE_BATCH = 'lot';
+    const FIELD_LABEL_ARTICLE_ANOMALY = 'anomalie';
+    const FIELD_LABEL_ARTICLE_EXPIRY_DATE = 'date de péremption';
+    const FIELD_LABEL_ARTICLE_COMMENT = 'commentaire';
+    const FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE = 'ligne bon de livraison';
+    const FIELD_LABEL_ARTICLE_MANUFACTURE_DATE = 'date de fabrication';
+    const FIELD_LABEL_ARTICLE_PRODUCTION_DATE = 'date de production';
+    const FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE = "ligne commande d'achat";
+    const FIELD_LABEL_ARTICLE_NATIVE_COUNTRY = "pays d'origine";
+
+    const FIELD_CODE_ARTICLE_UNIT_PRICE = 'unitPrice';
+    const FIELD_CODE_ARTICLE_BATCH = 'batch';
+    const FIELD_CODE_ARTICLE_ANOMALY = 'anomaly';
+    const FIELD_CODE_ARTICLE_EXPIRY_DATE = 'expiryDate';
+    const FIELD_CODE_ARTICLE_COMMENT = 'comment';
+    const FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE = 'deliveryNoteLine';
+    const FIELD_CODE_ARTICLE_MANUFACTURE_DATE = 'manufactureDate';
+    const FIELD_CODE_ARTICLE_PRODUCTION_DATE = 'productionDate';
+    const FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE = "purchaseOrderLine";
+    const FIELD_CODE_ARTICLE_NATIVE_COUNTRY = "nativeCountry";
+
 
     const ENTITY_CODE_DEMANDE = 'demande';
     const FIELD_CODE_EXPECTED_AT = 'expectedAt';

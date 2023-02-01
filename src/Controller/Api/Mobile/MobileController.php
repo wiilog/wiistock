@@ -5,6 +5,7 @@ namespace App\Controller\Api\Mobile;
 use App\Annotation as Wii;
 use App\Controller\Api\AbstractApiController;
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -14,12 +15,14 @@ use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
+use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
@@ -40,6 +43,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\TrackingMovementRepository;
 use App\Service\ArrivageService;
+use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
 use App\Service\DispatchService;
@@ -1867,21 +1871,31 @@ class MobileController extends AbstractApiController
     }
 
     /**
-     * @Rest\Get("/api/default-article-location", name="api_get_default_location")
+     * @Rest\Get("/api/default-article-values", name="api_get_default_article_values")
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function getDefaultArticleLocation(EntityManagerInterface $entityManager): Response
+    public function getDefaultArticleValues(EntityManagerInterface $entityManager): Response
     {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $articleDefaultLocationId = $settingRepository->getOneParamByLabel(Setting::ARTICLE_LOCATION);
         $articleDefaultLocation = $articleDefaultLocationId ? $locationRepository->find($articleDefaultLocationId) : null;
 
+        $defaultValues = [
+            'location' => $articleDefaultLocation?->getLabel(),
+            'type' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_TYPE),
+            'reference' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_REFERENCE),
+            'label' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_LABEL),
+            'quantity' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_QUANTITY),
+            'supplier' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_SUPPLIER),
+            'supplierReference' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_SUPPLIER_REFERENCE),
+        ];
+
         return $this->json([
             'success' => true,
-            'location' => $articleDefaultLocation?->getLabel()
+            'defaultValues' => $defaultValues
         ]);
     }
 
@@ -1899,6 +1913,155 @@ class MobileController extends AbstractApiController
         return $this->json([
             'success' => true,
             'article' => $article?->getId()
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/supplier_reference/{ref}/{supplier}", name="api_get_supplier_reference_by_ref_and_supplier")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getArticleFournisseursByRefAndSupplier(EntityManagerInterface $entityManager, int $ref, int $supplier): Response
+    {
+        $articlesFournisseurs = $entityManager->getRepository(ArticleFournisseur::class)->getByRefArticleAndFournisseur($ref, $supplier);
+        $formattedReferences = Stream::from($articlesFournisseurs)
+            ->map(function(ArticleFournisseur $supplier) {
+                return [
+                    'label' => $supplier->getReference(),
+                    'id' => $supplier->getId(),
+                ];
+            })->toArray();
+
+        return $this->json([
+            'supplierReferences' => $formattedReferences
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/create-article", name="api_post_article")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postArticle(Request $request,
+                                EntityManagerInterface $entityManager,
+                                ArticleDataService $articleDataService,
+                                MouvementStockService $mouvementStockService): Response
+    {
+        $data = $request->request->all();
+        $cleanedData = [];
+        foreach ($data as $key => $datum) {
+            if ($datum === 'null') {
+                $cleanedData[$key] = null;
+            } else {
+                $cleanedData[$key] = $datum;
+            }
+        }
+        $article = $entityManager->getRepository(Article::class)->findOneBy([
+            'RFIDtag' => $cleanedData['rfidTag']
+        ]);
+        if ($article) {
+            return $this->json([
+                'success' => false,
+                'message' => "Tag RFID déjà existant en base."
+            ]);
+        }
+        $type = $entityManager->getRepository(Type::class)->find($cleanedData['type']);
+        $statut = $entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        $location = $entityManager->getRepository(Emplacement::class)->findOneBy([
+            'label' => $cleanedData['location']
+        ]);
+        $countryFrom = $entityManager->getRepository(NativeCountry::class)->findOneBy([
+            'code' => $cleanedData['country']
+        ]);
+        if (!$countryFrom && $cleanedData['country']) {
+            return $this->json([
+                'success' => false,
+                'message' => "Le code pays est inconnu"
+            ]);
+        }
+        if (!$location) {
+            return $this->json([
+                'success' => false,
+                'message' => "Erreur sur l'emplacement par défaut."
+            ]);
+        }
+        $fromMatrix = isset($data['fromMatrix']) && $data['fromMatrix'];
+        if ($fromMatrix) {
+            $ref = $entityManager->getRepository(ReferenceArticle::class)->findOneBy(['reference' => $cleanedData['reference']]);
+        } else {
+            $ref = $entityManager->getRepository(ReferenceArticle::class)->find($cleanedData['reference']);
+        }
+        $articleSupplier = $entityManager->getRepository(ArticleFournisseur::class)->find($cleanedData['supplier_reference']);
+        if (!$ref) {
+            return $this->json([
+                'success' => false,
+                'message' => "Référence scannée (${cleanedData['reference']}) inconnue."
+            ]);
+        } else if ($fromMatrix) {
+            $type = $ref->getType();
+            if ($ref->getArticlesFournisseur()->isEmpty()) {
+                return $this->json([
+                    'success' => false,
+                    'message' => "La référence scannée (${cleanedData['reference']}) n'a pas d'article fournisseur paramétré."
+                ]);
+            } else {
+                $articleSupplier = $ref->getArticlesFournisseur()->first();
+            }
+        }
+        $refTypeLabel = $ref->getType()->getLabel();
+        if ($ref->getType()?->getId() !== $type?->getId()) {
+            return $this->json([
+                'success' => false,
+                'message' => "Le type selectionné est différent de celui de la référence (${refTypeLabel})"
+            ]);
+        }
+
+        $article = new Article();
+
+        $article
+            ->setStatut($statut)
+            ->setEmplacement($location)
+            ->setQuantite(intval($cleanedData['quantity']))
+            ->setArticleFournisseur($articleSupplier)
+            ->setType($type)
+            ->setStockEntryDate(new DateTime("now"))
+            ->setRFIDtag($cleanedData['rfidTag'] ?? null)
+            ->setBarCode($articleDataService->generateBarCode())
+            ->setLabel($cleanedData['label'])
+            ->setPrixUnitaire(floatval($cleanedData['price']))
+            ->setExpiryDate($cleanedData['expiryDate'] ? new DateTime($cleanedData['expiryDate']): null)
+            ->setBatch($cleanedData['batch'])
+            ->setPurchaseOrder($cleanedData['commandNumber'])
+            ->setDeliveryNote(intval($cleanedData['deliveryLine']))
+            ->setManifacturingDate($cleanedData['manufacturingDate'] ? new DateTime($cleanedData['manufacturingDate']) : null)
+            ->setNativeCountry($countryFrom)
+            ->setConform(true)
+            ->setProductionDate($cleanedData['productionDate'] ? new DateTime($cleanedData['productionDate']) : null)
+            ->setCommentaire($cleanedData['comment']);
+
+        $entityManager->persist($article);
+
+        $stockMovement = $mouvementStockService->createMouvementStock(
+            $this->getUser(),
+            null,
+            $article->getQuantite(),
+            $article,
+            MouvementStock::TYPE_ENTREE
+        );
+
+        $mouvementStockService->finishMouvementStock(
+            $stockMovement,
+            new DateTime('now'),
+            $article->getEmplacement()
+        );
+
+        $entityManager->persist($stockMovement);
+        $entityManager->flush();
+        return $this->json([
+            'success' => true,
+            'message' => 'Article bien généré.'
         ]);
     }
 
@@ -1941,6 +2104,7 @@ class MobileController extends AbstractApiController
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
@@ -1969,6 +2133,13 @@ class MobileController extends AbstractApiController
         $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
             ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
             ->toArray();
+
+        $mobileTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON]))
+            ->map(fn(Type $type) => [
+                'id' => $type->getId(),
+                'label' => $type->getLabel(),
+                'category' => $type->getCategory()->getLabel()
+            ])->toArray();
 
         if ($rights['inventoryManager']) {
             $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
@@ -2032,6 +2203,11 @@ class MobileController extends AbstractApiController
                 }
                 return $collecteArray;
             }, $collectes);
+
+            $suppliers = $supplierRepository->getForNomade();
+            $refs = $referenceArticleRepository->getForNomade();
+
+
 
             $collectesIds = Stream::from($collectes)
                 ->map(function ($collecteArray) {
@@ -2189,6 +2365,9 @@ class MobileController extends AbstractApiController
             'users' => $users ?? [],
             'fieldsParam' => $fieldsParam ?? [],
             'projects' => $projects ?? [],
+            'types' => $mobileTypes,
+            'suppliers' => $suppliers ?? [],
+            'reference_articles' => $refs ?? []
         ];
     }
 

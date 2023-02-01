@@ -91,6 +91,16 @@ class ReferenceArticleRepository extends EntityRepository {
             ->getArrayResult();
     }
 
+    public function getForNomade() {
+        $qb = $this->createQueryBuilder('referenceArticle');
+
+        $qb->select('referenceArticle.id AS id')
+            ->addSelect('referenceArticle.barCode AS label')
+            ->andWhere('referenceArticle.needsMobileSync = true');
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function iterateAll(Utilisateur $user): iterable {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
 

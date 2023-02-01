@@ -155,6 +155,11 @@ class SettingsController extends AbstractController {
                             "label" => "Étiquettes",
                             "save" => true,
                         ],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                            "discard" => true,
+                        ],
                         self::MENU_TYPES_FREE_FIELDS => [
                             "label" => "Types et champs libres",
                             "wrapped" => false,
@@ -2157,7 +2162,6 @@ class SettingsController extends AbstractController {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
         $class = "form-control data";
-
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $arrayFields = $fieldsParamRepository->findByEntityForEntity($entity);
 

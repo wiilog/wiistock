@@ -3,64 +3,23 @@
 namespace App\Repository;
 
 use App\Entity\NativeCountry;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
- * @extends ServiceEntityRepository<NativeCountry>
- *
  * @method NativeCountry|null find($id, $lockMode = null, $lockVersion = null)
  * @method NativeCountry|null findOneBy(array $criteria, array $orderBy = null)
  * @method NativeCountry[]    findAll()
  * @method NativeCountry[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class NativeCountryRepository extends ServiceEntityRepository
-{
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, NativeCountry::class);
+class NativeCountryRepository extends EntityRepository {
+    public function getForSelect(?string $term): array {
+        return $this->createQueryBuilder('native_country')
+            ->select("native_country.id AS id")
+            ->addSelect("native_country.code AS code")
+            ->andWhere("native_country.active = 1")
+            ->andWhere("type.label LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
     }
-
-    public function save(NativeCountry $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(NativeCountry $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-//    /**
-//     * @return NativeCountry[] Returns an array of NativeCountry objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('n')
-//            ->andWhere('n.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('n.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?NativeCountry
-//    {
-//        return $this->createQueryBuilder('n')
-//            ->andWhere('n.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }

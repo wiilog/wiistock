@@ -85,16 +85,16 @@
             }  ) }}
         </div>
         <div class="form-group col-4">
-            {% set settingProvider = setting_value('ARTICLE_SUPPLIER_REFERENCE', 'App\\Entity\\Fournisseur') %}
+            {% set settingProvider = setting_value('ARTICLE_SUPPLIER_REFERENCE', 'App\\Entity\\ArticleFournisseur') %}
             {{ form.select(setting('ARTICLE_SUPPLIER_REFERENCE'), "Référence fournisseur", false, {
-                type: 'supplierLabel',
+                type: 'supplierArticles',
                 placeholder: 'Sélectionnez une référence fournisseur',
                 value: settingProvider ? settingProvider.id : null,
                 inputClass: 'w-100 ajax-autocomplete-fournisseur',
                 items: settingProvider ? {
                     0: {
                         'value': settingProvider.id,
-                        'label': settingProvider.nom,
+                        'label': settingProvider.reference,
                         'selected': true
                     }
                 } : null,
