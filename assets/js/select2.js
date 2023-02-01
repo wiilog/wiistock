@@ -295,7 +295,6 @@ export default class Select2 {
                 .closest(closest)
                 .find(selector);
 
-
             const values = $fields
                 .filter((_, elem) => elem.name && elem.value)
                 .keymap((elem) => [elem.name, elem.value], needGroup ? GROUP_EVERYTHING : GROUP_WHEN_NEEDED);

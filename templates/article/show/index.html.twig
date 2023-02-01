@@ -52,7 +52,14 @@
                             <img src="{{ asset('svg/article-barcode.svg') }}" width="80">
                         </div>
                         <div class="specifications w-100">
-                            <div><strong class="ref text-break">{{ article.barCode }}</strong></div>
+                            <div>
+                                <strong class="ref text-break">{{ article.barCode }}</strong>
+                                {% set articleRFID = article.RFIDtag %}
+                                {% if articleRFID %}
+                                    <div class="text-break">RFID : {{ articleRFID }}</div>
+                                {% endif %}
+                            </div>
+
                             <div>
                                 <div><strong class="text-break">Ref : {{ article.referenceArticle.reference }}</strong></div>
                                 <div><strong class="text-break wii-subtitle">{{ article.referenceArticle.libelle }}</strong></div>
@@ -143,6 +150,63 @@
                         </div>
                     </div>
                 </div>
+                {% set descriptionsFileds = [
+                    {
+                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE'), 'displayedEdit'),
+                        'value': article.deliveryNote
+                    },
+                    {
+                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_MANUFACTURE_DATE'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_MANUFACTURE_DATE'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_MANUFACTURE_DATE'), 'displayedEdit'),
+                        'value': article.manifacturingDate ? article.manifacturingDate|format_helper('longDate')
+                    },
+                    {
+                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_PRODUCTION_DATE'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_PRODUCTION_DATE'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_PRODUCTION_DATE'), 'displayedEdit'),
+                        'value': article.productionDate ? article.productionDate|format_helper('longDate')
+                    },
+                    {
+                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE'), 'displayedEdit'),
+                        'value': article.purchaseOrder
+                    },
+                    {
+                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_NATIVE_COUNTRY'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_NATIVE_COUNTRY'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_NATIVE_COUNTRY'), 'displayedEdit'),
+                        'value': article.nativeCountry ? article.nativeCountry.label : null
+                    },
+                ] %}
+                {% if descriptionsFileds|filter(v => v.value or v.isOnCreate or v.isOnEdit) %}
+                    <div class="wii-box mt-3">
+                        <div class="header wii-title">Description</div>
+                        <div class="content row">
+                            {% for field in descriptionsFileds %}
+                                {% if field.isOnCreate or field.isOnEdit or field.value %}
+                                    <div class="col-6 box-item my-2">
+                                        <label class="box-item ml-3">
+                                            <span class="wii-field-name">{{ field.label }}</span>
+                                            <span class="wii-body-text">
+                                                {% if field.value %}
+                                                    {{ field.value }}
+                                                {% elseif field.isOnEdit %}
+                                                    -
+                                                {% else %}
+                                                    /
+                                                {% endif %}
+                                            </span>
+                                        </label>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
             </div>
             <div class="col-12 col-md-6">
                 <div class="wii-box">

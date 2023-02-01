@@ -148,14 +148,17 @@ class ArticleController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
      */
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
         $type = $article->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
 
         return $this->render("article/show/index.html.twig", [
             'article' => $article,
             'hasMovements' => $hasMovements,
             'freeFields' => $freeFields,
+            'fieldsParam' => $fieldsParam,
         ]);
     }
 

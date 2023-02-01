@@ -823,6 +823,9 @@ class Article implements PairedEntity {
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getManifacturingDate(): ?DateTime
     {
         return $this->manifacturingDate;
@@ -835,6 +838,9 @@ class Article implements PairedEntity {
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getProductionDate(): ?DateTime
     {
         return $this->productionDate;
