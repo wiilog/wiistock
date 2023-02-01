@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryFrequency;
@@ -56,6 +57,20 @@ class ArticleRepository extends EntityRepository {
             ->setParameter('consumed', Article::STATUT_INACTIF)
             ->getQuery()
             ->getResult();
+    }
+
+    public function getQuantityForSupplier(ArticleFournisseur $supplier) {
+        return $this
+            ->createQueryBuilder('article')
+            ->select('SUM(IF(statut.code = :available, article.quantite, 0))')
+            ->join('article.statut', 'statut')
+            ->andWhere('article.articleFournisseur = :supplier')
+            ->setParameters([
+                'supplier' => $supplier,
+                'available' => Article::STATUT_ACTIF,
+            ])
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function getReferencesByRefAndDate($refPrefix, $date)
