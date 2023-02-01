@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" id="modalNewMission" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -8,31 +10,30 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-12">
-                        <label class="wii-field-name">Libellé*</label>
-                        <input type="text" class="form-control data needed" name="name">
+                        {{ form.input('name', 'Libellé', true, null, {
+                            type: 'text',
+                        }) }}
                     </div>
-
                     <div class="mb-3 form-group col-12">
-                        <label class="wii-field-name">Date prévue de début*</label>
-                        <input type="date" class="data form-control needed" name="startDate">
+                        {{ form.input('startDate', 'Date prévue de début', true, null, {
+                            type: 'date',
+                        }) }}
                     </div>
-
                     <div class="mb-3 form-group col-12">
-                        <label class="wii-field-name">Date prévue de fin*</label>
-                        <input type="date" class="data form-control needed" name="endDate">
+                        {{ form.input('endDate', 'Date prévue de fin', true, null, {
+                            type: 'date',
+                        }) }}
                     </div>
-
                     <div class="form-group col-12">
-                        <label class="wii-field-name">Description</label>
-                        <input type="text" class="form-control data" name="description">
+                        {{ form.input('description', 'Description', true, null, {
+                            type: 'text',
+                        }) }}
                     </div>
-
                     <div class="form-group col-12">
-                        <label class="wii-field-name">Type de mission*</label>
-                        <div class='wii-switch needed w-100'>
-                            <input type='radio' class='data w-50 justify-content-center' name='typeQuantity' value='0' content='Mission quantité article' required>
-                            <input type='radio' class='data w-50 justify-content-center' name='typeLocation' value='1' content='Article sur emplacement' required checked>
-                        </div>
+                        {{ form.switch('missionType', 'Type de mission', true, [
+                            {label: 'Mission quantité article', value: 'article', checked: true},
+                            {label: 'Article sur emplacement', value: 'location', checked: false}
+                        ]) }}
                     </div>
                 </div>
             </div>
