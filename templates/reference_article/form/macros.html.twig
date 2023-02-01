@@ -1,4 +1,4 @@
-{% macro supplier_article_line(reference, line, editable = false, index = 0) %}
+{% macro supplier_article_line(reference, line, editable = false, index = 0 , withDeleteButton = false) %}
     <div class="ligneFournisseurArticle"
          data-multiple-key="frl"
          data-multiple-object-index="{{ index }}">
@@ -34,9 +34,38 @@
                        name="labelFournisseur" value="{{ line ? line.label }}">
             </div>
         </div>
-        {% if index > 0 %}
+        {% if index > 0 or withDeleteButton %}
             <span class="delete-supplier-article">Supprimer l'article fournisseur</span>
         {% endif %}
+        <hr>
+    </div>
+{% endmacro %}
+
+{% macro storage_rule_line(reference, line, editable = false) %}
+    {% import 'form.html.twig' as form %}
+    <div class="lineStorageRule"
+         data-multiple-key="srl"
+         data-multiple-object-index="0">
+        <div class="row">
+            <div class="form-group col-4">
+                {{ form.select('storageRuleLocation', 'Emplacement', true, {
+                    type: 'location',
+                }) }}
+            </div>
+            <div class="form-group col-4">
+                {{  form.number('storageRuleSecurityQuantity', 'Qté sécurité', true, null, {
+                    min: 0,
+                    step: 1,
+                }) }}
+            </div>
+            <div class="form-group col-4">
+                {{  form.number('storageRuleConditioningQuantity', 'Qté conditionnement', true, null, {
+                    min: 0,
+                    step: 1,
+                }) }}
+            </div>
+        </div>
+        <span class="delete-storage-rule">Supprimer la règle de stockage</span>
         <hr>
     </div>
 {% endmacro %}

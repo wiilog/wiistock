@@ -23,6 +23,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -43,6 +44,7 @@ use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -264,6 +266,36 @@ class ReferenceArticleController extends AbstractController
                 }
             }
 
+            if(isset($data['srl'])) {
+                $storageRuleLines = json_decode($data['srl'], true);
+                foreach ($storageRuleLines as $storageRuleLine) {
+                    $storageRuleLocationId = $storageRuleLine['storageRuleLocation'] ?? null;
+                    $storageRuleSecurityQuantity = $storageRuleLine['storageRuleSecurityQuantity'] ?? null;
+                    $storageRuleConditioningQuantity = $storageRuleLine['storageRuleConditioningQuantity'] ?? null;
+                    if ($storageRuleLocationId && $storageRuleSecurityQuantity && $storageRuleConditioningQuantity) {
+                        $storageRuleLocation = $emplacementRepository->find($storageRuleLocationId);
+                        if(!$storageRuleLocation) {
+                            return new JsonResponse([
+                                'success' => false,
+                                'msg' => "Une règle de stockage n'a pas pu être créée car l'emplacement n'a pas été trouvé."
+                            ]);
+                        }
+                        $storageRule = new StorageRule();
+                        $storageRule
+                            ->setLocation($storageRuleLocation)
+                            ->setSecurityQuantity($storageRuleSecurityQuantity)
+                            ->setConditioningQuantity($storageRuleConditioningQuantity)
+                            ->setReferenceArticle($refArticle);
+                        $entityManager->persist($storageRule);
+                    } else {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => "Une règle de stockage n'a pas pu être créée car un des champs requis n'a pas été renseigné."
+                        ]);
+                    }
+                }
+            }
+
             if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
                 $refArticle->getQuantiteStock() > 0 &&
                 $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
@@ -283,7 +315,22 @@ class ReferenceArticleController extends AbstractController
             }
 
             $entityManager->persist($refArticle);
-            $entityManager->flush();
+
+            try{
+                $entityManager->flush();
+            } catch (UniqueConstraintViolationException $e) {
+                if (str_contains($e->getPrevious()->getMessage(), StorageRule::uniqueConstraintLocationReferenceArticleName)) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => "Impossible de créer deux règles de stockage pour le même emplacement."
+                    ]);
+                } else {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => "Une erreur est survenue lors de la sauvegarde. Veuillez réessayer."
+                    ]);
+                }
+            }
 
             $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
 
@@ -442,6 +489,9 @@ class ReferenceArticleController extends AbstractController
                 }
             } else {
                 $response = ['success' => false, 'msg' => "Une erreur s'est produite lors de la modification de la référence."];
+            }
+            if($response['success']){
+                $response['redirect'] = $this->generateUrl('reference_article_show_page', ['id' => $refArticle->getId()]);
             }
             return new JsonResponse($response);
         }

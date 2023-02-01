@@ -108,13 +108,13 @@
         text-align: left;
     }
 
-    #touch {
+    #touch, .touch {
         position: absolute;
         opacity: 0;
         max-height: 0;
     }
 
-    #touch:checked + .slide {
+    #touch:checked + .slide, .touch:checked + .slide {
         height: auto;
     }
 }
@@ -190,7 +190,7 @@ span.icon {
     }
 }
 
-.delete-supplier-article {
+.delete-supplier-article, .delete-storage-rule {
     display: block;
     width: 100%;
     color: $primary;
@@ -199,7 +199,7 @@ span.icon {
     cursor: pointer;
 }
 
-.supplier-article-container {
+.supplier-article-container, .storage-rule-container {
     margin-top: 5px;
     margin-bottom: 5px;
 
@@ -210,12 +210,12 @@ span.icon {
     }
 }
 
-.supplier-container {
+.supplier-container, .rule-container {
     margin-left: -16px;
     margin-right: -16px;
 }
 
-.supplier-container:last-of-type {
+.supplier-container:last-of-type, .rule-container:last-of-type {
     border-bottom: $medium-grey 1px solid;
     padding-bottom: 5px;
 }
@@ -239,7 +239,7 @@ span.icon {
 }
 
 
-label[for="touch"] {
+label[for="touch"], label[for="touch"] {
     width: 100%;
 }
 

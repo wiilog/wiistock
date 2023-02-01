@@ -15,15 +15,23 @@ $(document).ready(() => {
 
     buildQuantityPredictions();
 
-    $(`.add-supplier-article`).click(function() {
-        $(this).siblings(`.supplier-articles`).append($(`#supplier-article-template`).html());
+    $(`.add-supplier-article`).click(function () {
+        formAddLine($(this), `.supplier-articles`, `#supplier-article-template`);
     });
 
-    $(document).on(`click`, `.delete-supplier-article`, function() {
+    $(document).on(`click`, `.delete-supplier-article`, function () {
         $(this).closest(`.ligneFournisseurArticle`).remove();
     });
 
-    $(`#touch`).change(function() {
+    $(`.add-storage-rule`).click(function () {
+        formAddLine($(this), `.storage-rules`, `#storage-rule-template`);
+    });
+
+    $(document).on(`click`, `.delete-storage-rule`, function () {
+        $(this).closest(`.lineStorageRule`).remove();
+    });
+
+    $(`.touch`).change(function() {
         $(this).closest(`.details-page-dropdown`).find(`.dropdown-wrapper`).toggleClass(`open`)
     })
 
@@ -76,14 +84,14 @@ $(document).ready(() => {
     });
 
     $('.delete-button-container').click(function() {
-        const supplierArticleId = $(this).data('id');
-        const $suppliersToRemove = $('#suppliers-to-remove');
-        if($suppliersToRemove.val() === '') {
-            $suppliersToRemove.val(supplierArticleId);
+        const entityId = $(this).data('id');
+        const $inputToUpdate = $($(this).data('input-to-update'));
+        if($inputToUpdate.val() === '') {
+            $inputToUpdate.val(entityId);
         } else {
-            $suppliersToRemove.val($suppliersToRemove.val() + ',' + supplierArticleId);
+            $inputToUpdate.val($inputToUpdate.val() + ',' + entityId);
         }
-        $(this).closest('.supplier-container').remove();
+        $(this).closest('.entity-container').remove();
     });
 
     $(`input[name=length], input[name=width], input[name=height]`).on(`input`, () => {
@@ -96,6 +104,24 @@ $(document).ready(() => {
         });
     });
 });
+
+function deleteLine($button, $inputToUpdate) {
+    const entityId = $button.data('id');
+    if ($inputToUpdate.val() === '') {
+        $inputToUpdate.val(entityId);
+    } else {
+        $inputToUpdate.val($inputToUpdate.val() + ',' + entityId);
+    }
+    $(this).closest('.supplier-container').remove();
+}
+
+function formAddLine($button, container, template) {
+    let $container = $button.siblings(container);
+    let lastIndex = $container.children().last().data('multiple-object-index');
+    let $storageRuleTemplate = $($(template).html());
+    $storageRuleTemplate.data('multiple-object-index', lastIndex !== undefined ? lastIndex + 1 : 0);
+    $container.append($storageRuleTemplate);
+}
 
 function buildQuantityPredictions(period = 1) {
     const $id = $('input[name="reference-id"]')
