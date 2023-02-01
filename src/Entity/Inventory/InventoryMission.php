@@ -41,7 +41,7 @@ class InventoryMission {
     private Collection $articles;
 
     #[ORM\ManyToOne(targetEntity: InventoryMissionRule::class, inversedBy: 'createdMissions')]
-    private InventoryMissionRule $creator;
+    private ?InventoryMissionRule $creator = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $description = null;

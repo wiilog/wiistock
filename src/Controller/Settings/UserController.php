@@ -4,6 +4,7 @@ namespace App\Controller\Settings;
 
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Role;

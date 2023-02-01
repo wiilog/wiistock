@@ -221,7 +221,7 @@ class SettingsController extends AbstractController {
                         ],
                         self::MENU_FREQUENCIES => ["label" => "Fréquences"],
                         self::MENU_CATEGORIES => ["label" => "Catégories"],
-                        self::MENU_MISSIONS_GENERATION => ["label" => "Gestion des missions"],
+                        self::MENU_INVENTORY_PLANIFICATOR => ["label" => "Planificateur d'inventaire"],
                     ],
                 ],
                 self::MENU_RECEPTIONS => [
@@ -545,7 +545,7 @@ class SettingsController extends AbstractController {
     public const MENU_FREQUENCIES = "frequences";
     public const MENU_INVENTORY_CONFIGURATION = "configuration";
     public const MENU_CATEGORIES = "categories";
-    public const MENU_MISSIONS_GENERATION = "missions";
+    public const MENU_INVENTORY_PLANIFICATOR = "planificateur";
     public const MENU_ARTICLES = "articles";
     public const MENU_RECEPTIONS = "receptions";
     public const MENU_RECEPTIONS_STATUSES = "statuts_receptions";
@@ -2423,73 +2423,28 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function missionRulesApi(Request $request, EntityManagerInterface $manager): Response {
-        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $data = [];
         $missionRuleRepository = $manager->getRepository(InventoryMissionRule::class);
 
         /** @var InventoryMissionRule $mission */
         foreach ($missionRuleRepository->findAll() as $mission) {
-            if ($edit) {
-                $categories = Stream::from($mission->getCategories())
-                    ->map(fn(InventoryCategory $category) => "<option value='{$category->getId()}' selected>{$category->getLabel()}</option>")
-                    ->join("");
-
-                $periodicityWeeksSelected = $mission->getPeriodicityUnit() === InventoryMissionRule::WEEKS ? "selected" : "";
-                $periodicityMonthsSelected = $mission->getPeriodicityUnit() === InventoryMissionRule::MONTHS ? "selected" : "";
-                $durationWeeksSelected = $mission->getDurationUnit() === InventoryMissionRule::WEEKS ? "selected" : "";
-                $durationMonthsSelected = $mission->getDurationUnit() === InventoryMissionRule::MONTHS ? "selected" : "";
-
-                $data[] = [
-                    "actions" => "
-                        <button class='btn btn-silent delete-row w-50' data-id='{$mission->getId()}'>
-                            <i class='wii-icon wii-icon-trash text-primary'></i>
-                        </button>
-                        <input type='hidden' name='id' class='data' value='{$mission->getId()}'/>",
-                    "label" => "<input type='text' name='label' class='form-control data needed' value='{$mission->getLabel()}' data-global-error='Libellé'/>",
-                    "categories" => "<select name='categories' class='form-control data needed' data-s2='inventoryCategories' multiple data-parent='body' data-global-error='Catégorie(s)'>$categories</select>",
-                    "periodicity" => "
-                        <div class='d-flex'>
-                            <input type='text' name='periodicity' class='form-control data needed mr-1 w-50px' value='{$mission->getPeriodicity()}' data-global-error='Périodicité'/>
-                            <select name='periodicityUnit' class='form-control data needed maxw-150px' data-global-error='Unité de periodicité'>
-                                <option value='weeks' $periodicityWeeksSelected>semaine(s)</option>
-                                <option value='months' $periodicityMonthsSelected>mois(s)</option>
-                            </select>
-                        </div>
-                    ",
-                    "duration" => "
-                        <div class='d-flex'>
-                            <input type='text' name='duration' class='form-control data needed mr-1 w-50px' value='{$mission->getDuration()}' data-global-error='Durée'/>
-                            <select name='durationUnit' class='form-control data needed maxw-150px' data-global-error='Unité de durée'>
-                                <option value='weeks' $durationWeeksSelected>semaine(s)</option>
-                                <option value='months' $durationMonthsSelected>mois(s)</option>
-                            </select>
-                        </div>
-                    ",
-                ];
-            } else {
-                $data[] = [
-                    "actions" => "
-                        <button class='btn btn-silent delete-row' data-id='{$mission->getId()}'>
-                            <i class='wii-icon wii-icon-trash text-primary'></i>
-                        </button>
-                    ",
-                    "label" => $mission->getLabel(),
-                    "categories" => Stream::from($mission->getCategories())
-                        ->map(fn(InventoryCategory $category) => $category->getLabel())
-                        ->join(", "),
-                    "periodicity" => $mission->getPeriodicityUnit() === InventoryMissionRule::WEEKS ? "Toutes les {$mission->getPeriodicity()} semaines" : "Tous les {$mission->getPeriodicity()} mois",
-                    "duration" => $mission->getDurationUnit() === InventoryMissionRule::WEEKS ? "{$mission->getDuration()} semaine(s)" : "{$mission->getDuration()} mois",
-                ];
-            }
+            $data[] = [
+                "actions" => "
+                    <button class='btn btn-silent delete-row' data-id='{$mission->getId()}'>
+                        <i class='wii-icon wii-icon-trash text-primary'></i>
+                    </button>
+                ",
+                "missionType" => $mission->getMissionType(),
+                "label" => $mission->getLabel(),
+                "categories" => Stream::from($mission->getCategories())
+                    ->map(fn(InventoryCategory $category) => $category->getLabel())
+                    ->join(", "),
+                "periodicity" => $mission->getPeriodicityUnit() === InventoryMissionRule::WEEKS ? "Toutes les {$mission->getPeriodicity()} semaines" : "Tous les {$mission->getPeriodicity()} mois",
+                "duration" => $mission->getDurationUnit() === InventoryMissionRule::WEEKS ? "{$mission->getDuration()} semaine(s)" : "{$mission->getDuration()} mois",
+                "creator" => $mission->getCreator() ? $mission->getCreator()->getUsername() : "",
+                "lastExecution" => $mission->getLastRun() ? $mission->getLastRun()->getTimestamp() : "",
+            ];
         }
-
-        $data[] = [
-            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
-            "label" => "",
-            "categories" => "",
-            "periodicity" => "",
-            "duration" => "",
-        ];
 
         return $this->json([
             "data" => $data,
@@ -2503,6 +2458,19 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function deleteMissionRules(EntityManagerInterface $entityManager, InventoryMissionRule $entity): Response {
+
+        if (!empty($entity->getLocations())) {
+            foreach ($entity->getLocations() as $location) {
+                $location->removeInventoryMissionRule($entity);
+            }
+        }
+
+        if (!empty($entity->getCreatedMissions())) {
+            foreach ($entity->getCreatedMissions() as $createdMission) {
+                $createdMission->setCreator(null);
+            }
+        }
+
         $entityManager->remove($entity);
         $entityManager->flush();
 

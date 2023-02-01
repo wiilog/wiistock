@@ -77,7 +77,7 @@ const initializers = {
     stock_demandes_livraisons: initializeDeliveries,
     stock_inventaires_frequences: initializeInventoryFrequenciesTable,
     stock_inventaires_categories: initializeInventoryCategoriesTable,
-    stock_inventaires_missions: initializeInventoryMissionsTable,
+    stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
     stock_borne_tactile: initializeTouchTerminal,
     utilisateurs_utilisateurs: initUserPage,
@@ -870,7 +870,7 @@ function initializeInventoryCategoriesTable(){
     });
 }
 
-function initializeInventoryMissionsTable($container){
+function initializeInventoryPlanificatorTable($container){
     $container.on(`click`, `.force-missions`, function() {
         AJAX.route(`POST`, `settings_mission_rules_force`)
             .json()
@@ -880,48 +880,22 @@ function initializeInventoryMissionsTable($container){
     const table = EditableDatatable.create(`#missionRulesTable`, {
         route: Routing.generate('settings_mission_rules_api', true),
         deleteRoute: `settings_delete_mission_rule`,
-        mode: MODE_CLICK_EDIT_AND_ADD,
+        mode: MODE_NO_EDIT,
         save: SAVE_MANUALLY,
-        search: false,
+        search: true,
         paginate: false,
         scrollY: false,
         scrollX: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `missionType`, title: `Type de mission`, required: true},
             {data: `label`, title: `Libellé`, required: true},
-            {data: `categories`, title: `Catégorie(s)`, required: true},
             {data: `periodicity`, title: `Périodicité`, required: true},
+            {data: `categories`, title: `Catégorie(s)`, required: true},
             {data: `duration`, title: `Durée`, required: true},
+            {data: `creator`, title: `Créateur`, required: true},
+            {data: `lastExecution`, title: `Dernière exécution`, required: true},
         ],
-        form: {
-            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-            label: `<input type='text' name='label' class='form-control data needed' data-global-error='Libellé'/>`,
-            categories: `<select name='categories' class='form-control data needed' data-s2='inventoryCategories' multiple data-parent='body' data-global-error='Catégorie(s)'></select>`,
-            periodicity: `
-                <div class='d-flex'>
-                    <input type='text' name='periodicity' class='form-control data needed mr-1 w-50px' data-global-error='Périodicité'/>
-                    <select name='periodicityUnit' class='form-control data needed maxw-150px' data-global-error='Unité de periodicité'>
-                        <option value='weeks'>semaine(s)</option>
-                        <option value='months'>mois(s)</option>
-                    </select>
-                </div>
-            `,
-            duration: `
-                <div class='d-flex'>
-                    <input type='text' name='duration' class='form-control data needed mr-1 w-50px' data-global-error='Durée'/>
-                    <select name='durationUnit' class='form-control data needed maxw-150px' data-global-error='Unité de durée'>
-                        <option value='weeks'>semaine(s)</option>
-                        <option value='months'>mois(s)</option>
-                    </select>
-                </div>
-            `,
-        },
     });
 }
 
