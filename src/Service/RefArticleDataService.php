@@ -303,7 +303,6 @@ class RefArticleDataService {
 
         if (isset($data['storage-rules-to-remove']) && $data['storage-rules-to-remove'] !== "") {
             $storageRules = $storageRuleRepository->findBy(['id' => explode(',', $data['storage-rules-to-remove'])]);
-            dump($storageRules);
             foreach ($storageRules as $storageRule) {
                 $refArticle->removeStorageRule($storageRule);
             }

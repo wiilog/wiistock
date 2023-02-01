@@ -86,7 +86,6 @@ $(document).ready(() => {
     $('.delete-button-container').click(function() {
         const entityId = $(this).data('id');
         const $inputToUpdate = $($(this).data('input-to-update'));
-        console.log($inputToUpdate);
         if($inputToUpdate.val() === '') {
             $inputToUpdate.val(entityId);
         } else {

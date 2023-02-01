@@ -490,6 +490,9 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $response = ['success' => false, 'msg' => "Une erreur s'est produite lors de la modification de la référence."];
             }
+            if($response['success']){
+                $response['redirect'] = $this->generateUrl('reference_article_show_page', ['id' => $refArticle->getId()]);
+            }
             return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
