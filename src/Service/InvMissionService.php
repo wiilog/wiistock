@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
@@ -82,6 +83,7 @@ class InvMissionService {
             'rate' => $this->templating->render('inventaire/datatableMissionsBar.html.twig', [
                 'rateBar' => $rateBar,
             ]),
+            'type' => $mission->getType($mission) ?? '',
             'delete' => $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)
                 ? $this->templating->render('datatable/trash.html.twig', [
                     'id' => $mission->getId(),

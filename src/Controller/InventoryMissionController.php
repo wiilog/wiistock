@@ -11,6 +11,9 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Repository\TypeRepository;
+use App\Entity\Type;
+use App\Entity\CategoryType;
 use WiiCommon\Helper\Stream;
 use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
@@ -35,8 +38,16 @@ class InventoryMissionController extends AbstractController
      * @Route("/", name="inventory_mission_index")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
-    public function index(): Response {
-        return $this->render('inventaire/index.html.twig');
+    public function index(EntityManagerInterface $entityManager): Response {
+
+        return $this->render('inventaire/index.html.twig', [
+            'types' => Stream::from(InventoryMission::INVENTORY_TYPES)
+                ->map(fn(String $type) => [
+                    'id' => $type,
+                    'label' => $type
+                ])
+                ->toArray(),
+        ]);
     }
 
     /**

@@ -17,6 +17,8 @@ class InventoryMission {
     const ARTICLE_TYPE = 'article';
     const LOCATION_TYPE = 'location';
 
+    const INVENTORY_TYPES = ['article', 'emplacement'];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
