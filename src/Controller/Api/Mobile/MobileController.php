@@ -37,6 +37,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Entity\Zone;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\NegativeQuantityException;
 use App\Exceptions\RequestNeedToBeProcessedException;
@@ -2480,6 +2481,20 @@ class MobileController extends AbstractApiController
             : ($numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s);
 
         return $this->json($data);
+    }
+
+    /**
+     * @Rest\Post("/api/zone-rfid-summary", name="api_zone_rfid_summary", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function rfidSummary(Request $request, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response
+    {
+        dump($request->request->all());
+        return $this->json([
+            "success" => true,
+            "data" => $inventoryService->parseAndSummarizeInventory($request->request->all(), $entityManager)
+        ]);
     }
 
     /**

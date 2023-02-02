@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Emplacement;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
@@ -13,6 +14,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Entity\Zone;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use DateTime;
@@ -291,6 +293,44 @@ class InventoryService {
 
             $this->entityManager->flush();
         }
+    }
+
+    public function parseAndSummarizeInventory(array $data, EntityManagerInterface $entityManager) {
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $zone = $entityManager->getRepository(Zone::class)->find($data["zone"]);
+        $mission = $entityManager->getRepository(InventoryMission::class)->find($data["mission"]);
+        $scannedArticles = Stream::from($entityManager->getRepository(Article::class)->findBy(['RFIDtag' => $data['rfidTags']]))
+            ->map(fn (Article $article) => $article->getId())
+            ->toArray();
+
+        $locations = $locationRepository->findByMissionAndZone($zone, $mission);
+        $locationIDS = Stream::from($locations)
+            ->map(fn (Emplacement $location) => $location->getId())
+            ->toArray();
+
+        $expected = $articleRepository->findGroupedByReferenceArticleAndLocation($locationIDS);
+        $actual = $articleRepository->findGroupedByReferenceArticleAndLocation($locationIDS, $scannedArticles);
+        $formattedActual = Stream::from($actual)
+            ->keymap(fn(array $actualQuantity) => [$actualQuantity['location'] . '---' . $actualQuantity['reference'], $actualQuantity['quantity']])
+            ->toArray();
+
+        $result = [];
+        foreach ($expected as $expectedResult) {
+            $quantity = $expectedResult['quantity'];
+            $reference = $expectedResult['reference'];
+            $location = $expectedResult['location'];
+
+            $actualQuantity = $formattedActual[$location . '---' . $reference] ?? -1;
+            $result[] = [
+                'reference' => $reference,
+                'location' => $location,
+                'ratio' => $actualQuantity === -1 ? 0 : floor((intval($actualQuantity) / intval($quantity)) * 100),
+            ];
+        }
+
+        return $result;
     }
 
 }

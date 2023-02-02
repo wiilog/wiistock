@@ -20,6 +20,7 @@ use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReferenceArticleRepository::class)]
 class ReferenceArticle
@@ -903,13 +904,16 @@ class ReferenceArticle
         return $this->purchaseRequestLines;
     }
 
-    public function getAssociatedArticles(): array {
-        return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE
+    public function getAssociatedArticles(bool $active = false, bool $count = false): array|int {
+        $articles = $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE
             ? []
             : Stream::from($this->articlesFournisseur)
                 ->flatMap(fn(ArticleFournisseur $articleFournisseur) => $articleFournisseur->getArticles()->toArray())
                 ->unique()
+                ->filter(fn( Article $article) => !$active || $article->getStatut()->getCode() === Article::STATUT_ACTIF)
                 ->toArray();
+
+        return $count ? count($articles) : $articles;
     }
 
     public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {

@@ -4,10 +4,12 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Zone;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -244,6 +246,19 @@ class EmplacementRepository extends EntityRepository
             ->where('pairings.location is null OR pairings.active = 0')
             ->andWhere("location.label LIKE :term")
             ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByMissionAndZone(Zone $zone, InventoryMission $mission) {
+        return $this->createQueryBuilder('location')
+            ->join('location.inventoryLocationMissions', 'inventory_location_missions')
+            ->andWhere('location.zone = :zone')
+            ->andWhere('inventory_location_missions.inventoryMission = :mission')
+            ->setParameters([
+                'zone' => $zone,
+                'mission' => $mission,
+            ])
             ->getQuery()
             ->getResult();
     }
