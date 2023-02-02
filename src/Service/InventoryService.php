@@ -301,7 +301,7 @@ class InventoryService {
 
         $zone = $entityManager->getRepository(Zone::class)->find($data["zone"]);
         $mission = $entityManager->getRepository(InventoryMission::class)->find($data["mission"]);
-        $scannedArticles = Stream::from($entityManager->getRepository(Article::class)->findBy(['RFIDtag' => $data['rfidTags']]))
+        $scannedArticles = Stream::from($entityManager->getRepository(Article::class)->findBy(['RFIDtag' => json_decode($data['rfidTags'])]))
             ->map(fn (Article $article) => $article->getId())
             ->toArray();
 
