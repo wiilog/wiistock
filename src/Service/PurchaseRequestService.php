@@ -77,6 +77,9 @@ class PurchaseRequestService {
             'processingDate' => FormatHelper::datetime($request->getProcessingDate()),
             'validationDate' => FormatHelper::datetime($request->getValidationDate()),
             'considerationDate' => FormatHelper::datetime($request->getConsiderationDate()),
+            'supplier' => $request->getSupplier()
+                ? $request->getSupplier()->getNom()
+                :'-',
             'actions' => $this->templating->render('purchase_request/actions.html.twig', [
                 'url' => $url,
             ]),
