@@ -2019,8 +2019,26 @@ class MobileController extends AbstractApiController
             ]);
         }
 
-        $article = new Article();
+        $expiryDate = $cleanedData['expiryDate']
+            ? ($fromMatrix
+                ? DateTime::createFromFormat('dmY', $cleanedData['expiryDate'])
+                : new DateTime($cleanedData['expiryDate']))
+            : null;
 
+
+        $manufacturingDate = $cleanedData['manufacturingDate']
+            ? ($fromMatrix
+                ? DateTime::createFromFormat('dmY', $cleanedData['manufacturingDate'])
+                : new DateTime($cleanedData['manufacturingDate']))
+            : null;
+
+        $productionDate = $cleanedData['productionDate']
+            ? ($fromMatrix
+                ? DateTime::createFromFormat('dmY', $cleanedData['productionDate'])
+                : new DateTime($cleanedData['productionDate']))
+            : null;
+
+        $article = new Article();
         $article
             ->setStatut($statut)
             ->setEmplacement($location)
@@ -2032,14 +2050,14 @@ class MobileController extends AbstractApiController
             ->setBarCode($articleDataService->generateBarCode())
             ->setLabel($cleanedData['label'])
             ->setPrixUnitaire(floatval($cleanedData['price']))
-            ->setExpiryDate($cleanedData['expiryDate'] ? new DateTime($cleanedData['expiryDate']): null)
+            ->setExpiryDate($expiryDate)
             ->setBatch($cleanedData['batch'])
             ->setPurchaseOrder($cleanedData['commandNumber'])
             ->setDeliveryNote(intval($cleanedData['deliveryLine']))
-            ->setManifacturingDate($cleanedData['manufacturingDate'] ? new DateTime($cleanedData['manufacturingDate']) : null)
+            ->setManifacturingDate($manufacturingDate)
             ->setNativeCountry($countryFrom)
             ->setConform(true)
-            ->setProductionDate($cleanedData['productionDate'] ? new DateTime($cleanedData['productionDate']) : null)
+            ->setProductionDate($productionDate)
             ->setCommentaire($cleanedData['comment']);
 
         $entityManager->persist($article);
