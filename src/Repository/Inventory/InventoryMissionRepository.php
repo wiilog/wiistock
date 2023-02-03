@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method InventoryMission|null find($id, $lockMode = null, $lockVersion = null)
@@ -276,6 +277,15 @@ class InventoryMissionRepository extends EntityRepository {
                     $qb
                         ->andWhere('im.startPrevDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                    break;
+                case 'multipleTypes':
+                    $types = explode(',', $filter['value']);
+                    $types = Stream::from($types)
+                        ->map(fn(string $type) => strtok($type, ':'))
+                        ->toArray();
+                    $qb
+                        ->andWhere('im.type IN (:type_filter)')
+                        ->setParameter('type_filter', $types);
                     break;
             }
         }

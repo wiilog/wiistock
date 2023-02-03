@@ -40,6 +40,9 @@ class InvMissionService {
     #[Required]
     public UserService $userService;
 
+    #[Required]
+    public FormatService $formatService;
+
     public function getDataForMissionsDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
@@ -61,7 +64,7 @@ class InvMissionService {
         ];
     }
 
-    public function dataRowMission($mission): array {
+    public function dataRowMission(InventoryMission $mission): array {
         $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
         $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
@@ -83,7 +86,7 @@ class InvMissionService {
             'rate' => $this->templating->render('inventaire/datatableMissionsBar.html.twig', [
                 'rateBar' => $rateBar,
             ]),
-            'type' => $mission->getType($mission) ?? '',
+            'type' => $mission->getType() ?? '',
             'delete' => $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)
                 ? $this->templating->render('datatable/trash.html.twig', [
                     'id' => $mission->getId(),

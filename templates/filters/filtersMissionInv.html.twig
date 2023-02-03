@@ -3,5 +3,5 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterAnomaly.html.twig' %}
-    {% include 'filters/filter_item/filterTypeMultiple.html.twig' %}
+    {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {types: types} %}
 {% endblock %}
