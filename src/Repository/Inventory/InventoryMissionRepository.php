@@ -386,6 +386,7 @@ class InventoryMissionRepository extends EntityRepository {
             ->where($exprBuilder->andX(
                 'inventoryMission.startPrevDate <= :now',
                 'inventoryMission.endPrevDate >= :now',
+                'inventoryMission.done IS NULL OR inventoryMission.done = 0'
             ))
             ->setParameter('now', $now->format('Y-m-d'));
 

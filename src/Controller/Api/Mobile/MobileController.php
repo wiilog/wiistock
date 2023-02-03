@@ -2510,7 +2510,86 @@ class MobileController extends AbstractApiController
     {
         return $this->json([
             "success" => true,
-            "data" => $inventoryService->parseAndSummarizeInventory($request->request->all(), $entityManager)
+            "data" => $inventoryService->parseAndSummarizeInventory($request->request->all(), $entityManager, $this->getUser())
+        ]);
+    }
+
+
+    /**
+     * @Rest\Post("/api/finish-mission", name="api_finish_mission", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function finishMission(Request $request, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response
+    {
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $missionRepository = $entityManager->getRepository(InventoryMission::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $zoneRepository = $entityManager->getRepository(Zone::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $mission = $missionRepository->find($request->request->get('mission'));
+        $zones = $zoneRepository->findBy(["id" => json_decode($request->request->get('zones'))]);
+        $locations = $locationRepository->findByMissionAndZone($zones, $mission);
+        $tags = json_decode($request->request->get('tags'));
+
+        $articlesOnLocations = $articleRepository->findBy([
+            'emplacement' => $locations
+        ]);
+
+        $scannedArticles = [];
+        $missingArticles = [];
+
+        foreach ($articlesOnLocations as $article) {
+            if (in_array($article->getRFIDtag(), $tags)) {
+                $scannedArticles[] = $article;
+            } else {
+                $missingArticles[] = $article;
+            }
+        }
+
+        $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        foreach ($scannedArticles as $presentArticle) {
+            if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
+                $correctionMovement = new MouvementStock();
+                $correctionMovement
+                    ->setType(MouvementStock::TYPE_INVENTAIRE_ENTREE)
+                    ->setArticle($presentArticle)
+                    ->setDate(new DateTime())
+                    ->setQuantity($presentArticle->getQuantite())
+                    ->setEmplacementFrom($presentArticle->getEmplacement())
+                    ->setEmplacementTo($presentArticle->getEmplacement())
+                    ->setUser($this->getUser());
+                $entityManager->persist($correctionMovement);
+            }
+            $presentArticle
+                ->setStatut($activeStatus)
+                ->setDateLastInventory(new DateTime());
+        }
+
+        $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
+        foreach ($missingArticles as $missingArticle) {
+            if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
+                $correctionMovement = new MouvementStock();
+                $correctionMovement
+                    ->setType(MouvementStock::TYPE_INVENTAIRE_SORTIE)
+                    ->setArticle($missingArticle)
+                    ->setDate(new DateTime())
+                    ->setQuantity($missingArticle->getQuantite())
+                    ->setEmplacementFrom($missingArticle->getEmplacement())
+                    ->setEmplacementTo($missingArticle->getEmplacement())
+                    ->setUser($this->getUser());
+                $entityManager->persist($correctionMovement);
+            }
+            $missingArticle
+                ->setStatut($inactiveStatus)
+                ->setDateLastInventory(new DateTime());
+        }
+
+        $mission->setDone(true);
+        $entityManager->flush();
+        return $this->json([
+            "success" => true,
+            "data" => ""
         ]);
     }
 
