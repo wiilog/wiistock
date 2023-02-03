@@ -94,11 +94,13 @@ class PurchaseRequestRepository extends EntityRepository
                                 'search_requester.username LIKE :value',
                                 'search_status.nom LIKE :value',
                                 'search_buyer.username LIKE :value',
+                                'search_supplier.nom LIKE :value',
                             )
                             . ')')
                         ->leftJoin('purchase_request.requester', 'search_requester')
                         ->leftJoin('purchase_request.status', 'search_status')
                         ->leftJoin('purchase_request.buyer', 'search_buyer')
+                        ->leftjoin('purchase_request.supplier', 'search_supplier')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
