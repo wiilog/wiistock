@@ -175,6 +175,9 @@ function InitLocationMissionsDataTable() {
 
     let tableLocationMissionsConfig = {
         lengthMenu: [5, 10, 25],
+        processing: true,
+        serverSide: true,
+        paging: true,
         ajax: {
             url: pathLocationMission,
             type: "POST",
@@ -188,11 +191,8 @@ function InitLocationMissionsDataTable() {
             {data: 'percentage', name: 'percentage', title: 'Pourcentage'},
         ],
         order: [
-            ['percentage', 'asc'],
+            ['percentage', 'desc'],
         ],
-        domConfig: {
-            removeInfo: true
-        },
         rowConfig: {
             needsRowClickAction: true,
             needsColor: true,

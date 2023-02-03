@@ -169,20 +169,9 @@ class InventoryMissionController extends AbstractController
     public function getMissionLocationRefApi(EntityManagerInterface  $entityManager,
                                              InventoryMission        $mission,
                                              Request                 $request): JsonResponse {
-
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
 
-        $start = $request->query->get('start') ?: 0;
-        $search = $request->query->get('search') ?: 0;
-
-        $listLength = 5;
-
-        $result = $inventoryLocationMissionRepository->getDataByMission($mission, [
-            "start" => $start,
-            "length" => $listLength,
-            "search" => $search,
-        ]);
-
+        $result = $inventoryLocationMissionRepository->getDataByMission($mission, $request->request);
         return new JsonResponse($result);
     }
 
