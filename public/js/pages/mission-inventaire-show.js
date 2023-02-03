@@ -13,6 +13,7 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
 
+    InitLocationMissionsDataTable();
 });
 
 
@@ -158,4 +159,46 @@ function displayFirstModal({barcodesUL, barcodesToAdd, $modalAddToMission}) {
         keepModal: true,
     });
     $modalAddToMission.modal('show');
+}
+
+function clearMissionListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+    $searchInput.val(null);
+}
+
+
+function InitLocationMissionsDataTable() {
+    let pathLocationMission = Routing.generate('mission_location_ref_api', {mission: mission}, true);
+
+    let tableLocationMissionsConfig = {
+        lengthMenu: [5, 10, 25],
+        ajax: {
+            url: pathLocationMission,
+            type: "POST",
+        },
+        columns: [
+            {data: 'zone', name: 'zone', title: 'Zone'},
+            {data: 'location', name: 'location', title: 'Emplacement'},
+            {data: 'reference', name: 'reference', title: 'Référence'},
+            {data: 'scanDate', name: 'scanDate', title: 'Date de scan'},
+            {data: 'operator', name: 'operator', title: 'Opérateur'},
+            {data: 'percentage', name: 'percentage', title: 'Pourcentage'},
+        ],
+        order: [
+            ['percentage', 'asc'],
+        ],
+        domConfig: {
+            removeInfo: true
+        },
+        rowConfig: {
+            needsRowClickAction: true,
+            needsColor: true,
+            dataToCheck: 'urgence',
+            color: 'danger',
+        },
+    };
+    return initDataTable('tableLocationMissions', tableLocationMissionsConfig);
 }
