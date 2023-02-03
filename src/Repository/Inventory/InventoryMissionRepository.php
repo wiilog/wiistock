@@ -431,4 +431,75 @@ class InventoryMissionRepository extends EntityRepository {
             ->getQuery()
             ->getResult();
     }
+    public function getDataByMission(InventoryMission $mission, array $params) : array {
+        $start = $params['start'] ?? 0;
+        $length = $params['length'] ?? 5;
+        $search = $params['search'] ?? null;
+
+        $queryBuilder = $this->createQueryBuilder('inventory_location_mission');
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
+            ->select('inventory_location_mission.id AS id')
+            ->addSelect('join_inventoryMission.id AS missionId')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('inventory_location_mission.done AS done')
+
+            ->leftJoin('inventory_location_mission.inventoryMission', 'join_inventoryMission')
+            ->leftJoin('inventory_location_mission.location', 'join_location');
+
+        //if le champs done est à true
+        $queryBuilder
+            ->addSelect('join_zone.name AS zone')
+            ->addSelect('join_referenceArticle.reference AS reference')
+            ->addSelect('join_inventoryLocationMissionReferenceArticles.scannedAt AS scanDate')
+            ->addSelect('join_user.username AS operator')
+            ->addSelect('join_inventoryLocationMissionReferenceArticles.percentage AS percentage')
+
+            ->leftJoin('inventory_location_mission.inventoryLocationMissionReferenceArticles', 'join_inventoryLocationMissionReferenceArticles')
+            ->leftJoin('join_location.zone', 'join_zone')
+            ->leftJoin('join_inventoryLocationMissionReferenceArticles.referenceArticle', 'join_referenceArticle')
+            ->leftJoin('join_inventoryLocationMissionReferenceArticles.operator', 'join_user');
+        //endif
+
+        $queryBuilder
+            ->andWhere('join_inventoryMission.id = :mission')
+            ->addOrderBy('missionId')
+            ->setParameter('mission', $mission->getId());
+
+        if (!empty($search)) {
+            $queryBuilder
+                ->andWhere($exprBuilder->orX(
+                    'join_zone.name LIKE :search',
+                    'join_location.label LIKE :search',
+                    'join_referenceArticle.reference LIKE :search',
+                    'join_user.username LIKE :search',
+                ))
+                ->setParameter('search', "%$search%");
+        }
+
+        $queryResult = $queryBuilder->getQuery()->getResult();
+
+        $result = Stream::from($queryResult)
+            ->filterMap(fn(array $line) => ( [
+                    "id" => $line["id"],
+                    "missionId" => $line["missionId"],
+                    "zone" => $line["zone"] ?? null,
+                    "location" => $line["location"] ?? null,
+                    "reference" => $line["reference"] ?? null,
+                    "scanDate" => $line["scanDate"]?->format("d/m/Y H:i") ?? null,
+                    "operator" => $line["operator"] ?? null,
+                    "percentage" => $line["percentage"] . "%",
+                    ]
+            ));
+
+        $total = $result->count();
+        $result->slice($start, $length);
+
+        return [
+            "data" => $result->values(),
+            "total" => $total ?? 0
+        ];
+    }
+
 }
