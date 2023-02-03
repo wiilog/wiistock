@@ -2490,7 +2490,6 @@ class MobileController extends AbstractApiController
      */
     public function rfidSummary(Request $request, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response
     {
-        dump($request->request->all());
         return $this->json([
             "success" => true,
             "data" => $inventoryService->parseAndSummarizeInventory($request->request->all(), $entityManager)
@@ -3501,6 +3500,30 @@ class MobileController extends AbstractApiController
         $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
 
         return $this->json($associatedDocumentTypeElements);
+    }
+
+    /**
+     * @Rest\Post("/api/inventory-mission-validate-zone", name="api_inventory_mission_validate_zone", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postInventoryMissionValidateZone(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $zoneId = $request->request->getInt('zone');
+        $missionId = $request->request->get('mission');
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+        $queryResult = $inventoryLocationMissionRepository->getInventoryLocationMissionsByMission($missionId);
+        $inventoryLocationMissions = Stream::from($queryResult)
+            ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()->getZone() && $inventoryLocationMission->getLocation()->getZone()->getId() === $zoneId)
+            ->toArray();
+
+        foreach ($inventoryLocationMissions as $inventoryLocationMission){
+            $inventoryLocationMission->setDone(true);
+        }
+        $entityManager->flush();
+        return $this->json([
+            'success' => true
+        ]);
     }
 
 }
