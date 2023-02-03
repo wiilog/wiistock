@@ -290,15 +290,18 @@ class ArticleController extends AbstractController
      * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
+        if ($data = $request->request->all()) {
+            $article = $entityManager->getRepository(Article::class)->find($data['id']);
                 try {
-                    $this->articleDataService->editArticle($data);
+                    $article = $this->articleDataService->newArticle($data, $entityManager, $article);
                     $response = [
                         'success' => true,
-                        'data' => ['id' => intval($data['idArticle'])],
+                        'articleId' => $data['id'],
+                        'barcode' => $article->getBarCode(),
                     ];
+                    $entityManager->flush();
                 }
                 /** @noinspection PhpRedundantCatchClauseInspection */
                 catch(ArticleNotAvailableException $exception) {
@@ -753,6 +756,8 @@ class ArticleController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $freeFieldsGroupedByTypes = [];
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
 
         foreach ($types as $type) {
             $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
@@ -764,6 +769,7 @@ class ArticleController extends AbstractController
             "submit_url" => $this->generateUrl("article_edit"),
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
             "hasMovements" => $hasMovements,
+            "fieldsParam" => $fieldsParam,
         ]);
     }
 

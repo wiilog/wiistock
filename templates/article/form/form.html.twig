@@ -31,6 +31,8 @@
                     <div class="specifications w-100">
                         {% if article.id %}
                             <div><strong class="ref text-break">{{ article.barCode }}</strong></div>
+                            <input type="hidden" class="data" value="{{ article.id }}" name="id">
+                            <input type="hidden" class="data" value="{{ article.articleFournisseur.referenceArticle.id }}" name="refArticle">
                         {% endif %}
 
                         {% if article.id %}
