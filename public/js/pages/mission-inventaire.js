@@ -31,6 +31,7 @@ let tableMisionsConfig = {
         {data: `start`, title: `Date de début`},
         {data: `end`, title: `Date de fin`},
         {data: `rate`, title: `Taux d\`avancement`, orderable: false},
+        {data: `type`, title: `Type`},
     ]
 };
 let tableMissions = initDataTable(`tableMissionsInv`, tableMisionsConfig);

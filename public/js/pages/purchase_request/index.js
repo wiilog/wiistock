@@ -56,6 +56,7 @@ function initPageDataTable() {
             {"data": 'requester', 'name': 'Demandeur', 'title': 'Demandeur'},
             {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
             {"data": 'buyer', 'name': 'Acheteur', 'title': 'Acheteur'},
+            {"data": 'supplier', 'name': 'Fournisseur', 'title': 'Fournisseur'},
         ]
     };
     return initDataTable('tablePurchaseRequest', purchaseRequestTableConfig);

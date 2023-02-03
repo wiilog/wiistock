@@ -20,7 +20,8 @@ $(function() {
             {"data": 'requestedQuantity', 'title': 'Quantité demandée'},
             {"data": 'stockQuantity', 'title': 'Quantité en stock'},
             {"data": 'orderedQuantity', 'title': 'Quantité commandée'},
-            {"data": 'orderNumber', 'title': 'N° commande'}
+            {"data": 'orderNumber', 'title': 'N° commande'},
+            {"data": 'supplier', 'title': 'Fournisseur'}
         ],
     });
 
