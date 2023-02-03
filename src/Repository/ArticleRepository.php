@@ -876,6 +876,35 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
+    public function findGroupedByReferenceArticleAndLocation(array $locations, array $articles = []) {
+        $query = $this->createQueryBuilder("article")
+            ->select('COUNT(article.id) as quantity')
+            ->addSelect('MAX(emplacement.label) as location')
+            ->addSelect('MAX(referenceArticle.reference) as reference')
+            ->join("article.articleFournisseur", "af")
+            ->join("af.referenceArticle", "referenceArticle")
+            ->join("article.emplacement", "emplacement")
+            ->join("article.statut", "articleStatut")
+            ->where("articleStatut.nom IN (:statuses)")
+            ->andWhere('article.emplacement IN (:locations)')
+            ->setParameter("locations", $locations)
+            ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])
+            ->addGroupBy('af.referenceArticle')
+            ->addGroupBy('article.emplacement');
+
+        if (!empty($articles)) {
+            $query
+                ->andWhere('article.id IN (:articles)')
+                ->setParameter('articles', $articles);
+        }
+
+        return $query
+            ->orderBy('emplacement.id')
+            ->addOrderBy('referenceArticle.id')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function getArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {
         if(!empty($requests)) {
             $queryBuilder = $this->createQueryBuilder('article')

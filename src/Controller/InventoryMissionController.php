@@ -145,7 +145,7 @@ class InventoryMissionController extends AbstractController
      * @Route("/voir/{id}", name="inventory_mission_show", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
-    public function show(InventoryMission $mission): Response {
+    public function show(InventoryMission $mission, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response {
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
         ]);

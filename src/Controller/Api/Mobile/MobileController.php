@@ -37,6 +37,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Entity\Zone;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\NegativeQuantityException;
 use App\Exceptions\RequestNeedToBeProcessedException;
@@ -2501,6 +2502,19 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Post("/api/zone-rfid-summary", name="api_zone_rfid_summary", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function rfidSummary(Request $request, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response
+    {
+        return $this->json([
+            "success" => true,
+            "data" => $inventoryService->parseAndSummarizeInventory($request->request->all(), $entityManager)
+        ]);
+    }
+
+    /**
      * @Rest\Post("/api/emplacement", name="api-new-emp", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
@@ -3504,6 +3518,30 @@ class MobileController extends AbstractApiController
         $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
 
         return $this->json($associatedDocumentTypeElements);
+    }
+
+    /**
+     * @Rest\Post("/api/inventory-mission-validate-zone", name="api_inventory_mission_validate_zone", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postInventoryMissionValidateZone(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $zoneId = $request->request->getInt('zone');
+        $missionId = $request->request->get('mission');
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+        $queryResult = $inventoryLocationMissionRepository->getInventoryLocationMissionsByMission($missionId);
+        $inventoryLocationMissions = Stream::from($queryResult)
+            ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()->getZone() && $inventoryLocationMission->getLocation()->getZone()->getId() === $zoneId)
+            ->toArray();
+
+        foreach ($inventoryLocationMissions as $inventoryLocationMission){
+            $inventoryLocationMission->setDone(true);
+        }
+        $entityManager->flush();
+        return $this->json([
+            'success' => true
+        ]);
     }
 
 }

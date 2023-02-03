@@ -405,4 +405,20 @@ class InventoryMissionRepository extends EntityRepository {
             ->getQuery()
             ->getArrayResult();
     }
+
+    public function getInventoryLocationMissionsByMission($missionId): mixed {
+        $entityManager = $this->getEntityManager();
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('inventoryLocationMission')
+            ->from(InventoryLocationMission::class, 'inventoryLocationMission');
+
+        $queryBuilder
+            ->leftJoin('inventoryLocationMission.inventoryMission', 'inventoryMission')
+            ->andWhere('inventoryMission.id = :missionId')
+            ->setParameter("missionId", $missionId);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
 }
