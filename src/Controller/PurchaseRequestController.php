@@ -230,9 +230,7 @@ class PurchaseRequestController extends AbstractController
                 'stockQuantity' => isset($reference) ? $reference->getQuantiteStock() : "",
                 'orderedQuantity' => $requestLine->getOrderedQuantity(),
                 'orderNumber' => $requestLine->getOrderNumber(),
-                'supplier' => $requestLine->getSupplier()
-                    ? $requestLine->getSupplier()->getNom()
-                    :'-',
+                'supplier' => $this->formatService->supplier($requestLine->getSupplier()),
                 'actions' => $this->renderView('purchase_request/line/actions.html.twig', [
                     'lineId' => $requestLine->getId(),
                     'requestStatus' => $purchaseRequest->getStatus()
