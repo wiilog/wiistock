@@ -502,7 +502,6 @@ class InventoryMissionController extends AbstractController
      */
     public function addLocationsOrZonesToMissionDatatable(Request $request, EntityManagerInterface $entityManager){
         $data = $request->query->all();
-        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
 
         $dataToDisplay = [];
         if(isset($data['dataIdsToDisplay'])){
