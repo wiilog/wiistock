@@ -173,11 +173,7 @@ class InventoryMissionController extends AbstractController
                                              Request                 $request): JsonResponse {
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
 
-        $search = $request->query->get('search') ?: 0;
-        $result = $inventoryLocationMissionRepository->getDataByMission($mission, [
-            "search" => $search,
-        ]);
-
+        $result = $inventoryLocationMissionRepository->getDataByMission($mission, $request->request);
         return new JsonResponse($result);
     }
 

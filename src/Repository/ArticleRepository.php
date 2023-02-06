@@ -881,6 +881,7 @@ class ArticleRepository extends EntityRepository {
             ->select('COUNT(article.id) as quantity')
             ->addSelect('MAX(emplacement.label) as location')
             ->addSelect('MAX(referenceArticle.reference) as reference')
+            ->addSelect('MAX(referenceArticle.id) as referenceEntity')
             ->join("article.articleFournisseur", "af")
             ->join("af.referenceArticle", "referenceArticle")
             ->join("article.emplacement", "emplacement")
@@ -888,7 +889,7 @@ class ArticleRepository extends EntityRepository {
             ->where("articleStatut.nom IN (:statuses)")
             ->andWhere('article.emplacement IN (:locations)')
             ->setParameter("locations", $locations)
-            ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])
+            ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_INACTIF])
             ->addGroupBy('af.referenceArticle')
             ->addGroupBy('article.emplacement');
 

@@ -216,6 +216,9 @@ class InventoryMission {
         return $this;
     }
 
+    /**
+     * @return Collection<int, InventoryLocationMission>
+     */
     public function getInventoryLocationMissions(): Collection {
         return $this->inventoryLocationMissions;
     }

@@ -250,13 +250,13 @@ class EmplacementRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByMissionAndZone(Zone $zone, InventoryMission $mission) {
+    public function findByMissionAndZone(array $zones, InventoryMission $mission) {
         return $this->createQueryBuilder('location')
             ->join('location.inventoryLocationMissions', 'inventory_location_missions')
-            ->andWhere('location.zone = :zone')
+            ->andWhere('location.zone IN (:zones)')
             ->andWhere('inventory_location_missions.inventoryMission = :mission')
             ->setParameters([
-                'zone' => $zone,
+                'zones' => $zones,
                 'mission' => $mission,
             ])
             ->getQuery()

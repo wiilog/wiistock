@@ -183,7 +183,10 @@ function initLocationMissionsDataTable() {
     let pathLocationMission = Routing.generate('mission_location_ref_api', {mission: mission}, true);
 
     let tableLocationMissionsConfig = {
-        lengthMenu: [10, 25, 50],
+        lengthMenu: [5, 10, 25],
+        processing: true,
+        serverSide: true,
+        paging: true,
         ajax: {
             url: pathLocationMission,
             type: "POST",
@@ -197,11 +200,8 @@ function initLocationMissionsDataTable() {
             {data: 'percentage', name: 'percentage', title: 'Pourcentage'},
         ],
         order: [
-            ['percentage', 'asc'],
+            ['percentage', 'desc'],
         ],
-        domConfig: {
-            removeInfo: true
-        },
         rowConfig: {
             needsRowClickAction: true,
             needsColor: true,
