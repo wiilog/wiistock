@@ -64,7 +64,8 @@ function getFreeFieldsByType(referenceId) {
 
     return AJAX.route(GET, `get_free_fields_by_type`, {referenceId})
         .json()
-        .then(({template}) => {
+        .then(({template, type}) => {
             $freeFieldsContainer.empty().html(template);
+            $parent.find(`input[name=type]`).val(type);
         });
 }

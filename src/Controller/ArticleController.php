@@ -791,7 +791,8 @@ class ArticleController extends AbstractController
             'success' => true,
             'template' => $this->renderView('article/form/free-fields.html.twig', [
                 'freeFields' => $freeFields
-            ])
+            ]),
+            'type' => $reference?->getType()?->getLabel()
         ]);
     }
 }
