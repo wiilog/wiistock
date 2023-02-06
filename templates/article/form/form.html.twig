@@ -39,9 +39,14 @@
                                 <div><strong class="text-break wii-subtitle">{{ article.referenceArticle.libelle }}</strong></div>
                             </div>
                         {% else %}
-                            <div class="form-group w-100">
+                            <div class="form-group">
                                 {{ form.select('refArticle', trans('Stock', 'Références', 'Référence', false), true, {
                                     type: 'reference',
+                                }) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.input('type', trans('Stock', 'Références', 'Type', false), false, null, {
+                                    disabled: true,
                                 }) }}
                             </div>
                             <div class="form-group">

@@ -289,8 +289,8 @@ class ArticleDataService
             ->setStockEntryDate(new DateTime("now"))
             ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
             ->setNativeCountry($data['nativeCountry'] ?? null)
-            ->setProductionDate($data['productionDate'] ?? null)
-            ->setManifacturingDate($data['manufactureDate'] ?? null)
+            ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
+            ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
             ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
             ->setRFIDtag($data['rfidTag'] ?? null)
             ->setBatch($data['batch'] ?? null);
