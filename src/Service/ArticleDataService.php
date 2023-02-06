@@ -232,7 +232,7 @@ class ArticleDataService
         }
     }
 
-    public function newArticle(array $data, EntityManagerInterface $entityManager): Article {
+    public function newArticle(array $data, EntityManagerInterface $entityManager, Article $existing = null): Article {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -272,37 +272,45 @@ class ArticleDataService
             $location->setIsActive(true);
         }
 
-        $type = $articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
-        $quantity = max((int)$data['quantite'], 0); // protection contre quantités négatives
-        $article = (new Article())
-            ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
-            ->setConform(!isset($data['conform']) && $data['conform'])
-            ->setStatut($statut)
-            ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
-            ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
-            ->setReference("$refReferenceArticle$formattedDate$cpt")
-            ->setQuantite($quantity)
-            ->setEmplacement($location)
-            ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
-            ->setType($type)
-            ->setBarCode($data['barcode'] ?? $this->generateBarCode())
-            ->setStockEntryDate(new DateTime("now"))
-            ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
-            ->setNativeCountry($data['nativeCountry'] ?? null)
-            ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
-            ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
-            ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
-            ->setRFIDtag($data['rfidTag'] ?? null)
-            ->setBatch($data['batch'] ?? null);
+        $type = $refArticle->getType();
+        $quantity = max((int)($data['quantite'] ?? -1), 0); // protection contre quantités négatives
+        if ($existing) {
+            $existing
+                ->setRFIDtag($data['rfidTag'] ?? null)
+                ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+        } else {
+            $article = (new Article())
+                ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
+                ->setConform(!isset($data['conform']) && $data['conform'])
+                ->setStatut($statut)
+                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
+                ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
+                ->setReference("$refReferenceArticle$formattedDate$cpt")
+                ->setQuantite($quantity)
+                ->setEmplacement($location)
+                ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
+                ->setType($type)
+                ->setBarCode($data['barcode'] ?? $this->generateBarCode())
+                ->setStockEntryDate(new DateTime("now"))
+                ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
+                ->setNativeCountry($data['nativeCountry'] ?? null)
+                ->setProductionDate($data['productionDate'] ?? null)
+                ->setManifacturingDate($data['manufactureDate'] ?? null)
+                ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
+                ->setRFIDtag($data['rfidTag'] ?? null)
+                ->setBatch($data['batch'] ?? null)
+                ->setDestinationArea($data['destinationArea'] ?? null);
 
-        if (isset($data['expiry'])) {
-            $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+
+            if (isset($data['expiry'])) {
+                $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+            }
+            $entityManager->persist($article);
         }
 
-        $entityManager->persist($article);
-        $this->freeFieldService->manageFreeFields($article, $data, $entityManager);
+        $this->freeFieldService->manageFreeFields($existing ?? $article, $data, $entityManager);
 
-        return $article;
+        return $existing ?? $article;
     }
 
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne): array

@@ -13,7 +13,7 @@ $(function () {
     Form.create($(`.details-page-container`))
         .onSubmit((data) => {
             wrapLoadingOnActionButton($(`.save-buttons`).find(`button[type=submit]`), () => (
-                AJAX.route(POST, `article_new`)
+                AJAX.route(POST, articleId ? 'article_edit' : `article_new`)
                     .json(data)
                     .then(({articleId, success, barcode}) => {
                         if (success) {
