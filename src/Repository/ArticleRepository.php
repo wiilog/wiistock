@@ -876,7 +876,10 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function findGroupedByReferenceArticleAndLocation(array $locations, array $articles = []) {
+    public function findGroupedByReferenceArticleAndLocation(array $locations, array $filteredArticles = null) {
+        if (empty($filteredArticles) && $filteredArticles !== null) {
+            return [];
+        }
         $query = $this->createQueryBuilder("article")
             ->select('COUNT(article.id) as quantity')
             ->addSelect('MAX(emplacement.label) as location')
@@ -886,17 +889,18 @@ class ArticleRepository extends EntityRepository {
             ->join("af.referenceArticle", "referenceArticle")
             ->join("article.emplacement", "emplacement")
             ->join("article.statut", "articleStatut")
-            ->where("articleStatut.nom IN (:statuses)")
+            ->andWhere("articleStatut.nom IN (:statuses)")
             ->andWhere('article.emplacement IN (:locations)')
+            ->andWhere('article.RFIDtag IS NOT NULL')
             ->setParameter("locations", $locations)
             ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_INACTIF])
             ->addGroupBy('af.referenceArticle')
             ->addGroupBy('article.emplacement');
 
-        if (!empty($articles)) {
+        if (!empty($filteredArticles)) {
             $query
                 ->andWhere('article.id IN (:articles)')
-                ->setParameter('articles', $articles);
+                ->setParameter('articles', $filteredArticles);
         }
 
         return $query
