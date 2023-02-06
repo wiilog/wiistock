@@ -12,6 +12,7 @@ use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Repository\TypeRepository;
 use App\Entity\Type;
@@ -81,7 +82,20 @@ class InventoryMissionController extends AbstractController
             $mission
                 ->setStartPrevDate(DateTime::createFromFormat('Y-m-d', $data['startDate']))
                 ->setEndPrevDate(DateTime::createFromFormat('Y-m-d', $data['endDate']))
+                ->setCreatedAt(new DateTime('now'))
                 ->setName($data['name']);
+
+            $requesterId = $data['requester'] ?? null;
+            if ($requesterId) {
+                $userRepository = $em->getRepository(Utilisateur::class);
+                $requester = $userRepository->find($requesterId);
+                $mission->setRequester($requester);
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Veuillez sélectionner un demandeur."
+                ]);
+            }
 
             if (isset($data['missionType'])) {
                 $mission->setType($data['missionType']);
@@ -559,7 +573,6 @@ class InventoryMissionController extends AbstractController
         $inventoryMission = $inventoryMissionRepository->find($request->query->get('mission'));
         $locations = $locationRepository->findBy(['id' => $request->query->all('locations')]);
 
-        dump($locations);
         foreach ($locations as $location){
             $inventoryLocationMission = (new InventoryLocationMission())
                 ->setInventoryMission($inventoryMission)
