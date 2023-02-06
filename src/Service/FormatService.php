@@ -21,6 +21,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Entity\Zone;
 use DateTime;
 use DateTimeInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -358,5 +359,9 @@ class FormatService
             "<a href=\"tel:$0\">$0</a>",
             $stringWithPhone
         ) : null;
+    }
+
+    public function zone(?Zone $zone, $else = "") {
+        return $zone ? $zone->getName() : $else;
     }
 }

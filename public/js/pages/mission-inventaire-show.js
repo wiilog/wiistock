@@ -12,12 +12,21 @@ $(function () {
     $.post(path, params, function (data) {
         displayFiltersSup(data);
     }, 'json');
+    let typeLocation = $('#typeLocation').val();
+    let locationsAlreadyAdded = Boolean($('#locationsAlreadyAdded').val());
 
-    InitLocationMissionsDataTable();
+    if(typeLocation && !locationsAlreadyAdded){
+        const tableLocations = $('#tableLocations');
+        onOpenModalAddLocationAndZone(tableLocations);
+        initModalAddTableLocations();
+    }
+
+    initLocationMissionsDataTable();
 });
 
 
 let mission = $('#missionId').val();
+let tableLocationMission;
 let pathApiArticle = Routing.generate('inv_entry_article_api', {id: mission}, true);
 let tableArticleConfig = {
     processing: true,
@@ -170,11 +179,11 @@ function clearMissionListSearching() {
 }
 
 
-function InitLocationMissionsDataTable() {
+function initLocationMissionsDataTable() {
     let pathLocationMission = Routing.generate('mission_location_ref_api', {mission: mission}, true);
 
     let tableLocationMissionsConfig = {
-        lengthMenu: [5, 10, 25],
+        lengthMenu: [10, 25, 50],
         ajax: {
             url: pathLocationMission,
             type: "POST",
@@ -200,5 +209,90 @@ function InitLocationMissionsDataTable() {
             color: 'danger',
         },
     };
-    return initDataTable('tableLocationMissions', tableLocationMissionsConfig);
+    tableLocationMission = initDataTable('tableLocationMissions', tableLocationMissionsConfig);
+}
+
+function onOpenModalAddLocationAndZone(tableLocations){
+    let $modalAddLocationAndZoneToMission = $('#modalAddLocationAndZoneToMission');
+
+    Form.create($modalAddLocationAndZoneToMission)
+        .onSubmit(() => {
+            wrapLoadingOnActionButton($modalAddLocationAndZoneToMission.find('button[type=submit]'),() => {
+                return AJAX.route(`POST`, `add_locations_or_zones_to_mission`, {
+                    mission,
+                    locations: tableLocations.DataTable().column(2).data().toArray()
+                })
+                    .json()
+                    .then((response) => {
+                        if(response.success){
+                            $modalAddLocationAndZoneToMission.modal('hide');
+                            tableLocationMission.ajax.reload();
+                        }
+                    });
+            });
+        });
+
+    $modalAddLocationAndZoneToMission.find('.add-button').on('click', function(){
+        wrapLoadingOnActionButton($(this), () => {
+            const buttonType = $(this).data('type');
+            let ids = [];
+            $(this).closest('.row').find('select').find('option:selected').each(function() {
+                ids.push($(this).val());
+                $(this).parent().empty();
+            });
+            return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
+                buttonType,
+                mission,
+                dataIdsToDisplay: ids,
+            })
+                .json()
+                .then((response) => {
+                    if(response.success){
+                        initModalAddTableLocations(response.data);
+                    }
+                });
+            }
+        )
+    });
+
+    $modalAddLocationAndZoneToMission.modal('show');
+}
+
+function initModalAddTableLocations(dataToDisplay = null){
+    const tableLocations = $('#tableLocations');
+
+    if(dataToDisplay){
+        const tableLocationsDatatable = tableLocations.DataTable();
+        const tableLocationsData = tableLocationsDatatable.column(1).data().toArray();
+        for (const lineToAdd of dataToDisplay){
+            if(Array.isArray(lineToAdd)){
+                for (const line of lineToAdd){
+                    if(!tableLocationsData.includes(line.location)){
+                        tableLocationsDatatable.row.add(line).draw(false);
+                    }
+                }
+            } else {
+                if(!tableLocationsData.includes(lineToAdd.location)){
+                    tableLocationsDatatable.row.add(lineToAdd).draw(false);
+                }
+            }
+        }
+    } else {
+        initDataTable('tableLocations', {
+            lengthMenu: [10, 25, 50],
+            columns: [
+                {data: 'zone', name: 'zone', title: 'Zone'},
+                {data: 'location', name: 'location', title: 'Emplacement'},
+                {data: 'id', name: 'id', title: 'id', visible: false },
+            ],
+            order: [
+                ['location', 'asc'],
+            ],
+            domConfig: {
+                removeInfo: true
+            },
+            paging: true,
+            searching: false,
+        });
+    }
 }

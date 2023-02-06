@@ -432,8 +432,6 @@ class InventoryMissionRepository extends EntityRepository {
             ->getResult();
     }
     public function getDataByMission(InventoryMission $mission, array $params) : array {
-        $start = $params['start'] ?? 0;
-        $length = $params['length'] ?? 5;
         $search = $params['search'] ?? null;
 
         $queryBuilder = $this->createQueryBuilder('inventory_location_mission');
@@ -494,7 +492,6 @@ class InventoryMissionRepository extends EntityRepository {
             ));
 
         $total = $result->count();
-        $result->slice($start, $length);
 
         return [
             "data" => $result->values(),

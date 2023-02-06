@@ -12,6 +12,8 @@
 
 {% block page_content %}
     <input value="{{ missionId }}" id="missionId" hidden/>
+    <input value="{{ typeLocation }}" id="typeLocation" hidden/>
+    <input value="{{ locationsAlreadyAdded }}" id="locationsAlreadyAdded" hidden/>
     {% if typeLocation %}
         <div class="mx-4 mt-3 mb-2">
                 <div class="wii-box mt-0">
@@ -91,10 +93,11 @@
                 </div>
             </div>
         </div>
-        {% include 'inventaire/modalAddToMission.html.twig' %}
-        {% include 'inventaire/modalAddLocationToMission.html.twig' %}
-        {% include 'inventaire/modalRemoveRef.html.twig' %}
     {% endif %}
+    {% include 'inventaire/modalAddToMission.html.twig' %}
+    {% include 'inventaire/modalAddLocationToMission.html.twig' %}
+    {% include 'inventaire/modalAddLocationAndZoneToMission.html.twig' %}
+    {% include 'inventaire/modalRemoveRef.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
