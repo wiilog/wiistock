@@ -186,12 +186,12 @@ function InitLocationMissionsDataTable() {
             {data: 'zone', name: 'zone', title: 'Zone'},
             {data: 'location', name: 'location', title: 'Emplacement'},
             {data: 'reference', name: 'reference', title: 'Référence'},
-            {data: 'scanDate', name: 'scanDate', title: 'Date de scan'},
+            {data: 'date', name: 'date', title: 'Date de scan'},
             {data: 'operator', name: 'operator', title: 'Opérateur'},
             {data: 'percentage', name: 'percentage', title: 'Pourcentage'},
         ],
         order: [
-            ['percentage', 'desc'],
+            ['percentage', 'asc'],
         ],
         rowConfig: {
             needsRowClickAction: true,

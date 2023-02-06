@@ -6,7 +6,7 @@
 {% block page_filter %}
     {% include 'filters/filtersMissionInv.html.twig' with {
         'page': 'PAGE_INV_SHOW_MISSION',
-        'tableSelector': typeLocation ? 'tableLocationMissions' : '#tableMissionInvArticle, #tableMissionInvReferenceArticle',
+        'tableSelector': typeLocation ? '#tableLocationMissions' : '#tableMissionInvArticle, #tableMissionInvReferenceArticle',
     } %}
 {% endblock %}
 
@@ -16,7 +16,7 @@
         <div class="mx-4 mt-3 mb-2">
                 <div class="wii-box mt-0">
                     <div class="content">
-                        <table id="tableLocationMissions"></table>
+                        <table id="tableLocationMissions" class="table"></table>
                 </div>
             </div>
         </div>
