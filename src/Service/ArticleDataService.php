@@ -404,6 +404,11 @@ class ArticleDataService
                 'lu' => $ul,
             ]),
             'project' => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? '',
+            "manufactureDate" => $this->formatService->date($article->getManifacturingDate()),
+            "productionDate" => $this->formatService->date($article->getProductionDate()),
+            "deliveryNoteLine" => $article->getDeliveryNote() ?: '',
+            "purchaseOrderLine" => $article->getPurchaseOrder() ?: '',
+            "nativeCountry" => $article->getNativeCountry() ? $article->getNativeCountry()->getLabel() : '',
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
@@ -582,6 +587,11 @@ class ArticleDataService
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
             ["title" => "Projet", "name" => "project", 'searchable' => true],
+            ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
+            ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],
+            ["title" => "Ligne bon de livraison", "name" => "deliveryNoteLine", 'searchable' => true],
+            ["title" => "Ligne commande d'achat", "name" => "purchaseOrderLine", 'searchable' => true],
+            ["title" => "Pays d'origine", "name" => "nativeCountry", 'searchable' => true],
         ];
 
         return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getVisibleColumns()['article']);

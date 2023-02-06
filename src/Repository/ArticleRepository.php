@@ -371,6 +371,18 @@ class ArticleRepository extends EntityRepository {
                                     $ids[] = $idArray['id'];
                                 }
                                 break;
+                            case "nativeCountry":
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.nativeCountry', 'search_nativeCountry')
+                                    ->andWhere('search_nativeCountry.label LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+
+                                break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
