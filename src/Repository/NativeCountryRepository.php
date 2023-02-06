@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\NativeCountry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -17,7 +18,7 @@ class NativeCountryRepository extends EntityRepository {
             ->select("native_country.id AS id")
             ->addSelect("native_country.code AS code")
             ->andWhere("native_country.active = 1")
-            ->andWhere("type.label LIKE :term")
+            ->andWhere("native_country.label LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
