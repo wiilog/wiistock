@@ -12,6 +12,9 @@ use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Repository\TypeRepository;
+use App\Entity\Type;
+use App\Entity\CategoryType;
 use WiiCommon\Helper\Stream;
 use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
@@ -36,8 +39,16 @@ class InventoryMissionController extends AbstractController
      * @Route("/", name="inventory_mission_index")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
-    public function index(): Response {
-        return $this->render('inventaire/index.html.twig');
+    public function index(EntityManagerInterface $entityManager): Response {
+
+        return $this->render('inventaire/index.html.twig', [
+            'types' => Stream::from(InventoryMission::INVENTORY_TYPES)
+                ->map(fn(String $type) => [
+                    'id' => $type,
+                    'label' => $type
+                ])
+                ->toArray(),
+        ]);
     }
 
     /**
@@ -70,6 +81,14 @@ class InventoryMissionController extends AbstractController
                 ->setStartPrevDate(DateTime::createFromFormat('Y-m-d', $data['startDate']))
                 ->setEndPrevDate(DateTime::createFromFormat('Y-m-d', $data['endDate']))
                 ->setName($data['name']);
+
+            if (isset($data['missionType'])) {
+                $mission->setType($data['missionType']);
+            }
+
+            if (isset($data['description'])) {
+                $mission->setDescription($data['description']);
+            }
 
             $em->persist($mission);
             $em->flush();

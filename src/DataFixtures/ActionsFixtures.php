@@ -340,6 +340,9 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_ACCESS_GROUP,
                 Action::MODULE_ACCESS_UNGROUP,
             ],
+            self::SUB_MENU_STOCK => [
+                Action::CREATE_ARTICLE_FROM_NOMADE
+            ],
         ],
     ];
 

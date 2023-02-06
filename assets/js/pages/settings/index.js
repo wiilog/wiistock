@@ -53,6 +53,7 @@ const initializers = {
     global_etiquettes: initializeGlobalLabels,
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
+    stock_articles_champs_fixes: initializeArticleFixedFields,
     stock_demandes_types_champs_libres_livraisons: createDeliveryRequestFieldsPage,
     stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
     track_demande_transport_types_champs_libres_livraisons: createFreeFieldsPage,
@@ -76,7 +77,7 @@ const initializers = {
     stock_demandes_livraisons: initializeDeliveries,
     stock_inventaires_frequences: initializeInventoryFrequenciesTable,
     stock_inventaires_categories: initializeInventoryCategoriesTable,
-    stock_inventaires_missions: initializeInventoryMissionsTable,
+    stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
     stock_borne_tactile: initializeTouchTerminal,
     utilisateurs_utilisateurs: initUserPage,
@@ -95,7 +96,8 @@ const initializers = {
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
-    stock_articles_pays_d_origine: initializeArticleNativeCountriesTable
+    stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
+    stock_articles_creation_nomade_rfid: initializeMobileRFIDCreation
 };
 
 const saveCallbacks = {
@@ -623,6 +625,30 @@ function initializeDispatchFixedFields($container, canEdit) {
     });
 }
 
+function initializeArticleFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-article-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `articles`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+}
+
 function initializeArrivalFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-arrival-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `arrivage`}),
@@ -844,7 +870,7 @@ function initializeInventoryCategoriesTable(){
     });
 }
 
-function initializeInventoryMissionsTable($container){
+function initializeInventoryPlanificatorTable($container){
     $container.on(`click`, `.force-missions`, function() {
         AJAX.route(`POST`, `settings_mission_rules_force`)
             .json()
@@ -854,48 +880,22 @@ function initializeInventoryMissionsTable($container){
     const table = EditableDatatable.create(`#missionRulesTable`, {
         route: Routing.generate('settings_mission_rules_api', true),
         deleteRoute: `settings_delete_mission_rule`,
-        mode: MODE_CLICK_EDIT_AND_ADD,
+        mode: MODE_NO_EDIT,
         save: SAVE_MANUALLY,
-        search: false,
+        search: true,
         paginate: false,
         scrollY: false,
         scrollX: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `missionType`, title: `Type de mission`, required: true},
             {data: `label`, title: `Libellé`, required: true},
-            {data: `categories`, title: `Catégorie(s)`, required: true},
             {data: `periodicity`, title: `Périodicité`, required: true},
+            {data: `categories`, title: `Catégorie(s)`, required: true},
             {data: `duration`, title: `Durée`, required: true},
+            {data: `creator`, title: `Créateur`, required: true},
+            {data: `lastExecution`, title: `Dernière exécution`, required: true},
         ],
-        form: {
-            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-            label: `<input type='text' name='label' class='form-control data needed' data-global-error='Libellé'/>`,
-            categories: `<select name='categories' class='form-control data needed' data-s2='inventoryCategories' multiple data-parent='body' data-global-error='Catégorie(s)'></select>`,
-            periodicity: `
-                <div class='d-flex'>
-                    <input type='text' name='periodicity' class='form-control data needed mr-1 w-50px' data-global-error='Périodicité'/>
-                    <select name='periodicityUnit' class='form-control data needed maxw-150px' data-global-error='Unité de periodicité'>
-                        <option value='weeks'>semaine(s)</option>
-                        <option value='months'>mois(s)</option>
-                    </select>
-                </div>
-            `,
-            duration: `
-                <div class='d-flex'>
-                    <input type='text' name='duration' class='form-control data needed mr-1 w-50px' data-global-error='Durée'/>
-                    <select name='durationUnit' class='form-control data needed maxw-150px' data-global-error='Unité de durée'>
-                        <option value='weeks'>semaine(s)</option>
-                        <option value='months'>mois(s)</option>
-                    </select>
-                </div>
-            `,
-        },
     });
 }
 
@@ -1218,4 +1218,7 @@ function initializeArticleNativeCountriesTable() {
             active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
         },
     });
+}
+
+function initializeMobileRFIDCreation($container){
 }

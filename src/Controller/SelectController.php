@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
 use App\Entity\Customer;
 use App\Entity\Dispatch;
@@ -14,6 +15,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
+use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Project;
@@ -29,6 +31,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Entity\Zone;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -236,8 +239,9 @@ class SelectController extends AbstractController {
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
+        $needsOnlyMobileSyncReference = $request->query->getBoolean('needs-mobile-sync');
 
-        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user);
+        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user, $needsOnlyMobileSyncReference);
 
         return $this->json([
             "results" => $results,
@@ -429,9 +433,10 @@ class SelectController extends AbstractController {
      */
     public function supplierByCode(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
+        $reference = $request->query->get('refArticle');
 
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-        $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search);
+        $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search, $reference);
 
         return $this->json(['results' => $fournisseur]);
     }
@@ -624,6 +629,17 @@ class SelectController extends AbstractController {
     }
 
     /**
+     * @Route("/select/zones", name="ajax_select_zones", options={"expose": true})
+     */
+    public function zones(Request $request, EntityManagerInterface $entityManager): Response {
+        $zones = $entityManager->getRepository(Zone::class)->getForSelect($request->query->get("term"));
+
+        return $this->json([
+            "results" => $zones
+        ]);
+    }
+
+    /**
      * @Route("/select/articles", name="ajax_select_articles", options={"expose"=true})
      */
     public function articles(Request $request, EntityManagerInterface $entityManager): Response {
@@ -720,6 +736,46 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $naturesOrTypes,
+        ]);
+    }
+
+    /**
+     * @Route("/select/provider", name="ajax_select_provider", options={"expose"=true})
+     */
+    public function provider(Request $request,
+                                   EntityManagerInterface $entityManager): Response
+    {
+        $search = $request->query->get('term');
+
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search);
+
+        return $this->json(['results' => $fournisseur]);
+    }
+
+    /**
+     * @Route("/select/native-countries", name="ajax_select_native_countries", options={"expose": true})
+     */
+    public function nativeCountries(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get("term");
+        $nativeCountries = $entityManager->getRepository(NativeCountry::class)->getForSelect($search);
+
+        return $this->json([
+            "results" => $nativeCountries
+        ]);
+    }
+
+    /**
+     * @Route("/select/supplier-articles", name="ajax_select_supplier_articles", options={"expose": true})
+     */
+    public function supplierArticles(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get('term');
+        $supplier = $request->query->get('fournisseur');
+
+        $supplierArticles = $entityManager->getRepository(ArticleFournisseur::class)->getForSelect($search, $supplier);
+
+        return $this->json([
+            "results" => $supplierArticles
         ]);
     }
 }

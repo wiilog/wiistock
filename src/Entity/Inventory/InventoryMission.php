@@ -17,6 +17,8 @@ class InventoryMission {
     const ARTICLE_TYPE = 'article';
     const LOCATION_TYPE = 'location';
 
+    const INVENTORY_TYPES = [self::ARTICLE_TYPE, self::LOCATION_TYPE];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -41,7 +43,7 @@ class InventoryMission {
     private Collection $articles;
 
     #[ORM\ManyToOne(targetEntity: InventoryMissionRule::class, inversedBy: 'createdMissions')]
-    private InventoryMissionRule $creator;
+    private ?InventoryMissionRule $creator = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $description = null;

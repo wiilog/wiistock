@@ -308,6 +308,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPATCH_WAYBILL_TYPE_TO_USE => [
                 'default' => Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD
             ],
+            Setting::RFID_PREFIXE => [],
+            Setting::RFID_KPI_MIN => [],
+            Setting::RFID_KPI_MAX => [],
         ];
 
         $appClient = $this->specificService->getAppClient();

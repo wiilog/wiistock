@@ -8,9 +8,11 @@ use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
@@ -31,6 +33,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\ArticleDataService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
+use App\Service\SettingsService;
 use App\Service\TagTemplateService;
 use App\Service\UserService;
 use App\Annotation\HasPermission;
@@ -145,14 +148,17 @@ class ArticleController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
      */
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
         $type = $article->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
 
         return $this->render("article/show/index.html.twig", [
             'article' => $article,
             'hasMovements' => $hasMovements,
             'freeFields' => $freeFields,
+            'fieldsParam' => $fieldsParam,
         ]);
     }
 
@@ -210,15 +216,38 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
+    #[Route("/nouveau-page", name: "article_new_page", options: ["expose" => true])]
+    public function newTemplate(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+
+        $barcode = $articleDataService->generateBarCode();
+
+        return $this->render("article/form/new.html.twig", [
+            "new_article" => new Article(),
+            "submit_url" => $this->generateUrl("article_new"),
+            "types" => $types,
+            "fieldsParam" => $fieldsParam,
+            "barcode" => $barcode
+        ]);
+    }
+
     /**
      * @Route("/nouveau", name="article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
-                        MouvementStockService $mouvementStockService): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
+                        MouvementStockService $mouvementStockService,
+                        ArticleDataService $articleDataService): Response {
+        $data = $request->request->all();
+
+        $barcode = $data['barcode'];
+        $existingArticle = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $barcode]);
+        if(!$existingArticle) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
             $article = $this->articleDataService->newArticle($data, $entityManager);
@@ -244,9 +273,17 @@ class ArticleController extends AbstractController
                 $entityManager->flush();
             }
 
-            return new JsonResponse(!empty($article));
+            return $this->json([
+                'success' => true,
+                'articleId' => $article->getId(),
+            ]);
+        } else {
+            return $this->json([
+                'success' => false,
+                'msg' => "Le code barre de l'article a été actualisé, veuillez valider de nouveau le formulaire.",
+                'barcode' => $articleDataService->generateBarCode()
+            ]);
         }
-        throw new BadRequestHttpException();
     }
 
     /**
@@ -727,6 +764,28 @@ class ArticleController extends AbstractController
             "submit_url" => $this->generateUrl("article_edit"),
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
             "hasMovements" => $hasMovements,
+        ]);
+    }
+
+    #[Route("/get-free-fields-by-type", name: "get_free_fields_by_type", options: ["expose" => true], methods: "GET")]
+    public function getFreefieldsByType(Request $request, EntityManagerInterface $manager): Response {
+        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+
+        $reference = $request->query->has('referenceId')
+            ? $referenceArticleRepository->find($request->query->get('referenceId'))
+            : null;
+
+        $freeFields = [];
+        if($reference) {
+            $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($reference->getType(), CategorieCL::ARTICLE);
+        }
+
+        return $this->json([
+            'success' => true,
+            'template' => $this->renderView('article/form/free-fields.html.twig', [
+                'freeFields' => $freeFields
+            ])
         ]);
     }
 }

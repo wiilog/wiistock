@@ -1,0 +1,105 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section-title">Création d'un article</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 wii-small-text mb-3"></div>
+    </div>
+    <div class="row wii-form">
+        <div class="form-group col-4">
+            {% set settingTypeArticle = setting_value('ARTICLE_TYPE', 'App\\Entity\\Type') %}
+            {{ form.select(setting('ARTICLE_TYPE'), 'Type', false, {
+                type: 'types',
+                placeholder: 'Sélectionnez un type',
+                includeParams: '[name=categoryType]',
+                search: true,
+                value: settingTypeArticle ? settingTypeArticle.id : null,
+                items: settingTypeArticle ? {
+                    0: {
+                        'value': settingTypeArticle.id,
+                        'label':  settingTypeArticle.label,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+        <div class="form-group col-4">
+            {% set settingArticleReference = setting_value('ARTICLE_REFERENCE', 'App\\Entity\\ReferenceArticle') %}
+            {{ form.select(setting('ARTICLE_REFERENCE'), 'Référence', false, {
+                type: 'reference',
+                placeholder: 'Sélectionnez une référence',
+                search: true,
+                value: settingArticleReference ? settingArticleReference.id : null,
+                items: settingArticleReference ? {
+                    0: {
+                        'value': settingArticleReference.id,
+                        'label':  settingArticleReference.reference,
+                        'selected': true
+                    }
+                } : null,
+                additionalAttributes : [{
+                    'name': 'data-other-params-needs-mobile-sync',
+                    'value': true
+
+                }]
+            }) }}
+        </div>
+        <div class="form-group col-4">
+            {{ form.input(setting('ARTICLE_LABEL'), 'Libellé', false, setting_value('ARTICLE_LABEL')) }}
+        </div>
+        <div class="form-group col-4">
+            {{ form.input(setting('ARTICLE_QUANTITY'), "Quantité", false, setting_value('ARTICLE_QUANTITY'), {
+                type: 'number',
+                min: 1
+            }  ) }}
+        </div>
+        <div class="form-group col-4">
+            {% set settingProvider = setting_value('ARTICLE_SUPPLIER', 'App\\Entity\\Fournisseur') %}
+            {{ form.select(setting('ARTICLE_SUPPLIER'), "Fournisseur", false, {
+                type: 'provider',
+                placeholder: 'Sélectionnez un fournisseur',
+                value: settingProvider ? settingProvider.id : null,
+                items: settingProvider ? {
+                    0: {
+                        'value': settingProvider.id,
+                        'label': settingProvider.nom,
+                        'selected': true
+                    }
+                } : null,
+            }  ) }}
+        </div>
+        <div class="form-group col-4">
+            {% set settingLocation = setting_value('ARTICLE_LOCATION', 'App\\Entity\\Emplacement') %}
+            {{ form.select(setting('ARTICLE_LOCATION'), "Emplacement", false, {
+                type: 'location',
+                placeholder: 'Sélectionnez un emplacement',
+                search: true,
+                value: settingLocation ? settingLocation.id : null,
+                items: settingLocation ? {
+                    0: {
+                        'value': settingLocation.id,
+                        'label': settingLocation.label,
+                        'selected': true
+                    }
+                } : null,
+            }  ) }}
+        </div>
+        <div class="form-group col-4">
+            {% set settingProvider = setting_value('ARTICLE_SUPPLIER_REFERENCE', 'App\\Entity\\ArticleFournisseur') %}
+            {{ form.select(setting('ARTICLE_SUPPLIER_REFERENCE'), "Référence fournisseur", false, {
+                type: 'supplierArticles',
+                placeholder: 'Sélectionnez une référence fournisseur',
+                value: settingProvider ? settingProvider.id : null,
+                inputClass: 'w-100 ajax-autocomplete-fournisseur',
+                items: settingProvider ? {
+                    0: {
+                        'value': settingProvider.id,
+                        'label': settingProvider.reference,
+                        'selected': true
+                    }
+                } : null,
+            }  ) }}
+        </div>
+        <input hidden value="article" name="categoryType"/>
+    </div>
+</div>

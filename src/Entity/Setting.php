@@ -69,6 +69,15 @@ class Setting {
     const DEFAULT_LOCATION_REFERENCE = 'DEFAULT_LOCATION_REFERENCE';
     const REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES = 'REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES';
 
+    // stock - articles
+    const ARTICLE_TYPE = 'ARTICLE_TYPE';
+    const ARTICLE_REFERENCE = 'ARTICLE_REFERENCE';
+    const ARTICLE_SUPPLIER = 'ARTICLE_SUPPLIER';
+    const ARTICLE_SUPPLIER_REFERENCE = 'ARTICLE_SUPPLIER_REFERENCE';
+    const ARTICLE_LABEL = 'ARTICLE_LABEL';
+    const ARTICLE_QUANTITY = 'ARTICLE_QUANTITY';
+    const ARTICLE_LOCATION = 'ARTICLE_LOCATION';
+
     // borne tactile - général
     const FILE_TOP_LEFT_LOGO = 'FILE_TOP_LEFT_LOGO';
     const FILE_TOP_RIGHT_LOGO = 'FILE_TOP_RIGHT_LOGO';
@@ -236,6 +245,10 @@ class Setting {
         "value" => true,
         "label" => 'Code 128',
     ];
+    // Stock inventaire
+    const RFID_PREFIXE = "RFID_PREFIXE";
+    const RFID_KPI_MIN = "RFID_KPI_MIN";
+    const RFID_KPI_MAX = "RFID_KPI_MAX";
 
     // export csv
     const USES_UTF8 = 'USES_UTF8';
@@ -397,9 +410,9 @@ class Setting {
                     "documentsref" => "documents associés d'une référence contenue dans l'UL",
                     "commentaireref" => "commentaire d'une référence contenue dans l'UL",
                     "photoref" => "photo d'une référence contenue dans l'UL",
-                ]
-            ]
-        ]
+                ],
+            ],
+        ],
     ];
 
     #[ORM\Id]

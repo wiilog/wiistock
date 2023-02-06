@@ -4,6 +4,7 @@ namespace App\Repository\Inventory;
 
 use App\Entity\Article;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryBuilderHelper;
@@ -41,6 +42,8 @@ class InventoryMissionRepository extends EntityRepository {
             ->addSelect('refArticle.reference AS reference')
             ->addSelect('emplacement.label AS location')
             ->addSelect('1 AS is_ref')
+            ->addSelect('inventoryMission.done AS done')
+            ->addSelect('inventoryMission.type AS type')
             ->addSelect('inventoryEntry.id AS ieid')
             ->addSelect('refArticle.barCode AS barCode')
             ->join('inventoryMission.refArticles', 'refArticle')
@@ -75,6 +78,8 @@ class InventoryMissionRepository extends EntityRepository {
             ->addSelect('current_logistic_unit.id as logistic_unit_id')
             ->addSelect('nature.label as logistic_unit_nature')
             ->addSelect('emplacement.label AS location')
+            ->addSelect('inventoryMission.done AS done')
+            ->addSelect('inventoryMission.type AS type')
             ->addSelect('0 AS is_ref')
             ->addSelect('inventoryMission.id AS ied')
             ->join('inventoryMission.articles', 'article')
@@ -274,6 +279,15 @@ class InventoryMissionRepository extends EntityRepository {
                         ->andWhere('im.startPrevDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
+                case 'multipleTypes':
+                    $types = explode(',', $filter['value']);
+                    $types = Stream::from($types)
+                        ->map(fn(string $type) => strtok($type, ':'))
+                        ->toArray();
+                    $qb
+                        ->andWhere('im.type IN (:type_filter)')
+                        ->setParameter('type_filter', $types);
+                    break;
             }
         }
 
@@ -428,4 +442,48 @@ class InventoryMissionRepository extends EntityRepository {
         ];
     }
 
+    public function getInventoryMissions(): mixed {
+        $now = new DateTime('now');
+
+        $queryBuilder = $this->createQueryBuilder('inventoryMission');
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
+            ->select('inventoryMission.id AS id')
+            ->addSelect('inventoryMission.startPrevDate AS mission_start')
+            ->addSelect('inventoryMission.endPrevDate AS mission_end')
+            ->addSelect('inventoryMission.name AS mission_name')
+            ->addSelect('inventoryMission.type AS type')
+            ->where($exprBuilder->andX(
+                'inventoryMission.startPrevDate <= :now',
+                'inventoryMission.endPrevDate >= :now',
+            ))
+            ->setParameter('now', $now->format('Y-m-d'));
+
+        return $queryBuilder
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getInventoryLocationZones(): mixed {
+        $entityManager = $this->getEntityManager();
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->from(InventoryLocationMission::class, 'inventoryLocationZone');
+
+        $queryBuilder
+            ->select('inventoryLocationZone.id AS id')
+            ->addSelect('location.id AS location_id')
+            ->addSelect('location.label AS location_label')
+            ->addSelect('inventoryMission.id AS mission_id')
+            ->addSelect('locationZone.id AS zone_id')
+            ->addSelect('locationZone.name AS zone_label')
+            ->addSelect('inventoryLocationZone.done AS done')
+            ->leftJoin('inventoryLocationZone.inventoryMission', 'inventoryMission')
+            ->leftJoin('inventoryLocationZone.location', 'location')
+            ->leftJoin('location.zone', 'locationZone');
+
+        return $queryBuilder
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

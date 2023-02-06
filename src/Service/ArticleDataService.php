@@ -232,7 +232,7 @@ class ArticleDataService
         }
     }
 
-    public function newArticle($data, EntityManagerInterface $entityManager) {
+    public function newArticle(array $data, EntityManagerInterface $entityManager): Article {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -244,11 +244,10 @@ class ArticleDataService
         if (!isset($statut)) {
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         }
-        $date = new DateTime('now');
-        $formattedDate = $date->format('ym');
 
         $refArticle = $referenceArticleRepository->find($data['refArticle']);
         $refReferenceArticle = $refArticle->getReference();
+        $formattedDate = (new DateTime())->format('ym');
         $references = $articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
 
         $highestCpt = 0;
@@ -260,50 +259,50 @@ class ArticleDataService
         $i = $highestCpt + 1;
         $cpt = sprintf('%05u', $i);
 
-        $toInsert = new Article();
-        $price = isset($data['prix']) ? max(0, $data['prix']) : null;
+        if (isset($data['emplacement'])) {
+            $location = $emplacementRepository->find($data['emplacement']);
+        } else {
+            $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
+            if (!$location) {
+                $location = new Emplacement();
+                $location
+                    ->setLabel(Emplacement::LABEL_A_DETERMINER);
+                $entityManager->persist($location);
+            }
+            $location->setIsActive(true);
+        }
 
         $type = $articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
-
-        if (isset($data['emplacement'])) {
-			$location = $emplacementRepository->find($data['emplacement']);
-		} else {
-        	$location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
-        	if (!$location) {
-        		$location = new Emplacement();
-        		$location
-					->setLabel(Emplacement::LABEL_A_DETERMINER);
-        		$entityManager->persist($location);
-			}
-        	$location->setIsActive(true);
-		}
-
         $quantity = max((int)$data['quantite'], 0); // protection contre quantités négatives
-        $toInsert
+        $article = (new Article())
             ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
-            ->setConform(!isset($data['conform']) || !$data['conform'])
+            ->setConform(!isset($data['conform']) && $data['conform'])
             ->setStatut($statut)
             ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
-            ->setPrixUnitaire($price)
-            ->setReference($refReferenceArticle . $formattedDate . $cpt)
+            ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
+            ->setReference("$refReferenceArticle$formattedDate$cpt")
             ->setQuantite($quantity)
             ->setEmplacement($location)
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
-            ->setBarCode($this->generateBarCode())
-            ->setStockEntryDate(new DateTime("now"));
-
-        if (isset($data['batch'])) {
-            $toInsert->setBatch($data['batch']);
-        }
+            ->setBarCode($data['barcode'] ?? $this->generateBarCode())
+            ->setStockEntryDate(new DateTime("now"))
+            ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
+            ->setNativeCountry($data['nativeCountry'] ?? null)
+            ->setProductionDate($data['productionDate'] ?? null)
+            ->setManifacturingDate($data['manufactureDate'] ?? null)
+            ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
+            ->setRFIDtag($data['rfidTag'] ?? null)
+            ->setBatch($data['batch'] ?? null);
 
         if (isset($data['expiry'])) {
-            $toInsert->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+            $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
         }
-        $entityManager->persist($toInsert);
-        $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
 
-        return $toInsert;
+        $entityManager->persist($article);
+        $this->freeFieldService->manageFreeFields($article, $data, $entityManager);
+
+        return $article;
     }
 
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne): array
