@@ -63,10 +63,10 @@ class InventoryMission {
     private ?Utilisateur $requester = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $createdAt = null;
+    private ?DateTime $createdAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $validatedAt = null;
+    private ?DateTime $validatedAt = null;
 
     public function __construct() {
         $this->refArticles = new ArrayCollection();
@@ -278,24 +278,24 @@ class InventoryMission {
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): ?DateTime
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeInterface $createdAt): self
+    public function setCreatedAt(?DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getValidatedAt(): ?\DateTimeInterface
+    public function getValidatedAt(): ?DateTime
     {
         return $this->validatedAt;
     }
 
-    public function setValidatedAt(?\DateTimeInterface $validatedAt): self
+    public function setValidatedAt(?DateTime $validatedAt): self
     {
         $this->validatedAt = $validatedAt;
 
