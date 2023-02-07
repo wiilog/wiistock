@@ -4,9 +4,11 @@ namespace App\Entity\Inventory;
 
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Repository\Inventory\InventoryMissionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use DateTime;
 use Doctrine\ORM\Mapping\OneToMany;
@@ -54,8 +56,17 @@ class InventoryMission {
     #[ORM\Column(type: 'string')]
     private ?string $type = null;
 
-    #[OneToMany(mappedBy: "inventoryMission", targetEntity: InventoryLocationMission::class)]
+    #[OneToMany(mappedBy: "inventoryMission", targetEntity: InventoryLocationMission::class, cascade: ['remove'])]
     private Collection $inventoryLocationMissions;
+
+    #[ORM\ManyToOne]
+    private ?Utilisateur $requester = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $createdAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $validatedAt = null;
 
     public function __construct() {
         $this->refArticles = new ArrayCollection();
@@ -255,4 +266,39 @@ class InventoryMission {
         return $this;
     }
 
+    public function getRequester(): ?Utilisateur
+    {
+        return $this->requester;
+    }
+
+    public function setRequester(?Utilisateur $requester): self
+    {
+        $this->requester = $requester;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?DateTime $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getValidatedAt(): ?DateTime
+    {
+        return $this->validatedAt;
+    }
+
+    public function setValidatedAt(?DateTime $validatedAt): self
+    {
+        $this->validatedAt = $validatedAt;
+
+        return $this;
+    }
 }

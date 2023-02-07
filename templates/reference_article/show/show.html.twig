@@ -279,11 +279,11 @@
                     </div>
                     <div class="details-page-dropdown">
                         {% set storageRules = referenceArticle.storageRules %}
-                        <label for="storageRulesDropdown" class="">
+                        <label for="storageRulesDropdown" class="w-100">
                             {% set plural = storageRules | length > 1 ? 's' : '' %}
                             <span class="wii-subtitle dropdown-wrapper">Règle{{ plural }} de stockage</span>
                         </label>
-                        <input type="checkbox" class="touch" id="storageRulesDropdown">
+                        <input type="checkbox" id="storageRulesDropdown">
                         <ul class="slide">
                             {% if storageRules | length != 0 %}
                                 {% for storageRule in storageRules %}
@@ -294,7 +294,7 @@
                                         <div class="d-flex mt-3">
                                             <div class="col-6 d-flex flex-column">
                                                 <span class="wii-field-name">Qté sécurité</span>
-                                                <span class="wii-body-text">{{ storageRule.conditioningQuantity }}</span>
+                                                <span class="wii-body-text">{{ storageRule.securityQuantity }}</span>
                                             </div>
                                             <div class="col-6 d-flex flex-column">
                                                 <span class="wii-field-name">Qté conditionnement</span>

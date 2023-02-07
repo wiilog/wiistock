@@ -76,11 +76,13 @@ class InvMissionService {
 		$nbArtInMission = $articleRepository->countByMission($mission);
 		$nbRefInMission = $referenceArticleRepository->countByMission($mission);
 		$nbEntriesInMission = $inventoryEntryRepository->count(['mission' => $mission]);
-
-        $rateBar = (($nbArtInMission + $nbRefInMission) != 0)
-            ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
-            : 0;
-
+        $treatedLocations = $mission->getInventoryLocationMissions()->filter(fn(InventoryLocationMission $line) => $line->isDone())->count();
+        $lines = $mission->getInventoryLocationMissions()->count();
+        $rateBar = $mission->getType() === InventoryMission::LOCATION_TYPE ?
+            ($lines === 0 ? 0 : ($treatedLocations / $lines)*100)
+            : ((($nbArtInMission + $nbRefInMission) != 0)
+                ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
+                : 0);
         return [
             'name' => $mission->getName() ?? '',
             'start' => FormatHelper::date($mission->getStartPrevDate()),
@@ -90,6 +92,7 @@ class InvMissionService {
                 'rateBar' => $rateBar,
             ]),
             'type' => $mission->getType() ?? '',
+            'requester' => $this->formatService->user($mission->getRequester()),
             'delete' => $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)
                 ? $this->templating->render('datatable/trash.html.twig', [
                     'id' => $mission->getId(),

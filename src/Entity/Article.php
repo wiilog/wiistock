@@ -146,7 +146,7 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdOnKioskAt = null;
 
-    #[ORM\Column(type: 'string', length: 15, unique: true, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $RFIDtag = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
@@ -163,6 +163,9 @@ class Article implements PairedEntity {
 
     #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $productionDate = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $destinationArea = null;
 
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
@@ -849,6 +852,18 @@ class Article implements PairedEntity {
     public function setProductionDate(?DateTime $productionDate): self
     {
         $this->productionDate = $productionDate;
+
+        return $this;
+    }
+
+    public function getDestinationArea(): ?string
+    {
+        return $this->destinationArea;
+    }
+
+    public function setDestinationArea(?string $destinationArea): self
+    {
+        $this->destinationArea = $destinationArea;
 
         return $this;
     }

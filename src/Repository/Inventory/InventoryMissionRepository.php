@@ -29,7 +29,8 @@ class InventoryMissionRepository extends EntityRepository {
     const DtToDbLabels = [
         'start' => 'startPrevDate',
         'end' => 'endPrevDate',
-        'name' => 'name'
+        'name' => 'name',
+        'requester' => 'requester'
     ];
 
     public function getCurrentMissionRefNotTreated(): mixed {
@@ -299,7 +300,13 @@ class InventoryMissionRepository extends EntityRepository {
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
-                    $qb->orderBy('im.' . $column, $order);
+                    if ($column === 'requester') {
+                        $qb
+                            ->leftJoin('im.requester', 'order_requester')
+                            ->orderBy('order_requester.username', $order);
+                    } else {
+                        $qb->orderBy('im.' . $column, $order);
+                    }
                 }
             }
         }
