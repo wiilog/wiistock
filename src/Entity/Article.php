@@ -146,7 +146,7 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdOnKioskAt = null;
 
-    #[ORM\Column(type: 'string', length: 15, unique: true, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $RFIDtag = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]

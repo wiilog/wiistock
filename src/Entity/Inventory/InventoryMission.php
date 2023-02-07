@@ -54,7 +54,7 @@ class InventoryMission {
     #[ORM\Column(type: 'string')]
     private ?string $type = null;
 
-    #[OneToMany(mappedBy: "inventoryMission", targetEntity: InventoryLocationMission::class)]
+    #[OneToMany(mappedBy: "inventoryMission", targetEntity: InventoryLocationMission::class, cascade: ['remove'])]
     private Collection $inventoryLocationMissions;
 
     public function __construct() {
