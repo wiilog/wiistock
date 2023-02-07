@@ -6,6 +6,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\FieldsParam;
 use App\Entity\Import;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
@@ -15,6 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * @Route("/import")
@@ -49,6 +51,10 @@ class DataImportController extends AbstractController
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
+
+        if ($post->get('deleteDifData')) {
+            $entityManager->getRepository(StorageRule::class)->clearTable();
+        }
 
         $import = new Import();
         $import

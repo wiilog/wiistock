@@ -15,5 +15,13 @@ use Doctrine\ORM\EntityRepository;
  */
 class StorageRuleRepository extends EntityRepository
 {
-
+    public function clearTable(): void {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "DELETE
+            FROM App\Entity\StorageRule sr
+           "
+        );
+        $query->execute();
+    }
 }

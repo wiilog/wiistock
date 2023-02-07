@@ -27,6 +27,7 @@ class Import {
     const ENTITY_LOCATION = 'LOCATION';
     const ENTITY_CUSTOMER = 'CUSTOMER';
     const ENTITY_PROJECT = 'PROJECT';
+    const ENTITY_REF_LOCATION = 'REF_LOCATION';
     const ENTITY_LABEL = [
         self::ENTITY_ART => "Articles",
         self::ENTITY_REF => "Références",
@@ -38,6 +39,7 @@ class Import {
         self::ENTITY_LOCATION => "Emplacements",
         self::ENTITY_CUSTOMER => "Clients",
         self::ENTITY_PROJECT => "Projets",
+        self::ENTITY_REF_LOCATION => "Quantité référence par emplacement"
     ];
     const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
@@ -90,6 +92,12 @@ class Import {
             'code',
             'projectManager',
         ],
+        self::ENTITY_REF_LOCATION => [
+            'reference',
+            'location',
+            'securityQuantity',
+            'conditioningQuantity',
+        ],
     ];
     const FIELD_PK = [
         self::ENTITY_ART_FOU => 'reference',
@@ -102,6 +110,7 @@ class Import {
         self::ENTITY_LOCATION => 'name',
         self::ENTITY_CUSTOMER => 'name',
         self::ENTITY_PROJECT => 'code',
+        self::ENTITY_REF_LOCATION => 'reference',
     ];
 
     public const IMPORT_FIELDS_TO_FIELDS_PARAM = [
@@ -198,6 +207,9 @@ class Import {
             'projectManager' => 'Chef de projet',
 
             'zone' => 'Zone',
+
+            'securityQuantity' => 'Quantité de sécurité',
+            'conditioningQuantity' => 'Quantité de conditionnement',
         ],
 
         self::ENTITY_CUSTOMER => [

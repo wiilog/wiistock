@@ -29,6 +29,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -192,6 +193,12 @@ class ImportService
             "description",
             "projectManager",
             "isActive",
+        ],
+        Import::ENTITY_REF_LOCATION => [
+            "reference",
+            "location",
+            "securityQuantity",
+            "conditioningQuantity",
         ],
     ];
 
@@ -542,6 +549,9 @@ class ImportService
                         break;
                     case Import::ENTITY_PROJECT:
                         $this->importProjectEntity($data, $stats);
+                        break;
+                    case Import::ENTITY_REF_LOCATION:
+                        $this->importRefLocationEntity($data, $stats);
                         break;
                 }
 
@@ -1870,6 +1880,47 @@ class ImportService
         $this->entityManager->persist($project);
 
         $this->updateStats($stats, !$projectAlreadyExists);
+    }
+
+    private function importRefLocationEntity(array $data, array &$stats) {
+        $refLocationAlreadyExists = $this->entityManager->getRepository(StorageRule::class)->findOneBy(['referenceArticle' => $data['reference'], 'location' => $data['location']]);
+        $refLocation = $refLocationAlreadyExists ?? new StorageRule();
+
+        if (!$refLocationAlreadyExists && isset($data['reference'])) {
+            if ($reference = $this->entityManager->getRepository(ReferenceArticle::class)->find($data['reference'])) {
+                $refLocation->setReferenceArticle($reference);
+            } else {
+                $this->throwError("La référence saisie n'existe pas.");
+            }
+        }
+
+        if (!$refLocationAlreadyExists && isset($data['location'])) {
+            if ($location = $this->entityManager->getRepository(Emplacement::class)->find($data['location'])) {
+                $refLocation->setLocation($location);
+            } else {
+                $this->throwError("L'emplacement saisi n'existe pas.");
+            }
+        }
+
+        if (isset($data['securityQuantity'])) {
+            if (!is_numeric($data['securityQuantity'])) {
+                $this->throwError('La quantité de sécurité doit être un nombre.');
+            } else {
+                $refLocation->setSecurityQuantity($data['securityQuantity']);
+            }
+        }
+
+        if (isset($data['conditioningQuantity'])) {
+            if (!is_numeric($data['conditioningQuantity'])) {
+                $this->throwError('La quantité de conditionnement doit être un nombre.');
+            } else {
+                $refLocation->setConditioningQuantity($data['conditioningQuantity']);
+            }
+        }
+
+        $this->entityManager->persist($refLocation);
+
+        $this->updateStats($stats, !$refLocationAlreadyExists);
     }
 
     private function checkAndSetChampsLibres(array $colChampsLibres,
