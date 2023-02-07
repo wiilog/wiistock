@@ -24,4 +24,15 @@ class StorageRuleRepository extends EntityRepository
         );
         $query->execute();
     }
+
+    public function findOneByReferenceAndLocation(string $reference, string $location): StorageRule|null {
+        return $this->createQueryBuilder("storage_rule")
+            ->leftJoin("storage_rule.location", "location")
+            ->leftJoin("storage_rule.referenceArticle", "reference_article")
+            ->andWhere("reference_article.reference = :reference AND location.label = :location")
+            ->setParameter("reference", "$reference")
+            ->setParameter("location", $location)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

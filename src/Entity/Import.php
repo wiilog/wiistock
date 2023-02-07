@@ -220,67 +220,55 @@ class Import {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $label;
+    private ?string $label = null;
 
     #[ORM\Column(type: 'string', length: 64)]
-    private $entity;
+    private ?string $entity = null;
 
-    #[ORM\OneToOne(inversedBy: 'importCsv', targetEntity: 'Attachment')]
-    private $csvFile;
+    #[ORM\OneToOne(inversedBy: 'importCsv', targetEntity: Attachment::class)]
+    private ?Attachment $csvFile = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
-    private $status;
+    private ?Statut $status = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
-    private $user;
+    private ?Utilisateur $user = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $newEntries;
+    private ?int $newEntries = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $updatedEntries;
+    private ?int $updatedEntries = null;
 
-    /**
-     * @var bool
-     */
     #[ORM\Column(type: 'boolean', nullable: false)]
-    private $forced;
+    private ?bool $forced;
 
-    /**
-     * @var bool
-     */
     #[ORM\Column(type: 'boolean', nullable: false)]
-    private $flash;
+    private ?bool $flash;
 
-    /**
-     * @var DateTime
-     */
     #[ORM\Column(type: 'datetime', nullable: false)]
-    private $createdAt;
+    private ?DateTime $createdAt;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $nbErrors;
+    private ?int $nbErrors = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $startDate;
+    private ?DateTime $startDate = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $endDate;
+    private ?DateTime $endDate = null;
 
-    /**
-     * @var Attachment
-     */
-    #[ORM\OneToOne(targetEntity: 'Attachment', inversedBy: 'importLog')]
-    private $logFile;
+    #[ORM\OneToOne(inversedBy: 'importLog', targetEntity: Attachment::class)]
+    private ?Attachment $logFile = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
-    private $columnToField;
+    private ?array $columnToField = null;
 
-    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'import')]
-    private $mouvements;
+    #[ORM\OneToMany(mappedBy: 'import', targetEntity: MouvementStock::class)]
+    private Collection $mouvements;
 
     public function __construct() {
         $this->createdAt = new WiiDateTime();

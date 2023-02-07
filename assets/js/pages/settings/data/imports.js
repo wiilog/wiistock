@@ -269,12 +269,9 @@ function importTemplateChanged($dataTypeImport = null) {
     };
 
     const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
-
-    if (valTypeImport === "REF_LOCATION") {
-        const $deleteData = $('.deleteData');
-        $deleteData.removeClass('d-none');
-        $deleteData.append(`<input type="checkbox" name="deleteDifData" class="form-control data"/><p>Supprimer la donnée différentielle</p>`);
-    }
+    $('.delete-differential-data')
+        .toggleClass(`d-none`, valTypeImport !== `REF_LOCATION`)
+        .html(`<input type="checkbox" name="deleteDifData" class="form-control data"/><p>Supprimer la donnée différentielle</p>`);
 
     if (configDownloadLink[valTypeImport]) {
         const {url, label} = configDownloadLink[valTypeImport];

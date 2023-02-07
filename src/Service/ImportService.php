@@ -1882,12 +1882,13 @@ class ImportService
         $this->updateStats($stats, !$projectAlreadyExists);
     }
 
-    private function importRefLocationEntity(array $data, array &$stats) {
-        $refLocationAlreadyExists = $this->entityManager->getRepository(StorageRule::class)->findOneBy(['referenceArticle' => $data['reference'], 'location' => $data['location']]);
+    private function importRefLocationEntity(array $data, array &$stats): void {
+        $refLocationAlreadyExists = $this->entityManager->getRepository(StorageRule::class)->findOneByReferenceAndLocation($data['reference'], $data['location']);
         $refLocation = $refLocationAlreadyExists ?? new StorageRule();
 
         if (!$refLocationAlreadyExists && isset($data['reference'])) {
-            if ($reference = $this->entityManager->getRepository(ReferenceArticle::class)->find($data['reference'])) {
+            $reference = $this->entityManager->getRepository(ReferenceArticle::class)->findOneBy(['reference' => $data['reference']]);
+            if ($reference) {
                 $refLocation->setReferenceArticle($reference);
             } else {
                 $this->throwError("La référence saisie n'existe pas.");
@@ -1895,7 +1896,8 @@ class ImportService
         }
 
         if (!$refLocationAlreadyExists && isset($data['location'])) {
-            if ($location = $this->entityManager->getRepository(Emplacement::class)->find($data['location'])) {
+            $location = $this->entityManager->getRepository(Emplacement::class)->findOneBy(['label' => $data['location']]);
+            if ($location) {
                 $refLocation->setLocation($location);
             } else {
                 $this->throwError("L'emplacement saisi n'existe pas.");
