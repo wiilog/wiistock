@@ -181,6 +181,12 @@
                         'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_NATIVE_COUNTRY'), 'displayedEdit'),
                         'value': article.nativeCountry ? article.nativeCountry.label : null
                     },
+                    {
+                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_DESTINATION_AREA'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DESTINATION_AREA'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DESTINATION_AREA'), 'displayedEdit'),
+                        'value': article.destinationArea
+                    },
                 ] %}
                 {% if descriptionsFileds|filter(v => v.value or v.isOnCreate or v.isOnEdit) %}
                     <div class="wii-box mt-3">

@@ -140,6 +140,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.expiryDate')
             ->addSelect("join_visibilityGroup.label AS visibilityGroup")
             ->addSelect('project.code as projectCode')
+            ->addSelect('article.destinationArea')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')

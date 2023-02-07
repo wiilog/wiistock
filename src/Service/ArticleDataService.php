@@ -275,36 +275,40 @@ class ArticleDataService
         $type = $refArticle->getType();
         $quantity = max((int)($data['quantite'] ?? -1), 0); // protection contre quantités négatives
         if ($existing) {
-            $existing
-                ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+            $article = $existing;
         } else {
-            $article = (new Article())
-                ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
-                ->setConform(!isset($data['conform']) && $data['conform'])
-                ->setStatut($statut)
-                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
-                ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
-                ->setReference("$refReferenceArticle$formattedDate$cpt")
-                ->setQuantite($quantity)
-                ->setEmplacement($location)
-                ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
-                ->setType($type)
-                ->setBarCode($data['barcode'] ?? $this->generateBarCode())
-                ->setStockEntryDate(new DateTime("now"))
-                ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
-                ->setNativeCountry($data['nativeCountry'] ?? null)
-                ->setProductionDate($data['productionDate'] ?? null)
-                ->setManifacturingDate($data['manufactureDate'] ?? null)
-                ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
-                ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setBatch($data['batch'] ?? null)
-                ->setDestinationArea($data['destinationArea'] ?? null);
+            $article = (new Article());
+        }
+        $article
+            ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
+            ->setConform(isset($data['conform']) && !boolval($data['conform']))
+            ->setStatut($statut)
+            ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
+            ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
+            ->setReference("$refReferenceArticle$formattedDate$cpt")
+            ->setQuantite($quantity)
+            ->setEmplacement($location)
+            ->setType($type)
+            ->setBarCode($data['barcode'] ?? $this->generateBarCode())
+            ->setStockEntryDate(new DateTime("now"))
+            ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
+            ->setNativeCountry($data['nativeCountry'] ?? null)
+            ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
+            ->setRFIDtag($data['rfidTag'] ?? null)
+            ->setBatch($data['batch'] ?? null)
+            ->setDestinationArea($data['destinationArea'] ?? null);
 
-
-            if (isset($data['expiry'])) {
-                $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
-            }
+        if (isset($data['expiry'])) {
+            $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+        }
+        if (isset($data['productionDate'])) {
+            $article->setProductionDate($data['productionDate'] ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null);
+        }
+        if (isset($data['manufactureDate'])) {
+            $article->setManifacturingDate($data['manufactureDate'] ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null);
+        }
+        if(!$existing) {
+            $article->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']));
             $entityManager->persist($article);
         }
 
@@ -394,6 +398,7 @@ class ArticleDataService
             "stockEntryDate" => $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i') : '',
             "expiryDate" => $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
             "comment" => $article->getCommentaire(),
+            "destinationArea" => $article->getDestinationArea(),
             "actions" => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
@@ -576,10 +581,10 @@ class ArticleDataService
 
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, CategorieCL::ARTICLE);
 
-        $fieldConfig = [
+        $this->arr = [
             ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
             ["title" => "<span class='wii-icon wii-icon-pairing black'><span>", 'name' => "pairing"],
-            ["title" => "<span class='wii-icon wii-icon-lu'><span>",'name' => "lu"],
+            ["title" => "<span class='wii-icon wii-icon-lu'><span>", 'name' => "lu"],
             ["title" => "Libellé", "name" => "label", 'searchable' => true],
             ["title" => "Référence article", "name" => "articleReference", 'searchable' => true],
             ["title" => "Référence fournisseur", "name" => "supplierReference", 'searchable' => true],
@@ -595,12 +600,14 @@ class ArticleDataService
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
             ["title" => "Projet", "name" => "project", 'searchable' => true],
+            ["title" => "Zone de destination", "name" => "destinationArea", 'searchable' => true],
             ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
             ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],
             ["title" => "Ligne bon de livraison", "name" => "deliveryNoteLine", 'searchable' => true],
             ["title" => "Ligne commande d'achat", "name" => "purchaseOrderLine", 'searchable' => true],
             ["title" => "Pays d'origine", "name" => "nativeCountry", 'searchable' => true],
         ];
+        $fieldConfig = $this->arr;
 
         return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getVisibleColumns()['article']);
     }

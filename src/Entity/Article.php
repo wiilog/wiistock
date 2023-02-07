@@ -164,6 +164,9 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $productionDate = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $destinationArea = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
@@ -849,6 +852,18 @@ class Article implements PairedEntity {
     public function setProductionDate(?DateTime $productionDate): self
     {
         $this->productionDate = $productionDate;
+
+        return $this;
+    }
+
+    public function getDestinationArea(): ?string
+    {
+        return $this->destinationArea;
+    }
+
+    public function setDestinationArea(?string $destinationArea): self
+    {
+        $this->destinationArea = $destinationArea;
 
         return $this;
     }
