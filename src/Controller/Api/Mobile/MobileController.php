@@ -1949,7 +1949,8 @@ class MobileController extends AbstractApiController
     public function postArticle(Request $request,
                                 EntityManagerInterface $entityManager,
                                 ArticleDataService $articleDataService,
-                                MouvementStockService $mouvementStockService): Response
+                                MouvementStockService $mouvementStockService,
+                                TrackingMovementService $trackingMovementService): Response
     {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIXE);
@@ -2050,26 +2051,27 @@ class MobileController extends AbstractApiController
 
         $article = new Article();
         $article
+            ->setLabel($cleanedData['label'])
+            ->setConform(true)
             ->setStatut($statut)
-            ->setEmplacement($location)
+            ->setCommentaire(isset($cleanedData['comment']) ? StringHelper::cleanedComment($data['commentaire']) : null)
+            ->setPrixUnitaire(floatval($cleanedData['price']))
+            ->setReference($ref)
             ->setQuantite(intval($cleanedData['quantity']))
+            ->setEmplacement($location)
             ->setArticleFournisseur($articleSupplier)
             ->setType($type)
-            ->setStockEntryDate(new DateTime("now"))
-            ->setRFIDtag($cleanedData['rfidTag'] ?? null)
             ->setBarCode($articleDataService->generateBarCode())
-            ->setLabel($cleanedData['label'])
-            ->setPrixUnitaire(floatval($cleanedData['price']))
-            ->setExpiryDate($expiryDate)
-            ->setBatch($cleanedData['batch'])
-            ->setPurchaseOrder($cleanedData['commandNumber'])
+            ->setStockEntryDate(new DateTime("now"))
             ->setDeliveryNote(intval($cleanedData['deliveryLine']))
-            ->setManifacturingDate($manufacturingDate)
             ->setNativeCountry($countryFrom)
-            ->setConform(true)
             ->setProductionDate($productionDate)
             ->setDestinationArea($data['destination'] ?? null)
-            ->setCommentaire($cleanedData['comment']);
+            ->setManifacturingDate($manufacturingDate)
+            ->setPurchaseOrder($cleanedData['commandNumber'])
+            ->setRFIDtag($cleanedData['rfidTag'] ?? null)
+            ->setBatch($cleanedData['batch'])
+            ->setExpiryDate($expiryDate);
 
         $entityManager->persist($article);
 
@@ -2089,6 +2091,25 @@ class MobileController extends AbstractApiController
 
         $entityManager->persist($stockMovement);
         $entityManager->flush();
+
+        $trackingMovement = $trackingMovementService->createTrackingMovement(
+            $article,
+            $article->getEmplacement(),
+            $this->getUser(),
+            new DateTime('now'),
+            true,
+            true,
+            TrackingMovement::TYPE_DEPOSE,
+            [
+                "refOrArticle" => $article,
+            ]
+        );
+
+        $trackingMovement->setMouvementStock($stockMovement);
+
+        $entityManager->persist($trackingMovement);
+        $entityManager->flush();
+
         return $this->json([
             'success' => true,
             'message' => 'Article bien généré.'
