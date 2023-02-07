@@ -274,11 +274,8 @@ class ArticleDataService
 
         $type = $refArticle->getType();
         $quantity = max((int)($data['quantite'] ?? -1), 0); // protection contre quantités négatives
-        if ($existing) {
-            $article = $existing;
-        } else {
-            $article = (new Article());
-        }
+
+        $article = $existing ?? new Article();
         $article
             ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
             ->setConform(isset($data['conform']) && !boolval($data['conform']))
@@ -314,7 +311,7 @@ class ArticleDataService
 
         $this->freeFieldService->manageFreeFields($existing ?? $article, $data, $entityManager);
 
-        return $existing ?? $article;
+        return $article;
     }
 
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne): array
@@ -581,7 +578,7 @@ class ArticleDataService
 
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, CategorieCL::ARTICLE);
 
-        $this->arr = [
+        $fieldConfig = [
             ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
             ["title" => "<span class='wii-icon wii-icon-pairing black'><span>", 'name' => "pairing"],
             ["title" => "<span class='wii-icon wii-icon-lu'><span>", 'name' => "lu"],
@@ -607,7 +604,6 @@ class ArticleDataService
             ["title" => "Ligne commande d'achat", "name" => "purchaseOrderLine", 'searchable' => true],
             ["title" => "Pays d'origine", "name" => "nativeCountry", 'searchable' => true],
         ];
-        $fieldConfig = $this->arr;
 
         return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getVisibleColumns()['article']);
     }

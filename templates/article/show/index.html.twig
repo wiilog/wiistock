@@ -150,7 +150,7 @@
                         </div>
                     </div>
                 </div>
-                {% set descriptionsFileds = [
+                {% set descriptionsFields = [
                     {
                         'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE'),
                         'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE'), 'displayedCreate'),
@@ -188,15 +188,15 @@
                         'value': article.destinationArea
                     },
                 ] %}
-                {% if descriptionsFileds|filter(v => v.value or v.isOnCreate or v.isOnEdit) %}
+                {% if descriptionsFields|filter(v => v.value or v.isOnCreate or v.isOnEdit) %}
                     <div class="wii-box mt-3">
                         <div class="header wii-title">Description</div>
                         <div class="content row">
-                            {% for field in descriptionsFileds %}
+                            {% for field in descriptionsFields %}
                                 {% if field.isOnCreate or field.isOnEdit or field.value %}
                                     <div class="col-6 box-item my-2">
                                         <label class="box-item ml-3">
-                                            <span class="wii-field-name">{{ field.label }}</span>
+                                            <span class="wii-field-name">{{ field.label|capitalize }}</span>
                                             <span class="wii-body-text">
                                                 {% if field.value %}
                                                     {{ field.value }}
