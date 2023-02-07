@@ -90,6 +90,7 @@ class InvMissionService {
                 'rateBar' => $rateBar,
             ]),
             'type' => $mission->getType() ?? '',
+            'requester' => $this->formatService->user($mission->getRequester()),
             'delete' => $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)
                 ? $this->templating->render('datatable/trash.html.twig', [
                     'id' => $mission->getId(),
