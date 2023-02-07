@@ -39,23 +39,23 @@
                                  background-color: {{ reference.image ? "#FFFFFF" : "#F5F5F7" }};
                                  background-size: {{ reference.image ? 'cover' : '50%' }}">
                             <span class="edit-button"></span>
-                                <div class="col-12 d-flex align-items-center justify-content-end mt-3">
-                                    <div class="buttons mt-2">
-                                        <button class="btn btn-primary edit-image">
-                                            <i class='fas fa-pencil-alt'></i>
-                                        </button>
-                                        <button class="btn btn-danger delete-image py-2 {{ not reference.image ? 'd-none' }}">
-                                            <span class="wii-icon wii-icon-trash"></span>
-                                        </button>
-                                    </div>
-                                    <input type="file" name="image" class="data-file" id="upload-article-reference-image"
-                                           accept="image/png, image/jpeg, image/jpg, image/svg, image/gif"
-                                           hidden>
+                            <div class="col-12 d-flex align-items-center justify-content-end mt-3">
+                                <div class="buttons mt-2">
+                                    <button class="btn btn-primary edit-image">
+                                        <i class='fas fa-pencil-alt'></i>
+                                    </button>
+                                    <button class="btn btn-danger delete-image py-2 {{ not reference.image ? 'd-none' }}">
+                                        <span class="wii-icon wii-icon-trash"></span>
+                                    </button>
                                 </div>
-                        </div>
-                            <div class="wii-small-text">
-                                Importer une photo <br>de ce produit (max 10mo)
+                                <input type="file" name="image" class="data-file" id="upload-article-reference-image"
+                                       accept="image/png, image/jpeg, image/jpg, image/svg, image/gif"
+                                       hidden>
                             </div>
+                        </div>
+                        <div class="wii-small-text">
+                            Importer une photo <br>de ce produit (max 10mo)
+                        </div>
                     </div>
                     <div class="col-md-8 col-12">
                         {% if not partialEdit %}
@@ -552,11 +552,11 @@
                 </div>
             </div>
 
-            <div class="wii-box">
-                <div class="header wii-title">Règles de stockage</div>
-                <div class="content">
-                    <div class="storage-rules">
-                        {% if reference.id %}
+            {% if reference.id %}
+                <div class="wii-box">
+                    <div class="header wii-title">Règles de stockage</div>
+                    <div class="content">
+                        <div class="storage-rules">
                             {% for index, storageRule in reference.storageRules %}
                                 <div class="rule-container entity-container">
                                     <div class="d-flex storage-rule-container">
@@ -583,13 +583,13 @@
                                     </div>
                                 </div>
                             {% endfor %}
-                        {% endif %}
-                    </div>
-                    <div class="d-flex justify-content-end add-storage-rule mt-3">
-                        <button class="btn btn-primary d-flex align-items-center"><span class="wii-icon wii-icon-plus mr-2"></span>Ajouter une régle de stockage</button>
+                        </div>
+                        <div class="d-flex justify-content-end add-storage-rule mt-3">
+                            <button class="btn btn-primary d-flex align-items-center"><span class="wii-icon wii-icon-plus mr-2"></span>Ajouter une régle de stockage</button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            {% endif %}
 
             <div class="wii-box">
                 <div class="header wii-title">Inventaires</div>

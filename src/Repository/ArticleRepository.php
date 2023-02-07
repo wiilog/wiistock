@@ -139,7 +139,8 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.stockEntryDate')
             ->addSelect('article.expiryDate')
             ->addSelect("join_visibilityGroup.label AS visibilityGroup")
-            ->addSelect('project.code as projectCode')
+            ->addSelect('project.code AS projectCode')
+            ->addSelect('article.destinationArea')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
@@ -385,6 +386,18 @@ class ArticleRepository extends EntityRepository {
                                 foreach ($subqb->getQuery()->execute() as $idArray) {
                                     $ids[] = $idArray['id'];
                                 }
+                                break;
+                            case "nativeCountry":
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.nativeCountry', 'search_nativeCountry')
+                                    ->andWhere('search_nativeCountry.label LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+
                                 break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
@@ -876,7 +889,10 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function findGroupedByReferenceArticleAndLocation(array $locations, array $articles = []) {
+    public function findGroupedByReferenceArticleAndLocation(array $locations, array $filteredArticles = null) {
+        if (empty($filteredArticles) && $filteredArticles !== null) {
+            return [];
+        }
         $query = $this->createQueryBuilder("article")
             ->select('COUNT(article.id) as quantity')
             ->addSelect('MAX(emplacement.label) as location')
@@ -886,17 +902,18 @@ class ArticleRepository extends EntityRepository {
             ->join("af.referenceArticle", "referenceArticle")
             ->join("article.emplacement", "emplacement")
             ->join("article.statut", "articleStatut")
-            ->where("articleStatut.nom IN (:statuses)")
+            ->andWhere("articleStatut.nom IN (:statuses)")
             ->andWhere('article.emplacement IN (:locations)')
+            ->andWhere('article.RFIDtag IS NOT NULL')
             ->setParameter("locations", $locations)
             ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_INACTIF])
             ->addGroupBy('af.referenceArticle')
             ->addGroupBy('article.emplacement');
 
-        if (!empty($articles)) {
+        if (!empty($filteredArticles)) {
             $query
                 ->andWhere('article.id IN (:articles)')
-                ->setParameter('articles', $articles);
+                ->setParameter('articles', $filteredArticles);
         }
 
         return $query

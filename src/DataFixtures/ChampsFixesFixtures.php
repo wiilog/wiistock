@@ -95,6 +95,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_ARTICLE_PRODUCTION_DATE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_PRODUCTION_DATE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_ARTICLE_NATIVE_COUNTRY, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_NATIVE_COUNTRY, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_DESTINATION_AREA, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_DESTINATION_AREA, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
         ];
 

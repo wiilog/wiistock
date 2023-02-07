@@ -110,13 +110,13 @@
         text-align: left;
     }
 
-    #touch, .touch {
+    #touch, #storageRulesDropdown, .touch {
         position: absolute;
         opacity: 0;
         max-height: 0;
     }
 
-    #touch:checked + .slide, .touch:checked + .slide {
+    #touch:checked + .slide, #storageRulesDropdown:checked + .slide, .touch:checked + .slide {
         height: auto;
     }
 }
