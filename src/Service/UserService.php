@@ -144,7 +144,7 @@ class UserService
             'arrivage(s)' => $isUsedInArrivals,
             'mouvement(s) de traçabilité' => $hasTrackingMovement,
             'emplacement(s)' => $hasSignatoryLocation,
-            "planification d'inventaire" => $hasInventoryMissionRules,
+            "planification(s) d'inventaire" => $hasInventoryMissionRules,
             "mission(s) d'inventaire" => $hasInventoryMissions,
         ];
 	}

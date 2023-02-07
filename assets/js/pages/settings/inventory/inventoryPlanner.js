@@ -30,7 +30,7 @@ export function initializeInventoryPlanificatorTable($container) {
     tableInventoryPanning = initDataTable(`missionRulesTable`, tableInventoryPannerConfig);
 
     const formNewInventoryPanner = Form
-        .create(modalNewInventoryPanner, {clearOnOpen: true})
+        .create(modalNewInventoryPanner)
         .submitTo(`POST`, `settings_mission_rules_force`, {
             tableInventoryPanning
         });

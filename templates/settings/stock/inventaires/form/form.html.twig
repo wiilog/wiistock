@@ -3,7 +3,7 @@
 <div class="row">
     <div class="col-12">
         {{ form.switch('missionType', 'Type de mission', false, [
-            {label: 'Quantité article', value: constant('App\\Entity\\inventory\\InventoryMission::ARTICLE_TYPE'), checked: true},
+            {label: 'Quantité article', value: constant('App\\Entity\\inventory\\InventoryMission::ARTICLE_TYPE'), checked: false},
             {label: 'Article sur emplacement', value: constant('App\\Entity\\inventory\\InventoryMission::LOCATION_TYPE'), checked: false},
         ]) }}
     </div>
@@ -16,6 +16,32 @@
         {{ form.input('description', 'Description', true, null, {
             type: 'text',
         }) }}
+    </div>
+    <div class="col-6 mt-3">
+        <label class="w-100" data-dashlane-label="true">
+            <span class="d-inline-flex align-items-center field-label wii-field-name" style="margin-bottom: 5px">
+                 Durée*
+            </span>
+            <div class="d-flex no-gutters">
+                <div class="col-4 pr-2">
+                    {{ form.input('duration', null, true, null, {
+                        type: 'number',
+                        min: 0,
+                        max: 999,
+                        step: 1,
+                        width: 'w-25',
+                    }) }}
+                </div>
+                <div class="col-8">
+                    {{ form.select('durationUnit', null ,true, {
+                        items: {
+                            (constant('App\\Entity\\inventory\\InventoryMissionRule::WEEKS')): 'Semaines',
+                            (constant('App\\Entity\\inventory\\InventoryMissionRule::MONTHS')): 'Mois',
+                        }
+                    }) }}
+                </div>
+            </div>
+        </label>
     </div>
     <div class="col-12">
         {% include 'planner/planner.html.twig' with {
@@ -31,6 +57,7 @@
             intervalTime: null
         } %}
     </div>
+
 </div>
 <div class="row d-none" id="locationTypeForm">
     <div class="col-12">
@@ -64,5 +91,11 @@
     </div>
 </div>
 <div class="row d-none" id="articleTypeForm">
-    OUI
+    <div class="col-6">
+        {{ form.select('categories', 'Catégorie(s)', true, {
+            multiple: true,
+            type: null,
+            items: ['oui', 'non'],
+        }) }}
+    </div>
 </div>
