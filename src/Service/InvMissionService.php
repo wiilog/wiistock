@@ -81,10 +81,6 @@ class InvMissionService {
             : ((($nbArtInMission + $nbRefInMission) != 0)
                 ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
                 : 0);
-
-        if (intval(floor($rateBar)) === 100 && !$mission->isDone()) {
-            $rateBar = 99;
-        }
         return [
             'name' => $mission->getName() ?? '',
             'start' => FormatHelper::date($mission->getStartPrevDate()),
