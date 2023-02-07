@@ -9,7 +9,7 @@
                title="Démarrer le"
                placeholder="jj/mm/aaaa"
                min="now"
-               value="{{ export.exportScheduleRule ? export.exportScheduleRule.begin|date('Y-m-d') }}"/>
+               value="{{ begin|date('Y-m-d') }}"/>
     </div>
     <div class="row p-2">
         <div class="col-12 px-3">
@@ -20,7 +20,7 @@
                     {
                         label: label | format_date('none', 'MMMM', null, 'gregorian', 'fr') | capitalize,
                         value: month,
-                        selected: export.exportScheduleRule and (month in export.exportScheduleRule.months)
+                        selected: (month in months)
                     }
                 ]) %}
             {% endfor %}
@@ -37,14 +37,14 @@
                     {
                         label: i,
                         value: i,
-                        selected: export.exportScheduleRule and (i in export.exportScheduleRule.monthDays)
+                        selected: (i in monthDays)
                     }
                 ]) %}
             {% endfor %}
             {% set days = days|merge([{
                 label: 'Dernier',
                 value: 'Dernier',
-                selected: export.exportScheduleRule and ('Dernier' in export.exportScheduleRule.monthDays)
+                selected: ('Dernier' in monthDays)
             }]) %}
             {{ form.select('monthDays', 'Jours', false, {
                 type: null,
@@ -57,7 +57,7 @@
                        name="intervalTime"
                        class="form-control form-control-sm mx-2 w-px-100 mb-2 frequency-data d-inline-block"
                        data-label="Heures et minutes"
-                       value="{{ export.exportScheduleRule ? export.exportScheduleRule.intervalTime }}">
+                       value="{{ intervalTime }}">
             </div>
         </div>
     </div>

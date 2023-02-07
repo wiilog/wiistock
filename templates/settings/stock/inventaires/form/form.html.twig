@@ -18,9 +18,51 @@
         }) }}
     </div>
     <div class="col-12">
-        {%  include 'planner/planner.html.twig' with {
-            frequency : null
+        {% include 'planner/planner.html.twig' with {
+            frequency: null,
+            begin: null,
+            intervalPeriod: null,
+            intervalTime: null,
+            period: null,
+            intervalTime: null,
+            weekDays: null,
+            months: null,
+            monthDays: null,
+            intervalTime: null
         } %}
     </div>
-
+</div>
+<div class="row d-none" id="locationTypeForm">
+    <div class="col-12">
+        <div class="wii-section-title my-3">Contenu de l'inventaire</div>
+    </div>
+    <div class="col-6 mt-3">
+        {{ form.select('zones', 'Ajout des emplacements des zones', false, {
+            type: 'zones',
+            multiple: true,
+        }) }}
+        <button class="btn btn-primary mt-1 d-flex align-items-center add-button" data-type="zones">
+            <i class="wii-icon wii-icon-plus mr-2"></i>
+            Ajouter les emplacements des zones
+        </button>
+    </div>
+    <div class="col-6 mt-3">
+        {{ form.select('locations', 'Ajout des emplacements', false, {
+            type: 'location',
+            multiple: true,
+        }) }}
+        <button class="btn btn-primary mt-1 d-flex align-items-center add-button" data-type="locations">
+            <i class="wii-icon wii-icon-plus mr-2"></i>
+            Ajouter les emplacements
+        </button>
+    </div>
+    <div class="col-12">
+        <div class="wii-section-title my-3">Liste des emplacement sélectionnés</div>
+    </div>
+    <div class="col-12">
+        <table id="tableLocations" class="table w-100"></table>
+    </div>
+</div>
+<div class="row d-none" id="articleTypeForm">
+    OUI
 </div>

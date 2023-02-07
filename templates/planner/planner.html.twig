@@ -1,9 +1,3 @@
-{#
-TODO
-    frequency
-
-
-#}
 {% import 'form.html.twig' as form %}
 
 <div class="wii-section-title my-3">Fréquence</div>
@@ -19,10 +13,10 @@ TODO
         onChange: 'toggleFrequencyInput($(this))'
     }) }}
     <div class="col-8 frequency-content d-none">
-        {% include '/planner/frequencies/once.html.twig' with {export: export} %}
-{#        {% include '/planner/frequencies/hourly.html.twig' with {export: export} %}#}
-{#        {% include '/planner/frequencies/daily.html.twig' with {export: export} %}#}
-{#        {% include '/planner/frequencies/weekly.html.twig' with {export: export} %}#}
-{#        {% include '/planner/frequencies/monthly.html.twig' with {export: export} %}#}
+        {% include '/planner/frequencies/once.html.twig' with {begin} %}
+        {% include '/planner/frequencies/hourly.html.twig' with {begin, intervalPeriod} %}
+        {% include '/planner/frequencies/daily.html.twig' with {begin, period, intervalTime} %}
+        {% include '/planner/frequencies/weekly.html.twig' with {begin, period, intervalTime, weekDays} %}
+        {% include '/planner/frequencies/monthly.html.twig' with {begin, months, monthDays, intervalTime} %}
     </div>
 </div>
