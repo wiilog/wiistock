@@ -132,6 +132,20 @@ function switchLocations() {
     if(!locationsTable) {
         locationsTable = initDataTable(`locationsTable`, locationsTableConfig);
 
+        $(`.new-location`).on(`click`, function() {
+            wrapLoadingOnActionButton($(this), () => (
+                AJAX.route(`GET`, `location_api_new`)
+                    .json()
+                    .then(({content}) => {
+                        const $modal = $(`#modalNewEmplacement`);
+                        $modal.find(`.modal-body`).html(content);
+                        $('.select2').select2();
+
+                        $modal.modal(`show`);
+                    })
+            ))
+        });
+
         let $modalNewEmplacement = $("#modalNewEmplacement");
         let $submitNewEmplacement = $("#submitNewEmplacement");
         let urlNewEmplacement = Routing.generate('emplacement_new', true);
@@ -153,7 +167,7 @@ function switchLocations() {
         locationsTable.ajax.reload();
     }
 
-    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).removeClass('d-none');
+    $(`.locationsTableContainer, .new-location`).removeClass('d-none');
     $(`.action-button`).removeClass('d-none');
     $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).addClass('d-none');
     $(`.zonesTableContainer, [data-target="#modalNewZone"]`).addClass('d-none');
@@ -186,7 +200,7 @@ function switchGroups() {
         groupsTable.ajax.reload();
     }
 
-    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).addClass('d-none');
+    $(`.locationsTableContainer, .new-location`).addClass('d-none');
     $(`.action-button`).addClass('d-none');
     $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).removeClass('d-none');
     $(`.zonesTableContainer, [data-target="#modalNewZone"]`).addClass('d-none');
@@ -225,7 +239,7 @@ function switchZones() {
         zonesTable.ajax.reload();
     }
 
-    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).addClass('d-none');
+    $(`.locationsTableContainer, .new-location`).addClass('d-none');
     $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).addClass('d-none');
     $(`.action-button`).addClass('d-none');
     $(`.zonesTableContainer, [data-target="#modalNewZone"]`).removeClass('d-none');

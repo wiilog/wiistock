@@ -31,9 +31,8 @@
                     <div class="specifications w-100">
                         {% if article.id %}
                             <div><strong class="ref text-break">{{ article.barCode }}</strong></div>
-                        {% endif %}
-
-                        {% if article.id %}
+                            <input type="hidden" class="data" value="{{ article.id }}" name="id">
+                            <input type="hidden" class="data" value="{{ article.articleFournisseur.referenceArticle.id }}" name="refArticle">
                             <div>
                                 <div><strong class="text-break">Ref : {{ article.referenceArticle.reference }}</strong></div>
                                 <div><strong class="text-break wii-subtitle">{{ article.referenceArticle.libelle }}</strong></div>
@@ -189,6 +188,14 @@
                                 }) }}
                             </div>
                         {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DESTINATION_AREA') %}
+                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
+                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
+                            <div class="col-6 mt-2">
+                                {{ form.input('destinationArea', "Zone de destination", required, article.id ? article.destinationArea : null) }}
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -327,29 +334,30 @@
                     </div>
                 {% endif %}
             </div>
+        </div>
 
-            {% if article.id %}
-                <div class="col-12">
-                    <div class="wii-box">
-                        <div class="header wii-title d-flex justify-content-between align-items-center p-2">
-                            <span class="ml-2">Mouvements de traçabilité</span>
-                            <a class="btn btn-outline-primary {{ not hasMovements ? 'disabled' }}"
-                               href="{{ path('mvt_traca_index', {article: article.id}) }}" target="_blank">
-                                <i class="fas fa-share-square mr-2"></i>Ouvrir la page
-                            </a>
-                        </div>
-                        <div class="content" data-loader-color="primary" data-loader-size="normal">
-                            <div class="history-container overflow-hidden">
-                                <div class="d-flex align-items-center justify-content-center p-3">
-                                    <div class="spinner-border text-primary" role="status"></div>
-                                    <span class="ml-3">Génération de l'historique des mouvements en cours</span>
-                                </div>
+        {% if article.id %}
+            <div class="col-12">
+                <div class="wii-box">
+                    <div class="header wii-title d-flex justify-content-between align-items-center p-2">
+                        <span class="ml-2">Mouvements de traçabilité</span>
+                        <a class="btn btn-outline-primary {{ not hasMovements ? 'disabled' }}"
+                           href="{{ path('mvt_traca_index', {article: article.id}) }}" target="_blank">
+                            <i class="fas fa-share-square mr-2"></i>Ouvrir la page
+                        </a>
+                    </div>
+                    <div class="content" data-loader-color="primary" data-loader-size="normal">
+                        <div class="history-container overflow-hidden">
+                            <div class="d-flex align-items-center justify-content-center p-3">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <span class="ml-3">Génération de l'historique des mouvements en cours</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            {% endif %}
-        </div>
+            </div>
+        {% endif %}
+
         <div class="col-12">
             <div class="save-buttons">
                 <button class="btn btn-outline-secondary" onclick="history.back()">

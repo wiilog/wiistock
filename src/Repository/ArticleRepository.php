@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryFrequency;
@@ -56,6 +57,20 @@ class ArticleRepository extends EntityRepository {
             ->setParameter('consumed', Article::STATUT_INACTIF)
             ->getQuery()
             ->getResult();
+    }
+
+    public function getQuantityForSupplier(ArticleFournisseur $supplier) {
+        return $this
+            ->createQueryBuilder('article')
+            ->select('SUM(IF(statut.code = :available, article.quantite, 0))')
+            ->join('article.statut', 'statut')
+            ->andWhere('article.articleFournisseur = :supplier')
+            ->setParameters([
+                'supplier' => $supplier,
+                'available' => Article::STATUT_ACTIF,
+            ])
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function getReferencesByRefAndDate($refPrefix, $date)
@@ -124,7 +139,8 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.stockEntryDate')
             ->addSelect('article.expiryDate')
             ->addSelect("join_visibilityGroup.label AS visibilityGroup")
-            ->addSelect('project.code as projectCode')
+            ->addSelect('project.code AS projectCode')
+            ->addSelect('article.destinationArea')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
@@ -370,6 +386,18 @@ class ArticleRepository extends EntityRepository {
                                 foreach ($subqb->getQuery()->execute() as $idArray) {
                                     $ids[] = $idArray['id'];
                                 }
+                                break;
+                            case "nativeCountry":
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.nativeCountry', 'search_nativeCountry')
+                                    ->andWhere('search_nativeCountry.label LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+
                                 break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
@@ -857,6 +885,40 @@ class ArticleRepository extends EntityRepository {
             ->setParameter("reference", $reference)
             ->setParameter("location", $emplacement)
             ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findGroupedByReferenceArticleAndLocation(array $locations, array $filteredArticles = null) {
+        if (empty($filteredArticles) && $filteredArticles !== null) {
+            return [];
+        }
+        $query = $this->createQueryBuilder("article")
+            ->select('COUNT(article.id) as quantity')
+            ->addSelect('MAX(emplacement.label) as location')
+            ->addSelect('MAX(referenceArticle.reference) as reference')
+            ->addSelect('MAX(referenceArticle.id) as referenceEntity')
+            ->join("article.articleFournisseur", "af")
+            ->join("af.referenceArticle", "referenceArticle")
+            ->join("article.emplacement", "emplacement")
+            ->join("article.statut", "articleStatut")
+            ->andWhere("articleStatut.nom IN (:statuses)")
+            ->andWhere('article.emplacement IN (:locations)')
+            ->andWhere('article.RFIDtag IS NOT NULL')
+            ->setParameter("locations", $locations)
+            ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_INACTIF])
+            ->addGroupBy('af.referenceArticle')
+            ->addGroupBy('article.emplacement');
+
+        if (!empty($filteredArticles)) {
+            $query
+                ->andWhere('article.id IN (:articles)')
+                ->setParameter('articles', $filteredArticles);
+        }
+
+        return $query
+            ->orderBy('emplacement.id')
+            ->addOrderBy('referenceArticle.id')
             ->getQuery()
             ->getResult();
     }

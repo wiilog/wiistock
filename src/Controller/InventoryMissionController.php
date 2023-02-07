@@ -8,9 +8,12 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
+use App\Entity\Zone;
 use App\Repository\TypeRepository;
 use App\Entity\Type;
 use App\Entity\CategoryType;
@@ -79,7 +82,20 @@ class InventoryMissionController extends AbstractController
             $mission
                 ->setStartPrevDate(DateTime::createFromFormat('Y-m-d', $data['startDate']))
                 ->setEndPrevDate(DateTime::createFromFormat('Y-m-d', $data['endDate']))
+                ->setCreatedAt(new DateTime('now'))
                 ->setName($data['name']);
+
+            $requesterId = $data['requester'] ?? null;
+            if ($requesterId) {
+                $userRepository = $em->getRepository(Utilisateur::class);
+                $requester = $userRepository->find($requesterId);
+                $mission->setRequester($requester);
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Veuillez sélectionner un demandeur."
+                ]);
+            }
 
             if (isset($data['missionType'])) {
                 $mission->setType($data['missionType']);
@@ -94,7 +110,8 @@ class InventoryMissionController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'La mission d\'inventaire a bien été créée.'
+                'msg' => 'La mission d\'inventaire a bien été créée.',
+                "redirect" => $this->generateUrl('inventory_mission_show', ["id" => $mission->getId()])
             ]);
         }
         throw new BadRequestHttpException();
@@ -156,10 +173,23 @@ class InventoryMissionController extends AbstractController
      * @Route("/voir/{id}", name="inventory_mission_show", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
-    public function show(InventoryMission $mission): Response {
+    public function show(InventoryMission $mission, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response {
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
+            'typeLocation' => $mission->getType() === InventoryMission::LOCATION_TYPE,
+            'locationsAlreadyAdded' => !$mission->getInventoryLocationMissions()->isEmpty()
         ]);
+    }
+
+    #[Route("/{mission}/mission-location-ref-api", name: "mission_location_ref_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
+    public function getMissionLocationRefApi(EntityManagerInterface  $entityManager,
+                                             InventoryMission        $mission,
+                                             Request                 $request): JsonResponse {
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+
+        $result = $inventoryLocationMissionRepository->getDataByMission($mission, $request->request);
+        return new JsonResponse($result);
     }
 
     /**
@@ -477,4 +507,85 @@ class InventoryMissionController extends AbstractController
         ]);
     }
 
+    /**
+     * @Route("/ajouter-emplacements-zones-datatable", name="add_locations_or_zones_to_mission_datatable", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
+     */
+    public function addLocationsOrZonesToMissionDatatable(Request $request, EntityManagerInterface $entityManager){
+        $data = $request->query->all();
+
+        $dataToDisplay = [];
+        if(isset($data['dataIdsToDisplay'])){
+            if ($data['buttonType'] === 'zones'){
+                $zoneRepository = $entityManager->getRepository(Zone::class);
+                $zones = $zoneRepository->findBy(['id' => $data['dataIdsToDisplay']]);
+                $dataToDisplay = Stream::from($zones)
+                    ->map(function(Zone $zone) {
+                        return Stream::from($zone->getLocations())
+                            ->map(fn(Emplacement $location) => [
+                                'zone' => $this->formatService->zone($zone),
+                                'location' => $this->formatService->location($location),
+                                'id' => $location->getId()
+                            ])
+                            ->toArray();
+                    })
+                    ->toArray();
+            } else if($data['buttonType'] === 'locations'){
+                $locationRepository = $entityManager->getRepository(Emplacement::class);
+                $locations = $locationRepository->findBy(['id' => $data['dataIdsToDisplay']]);
+
+                $dataToDisplay = Stream::from($locations)
+                    ->map(fn(Emplacement $location)  => [
+                        'zone' => $this->formatService->zone($location->getZone()),
+                        'location' => $this->formatService->location($location),
+                        'id' => $location->getId()
+                    ])
+                    ->toArray();
+            }
+        } else {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Veuillez rensigner des emplacements à ajouter à la missions."
+            ]);
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => "Emplacements ajoutés dans le tableau",
+            'data' => $dataToDisplay
+        ]);
+    }
+
+    /**
+     * @Route("/ajouter-emplacements-zones", name="add_locations_or_zones_to_mission", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
+     */
+    public function addLocationsOrZonesToMission(Request $request, EntityManagerInterface $entityManager){
+        if(!$request->query->has('locations')){
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Veuillez renseigner des emplacements à ajouter."
+            ]);
+        }
+
+        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $inventoryMission = $inventoryMissionRepository->find($request->query->get('mission'));
+        $locations = $locationRepository->findBy(['id' => $request->query->all('locations')]);
+
+        foreach ($locations as $location){
+            $inventoryLocationMission = (new InventoryLocationMission())
+                ->setInventoryMission($inventoryMission)
+                ->setLocation($location);
+            $entityManager->persist($inventoryLocationMission);
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => "Emplacements ajoutés avec succès."
+        ]);
+    }
 }

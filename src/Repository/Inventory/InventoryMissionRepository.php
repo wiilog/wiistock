@@ -3,16 +3,19 @@
 namespace App\Repository\Inventory;
 
 use App\Entity\Article;
+use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryBuilderHelper;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -26,7 +29,8 @@ class InventoryMissionRepository extends EntityRepository {
     const DtToDbLabels = [
         'start' => 'startPrevDate',
         'end' => 'endPrevDate',
-        'name' => 'name'
+        'name' => 'name',
+        'requester' => 'requester'
     ];
 
     public function getCurrentMissionRefNotTreated(): mixed {
@@ -296,7 +300,13 @@ class InventoryMissionRepository extends EntityRepository {
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
-                    $qb->orderBy('im.' . $column, $order);
+                    if ($column === 'requester') {
+                        $qb
+                            ->leftJoin('im.requester', 'order_requester')
+                            ->orderBy('order_requester.username', $order);
+                    } else {
+                        $qb->orderBy('im.' . $column, $order);
+                    }
                 }
             }
         }
@@ -370,7 +380,6 @@ class InventoryMissionRepository extends EntityRepository {
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate);
     }
-
     public function getInventoryMissions(): mixed {
         $now = new DateTime('now');
 
@@ -386,6 +395,7 @@ class InventoryMissionRepository extends EntityRepository {
             ->where($exprBuilder->andX(
                 'inventoryMission.startPrevDate <= :now',
                 'inventoryMission.endPrevDate >= :now',
+                'inventoryMission.done IS NULL OR inventoryMission.done = 0'
             ))
             ->setParameter('now', $now->format('Y-m-d'));
 
@@ -415,4 +425,124 @@ class InventoryMissionRepository extends EntityRepository {
             ->getQuery()
             ->getArrayResult();
     }
+
+    public function getInventoryLocationMissionsByMission($missionId): mixed {
+        $entityManager = $this->getEntityManager();
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('inventoryLocationMission')
+            ->from(InventoryLocationMission::class, 'inventoryLocationMission');
+
+        $queryBuilder
+            ->leftJoin('inventoryLocationMission.inventoryMission', 'inventoryMission')
+            ->andWhere('inventoryMission.id = :missionId')
+            ->setParameter("missionId", $missionId);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+    public function getDataByMission(InventoryMission $mission, ParameterBag $params) : array {
+        $start = $params->get('start') ?? 0;
+        $length = $params->get('length') ?? 5;
+        $search = $params->all('search')?? null;
+
+        $queryBuilder = $this->createQueryBuilder('inventory_location_mission');
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
+            ->select('inventory_location_mission.id AS id')
+            ->addSelect('join_inventoryMission.id AS missionId')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('inventory_location_mission.done AS done')
+
+            ->leftJoin('inventory_location_mission.inventoryMission', 'join_inventoryMission')
+            ->leftJoin('inventory_location_mission.location', 'join_location');
+
+        //if le champs done est à true
+        $queryBuilder
+            ->addSelect('join_zone.name AS zone')
+            ->addSelect('join_referenceArticle.reference AS reference')
+            ->addSelect('join_inventoryLocationMissionReferenceArticles.scannedAt AS scanDate')
+            ->addSelect('join_user.username AS operator')
+            ->addSelect('join_inventoryLocationMissionReferenceArticles.percentage AS percentage')
+
+            ->leftJoin('inventory_location_mission.inventoryLocationMissionReferenceArticles', 'join_inventoryLocationMissionReferenceArticles')
+            ->leftJoin('join_location.zone', 'join_zone')
+            ->leftJoin('join_inventoryLocationMissionReferenceArticles.referenceArticle', 'join_referenceArticle')
+            ->leftJoin('join_inventoryLocationMissionReferenceArticles.operator', 'join_user');
+        //endif
+
+        $queryBuilder
+            ->andWhere('join_inventoryMission.id = :mission')
+            ->addOrderBy('missionId')
+            ->setParameter('mission', $mission->getId());
+        $total = QueryBuilderHelper::count($queryBuilder, "join_inventoryLocationMissionReferenceArticles");
+
+        if (!empty($search) && !empty($search['value'])) {
+            $value = $search['value'];
+            $queryBuilder
+                ->andWhere($exprBuilder->orX(
+                    'join_zone.name LIKE :search',
+                    'join_location.label LIKE :search',
+                    'join_referenceArticle.reference LIKE :search',
+                    'join_user.username LIKE :search',
+                ))
+                ->setParameter('search', "%$value%");
+        }
+        $countQuery = QueryBuilderHelper::count($queryBuilder, "join_inventoryLocationMissionReferenceArticles");
+        if (!empty($params->all('order'))) {
+            $order = $params->all('order')[0]['dir'];
+            if (!empty($order)) {
+                $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
+                switch ($column) {
+                    case 'percentage':
+                        $queryBuilder
+                            ->addOrderBy('join_inventoryLocationMissionReferenceArticles.percentage', $order);
+                        break;
+                    case 'zone':
+                        $queryBuilder
+                            ->addOrderBy('join_zone.name', $order);
+                        break;
+                    case 'reference':
+                        $queryBuilder
+                            ->addOrderBy('join_referenceArticle.reference', $order);
+                        break;
+                    case 'scanDate':
+                        $queryBuilder
+                            ->addOrderBy('join_inventoryLocationMissionReferenceArticles.scannedAt', $order);
+                        break;
+                    case 'operator':
+                        $queryBuilder
+                            ->addOrderBy('join_user.username', $order);
+                        break;
+                    case 'location':
+                        $queryBuilder
+                            ->addOrderBy('inventory_location_mission.location', $order);
+                        break;
+                }
+            }
+        }
+        $queryBuilder->setFirstResult($start);
+        $queryBuilder->setMaxResults($length);
+
+        $queryResult = $queryBuilder->getQuery()->getResult();
+        $result = Stream::from($queryResult)
+            ->map(fn(array $line) => [
+                "id" => $line["id"],
+                "missionId" => $line["missionId"],
+                "zone" => $line["zone"] ?? null,
+                "location" => $line["location"] ?? null,
+                "reference" => $line["reference"] ?? null,
+                "scanDate" => $line["scanDate"]?->format("d/m/Y H:i") ?? null,
+                "operator" => $line["operator"] ?? null,
+                "percentage" => $line["percentage"] . "%",
+            ]);
+
+        return [
+            "data" => $result->toArray(),
+            'recordsFiltered' => $countQuery,
+            'recordsTotal' => $total
+        ];
+    }
+
 }

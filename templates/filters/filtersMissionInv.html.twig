@@ -3,7 +3,9 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterAnomaly.html.twig' %}
-    {%  if types is defined %}
-        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {types: types} %}
+    {% if types is defined and types is not empty %}
+        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+            types
+        } %}
     {% endif %}
 {% endblock %}
