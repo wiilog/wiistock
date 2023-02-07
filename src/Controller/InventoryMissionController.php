@@ -559,7 +559,6 @@ class InventoryMissionController extends AbstractController
         $inventoryMission = $inventoryMissionRepository->find($request->query->get('mission'));
         $locations = $locationRepository->findBy(['id' => $request->query->all('locations')]);
 
-        dump($locations);
         foreach ($locations as $location){
             $inventoryLocationMission = (new InventoryLocationMission())
                 ->setInventoryMission($inventoryMission)
