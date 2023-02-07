@@ -757,9 +757,6 @@ class ArticleController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $freeFieldsGroupedByTypes = [];
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
-
         foreach ($types as $type) {
             $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
@@ -772,7 +769,7 @@ class ArticleController extends AbstractController
             "submit_url" => $this->generateUrl("article_edit"),
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
             "hasMovements" => $hasMovements,
-            "fieldsParam" => $fieldsParam
+            "fieldsParam" => $fieldsParam,
         ]);
     }
 
