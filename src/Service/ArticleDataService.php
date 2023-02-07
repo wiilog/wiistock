@@ -300,8 +300,6 @@ class ArticleDataService
                 ->setRFIDtag($data['rfidTag'] ?? null)
                 ->setBatch($data['batch'] ?? null);
 
-
-
             if (isset($data['expiry'])) {
                 $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
             }

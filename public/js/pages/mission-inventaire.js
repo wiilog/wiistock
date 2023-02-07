@@ -30,7 +30,7 @@ let tableMisionsConfig = {
         {data: `name`, title: `Libellé`},
         {data: `start`, title: `Date de début`},
         {data: `end`, title: `Date de fin`},
-        {data: `rate`, title: `Taux d\`avancement`, orderable: false},
+        {data: `rate`, title: `Taux d\'avancement`, orderable: false},
         {data: `type`, title: `Type`},
     ]
 };
