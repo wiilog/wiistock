@@ -13,6 +13,7 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
@@ -301,6 +302,7 @@ class InventoryService {
     public function parseAndSummarizeInventory(array $data, EntityManagerInterface $entityManager, Utilisateur $user) {
         $articleRepository = $entityManager->getRepository(Article::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $zone = $entityManager->getRepository(Zone::class)->find($data["zone"]);
         $mission = $entityManager->getRepository(InventoryMission::class)->find($data["mission"]);
@@ -329,6 +331,9 @@ class InventoryService {
             }
         }
         $entityManager->flush();
+
+        $min = intval($settingRepository->getOneParamByLabel(Setting::RFID_KPI_MIN));
+        $max = intval($settingRepository->getOneParamByLabel(Setting::RFID_KPI_MAX));
         foreach ($expected as $expectedResult) {
             $quantity = $expectedResult['quantity'];
             $reference = $expectedResult['reference'];
@@ -349,11 +354,13 @@ class InventoryService {
                 ->setReferenceArticle($references[$expectedResult['referenceEntity']]);
             $entityManager->persist($line);
             $entityManager->flush();
-            $result[] = [
-                'reference' => $reference,
-                'location' => $location,
-                'ratio' => $percentage,
-            ];
+            if ($percentage >= $min && $percentage <= $max) {
+                $result[] = [
+                    'reference' => $reference,
+                    'location' => $location,
+                    'ratio' => $percentage,
+                ];
+            }
         }
 
         return $result;

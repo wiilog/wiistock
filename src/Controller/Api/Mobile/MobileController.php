@@ -1951,6 +1951,8 @@ class MobileController extends AbstractApiController
                                 ArticleDataService $articleDataService,
                                 MouvementStockService $mouvementStockService): Response
     {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIXE);
         $data = $request->request->all();
         $cleanedData = [];
         foreach ($data as $key => $datum) {
@@ -1960,9 +1962,16 @@ class MobileController extends AbstractApiController
                 $cleanedData[$key] = $datum;
             }
         }
+        if (!empty($rfidPrefix) && !str_starts_with($cleanedData['rfidTag'], $rfidPrefix)) {
+            return $this->json([
+                'success' => false,
+                'message' => "Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix)."
+            ]);
+        }
         $article = $entityManager->getRepository(Article::class)->findOneBy([
             'RFIDtag' => $cleanedData['rfidTag']
         ]);
+
         if ($article) {
             return $this->json([
                 'success' => false,

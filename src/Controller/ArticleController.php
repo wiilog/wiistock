@@ -250,6 +250,14 @@ class ArticleController extends AbstractController
         if(!$existingArticle) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIXE);
+            if (isset($data['rfidTag']) && !empty($rfidPrefix) && !str_starts_with($data['rfidTag'], $rfidPrefix)) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix)."
+                ]);
+            }
             $article = $this->articleDataService->newArticle($data, $entityManager);
             $entityManager->flush();
 

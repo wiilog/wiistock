@@ -905,7 +905,7 @@ class ArticleRepository extends EntityRepository {
             ->andWhere('article.emplacement IN (:locations)')
             ->andWhere('article.RFIDtag IS NOT NULL')
             ->setParameter("locations", $locations)
-            ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_INACTIF])
+            ->setParameter("statuses", [Article::STATUT_ACTIF])
             ->addGroupBy('af.referenceArticle')
             ->addGroupBy('article.emplacement');
 
