@@ -28,6 +28,7 @@ import {onHeaderPageEditStop} from "./utils";
 import Form from '../../form';
 import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import AJAX, {GET, POST} from "@app/ajax";
+import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -867,35 +868,6 @@ function initializeInventoryCategoriesTable(){
             label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
             frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence">`+$frequencyOptions+`</select>`,
         },
-    });
-}
-
-function initializeInventoryPlanificatorTable($container){
-    $container.on(`click`, `.force-missions`, function() {
-        AJAX.route(`POST`, `settings_mission_rules_force`)
-            .json()
-            .then(() => Flash.add(`success`, `Les missions d'inventaire ont été générées`));
-    });
-
-    const table = EditableDatatable.create(`#missionRulesTable`, {
-        route: Routing.generate('settings_mission_rules_api', true),
-        deleteRoute: `settings_delete_mission_rule`,
-        mode: MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        search: true,
-        paginate: false,
-        scrollY: false,
-        scrollX: false,
-        columns: [
-            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `missionType`, title: `Type de mission`, required: true},
-            {data: `label`, title: `Libellé`, required: true},
-            {data: `periodicity`, title: `Périodicité`, required: true},
-            {data: `categories`, title: `Catégorie(s)`, required: true},
-            {data: `duration`, title: `Durée`, required: true},
-            {data: `creator`, title: `Créateur`, required: true},
-            {data: `lastExecution`, title: `Dernière exécution`, required: true},
-        ],
     });
 }
 

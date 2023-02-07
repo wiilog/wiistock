@@ -1,0 +1,26 @@
+{% import 'form.html.twig' as form %}
+
+<div class="row">
+    <div class="col-12">
+        {{ form.switch('missionType', 'Type de mission', false, [
+            {label: 'Quantité article', value: constant('App\\Entity\\inventory\\InventoryMission::ARTICLE_TYPE'), checked: true},
+            {label: 'Article sur emplacement', value: constant('App\\Entity\\inventory\\InventoryMission::LOCATION_TYPE'), checked: false},
+        ]) }}
+    </div>
+    <div class="col-6 mt-3">
+        {{ form.input('name', 'Libellé de la tache', true, null, {
+            type: 'text',
+        }) }}
+    </div>
+    <div class="col-6 mt-3">
+        {{ form.input('description', 'Description', true, null, {
+            type: 'text',
+        }) }}
+    </div>
+    <div class="col-12">
+        {%  include 'planner/planner.html.twig' with {
+            frequency : null
+        } %}
+    </div>
+
+</div>

@@ -42,6 +42,7 @@ Encore
     .addEntry('register', './assets/js/pages/register/register.js')
     .addEntry('customer-index', './assets/js/pages/customer/index.js')
     .addEntry('kiosk', './assets/js/pages/kiosk.js')
+    .addEntry('settings-inventory-planner', './assets/js/pages/settings/inventory/inventoryPlanner.js')
 
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
