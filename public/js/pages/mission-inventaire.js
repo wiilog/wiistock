@@ -39,9 +39,16 @@ let tableMissions = initDataTable(`tableMissionsInv`, tableMisionsConfig);
 let modalNewMission = $("#modalNewMission");
 let submitNewMission = $("#submitNewMission");
 let urlNewMission = Routing.generate(`mission_new`, true);
-InitModal(modalNewMission, submitNewMission, urlNewMission, {tables: [tableMissions]});
+InitModal(modalNewMission, submitNewMission, urlNewMission, {
+    tables: [tableMissions],
+    success: ({redirect}) => {
+        window.location.href = redirect;
+    }
+});
 
 let modalDeleteMission = $("#modalDeleteMission");
 let submitDeleteMission = $("#submitDeleteMission");
 let urlDeleteMission = Routing.generate(`mission_delete`, true)
 InitModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, {tables: [tableMissions]});
+
+

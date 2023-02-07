@@ -96,7 +96,8 @@ class InventoryMissionController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'La mission d\'inventaire a bien été créée.'
+                'msg' => 'La mission d\'inventaire a bien été créée.',
+                "redirect" => $this->generateUrl('inventory_mission_show', ["id" => $mission->getId()])
             ]);
         }
         throw new BadRequestHttpException();
