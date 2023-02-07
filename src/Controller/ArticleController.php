@@ -752,6 +752,7 @@ class ArticleController extends AbstractController
     public function editTemplate(EntityManagerInterface $manager, Article $article) {
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $freeFieldsGroupedByTypes = [];
@@ -764,12 +765,14 @@ class ArticleController extends AbstractController
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+
         return $this->render("article/form/edit.html.twig", [
             "article" => $article,
             "submit_url" => $this->generateUrl("article_edit"),
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
             "hasMovements" => $hasMovements,
-            "fieldsParam" => $fieldsParam,
+            "fieldsParam" => $fieldsParam
         ]);
     }
 
@@ -791,7 +794,8 @@ class ArticleController extends AbstractController
             'success' => true,
             'template' => $this->renderView('article/form/free-fields.html.twig', [
                 'freeFields' => $freeFields
-            ])
+            ]),
+            'type' => $reference?->getType()?->getLabel()
         ]);
     }
 }
