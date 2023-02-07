@@ -2059,7 +2059,7 @@ class MobileController extends AbstractApiController
             ->setNativeCountry($countryFrom)
             ->setConform(true)
             ->setProductionDate($productionDate)
-            ->setDestinationArea($cleanedData['destinationArea'] ?? null)
+            ->setDestinationArea($data['destination'] ?? null)
             ->setCommentaire($cleanedData['comment']);
 
         $entityManager->persist($article);
