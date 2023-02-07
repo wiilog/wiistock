@@ -35,6 +35,14 @@
                             {label: 'Article sur emplacement', value: 'location', checked: false}
                         ]) }}
                     </div>
+                    <div class="form-group col-12">
+                        {{ form.select('requester', 'Demandeur', true, {
+                            type: 'user',
+                            items: {
+                                (app.user.id): (app.user.username),
+                            }
+                        }) }}
+                    </div>
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {

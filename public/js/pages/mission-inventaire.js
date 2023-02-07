@@ -32,6 +32,7 @@ let tableMisionsConfig = {
         {data: `end`, title: `Date de fin`},
         {data: `rate`, title: `Taux d\`avancement`, orderable: false},
         {data: `type`, title: `Type`},
+        {data: `requester`, title: `Demandeur`}
     ]
 };
 let tableMissions = initDataTable(`tableMissionsInv`, tableMisionsConfig);

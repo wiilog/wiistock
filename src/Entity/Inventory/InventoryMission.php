@@ -4,9 +4,11 @@ namespace App\Entity\Inventory;
 
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Repository\Inventory\InventoryMissionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use DateTime;
 use Doctrine\ORM\Mapping\OneToMany;
@@ -56,6 +58,15 @@ class InventoryMission {
 
     #[OneToMany(mappedBy: "inventoryMission", targetEntity: InventoryLocationMission::class)]
     private Collection $inventoryLocationMissions;
+
+    #[ORM\ManyToOne]
+    private ?Utilisateur $requester = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $createdAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $validatedAt = null;
 
     public function __construct() {
         $this->refArticles = new ArrayCollection();
@@ -216,6 +227,9 @@ class InventoryMission {
         return $this;
     }
 
+    /**
+     * @return Collection<int, InventoryLocationMission>
+     */
     public function getInventoryLocationMissions(): Collection {
         return $this->inventoryLocationMissions;
     }
@@ -252,4 +266,39 @@ class InventoryMission {
         return $this;
     }
 
+    public function getRequester(): ?Utilisateur
+    {
+        return $this->requester;
+    }
+
+    public function setRequester(?Utilisateur $requester): self
+    {
+        $this->requester = $requester;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getValidatedAt(): ?\DateTimeInterface
+    {
+        return $this->validatedAt;
+    }
+
+    public function setValidatedAt(?\DateTimeInterface $validatedAt): self
+    {
+        $this->validatedAt = $validatedAt;
+
+        return $this;
+    }
 }

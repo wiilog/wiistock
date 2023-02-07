@@ -37,6 +37,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Entity\Zone;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\NegativeQuantityException;
 use App\Exceptions\RequestNeedToBeProcessedException;
@@ -2019,8 +2020,26 @@ class MobileController extends AbstractApiController
             ]);
         }
 
-        $article = new Article();
+        $expiryDate = $cleanedData['expiryDate']
+            ? ($fromMatrix
+                ? DateTime::createFromFormat('dmY', $cleanedData['expiryDate'])
+                : new DateTime($cleanedData['expiryDate']))
+            : null;
 
+
+        $manufacturingDate = $cleanedData['manufacturingDate']
+            ? ($fromMatrix
+                ? DateTime::createFromFormat('dmY', $cleanedData['manufacturingDate'])
+                : new DateTime($cleanedData['manufacturingDate']))
+            : null;
+
+        $productionDate = $cleanedData['productionDate']
+            ? ($fromMatrix
+                ? DateTime::createFromFormat('dmY', $cleanedData['productionDate'])
+                : new DateTime($cleanedData['productionDate']))
+            : null;
+
+        $article = new Article();
         $article
             ->setStatut($statut)
             ->setEmplacement($location)
@@ -2032,14 +2051,14 @@ class MobileController extends AbstractApiController
             ->setBarCode($articleDataService->generateBarCode())
             ->setLabel($cleanedData['label'])
             ->setPrixUnitaire(floatval($cleanedData['price']))
-            ->setExpiryDate($cleanedData['expiryDate'] ? new DateTime($cleanedData['expiryDate']): null)
+            ->setExpiryDate($expiryDate)
             ->setBatch($cleanedData['batch'])
             ->setPurchaseOrder($cleanedData['commandNumber'])
             ->setDeliveryNote(intval($cleanedData['deliveryLine']))
-            ->setManifacturingDate($cleanedData['manufacturingDate'] ? new DateTime($cleanedData['manufacturingDate']) : null)
+            ->setManifacturingDate($manufacturingDate)
             ->setNativeCountry($countryFrom)
             ->setConform(true)
-            ->setProductionDate($cleanedData['productionDate'] ? new DateTime($cleanedData['productionDate']) : null)
+            ->setProductionDate($productionDate)
             ->setCommentaire($cleanedData['comment']);
 
         $entityManager->persist($article);
@@ -2480,6 +2499,98 @@ class MobileController extends AbstractApiController
             : ($numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s);
 
         return $this->json($data);
+    }
+
+    /**
+     * @Rest\Post("/api/zone-rfid-summary", name="api_zone_rfid_summary", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function rfidSummary(Request $request, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response
+    {
+        return $this->json([
+            "success" => true,
+            "data" => $inventoryService->parseAndSummarizeInventory($request->request->all(), $entityManager, $this->getUser())
+        ]);
+    }
+
+
+    /**
+     * @Rest\Post("/api/finish-mission", name="api_finish_mission", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function finishMission(Request $request, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response
+    {
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $missionRepository = $entityManager->getRepository(InventoryMission::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $zoneRepository = $entityManager->getRepository(Zone::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $mission = $missionRepository->find($request->request->get('mission'));
+        $zones = $zoneRepository->findBy(["id" => json_decode($request->request->get('zones'))]);
+        $locations = $locationRepository->findByMissionAndZone($zones, $mission);
+        $tags = json_decode($request->request->get('tags'));
+
+        $articlesOnLocations = $articleRepository->findBy([
+            'emplacement' => $locations
+        ]);
+
+        $scannedArticles = [];
+        $missingArticles = [];
+
+        foreach ($articlesOnLocations as $article) {
+            if (in_array($article->getRFIDtag(), $tags)) {
+                $scannedArticles[] = $article;
+            } else {
+                $missingArticles[] = $article;
+            }
+        }
+
+        $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        foreach ($scannedArticles as $presentArticle) {
+            if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
+                $correctionMovement = new MouvementStock();
+                $correctionMovement
+                    ->setType(MouvementStock::TYPE_INVENTAIRE_ENTREE)
+                    ->setArticle($presentArticle)
+                    ->setDate(new DateTime())
+                    ->setQuantity($presentArticle->getQuantite())
+                    ->setEmplacementFrom($presentArticle->getEmplacement())
+                    ->setEmplacementTo($presentArticle->getEmplacement())
+                    ->setUser($this->getUser());
+                $entityManager->persist($correctionMovement);
+            }
+            $presentArticle
+                ->setStatut($activeStatus)
+                ->setDateLastInventory(new DateTime());
+        }
+
+        $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
+        foreach ($missingArticles as $missingArticle) {
+            if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
+                $correctionMovement = new MouvementStock();
+                $correctionMovement
+                    ->setType(MouvementStock::TYPE_INVENTAIRE_SORTIE)
+                    ->setArticle($missingArticle)
+                    ->setDate(new DateTime())
+                    ->setQuantity($missingArticle->getQuantite())
+                    ->setEmplacementFrom($missingArticle->getEmplacement())
+                    ->setEmplacementTo($missingArticle->getEmplacement())
+                    ->setUser($this->getUser());
+                $entityManager->persist($correctionMovement);
+            }
+            $missingArticle
+                ->setStatut($inactiveStatus)
+                ->setDateLastInventory(new DateTime());
+        }
+
+        $mission->setDone(true);
+        $entityManager->flush();
+        return $this->json([
+            "success" => true,
+            "data" => ""
+        ]);
     }
 
     /**
@@ -3486,6 +3597,30 @@ class MobileController extends AbstractApiController
         $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
 
         return $this->json($associatedDocumentTypeElements);
+    }
+
+    /**
+     * @Rest\Post("/api/inventory-mission-validate-zone", name="api_inventory_mission_validate_zone", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postInventoryMissionValidateZone(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $zoneId = $request->request->getInt('zone');
+        $missionId = $request->request->get('mission');
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+        $queryResult = $inventoryLocationMissionRepository->getInventoryLocationMissionsByMission($missionId);
+        $inventoryLocationMissions = Stream::from($queryResult)
+            ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()->getZone() && $inventoryLocationMission->getLocation()->getZone()->getId() === $zoneId)
+            ->toArray();
+
+        foreach ($inventoryLocationMissions as $inventoryLocationMission){
+            $inventoryLocationMission->setDone(true);
+        }
+        $entityManager->flush();
+        return $this->json([
+            'success' => true
+        ]);
     }
 
 }
