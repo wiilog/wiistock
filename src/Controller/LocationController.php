@@ -62,34 +62,13 @@ class LocationController extends AbstractController {
      */
     public function index(EntityManagerInterface $entityManager): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $zoneRepository = $entityManager->getRepository(Zone::class);
-
-        $allNatures = $natureRepository->findAll();
 
         $filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, EmplacementDataService::PAGE_EMPLACEMENT, $this->getUser());
         $active = $filterStatus ? $filterStatus->getValue() : false;
 
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
-        $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-        $temperatures = $entityManager->getRepository(TemperatureRange::class)->findBy([]);
-
-        $zones = $zoneRepository->findAll();
-
         return $this->render("emplacement/index.html.twig", [
-            "active" => $active,
-            "natures" => $allNatures,
-            "deliveryTypes" => $deliveryTypes,
-            "collectTypes" => $collectTypes,
-            "temperatures" => $temperatures,
             "newZone" => new Zone(),
-            "locationZone" =>  count($zones) === 1 ? [
-                "label" => $zones[0]->getName(),
-                "value" => $zones[0]->getId(),
-                "selected" => true
-            ] : [],
-            "selectZone" => count($zones) === 1 ? $zones[0] : null
+            "active" => $active,
         ]);
     }
 
@@ -164,6 +143,34 @@ class LocationController extends AbstractController {
         }
 
         throw new BadRequestHttpException();
+    }
+
+    #[Route('/api-new', name: 'location_api_new', options: ['expose' => true], methods: 'GET')]
+    public function apiNew(EntityManagerInterface $manager): Response {
+        $zoneRepository = $manager->getRepository(Zone::class);
+        $natureRepository = $manager->getRepository(Nature::class);
+        $typeRepository = $manager->getRepository(Type::class);
+
+        $allNatures = $natureRepository->findAll();
+        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
+        $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
+        $zones = $zoneRepository->findAll();
+
+        return $this->json([
+            'content' => $this->renderView('emplacement/modalNewLocationContent.html.twig', [
+                "natures" => $allNatures,
+                "deliveryTypes" => $deliveryTypes,
+                "collectTypes" => $collectTypes,
+                "temperatures" => $temperatures,
+                "locationZone" =>  count($zones) === 1 ? [
+                    "label" => $zones[0]->getName(),
+                    "value" => $zones[0]->getId(),
+                    "selected" => true
+                ] : [],
+                "selectZone" => count($zones) === 1 ? $zones[0] : null
+            ])
+        ]);
     }
 
     /**

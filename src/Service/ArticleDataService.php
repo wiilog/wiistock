@@ -281,6 +281,7 @@ class ArticleDataService
         } else {
             $article = (new Article())
                 ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
+                ->setConform(!isset($data['conform']) && $data['conform'])
                 ->setStatut($statut)
                 ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
@@ -293,13 +294,11 @@ class ArticleDataService
                 ->setStockEntryDate(new DateTime("now"))
                 ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
                 ->setNativeCountry($data['nativeCountry'] ?? null)
-                ->setProductionDate($data['productionDate'] ?? null)
-                ->setManifacturingDate($data['manufactureDate'] ?? null)
+                ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setRFIDtag($data['rfidTag'] ?? null)
                 ->setBatch($data['batch'] ?? null);
-
-
 
             if (isset($data['expiry'])) {
                 $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
