@@ -47,6 +47,7 @@ use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\InventoryService;
+use App\Service\InvMissionService;
 use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\SettingsService;
@@ -2406,11 +2407,11 @@ class SettingsController extends AbstractController {
      * @Route("/mission-rules-force", name="settings_mission_rules_force", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
-    public function missionRulesForce(EntityManagerInterface $manager, InventoryService $inventoryService): Response {
+    public function missionRulesForce(EntityManagerInterface $manager, InvMissionService $invMissionService): Response {
         $rules = $manager->getRepository(InventoryMissionRule::class)->findAll();
 
         foreach($rules as $rule) {
-            $inventoryService->createMission($rule);
+            $invMissionService->generateMission($rule);
         }
 
         return $this->json([

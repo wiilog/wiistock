@@ -32,8 +32,6 @@ class ScheduledExportCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        ini_set("memory_limit", "1024M");
-
         $exportRepository = $this->getEntityManager()->getRepository(Export::class);
 
         $exportsCache = $this->exportService->getScheduledCache($this->getEntityManager());

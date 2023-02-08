@@ -2,23 +2,13 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\ScheduleRule;
 use App\Repository\ExportScheduleRuleRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ExportScheduleRuleRepository::class)]
-class ExportScheduleRule {
-
-    public const ONCE = 'once-frequency';
-    public const HOURLY = 'hourly-frequency';
-    public const DAILY = 'every-day-frequency';
-    public const WEEKLY = 'every-week-frequency';
-    public const MONTHLY = 'every-month-frequency';
-
-    public const PERIOD_TYPE_MINUTES = 'minutes';
-    public const PERIOD_TYPE_HOURS = 'hours';
-
-    public const LAST_DAY_OF_WEEK = 'last';
+class ExportScheduleRule implements ScheduleRule {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

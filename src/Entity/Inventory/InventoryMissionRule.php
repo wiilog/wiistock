@@ -3,6 +3,7 @@
 namespace App\Entity\Inventory;
 
 use App\Entity\Emplacement;
+use App\Entity\Interfaces\ScheduleRule;
 use App\Entity\Utilisateur;
 use App\Repository\Inventory\InventoryMissionRuleRepository;
 use DateTime;
@@ -11,18 +12,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InventoryMissionRuleRepository::class)]
-class InventoryMissionRule {
-
-    public const ONCE = 'once-frequency';
-    public const HOURLY = 'hourly-frequency';
-    public const DAILY = 'every-day-frequency';
-    public const WEEKLY = 'every-week-frequency';
-    public const MONTHLY = 'every-month-frequency';
-
-    public const WEEKS = "weeks";
-    public const MONTHS = "months";
-
-    public const LAST_DAY_OF_WEEK = 'last';
+class InventoryMissionRule implements ScheduleRule {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -75,7 +65,7 @@ class InventoryMissionRule {
     private ?int $period = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
-    //For the "hourly" frequency when the hours or minutes were chosen
+    //For the "hourly" frequency when the hours or minutes were chosen and the daily frequency
     private ?string $intervalTime = null;
 
     #[ORM\Column(type: "integer", length: 255, nullable: true)]
