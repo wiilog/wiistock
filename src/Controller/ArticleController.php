@@ -35,6 +35,7 @@ use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\TagTemplateService;
+use App\Service\TrackingMovementService;
 use App\Service\UserService;
 use App\Annotation\HasPermission;
 
@@ -242,7 +243,8 @@ class ArticleController extends AbstractController
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
-                        ArticleDataService $articleDataService): Response {
+                        ArticleDataService $articleDataService,
+                        TrackingMovementService $trackingMovementService): Response {
         $data = $request->request->all();
 
         $barcode = $data['barcode'];
@@ -250,6 +252,14 @@ class ArticleController extends AbstractController
         if(!$existingArticle) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIXE);
+            if (isset($data['rfidTag']) && !empty($rfidPrefix) && !str_starts_with($data['rfidTag'], $rfidPrefix)) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix)."
+                ]);
+            }
             $article = $this->articleDataService->newArticle($data, $entityManager);
             $entityManager->flush();
 
@@ -270,6 +280,21 @@ class ArticleController extends AbstractController
                 );
 
                 $entityManager->persist($stockMovement);
+                $entityManager->flush();
+
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $article,
+                    $article->getEmplacement(),
+                    $this->getUser(),
+                    new DateTime('now'),
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE
+                );
+
+                $trackingMovement->setMouvementStock($stockMovement);
+
+                $entityManager->persist($trackingMovement);
                 $entityManager->flush();
             }
 
@@ -757,9 +782,6 @@ class ArticleController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $freeFieldsGroupedByTypes = [];
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
-
         foreach ($types as $type) {
             $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
@@ -772,7 +794,7 @@ class ArticleController extends AbstractController
             "submit_url" => $this->generateUrl("article_edit"),
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
             "hasMovements" => $hasMovements,
-            "fieldsParam" => $fieldsParam
+            "fieldsParam" => $fieldsParam,
         ]);
     }
 

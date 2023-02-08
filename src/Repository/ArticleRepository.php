@@ -139,7 +139,8 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.stockEntryDate')
             ->addSelect('article.expiryDate')
             ->addSelect("join_visibilityGroup.label AS visibilityGroup")
-            ->addSelect('project.code as projectCode')
+            ->addSelect('project.code AS projectCode')
+            ->addSelect('article.destinationArea')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
@@ -905,7 +906,7 @@ class ArticleRepository extends EntityRepository {
             ->andWhere('article.emplacement IN (:locations)')
             ->andWhere('article.RFIDtag IS NOT NULL')
             ->setParameter("locations", $locations)
-            ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_INACTIF])
+            ->setParameter("statuses", [Article::STATUT_ACTIF])
             ->addGroupBy('af.referenceArticle')
             ->addGroupBy('article.emplacement');
 

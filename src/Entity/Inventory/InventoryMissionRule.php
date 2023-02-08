@@ -50,7 +50,7 @@ class InventoryMissionRule implements ScheduleRule {
     #[ORM\Column(type: "text")]
     private ?string $description = null;
 
-    #[ORM\ManyToMany(targetEntity: Emplacement::class, inversedBy: 'inventoryMissionRules')]
+    #[ORM\ManyToMany(targetEntity: Emplacement::class, mappedBy: 'inventoryMissionRules')]
     private Collection $locations;
 
     #[ORM\Column(type: "datetime", nullable: false)]

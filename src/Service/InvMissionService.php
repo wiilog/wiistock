@@ -20,11 +20,13 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Google\Service\CloudAsset\Inventory;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -151,6 +153,17 @@ class InvMissionService {
             'recordsTotal' => $queryResult['total'],
             'recordsFiltered' => $queryResult['count'],
         ];
+    }
+
+    public function getDataForOneLocationMissionDatatable(EntityManagerInterface  $entityManager,
+                                                          InventoryMission        $mission,
+                                                          ParameterBag            $params = null) {
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_SHOW_MISSION, $this->security->getUser());
+
+        return $inventoryLocationMissionRepository->getDataByMission($mission, $params, $filters);
     }
 
     public function dataRowRefMission(ReferenceArticle $ref, InventoryMission $mission): array {

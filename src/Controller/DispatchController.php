@@ -1676,7 +1676,7 @@ class DispatchController extends AbstractController {
     }
 
     #[Route("/{dispatch}/dispatch-packs-api", name: "dispatch_packs_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
     public function getDispatchPacksApi(EntityManagerInterface  $entityManager,
                                          Dispatch               $dispatch,
                                          Request                $request): JsonResponse {

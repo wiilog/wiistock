@@ -155,7 +155,6 @@ class FiltreSupController extends AbstractController
                 'statuses-filter',
                 'date-choice'
             ];
-
             foreach ($filterCheckboxes as $filterCheckbox) {
                 $value = Stream::from($data)
                     ->filter(fn ($filter, $key) => str_starts_with($key, $filterCheckbox) && $filter === true)
