@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\ExportScheduleRule;
 use App\Entity\Interfaces\ScheduleRule;
 use DateTime;
-use phpDocumentor\Reflection\Types\Boolean;
 use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;

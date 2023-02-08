@@ -18,15 +18,8 @@ use App\Entity\ReferenceArticle;
 use App\Helper\FormatHelper;
 use DateTime;
 use DateTimeInterface;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Doctrine\ORM\Exception\ORMException;
-use Doctrine\ORM\OptimisticLockException;
-use Google\Service\CloudAsset\Inventory;
-use RuntimeException;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -52,9 +45,6 @@ class InvMissionService {
 
     #[Required]
     public FormatService $formatService;
-
-    #[Required]
-    public ScheduleRuleService $scheduleRuleService;
 
     #[Required]
     public InventoryService $inventoryService;
