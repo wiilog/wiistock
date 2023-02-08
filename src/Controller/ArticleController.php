@@ -282,15 +282,17 @@ class ArticleController extends AbstractController
                 $entityManager->persist($stockMovement);
                 $entityManager->flush();
 
-                $trackingMovement = $trackingMovementService->createTrackingMovement($article,
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $article,
                     $article->getEmplacement(),
                     $this->getUser(),
                     new DateTime('now'),
                     false,
                     true,
-                    TrackingMovement::TYPE_DEPOSE);
+                    TrackingMovement::TYPE_DEPOSE
+                );
 
-                    $trackingMovement->setMouvementStock($stockMovement);
+                $trackingMovement->setMouvementStock($stockMovement);
 
                 $entityManager->persist($trackingMovement);
                 $entityManager->flush();
