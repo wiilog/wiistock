@@ -485,6 +485,11 @@ function formatInputValue($input) {
         value = $input.is(`:checked`) ? `1` : `0`;
     } else if ($input.attr(`type`) === `file`) {
         value = $input[0].files[0] || null;
+    } else if ($input.attr(`type`) === `radio`) {
+        const $parent = $input.closest(`.wii-switch`);
+        value = $parent.find(`input[type=radio]:checked`).exists() && $input.is(`:checked`)
+            ? $input.val()
+            : null;
     } else {
         value = $input.val() || null;
     }

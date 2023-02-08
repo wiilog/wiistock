@@ -13,6 +13,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\NativeCountry;
 use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
@@ -294,13 +295,16 @@ class ArticleDataService
                 ->setBarCode($data['barcode'] ?? $this->generateBarCode())
                 ->setStockEntryDate(new DateTime("now"))
                 ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
-                ->setNativeCountry($data['nativeCountry'] ?? null)
                 ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setRFIDtag($data['rfidTag'] ?? null)
                 ->setBatch($data['batch'] ?? null)
                 ->setDestinationArea($data['destinationArea'] ?? null);
+
+            if(isset($data['nativeCountry'])) {
+                $article->setNativeCountry($entityManager->find(NativeCountry::class, $data['nativeCountry']));
+            }
 
             if (isset($data['expiry'])) {
                 $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
