@@ -405,7 +405,7 @@ class InventoryMissionRepository extends EntityRepository {
             ->getArrayResult();
     }
 
-    public function getInventoryLocationZones(): mixed {
+    public function getInventoryLocationZones(): array {
         $entityManager = $this->getEntityManager();
         $queryBuilder = $entityManager->createQueryBuilder()
             ->from(InventoryLocationMission::class, 'inventoryLocationZone');

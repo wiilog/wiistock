@@ -88,7 +88,6 @@ class FiltreSupController extends AbstractController
                     }
                 }
             }
-            dump($data);
 
             $filterLabelsSelect2 = [
                 'utilisateurs' => FiltreSup::FIELD_USERS,
@@ -182,7 +181,6 @@ class FiltreSupController extends AbstractController
                 foreach ($matches as $key => $match) {
                     $filterName = $key;
                     if (!is_array($match) && (strpos($match, ',') || strpos($match, ':'))) {
-                        dump('yo');
                         return new JsonResponse(false);
                     }
                     $value = is_array($match) ? implode(',', $match) : $match;

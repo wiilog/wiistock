@@ -1,9 +1,9 @@
 {% extends 'filters/filters.html.twig' %}
 
 {% block filters %}
-    {% set disabled = typeLocation and not done ? 'disabled' : '' %}
+    {% set disabled = typeLocation is defined and not done ? 'disabled' : '' %}
     {% include 'filters/filter_item/filterDate.html.twig' with {disabled: disabled} %}
-    {% if not typeLocation %}
+    {% if typeLocation is defined and not typeLocation %}
         {% include 'filters/filter_item/filterAnomaly.html.twig' %}
     {% endif %}
     {% if types is defined %}
