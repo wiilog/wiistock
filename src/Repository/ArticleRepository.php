@@ -889,24 +889,24 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function findGroupedByReferenceArticleAndLocation(array $locations, array $filteredArticles = null) {
-        if (empty($filteredArticles) && $filteredArticles !== null) {
+    public function findGroupedByReferenceArticleAndLocation(string $tagRFIDPrefix,
+                                                             array $locations,
+                                                             array $statusCodes,
+                                                             array $filteredArticles = null): array {
+        if (empty($statusCodes)
+            || (empty($filteredArticles) && $filteredArticles !== null)) {
             return [];
         }
-        $query = $this->createQueryBuilder("article")
+
+        $query = $this->createQueryBuilder("article");
+
+        $this->availableArticlesToInventoryQB($query, $tagRFIDPrefix, $locations, $statusCodes)
             ->select('COUNT(article.id) as quantity')
             ->addSelect('MAX(emplacement.label) as location')
             ->addSelect('MAX(referenceArticle.reference) as reference')
             ->addSelect('MAX(referenceArticle.id) as referenceEntity')
             ->join("article.articleFournisseur", "af")
             ->join("af.referenceArticle", "referenceArticle")
-            ->join("article.emplacement", "emplacement")
-            ->join("article.statut", "articleStatut")
-            ->andWhere("articleStatut.nom IN (:statuses)")
-            ->andWhere('article.emplacement IN (:locations)')
-            ->andWhere('article.RFIDtag IS NOT NULL')
-            ->setParameter("locations", $locations)
-            ->setParameter("statuses", [Article::STATUT_ACTIF])
             ->addGroupBy('af.referenceArticle')
             ->addGroupBy('article.emplacement');
 
@@ -921,6 +921,32 @@ class ArticleRepository extends EntityRepository {
             ->addOrderBy('referenceArticle.id')
             ->getQuery()
             ->getResult();
+    }
+
+    public function findAvailableArticlesToInventory(string $tagRFIDPrefix,
+                                                     array  $locations,
+                                                     array  $statusCodes): array {
+        $query = $this->createQueryBuilder("article");
+
+        return $this->availableArticlesToInventoryQB($query, $tagRFIDPrefix, $locations, $statusCodes)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function availableArticlesToInventoryQB(QueryBuilder $queryBuilder,
+                                                   string       $tagRFIDPrefix,
+                                                   array        $locations,
+                                                   array        $statusCodes): QueryBuilder {
+        return $queryBuilder
+            ->join("article.emplacement", "emplacement")
+            ->join("article.statut", "articleStatut")
+            ->andWhere("articleStatut.code IN (:statuses)")
+            ->andWhere('article.emplacement IN (:locations)')
+            ->andWhere('article.RFIDtag IS NOT NULL')
+            ->andWhere('article.RFIDtag LIKE :tagRFIDPrefix')
+            ->setParameter('tagRFIDPrefix', "$tagRFIDPrefix%")
+            ->setParameter("locations", $locations)
+            ->setParameter("statuses", $statusCodes);
     }
 
     public function getArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {

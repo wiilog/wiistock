@@ -1953,7 +1953,7 @@ class MobileController extends AbstractApiController
                                 TrackingMovementService $trackingMovementService): Response
     {
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIXE);
+        $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
         $data = $request->request->all();
         $cleanedData = [];
         foreach ($data as $key => $datum) {
@@ -2558,14 +2558,16 @@ class MobileController extends AbstractApiController
         $articleRepository = $entityManager->getRepository(Article::class);
         $zoneRepository = $entityManager->getRepository(Zone::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX) ?: '';
+
         $mission = $missionRepository->find($request->request->get('mission'));
         $zones = $zoneRepository->findBy(["id" => json_decode($request->request->get('zones'))]);
         $locations = $locationRepository->findByMissionAndZone($zones, $mission);
         $tags = json_decode($request->request->get('tags'));
 
-        $articlesOnLocations = $articleRepository->findBy([
-            'emplacement' => $locations
-        ]);
+        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($rfidPrefix, $locations, [Article::STATUT_ACTIF, Article::STATUT_INACTIF]);
 
         $scannedArticles = [];
         $missingArticles = [];

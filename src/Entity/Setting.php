@@ -246,7 +246,7 @@ class Setting {
         "label" => 'Code 128',
     ];
     // Stock inventaire
-    const RFID_PREFIXE = "RFID_PREFIXE";
+    const RFID_PREFIX = "RFID_PREFIX";
     const RFID_KPI_MIN = "RFID_KPI_MIN";
     const RFID_KPI_MAX = "RFID_KPI_MAX";
 
