@@ -35,6 +35,7 @@ use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\TagTemplateService;
+use App\Service\TrackingMovementService;
 use App\Service\UserService;
 use App\Annotation\HasPermission;
 
@@ -242,7 +243,8 @@ class ArticleController extends AbstractController
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
-                        ArticleDataService $articleDataService): Response {
+                        ArticleDataService $articleDataService,
+                        TrackingMovementService $trackingMovementService): Response {
         $data = $request->request->all();
 
         $barcode = $data['barcode'];
@@ -278,6 +280,21 @@ class ArticleController extends AbstractController
                 );
 
                 $entityManager->persist($stockMovement);
+                $entityManager->flush();
+
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $article,
+                    $article->getEmplacement(),
+                    $this->getUser(),
+                    new DateTime('now'),
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE
+                );
+
+                $trackingMovement->setMouvementStock($stockMovement);
+
+                $entityManager->persist($trackingMovement);
                 $entityManager->flush();
             }
 
