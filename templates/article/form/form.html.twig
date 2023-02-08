@@ -106,7 +106,7 @@
                             <div class="col-12 col-md-4 d-flex">
                                 {{ form.switch('conform', {url: '/svg/reference_article/threshold.svg', text: 'Anomalie'}, required, [
                                     {label: 'Oui', value: '1', checked: article.id and article.conform is not null and article.conform == 0},
-                                    {label: 'Non', value: '0', checked: article.id and article.conform is not null and article.conform == 1},
+                                    {label: 'Non', value: '0', checked: not article.id or (article.id and article.conform is not null and article.conform == 1)},
                                 ]) }}
                             </div>
                         {% endif %}
