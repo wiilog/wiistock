@@ -1,19 +1,32 @@
 {% import 'form.html.twig' as form %}
 
+{% set missionRule = missionRule is defined ? missionRule : null %}
+
+{% set articleType = constant('App\\Entity\\inventory\\InventoryMission::ARTICLE_TYPE') %}
+{% set locationType = constant('App\\Entity\\inventory\\InventoryMission::LOCATION_TYPE') %}
+{% set isMissionArticleType = missionRule ? missionRule.missionType == articleType : false %}
+{% set isMissionLocationType = missionRule ? missionRule.missionType == locationType : false %}
+
+
 <div class="row">
+    {% if missionRule  %}
+        {{ form.input('ruleId', null, true, missionRule.id, {
+            type: 'hidden',
+        }) }}
+    {% endif %}
     <div class="col-12">
-        {{ form.switch('missionType', 'Type de mission', false, [
-            {label: 'Quantité article', value: constant('App\\Entity\\inventory\\InventoryMission::ARTICLE_TYPE'), checked: false},
-            {label: 'Article sur emplacement', value: constant('App\\Entity\\inventory\\InventoryMission::LOCATION_TYPE'), checked: false},
+        {{ form.switch('missionType', 'Type de mission', true, [
+            {label: 'Quantité article', value: articleType, checked: isMissionArticleType},
+            {label: 'Article sur emplacement', value: locationType, checked: isMissionLocationType},
         ]) }}
     </div>
     <div class="col-6 mt-3">
-        {{ form.input('name', 'Libellé de la tache', true, null, {
+        {{ form.input('label', 'Libellé de la tache', true, missionRule ? missionRule.label : false, {
             type: 'text',
         }) }}
     </div>
     <div class="col-6 mt-3">
-        {{ form.input('description', 'Description', true, null, {
+        {{ form.input('description', 'Description', true, missionRule ? missionRule.description : false, {
             type: 'text',
         }) }}
     </div>
@@ -24,7 +37,7 @@
             </span>
             <div class="d-flex no-gutters">
                 <div class="col-4 pr-2">
-                    {{ form.input('duration', null, true, null, {
+                    {{ form.input('duration', null, true, missionRule ? missionRule.duration : null, {
                         type: 'number',
                         min: 0,
                         max: 999,
@@ -37,7 +50,8 @@
                         items: {
                             (constant('App\\Entity\\inventory\\InventoryMissionRule::WEEKS')): 'Semaines',
                             (constant('App\\Entity\\inventory\\InventoryMissionRule::MONTHS')): 'Mois',
-                        }
+                        },
+                        value: missionRule ? missionRule.durationUnit : null
                     }) }}
                 </div>
             </div>
@@ -45,21 +59,19 @@
     </div>
     <div class="col-12">
         {% include 'planner/planner.html.twig' with {
-            frequency: null,
-            begin: null,
-            intervalPeriod: null,
-            intervalTime: null,
-            period: null,
-            intervalTime: null,
-            weekDays: null,
-            months: null,
-            monthDays: null,
-            intervalTime: null
+            frequency: missionRule ? missionRule.frequency : null,
+            begin: missionRule ? missionRule.begin : null,
+            intervalPeriod: missionRule ? missionRule.intervalPeriod : null,
+            intervalTime: missionRule ? missionRule.intervalTime : null,
+            period: missionRule ? missionRule.period : null,
+            weekDays: missionRule ? missionRule.weekDays : null,
+            months: missionRule ? missionRule.months : null,
+            monthDays: missionRule ? missionRule.monthDays : null,
+            required: true,
         } %}
     </div>
-
 </div>
-<div class="row d-none" id="locationTypeForm">
+<div class="row {{ isMissionLocationType ? '' : 'd-none' }}" id="locationTypeForm">
     <div class="col-12">
         <div class="wii-section-title my-3">Contenu de l'inventaire</div>
     </div>
@@ -87,15 +99,21 @@
         <div class="wii-section-title my-3">Liste des emplacement sélectionnés</div>
     </div>
     <div class="col-12">
-        <table id="tableLocations" class="table w-100"></table>
+        <table
+            id="tableLocations"
+            class="table w-100"
+            data-initial-data="{{ initialLocations|json_encode }}"
+        >
+        </table>
     </div>
 </div>
-<div class="row d-none" id="articleTypeForm">
+<div class="row {{ isMissionArticleType ? '' : 'd-none' }}" id="articleTypeForm">
     <div class="col-6">
         {{ form.select('categories', 'Catégorie(s)', true, {
             multiple: true,
-            type: null,
-            items: ['oui', 'non'],
+            type: 'inventoryCategories',
+            value: missionRule ? missionRule.categories : null,
         }) }}
     </div>
 </div>
+

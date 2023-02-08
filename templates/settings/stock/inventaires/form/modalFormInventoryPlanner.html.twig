@@ -1,6 +1,6 @@
 <div
     class="modal fade"
-    id="modalNewInventoryPlanner"
+    id="modalFormInventoryPlanner"
     role="dialog"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg"
@@ -9,14 +9,14 @@
             {% include 'utils/modal/header.html.twig' with {
                 title: "Planificateur d'inventaire"
             } %}
-            <div class="modal-body modal-input container-fluid">
-                {% include 'settings/stock/inventaires/form/form.html.twig' %}
+            <div class="modal-body modal-input container-fluid" id="">
+
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {input: true, name: 'importId', classes: 'data'},
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success', text: 'Valider'}
+                    {classes: 'btn btn-success', text: 'Valider', type: 'submit'}
                 ],
             } %}
         </div>

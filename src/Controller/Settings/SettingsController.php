@@ -14,6 +14,7 @@ use App\Entity\FieldsParam;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField;
 use App\Entity\Import;
+use App\Entity\Interfaces\Frequency;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMissionRule;
@@ -2430,16 +2431,23 @@ class SettingsController extends AbstractController {
         foreach ($missionRuleRepository->findAll() as $mission) {
             $data[] = [
                 "actions" => "
-                    <button class='btn btn-silent delete-row' data-id='{$mission->getId()}'>
-                        <i class='wii-icon wii-icon-trash text-primary'></i>
-                    </button>
+                    <div>
+                        <button class='btn btn-silent delete-row' data-id='{$mission->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                        <button
+                            class='btn btn-silent action-on-click'
+                            data-id='{$mission->getId()}'
+                            onclick='editMissionRule($(this))'>
+                        </button>
+                    </div>
                 ",
                 "missionType" => $mission->getMissionType(),
                 "label" => $mission->getLabel(),
                 "categories" => Stream::from($mission->getCategories())
                     ->map(fn(InventoryCategory $category) => $category->getLabel())
                     ->join(", "),
-                "periodicity" => $mission->getPeriodicityUnit() === InventoryMissionRule::WEEKS ? "Toutes les {$mission->getPeriodicity()} semaines" : "Tous les {$mission->getPeriodicity()} mois",
+                "periodicity" => Frequency::FREQUENCIES_LABELS[$mission->getFrequency()] ?? null,
                 "duration" => $mission->getDurationUnit() === InventoryMissionRule::WEEKS ? "{$mission->getDuration()} semaine(s)" : "{$mission->getDuration()} mois",
                 "creator" => $mission->getCreator() ? $mission->getCreator()->getUsername() : "",
                 "lastExecution" => $mission->getLastRun() ? $mission->getLastRun()->getTimestamp() : "",

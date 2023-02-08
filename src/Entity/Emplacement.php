@@ -149,7 +149,7 @@ class Emplacement implements PairedEntity {
     #[ORM\JoinColumn(nullable: true)]
     private ?Zone $zone = null;
 
-    #[ORM\ManyToMany(targetEntity: InventoryMissionRule::class, inversedBy: 'locations')]
+    #[ORM\ManyToMany(targetEntity: InventoryMissionRule::class, mappedBy: 'locations')]
     private Collection $inventoryMissionRules;
 
     public function __construct() {

@@ -2,12 +2,12 @@
     <div class="">
         <button
             class="btn btn-primary float-right d-flex justify-content-start align-items-center"
-            id="addNewInventoryPlanner">
+            id="addNewInventoryPlanner"
+            onclick='editMissionRule($(this))'>
             <span class="wii-icon wii-icon-plus mr-2"></span>Planifier un inventaire</button>
     </div>
 
     <table id="missionRulesTable" data-table-processing="missionRulesTable"></table>
 </div>
 
-{{ include('settings/stock/inventaires/form/modalNewInventoryPlanner.html.twig') }}
-{{ include('settings/stock/inventaires/form/modalEditInventoryPlanner.html.twig') }}
+{{ include('settings/stock/inventaires/form/modalFormInventoryPlanner.html.twig') }}

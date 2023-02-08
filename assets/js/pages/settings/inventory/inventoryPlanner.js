@@ -1,12 +1,12 @@
 import AJAX, {GET} from "@app/ajax";
 import Form from "@app/form";
+import modal from "bootstrap/js/src/modal";
 
-let modalNewInventoryPanner = '#modalNewInventoryPlanner';
 let tableInventoryPanning;
 
-export function initializeInventoryPlanificatorTable($container) {
-    let $modalNewInventoryPanner = $(modalNewInventoryPlanner);
+global.editMissionRule = editMissionRule;
 
+export function initializeInventoryPlanificatorTable($container) {
     const tableInventoryPannerConfig = {
         ajax: {
             "url": Routing.generate('settings_mission_rules_api', true),
@@ -15,109 +15,105 @@ export function initializeInventoryPlanificatorTable($container) {
         order: [[1, "asc"]],
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `missionType`, title: `Type de mission`, required: true},
+            {data: `missionType`, title: `Type de mission`},
             {data: `label`, title: `Libellé`, required: true},
-            {data: `periodicity`, title: `Périodicité`, required: true},
-            {data: `categories`, title: `Catégorie(s)`, required: true},
-            {data: `duration`, title: `Durée`, required: true},
-            {data: `creator`, title: `Créateur`, required: true},
-            {data: `lastExecution`, title: `Dernière exécution`, required: true},
+            {data: `periodicity`, title: `Périodicité`},
+            {data: `categories`, title: `Catégorie(s)`},
+            {data: `duration`, title: `Durée`},
+            {data: `creator`, title: `Créateur`},
+            {data: `lastExecution`, title: `Dernière exécution`},
         ],
         rowConfig: {
             needsRowClickAction: true,
         },
     };
     tableInventoryPanning = initDataTable(`missionRulesTable`, tableInventoryPannerConfig);
+}
 
-    const formNewInventoryPanner = Form
-        .create(modalNewInventoryPanner)
-        .submitTo(`POST`, `settings_mission_rules_force`, {
-            tableInventoryPanning
-        });
+function initModalContent($modal) {
+    const locationTypeForm = $modal.find('#locationTypeForm');
+    const articleTypeForm = $modal.find('#articleTypeForm');
 
-    $(`#addNewInventoryPlanner`).on(`click`, () => {
-        $modalNewInventoryPanner.modal(`show`);
-    });
+    const tableLocations = $modal.find('#tableLocations');
 
-    const locationTypeForm = $('#locationTypeForm');
-    const articleTypeForm = $('#articleTypeForm');
+    initModalTableLocations($modal);
+    initAddLocationAndZoneForm(tableLocations, $modal);
 
-    const tableLocations = $('#tableLocations');
-    initModalAddTableLocations();
-    initAddLocationAndZoneForm(tableLocations);
 
     $('input[type=radio][name=missionType]').on('change', function (input) {
         const $input = $(input.target);
         if ($input.val() === 'location') {
             locationTypeForm.removeClass('d-none');
             articleTypeForm.addClass('d-none');
-        }
-        else if($input.val() === 'article') {
+        } else if ($input.val() === 'article') {
             articleTypeForm.removeClass('d-none');
             locationTypeForm.addClass('d-none');
         }
     });
 }
 
-function initAddLocationAndZoneForm(tableLocations){
+function initAddLocationAndZoneForm(tableLocations, $modal) {
     let locationTypeForm = $('#locationTypeForm');
 
-    Form.create(locationTypeForm)
-        .onSubmit(() => {
-            wrapLoadingOnActionButton(locationTypeForm.find('button[type=submit]'),() => {
-                return AJAX.route(`POST`, `add_locations_or_zones_to_mission`, {
-                    mission,
-                    locations: tableLocations.DataTable().column(2).data().toArray()
-                })
-                    .json()
+    Form.create($modal)
+        .onSubmit((data, form) => {
+            if ($modal.find('input[type="radio"][name="missionType"]:checked').val() === 'location') {
+                data.append('locations', JSON.stringify(tableLocations.DataTable().column(0).data().toArray()));
+            }
+            wrapLoadingOnActionButton(locationTypeForm.find('button[type=submit]'), () => {
+                return AJAX
+                    .route(`POST`, `post_mission_rules_form`, {})
+                    .json(
+                        data
+                    )
                     .then((response) => {
-                        if(response.success){
-                            locationTypeForm.modal('hide');
-                            tableLocationMission.ajax.reload();
+                        if (response.success) {
+                            tableInventoryPanning.ajax.reload();
+                            $modal.modal('hide');
                         }
                     });
             });
         });
 
-    locationTypeForm.find('.add-button').on('click', function(){
+    locationTypeForm.find('.add-button').on('click', function () {
         wrapLoadingOnActionButton($(this), () => {
-            const buttonType = $(this).data('type');
-            let ids = [];
-            $(this).closest('.row').find('select').find('option:selected').each(function() {
-                ids.push($(this).val());
-                $(this).parent().empty();
-            });
-            return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
-                buttonType,
-                dataIdsToDisplay: ids,
-            })
-                .json()
-                .then((response) => {
-                    if(response.success){
-                        initModalAddTableLocations(response.data);
-                    }
+                const buttonType = $(this).data('type');
+                let ids = [];
+                $(this).closest('.row').find('select').find('option:selected').each(function () {
+                    ids.push($(this).val());
+                    $(this).parent().empty();
                 });
+                return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
+                    buttonType,
+                    dataIdsToDisplay: ids,
+                })
+                    .json()
+                    .then((response) => {
+                        if (response.success) {
+                            initModalTableLocations($modal, response.data);
+                        }
+                    });
             }
         )
     });
 }
 
 
-function initModalAddTableLocations(dataToDisplay = null){
-    const tableLocations = $('#tableLocations');
+function initModalTableLocations($modal, dataToDisplay = null) {
+    const tableLocations = $modal.find('#tableLocations');
 
-    if(dataToDisplay){
+    if (dataToDisplay) {
         const tableLocationsDatatable = tableLocations.DataTable();
         const tableLocationsData = tableLocationsDatatable.column(1).data().toArray();
-        for (const lineToAdd of dataToDisplay){
-            if(Array.isArray(lineToAdd)){
-                for (const line of lineToAdd){
-                    if(!tableLocationsData.includes(line.location)){
+        for (const lineToAdd of dataToDisplay) {
+            if (Array.isArray(lineToAdd)) {
+                for (const line of lineToAdd) {
+                    if (!tableLocationsData.includes(line.location)) {
                         tableLocationsDatatable.row.add(line).draw(false);
                     }
                 }
             } else {
-                if(!tableLocationsData.includes(lineToAdd.location)){
+                if (!tableLocationsData.includes(lineToAdd.location)) {
                     tableLocationsDatatable.row.add(lineToAdd).draw(false);
                 }
             }
@@ -126,9 +122,9 @@ function initModalAddTableLocations(dataToDisplay = null){
         initDataTable('tableLocations', {
             lengthMenu: [10, 25, 50],
             columns: [
+                {data: 'id', name: 'id', title: 'id', visible: false},
                 {data: 'zone', name: 'zone', title: 'Zone'},
                 {data: 'location', name: 'location', title: 'Emplacement'},
-                {data: 'id', name: 'id', title: 'id', visible: false },
             ],
             order: [
                 ['location', 'asc'],
@@ -140,4 +136,22 @@ function initModalAddTableLocations(dataToDisplay = null){
             searching: false,
         });
     }
+}
+
+function editMissionRule($button) {
+    const $modalEditInventoryPanner = $('#modalFormInventoryPlanner');
+
+    const $wrapperLoader = $button.data('id') ? $button.closest('#missionRulesTable_wrapper') : $button;
+    wrapLoadingOnActionButton($wrapperLoader, () => (
+        AJAX
+            .route('GET', 'get_mission_rules_form', {
+                missionRuleId: $button.data('id'),
+            })
+            .json()
+            .then(({html}) => {
+                $modalEditInventoryPanner.find('.modal-body').html(html);
+                initModalContent($modalEditInventoryPanner);
+                $modalEditInventoryPanner.modal('show');
+            })
+    ));
 }
