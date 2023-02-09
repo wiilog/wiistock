@@ -841,6 +841,29 @@ function initializeInventoryMissionsTable($container){
     });
 }
 
+function initializePurchasePlanificationTable() {
+    const table = EditableDatatable.create(`#purchasesTable`, {
+        route: Routing.generate('', true),
+        deleteRoute: ``,
+        mode: MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        search: true,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `missionType`, title: `Type de mission`, required: true},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `periodicity`, title: `Périodicité`, required: true},
+            {data: `categories`, title: `Catégorie(s)`, required: true},
+            {data: `duration`, title: `Durée`, required: true},
+            {data: `creator`, title: `Créateur`, required: true},
+            {data: `lastExecution`, title: `Dernière exécution`, required: true},
+        ],
+    });
+}
+
 function initializeReceptionTypesLitige(){
     $saveButton.addClass('d-none');
     $discardButton.addClass('d-none');
