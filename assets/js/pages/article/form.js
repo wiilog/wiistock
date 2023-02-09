@@ -18,7 +18,7 @@ $(function () {
                     .then(({articleId, success, barcode}) => {
                         if (success) {
                             window.location.href = Routing.generate('article_show_page', {id: articleId});
-                        } else {
+                        } else if (barcode) {
                             $(`input[name=barcode]`).val(barcode);
                         }
                     })

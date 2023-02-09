@@ -16,7 +16,7 @@ class NativeCountryRepository extends EntityRepository {
     public function getForSelect(?string $term): array {
         return $this->createQueryBuilder('native_country')
             ->select("native_country.id AS id")
-            ->addSelect("native_country.code AS code")
+            ->addSelect("native_country.code AS text")
             ->andWhere("native_country.active = 1")
             ->andWhere("native_country.label LIKE :term")
             ->setParameter("term", "%$term%")

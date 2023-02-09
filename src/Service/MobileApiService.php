@@ -112,19 +112,19 @@ class MobileApiService {
 
     public function getMobileParameters(SettingRepository $globalsParameters): array {
         return Stream::from([
-            "skipValidationsManualTransfer" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS),
-            "skipValidationsLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_VALIDATIONS),
-            "skipQuantitiesLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_QUANTITIES),
-            "skipValidationsToTreatTransfer" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS),
-            "displayReferencesOnTransferCards" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS),
-            "dropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_FREE_DROP),
-            "displayTargetLocationPicking" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
-            "skipValidationsPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_VALIDATIONS),
-            "skipQuantitiesPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_QUANTITIES),
-            "preparationDisplayArticleWithoutManual" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL),
-            "manualDeliveryDisableValidations" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS),
+            "skipValidationsManualTransfer" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
+            "skipValidationsLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_VALIDATIONS) == 1,
+            "skipQuantitiesLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_QUANTITIES) == 1,
+            "skipValidationsToTreatTransfer" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
+            "displayReferencesOnTransferCards" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS) == 1,
+            "dropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_FREE_DROP) == 1,
+            "displayTargetLocationPicking" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION) == 1,
+            "skipValidationsPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_VALIDATIONS) == 1,
+            "skipQuantitiesPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_QUANTITIES) == 1,
+            "preparationDisplayArticleWithoutManual" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL) == 1,
+            "manualDeliveryDisableValidations" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS) == 1,
+            "rfidPrefix" => $globalsParameters->getOneParamByLabel(Setting::RFID_PREFIX) ?: null,
         ])
-            ->keymap(fn($value, string $key) => [$key, $value == 1])
             ->toArray();
     }
 

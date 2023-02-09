@@ -13,6 +13,7 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
@@ -301,10 +302,13 @@ class InventoryService {
     public function parseAndSummarizeInventory(array $data, EntityManagerInterface $entityManager, Utilisateur $user) {
         $articleRepository = $entityManager->getRepository(Article::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $zone = $entityManager->getRepository(Zone::class)->find($data["zone"]);
         $mission = $entityManager->getRepository(InventoryMission::class)->find($data["mission"]);
-        $scannedArticles = Stream::from($entityManager->getRepository(Article::class)->findBy(['RFIDtag' => json_decode($data['rfidTags'])]))
+
+        $tagRFIDPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX) ?: '';
+        $scannedArticles = Stream::from($articleRepository->findBy(['RFIDtag' => json_decode($data['rfidTags'])]))
             ->map(fn (Article $article) => $article->getId())
             ->toArray();
 
@@ -313,8 +317,9 @@ class InventoryService {
             ->map(fn (Emplacement $location) => $location->getId())
             ->toArray();
 
-        $expected = $articleRepository->findGroupedByReferenceArticleAndLocation($locationIDS);
-        $actual = $articleRepository->findGroupedByReferenceArticleAndLocation($locationIDS, $scannedArticles);
+        $expected = $articleRepository->findGroupedByReferenceArticleAndLocation($tagRFIDPrefix, $locationIDS, [Article::STATUT_ACTIF]);
+        $actual = $articleRepository->findGroupedByReferenceArticleAndLocation($tagRFIDPrefix, $locationIDS, [Article::STATUT_ACTIF], $scannedArticles);
+
         $references = Stream::from($expected)
             ->keymap(fn(array $expectedState) => [$expectedState['referenceEntity'], $entityManager->find(ReferenceArticle::class, $expectedState['referenceEntity'])])
             ->toArray();
@@ -329,6 +334,9 @@ class InventoryService {
             }
         }
         $entityManager->flush();
+
+        $min = intval($settingRepository->getOneParamByLabel(Setting::RFID_KPI_MIN));
+        $max = intval($settingRepository->getOneParamByLabel(Setting::RFID_KPI_MAX));
         foreach ($expected as $expectedResult) {
             $quantity = $expectedResult['quantity'];
             $reference = $expectedResult['reference'];
@@ -349,11 +357,14 @@ class InventoryService {
                 ->setReferenceArticle($references[$expectedResult['referenceEntity']]);
             $entityManager->persist($line);
             $entityManager->flush();
-            $result[] = [
-                'reference' => $reference,
-                'location' => $location,
-                'ratio' => $percentage,
-            ];
+            if ((!isset($min) || $percentage >= $min)
+                && (!isset($max) || $percentage <= $max)) {
+                $result[] = [
+                    'reference' => $reference,
+                    'location' => $location,
+                    'ratio' => $percentage,
+                ];
+            }
         }
 
         return $result;

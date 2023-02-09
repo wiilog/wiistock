@@ -7,6 +7,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
@@ -173,11 +174,12 @@ class InventoryMissionController extends AbstractController
      * @Route("/voir/{id}", name="inventory_mission_show", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
-    public function show(InventoryMission $mission, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response {
+    public function show(InventoryMission $mission): Response {
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
             'typeLocation' => $mission->getType() === InventoryMission::LOCATION_TYPE,
-            'locationsAlreadyAdded' => !$mission->getInventoryLocationMissions()->isEmpty()
+            'locationsAlreadyAdded' => !$mission->getInventoryLocationMissions()->isEmpty(),
+            'done' => $mission->isDone(),
         ]);
     }
 
@@ -185,10 +187,9 @@ class InventoryMissionController extends AbstractController
     #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
     public function getMissionLocationRefApi(EntityManagerInterface  $entityManager,
                                              InventoryMission        $mission,
-                                             Request                 $request): JsonResponse {
-        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
-
-        $result = $inventoryLocationMissionRepository->getDataByMission($mission, $request->request);
+                                             Request                 $request,
+                                             InvMissionService       $invMissionService): JsonResponse {
+        $result = $invMissionService->getDataForOneLocationMissionDatatable($entityManager, $mission,  $request->request);
         return new JsonResponse($result);
     }
 
