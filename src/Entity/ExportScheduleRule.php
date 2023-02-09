@@ -12,6 +12,8 @@ class ExportScheduleRule implements Frequency {
 
     use FrequencyTrait;
 
+    //TODO GREG
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
