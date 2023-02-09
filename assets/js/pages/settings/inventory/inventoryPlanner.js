@@ -58,8 +58,15 @@ function initAddLocationAndZoneForm(tableLocations, $modal) {
     Form.create($modal)
         .onSubmit((data, form) => {
             if ($modal.find('input[type="radio"][name="missionType"]:checked').val() === 'location') {
-                data.append('locations', JSON.stringify(tableLocations.DataTable().column(0).data().toArray()));
+                const locations = tableLocations.DataTable().column(0).data().toArray();
+                if (locations.length === 0) {
+                    Flash.add('danger', 'Vous devez sélectionner au moins un emplacement');
+                    return;
+                } else {
+                    data.append('locations', JSON.stringify(locations));
+                }
             }
+            data.append('frequency', $modal.find('input[type="radio"][name="frequency"]:checked').val());
             wrapLoadingOnActionButton(locationTypeForm.find('button[type=submit]'), () => {
                 return AJAX
                     .route(`POST`, `post_mission_rules_form`, {})
@@ -70,6 +77,9 @@ function initAddLocationAndZoneForm(tableLocations, $modal) {
                         if (response.success) {
                             tableInventoryPanning.ajax.reload();
                             $modal.modal('hide');
+                        }
+                        else {
+                            Flash.add('danger', response.message);
                         }
                     });
             });

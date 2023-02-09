@@ -3,7 +3,6 @@
 
 namespace App\Command;
 
-use App\Entity\Interfaces\ScheduleRule;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Service\InvMissionService;
 use App\Service\ScheduleRuleService;

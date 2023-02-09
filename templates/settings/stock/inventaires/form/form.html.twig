@@ -48,11 +48,12 @@
                 <div class="col-8">
                     {{ form.select('durationUnit', null ,true, {
                         items: {
-                            (constant('App\\Entity\\inventory\\InventoryMissionRule::WEEKS')): 'Semaines',
-                            (constant('App\\Entity\\inventory\\InventoryMissionRule::MONTHS')): 'Mois',
+                            (constant('App\\Entity\\inventory\\InventoryMissionRule::DURATION_UNIT_WEEKS')): 'Semaines',
+                            (constant('App\\Entity\\inventory\\InventoryMissionRule::DURATION_UNIT_MONTHS')): 'Mois',
                         },
                         value: missionRule ? missionRule.durationUnit : null
                     }) }}
+
                 </div>
             </div>
         </label>

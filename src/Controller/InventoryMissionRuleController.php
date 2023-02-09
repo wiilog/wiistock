@@ -3,11 +3,13 @@
 namespace App\Controller;
 
 use App\Annotation\HasPermission;
+use App\Entity\Action;
 use App\Entity\Emplacement;
-use App\Entity\Interfaces\Frequency;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
+use App\Entity\Menu;
+use App\Entity\ScheduleRule;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,6 +55,7 @@ class InventoryMissionRuleController extends AbstractController
                              Request                $request): JsonResponse
     {
         $data = $request->request->all();
+        dump($data);
 
         $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
@@ -82,7 +85,7 @@ class InventoryMissionRuleController extends AbstractController
             ]);
         }
 
-        if (isset($data['frequency']) && in_array($data['frequency'], Frequency::FREQUENCIES)) {
+        if (isset($data['frequency']) && in_array($data['frequency'], ScheduleRule::FREQUENCIES)) {
             $missionRule->setFrequency($data['frequency']);
         } else {
             return new JsonResponse([
@@ -117,7 +120,7 @@ class InventoryMissionRuleController extends AbstractController
         } elseif ($missionRule->getMissionType() === InventoryMission::LOCATION_TYPE) {
             $missionRule->setCategories([]);
             if (isset($data['locations'])) {
-                $locationsId = explode(",", $data['locations']);
+                $locationsId = json_decode($data['locations']);
                 foreach ($locationsId as $locationId) {
                     $location = $locationRepository->find($locationId);
                     if ($location) {

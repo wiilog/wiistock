@@ -2,17 +2,11 @@
 
 namespace App\Entity;
 
-use App\Entity\Interfaces\Frequency;
-use App\Entity\Traits\FrequencyTrait;
 use App\Repository\ExportScheduleRuleRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ExportScheduleRuleRepository::class)]
-class ExportScheduleRule implements Frequency {
-
-    use FrequencyTrait;
-
-    //TODO GREG
+class ExportScheduleRule extends ScheduleRule {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

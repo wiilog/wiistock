@@ -3,8 +3,7 @@
 namespace App\Entity\Inventory;
 
 use App\Entity\Emplacement;
-use App\Entity\Interfaces\Frequency;
-use App\Entity\Traits\FrequencyTrait;
+use App\Entity\ScheduleRule;
 use App\Entity\Utilisateur;
 use App\Repository\Inventory\InventoryMissionRuleRepository;
 use DateTime;
@@ -13,16 +12,14 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InventoryMissionRuleRepository::class)]
-class InventoryMissionRule implements Frequency {
-
-    use FrequencyTrait;
-
-    public const WEEKS = "weeks";
-    public const MONTHS = "months";
+class InventoryMissionRule extends ScheduleRule
+{
+    public const DURATION_UNIT_WEEKS = "weeks";
+    public const DURATION_UNIT_MONTHS = "months";
 
     public const DURATION_UNITS = [
-        self::WEEKS,
-        self::MONTHS,
+        self::DURATION_UNIT_WEEKS,
+        self::DURATION_UNIT_MONTHS,
     ];
 
     #[ORM\Id]
@@ -198,134 +195,6 @@ class InventoryMissionRule implements Frequency {
     }
 
     /**
-     * @return DateTime|null
-     */
-    public function getBegin(): ?DateTime
-    {
-        return $this->begin;
-    }
-
-    /**
-     * @param DateTime|null $begin
-     */
-    public function setBegin(?DateTime $begin): void
-    {
-        $this->begin = $begin;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getFrequency(): ?string
-    {
-        return $this->frequency;
-    }
-
-    /**
-     * @param string|null $frequency
-     */
-    public function setFrequency(?string $frequency): void
-    {
-        $this->frequency = $frequency;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getPeriod(): ?int
-    {
-        return $this->period;
-    }
-
-    /**
-     * @param int|null $period
-     */
-    public function setPeriod(?int $period): void
-    {
-        $this->period = $period;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getIntervalTime(): ?string
-    {
-        return $this->intervalTime;
-    }
-
-    /**
-     * @param string|null $intervalTime
-     */
-    public function setIntervalTime(?string $intervalTime): void
-    {
-        $this->intervalTime = $intervalTime;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getIntervalPeriod(): ?int
-    {
-        return $this->intervalPeriod;
-    }
-
-    /**
-     * @param int|null $intervalPeriod
-     */
-    public function setIntervalPeriod(?int $intervalPeriod): void
-    {
-        $this->intervalPeriod = $intervalPeriod;
-    }
-
-    /**
-     * @return array|null
-     */
-    public function getWeekDays(): ?array
-    {
-        return $this->weekDays;
-    }
-
-    /**
-     * @param array|null $weekDays
-     */
-    public function setWeekDays(?array $weekDays): void
-    {
-        $this->weekDays = $weekDays;
-    }
-
-    /**
-     * @return array|null
-     */
-    public function getMonthDays(): ?array
-    {
-        return $this->monthDays;
-    }
-
-    /**
-     * @param array|null $monthDays
-     */
-    public function setMonthDays(?array $monthDays): void
-    {
-        $this->monthDays = $monthDays;
-    }
-
-    /**
-     * @return array|null
-     */
-    public function getMonths(): ?array
-    {
-        return $this->months;
-    }
-
-    /**
-     * @param array|null $months
-     */
-    public function setMonths(?array $months): void
-    {
-        $this->months = $months;
-    }
-
-    /**
      * @return string|null
      */
     public function getMissionType(): ?string
@@ -336,9 +205,11 @@ class InventoryMissionRule implements Frequency {
     /**
      * @param string|null $missionType
      */
-    public function setMissionType(?string $missionType): void
+    public function setMissionType(?string $missionType): self
     {
         $this->missionType = $missionType;
+
+        return $this;
     }
 
     /**
@@ -352,9 +223,11 @@ class InventoryMissionRule implements Frequency {
     /**
      * @param string|null $description
      */
-    public function setDescription(?string $description): void
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
+
+        return $this;
     }
 
     public function getLocations(): Collection {

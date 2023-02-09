@@ -4,20 +4,20 @@
 <div class="row frequencies mt-3">
 
     {{ form.radio('frequency', null, required is defined ? required : false, [
-        {label: 'Une fois', value: constant('App\\Entity\\Interfaces\\Frequency::ONCE'), checked: frequency == constant('App\\Entity\\Interfaces\\Frequency::ONCE')},
-        {label: 'Chaque heure', value: constant('App\\Entity\\Interfaces\\Frequency::HOURLY'), checked: frequency == constant('App\\Entity\\Interfaces\\Frequency::HOURLY')},
-        {label: 'Chaque jour', value: constant('App\\Entity\\Interfaces\\Frequency::DAILY'), checked: frequency == constant('App\\Entity\\Interfaces\\Frequency::DAILY')},
-        {label: 'Chaque semaine', value: constant('App\\Entity\\Interfaces\\Frequency::WEEKLY'), checked: frequency == constant('App\\Entity\\Interfaces\\Frequency::WEEKLY')},
-        {label: 'Chaque mois', value: constant('App\\Entity\\Interfaces\\Frequency::MONTHLY'), checked: frequency == constant('App\\Entity\\Interfaces\\Frequency::MONTHLY')}
+        {label: 'Une fois', value: constant('App\\Entity\\ScheduleRule::ONCE'), checked: frequency == constant('App\\Entity\\ScheduleRule::ONCE')},
+        {label: 'Chaque heure', value: constant('App\\Entity\\ScheduleRule::HOURLY'), checked: frequency == constant('App\\Entity\\ScheduleRule::HOURLY')},
+        {label: 'Chaque jour', value: constant('App\\Entity\\ScheduleRule::DAILY'), checked: frequency == constant('App\\Entity\\ScheduleRule::DAILY')},
+        {label: 'Chaque semaine', value: constant('App\\Entity\\ScheduleRule::WEEKLY'), checked: frequency == constant('App\\Entity\\ScheduleRule::WEEKLY')},
+        {label: 'Chaque mois', value: constant('App\\Entity\\ScheduleRule::MONTHLY'), checked: frequency == constant('App\\Entity\\ScheduleRule::MONTHLY')}
     ], {
         containerClass: 'col-4 frequencies-container',
         onChange: 'toggleFrequencyInput($(this))'
     }) }}
-    <div class="col-8 frequency-content d-none">
-        {% include '/planner/frequencies/once.html.twig' with {begin} %}
-        {% include '/planner/frequencies/hourly.html.twig' with {begin, intervalPeriod} %}
-        {% include '/planner/frequencies/daily.html.twig' with {begin, period, intervalTime} %}
-        {% include '/planner/frequencies/weekly.html.twig' with {begin, period, intervalTime, weekDays} %}
-        {% include '/planner/frequencies/monthly.html.twig' with {begin, months, monthDays, intervalTime} %}
+    <div class="col-8 frequency-content {{ frequency ? '' : 'd-none' }}">
+        {% include '/planner/frequencies/once.html.twig' with {begin, checked: frequency == constant('App\\Entity\\ScheduleRule::ONCE') } %}
+        {% include '/planner/frequencies/hourly.html.twig' with {begin, intervalPeriod, checked: frequency == constant('App\\Entity\\ScheduleRule::HOURLY')} %}
+        {% include '/planner/frequencies/daily.html.twig' with {begin, period, intervalTime, checked: frequency == constant('App\\Entity\\ScheduleRule::DAILY')} %}
+        {% include '/planner/frequencies/weekly.html.twig' with {begin, period, intervalTime, weekDays, checked: frequency == constant('App\\Entity\\ScheduleRule::WEEKLY')} %}
+        {% include '/planner/frequencies/monthly.html.twig' with {begin, months, monthDays, intervalTime, checked: frequency == constant('App\\Entity\\ScheduleRule::MONTHLY')} %}
     </div>
 </div>

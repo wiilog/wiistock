@@ -14,7 +14,6 @@ use App\Entity\FieldsParam;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField;
 use App\Entity\Import;
-use App\Entity\Interfaces\Frequency;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMissionRule;
@@ -27,6 +26,7 @@ use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
@@ -2448,8 +2448,8 @@ class SettingsController extends AbstractController {
                 "categories" => Stream::from($mission->getCategories())
                     ->map(fn(InventoryCategory $category) => $category->getLabel())
                     ->join(", "),
-                "periodicity" => Frequency::FREQUENCIES_LABELS[$mission->getFrequency()] ?? null,
-                "duration" => $mission->getDurationUnit() === InventoryMissionRule::WEEKS ? "{$mission->getDuration()} semaine(s)" : "{$mission->getDuration()} mois",
+                "periodicity" => ScheduleRule::FREQUENCIES_LABELS[$mission->getFrequency()] ?? null,
+                "duration" => $mission->getDurationUnit() === InventoryMissionRule::DURATION_UNIT_WEEKS ? "{$mission->getDuration()} semaine(s)" : "{$mission->getDuration()} mois",
                 "creator" => $mission->getCreator() ? $mission->getCreator()->getUsername() : "",
                 "lastExecution" => $mission->getLastRun() ? $mission->getLastRun()->getTimestamp() : "",
             ];

@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\ExportScheduleRule;
-use App\Entity\Interfaces\ScheduleRule;
+use App\Entity\ScheduleRule;
 use DateTime;
 use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;

@@ -1,6 +1,6 @@
 {% import 'form.html.twig' as form %}
 
-<div class="frequency every-week-frequency">
+<div class="frequency every-week-frequency {{ checked ? '' : 'd-none' }}">
     <div class="col-12 p-2 mt-1 mb-0 form-inline form-group">
         <label class="wii-field-name">Démarrer le</label>
         <input type="date"

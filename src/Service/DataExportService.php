@@ -7,7 +7,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
-use App\Entity\Interfaces\ScheduleRule;
+use App\Entity\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
