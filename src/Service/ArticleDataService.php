@@ -333,7 +333,7 @@ class ArticleDataService
             ]];
         }
 
-        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
+        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
 
         $articles = $queryResult['data'];
 
@@ -404,6 +404,12 @@ class ArticleDataService
                 'lu' => $ul,
             ]),
             'project' => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? '',
+            'RFIDtag' => $article->getRFIDtag(),
+            'deliveryNote' => $article->getDeliveryNote(),
+            'purchaseOrder' => $article->getPurchaseOrder(),
+            'nativeCountry' => $article->getNativeCountry() ? $article->getNativeCountry()->getLabel() : '',
+            'manifacturingDate' => $article->getManifacturingDate() ? $article ->getManifacturingDate()->format('d/m/Y') : '',
+            'productionDate' => $article->getProductionDate() ? $article->getProductionDate()->format('d/m/Y') : ''
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
@@ -582,6 +588,12 @@ class ArticleDataService
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
             ["title" => "Projet", "name" => "project", 'searchable' => true],
+            ["title" => "Tag RFID", "name" => "RFIDtag", 'searchable' => true],
+            ["title" => "Ligne bon de livraison", "name" => "deliveryNote", 'searchable' => true],
+            ["title" => "Ligne commande d'achat", "name" => "purchaseOrder", 'searchable' => true],
+            ["title" => "Pays d'origine", "name" => "nativeCountry", 'searchable' => true],
+            ["title" => "Date de fabrication", "name" => "manifacturingDate", 'searchable' => true],
+            ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],
         ];
 
         return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getVisibleColumns()['article']);

@@ -41,7 +41,9 @@ class ArticleRepository extends EntityRepository {
     private const FIELDS_TYPE_DATE = [
         "dateLastInventory",
         "expiryDate",
-        "stockEntryDate"
+        "stockEntryDate",
+        "manifacturingDate",
+        "productionDate"
     ];
 
     public function findExpiredToGenerate($delay = 0) {
@@ -246,7 +248,7 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user)
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $entityManager = $this->getEntityManager();
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -371,6 +373,17 @@ class ArticleRepository extends EntityRepository {
                                     $ids[] = $idArray['id'];
                                 }
                                 break;
+                            case "nativeCountry":
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.nativeCountry','country_search')
+                                    ->andWhere('country_search.label LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
@@ -415,6 +428,40 @@ class ArticleRepository extends EntityRepository {
                     if (!empty($query)) {
                         $queryBuilder->andWhere(implode(' OR ', $query));
                     }
+
+                    $conditions = [
+                        "label" => "article.label LIKE :search_value",
+                        "articleReference" => "article.reference LIKE :search_value",
+                        "supplierReference" => "supplier_search.reference LIKE :search_value",
+                        "barCode" => "article.barCode LIKE :search_value",
+                        "type" => "t_search.label LIKE :search_value",
+                        "status" => "search_status.nom LIKE :search_value",
+                        "quantity" => "article.quantite LIKE :search_value",
+                        "location" => "e_search.label LIKE :search_value",
+                        "dateLastInventory" => "DATE_FORMAT(article.dateLastInventory, '%d/%m/%Y') LIKE :search_value",
+                        "stockEntryDate" => "DATE_FORMAT(article.stockEntryDate, '%d/%m/%Y') LIKE :search_value",
+                        "expiryDate" => "DATE_FORMAT(article.expiryDate, '%d/%m/%Y') LIKE :search_value",
+                        "comment" => "article.comment LIKE :search_value",
+                        "project" => "project_search.code LIKE :search_value",
+                        "RFIDtag" => "article.RFIDtag LIKE :search_value",
+                        "deliveryNote" => "article.deliveryNote LIKE :search_value",
+                        "purchaseOrder" => "article.purchaseOrder LIKE :search_value",
+                        "nativeCountry" => "country_search.label LIKE :search_value",
+                        "manifacturingDate" => "DATE_FORMAT(article.manifacturingDate, '%d/%m/%Y') LIKE :search_value",
+                        "productionDate" => "DATE_FORMAT(article.productionDate, '%d/%m/%Y') LIKE :search_value"
+                    ];
+
+                    $visibleColumnService->bindSearchableColumns($conditions, 'article', $queryBuilder, $user, $searchValue);
+
+                    $queryBuilder
+                        ->leftJoin('article.articleFournisseur', 'supplier_search')
+                        ->leftJoin('article.statut', 'search_status')
+                        ->leftJoin('article.emplacement', 'e_search')
+                        ->leftJoin('article.type', 't_search')
+                        ->leftJoin('article.nativeCountry', 'country_search')
+                        ->leftJoin('article.currentLogisticUnit', 'project_current_logistic_unit_search')
+                        ->leftJoin('project_current_logistic_unit_search.project', 'project_search');
+
                 }
 
 				$countQuery =  QueryBuilderHelper::count($queryBuilder, 'article');
