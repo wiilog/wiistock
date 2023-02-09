@@ -70,6 +70,13 @@ class PurchaseRequestRepository extends EntityRepository
                         ->andWhere("filter_buyer.id in (:filter_value_buyer)")
                         ->setParameter('filter_value_buyer', $value);
                     break;
+                case 'providers':
+                $value = explode(',', $filter['value']);
+                $qb
+                    ->join('purchase_request.supplier', 'filter_supplier')
+                    ->andWhere("filter_supplier.id in (:filter_value_supplier)")
+                    ->setParameter('filter_value_supplier', $value);
+                break;
                 case 'dateMin':
                     $qb->andWhere('purchase_request.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
@@ -130,6 +137,11 @@ class PurchaseRequestRepository extends EntityRepository
                                 ->leftJoin('purchase_request.buyer', 'order_buyer')
                                 ->orderBy('order_buyer.username', $order);
                             break;
+                            case 'provider':
+                            $qb
+                                ->leftJoin('purchase_request.provider', 'order_provider')
+                                ->orderBy('order_provider.username', $order);
+                            break;
                         default:
                             if (property_exists(PurchaseRequest::class, $column)) {
                                 $qb
@@ -164,6 +176,7 @@ class PurchaseRequestRepository extends EntityRepository
             ->addSelect('join_status.nom AS statusName')
             ->addSelect('join_requester.username AS requester')
             ->addSelect('join_buyer.username AS buyer')
+            ->addSelect('join_provider.username AS provider')
             ->addSelect('request.creationDate AS creationDate')
             ->addSelect('request.validationDate AS validationDate')
             ->addSelect('request.considerationDate AS considerationDate')
@@ -172,6 +185,7 @@ class PurchaseRequestRepository extends EntityRepository
             ->leftJoin('request.status', 'join_status')
             ->leftJoin('request.requester', 'join_requester')
             ->leftJoin('request.buyer', 'join_buyer')
+            ->leftJoin('request.provider', 'join_provider')
             ->where("request.creationDate BETWEEN :dateMin AND :dateMax")
             ->orderBy('request.creationDate', 'DESC')
             ->addOrderBy('request.id', 'DESC')
