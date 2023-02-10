@@ -8,6 +8,7 @@ use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
@@ -32,6 +33,9 @@ class DataExportService
 
     #[Required]
     public ArrivageService $arrivalService;
+
+    #[Required]
+    public StorageRuleService $storageRuleService;
 
     #[Required]
     public ScheduledExportService $scheduledExportService;
@@ -83,7 +87,14 @@ class DataExportService
             'date d\'entrée en stock',
             'date de péremption',
             'groupe de visibilité',
-            'projet'
+            'projet',
+            'prix unitaire',
+            'zone de destination',
+            'numéro de commande',
+            'numéro de bon de livraison',
+            'pays d\'origine',
+            'date de fabrication',
+            'date de production',
         ], $freeFieldsConfig['freeFieldsHeader']);
     }
 
@@ -121,6 +132,16 @@ class DataExportService
                 return $column['label'] ?? null;
             })
             ->toArray();
+    }
+
+    public function createStorageRulesHeader(): array
+    {
+        return [
+            'Référence',
+            'Emplacement',
+            'Quantité sécurité',
+            'Quantité de conditionnement',
+        ];
     }
 
     public function exportReferences(RefArticleDataService $refArticleDataService,
@@ -190,6 +211,15 @@ class DataExportService
         /** @var Arrivage $arrival */
         foreach ($data as $arrival) {
             $this->arrivalService->putArrivalLine($output, $arrival, $columnToExport);
+        }
+    }
+
+    public function exportRefLocation(iterable $data,
+                                      mixed $output)
+    {
+        /** @var StorageRule $storageRule */
+        foreach ($data as $storageRule) {
+            $this->storageRuleService->putStorageRuleLine($output, $storageRule);
         }
     }
 

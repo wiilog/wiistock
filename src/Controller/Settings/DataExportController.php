@@ -15,6 +15,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -283,6 +284,26 @@ class DataExportController extends AbstractController {
             $start = new DateTime();
             $dataExportService->exportArrivages($arrivalsIterator, $output, $columnToExport);
             $dataExportService->createUniqueExportLine(Export::ENTITY_ARRIVAL, $start);
+        }, $nameFile, $csvHeader);
+    }
+
+    #[Route("/export/unique/ref-location", name: "settings_export_ref_location", options: ["expose" => true], methods: "GET")]
+    public function exportRefLocation(CSVExportService     $csvService,
+                                   DataExportService      $dataExportService,
+                                   EntityManagerInterface $entityManager,
+                                   Request                $request): Response {
+
+        $today = new DateTime();
+        $today = $today->format("d-m-Y H:i:s");
+        $nameFile = "export-reference-emplacement-$today.csv";
+
+        $csvHeader = $dataExportService->createStorageRulesHeader();
+        $refLocationsIterator = $entityManager->getRepository(StorageRule::class)->iterateAll();
+
+        return $csvService->streamResponse(function ($output) use ($dataExportService, $refLocationsIterator) {
+            $start = new DateTime();
+            $dataExportService->exportRefLocation($refLocationsIterator, $output);
+            $dataExportService->createUniqueExportLine(Export::ENTITY_REF_LOCATION, $start);
         }, $nameFile, $csvHeader);
     }
 

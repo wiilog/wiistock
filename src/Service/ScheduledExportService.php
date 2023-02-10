@@ -11,6 +11,7 @@ use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
 use App\Exceptions\FTPException;
 use App\Helper\FormatHelper;
@@ -289,6 +290,12 @@ class ScheduledExportService
             $csvHeader = $this->dataExportService->createArrivalsHeader($entityManager, $exportToRun->getColumnToExport());
             $this->csvExportService->putLine($output, $csvHeader);
             $this->dataExportService->exportArrivages($arrivals, $output, $exportToRun->getColumnToExport());
+        } else if ($exportToRun->getEntity() === Export::ENTITY_REF_LOCATION) {
+            $storageRules = $entityManager->getRepository(StorageRule::class)->iterateAll();
+
+            $csvHeader = $this->dataExportService->createStorageRulesHeader();
+            $this->csvExportService->putLine($output, $csvHeader);
+            $this->dataExportService->exportRefLocation($storageRules, $output);
         } else {
             throw new RuntimeException("Unknown entity type");
         }

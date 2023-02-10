@@ -21,6 +21,7 @@ export default class Form {
     static create(selector, {clearOnOpen} = {}) {
         const $form = $(selector);
         let form = $form.data('form');
+
         if (!form || !(form instanceof Form)) {
             form = new Form(++Form.FormCounter);
 

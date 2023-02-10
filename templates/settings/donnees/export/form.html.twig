@@ -34,6 +34,12 @@
                 value: constant('App\\Entity\\Export::ENTITY_ARRIVAL'),
                 checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARRIVAL'),
                 disabled: export.id is not null
+            },
+            {
+                label: 'Référence emplacement',
+                value: constant('App\\Entity\\Export::ENTITY_REF_LOCATION'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_REF_LOCATION'),
+                disabled: export.id is not null
             }
         ], {expanded: true}) }}
 
