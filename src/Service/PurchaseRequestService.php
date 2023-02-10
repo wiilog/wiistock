@@ -93,14 +93,15 @@ class PurchaseRequestService {
             $request['statusName'] ?? '',
             $request['requester'] ?? '',
             $request['buyer'] ?? '',
-            FormatHelper::datetime($request['creationDate'] ?? null),
-            FormatHelper::datetime($request['validationDate'] ?? null),
-            FormatHelper::datetime($request['considerationDate'] ?? null),
-            FormatHelper::datetime($request['processingDate'] ?? null),
-            FormatHelper::html($request['comment'] ?? null),
+            $this->formatService->datetime($request['creationDate'] ?? null),
+            $this->formatService->datetime($request['validationDate'] ?? null),
+            $this->formatService->datetime($request['considerationDate'] ?? null),
+            $this->formatService->datetime($request['processingDate'] ?? null),
+            $this->formatService->html($request['comment'] ?? null),
             $line['reference'] ?? '',
             $line['barcode'] ?? '',
             $line['label'] ?? '',
+            $line['supplierName'] ?? '',
         ]);
     }
 
