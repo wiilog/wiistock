@@ -88,6 +88,8 @@ function InitModal($modal, submit, path, options = {}) {
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
+ *
+ * @deprecated
  */
 function SubmitAction($modal,
                       $submit,
@@ -121,6 +123,9 @@ function SubmitAction($modal,
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
+ *
+ * @deprecated
+ *
  */
 function processSubmitAction($modal,
                              $submit,
@@ -162,6 +167,9 @@ function processSubmitAction($modal,
     }
 }
 
+/**
+ * @deprecated
+ */
 function postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, error, keepLoading) {
     return $
         .ajax({
@@ -228,6 +236,9 @@ function clearFormErrors($modal) {
         .empty();
 }
 
+/**
+ * @deprecated
+ */
 function treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable) {
     resetDroppedFiles();
 
@@ -302,6 +313,9 @@ function refreshHeader(entete, headerCallback) {
  * @param {boolean} [isAttachmentForm]
  * @param {function} [validator]
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
+ *
+ * @deprecated
+ *
  */
 function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined) {
     const data = {};
@@ -368,6 +382,8 @@ function matchesAll(value, ...regexes) {
  * @param $modal jQuery modal
  * @param {Object.<*,*>} data
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
+ *
+ * @deprecated
  */
 function processInputsForm($modal, data, isAttachmentForm) {
     const $inputs = $modal.find('.data:not([name^="savedFiles"]):not([type=radio])');
