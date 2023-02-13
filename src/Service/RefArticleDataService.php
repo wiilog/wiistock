@@ -1196,7 +1196,7 @@ class RefArticleDataService {
             ],
             "Types de documents associés" => [
                 "name" => "associatedDocumentTypes",
-                "type" => "select-free",
+                "type" => "select",
                 "values" => $associatedDocumentTypes,
                 "persisted" => true,
                 "required" => $isFromDispatch,
