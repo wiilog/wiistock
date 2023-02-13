@@ -173,7 +173,7 @@ class ImportService
             "isDeliveryPoint",
             "allowedCollectTypes",
             "allowedDeliveryTypes",
-            "signatory",
+            "signatories",
             "email",
         ]
     ];
@@ -1668,6 +1668,8 @@ class ImportService
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
         $isNewEntity = false;
+
+        /** @var Emplacement $location */
         $location = $locationRepository->findOneBy(['label' => $data['name']]);
 
         if (!$location) {
@@ -1772,12 +1774,13 @@ class ImportService
             );
         }
 
-        if (!empty($data['signatory'])) {
-            $signatory = $userRepository->findOneBy(['username' => $data['signatory']]);
-            if (!$signatory) {
-                $this->throwError('Nom d\'utilisateur de signataire inconnu.');
-            }
-            $location->setSignatory($signatory);
+        if (!empty($data['signatories'])) {
+            $signatoryUsernames = Stream::explode(',', $data['signatories'])
+                ->filter()
+                ->map('trim')
+                ->toArray();
+            $signatories = $userRepository->findBy(['username' => $signatoryUsernames]);
+            $location->setSignatories($signatories);
         }
 
         if (!empty($data['email'])) {

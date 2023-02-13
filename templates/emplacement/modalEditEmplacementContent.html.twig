@@ -79,10 +79,10 @@
 
 <div class="form-group">
     <label class="wii-field-name">Signataire</label>
-    <select class="form-control data" name="signatory" data-s2="user">
-        {% if location.signatory %}
-            <option selected value="{{ location.signatory.id }}">{{ location.signatory.username }}</option>
-        {% endif %}
+    <select class="form-control data" name="signatories" data-s2="user" multiple>
+        {% for signatory in location.signatories %}
+            <option selected value="{{ signatory.id }}">{{ signatory.username }}</option>
+        {% endfor %}
     </select>
 </div>
 

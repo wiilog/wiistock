@@ -1269,7 +1269,7 @@ class DispatchService {
         $location = $locationRepository->find($locationData);
         $signatory = $signatoryTrigramData && !$fromNomade
             ? $userRepository->find($signatoryTrigramData)
-            : ( $signatoryTrigramData
+            : ($signatoryTrigramData
                 ? $userRepository->findOneBy(['username' => $signatoryTrigramData])
                 :  null);
         if(!$signatoryPasswordData || !$signatoryTrigramData){
@@ -1289,7 +1289,9 @@ class DispatchService {
             throw new FormException("Code signataire invalide");
         }
 
-        if(!$location?->getSignatory()){
+        $locationSignatories = Stream::from($location?->getSignatories() ?: []);
+
+        if($locationSignatories->isEmpty()){
             $locationLabel = $location?->getLabel() ?: "invalide";
             if($fromNomade){
                 return [
@@ -1300,7 +1302,8 @@ class DispatchService {
             throw new FormException("L'emplacement filtré {$locationLabel} n'a pas de signataire renseigné");
         }
 
-        if($location->getSignatory() !== $signatory){
+        $availableSignatory = $locationSignatories->some(fn(Utilisateur $locationSignatory) => $locationSignatory->getId() === $signatory->getId());
+        if(!$availableSignatory) {
             if($fromNomade){
                 return [
                     'success' => false,
