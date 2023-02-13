@@ -636,7 +636,14 @@ class ArticleDataService
             $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
             $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
             $article['visibilityGroup'],
-            $article['projectCode']
+            $article['projectCode'],
+            $article['prixUnitaire'],
+            $article['destinationArea'],
+            $article['purchaseOrder'],
+            $article['deliveryNote'],
+            $article['nativeCountry'],
+            $article['manifacturingDate'],
+            $article['productionDate'],
         ];
 
         foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
