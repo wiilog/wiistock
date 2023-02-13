@@ -641,28 +641,19 @@ class ReferenceArticleController extends AbstractController
         $type = $referenceArticle->getType();
         $showOnly = $request->query->getBoolean('showOnly');
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
-            ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
-                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
-                    ? $providerArticle->getArticles()->toArray()
-                    : [];
+            ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle, $articleRepository) {
                 $carry[] = [
                     'providerName' => $providerArticle->getFournisseur()->getNom(),
                     'providerCode' => $providerArticle->getFournisseur()->getCodeReference(),
                     'reference' => $providerArticle->getReference(),
                     'label' => $providerArticle->getLabel(),
-                    'quantity' => Stream::from($articles)
-                        ->reduce(
-                            fn(int $carry, Article $article) => (
-                                ($article->getStatut() && $article->getStatut()?->getCode() === Article::STATUT_ACTIF)
-                                    ? $carry + $article->getQuantite()
-                                    : $carry
-                            )
-                        )
+                    'quantity' => $articleRepository->getQuantityForSupplier($providerArticle)
                 ];
                 return $carry;
                 }, []);
-
         return $this->render('reference_article/show/show.html.twig', [
             'referenceArticle' => $referenceArticle,
             'providerArticles' => $providerArticles,

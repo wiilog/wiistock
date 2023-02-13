@@ -2650,7 +2650,6 @@ class MobileController extends AbstractApiController
      */
     public function getReference(Request $request, EntityManagerInterface $manager): Response {
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
-        $settingRepository = $manager->getRepository(Setting::class);
 
         $text = $request->query->get("reference");
         $reference = $referenceArticleRepository->findOneBy(['reference' => $request->query->get("reference")]);
@@ -2658,7 +2657,6 @@ class MobileController extends AbstractApiController
             $description = $reference->getDescription();
             $serializedReference = [
                 'reference' => $reference->getReference(),
-                'quantity' => $reference->getQuantiteDisponible(),
                 'outFormatEquipment' => $description['outFormatEquipment'] ?? '',
                 'manufacturerCode' => $description['manufacturerCode'] ?? '',
                 'width' => $description['width'] ?? '',
@@ -2668,15 +2666,14 @@ class MobileController extends AbstractApiController
                 'weight' => $description['weight'] ?? '',
                 'adr' => $description['ADR'] ?? '',
                 'associatedDocumentTypes' => $description['associatedDocumentTypes'] ?? '',
+                'exists' => true,
             ];
         } else {
             $serializedReference = [
-                'reference' => $text
+                'reference' => $text,
+                'exists' => false,
             ];
         }
-
-        $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
-        $serializedReference['associatedDocumentTypeElements'] = $associatedDocumentTypeElements;
 
         return $this->json([
             "success" => true,
@@ -2786,7 +2783,8 @@ class MobileController extends AbstractApiController
                         ->setQuantity($data['quantity'])
                         ->setBatchNumber($data['batchNumber'])
                         ->setSerialNumber($data['serialNumber'])
-                        ->setSealingNumber($data['sealingNumber']);
+                        ->setSealingNumber($data['sealingNumber'])
+                        ->setComment($data['comment']);
 
                     $maxNbFilesSubmitted = 10;
                     $fileCounter = 1;
