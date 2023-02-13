@@ -79,7 +79,7 @@
                     ? (description[name]|split(','))
                     : [] %}
                 <select name="{{ name }}"
-                        class="form-control input-sm select2-free {{ attributes.persisted ? "data" }} w-100"
+                        class="form-control input-sm select2-free {{ attributes.required ? 'needed' }} {{ attributes.persisted ? "data" }} w-100"
                         data-s2
                         multiple="multiple"
                         data-default-values="{{ selectedValues|join(',') }}"
