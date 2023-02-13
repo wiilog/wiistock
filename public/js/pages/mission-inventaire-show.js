@@ -15,10 +15,10 @@ $(function () {
     let typeLocation = $('#typeLocation').val();
     let locationsAlreadyAdded = Boolean($('#locationsAlreadyAdded').val());
 
+    initModalAddTableLocations();
     if(typeLocation && !locationsAlreadyAdded){
         const tableLocations = $('#tableLocations');
         onOpenModalAddLocationAndZone(tableLocations);
-        initModalAddTableLocations();
     }
 
     initLocationMissionsDataTable();
@@ -214,7 +214,6 @@ function initLocationMissionsDataTable() {
 
 function onOpenModalAddLocationAndZone(tableLocations){
     let $modalAddLocationAndZoneToMission = $('#modalAddLocationAndZoneToMission');
-
     Form.create($modalAddLocationAndZoneToMission)
         .onSubmit(() => {
             wrapLoadingOnActionButton($modalAddLocationAndZoneToMission.find('button[type=submit]'),() => {

@@ -174,11 +174,14 @@ class InventoryMissionController extends AbstractController
      * @Route("/voir/{id}", name="inventory_mission_show", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
-    public function show(InventoryMission $mission): Response {
+        public function show(InventoryMission $mission): Response {
+            $startPrevDate = $mission->getStartPrevDate();
+            $isInventoryStarted =  new DateTime('now') < $startPrevDate;
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
             'typeLocation' => $mission->getType() === InventoryMission::LOCATION_TYPE,
             'locationsAlreadyAdded' => !$mission->getInventoryLocationMissions()->isEmpty(),
+            'isInventoryStarted' => $isInventoryStarted,
             'done' => $mission->isDone(),
         ]);
     }
