@@ -492,13 +492,13 @@ class DispatchService {
                         ], false]))
             );
 
-            $subject = ($dispatch->getEmergency() ? "Urgent : " : "") .
-                (($status->isTreated() || $status->isPartial() || $sendReport)
-                    ? $this->translationService->translateIn('Demande', 'Acheminements', 'Emails', 'Follow GT // Notification de traitement d\'une demande d\'acheminement', false)
-                    : (!$isUpdate
-                        ? $this->translationService->translateIn('Demande', 'Acheminements', 'Emails', 'Follow GT // Création d\'une demande d\'acheminement', false)
-                        : $this->translationService->translateIn('Demande', 'Acheminements', 'Emails', 'FOLLOW GT // Changement de statut d\'une demande d\'acheminement', false)));
+            $subject = ($status->isTreated() || $status->isPartial() || $sendReport)
+                ? ['Demande', 'Acheminements', 'Emails', 'FOLLOW GT // Notification de traitement d\'une demande d\'acheminement', false]
+                : (!$isUpdate
+                    ? ['Demande', 'Acheminements', 'Emails', 'FOLLOW GT // Création d\'une demande d\'acheminement', false]
+                    : ['Demande', 'Acheminements', 'Emails', 'FOLLOW GT // Changement de statut d\'une demande d\'acheminement', false]);
 
+            $prefix = $dispatch->getEmergency() ? "URGENCE : " : null;
             $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->isTreated();
             $isTreatedByOperator = $dispatch->getTreatedBy() && $dispatch->getTreatedBy()->getUsername();
 
@@ -530,7 +530,8 @@ class DispatchService {
                         ]
                     ],
                     $receiverEmailUses,
-                    $updateStatusAttachment ? [$updateStatusAttachment] : []
+                    $updateStatusAttachment ? [$updateStatusAttachment] : [],
+                    $prefix
                 );
             }
         }
