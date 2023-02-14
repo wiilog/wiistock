@@ -2664,7 +2664,6 @@ class MobileController extends AbstractApiController
                 'length' => $description['length'] ?? '',
                 'volume' => $description['volume'] ?? '',
                 'weight' => $description['weight'] ?? '',
-                'adr' => $description['ADR'] ?? '',
                 'associatedDocumentTypes' => $description['associatedDocumentTypes'] ?? '',
                 'exists' => true,
             ];
@@ -2759,7 +2758,6 @@ class MobileController extends AbstractApiController
                     'width' => $data['width'],
                     'height' => $data['height'],
                     'weight' => $data['weight'],
-                    'ADR' => $data['adr'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
                 ];
 
@@ -2784,7 +2782,8 @@ class MobileController extends AbstractApiController
                         ->setBatchNumber($data['batchNumber'])
                         ->setSerialNumber($data['serialNumber'])
                         ->setSealingNumber($data['sealingNumber'])
-                        ->setComment($data['comment']);
+                        ->setComment($data['comment'])
+                        ->setADR(isset($data['adr']) && boolval($data['adr']));
 
                     $maxNbFilesSubmitted = 10;
                     $fileCounter = 1;

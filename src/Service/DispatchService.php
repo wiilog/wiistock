@@ -1133,7 +1133,7 @@ class DispatchService {
                     "numeroscelleref" => $dispatchReferenceArticle->getSealingNumber(),
                     "poidsref" => $description['weight'] ?? '',
                     "volumeref" => $description['volume'] ?? '',
-                    "adrref" => isset($description['ADR']) && $description['ADR'] === "1" ? 'Oui' : 'Non' ,
+                    "adrref" => $dispatchReferenceArticle->isADR() ? 'Oui' : 'Non' ,
                     "documentsref" => $description['associatedDocumentTypes'] ?? '',
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
                     "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null),
@@ -1232,7 +1232,8 @@ class DispatchService {
             ->setBatchNumber($data['batch'] ?? null)
             ->setSealingNumber($data['sealing'] ?? null)
             ->setSerialNumber($data['series'] ?? null)
-            ->setComment($data['comment'] ?? null);
+            ->setComment($data['comment'] ?? null)
+            ->setAdr(isset($data['adr']) && boolval($data['adr']));
 
         $attachments = $this->attachmentService->createAttachements($data['files']);
         foreach ($attachments as $attachment) {
@@ -1243,7 +1244,6 @@ class DispatchService {
 
         $description = [
             'outFormatEquipment' => $data['outFormatEquipment'] ?? null,
-            'ADR' => $data['ADR'] ?? null,
             'manufacturerCode' => $data['manufacturerCode'] ?? null,
             'volume' => $data['volume'] ?? null,
             'weight' => $data['weight'] ?? null,

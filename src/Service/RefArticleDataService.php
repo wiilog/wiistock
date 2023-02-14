@@ -1167,11 +1167,6 @@ class RefArticleDataService {
                 "type" => "bool",
                 "persisted" => true,
             ],
-            "ADR" => [
-                "name" => "ADR",
-                "type" => "bool",
-                "persisted" => true,
-            ],
             "Code fabriquant" => [
                 "name" => "manufacturerCode",
                 "type" => "text",

@@ -101,7 +101,6 @@ class ImportService
             "type",
             "typeQuantite",
             "outFormatEquipment",
-            "ADR",
             "manufacturerCode",
             "volume",
             "weight",
@@ -1110,15 +1109,8 @@ class ImportService
                 || in_array($data['outFormatEquipment'], self::POSITIVE_ARRAY)
             )
             : null;
-        $ADRData = isset($data['ADR'])
-            ? (int) (
-                filter_var($data['ADR'], FILTER_VALIDATE_BOOLEAN)
-                || in_array($data['ADR'], self::POSITIVE_ARRAY)
-            )
-            : null;
 
         $outFormatEquipment = $outFormatEquipmentData ?? $original['outFormatEquipment'] ?? null;
-        $ADR = $ADRData ?? $original['ADR'] ?? null;
         $volume = $data['volume'] ?? $original['volume'] ?? null;
         $weight = $data['weight'] ?? $original['weight'] ?? null;
         $associatedDocumentTypesStr = $data['associatedDocumentTypes'] ?? $original['associatedDocumentTypes'] ?? null;
@@ -1143,7 +1135,6 @@ class ImportService
 
         $description = [
             "outFormatEquipment" => $outFormatEquipment,
-            "ADR" => $ADR,
             "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'] ?? null,
             "volume" => $volume,
             "weight" => $weight,

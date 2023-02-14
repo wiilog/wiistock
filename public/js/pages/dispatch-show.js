@@ -644,7 +644,6 @@ function refArticleChanged($select) {
         const description = selectedReference[0]["description"] || [];
 
         $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] ?? 0}']`).prop('checked', true);
-        $modalAddReference.find(`input[name=ADR][value='${description["ADR"] ?? 0}']`).prop('checked', true);
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
         $modalAddReference.find("input[name=height]").val(description["height"]);
         $modalAddReference.find("[name=weight]").val(description["weight"]);
