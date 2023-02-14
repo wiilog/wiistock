@@ -594,7 +594,7 @@ class ImportService
                 $field,
                 [
                     'needed' => $this->fieldIsNeeded($field, $entity),
-                    'value' => $corresp[$field] ?? '',
+                    'value' => $corresp[$field] ?? null,
                 ]
             ])
             ->toArray();
@@ -641,7 +641,7 @@ class ImportService
                 $fieldName = $this->translationService->translate(...$fieldName);
             }
 
-            if (is_null($originalDataToCheck['value']) && $originalDataToCheck['needed']) {
+            if ($originalDataToCheck['value'] === null && $originalDataToCheck['needed']) {
                 $message = "La colonne $fieldName est manquante.";
                 $this->throwError($message);
             } else if (empty($row[$originalDataToCheck['value']]) && $originalDataToCheck['needed']) {
@@ -1467,8 +1467,8 @@ class ImportService
 
         if (!empty($data['signatoryCode'])) {
             $plainSignatoryPassword = $data['signatoryCode'];
-            if (strlen($plainSignatoryPassword) < 6) {
-                $this->throwError("Le code signataire doit contenir au moins 6 caractères");
+            if (strlen($plainSignatoryPassword) < 4) {
+                $this->throwError("Le code signataire doit contenir au moins 4 caractères");
             }
 
             $signatoryPassword = $this->encoder->hashPassword($user, $plainSignatoryPassword);
