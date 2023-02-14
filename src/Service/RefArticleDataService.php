@@ -37,7 +37,6 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use phpDocumentor\Reflection\Types\Boolean;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -1168,11 +1167,6 @@ class RefArticleDataService {
                 "type" => "bool",
                 "persisted" => true,
             ],
-            "ADR" => [
-                "name" => "ADR",
-                "type" => "bool",
-                "persisted" => true,
-            ],
             "Code fabriquant" => [
                 "name" => "manufacturerCode",
                 "type" => "text",
@@ -1196,7 +1190,7 @@ class RefArticleDataService {
             ],
             "Types de documents associés" => [
                 "name" => "associatedDocumentTypes",
-                "type" => "select-free",
+                "type" => "select",
                 "values" => $associatedDocumentTypes,
                 "persisted" => true,
                 "required" => $isFromDispatch,
