@@ -177,11 +177,8 @@ CREATE TABLE dw_reference_article
     date_derniere_sortie        timestamp(0),
     materiel_hors_format        varchar(3),
     code_fabricant              varchar(255),
-    longueur                    integer,
-    largeur                     integer,
-    hauteur                     integer,
-    volume                      integer,
-    poids                       integer,
+    volume                      varchar(255),
+    poids                       varchar(255),
     types_documents_associes    varchar(255)
 );
 
