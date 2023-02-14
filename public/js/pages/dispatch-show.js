@@ -161,22 +161,17 @@ function openValidateDispatchModal() {
 }
 
 function openAddReferenceModal($button, options = {}) {
-    const modalSelector = '#modalAddReference';
-    const $modal = $(modalSelector);
-    const dispatchId = $('#dispatchId').val();
-    clearModal($modal);
+    const $modal = $('#modalAddReference');
 
-    const pack = options['unitId'] ?? null;
+    const dispatchId = $('#dispatchId').val();
+
+    const pack = options['unitId'] || null;
     editRow(
         $button,
         Routing.generate('dispatch_add_reference_api', {dispatch: dispatchId, pack: pack}, true),
         $modal,
         $modal.find('button[type="submit"]'),
     );
-    clearModal('#modalAddReference');
-    $('#modalNewReference').modal('show');
-
-    clearModal(modalSelector);
 
     $modal.modal('show');
 }
@@ -643,8 +638,8 @@ function refArticleChanged($select) {
     if (selectedReference.length > 0) {
         const description = selectedReference[0]["description"] || [];
 
-        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] ?? 0}']`).prop('checked', true);
-        $modalAddReference.find(`input[name=ADR][value='${description["ADR"] ?? 0}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] || 0}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=ADR][value='${description["ADR"] || 0}']`).prop('checked', true);
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
         $modalAddReference.find("input[name=height]").val(description["height"]);
         $modalAddReference.find("[name=weight]").val(description["weight"]);

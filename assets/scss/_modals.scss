@@ -2,6 +2,10 @@
 
 .modal {
     overflow: auto !important;
+    .modal-body {
+        // to show loader with wrapLoadingOnActionButton
+        min-height: 55px;
+    }
 }
 
 .error-msg, .password-error-msg, .row-error-msg {

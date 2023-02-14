@@ -58,12 +58,15 @@ export function wrapLoadingOnActionButton($loaderContainers, action = null, endL
     $.each($loaderContainers, function() {
         const $loaderContainer = $(this);
         if (!$loaderContainer.hasClass(LOADING_CLASS)) {
+            const loaderModal = $loaderContainer.hasClass('modal-body');
             const loadingColor = (
                 $loaderContainer.data('loader-color') ? $loaderContainer.data('loader-color') :
                 ($loaderContainer.hasClass('btn-light') || $loaderContainer.hasClass('btn-link')) ? 'black' :
+                loaderModal ? 'primary' :
                 'white'
             );
-            const loadingSize = $loaderContainer.data('loader-size') || 'small';
+            const defaultLoadingSize = loaderModal ? 'normal' : 'small';
+            const loadingSize = $loaderContainer.data('loader-size') || defaultLoadingSize;
 
             $loaderContainer.pushLoader(loadingColor, loadingSize);
         }
