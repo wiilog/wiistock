@@ -2602,6 +2602,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email changement statut acheminement",
                         ],
                         [
+                            "fr" => "Bon d'enlèvement généré pour l'acheminement {1} au statut {2} le {3}",
+                            "en" => "Report generated for dispatch {1} ({2}) on {3}",
+                            "tooltip" => "Email de signature groupée",
+                        ],
+                        [
                             "fr" => "Acheminement {1} traité partiellement le {2}",
                             "en" => "transfer {1} partially processed on {2}",
                             "tooltip" => "Email traitement acheminement",

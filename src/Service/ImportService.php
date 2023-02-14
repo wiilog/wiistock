@@ -594,7 +594,7 @@ class ImportService
                 $field,
                 [
                     'needed' => $this->fieldIsNeeded($field, $entity),
-                    'value' => $corresp[$field] ?? '',
+                    'value' => $corresp[$field] ?? null,
                 ]
             ])
             ->toArray();
@@ -641,7 +641,7 @@ class ImportService
                 $fieldName = $this->translationService->translate(...$fieldName);
             }
 
-            if (is_null($originalDataToCheck['value']) && $originalDataToCheck['needed']) {
+            if ($originalDataToCheck['value'] === null && $originalDataToCheck['needed']) {
                 $message = "La colonne $fieldName est manquante.";
                 $this->throwError($message);
             } else if (empty($row[$originalDataToCheck['value']]) && $originalDataToCheck['needed']) {
