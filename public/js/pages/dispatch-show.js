@@ -645,18 +645,14 @@ function refArticleChanged($select) {
 
         $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] ?? 0}']`).prop('checked', true);
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
-        $modalAddReference.find("input[name=length]").val(description["length"]).attr("disabled", true);
-        $modalAddReference.find("input[name=width]").val(description["width"]).attr("disabled", true);
-        $modalAddReference.find("input[name=height]").val(description["height"]).attr("disabled", true);
+        $modalAddReference.find("input[name=height]").val(description["height"]);
         $modalAddReference.find("[name=weight]").val(description["weight"]);
-        $modalAddReference.find("[name=volume]").val(description["volume"]);
+        $modalAddReference.find("[name=volume]").val(description["volume"]).prop("disabled", true);
         const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
-        let $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
-        $associatedDocumentTypesSelect.find('option').remove();
-        associatedDocumentTypes.forEach(function (associatedDocumentType) {
-            let newOption = new Option(associatedDocumentType, associatedDocumentType, true, true);
-            $associatedDocumentTypesSelect.append(newOption);
-        });
+        const $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
+        $associatedDocumentTypesSelect
+            .val(associatedDocumentTypes)
+            .trigger('change');
     }
 }
 

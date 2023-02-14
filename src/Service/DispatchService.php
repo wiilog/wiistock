@@ -475,13 +475,19 @@ class DispatchService {
                 ? 'Acheminement {1} traité partiellement le {2}'
                 : 'Acheminement {1} traité le {2}';
 
+
+            // Attention!! return traduction parameters to give to translationService::translate
             $title = fn(string $slug) => (
                 $fromGroupedSignature
-                ? ["Bon d'enlèvement ". $dispatch->getNumber() . " validé le ". $validationDate->format('d/m/y H:i'), false]
+                ? ['Demande', 'Acheminements', 'Emails', "Bon d'enlèvement généré pour l'acheminement {1} au statut {2} le {3}", [
+                    1 => $dispatch->getNumber(),
+                    2 => $this->formatService->status($status),
+                    3 => $this->formatService->datetime($validationDate)
+                ], false]
                 : ($status->isTreated()
                     ? ['Demande', 'Acheminements', 'Emails', $translatedTitle, [
                         1 => $dispatch->getNumber(),
-                        2 => $this->formatService->datetime($dispatch->getTreatmentDate(), "", false, $this->security->getUser())
+                        2 => $this->formatService->datetime($dispatch->getTreatmentDate())
                     ], false]
                     : (!$isUpdate
                         ? ["Demande", "Acheminements", "Emails", "Une demande d'acheminement de type {1} vous concerne :", [
@@ -1269,7 +1275,7 @@ class DispatchService {
         $location = $locationRepository->find($locationData);
         $signatory = $signatoryTrigramData && !$fromNomade
             ? $userRepository->find($signatoryTrigramData)
-            : ( $signatoryTrigramData
+            : ($signatoryTrigramData
                 ? $userRepository->findOneBy(['username' => $signatoryTrigramData])
                 :  null);
         if(!$signatoryPasswordData || !$signatoryTrigramData){
@@ -1289,7 +1295,9 @@ class DispatchService {
             throw new FormException("Code signataire invalide");
         }
 
-        if(!$location?->getSignatory()){
+        $locationSignatories = Stream::from($location?->getSignatories() ?: []);
+
+        if($locationSignatories->isEmpty()){
             $locationLabel = $location?->getLabel() ?: "invalide";
             if($fromNomade){
                 return [
@@ -1300,7 +1308,8 @@ class DispatchService {
             throw new FormException("L'emplacement filtré {$locationLabel} n'a pas de signataire renseigné");
         }
 
-        if($location->getSignatory() !== $signatory){
+        $availableSignatory = $locationSignatories->some(fn(Utilisateur $locationSignatory) => $locationSignatory->getId() === $signatory->getId());
+        if(!$availableSignatory) {
             if($fromNomade){
                 return [
                     'success' => false,
@@ -1314,6 +1323,16 @@ class DispatchService {
         $dispatchesToSign = $dispatchesToSignIds
             ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
             : [];
+
+        if($groupedSignatureStatus->getCommentNeeded() && empty($commentData)) {
+            if($fromNomade){
+                return [
+                    'success' => false,
+                    'msg' => "Vous devez remplir le champ commentaire pour valider"
+                ];
+            }
+            throw new FormException("Vous devez remplir le champ commentaire pour valider");
+        }
 
         $dispatchTypes = Stream::from($dispatchesToSign)
             ->filterMap(fn(Dispatch $dispatch) => $dispatch->getType())
