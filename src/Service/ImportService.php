@@ -1467,8 +1467,8 @@ class ImportService
 
         if (!empty($data['signatoryCode'])) {
             $plainSignatoryPassword = $data['signatoryCode'];
-            if (strlen($plainSignatoryPassword) < 6) {
-                $this->throwError("Le code signataire doit contenir au moins 6 caractères");
+            if (strlen($plainSignatoryPassword) < 4) {
+                $this->throwError("Le code signataire doit contenir au moins 4 caractères");
             }
 
             $signatoryPassword = $this->encoder->hashPassword($user, $plainSignatoryPassword);
