@@ -1324,6 +1324,16 @@ class DispatchService {
             ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
             : [];
 
+        if($groupedSignatureStatus->getCommentNeeded() && empty($commentData)) {
+            if($fromNomade){
+                return [
+                    'success' => false,
+                    'msg' => "Vous devez remplir le champ commentaire pour valider"
+                ];
+            }
+            throw new FormException("Vous devez remplir le champ commentaire pour valider");
+        }
+
         $dispatchTypes = Stream::from($dispatchesToSign)
             ->filterMap(fn(Dispatch $dispatch) => $dispatch->getType())
             ->keymap(fn(Type $type) => [$type->getId(), $type])
