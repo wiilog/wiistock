@@ -157,7 +157,7 @@ class EmplacementRepository extends EntityRepository
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $queryBuilder
-                        ->leftJoin('location.signatory', 'search_signatory')
+                        ->leftJoin('location.signatories', 'search_signatory')
                         ->andWhere($exprBuilder->orX(
                             'location.label LIKE :value',
                             'location.description LIKE :value',
@@ -179,11 +179,6 @@ class EmplacementRepository extends EntityRepository
                                 ->leftJoin('location.locationGroup', 'order_locationGroup')
                                 ->leftJoin('order_locationGroup.pairings', 'order_locationGroupPairings')
                                 ->addOrderBy('IFNULL(order_pairings.active, order_locationGroupPairings.active)', $order);
-                            break;
-                        case 'signatory':
-                            $queryBuilder
-                                ->leftJoin('location.signatory', 'order_signatory')
-                                ->addOrderBy('order_signatory.username', $order);
                             break;
                         default:
                             if(property_exists(Emplacement::class, $field)) {

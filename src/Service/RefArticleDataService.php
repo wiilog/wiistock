@@ -37,7 +37,6 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use phpDocumentor\Reflection\Types\Boolean;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -1165,11 +1164,6 @@ class RefArticleDataService {
         $config = [
             "Matériel hors format" => [
                 "name" => "outFormatEquipment",
-                "type" => "bool",
-                "persisted" => true,
-            ],
-            "ADR" => [
-                "name" => "ADR",
                 "type" => "bool",
                 "persisted" => true,
             ],

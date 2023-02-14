@@ -72,6 +72,12 @@
     <div class="col-4 d-flex mt-2">
         {{ form.input('series', 'N° de série', false, dispatchReferenceArticle ? dispatchReferenceArticle.serialNumber : null, {})}}
     </div>
+    <div class="col-6 d-flex mt-2">
+        {{ form.switch('adr', 'ADR', false, [
+            {label: 'Non', value: '0', checked: dispatchReferenceArticle ? not dispatchReferenceArticle.ADR : true},
+            {label: 'Oui', value: '1', checked: dispatchReferenceArticle ? dispatchReferenceArticle.ADR : false},
+        ]) }}
+    </div>
     <div class="col-8 mt-2">
         {{ form.wysiwyg('comment', 'Commentaire', false, dispatchReferenceArticle ? dispatchReferenceArticle.comment : null)}}
     </div>
