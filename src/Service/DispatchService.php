@@ -1295,15 +1295,6 @@ class DispatchService {
             throw new FormException("Code signataire invalide");
         }
 
-        if($statusRepository->findOneBy(['id' => $statusData])->getCommentNeeded() && $commentData === "") {
-            if($fromNomade){
-                return [
-                    'success' => false,
-                    'msg' => "Vous devez remplir le champ commentaire pour valider"
-                ];
-            }
-            throw new FormException("Vous devez remplir le champ commentaire pour valider");
-        }
 
         if(!$location?->getSignatory()){
             $locationLabel = $location?->getLabel() ?: "invalide";
@@ -1330,6 +1321,16 @@ class DispatchService {
         $dispatchesToSign = $dispatchesToSignIds
             ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
             : [];
+
+        if($groupedSignatureStatus->getCommentNeeded() && empty($commentData)) {
+            if($fromNomade){
+                return [
+                    'success' => false,
+                    'msg' => "Vous devez remplir le champ commentaire pour valider"
+                ];
+            }
+            throw new FormException("Vous devez remplir le champ commentaire pour valider");
+        }
 
         $dispatchTypes = Stream::from($dispatchesToSign)
             ->filterMap(fn(Dispatch $dispatch) => $dispatch->getType())
