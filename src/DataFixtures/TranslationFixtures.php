@@ -2587,6 +2587,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email changement statut acheminement",
                         ],
                         [
+                            "fr" => "FOLLOW GT // Urgence : Notification de traitement d'une demande d'acheminement",
+                            "en" => "FOLLOW GT // Emergency : Notification upon transfer operation finishing",
+                            "tooltip" => "Email traitement acheminement",
+                        ],
+                        [
                             "fr" => "Acheminement {1} traité le {2} à {3}",
                             "en" => "Transfer {1} finished on {2} at {3}",
                             "tooltip" => "Email traitement acheminement",

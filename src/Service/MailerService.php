@@ -37,8 +37,7 @@ class MailerService
     public function sendMail(callable|string|array    $subject,
                              string|array             $template,
                              array|string|Utilisateur $to,
-                             array                    $attachments = [],
-                             string                   $prefix = null): bool {
+                             array                    $attachments = []): bool {
         if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
             return true;
         }
@@ -46,7 +45,7 @@ class MailerService
         $filteredRecipients = Stream::from(!is_array($to) ? [$to] : $to)
             ->filter(fn($user) => $user && (is_string($user) || $user->getStatus()));
 
-        $contents = $this->createContents($filteredRecipients, $subject, $template, $prefix);
+        $contents = $this->createContents($filteredRecipients, $subject, $template);
 
         if (empty($contents)) {
             return false;
@@ -116,8 +115,7 @@ class MailerService
      */
     private function createContents(Stream                $recipients,
                                     callable|string|array $subject,
-                                    string|array          $template,
-                                    string                $prefix = null): array {
+                                    string|array          $template): array {
         $defaultSlugLanguage = $this->languageService->getDefaultSlug();
         $contents = [];
 
@@ -151,7 +149,7 @@ class MailerService
                             $content = $template;
                         }
 
-                        $subject = ($prefix ?? "") . match(true) {
+                        $subject = match(true) {
                             is_callable($subject) => $this->translationService->translateIn($slug, ...($subject($slug))),
                             is_array($subject)    => $this->translationService->translateIn($slug, ...$subject),
                             default               => $subject
