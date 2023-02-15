@@ -92,7 +92,12 @@ class MailerService
                 ->setContentType('text/html');
 
             foreach ($attachments as $attachment) {
-                $message->attach(\Swift_Attachment::fromPath("{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}"));
+                $swiftAttachment = \Swift_Attachment::fromPath("{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}");
+                $attachmentOriginalName = $attachment->getOriginalName();
+                if ($attachmentOriginalName) {
+                    $swiftAttachment->setFilename($attachmentOriginalName);
+                }
+                $message->attach($swiftAttachment);
             }
 
             $mailer = (new \Swift_Mailer($transport));
