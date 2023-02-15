@@ -37,7 +37,6 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use phpDocumentor\Reflection\Types\Boolean;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -181,23 +180,16 @@ class RefArticleDataService {
         ];
     }
 
-    public function getDataEditForRefArticle($articleRef) {
+    public function getDataEditForRefArticle($articleRef, $articleRepository) {
         $totalQuantity = $articleRef->getQuantiteDisponible();
         return $data = [
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
-                function(array $carry, ArticleFournisseur $articleFournisseur) use ($articleRef) {
-                    $articles = $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
-                        ? $articleFournisseur->getArticles()->toArray()
-                        : [];
+                function(array $carry, ArticleFournisseur $articleFournisseur) use ($articleRef, $articleRepository) {
                     $carry[] = [
                         'reference' => $articleFournisseur->getReference(),
                         'label' => $articleFournisseur->getLabel(),
                         'fournisseurCode' => $articleFournisseur->getFournisseur()->getCodeReference(),
-                        'quantity' => array_reduce($articles, function(int $carry, Article $article) {
-                            return $article->getStatut()?->getCode() === Article::STATUT_ACTIF
-                                ? ($carry + $article->getQuantite())
-                                : $carry;
-                        }, 0)
+                        'quantity' => $articleRepository->getQuantityForSupplier($articleFournisseur)
                     ];
                     return $carry;
                 }, []),
@@ -210,11 +202,11 @@ class RefArticleDataService {
                                           $preloadCategories = true,
                                           $showAttachments = false) {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
-
-        $data = $this->getDataEditForRefArticle($refArticle);
+        $data = $this->getDataEditForRefArticle($refArticle, $articleRepository);
         $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $editAttachments = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
@@ -240,7 +232,6 @@ class RefArticleDataService {
                 'typeId' => $type->getId()
             ];
         }
-
         return $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
@@ -1161,7 +1152,7 @@ class RefArticleDataService {
         $this->CSVExportService->putLine($handle, $line);
     }
 
-    public function getDescriptionConfig(EntityManagerInterface $entityManager, $isFromDispatch = false): array {
+    public function getDescriptionConfig(EntityManagerInterface $entityManager, bool $isFromDispatch = false): array {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
         $associatedDocumentTypes = $associatedDocumentTypesStr
@@ -1176,11 +1167,6 @@ class RefArticleDataService {
                 "type" => "bool",
                 "persisted" => true,
             ],
-            "ADR" => [
-                "name" => "ADR",
-                "type" => "bool",
-                "persisted" => true,
-            ],
             "Code fabriquant" => [
                 "name" => "manufacturerCode",
                 "type" => "text",
@@ -1192,7 +1178,7 @@ class RefArticleDataService {
                 "type" => "number",
                 "step" => "0.000001",
                 "persisted" => true,
-                "disabled" => !$isFromDispatch,
+                "disabled" => true,
                 "required" => $isFromDispatch,
             ],
             "Poids (kg)" => [
@@ -1204,7 +1190,7 @@ class RefArticleDataService {
             ],
             "Types de documents associés" => [
                 "name" => "associatedDocumentTypes",
-                "type" => "select-free",
+                "type" => "select",
                 "values" => $associatedDocumentTypes,
                 "persisted" => true,
                 "required" => $isFromDispatch,
