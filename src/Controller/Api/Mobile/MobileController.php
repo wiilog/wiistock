@@ -2871,7 +2871,7 @@ class MobileController extends AbstractApiController
                     'height' => $ref->getReferenceArticle()->getDescription()['height'] ?? null,
                     'length' => $ref->getReferenceArticle()->getDescription()['length'] ?? null,
                     'weight' => $ref->getReferenceArticle()->getDescription()['weight'] ?? null,
-                    'adr' => $ref->getReferenceArticle()->getDescription()['ADR'] ?? null,
+                    'adr' => $ref->isADR() ? 'Oui' : 'Non',
                     'associatedDocumentTypes' => $ref->getReferenceArticle()->getDescription()['associatedDocumentTypes'] ?? null,
                     'comment' => $ref->getCleanedComment(),
                 ];
