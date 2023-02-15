@@ -142,7 +142,6 @@ class DispatchPackRepository extends EntityRepository {
                             "outFormatEquipment" => $reference["description"] && isset($reference["description"]["outFormatEquipment"]) ? 'Oui' : 'Non',
                             "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] ?? '' : '',
                             "comment" => $reference["comment"],
-                            //"attachments" => $reference["attachments"],
                         ]
                             : null
                         ))

@@ -305,7 +305,7 @@ class DispatchController extends AbstractController {
 
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
 
-        if(!empty($comment)) {
+        if(!empty($comment) && $comment !== "<p><br></p>" ) {
             $dispatch->setCommentaire(StringHelper::cleanedComment($comment));
         }
 
