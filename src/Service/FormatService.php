@@ -196,7 +196,7 @@ class FormatService
                 ?: $else;
     }
 
-    public function entity($entities, string $field, string $separator = ", ") {
+    public function entity($entities, string $field, string $separator = ", "): string {
         return Stream::from($entities)
             ->filter(function($entity) use ($field) {
                 return $entity !== null && is_array($entity) ? $entity[$field] : $entity->{"get$field"}();

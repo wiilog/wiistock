@@ -283,8 +283,8 @@ class UserController extends AbstractController {
 
             $plainSignatoryPassword = $data['signatoryPassword'] ?? null;
             if (!empty($plainSignatoryPassword)) {
-                if (strlen($plainSignatoryPassword) < 6) {
-                    throw new FormException("Le code signataire doit contenir au moins 6 caractères");
+                if (strlen($plainSignatoryPassword) < 4) {
+                    throw new FormException("Le code signataire doit contenir au moins 4 caractères");
                 }
                 $signatoryPassword = $encoder->hashPassword($user, $plainSignatoryPassword);
                 $user->setSignatoryPassword($signatoryPassword);
@@ -501,8 +501,8 @@ class UserController extends AbstractController {
 
             $plainSignatoryPassword = $data['signatoryPassword'] ?? null;
 
-            if (!empty($plainSignatoryPassword) && strlen($plainSignatoryPassword) < 6) {
-                throw new FormException("Le code signataire doit contenir au moins 6 caractères");
+            if (!empty($plainSignatoryPassword) && strlen($plainSignatoryPassword) < 4) {
+                throw new FormException("Le code signataire doit contenir au moins 4 caractères");
             }
 
             $signatoryPassword = $plainSignatoryPassword ? $encoder->hashPassword($utilisateur, $plainSignatoryPassword) : null;

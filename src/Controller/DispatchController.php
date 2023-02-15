@@ -77,8 +77,6 @@ use function PHPUnit\Framework\throwException;
  */
 class DispatchController extends AbstractController {
 
-    private const EXTRA_OPEN_PACK_MODAL = "EXTRA_OPEN_PACK_MODAL";
-
     /** @Required */
     public UserService $userService;
 
@@ -399,17 +397,12 @@ class DispatchController extends AbstractController {
             $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
         }
 
-        $showArguments = [
-            "id" => $dispatch->getId(),
-        ];
-
-        if($printDeliveryNote) {
-            $showArguments['print-delivery-note'] = "1";
-        }
-
         return new JsonResponse([
             'success' => true,
-            'redirect' => $redirectService->generateUrl("dispatch_show", $showArguments, self::EXTRA_OPEN_PACK_MODAL),
+            'redirect' => $redirectService->generateUrl("dispatch_show", [
+                "id" => $dispatch->getId(),
+                "print-delivery-note" => $printDeliveryNote ? '1' : '0',
+            ]),
             'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'L\'acheminement a bien été créé', false)
         ]);
     }
@@ -418,17 +411,19 @@ class DispatchController extends AbstractController {
      * @Route("/voir/{id}/{printBL}", name="dispatch_show", options={"expose"=true}, methods="GET|POST", defaults={"printBL"=0,"fromCreation"=0})
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
-    public function show(Dispatch $dispatch,
+    public function show(Dispatch               $dispatch,
+                         Request                $request,
                          EntityManagerInterface $entityManager,
-                         DispatchService $dispatchService,
-                         UserService $userService,
-                         bool $printBL,
-                         RefArticleDataService $refArticleDataService): Response {
+                         DispatchService        $dispatchService,
+                         UserService            $userService,
+                         RefArticleDataService  $refArticleDataService): Response {
 
         $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+        $printBL = $request->query->getBoolean('printBL');
 
         $dispatchStatus = $dispatch->getStatut();
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);

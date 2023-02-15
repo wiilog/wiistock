@@ -36,6 +36,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/emplacement")
@@ -102,7 +103,13 @@ class LocationController extends AbstractController {
                 return $errorResponse;
             }
 
-            $signatory = !empty($data['signatory']) ? $userRepository->find($data['signatory']) : null;
+            $signatoryIds = Stream::explode(',', $data['signatories'])
+                ->filter()
+                ->map('trim')
+                ->toArray();
+            $signatories = !empty($signatoryIds)
+                ? $userRepository->findBy(['id' => $signatoryIds])
+                : null;
             $email = $data['email'] ?? null;
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
@@ -120,7 +127,7 @@ class LocationController extends AbstractController {
                 ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatory($signatory)
+                ->setSignatories($signatories)
                 ->setEmail($email);
 
             if (!empty($data['allowed-natures'])) {
@@ -201,7 +208,13 @@ class LocationController extends AbstractController {
                 return $errorResponse;
             }
 
-            $signatory = !empty($data['signatory']) ? $userRepository->find($data['signatory']) : null;
+            $signatoryIds = Stream::explode(',', $data['signatories'])
+                ->filter()
+                ->map('trim')
+                ->toArray();
+            $signatories = !empty($signatoryIds)
+                ? $userRepository->findBy(['id' => $signatoryIds])
+                : null;
             $email = $data['email'] ?? null;
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
@@ -219,7 +232,7 @@ class LocationController extends AbstractController {
                 ->setIsActive($data['isActive'])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatory($signatory)
+                ->setSignatories($signatories)
                 ->setEmail($email);
 
             $emplacement->getAllowedNatures()->clear();

@@ -2664,7 +2664,6 @@ class MobileController extends AbstractApiController
                 'length' => $description['length'] ?? '',
                 'volume' => $description['volume'] ?? '',
                 'weight' => $description['weight'] ?? '',
-                'adr' => $description['ADR'] ?? '',
                 'associatedDocumentTypes' => $description['associatedDocumentTypes'] ?? '',
                 'exists' => true,
             ];
@@ -2759,7 +2758,6 @@ class MobileController extends AbstractApiController
                     'width' => $data['width'],
                     'height' => $data['height'],
                     'weight' => $data['weight'],
-                    'ADR' => $data['adr'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
                 ];
 
@@ -2784,7 +2782,8 @@ class MobileController extends AbstractApiController
                         ->setBatchNumber($data['batchNumber'])
                         ->setSerialNumber($data['serialNumber'])
                         ->setSealingNumber($data['sealingNumber'])
-                        ->setComment($data['comment']);
+                        ->setComment($data['comment'])
+                        ->setADR(isset($data['adr']) && boolval($data['adr']));
 
                     $maxNbFilesSubmitted = 10;
                     $fileCounter = 1;
@@ -2836,6 +2835,50 @@ class MobileController extends AbstractApiController
         $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
 
         return $this->json($associatedDocumentTypeElements);
+    }
+
+    /**
+     * @Rest\Post("/api/get-associated-ref-intels/{packCode}/{dispatch}", name="api_get_associated_ref-intels", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getAssociatedPackIntels(EntityManagerInterface $manager, string $packCode, Dispatch $dispatch): Response {
+
+        $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $packCode]);
+
+        $data = [];
+        /** @var DispatchPack $line */
+        $line = $dispatch
+            ->getDispatchPacks()
+            ->filter(fn (DispatchPack $linePack) => $linePack->getPack()->getId() === $pack->getId())
+            ->first();
+
+        if ($line) {
+            /** @var DispatchReferenceArticle $ref */
+            $ref = $line
+                ->getDispatchReferenceArticles()
+                ->first();
+            if ($ref) {
+                $data = [
+                    'reference' => $ref->getReferenceArticle()->getReference(),
+                    'quantity' => $ref->getQuantity(),
+                    'outFormatEquipment' => $ref->getReferenceArticle()->getDescription()['outFormatEquipment'] ?? null,
+                    'manufacturerCode' => $ref->getReferenceArticle()->getDescription()['manufacturerCode'] ?? null,
+                    'sealingNumber' => $ref->getSealingNumber(),
+                    'serialNumber' => $ref->getSerialNumber(),
+                    'batchNumber' => $ref->getBatchNumber(),
+                    'width' => $ref->getReferenceArticle()->getDescription()['width'] ?? null,
+                    'height' => $ref->getReferenceArticle()->getDescription()['height'] ?? null,
+                    'length' => $ref->getReferenceArticle()->getDescription()['length'] ?? null,
+                    'weight' => $ref->getReferenceArticle()->getDescription()['weight'] ?? null,
+                    'adr' => $ref->getReferenceArticle()->getDescription()['ADR'] ?? null,
+                    'associatedDocumentTypes' => $ref->getReferenceArticle()->getDescription()['associatedDocumentTypes'] ?? null,
+                    'comment' => $ref->getCleanedComment(),
+                ];
+            }
+        }
+
+        return $this->json($data);
     }
 
 }
