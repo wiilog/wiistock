@@ -500,11 +500,11 @@ class DispatchService {
 
             $subject = ($status->isTreated() || $status->isPartial() || $sendReport)
                 ? ($dispatch->getEmergency()
-                    ? ['Demande', 'Acheminements', 'Emails', 'FOLLOW GT // Urgence : Notification de traitement d\'une demande d\'acheminement', false]
-                    : ['Demande', 'Acheminements', 'Emails', 'FOLLOW GT // Notification de traitement d\'une demande d\'acheminement', false])
+                    ? ["Demande", "Acheminements", "Emails", "FOLLOW GT // Urgence : Notification de traitement d'une demande d'acheminement", false]
+                    : ["Demande", "Acheminements", "Emails", "FOLLOW GT // Notification de traitement d'une demande d'acheminement", false])
                 : (!$isUpdate
-                    ? ['Demande', 'Acheminements', 'Emails', 'FOLLOW GT // Création d\'une demande d\'acheminement', false]
-                    : ['Demande', 'Acheminements', 'Emails', 'FOLLOW GT // Changement de statut d\'une demande d\'acheminement', false]);
+                    ? ["Demande", "Acheminements", "Emails", "FOLLOW GT // Création d'une demande d'acheminement", false]
+                    : ["Demande", "Acheminements", "Emails", "FOLLOW GT // Changement de statut d'une demande d'acheminement", false]);
 
             $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->isTreated();
             $isTreatedByOperator = $dispatch->getTreatedBy() && $dispatch->getTreatedBy()->getUsername();
