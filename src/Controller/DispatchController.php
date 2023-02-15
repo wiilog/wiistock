@@ -184,15 +184,15 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      */
-    public function new(Request $request,
-                        FreeFieldService $freeFieldService,
-                        DispatchService $dispatchService,
-                        AttachmentService $attachmentService,
+    public function new(Request                $request,
+                        FreeFieldService       $freeFieldService,
+                        DispatchService        $dispatchService,
+                        AttachmentService      $attachmentService,
                         EntityManagerInterface $entityManager,
-                        TranslationService $translationService,
-                        UniqueNumberService $uniqueNumberService,
-                        RedirectService $redirectService,
-                        StatusHistoryService $statusHistoryService): Response {
+                        TranslationService     $translationService,
+                        UniqueNumberService    $uniqueNumberService,
+                        RedirectService        $redirectService,
+                        StatusHistoryService   $statusHistoryService): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
             !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
             return $this->json([
@@ -232,7 +232,7 @@ class DispatchController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $preFill = $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY);
@@ -292,11 +292,15 @@ class DispatchController extends AbstractController {
             ]);
         }
 
+        $requesterId = $post->get('requester');
+        $requester = $requesterId ? $userRepository->find($requesterId) : null;
+        $requester = $requester ?? $this->getUser();
+
         $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $dispatch
             ->setCreationDate($date)
             ->setType($type)
-            ->setRequester($utilisateurRepository->find($post->get('requester')))
+            ->setRequester($requester)
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setBusinessUnit($businessUnit)
@@ -343,7 +347,7 @@ class DispatchController extends AbstractController {
 
             foreach ($receiverIds as $receiverId) {
                 if (!empty($receiverId)) {
-                    $receiver = $receiverId ? $utilisateurRepository->find($receiverId) : null;
+                    $receiver = $receiverId ? $userRepository->find($receiverId) : null;
                     if ($receiver) {
                         $dispatch->addReceiver($receiver);
                     }
@@ -541,6 +545,8 @@ class DispatchController extends AbstractController {
         $requesterData = $post->get('requester');
         $carrierData = $post->get('carrier');
         $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
+        $requester = $requester ?? $dispatch->getRequester() ?? $this->getUser();
+
         $carrier = $carrierData ? $transporterRepository->find($carrierData) : null;
 
         $transporterTrackingNumber = $post->get('transporterTrackingNumber');
