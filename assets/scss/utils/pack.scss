@@ -2,116 +2,116 @@
 
 .logistic-unit-wrapper {
     display: table;
-    width: auto;
+    width: 100%;
+    max-width: 100%;
 
     &:not(:first-child) {
         margin-top: 0.5rem;
     }
 
-    table{
+    table.table-logistic-unit-wrapper {
         height: 1px; // utile pour remplissage des cellules
         border-collapse: collapse;
         border-spacing: 0;
         width: 100%;
 
-        tr{
-            &.ul td:nth-child(2),
-            &.list-article td:nth-child(2) {
-                width: 100%;
+        .ul td:nth-child(2),
+        .list-article td:nth-child(2) {
+            width: 100%;
+        }
+
+        .ul td {
+            &.side-unit-label {
+                background: var(--row-color);
+                color: $white;
+                font-weight: bold;
+                font-size: .8rem;
+                text-align: center;
+                text-transform: uppercase;
+                writing-mode: vertical-rl;
+                transform: rotate(180deg);
+                border-bottom-right-radius: 0.35rem;
+                border-top-right-radius: 0.35rem;
+                padding-top: 5px;
+                padding-bottom: 5px;
+                overflow-wrap: break-word;
+                height: min-content;
+                min-width: 40px;
+                max-width: 40px;
+                vertical-align: middle;
             }
-            &.ul td{
-                &.side-unit-label {
-                    background: var(--row-color);
-                    color: $white;
-                    font-weight: bold;
-                    font-size: .8rem;
-                    text-align: center;
-                    text-transform: uppercase;
-                    writing-mode: vertical-rl;
-                    transform: rotate(180deg);
-                    border-bottom-right-radius: 0.35rem;
+
+            &:nth-child(2) {
+                border-left: 1px solid var(--row-color);
+                vertical-align: top;
+                position: relative;
+
+                div.main-ul-data {
+                    border: 1px solid var(--row-color);
                     border-top-right-radius: 0.35rem;
-                    padding-top: 5px;
-                    padding-bottom: 5px;
-                    overflow-wrap: break-word;
-                    height: min-content;
-                    min-width: 40px;
-                    max-width: 40px;
-                    vertical-align: middle;
-                }
+                    border-bottom-right-radius: 0.35rem;
+                    height: 100%;
+                    z-index: 2;
+                    background-color: #f2f3f7;
 
-                &:nth-child(2) {
-                    border-left: 1px solid var(--row-color);
-                    vertical-align: top;
-                    position: relative;
+                    div.col {
+                        margin-top: 15px;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
 
-                    div.main-ul-data {
-                        border: 1px solid var(--row-color);
-                        border-top-right-radius: 0.35rem;
-                        border-bottom-right-radius: 0.35rem;
-                        height: 100%;
-                        z-index: 2;
-                        background-color: #f2f3f7;
+                        span.wii-icon {
+                            background-color: $primary;
+                        }
 
-                        div.col {
-                            margin-top: 15px;
-                            margin-bottom: 15px;
-                            display: flex;
-                            align-items: center;
+                        .wii-icon {
+                            background-color: $primary;
+                        }
 
-                            span.wii-icon {
-                                background-color: $primary;
-                            }
+                        &:nth-child(2) {
+                            border-left: $medium-grey solid 1px;
 
-                            .wii-icon {
-                                background-color: $primary;
-                            }
-
-                            &:nth-child(2){
-                                border-left: $medium-grey solid 1px;
-
-                                &:not(:last-child) {
-                                    border-right: $medium-grey solid 1px;
-                                }
+                            &:not(:last-child) {
+                                border-right: $medium-grey solid 1px;
                             }
                         }
                     }
                 }
             }
-            &.reference-articles-container {
-                width: max-content;
-                .reference-articles-wrapper {
-                    height: 100%;
-                    z-index: 1;
+        }
 
+        .reference-articles-container {
+            width: max-content;
+
+            .reference-articles-wrapper {
+                height: 100%;
+                z-index: 1;
+
+                .reference-articles-td {
                     table {
-
+                        overflow: hidden;
                     }
 
-                    &.sub-reference-articles-wrapper {
-                        border-left: 1px solid $medium-grey;
-                        border-right: 1px solid $medium-grey;
-                        border-bottom: 1px solid $medium-grey;
-                        border-bottom-left-radius: 0.35rem;
-                        border-bottom-right-radius: 0.35rem;
 
-                        >div {
-                            scroll-behavior: smooth;
-                            overflow-x: scroll !important;
-                            //width: auto;
-                        }
+                }
+
+                &.sub-reference-articles-wrapper {
+                    border-left: 1px solid $medium-grey;
+                    border-right: 1px solid $medium-grey;
+                    border-bottom: 1px solid $medium-grey;
+                    border-bottom-left-radius: 0.35rem;
+                    border-bottom-right-radius: 0.35rem;
 
 
-                        td {
-                            border-color: $medium-grey;
-                        }
+                    td {
+                        border-color: $medium-grey;
+                    }
 
-                        tr:last-child {
-                            &, & td {
-                                border-bottom-left-radius: 0.35rem;
-                                border-bottom-right-radius: 0.35rem;
-                                border-bottom: none !important;
-                            }
+                    tr:last-child {
+                        &, & td {
+                            border-bottom-left-radius: 0.35rem;
+                            border-bottom-right-radius: 0.35rem;
+                            border-bottom: none !important;
                         }
                     }
                 }
