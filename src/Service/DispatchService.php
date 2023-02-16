@@ -337,7 +337,7 @@ class DispatchService {
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
-                'value' => $this->formatService->location($locationTo->getLabel(), '-'),
+                'value' => $this->formatService->location($locationTo, '-'),
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP]
             ],
             [
