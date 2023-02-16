@@ -70,6 +70,7 @@ class DispatchPackRepository extends EntityRepository {
             ->addSelect('join_dispatchReferenceArticle.serialNumber AS serialNumber')
             ->addSelect('join_dispatchReferenceArticle.comment AS comment')
             ->addSelect('join_referenceArticle.description AS description')
+            ->addSelect('join_dispatchReferenceArticle.ADR AS ADR')
             //->addSelect('join_dispatchReferenceArticle.attachments AS attachments')
 
             ->leftJoin('dispatch_pack.pack', 'join_pack')
@@ -137,11 +138,10 @@ class DispatchPackRepository extends EntityRepository {
                             "heigth" => $reference["description"] ? $reference["description"]["height"] ?? '' : '',
                             "volume" => $reference["description"] ? $reference["description"]["volume"] ?? '' : '',
                             "weight" => $reference["description"] ? $reference["description"]["weight"] ?? '' : '',
-                            "ADR" => $reference["description"] && isset($reference["description"]["ADR"]) ? 'Oui' : 'Non',
+                            "ADR" => boolval($reference["ADR"]) ? 'Oui' : 'Non',
                             "outFormatEquipment" => $reference["description"] && isset($reference["description"]["outFormatEquipment"]) ? 'Oui' : 'Non',
                             "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] ?? '' : '',
                             "comment" => $reference["comment"],
-                            //"attachments" => $reference["attachments"],
                         ]
                             : null
                         ))

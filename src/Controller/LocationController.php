@@ -96,7 +96,13 @@ class LocationController extends AbstractController {
             }
 
             $zone = $data['zone'] ? $zoneRepository->find($data['zone']) : null;
-            $signatory = !empty($data['signatory']) ? $userRepository->find($data['signatory']) : null;
+            $signatoryIds = Stream::explode(',', $data['signatories'])
+                ->filter()
+                ->map('trim')
+                ->toArray();
+            $signatories = !empty($signatoryIds)
+                ? $userRepository->findBy(['id' => $signatoryIds])
+                : null;
             $email = $data['email'] ?? null;
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
@@ -114,7 +120,7 @@ class LocationController extends AbstractController {
                 ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatory($signatory)
+                ->setSignatories($signatories)
                 ->setEmail($email)
                 ->setZone($zone);
 
@@ -234,7 +240,13 @@ class LocationController extends AbstractController {
             }
 
             $zone = $zoneRepository->find($data['zone']);
-            $signatory = !empty($data['signatory']) ? $userRepository->find($data['signatory']) : null;
+            $signatoryIds = Stream::explode(',', $data['signatories'])
+                ->filter()
+                ->map('trim')
+                ->toArray();
+            $signatories = !empty($signatoryIds)
+                ? $userRepository->findBy(['id' => $signatoryIds])
+                : null;
             $email = $data['email'] ?? null;
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
@@ -252,7 +264,7 @@ class LocationController extends AbstractController {
                 ->setIsActive($data['isActive'])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatory($signatory)
+                ->setSignatories($signatories)
                 ->setEmail($email)
                 ->setZone($zone);
 

@@ -105,7 +105,6 @@ class ImportService
             "type",
             "typeQuantite",
             "outFormatEquipment",
-            "ADR",
             "manufacturerCode",
             "volume",
             "weight",
@@ -177,7 +176,7 @@ class ImportService
             "isDeliveryPoint",
             "allowedCollectTypes",
             "allowedDeliveryTypes",
-            "signatory",
+            "signatories",
             "email",
             "zone",
         ],
@@ -627,7 +626,7 @@ class ImportService
                 $field,
                 [
                     'needed' => $this->fieldIsNeeded($field, $entity),
-                    'value' => $corresp[$field] ?? '',
+                    'value' => $corresp[$field] ?? null,
                 ]
             ])
             ->toArray();
@@ -676,7 +675,7 @@ class ImportService
                 $fieldName = $this->translationService->translate(...$fieldName);
             }
 
-            if (is_null($originalDataToCheck['value']) && $originalDataToCheck['needed']) {
+            if ($originalDataToCheck['value'] === null && $originalDataToCheck['needed']) {
                 $message = "La colonne $fieldName est manquante.";
                 $this->throwError($message);
             } else if (empty($row[$originalDataToCheck['value']]) && $originalDataToCheck['needed']) {
@@ -1094,15 +1093,8 @@ class ImportService
                 || in_array($data['outFormatEquipment'], self::POSITIVE_ARRAY)
             )
             : null;
-        $ADRData = isset($data['ADR'])
-            ? (int) (
-                filter_var($data['ADR'], FILTER_VALIDATE_BOOLEAN)
-                || in_array($data['ADR'], self::POSITIVE_ARRAY)
-            )
-            : null;
 
         $outFormatEquipment = $outFormatEquipmentData ?? $original['outFormatEquipment'] ?? null;
-        $ADR = $ADRData ?? $original['ADR'] ?? null;
         $volume = $data['volume'] ?? $original['volume'] ?? null;
         $weight = $data['weight'] ?? $original['weight'] ?? null;
         $associatedDocumentTypesStr = $data['associatedDocumentTypes'] ?? $original['associatedDocumentTypes'] ?? null;
@@ -1127,7 +1119,6 @@ class ImportService
 
         $description = [
             "outFormatEquipment" => $outFormatEquipment,
-            "ADR" => $ADR,
             "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'] ?? null,
             "volume" => $volume,
             "weight" => $weight,
@@ -1451,8 +1442,8 @@ class ImportService
 
         if (!empty($data['signatoryCode'])) {
             $plainSignatoryPassword = $data['signatoryCode'];
-            if (strlen($plainSignatoryPassword) < 6) {
-                $this->throwError("Le code signataire doit contenir au moins 6 caractères");
+            if (strlen($plainSignatoryPassword) < 4) {
+                $this->throwError("Le code signataire doit contenir au moins 4 caractères");
             }
 
             $signatoryPassword = $this->encoder->hashPassword($user, $plainSignatoryPassword);
@@ -1693,6 +1684,8 @@ class ImportService
         $zoneRepository = $this->entityManager->getRepository(Zone::class);
 
         $isNewEntity = false;
+
+        /** @var Emplacement $location */
         $location = $locationRepository->findOneBy(['label' => $data['name']]);
 
         if (!$location) {
@@ -1797,12 +1790,13 @@ class ImportService
             );
         }
 
-        if (!empty($data['signatory'])) {
-            $signatory = $userRepository->findOneBy(['username' => $data['signatory']]);
-            if (!$signatory) {
-                $this->throwError('Nom d\'utilisateur de signataire inconnu.');
-            }
-            $location->setSignatory($signatory);
+        if (!empty($data['signatories'])) {
+            $signatoryUsernames = Stream::explode(',', $data['signatories'])
+                ->filter()
+                ->map('trim')
+                ->toArray();
+            $signatories = $userRepository->findBy(['username' => $signatoryUsernames]);
+            $location->setSignatories($signatories);
         }
 
         if (!empty($data['email'])) {

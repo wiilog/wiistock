@@ -139,8 +139,8 @@ class Emplacement implements PairedEntity {
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $email = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
-    private ?Utilisateur $signatory = null;
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
+    private Collection $signatories;
 
     #[OneToMany(mappedBy: "location", targetEntity: InventoryLocationMission::class)]
     private Collection $inventoryLocationMissions;
@@ -176,12 +176,12 @@ class Emplacement implements PairedEntity {
         $this->deliveryRequestReferenceLines = new ArrayCollection();
         $this->preparationOrderArticleLines = new ArrayCollection();
         $this->transferOrders = new ArrayCollection();
+        $this->signatories = new ArrayCollection();
+        $this->temperatureRanges = new ArrayCollection();
+        $this->inventoryMissionRules = new ArrayCollection();
 
         $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
-        $this->temperatureRanges = new ArrayCollection();
-
-        $this->inventoryMissionRules = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -997,12 +997,37 @@ class Emplacement implements PairedEntity {
         return $this;
     }
 
-    public function getSignatory(): ?Utilisateur {
-        return $this->signatory;
+    public function getSignatories(): Collection {
+        return $this->signatories;
     }
 
-    public function setSignatory(?Utilisateur $signatory): self {
-        $this->signatory = $signatory;
+    public function addSignatory(Utilisateur $signatory): self {
+
+        if (!$this->signatories->contains($signatory)) {
+            $this->signatories->add($signatory);
+        }
+
+        return $this;
+    }
+
+    public function removeSignatory(Utilisateur $signatory): self {
+        $this->signatories->removeElement($signatory);
+
+        return $this;
+    }
+
+    /**
+     * @param Utilisateur[] $signatories
+     */
+    public function setSignatories(array $signatories): self {
+        foreach($this->getSignatories()->toArray() as $signatory) {
+            $this->removeSignatory($signatory);
+        }
+
+        $this->signatories = new ArrayCollection();
+        foreach($signatories as $signatory) {
+            $this->addSignatory($signatory);
+        }
         return $this;
     }
 
@@ -1089,4 +1114,5 @@ class Emplacement implements PairedEntity {
 
         return $this;
     }
+
 }

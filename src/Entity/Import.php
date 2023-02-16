@@ -197,6 +197,7 @@ class Import {
             'isOngoingVisibleOnMobile' => 'Encours visible nomade',
             'isActive' => 'Actif',
             'signatory' => 'Signataire',
+            'signatories' => 'Signataires',
 
             'possibleCustoms' => 'Possible douane',
             'urgent' => 'Urgent',

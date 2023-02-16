@@ -698,7 +698,7 @@ label.required:after {
     margin-top: $grid-gutter-width / 2;
 
     .header {
-        padding: 16px;
+        padding: $grid-gutter-width / 2;
         border-bottom: 1px solid $medium-grey;
 
         &.optioned {
