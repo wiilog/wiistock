@@ -40,9 +40,9 @@
             {% endif %}
             {% if (preparation.referenceLines | length + preparation.articleLines | length  > 0 ) %}
                 <button
-                    class=" dropdown-item pointer d-flex align-items-center"
+                    class=" dropdown-item pointer d-flex align-items-center print-button"
                     onclick="printPrepaBarCodes()">
-                    <span class="wii-icon wii-icon-printer-black print-button mr-2"></span>
+                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
                     Imprimer les étiquettes
                 </button>
             {% endif %}
