@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
-use App\Entity\Traits\CleanedCommentTrait;
+use App\Entity\DispatchReferenceArticle;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
@@ -61,7 +61,7 @@ class DispatchPackRepository extends EntityRepository {
             ->addSelect('join_nature.label AS packNature')
             ->addSelect('join_nature.color AS packColor')
 
-            ->addSelect('join_dispatchReferenceArticle.id AS referenceId')
+            ->addSelect('join_dispatchReferenceArticle.id AS dispatchReferenceArticleId')
             ->addSelect('join_referenceArticle.reference AS reference')
             ->addSelect('join_referenceArticle.barCode AS barCode')
             ->addSelect('join_dispatchReferenceArticle.quantity AS quantity')
@@ -71,7 +71,6 @@ class DispatchPackRepository extends EntityRepository {
             ->addSelect('join_dispatchReferenceArticle.comment AS comment')
             ->addSelect('join_referenceArticle.description AS description')
             ->addSelect('join_dispatchReferenceArticle.ADR AS ADR')
-            //->addSelect('join_dispatchReferenceArticle.attachments AS attachments')
 
             ->leftJoin('dispatch_pack.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_nature')
@@ -100,9 +99,47 @@ class DispatchPackRepository extends EntityRepository {
 
         $queryResult = $queryBuilder->getQuery()->getResult();
 
-        $result = Stream::from($queryResult)
-            ->keymap(fn(array $row) => [$row["id"], $row], true)
-            ->map(function(array $references, $key) {
+        $resultGroupedByLogisticUnit = Stream::from($queryResult)
+            ->keymap(fn(array $row) => [$row["id"], $row], true);
+
+        // Number of logistic units
+        $logisticUnitCount = $resultGroupedByLogisticUnit->count();
+
+        $resultGroupedByLogisticUnit->slice($start, $length);
+
+        // get all attachments linked to references after slice the first array
+        $referenceIds = Stream::from($resultGroupedByLogisticUnit)
+            ->flatMap(fn (array $rows) => $rows)
+            ->map(fn (array $reference) => $reference['dispatchReferenceArticleId'])
+            ->filter()
+            ->unique();
+        if (!empty($referenceIds)) {
+            $attachmentsResult = $this->getEntityManager()->createQueryBuilder()
+                ->select('attachment.fullPath')
+                ->addSelect('attachment.fileName')
+                ->addSelect('attachment.originalName')
+                ->addSelect('dispatchReferenceArticle.id AS dispatchReferenceArticleId')
+                ->from(DispatchReferenceArticle::class, 'dispatchReferenceArticle')
+                ->join('dispatchReferenceArticle.attachments', 'attachment')
+                ->andWhere('dispatchReferenceArticle.id IN (:dispatchReferenceArticleIds)')
+                ->setParameter('dispatchReferenceArticleIds', $referenceIds)
+                ->getQuery()
+                ->getResult();
+            $attachmentsByReference = Stream::from($attachmentsResult)
+                ->keymap(fn(array $row) => [$row['dispatchReferenceArticleId'], [
+                    "fullPath" => $row["fullPath"],
+                    "fileName" => $row["fileName"],
+                    "originalName" => $row["originalName"],
+                ]], true)
+                ->toArray();
+        }
+        else {
+            $attachmentsByReference = [];
+        }
+
+        dump($attachmentsByReference);
+        $resultGroupedByLogisticUnit
+            ->map(function(array $references, int $key) use ($attachmentsByReference) {
                 if (!empty($references)) {
                     $packId = $references[0]["packId"] ?? null;
                     $packCode = $references[0]["packCode"] ?? null;
@@ -124,39 +161,35 @@ class DispatchPackRepository extends EntityRepository {
                         : null,
                     "references" => Stream::from($references)
                         ->filterMap(fn(array $reference) => (
-                        isset($reference["reference"])
-                            ? [
-                            "id" => $reference["referenceId"],
-                            "reference" => $reference["reference"],
-                            "quantity" => $reference["quantity"],
-                            "batchNumber" => $reference["batchNumber"],
-                            "serialNumber" => $reference["serialNumber"],
-                            "sealingNumber" => $reference["sealingNumber"],
-                            "manufacturerCode" => $reference["description"] ? $reference["description"]["manufacturerCode"] : '',
-                            "length" => $reference["description"] ? $reference["description"]["length"] ?? '' : '',
-                            "width" => $reference["description"] ? $reference["description"]["width"] ?? '' : '',
-                            "heigth" => $reference["description"] ? $reference["description"]["height"] ?? '' : '',
-                            "volume" => $reference["description"] ? $reference["description"]["volume"] ?? '' : '',
-                            "weight" => $reference["description"] ? $reference["description"]["weight"] ?? '' : '',
-                            "ADR" => boolval($reference["ADR"]) ? 'Oui' : 'Non',
-                            "outFormatEquipment" => $reference["description"] && isset($reference["description"]["outFormatEquipment"]) ? 'Oui' : 'Non',
-                            "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] ?? '' : '',
-                            "comment" => $reference["comment"],
-                        ]
-                            : null
+                            isset($reference["reference"])
+                                ? [
+                                    "id" => $reference["dispatchReferenceArticleId"],
+                                    "reference" => $reference["reference"],
+                                    "quantity" => $reference["quantity"],
+                                    "batchNumber" => $reference["batchNumber"],
+                                    "serialNumber" => $reference["serialNumber"],
+                                    "sealingNumber" => $reference["sealingNumber"],
+                                    "manufacturerCode" => $reference["description"] ? $reference["description"]["manufacturerCode"] : '',
+                                    "length" => $reference["description"] ? $reference["description"]["length"] ?? '' : '',
+                                    "width" => $reference["description"] ? $reference["description"]["width"] ?? '' : '',
+                                    "heigth" => $reference["description"] ? $reference["description"]["height"] ?? '' : '',
+                                    "volume" => $reference["description"] ? $reference["description"]["volume"] ?? '' : '',
+                                    "weight" => $reference["description"] ? $reference["description"]["weight"] ?? '' : '',
+                                    "ADR" => $reference["ADR"] ? 'Oui' : 'Non',
+                                    "outFormatEquipment" => $reference["description"] && isset($reference["description"]["outFormatEquipment"]) ? 'Oui' : 'Non',
+                                    "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] ?? '' : '',
+                                    "comment" => $reference["comment"],
+                                    "attachments" => $attachmentsByReference[$reference["dispatchReferenceArticleId"]] ?? [],
+                                ]
+                                : null
                         ))
                         ->toArray()
                 ];
             });
 
-
-        $total = $result->count();
-        $result->slice($start, $length);
-
-
         return [
-            "data" => $result->values(),
-            "total" => $total ?? 0
+            "data" => $resultGroupedByLogisticUnit->values(),
+            "total" => $logisticUnitCount ?? 0
         ];
     }
 }
