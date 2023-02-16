@@ -17,6 +17,7 @@ use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -129,6 +130,10 @@ class FormatService
 
     public function date(?DateTimeInterface $date, $else = "", ?Utilisateur $user = null) {
         return $date ? $date->format($this->getUser($user)?->getDateFormat()) : $else;
+    }
+
+    public function carrier(?Transporteur $carrier, string $else = ""): string {
+        return $carrier?->getLabel() ?: $else;
     }
 
     public function carriers($carriers) {

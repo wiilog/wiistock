@@ -527,8 +527,8 @@ function scrollToBottom() {
     window.scrollTo(0, document.body.scrollHeight);
 }
 
-function getStatusHistory(id) {
-    return $.get(Routing.generate(`dispatch_status_history_api`, {id}, true))
+function getStatusHistory(dispatch) {
+    return $.get(Routing.generate(`dispatch_status_history_api`, {dispatch}, true))
         .then(({template}) => {
             const $statusHistoryContainer = $(`.status-history-container`);
             $statusHistoryContainer.html(template);

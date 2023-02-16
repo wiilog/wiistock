@@ -1568,12 +1568,9 @@ class DispatchController extends AbstractController {
         ]);
     }
 
-    #[Route("/{id}/status-history-api", name: "dispatch_status_history_api", options: ['expose' => true], methods: "GET")]
-    public function statusHistoryApi(int $id,
-                                     EntityManagerInterface $entityManager,
-                                     LanguageService $languageService): JsonResponse
-    {
-        $dispatch = $entityManager->find(Dispatch::class, $id);
+    #[Route("/{dispatch}/status-history-api", name: "dispatch_status_history_api", options: ['expose' => true], methods: "GET")]
+    public function statusHistoryApi(Dispatch        $dispatch,
+                                     LanguageService $languageService): JsonResponse {
         $user = $this->getUser();
         return $this->json([
             "success" => true,
@@ -1584,7 +1581,7 @@ class DispatchController extends AbstractController {
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => $this->getFormatter()->status($statusHistory->getStatus()),
                         "date" => $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG
-                            ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                            ? $this->getFormatter()->longDate($statusHistory->getDate(), ["short" => true, "time" => true])
                             : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user),
                     ])
                     ->toArray(),

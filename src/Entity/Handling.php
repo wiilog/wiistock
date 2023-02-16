@@ -84,6 +84,7 @@ class Handling extends StatusHistoryContainer{
     #[ORM\OneToMany(mappedBy: 'Handling', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
+    // old handling request without timeline
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private ?bool $withoutHistory = false;
 
