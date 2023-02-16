@@ -80,6 +80,9 @@ class Nature {
     #[ORM\OneToOne(mappedBy: "nature", targetEntity: TranslationSource::class)]
     private ?TranslationSource $labelTranslation = null;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $defaultQuantityForDispatch = null;
+
     #[ORM\ManyToMany(targetEntity: TagTemplate::class, mappedBy: 'natures')]
     private Collection $tags;
 
@@ -302,6 +305,18 @@ class Nature {
         if($this->labelTranslation && $this->labelTranslation->getNature() !== $this) {
             $this->labelTranslation->setNature($this);
         }
+
+        return $this;
+    }
+
+    public function getDefaultQuantityForDispatch(): ?int
+    {
+        return $this->defaultQuantityForDispatch;
+    }
+
+    public function setDefaultQuantityForDispatch(?int $defaultQuantityForDispatch): self
+    {
+        $this->defaultQuantityForDispatch = $defaultQuantityForDispatch;
 
         return $this;
     }

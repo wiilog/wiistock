@@ -164,18 +164,24 @@ function openValidateDispatchModal() {
 
 function openAddReferenceModal($button, options = {}) {
     const $modal = $('#modalAddReference');
-
     const dispatchId = $('#dispatchId').val();
-
-    const pack = options['unitId'] || null;
-    editRow(
-        $button,
-        Routing.generate('dispatch_add_reference_api', {dispatch: dispatchId, pack: pack}, true),
-        $modal,
-        $modal.find('button[type="submit"]'),
-    );
-
-    $modal.modal('show');
+    const $modalbody = $modal.find('.modal-body')
+    const pack = options['unitId'] ?? null;
+    wrapLoadingOnActionButton($button, () => {
+        return AJAX
+            .route(AJAX.GET, 'dispatch_add_reference_api', {dispatch: dispatchId, pack: pack})
+            .json()
+            .then((data)=>{
+                $modalbody.html(data);
+                $modal.modal('show');
+                const selectPack = $modalbody.find('select[name=pack]');
+                selectPack.on('change', function () {
+                    const defaultQuantity = $(this).find('option:selected').data('default-quantity');
+                    $modalbody.find('input[name=quantity]').val(defaultQuantity);
+                })
+                selectPack.trigger('change')
+            })
+    })
 }
 
 function openTreatDispatchModal() {
@@ -468,6 +474,7 @@ function initializePacksTable(dispatchId, isEdit) {
             const $select = $(this);
             const $row = $select.closest(`tr`);
             const [value] = $select.select2(`data`);
+            const defaultQuantity = $select.select2(`data`)[0].defaultQuantityForDispatch || 1
 
             let code = value.text || '';
             const packPrefix = $select.data('search-prefix');
@@ -487,6 +494,7 @@ function initializePacksTable(dispatchId, isEdit) {
             $row.find(`.lastLocation`).text(value.lastLocation);
             $row.find(`.operator`).text(value.operator);
             $row.find(`.status`).text(Translation.of('Demande', 'Acheminements', 'Général', 'À traiter', false));
+            $row.find(`input[name=quantity]`).val(defaultQuantity);
 
             if(value.nature_id && value.nature_label) {
                 $row.find(`[name=nature]`).val(value.nature_id).trigger(`change`);

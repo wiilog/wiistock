@@ -1760,7 +1760,7 @@ class DispatchController extends AbstractController {
         return new JsonResponse($html);
     }
 
-    #[Route("/add-reference-api/{dispatch}/{pack}", name: "dispatch_add_reference_api", options: ['expose' => true], defaults: ['pack' => null], methods: "POST")]
+    #[Route("/add-reference-api/{dispatch}/{pack}", name: "dispatch_add_reference_api", options: ['expose' => true], defaults: ['pack' => null], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function addReferenceApi(Dispatch $dispatch,
                                     ?Pack $pack,
@@ -1771,7 +1771,11 @@ class DispatchController extends AbstractController {
         $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
         $packs = [];
         foreach ($dispatchPacks as $dispatchPack) {
-            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
+            $packs[] = [
+                "value" => $dispatchPack->getPack()->getId(),
+                "label" => $dispatchPack->getPack()->getCode(),
+                "default-quantity" => $dispatchPack->getQuantity()
+            ];
         }
 
         $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [

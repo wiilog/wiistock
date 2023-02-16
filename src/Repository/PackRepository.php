@@ -568,6 +568,7 @@ class PackRepository extends EntityRepository
             ->addSelect("last_tracking_location.label AS lastLocation")
             ->addSelect("last_tracking_location.id AS lastLocationId")
             ->addSelect("last_tracking_user.username AS operator")
+            ->addSelect("nature.defaultQuantityForDispatch AS defaultQuantityForDispatch")
             ->andWhere("pack.code LIKE :term")
             ->leftJoin("pack.nature", "nature")
             ->leftJoin("pack.lastTracking", "last_tracking")
