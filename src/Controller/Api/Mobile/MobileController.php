@@ -2004,8 +2004,8 @@ class MobileController extends AbstractApiController
             $ref = $entityManager->getRepository(ReferenceArticle::class)->findOneBy(['reference' => $cleanedData['reference']]);
         } else {
             $ref = $entityManager->getRepository(ReferenceArticle::class)->find($cleanedData['reference']);
+            $articleSupplier = $entityManager->getRepository(ArticleFournisseur::class)->find($cleanedData['supplier_reference']);
         }
-        $articleSupplier = $entityManager->getRepository(ArticleFournisseur::class)->find($cleanedData['supplier_reference']);
         if (!$ref) {
             return $this->json([
                 'success' => false,
@@ -2027,6 +2027,13 @@ class MobileController extends AbstractApiController
             return $this->json([
                 'success' => false,
                 'message' => "Le type selectionné est différent de celui de la référence (${refTypeLabel})"
+            ]);
+        }
+
+        if (!$articleSupplier) {
+            return $this->json([
+                'success' => false,
+                'message' => "Référence fournisseur inconnue."
             ]);
         }
 
