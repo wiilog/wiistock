@@ -73,7 +73,7 @@
                            {{ disabled ? 'disabled' }}
                            {{ (attributes.persisted and description[name] is defined and description[name] == '1') ? 'checked' }}>
                 </div>
-            {% elseif attributes.type == 'select-free' %}
+            {% elseif attributes.type == 'select' %}
                 {% set values = attributes.values ?? [] %}
                 {% set selectedValues = description[name] is defined and description[name]
                     ? (description[name]|split(','))

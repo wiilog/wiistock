@@ -77,8 +77,6 @@ use function PHPUnit\Framework\throwException;
  */
 class DispatchController extends AbstractController {
 
-    private const EXTRA_OPEN_PACK_MODAL = "EXTRA_OPEN_PACK_MODAL";
-
     /** @Required */
     public UserService $userService;
 
@@ -186,15 +184,15 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      */
-    public function new(Request $request,
-                        FreeFieldService $freeFieldService,
-                        DispatchService $dispatchService,
-                        AttachmentService $attachmentService,
+    public function new(Request                $request,
+                        FreeFieldService       $freeFieldService,
+                        DispatchService        $dispatchService,
+                        AttachmentService      $attachmentService,
                         EntityManagerInterface $entityManager,
-                        TranslationService $translationService,
-                        UniqueNumberService $uniqueNumberService,
-                        RedirectService $redirectService,
-                        StatusHistoryService $statusHistoryService): Response {
+                        TranslationService     $translationService,
+                        UniqueNumberService    $uniqueNumberService,
+                        RedirectService        $redirectService,
+                        StatusHistoryService   $statusHistoryService): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
             !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
             return $this->json([
@@ -234,7 +232,7 @@ class DispatchController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $preFill = $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY);
@@ -294,11 +292,15 @@ class DispatchController extends AbstractController {
             ]);
         }
 
+        $requesterId = $post->get('requester');
+        $requester = $requesterId ? $userRepository->find($requesterId) : null;
+        $requester = $requester ?? $this->getUser();
+
         $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $dispatch
             ->setCreationDate($date)
             ->setType($type)
-            ->setRequester($utilisateurRepository->find($post->get('requester')))
+            ->setRequester($requester)
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setBusinessUnit($businessUnit)
@@ -307,7 +309,7 @@ class DispatchController extends AbstractController {
 
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
 
-        if(!empty($comment)) {
+        if(!empty($comment) && $comment !== "<p><br></p>" ) {
             $dispatch->setCommentaire(StringHelper::cleanedComment($comment));
         }
 
@@ -345,7 +347,7 @@ class DispatchController extends AbstractController {
 
             foreach ($receiverIds as $receiverId) {
                 if (!empty($receiverId)) {
-                    $receiver = $receiverId ? $utilisateurRepository->find($receiverId) : null;
+                    $receiver = $receiverId ? $userRepository->find($receiverId) : null;
                     if ($receiver) {
                         $dispatch->addReceiver($receiver);
                     }
@@ -399,17 +401,12 @@ class DispatchController extends AbstractController {
             $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
         }
 
-        $showArguments = [
-            "id" => $dispatch->getId(),
-        ];
-
-        if($printDeliveryNote) {
-            $showArguments['print-delivery-note'] = "1";
-        }
-
         return new JsonResponse([
             'success' => true,
-            'redirect' => $redirectService->generateUrl("dispatch_show", $showArguments, self::EXTRA_OPEN_PACK_MODAL),
+            'redirect' => $redirectService->generateUrl("dispatch_show", [
+                "id" => $dispatch->getId(),
+                "print-delivery-note" => $printDeliveryNote ? '1' : '0',
+            ]),
             'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', 'L\'acheminement a bien été créé', false)
         ]);
     }
@@ -418,17 +415,19 @@ class DispatchController extends AbstractController {
      * @Route("/voir/{id}/{printBL}", name="dispatch_show", options={"expose"=true}, methods="GET|POST", defaults={"printBL"=0,"fromCreation"=0})
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
-    public function show(Dispatch $dispatch,
+    public function show(Dispatch               $dispatch,
+                         Request                $request,
                          EntityManagerInterface $entityManager,
-                         DispatchService $dispatchService,
-                         UserService $userService,
-                         bool $printBL,
-                         RefArticleDataService $refArticleDataService): Response {
+                         DispatchService        $dispatchService,
+                         UserService            $userService,
+                         RefArticleDataService  $refArticleDataService): Response {
 
         $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+        $printBL = $request->query->getBoolean('printBL');
 
         $dispatchStatus = $dispatch->getStatut();
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
@@ -546,6 +545,8 @@ class DispatchController extends AbstractController {
         $requesterData = $post->get('requester');
         $carrierData = $post->get('carrier');
         $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
+        $requester = $requester ?? $dispatch->getRequester() ?? $this->getUser();
+
         $carrier = $carrierData ? $transporterRepository->find($carrierData) : null;
 
         $transporterTrackingNumber = $post->get('transporterTrackingNumber');
@@ -1573,12 +1574,9 @@ class DispatchController extends AbstractController {
         ]);
     }
 
-    #[Route("/{id}/status-history-api", name: "dispatch_status_history_api", options: ['expose' => true], methods: "GET")]
-    public function statusHistoryApi(int $id,
-                                     EntityManagerInterface $entityManager,
-                                     LanguageService $languageService): JsonResponse
-    {
-        $dispatch = $entityManager->find(Dispatch::class, $id);
+    #[Route("/{dispatch}/status-history-api", name: "dispatch_status_history_api", options: ['expose' => true], methods: "GET")]
+    public function statusHistoryApi(Dispatch        $dispatch,
+                                     LanguageService $languageService): JsonResponse {
         $user = $this->getUser();
         return $this->json([
             "success" => true,
@@ -1589,7 +1587,7 @@ class DispatchController extends AbstractController {
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => $this->getFormatter()->status($statusHistory->getStatus()),
                         "date" => $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG
-                            ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                            ? $this->getFormatter()->longDate($statusHistory->getDate(), ["short" => true, "time" => true])
                             : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user),
                     ])
                     ->toArray(),

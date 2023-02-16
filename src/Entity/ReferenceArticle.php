@@ -1091,4 +1091,8 @@ class ReferenceArticle
         return $this;
     }
 
+    public function isHandledByReference(): bool {
+        return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE;
+    }
+
 }

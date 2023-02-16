@@ -17,6 +17,7 @@ use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -131,6 +132,10 @@ class FormatService
         return $date ? $date->format($this->getUser($user)?->getDateFormat()) : $else;
     }
 
+    public function carrier(?Transporteur $carrier, string $else = ""): string {
+        return $carrier?->getLabel() ?: $else;
+    }
+
     public function carriers($carriers) {
         return $this->entity($carriers, "label");
     }
@@ -196,7 +201,7 @@ class FormatService
                 ?: $else;
     }
 
-    public function entity($entities, string $field, string $separator = ", ") {
+    public function entity($entities, string $field, string $separator = ", "): string {
         return Stream::from($entities)
             ->filter(function($entity) use ($field) {
                 return $entity !== null && is_array($entity) ? $entity[$field] : $entity->{"get$field"}();

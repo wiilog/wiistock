@@ -535,8 +535,8 @@ function scrollToBottom() {
     window.scrollTo(0, document.body.scrollHeight);
 }
 
-function getStatusHistory(id) {
-    return $.get(Routing.generate(`dispatch_status_history_api`, {id}, true))
+function getStatusHistory(dispatch) {
+    return $.get(Routing.generate(`dispatch_status_history_api`, {dispatch}, true))
         .then(({template}) => {
             const $statusHistoryContainer = $(`.status-history-container`);
             $statusHistoryContainer.html(template);
@@ -646,8 +646,7 @@ function refArticleChanged($select) {
     if (selectedReference.length > 0) {
         const description = selectedReference[0]["description"] || [];
 
-        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] ?? 0}']`).prop('checked', true);
-        $modalAddReference.find(`input[name=ADR][value='${description["ADR"] ?? 0}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] || 0}']`).prop('checked', true);
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
         $modalAddReference.find("input[name=height]").val(description["height"]);
         $modalAddReference.find("[name=weight]").val(description["weight"]);

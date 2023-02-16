@@ -37,7 +37,6 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use phpDocumentor\Reflection\Types\Boolean;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -1168,23 +1167,10 @@ class RefArticleDataService {
                 "type" => "bool",
                 "persisted" => true,
             ],
-            "ADR" => [
-                "name" => "ADR",
-                "type" => "bool",
-                "persisted" => true,
-            ],
             "Code fabriquant" => [
                 "name" => "manufacturerCode",
                 "type" => "text",
                 "persisted" => true,
-                "required" => $isFromDispatch,
-            ],
-            "Volume (m3)" => [
-                "name" => "volume",
-                "type" => "number",
-                "step" => "0.000001",
-                "persisted" => true,
-                "disabled" => true,
                 "required" => $isFromDispatch,
             ],
             "Poids (kg)" => [
@@ -1196,7 +1182,7 @@ class RefArticleDataService {
             ],
             "Types de documents associés" => [
                 "name" => "associatedDocumentTypes",
-                "type" => "select-free",
+                "type" => "select",
                 "values" => $associatedDocumentTypes,
                 "persisted" => true,
                 "required" => $isFromDispatch,
@@ -1228,6 +1214,16 @@ class RefArticleDataService {
                 ]
             );
         }
+        $config = array_merge($config, [
+            "Volume (m3)" => [
+                "name" => "volume",
+                "type" => "number",
+                "step" => "0.000001",
+                "persisted" => true,
+                "disabled" => true,
+                "required" => $isFromDispatch,
+            ]
+        ]);
         return $config;
     }
 

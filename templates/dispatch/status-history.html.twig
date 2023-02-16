@@ -3,7 +3,11 @@
     <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
     <span> {{ trans('Demande', 'Général', 'Demande') }} <strong>{{ entityStatusName }}</strong></span>
 </div>
-{% if statusesHistory is empty%}
+{% if dispatch.withoutHistory %}
+    <div class="content text-center wii-small-text">
+        Historique de statut indisponible
+    </div>
+{% elseif statusesHistory is empty %}
     {% if dispatch.statut.treated == 1 %}
         <div class="history-line">
             <div class="history-date">
@@ -17,7 +21,7 @@
         </div>
     {% else %}
         <div class="content text-center wii-small-text">
-            Timeline à venir
+            Historique de statut à venir
         </div>
     {% endif %}
 {% else %}

@@ -2572,8 +2572,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email changement statut acheminement",
                         ],
                         [
-                            "fr" => "Follow GT // Notification de traitement d'une demande d'acheminement",
-                            "en" => "Follow GT // Notification upon transfer operation finishing",
+                            "fr" => "FOLLOW GT // Notification de traitement d'une demande d'acheminement",
+                            "en" => "FOLLOW GT // Notification upon transfer operation finishing",
                             "tooltip" => "Email traitement acheminement",
                         ],
                         [
@@ -2585,6 +2585,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "FOLLOW GT // Changement de statut d'une demande d'acheminement",
                             "en" => "FOLLOW GT // Status change for a transfer operation",
                             "tooltip" => "Email changement statut acheminement",
+                        ],
+                        [
+                            "fr" => "FOLLOW GT // Urgence : Notification de traitement d'une demande d'acheminement",
+                            "en" => "FOLLOW GT // Emergency : Notification upon transfer operation finishing",
+                            "tooltip" => "Email traitement acheminement",
                         ],
                         [
                             "fr" => "Acheminement {1} traité le {2} à {3}",
@@ -2600,6 +2605,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Changement de statut d'une demande d'acheminement de type {1} vous concernant :",
                             "en" => "Status change for a transfer operation of type {1} concerning you:",
                             "tooltip" => "Email changement statut acheminement",
+                        ],
+                        [
+                            "fr" => "Bon d'enlèvement généré pour l'acheminement {1} au statut {2} le {3}",
+                            "en" => "Report generated for dispatch {1} ({2}) on {3}",
+                            "tooltip" => "Email de signature groupée",
                         ],
                         [
                             "fr" => "Acheminement {1} traité partiellement le {2}",
