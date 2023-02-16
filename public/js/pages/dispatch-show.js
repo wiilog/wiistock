@@ -163,22 +163,17 @@ function openValidateDispatchModal() {
 }
 
 function openAddReferenceModal($button, options = {}) {
-    const modalSelector = '#modalAddReference';
-    const $modal = $(modalSelector);
-    const dispatchId = $('#dispatchId').val();
-    clearModal($modal);
+    const $modal = $('#modalAddReference');
 
-    const pack = options['unitId'] ?? null;
+    const dispatchId = $('#dispatchId').val();
+
+    const pack = options['unitId'] || null;
     editRow(
         $button,
         Routing.generate('dispatch_add_reference_api', {dispatch: dispatchId, pack: pack}, true),
         $modal,
         $modal.find('button[type="submit"]'),
     );
-    clearModal('#modalAddReference');
-    $('#modalNewReference').modal('show');
-
-    clearModal(modalSelector);
 
     $modal.modal('show');
 }
@@ -576,8 +571,8 @@ function scrollToBottom() {
     window.scrollTo(0, document.body.scrollHeight);
 }
 
-function getStatusHistory(id) {
-    return $.get(Routing.generate(`dispatch_status_history_api`, {id}, true))
+function getStatusHistory(dispatch) {
+    return $.get(Routing.generate(`dispatch_status_history_api`, {dispatch}, true))
         .then(({template}) => {
             const $statusHistoryContainer = $(`.history-container`);
             $statusHistoryContainer.html(template);
@@ -687,21 +682,16 @@ function refArticleChanged($select) {
     if (selectedReference.length > 0) {
         const description = selectedReference[0]["description"] || [];
 
-        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] ?? 0}']`).prop('checked', true);
-        $modalAddReference.find(`input[name=ADR][value='${description["ADR"] ?? 0}']`).prop('checked', true);
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] || 0}']`).prop('checked', true);
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
-        $modalAddReference.find("input[name=length]").val(description["length"]).attr("disabled", true);
-        $modalAddReference.find("input[name=width]").val(description["width"]).attr("disabled", true);
-        $modalAddReference.find("input[name=height]").val(description["height"]).attr("disabled", true);
+        $modalAddReference.find("input[name=height]").val(description["height"]);
         $modalAddReference.find("[name=weight]").val(description["weight"]);
-        $modalAddReference.find("[name=volume]").val(description["volume"]);
+        $modalAddReference.find("[name=volume]").val(description["volume"]).prop("disabled", true);
         const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
-        let $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
-        $associatedDocumentTypesSelect.find('option').remove();
-        associatedDocumentTypes.forEach(function (associatedDocumentType) {
-            let newOption = new Option(associatedDocumentType, associatedDocumentType, true, true);
-            $associatedDocumentTypesSelect.append(newOption);
-        });
+        const $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
+        $associatedDocumentTypesSelect
+            .val(associatedDocumentTypes)
+            .trigger('change');
     }
 }
 

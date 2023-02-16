@@ -39,7 +39,6 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use phpDocumentor\Reflection\Types\Boolean;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -1210,7 +1209,7 @@ class RefArticleDataService {
         $this->CSVExportService->putLine($handle, $line);
     }
 
-    public function getDescriptionConfig(EntityManagerInterface $entityManager, $isFromDispatch = false): array {
+    public function getDescriptionConfig(EntityManagerInterface $entityManager, bool $isFromDispatch = false): array {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
         $associatedDocumentTypes = $associatedDocumentTypesStr
@@ -1225,11 +1224,6 @@ class RefArticleDataService {
                 "type" => "bool",
                 "persisted" => true,
             ],
-            "ADR" => [
-                "name" => "ADR",
-                "type" => "bool",
-                "persisted" => true,
-            ],
             "Code fabriquant" => [
                 "name" => "manufacturerCode",
                 "type" => "text",
@@ -1241,7 +1235,7 @@ class RefArticleDataService {
                 "type" => "number",
                 "step" => "0.000001",
                 "persisted" => true,
-                "disabled" => !$isFromDispatch,
+                "disabled" => true,
                 "required" => $isFromDispatch,
             ],
             "Poids (kg)" => [
@@ -1253,7 +1247,7 @@ class RefArticleDataService {
             ],
             "Types de documents associés" => [
                 "name" => "associatedDocumentTypes",
-                "type" => "select-free",
+                "type" => "select",
                 "values" => $associatedDocumentTypes,
                 "persisted" => true,
                 "required" => $isFromDispatch,

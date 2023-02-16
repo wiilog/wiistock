@@ -9,7 +9,7 @@
 
 <div class="logistic-unit-wrapper"
     {{ _self.dataAttributes(data ?? []) }}>
-    <table>
+    <table class="table-logistic-unit-wrapper">
         {% if header %}
             {% set sideLabel = header.sideLabel ?? '' %}
             <tr class="ul"
@@ -25,9 +25,7 @@
                             {% set headerLength = header.content|length %}
                             {% for item in header.content %}
                                 {% if not item['actions'] ?? false %}
-                                    <div class="col d-flex"
-                                         {# TODO NECESSAIRE ? #}
-                                         {#style="flex: 0 0 {{ 100 / headerLength }}%; max-width: {{ 100 / headerLength }}%;"#}>
+                                    <div class="col d-flex">
                                         {% if item.icon is defined %}
                                             <div class="mr-2">
                                                 <i class="wii-icon wii-icon-{{ item.icon }} wii-icon-15px bg-primary"></i>
@@ -65,13 +63,12 @@
         {% if content|length > 0 %}
             <tr class="articles-container">
                 <td></td>
-                <td style="font-size: 1em;">
+                <td style="max-width: 0; font-size: 1em;">
                     <div class="articles-wrapper {{ header ? 'sub-articles-wrapper' }}">
                         <table class="table w-100"
                                data-initial-data="{{ {data: content}|json_encode }}"></table>
                     </div>
                 </td>
-                <td></td>
             </tr>
         {% endif %}
     </table>

@@ -169,6 +169,10 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $emails = [];
 
+    // old handling request without timeline
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private ?bool $withoutHistory = false;
+
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
@@ -588,4 +592,16 @@ class Dispatch extends StatusHistoryContainer {
             ->some(fn(DispatchPack $dispatchPack) => count($dispatchPack->getDispatchReferenceArticles()) > 0
         );
     }
+
+    public function isWithoutHistory(): ?bool {
+        return $this->withoutHistory;
+    }
+
+    public function setWithoutHistory(?bool $withoutHistory): self {
+        $this->withoutHistory = $withoutHistory;
+        return $this;
+    }
+
+
+
 }

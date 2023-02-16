@@ -42,14 +42,25 @@ class MobileApiService {
         ];
 
         $dispatches = $dispatchRepository->getMobileDispatches($loggedUser);
-        $dispatches = Stream::from($dispatches)
+        $dispatches = Stream::from(
+            Stream::from($dispatches)
+                ->reduce(function (array $accumulator, array $dispatch) {
+                    if (!isset($accumulator[$dispatch['id']])) {
+                        $accumulator[$dispatch['id']] = $dispatch;
+                    } else if ($accumulator[$dispatch['id']]['packReferences'] && $dispatch['packReferences']) {
+                        $accumulator[$dispatch['id']]['packReferences'] .= (',' . $dispatch['packReferences']);
+                    } else if ($dispatch['packReferences']) {
+                        $accumulator[$dispatch['id']]['packReferences'] = $dispatch['packReferences'];
+                    }
+                    return $accumulator;
+                }, []))
             ->map(function (array $dispatch) use ($dispatchExpectedDateColors) {
                 $dispatch['color'] = $this->expectedDateColor($dispatch['endDate'] ?? null, $dispatchExpectedDateColors);
                 $dispatch['startDate'] = $dispatch['startDate'] ? $dispatch['startDate']->format('d/m/Y') : null;
                 $dispatch['endDate'] = $dispatch['endDate'] ? $dispatch['endDate']->format('d/m/Y') : null;
                 return $dispatch;
             })
-            ->toArray();
+            ->values();
         $dispatchPacks = array_map(function($dispatchPack) {
             if(!empty($dispatchPack['comment'])) {
                 $dispatchPack['comment'] = substr(strip_tags($dispatchPack['comment']), 0, 200);
