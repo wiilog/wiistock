@@ -191,21 +191,28 @@
                             </div>
                         </div>
                     {% endif %}
-                    <div class="col-md-4 col-12">
-                        <div class="form-group">
-                            <label class="wii-field-name">{{ trans('Demande', 'Général', 'Demandeur') }}*</label>
-                            <select class="demandeur form-control data needed w-100" name="requester" data-s2="user"></select>
-                            <input hidden
-                                   name="logged-user"
-                                   data-username="{{ app.user.username }}"
-                                   data-id="{{ app.user.id }}"/>
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_REQUESTER_DISPATCH') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                        <div class="col-md-4 col-12">
+                            <div class="form-group">
+                                <label class="wii-field-name">{{ trans('Demande', 'Général', 'Demandeur') }}{{ required ? '*' }}</label>
+                                <select class="demandeur form-control data w-100 {{ required ? 'needed' }}"
+                                        name="requester"
+                                        data-s2="user"></select>
+                                <input hidden
+                                       name="logged-user"
+                                       data-username="{{ app.user.username }}"
+                                       data-id="{{ app.user.id }}"/>
+                            </div>
                         </div>
-                    </div>
+                    {% endif %}
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="col-md-4 col-12">
-                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="form-group">
                                 <label class="wii-field-name">{{ trans('Demande', 'Général', 'Urgence') }}{{ required ? '*' }}</label>
                                 <div class="w-100">

@@ -81,6 +81,7 @@ class FieldsParam {
     const FIELD_LABEL_ARRIVAL_CREATOR = 'Utilisateur'; // not in settings table
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
+    const FIELD_CODE_REQUESTER_DISPATCH = 'requester';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
     const FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH = 'carrierTrackingNumber';
     const FIELD_CODE_RECEIVER_DISPATCH = 'receiver';
@@ -93,6 +94,7 @@ class FieldsParam {
     const FIELD_CODE_LOCATION_PICK = 'pickLocation';
     const FIELD_CODE_LOCATION_DROP = 'dropLocation';
     const FIELD_CODE_DESTINATION = 'destination';
+    const FIELD_LABEL_REQUESTER_DISPATCH = 'demandeur';
     const FIELD_LABEL_CARRIER_DISPATCH = 'transporteur';
     const FIELD_LABEL_CARRIER_TRACKING_NUMBER_DISPATCH = 'numéro de tracking transporteur';
     const FIELD_LABEL_RECEIVER_DISPATCH = 'destinataire';
@@ -143,42 +145,48 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_DESTINATION,
         FieldsParam::FIELD_CODE_LOCATION_PICK,
         FieldsParam::FIELD_CODE_LOCATION_DROP,
+        FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
 
         // Services
         FieldsParam::FIELD_CODE_RECEIVERS_HANDLING,
     ];
 
+    public const ALWAYS_REQUIRED_FIELDS = [
+        // Acheminements
+        FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private ?int $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private ?string $entityCode;
+    private ?string $entityCode = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private ?string $fieldCode;
+    private ?string $fieldCode = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private ?string $fieldLabel;
+    private ?string $fieldLabel = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $requiredCreate;
+    private ?bool $requiredCreate = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $requiredEdit;
+    private ?bool $requiredEdit = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $keptInMemory;
+    private ?bool $keptInMemory = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $displayedCreate;
+    private ?bool $displayedCreate = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $displayedEdit;
+    private ?bool $displayedEdit = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $displayedFilters;
+    private ?bool $displayedFilters = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $elements = [];
