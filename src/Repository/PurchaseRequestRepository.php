@@ -139,8 +139,8 @@ class PurchaseRequestRepository extends EntityRepository
                             break;
                             case 'provider':
                             $qb
-                                ->leftJoin('purchase_request.provider', 'order_provider')
-                                ->orderBy('order_provider.username', $order);
+                                ->leftJoin('purchase_request.supplier', 'order_supplier')
+                                ->orderBy('order_provider.nom', $order);
                             break;
                         default:
                             if (property_exists(PurchaseRequest::class, $column)) {
@@ -176,7 +176,6 @@ class PurchaseRequestRepository extends EntityRepository
             ->addSelect('join_status.nom AS statusName')
             ->addSelect('join_requester.username AS requester')
             ->addSelect('join_buyer.username AS buyer')
-            ->addSelect('join_provider.username AS provider')
             ->addSelect('request.creationDate AS creationDate')
             ->addSelect('request.validationDate AS validationDate')
             ->addSelect('request.considerationDate AS considerationDate')
@@ -185,7 +184,6 @@ class PurchaseRequestRepository extends EntityRepository
             ->leftJoin('request.status', 'join_status')
             ->leftJoin('request.requester', 'join_requester')
             ->leftJoin('request.buyer', 'join_buyer')
-            ->leftJoin('request.provider', 'join_provider')
             ->where("request.creationDate BETWEEN :dateMin AND :dateMax")
             ->orderBy('request.creationDate', 'DESC')
             ->addOrderBy('request.id', 'DESC')
