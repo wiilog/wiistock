@@ -7,6 +7,7 @@ $(function() {
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     Select2Old.user($('.filterService select[name="requesters"]'), "Demandeurs");
     Select2Old.user($('.filterService select[name="buyers"]'), "Acheteurs");
+    Select2Old.provider($('.select-filter select[name="providers"]'), "Fournisseurs");
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
