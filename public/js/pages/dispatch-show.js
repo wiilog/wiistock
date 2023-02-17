@@ -629,7 +629,8 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     {data: 'ADR', title: 'ADR'},
                                     {data: 'outFormatEquipment', title: 'Matériel hors format'},
                                     {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
-                                    {data: 'comment', title: 'Commentaire'},
+                                    {data: 'comment', title: 'Commentaire', orderable: false},
+                                    {data: 'attachments', title: 'Photos', orderable: false},
                                 ],
                                 domConfig: {
                                     removeInfo: true,

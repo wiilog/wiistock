@@ -1,16 +1,27 @@
-<p class="attachement {{ fullWidth is defined and fullWidth ? 'w-100' }}">
-    {% if attachment is defined %}
+{% set fullWidth = fullWidth ?? false %}
+{% set inForm = inForm ?? true %}
+{% set canRemove = canRemove ?? true %}
+{% set href = attachment.fullPath is defined and attachment.fullPath is not null
+    ? attachment.fullPath
+    : ('/uploads/attachements/' ~ attachment.fileName) %}
+{% set tooltip = tooltip ?? true %}
+<p class="attachement {{ fullWidth ? 'w-100' }}">
+    {% if inForm and attachment is defined %}
         <input class="data"
                type="hidden"
                name="savedFiles[]"
                value="{{ attachment.id }}"/>
     {% endif %}
     <a target="_blank"
-       href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachements/' ~ attachment.fileName }}"
-       download="{{ attachment.originalName }}" class="has-tooltip" title="{{ attachment.originalName }}">
+       href="{{ href }}"
+       download="{{ attachment.originalName }}"
+       {% if tooltip %}
+           class="has-tooltip"
+           title="{{ attachment.originalName }}"
+       {% endif %}>
         <i class="fa fa-file-pdf mr-2"></i>{{ attachment.originalName }}
     </a>
-    {% if canRemove is not defined or canRemove %}
+    {% if canRemove %}
         <i class="fa fa-times red pointer"
            onclick="removeAttachment($(this))"></i>
     {% endif %}
