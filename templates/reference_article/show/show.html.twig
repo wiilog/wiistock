@@ -131,11 +131,13 @@
                             {% set description = referenceArticle.description %}
                             {% for field, attributes in descriptionConfig %}
                                 {% set rawValue = description[attributes.name] ?? null %}
-                                {% set value = attributes.type == 'bool'
-                                    ? (rawValue == 1
-                                        ? 'oui'
-                                        : 'non')
-                                    : rawValue %}
+                                {% if attributes.type == 'bool' %}
+                                    {% set value = rawValue == 1 ? 'oui' : 'non' %}
+                                {% elseif attributes.type == 'select' %}
+                                    {% set value = rawValue is not empty ? rawValue|join(', ') %}
+                                {% else %}
+                                    {% set value = rawValue %}
+                                {% endif %}
                                 <div class="col-6 d-flex flex-column mb-2">
                                     <span class="wii-field-name">{{ field }}</span>
                                     <span class="wii-field-text {{ attributes.name }}">{{ value ?: '-' }}</span>

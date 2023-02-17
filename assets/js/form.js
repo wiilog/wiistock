@@ -486,8 +486,7 @@ function formatInputValue($input) {
     } else if ($input.attr(`type`) === `file`) {
         value = $input[0].files[0] || null;
     } else if ($input.attr(`type`) === `radio`) {
-        const $parent = $input.closest(`.wii-switch`);
-        value = $parent.find(`input[type=radio]:checked`).exists() && $input.is(`:checked`)
+        value = $input.is(`:checked`)
             ? $input.val()
             : null;
     } else {
@@ -547,7 +546,7 @@ export function formatIconSelector(state) {
     const $option = $(state.element);
     return $(`
         <span class="d-flex align-items-center">
-            <img src="${$option.data('icon')??''}" width="20px" height="20px" class="round mr-2"/>
+            <img src="${$option.data('icon') || ''}" width="20px" height="20px" class="round mr-2"/>
             ${state.text}
         </span>
     `);

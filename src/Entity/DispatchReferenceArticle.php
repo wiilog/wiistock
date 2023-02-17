@@ -42,6 +42,9 @@ class DispatchReferenceArticle
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false)]
+    private ?bool $ADR = null;
+
     public function __construct() {
         $this->attachments = new ArrayCollection();
     }
@@ -131,6 +134,18 @@ class DispatchReferenceArticle
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function isADR(): ?bool
+    {
+        return $this->ADR;
+    }
+
+    public function setADR(bool $ADR): self
+    {
+        $this->ADR = $ADR;
 
         return $this;
     }

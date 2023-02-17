@@ -2004,8 +2004,8 @@ class MobileController extends AbstractApiController
             $ref = $entityManager->getRepository(ReferenceArticle::class)->findOneBy(['reference' => $cleanedData['reference']]);
         } else {
             $ref = $entityManager->getRepository(ReferenceArticle::class)->find($cleanedData['reference']);
+            $articleSupplier = $entityManager->getRepository(ArticleFournisseur::class)->find($cleanedData['supplier_reference']);
         }
-        $articleSupplier = $entityManager->getRepository(ArticleFournisseur::class)->find($cleanedData['supplier_reference']);
         if (!$ref) {
             return $this->json([
                 'success' => false,
@@ -2027,6 +2027,13 @@ class MobileController extends AbstractApiController
             return $this->json([
                 'success' => false,
                 'message' => "Le type selectionné est différent de celui de la référence (${refTypeLabel})"
+            ]);
+        }
+
+        if (!$articleSupplier) {
+            return $this->json([
+                'success' => false,
+                'message' => "Référence fournisseur inconnue."
             ]);
         }
 
@@ -3458,7 +3465,6 @@ class MobileController extends AbstractApiController
                 'length' => $description['length'] ?? '',
                 'volume' => $description['volume'] ?? '',
                 'weight' => $description['weight'] ?? '',
-                'adr' => $description['ADR'] ?? '',
                 'associatedDocumentTypes' => $description['associatedDocumentTypes'] ?? '',
                 'exists' => true,
             ];
@@ -3553,7 +3559,6 @@ class MobileController extends AbstractApiController
                     'width' => $data['width'],
                     'height' => $data['height'],
                     'weight' => $data['weight'],
-                    'ADR' => $data['adr'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
                 ];
 
@@ -3578,7 +3583,8 @@ class MobileController extends AbstractApiController
                         ->setBatchNumber($data['batchNumber'])
                         ->setSerialNumber($data['serialNumber'])
                         ->setSealingNumber($data['sealingNumber'])
-                        ->setComment($data['comment']);
+                        ->setComment($data['comment'])
+                        ->setADR(isset($data['adr']) && boolval($data['adr']));
 
                     $maxNbFilesSubmitted = 10;
                     $fileCounter = 1;
@@ -3633,6 +3639,50 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Post("/api/get-associated-ref-intels/{packCode}/{dispatch}", name="api_get_associated_ref-intels", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getAssociatedPackIntels(EntityManagerInterface $manager, string $packCode, Dispatch $dispatch): Response {
+
+        $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $packCode]);
+
+        $data = [];
+        /** @var DispatchPack $line */
+        $line = $dispatch
+            ->getDispatchPacks()
+            ->filter(fn (DispatchPack $linePack) => $linePack->getPack()->getId() === $pack->getId())
+            ->first();
+
+        if ($line) {
+            /** @var DispatchReferenceArticle $ref */
+            $ref = $line
+                ->getDispatchReferenceArticles()
+                ->first();
+            if ($ref) {
+                $data = [
+                    'reference' => $ref->getReferenceArticle()->getReference(),
+                    'quantity' => $ref->getQuantity(),
+                    'outFormatEquipment' => $ref->getReferenceArticle()->getDescription()['outFormatEquipment'] ?? null,
+                    'manufacturerCode' => $ref->getReferenceArticle()->getDescription()['manufacturerCode'] ?? null,
+                    'sealingNumber' => $ref->getSealingNumber(),
+                    'serialNumber' => $ref->getSerialNumber(),
+                    'batchNumber' => $ref->getBatchNumber(),
+                    'width' => $ref->getReferenceArticle()->getDescription()['width'] ?? null,
+                    'height' => $ref->getReferenceArticle()->getDescription()['height'] ?? null,
+                    'length' => $ref->getReferenceArticle()->getDescription()['length'] ?? null,
+                    'weight' => $ref->getReferenceArticle()->getDescription()['weight'] ?? null,
+                    'adr' => $ref->isADR() ? 'Oui' : 'Non',
+                    'associatedDocumentTypes' => $ref->getReferenceArticle()->getDescription()['associatedDocumentTypes'] ?? null,
+                    'comment' => $ref->getCleanedComment(),
+                ];
+            }
+        }
+
+        return $this->json($data);
+    }
+
+    /**
      * @Rest\Post("/api/inventory-mission-validate-zone", name="api_inventory_mission_validate_zone", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
@@ -3655,5 +3705,4 @@ class MobileController extends AbstractApiController
             'success' => true
         ]);
     }
-
 }

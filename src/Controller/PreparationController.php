@@ -647,10 +647,16 @@ class PreparationController extends AbstractController
      */
     public function countBarcode(Preparation $preparation): Response
     {
-        return $this->json(
-            !$preparation->getArticleLines()->isEmpty()
-            || !$preparation->getReferenceLines()->isEmpty()
-        );
+        $articleCount = $preparation->getArticleLines()->count();
+        $referenceCount = $preparation->getReferenceLines()
+            ->filter(fn (PreparationOrderReferenceLine $line) => $line->getReference()->isHandledByReference())
+            ->count();
+
+        return $this->json([
+            'success' => true,
+            'message' => "Succès",
+            'result' => $articleCount + $referenceCount,
+        ]);
     }
 
     /**

@@ -365,6 +365,10 @@ class ReferenceArticleController extends AbstractController
                         "label" => $refArticle->getReference(),
                         "is_article" => $refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                     ]),
+                    "dispatch_add_line" => $this->generateUrl("dispatch_show", [
+                        "id" => $request->query->get("dispatch"),
+                        "open-modal" => "#addReferenceModalButton",
+                    ]),
                     default => null,
                 },
             ]);
@@ -895,6 +899,7 @@ class ReferenceArticleController extends AbstractController
             "submit_url" => $this->generateUrl("reference_article_new", [
                 "from" => $request->query->get("from"),
                 "reception" => $request->query->get("reception"),
+                "dispatch" => $request->query->get("dispatch"),
             ]),
             "types" => $types,
             'defaultLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),

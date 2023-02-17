@@ -785,15 +785,17 @@ class SettingsService {
                 ->toArray();
 
             foreach (array_filter($tables["fixedFields"]) as $item) {
-                /** @var FreeField $freeField */
+                /** @var FieldsParam $fieldsParam */
                 $fieldsParam = $fieldsParams[$item["id"]] ?? null;
 
                 if ($fieldsParam) {
+                    $code = $fieldsParam->getFieldCode();
+                    $alwaysRequired = in_array($code, FieldsParam::ALWAYS_REQUIRED_FIELDS);
                     $fieldsParam->setDisplayedCreate($item["displayedCreate"])
-                        ->setRequiredCreate($item["requiredCreate"])
+                        ->setRequiredCreate($alwaysRequired || $item["requiredCreate"])
                         ->setKeptInMemory($item["keptInMemory"] ?? null)
                         ->setDisplayedEdit($item["displayedEdit"])
-                        ->setRequiredEdit($item["requiredEdit"])
+                        ->setRequiredEdit($alwaysRequired || $item["requiredEdit"])
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
                 }
             }

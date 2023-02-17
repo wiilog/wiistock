@@ -256,18 +256,13 @@ class DispatchService {
     }
 
     public function createHeaderDetailsConfig(Dispatch $dispatch): array {
-        $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
-
         /** @var Utilisateur $user */
         $user = $this->security->getUser();
 
-        $status = $dispatch->getStatut();
         $type = $dispatch->getType();
         $carrier = $dispatch->getCarrier();
         $carrierTrackingNumber = $dispatch->getCarrierTrackingNumber();
         $commandNumber = $dispatch->getCommandNumber();
-        $requester = $dispatch->getRequester();
         $receivers = $dispatch->getReceivers();
         $locationFrom = $dispatch->getLocationFrom();
         $locationTo = $dispatch->getLocationTo();
@@ -279,16 +274,7 @@ class DispatchService {
         $startDateStr = $this->formatService->date($startDate, "", $user);
         $endDateStr = $this->formatService->date($endDate, "", $user);
         $projectNumber = $dispatch->getProjectNumber();
-        $comment = $dispatch->getCommentaire() ?? '';
-        $treatedBy = $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '';
-        $attachments = $dispatch->getAttachments();
 
-        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
-            $this->entityManager,
-            $dispatch,
-            ['type' => $dispatch->getType()],
-            $this->security->getUser()
-        );
         $receiverDetails = [
             "label" => $this->translationService->translate('Demande', 'Général', 'Destinataire(s)', false),
             "value" => "",
@@ -315,60 +301,44 @@ class DispatchService {
 
         $config = [
             [
-                'label' => $this->translationService->translate('Demande', 'Général', 'Statut', false),
-                'value' => $status ? $this->formatService->status($status) : ''
-            ],
-            [
                 'label' => $this->translationService->translate('Demande', 'Général', 'Type', false),
                 'value' => $this->formatService->type($type),
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Transporteur', false),
-                'value' => $carrier ? $carrier->getLabel() : '',
+                'value' => $this->formatService->carrier($carrier, '-'),
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° tracking transporteur', false),
-                'value' => $carrierTrackingNumber,
+                'value' => $carrierTrackingNumber ?: '-',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
-            ],
-            [
-                'label' => $this->translationService->translate('Demande', 'Général', 'Demandeur', false),
-                'value' => $requester ? $requester->getUsername() : ''
             ],
             $receiverDetails ?? [],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° projet', false),
-                'value' => $projectNumber,
+                'value' => $projectNumber ?: '-',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Business unit', false),
-                'value' => $dispatch->getBusinessUnit() ?? '',
+                'value' => $dispatch->getBusinessUnit() ?? '-',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
-                'value' => $commandNumber,
+                'value' => $commandNumber ?: '-',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false),
-                'value' => $locationFrom ? $locationFrom->getLabel() : '',
+                'value' => $this->formatService->location($locationFrom, '-'),
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_PICK]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
-                'value' => $locationTo ? $locationTo->getLabel() : '',
+                'value' => $this->formatService->location($locationTo, '-'),
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP]
-            ],
-            [
-                'label' => $this->translationService->translate('Général', null, 'Zone liste', 'Date de création', false),
-                'value' => $this->formatService->datetime($creationDate, "", $user)
-            ],
-            [
-                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
-                'value' => $this->formatService->datetime($validationDate, "", $user)
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', "Dates d'échéance", false),
@@ -381,43 +351,32 @@ class DispatchService {
             ],
             [
                 'label' => $this->translationService->translate('Général', null, 'Zone liste', 'Traité par', false),
-                'value' => $treatedBy
-            ],
-            [
-                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
-                'value' => $this->formatService->datetime($treatmentDate, "", false, $this->security->getUser())
+                'value' => $this->formatService->user($dispatch->getTreatedBy(), '-')
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
-                'value' => $dispatch->getDestination() ?: '',
+                'value' => $dispatch->getDestination() ?: '-',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_DESTINATION]
             ],
         ];
-        $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
-        return array_merge(
-            $configFiltered,
-            $freeFieldArray,
-            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedCreate')
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedEdit'))
-                ? [[
-                    'label' => $this->translationService->translate('Général', null, 'Modale', "Commentaire"),
-                    'value' => $comment ?: '',
-                    'isRaw' => true,
-                    'colClass' => 'col-sm-6 col-12',
-                    'isScrollable' => true,
-                    'isNeededNotEmpty' => true
-                ]]
-                : [],
-            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedCreate')
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedEdit'))
-                ? [[
-                       'label' => $this->translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),
-                       'value' => $attachments->toArray(),
-                       'isAttachments' => true,
-                       'isNeededNotEmpty' => true
-                ]]
-                : []
-        );
+
+        if ($dispatch->isWithoutHistory()) {
+            array_push($config,
+                [
+                    'label' => $this->translationService->translate('Général', null, 'Zone liste', 'Date de création', false),
+                    'value' => $this->formatService->datetime($creationDate, "-")
+                ],
+                [
+                    'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
+                    'value' => $this->formatService->datetime($validationDate, "-")
+                ],
+                [
+                    'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
+                    'value' => $this->formatService->datetime($treatmentDate, "-")
+                ],
+            );
+        }
+        return $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
@@ -459,8 +418,8 @@ class DispatchService {
                 $receiverEmailUses = [];
                 $receiverEmailUses[] = $dispatch->getLocationFrom()->getEmail();
                 $receiverEmailUses[] = $dispatch->getLocationTo()->getEmail();
-                $receiverEmailUses[] = $signatory;
-                $receiverEmailUses = Stream::from($receiverEmailUses)->filter()->toArray();
+                $receiverEmailUses[] = $signatory?->getEmail();
+                $receiverEmailUses = Stream::from($receiverEmailUses)->filter()->unique()->toArray();
                 // TODO WIIS-8832 ajouter les emails du nouveau champ sur les ache nomade
             }
 
@@ -475,13 +434,19 @@ class DispatchService {
                 ? 'Acheminement {1} traité partiellement le {2}'
                 : 'Acheminement {1} traité le {2}';
 
+
+            // Attention!! return traduction parameters to give to translationService::translate
             $title = fn(string $slug) => (
                 $fromGroupedSignature
-                ? ["Bon d'enlèvement ". $dispatch->getNumber() . " validé le ". $validationDate->format('d/m/y H:i'), false]
+                ? ['Demande', 'Acheminements', 'Emails', "Bon d'enlèvement généré pour l'acheminement {1} au statut {2} le {3}", [
+                    1 => $dispatch->getNumber(),
+                    2 => $this->formatService->status($status),
+                    3 => $this->formatService->datetime($validationDate)
+                ], false]
                 : ($status->isTreated()
                     ? ['Demande', 'Acheminements', 'Emails', $translatedTitle, [
                         1 => $dispatch->getNumber(),
-                        2 => $this->formatService->datetime($dispatch->getTreatmentDate(), "", false, $this->security->getUser())
+                        2 => $this->formatService->datetime($dispatch->getTreatmentDate())
                     ], false]
                     : (!$isUpdate
                         ? ["Demande", "Acheminements", "Emails", "Une demande d'acheminement de type {1} vous concerne :", [
@@ -492,13 +457,13 @@ class DispatchService {
                         ], false]))
             );
 
-            $subject = $fromCreate && $dispatch->getEmergency()
-                ? ['Urgent']
-                : (($status->isTreated() || $status->isPartial() || $sendReport)
-                    ? ['Demande', 'Acheminements', 'Emails', 'Follow GT // Notification de traitement d\'une demande d\'acheminement', false]
-                    : (!$isUpdate
-                        ? ['Demande', 'Acheminements', 'Emails', 'Follow GT // Création d\'une demande d\'acheminement', false]
-                        : ['Demande', 'Acheminements', 'Emails', 'FOLLOW GT // Changement de statut d\'une demande d\'acheminement', false]));
+            $subject = ($status->isTreated() || $status->isPartial() || $sendReport)
+                ? ($dispatch->getEmergency()
+                    ? ["Demande", "Acheminements", "Emails", "FOLLOW GT // Urgence : Notification de traitement d'une demande d'acheminement", false]
+                    : ["Demande", "Acheminements", "Emails", "FOLLOW GT // Notification de traitement d'une demande d'acheminement", false])
+                : (!$isUpdate
+                    ? ["Demande", "Acheminements", "Emails", "FOLLOW GT // Création d'une demande d'acheminement", false]
+                    : ["Demande", "Acheminements", "Emails", "FOLLOW GT // Changement de statut d'une demande d'acheminement", false]);
 
             $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->isTreated();
             $isTreatedByOperator = $dispatch->getTreatedBy() && $dispatch->getTreatedBy()->getUsername();
@@ -1196,7 +1161,7 @@ class DispatchService {
                     "numeroscelleref" => $dispatchReferenceArticle->getSealingNumber(),
                     "poidsref" => $description['weight'] ?? '',
                     "volumeref" => $description['volume'] ?? '',
-                    "adrref" => isset($description['ADR']) && $description['ADR'] === "1" ? 'Oui' : 'Non' ,
+                    "adrref" => $dispatchReferenceArticle->isADR() ? 'Oui' : 'Non' ,
                     "documentsref" => $description['associatedDocumentTypes'] ?? '',
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
                     "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null),
@@ -1295,7 +1260,8 @@ class DispatchService {
             ->setBatchNumber($data['batch'] ?? null)
             ->setSealingNumber($data['sealing'] ?? null)
             ->setSerialNumber($data['series'] ?? null)
-            ->setComment($data['comment'] ?? null);
+            ->setComment($data['comment'] ?? null)
+            ->setAdr(isset($data['adr']) && boolval($data['adr']));
 
         $attachments = $this->attachmentService->createAttachements($data['files']);
         foreach ($attachments as $attachment) {
@@ -1306,7 +1272,6 @@ class DispatchService {
 
         $description = [
             'outFormatEquipment' => $data['outFormatEquipment'] ?? null,
-            'ADR' => $data['ADR'] ?? null,
             'manufacturerCode' => $data['manufacturerCode'] ?? null,
             'volume' => $data['volume'] ?? null,
             'weight' => $data['weight'] ?? null,
@@ -1338,7 +1303,7 @@ class DispatchService {
         $location = $locationRepository->find($locationData);
         $signatory = $signatoryTrigramData && !$fromNomade
             ? $userRepository->find($signatoryTrigramData)
-            : ( $signatoryTrigramData
+            : ($signatoryTrigramData
                 ? $userRepository->findOneBy(['username' => $signatoryTrigramData])
                 :  null);
         if(!$signatoryPasswordData || !$signatoryTrigramData){
@@ -1358,7 +1323,9 @@ class DispatchService {
             throw new FormException("Code signataire invalide");
         }
 
-        if(!$location?->getSignatory()){
+        $locationSignatories = Stream::from($location?->getSignatories() ?: []);
+
+        if($locationSignatories->isEmpty()){
             $locationLabel = $location?->getLabel() ?: "invalide";
             if($fromNomade){
                 return [
@@ -1369,7 +1336,8 @@ class DispatchService {
             throw new FormException("L'emplacement filtré {$locationLabel} n'a pas de signataire renseigné");
         }
 
-        if($location->getSignatory() !== $signatory){
+        $availableSignatory = $locationSignatories->some(fn(Utilisateur $locationSignatory) => $locationSignatory->getId() === $signatory->getId());
+        if(!$availableSignatory) {
             if($fromNomade){
                 return [
                     'success' => false,
@@ -1383,6 +1351,16 @@ class DispatchService {
         $dispatchesToSign = $dispatchesToSignIds
             ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
             : [];
+
+        if($groupedSignatureStatus->getCommentNeeded() && empty($commentData)) {
+            if($fromNomade){
+                return [
+                    'success' => false,
+                    'msg' => "Vous devez remplir le champ commentaire pour valider"
+                ];
+            }
+            throw new FormException("Vous devez remplir le champ commentaire pour valider");
+        }
 
         $dispatchTypes = Stream::from($dispatchesToSign)
             ->filterMap(fn(Dispatch $dispatch) => $dispatch->getType())
