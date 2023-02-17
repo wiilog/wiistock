@@ -137,7 +137,6 @@ class DispatchPackRepository extends EntityRepository {
             $attachmentsByReference = [];
         }
 
-        dump($attachmentsByReference);
         $resultGroupedByLogisticUnit
             ->map(function(array $references, int $key) use ($attachmentsByReference) {
                 if (!empty($references)) {
