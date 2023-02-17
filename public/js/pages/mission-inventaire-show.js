@@ -234,14 +234,13 @@ function onOpenModalAddLocationAndZone(tableLocations){
 
     $modalAddLocationAndZoneToMission.find('.add-button').on('click', function(){
         wrapLoadingOnActionButton($(this), () => {
-            const buttonType = $(this).data('type');
             let ids = [];
             $(this).closest('.row').find('select').find('option:selected').each(function() {
                 ids.push($(this).val());
                 $(this).parent().empty();
             });
             return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
-                buttonType,
+                type: $(this).data('type'),
                 mission,
                 dataIdsToDisplay: ids,
             })

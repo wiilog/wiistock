@@ -1,13 +1,18 @@
 <div class="wii-section">
-    <div class="">
-        <button
-            class="btn btn-primary float-right d-flex justify-content-start align-items-center"
-            id="addNewInventoryPlanner"
-            onclick='editMissionRule($(this))'>
-            <span class="wii-icon wii-icon-plus mr-2"></span>Planifier un inventaire</button>
+    <div class="row wii-page-card-header">
+        <div class="col-auto ml-auto">
+            <button class="btn btn-primary d-flex align-items-center"
+                    onclick='editMissionRule($(this))'>
+                <span class="wii-icon wii-icon-plus mr-2"></span>
+                Planifier un inventaire
+            </button>
+        </div>
     </div>
-
-    <table id="missionRulesTable" data-table-processing="missionRulesTable"></table>
+    <div class="row">
+        <div class="col-12">
+            <table id="missionRulesTable" data-table-processing="missionRulesTable"></table>
+        </div>
+    </div>
 </div>
 
 {{ include('settings/stock/inventaires/form/modalFormInventoryPlanner.html.twig') }}

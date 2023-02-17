@@ -67,12 +67,10 @@ function initAddLocationAndZoneForm(tableLocations, $modal) {
                 }
             }
             data.append('frequency', $modal.find('input[type="radio"][name="frequency"]:checked').val());
-            wrapLoadingOnActionButton(locationTypeForm.find('button[type=submit]'), () => {
+            form.loading(() => {
                 return AJAX
                     .route(`POST`, `post_mission_rules_form`, {})
-                    .json(
-                        data
-                    )
+                    .json(data)
                     .then((response) => {
                         if (response.success) {
                             tableInventoryPanning.ajax.reload();
@@ -87,14 +85,13 @@ function initAddLocationAndZoneForm(tableLocations, $modal) {
 
     locationTypeForm.find('.add-button').on('click', function () {
         wrapLoadingOnActionButton($(this), () => {
-                const buttonType = $(this).data('type');
                 let ids = [];
                 $(this).closest('.row').find('select').find('option:selected').each(function () {
                     ids.push($(this).val());
                     $(this).parent().empty();
                 });
                 return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
-                    buttonType,
+                    type: $(this).data('type'),
                     dataIdsToDisplay: ids,
                 })
                     .json()
@@ -107,7 +104,6 @@ function initAddLocationAndZoneForm(tableLocations, $modal) {
         )
     });
 }
-
 
 function initModalTableLocations($modal, dataToDisplay = null) {
     const tableLocations = $modal.find('#tableLocations');
@@ -129,7 +125,7 @@ function initModalTableLocations($modal, dataToDisplay = null) {
             }
         }
     } else {
-        initDataTable('tableLocations', {
+        initDataTable($container.find('table'), {
             lengthMenu: [10, 25, 50],
             columns: [
                 {data: 'id', name: 'id', title: 'id', visible: false},
@@ -151,12 +147,14 @@ function initModalTableLocations($modal, dataToDisplay = null) {
 function editMissionRule($button) {
     const $modalEditInventoryPanner = $('#modalFormInventoryPlanner');
 
-    const $wrapperLoader = $button.data('id') ? $button.closest('#missionRulesTable_wrapper') : $button;
+    const missionRule = $button.data('id');
+    const $wrapperLoader = missionRule ? $button.closest('#missionRulesTable_wrapper') : $button;
+
+    const params = missionRule ? {missionRule} : {};
+
     wrapLoadingOnActionButton($wrapperLoader, () => (
         AJAX
-            .route('GET', 'get_mission_rules_form', {
-                missionRuleId: $button.data('id'),
-            })
+            .route(GET, 'get_mission_rules_form_template', params)
             .json()
             .then(({html}) => {
                 $modalEditInventoryPanner.find('.modal-body').html(html);
