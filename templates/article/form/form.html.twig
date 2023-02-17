@@ -214,7 +214,7 @@
                             </div>
                         {% endif %}
                         <div class="col-12 col-md-6 d-flex">
-                            {{ form.input('expiry', {url: '/svg/calendar.svg', text: 'Date de péremption'}, false, article.id and article.expiryDate ? article.expiryDate, {
+                            {{ form.input('expiry', {url: '/svg/calendar.svg', text: 'Date de péremption'}, false, article.id and article.expiryDate ? article.expiryDate|date('Y-m-d'), {
                                 type: 'date'
                             }) }}
                         </div>
