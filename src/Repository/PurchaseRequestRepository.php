@@ -137,7 +137,7 @@ class PurchaseRequestRepository extends EntityRepository
                                 ->leftJoin('purchase_request.buyer', 'order_buyer')
                                 ->orderBy('order_buyer.username', $order);
                             break;
-                            case 'provider':
+                        case 'provider':
                             $qb
                                 ->leftJoin('purchase_request.supplier', 'order_supplier')
                                 ->orderBy('order_provider.nom', $order);
