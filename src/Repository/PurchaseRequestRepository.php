@@ -70,6 +70,13 @@ class PurchaseRequestRepository extends EntityRepository
                         ->andWhere("filter_buyer.id in (:filter_value_buyer)")
                         ->setParameter('filter_value_buyer', $value);
                     break;
+                case 'providers':
+                $value = explode(',', $filter['value']);
+                $qb
+                    ->join('purchase_request.supplier', 'filter_supplier')
+                    ->andWhere("filter_supplier.id in (:filter_value_supplier)")
+                    ->setParameter('filter_value_supplier', $value);
+                break;
                 case 'dateMin':
                     $qb->andWhere('purchase_request.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
@@ -129,6 +136,11 @@ class PurchaseRequestRepository extends EntityRepository
                             $qb
                                 ->leftJoin('purchase_request.buyer', 'order_buyer')
                                 ->orderBy('order_buyer.username', $order);
+                            break;
+                        case 'provider':
+                            $qb
+                                ->leftJoin('purchase_request.supplier', 'order_supplier')
+                                ->orderBy('order_provider.nom', $order);
                             break;
                         default:
                             if (property_exists(PurchaseRequest::class, $column)) {

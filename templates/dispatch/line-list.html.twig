@@ -6,6 +6,7 @@
     {% for dispatchPack in dispatchPacks %}
         {% set pack = dispatchPack.pack ?? null %}
         {% set references = dispatchPack.references ?? [] %}
+
         {% include 'pack/utils/packItemListTemplate.html.twig' with {
             header: pack
             ? {
@@ -20,16 +21,23 @@
                 ]
             },
             content: references|map((reference) => reference|merge({
-                actions: include(
-                    'dispatch/datatableLigneRefArticleRow.html.twig',
-                    {
-                        ligneId: reference.id,
-                        ligneArticleQuantity: reference.quantity,
-                        dispatchId: dispatch.id,
-                    }
-                )
+                attachments: (reference.attachments ?? [])
+                    | map((attachment) => (
+                        include('attachment/attachmentLine.html.twig', {
+                            attachment,
+                            inForm: false,
+                            canRemove: false,
+                            tooltip: false,
+                        })
+                    ))
+                    | join(''),
+                actions: include('dispatch/datatableLigneRefArticleRow.html.twig', {
+                    ligneId: reference.id,
+                    ligneArticleQuantity: reference.quantity,
+                    dispatchId: dispatch.id,
+                })
             })),
-            action: pack
+            action: pack and dispatch.statut.draft
             ? {
                 icon: 'wii-icon wii-icon-new-article',
                 datatarget: "#modalAddReference",
