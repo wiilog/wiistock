@@ -54,8 +54,6 @@ class ImportCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        ini_set("memory_limit", "1024M");
-
         $importRepository = $this->getEntityManager()->getRepository(Import::class);
         $statutRepository = $this->getEntityManager()->getRepository(Statut::class);
 

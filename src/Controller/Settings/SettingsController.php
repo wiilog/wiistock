@@ -26,6 +26,7 @@ use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
@@ -47,6 +48,7 @@ use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\InventoryService;
+use App\Service\InvMissionService;
 use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\SettingsService;
@@ -2407,11 +2409,11 @@ class SettingsController extends AbstractController {
      * @Route("/mission-rules-force", name="settings_mission_rules_force", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
-    public function missionRulesForce(EntityManagerInterface $manager, InventoryService $inventoryService): Response {
+    public function missionRulesForce(EntityManagerInterface $manager, InvMissionService $invMissionService): Response {
         $rules = $manager->getRepository(InventoryMissionRule::class)->findAll();
 
         foreach($rules as $rule) {
-            $inventoryService->createMission($rule);
+            $invMissionService->generateMission($rule);
         }
 
         return $this->json([
@@ -2431,17 +2433,24 @@ class SettingsController extends AbstractController {
         foreach ($missionRuleRepository->findAll() as $mission) {
             $data[] = [
                 "actions" => "
-                    <button class='btn btn-silent delete-row' data-id='{$mission->getId()}'>
-                        <i class='wii-icon wii-icon-trash text-primary'></i>
-                    </button>
+                    <div>
+                        <button class='btn btn-silent delete-row' data-id='{$mission->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                        <button
+                            class='btn btn-silent action-on-click'
+                            data-id='{$mission->getId()}'
+                            onclick='editMissionRule($(this))'>
+                        </button>
+                    </div>
                 ",
                 "missionType" => $mission->getMissionType(),
                 "label" => $mission->getLabel(),
                 "categories" => Stream::from($mission->getCategories())
                     ->map(fn(InventoryCategory $category) => $category->getLabel())
                     ->join(", "),
-                "periodicity" => $mission->getPeriodicityUnit() === InventoryMissionRule::WEEKS ? "Toutes les {$mission->getPeriodicity()} semaines" : "Tous les {$mission->getPeriodicity()} mois",
-                "duration" => $mission->getDurationUnit() === InventoryMissionRule::WEEKS ? "{$mission->getDuration()} semaine(s)" : "{$mission->getDuration()} mois",
+                "periodicity" => ScheduleRule::FREQUENCIES_LABELS[$mission->getFrequency()] ?? null,
+                "duration" => $mission->getDurationUnit() === InventoryMissionRule::DURATION_UNIT_WEEKS ? "{$mission->getDuration()} semaine(s)" : "{$mission->getDuration()} mois",
                 "creator" => $mission->getCreator() ? $mission->getCreator()->getUsername() : "",
                 "lastExecution" => $mission->getLastRun() ? $mission->getLastRun()->getTimestamp() : "",
             ];

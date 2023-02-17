@@ -3,8 +3,9 @@
 
 namespace App\Command;
 
-use App\Entity\Export;
-use App\Service\ScheduledExportService;
+use App\Entity\Inventory\InventoryMissionRule;
+use App\Service\InvMissionService;
+use App\Service\ScheduleRuleService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,16 +14,19 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
-class ScheduledExportCommand extends Command
+class ScheduleInventoryMissionCommand extends Command
 {
 
-    private const DEFAULT_NAME = "app:launch:scheduled-exports";
+    private const DEFAULT_NAME = "app:inventory:generate-mission";
 
     #[Required]
     public EntityManagerInterface $em;
 
     #[Required]
-    public ScheduledExportService $exportService;
+    public ScheduleRuleService $scheduleRuleService;
+
+    #[Required]
+    public InvMissionService $invMissionService;
 
     protected function configure()
     {
@@ -32,21 +36,20 @@ class ScheduledExportCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $exportRepository = $this->getEntityManager()->getRepository(Export::class);
+        $invMissionRuleRepository = $this->getEntityManager()->getRepository(InventoryMissionRule::class);
 
-        $exportsCache = $this->exportService->getScheduledCache($this->getEntityManager());
-        $currentKeyExport = $this->exportService->getScheduleExportKeyCache(new DateTime());
+        $rules = $invMissionRuleRepository->findAll();
 
-        if (isset($exportsCache[$currentKeyExport])) {
-            $exports = $exportRepository->findBy(["id" => $exportsCache[$currentKeyExport]]);
+        foreach ($rules as $rule) {
+            $now = new DateTime();
+            $now->setTime($now->format('H'), $now->format('i'), 0, 0);
 
-            foreach ($exports as $export) {
-                $this->exportService->export($this->getEntityManager(), $export);
+            $nextExecutionDate = $this->scheduleRuleService->calculateNextExecutionDate($rule, true);
+
+            if ($now >= $nextExecutionDate) {
+                $this->invMissionService->generateMission($rule);
             }
-
-            $this->exportService->saveScheduledExportsCache($this->getEntityManager());
         }
-
         return 0;
     }
 

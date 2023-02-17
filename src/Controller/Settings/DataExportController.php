@@ -2,18 +2,19 @@
 
 namespace App\Controller\Settings;
 
-use App\Entity\Arrivage;
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
-use App\Entity\ExportScheduleRule;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
@@ -26,12 +27,11 @@ use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\FreeFieldService;
 use App\Service\RefArticleDataService;
-use App\Service\ScheduledExportService;
+use App\Service\ScheduleRuleService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -74,11 +74,11 @@ class DataExportController extends AbstractController {
                 "endedAt" => $export->getEndedAt()?->format("d/m/Y H:i"),
                 "nextExecution" => $export->getNextExecution()?->format("d/m/Y H:i"),
                 "frequency" => match($export->getExportScheduleRule()?->getFrequency()) {
-                    ExportScheduleRule::ONCE => "Une fois",
-                    ExportScheduleRule::HOURLY => "Chaque heure",
-                    ExportScheduleRule::DAILY => "Chaque jour",
-                    ExportScheduleRule::WEEKLY => "Chaque semaine",
-                    ExportScheduleRule::MONTHLY => "Chaque mois",
+                    ScheduleRule::ONCE => "Une fois",
+                    ScheduleRule::HOURLY => "Chaque heure",
+                    ScheduleRule::DAILY => "Chaque jour",
+                    ScheduleRule::WEEKLY => "Chaque semaine",
+                    ScheduleRule::MONTHLY => "Chaque mois",
                     default => null,
                 },
                 "user" => FormatHelper::user($export->getCreator()),
@@ -332,9 +332,9 @@ class DataExportController extends AbstractController {
 
     #[Route("/export/plannifie/{export}/force", name: "settings_export_force", options: ["expose" => true], methods: "GET|POST", condition:"request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function force(EntityManagerInterface $manager, ScheduledExportService $scheduledExportService, CacheService $cacheService, Export $export): JsonResponse {
+    public function force(EntityManagerInterface $manager, ScheduleRuleService $scheduleRuleService, CacheService $cacheService, Export $export): JsonResponse {
         $export->setForced(true);
-        $export->setNextExecution($scheduledExportService->calculateNextExecutionDate($export));
+        $export->setNextExecution($scheduleRuleService->calculateNextExecutionDate($export->getExportScheduleRule()));
         $manager->flush();
 
         $cacheService->delete(CacheService::EXPORTS);
