@@ -2706,8 +2706,10 @@ class MobileController extends AbstractApiController
 
         if($toTreatStatus) {
             foreach ($references as $data) {
+                $creation = false;
                 $reference = $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
                 if(!$reference) {
+                    $creation = true;
                     $dispatchNewReferenceType = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_TYPE);
                     $dispatchNewReferenceStatus = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_STATUS);
                     $dispatchNewReferenceQuantityManagement = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT);
@@ -2753,10 +2755,10 @@ class MobileController extends AbstractApiController
                 $refArticleDataService->updateDescriptionField($entityManager, $reference, [
                     'outFormatEquipment' => $data['outFormatEquipment'],
                     'manufacturerCode' => $data['manufacturerCode'],
-                    'volume' => $data['volume'],
-                    'length' => $data['length'],
-                    'width' => $data['width'],
-                    'height' => $data['height'],
+                    'volume' => $creation ? $data['volume'] : $reference->getDescription()['volume'],
+                    'length' => $creation ? $data['length'] : $reference->getDescription()['length'],
+                    'width' => $creation ? $data['width'] : $reference->getDescription()['width'],
+                    'height' => $creation ? $data['height'] : $reference->getDescription()['height'],
                     'weight' => $data['weight'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
                 ]);
@@ -2869,6 +2871,7 @@ class MobileController extends AbstractApiController
                     'height' => $ref->getReferenceArticle()->getDescription()['height'] ?? null,
                     'length' => $ref->getReferenceArticle()->getDescription()['length'] ?? null,
                     'weight' => $ref->getReferenceArticle()->getDescription()['weight'] ?? null,
+                    'volume' => $ref->getReferenceArticle()->getDescription()['volume'] ?? null,
                     'adr' => $ref->isADR() ? 'Oui' : 'Non',
                     'associatedDocumentTypes' => $ref->getReferenceArticle()->getDescription()['associatedDocumentTypes'] ?? null,
                     'comment' => $ref->getCleanedComment(),
