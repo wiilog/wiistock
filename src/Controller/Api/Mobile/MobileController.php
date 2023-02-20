@@ -2615,7 +2615,7 @@ class MobileController extends AbstractApiController
             ->setStatus($draftStatuses[0])
             ->setLocationFrom($pickLocation)
             ->setLocationTo($dropLocation)
-            ->setCarrierTrackingNumber($data['carrierTrackingNumber'])
+            ->setCarrierTrackingNumber($data['carrierTrackingNumber'] ?? '')
             ->setCommentaire($data['comment'])
             ->setEmergency($data['emergency'] ?? false)
             ->setEmails($emails);
