@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ExportRepository;
+use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -67,6 +68,21 @@ class Export {
 
     #[ORM\Column(type: "json", nullable: true)]
     private array $columnToExport = [];
+
+    #[ORM\Column(type: "json", nullable: true)]
+    private array $referenceTypes = [];
+
+    #[ORM\Column(type: "json", nullable: true)]
+    private array $statuses = [];
+
+    #[ORM\Column(type: "json", nullable: true)]
+    private array $suppliers = [];
+
+    #[ORM\Column(type: "date", nullable: true)]
+    private ?DateTime $stockEntryStartDate = null;
+
+    #[ORM\Column(type: "date", nullable: true)]
+    private ?DateTime $stockEntryEndDate = null;
 
     #[ORM\Column(type: "integer", nullable: true)]
     private ?string $destinationType = null;
@@ -190,6 +206,78 @@ class Export {
     public function setColumnToExport(?array $columnToExport): self
     {
         $this->columnToExport = $columnToExport;
+
+        return $this;
+    }
+
+    public function setReferenceTypes(?array $referenceTypes): self
+    {
+        $this->referenceTypes = $referenceTypes;
+
+        return $this;
+    }
+
+    public function getReferenceTypes(): array
+    {
+        return $this->referenceTypes;
+    }
+
+    public function setStatuses(?array $statuses): self
+    {
+        $this->statuses = $statuses;
+
+        return $this;
+    }
+
+    public function getStatuses(): array
+    {
+        return $this->statuses;
+    }
+
+    public function setSuppliers(?array $suppliers): self
+    {
+        $this->suppliers = $suppliers;
+
+        return $this;
+    }
+
+    public function getSuppliers(): array
+    {
+        return $this->suppliers;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getStockEntryStartDate(): ?DateTime
+    {
+        return $this->stockEntryStartDate;
+    }
+
+    /**
+     * @param DateTime|null $stockEntryStartDate
+     */
+    public function setStockEntryStartDate(?DateTime $stockEntryStartDate): self
+    {
+        $this->stockEntryStartDate = $stockEntryStartDate;
+
+        return $this;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getStockEntryEndDate(): ?DateTime
+    {
+        return $this->stockEntryEndDate;
+    }
+
+    /**
+     * @param DateTime|null $stockEntryEndDate
+     */
+    public function setStockEntryEndDate(?DateTime $stockEntryEndDate): self
+    {
+        $this->stockEntryEndDate = $stockEntryEndDate;
 
         return $this;
     }

@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
@@ -35,6 +36,9 @@ class DataExportService
 
     #[Required]
     public ScheduledExportService $scheduledExportService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
@@ -83,7 +87,14 @@ class DataExportService
             'date d\'entrée en stock',
             'date de péremption',
             'groupe de visibilité',
-            'projet'
+            'projet',
+            'prix unitaire',
+            'zone de destination',
+            'numéro de commande',
+            'numéro de bon de livraison',
+            'pays d\'origine',
+            'date de fabrication',
+            'date de production',
         ], $freeFieldsConfig['freeFieldsHeader']);
     }
 
@@ -133,9 +144,19 @@ class DataExportService
         }
     }
 
-    public function exportArticles(ArticleDataService $articleDataService, array $freeFieldsConfig, iterable $data, mixed $output) {
+    public function exportArticles(ArticleDataService   $articleDataService,
+                                   array                $freeFieldsConfig,
+                                   iterable             $data,
+                                   mixed                $output,
+                                   array                $referenceTypes,
+                                   array                $statuses,
+                                   array                $suppliers) {
+        /** @var Article $article */
         foreach($data as $article) {
-            $articleDataService->putArticleLine($output, $article, $freeFieldsConfig);
+            if (in_array(strval($article->getArticleFournisseur()->getFournisseur()->getId()), $suppliers) && in_array(strval($article->getReferenceArticle()->getType()->getId()), $referenceTypes)
+                && in_array(strval($article->getStatut()->getId()), $statuses)) {
+                $articleDataService->putArticleLine($output, $article, $freeFieldsConfig);
+            }
         }
     }
 
@@ -193,6 +214,9 @@ class DataExportService
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     public function updateExport(EntityManagerInterface $entityManager,
                                  Export                 $export,
                                  array                  $data): void {
@@ -260,18 +284,34 @@ class DataExportService
                 ->filter()
                 ->toArray();
             $export->setColumnToExport($columnToExport);
-        }
-        else {
+        } else {
             $export->setColumnToExport([]);
         }
 
         if($entity === Export::ENTITY_ARRIVAL || $entity === Export::ENTITY_DELIVERY_ROUND) {
-            $export->setPeriod($data["period"]);
-            $export->setPeriodInterval($data["periodInterval"]);
+            $export->setPeriod($data["period"])
+                ->setPeriodInterval($data["periodInterval"]);
+        } else {
+            $export->setPeriod(null)
+                ->setPeriodInterval(null);
         }
-        else {
-            $export->setPeriod(null);
-            $export->setPeriodInterval(null);
+
+        if ($entity === Export::ENTITY_ARTICLE) {
+            $export->setReferenceTypes(explode(",", $data["referenceTypes"]))
+                ->setStatuses(explode(",", $data["statuses"]))
+                ->setSuppliers(explode(",", $data["suppliers"]));
+
+            if (isset($data["scheduled-date-radio"]) && $data["scheduled-date-radio"] === "fixed-date") {
+                $export->setStockEntryStartDate(DateTime::createFromFormat('d/m/Y', $data["scheduledDateMin"]))
+                    ->setStockEntryEndDate(DateTime::createFromFormat('d/m/Y', $data["scheduledDateMax"]));
+            } else {
+                $now = new DateTime("now");
+                $startDate = (clone $now)->modify("-{$data["minus-day"]} days");
+                $endDate = (clone $now)->modify("+{$data["additional-day"]} days");
+
+                $export->setStockEntryStartDate($startDate)
+                    ->setStockEntryEndDate($endDate);
+            }
         }
 
         if (!$export->getExportScheduleRule()) {

@@ -247,11 +247,13 @@
         {% set fax = true %}
     {% endif %}
 
+    {% if options.isLabelFree is defined and options.isLabelFree is not same as(true) %}
     <label class="w-100 {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
+    {% endif %}
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <input type="{{ type ?? 'text' }}" {{ fax ?? false ? 'data-fax' }}
-               class="form-control w-100 data {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }}"
+               class="form-control w-100 data {{ options.inputClass ?? '' }} {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
                {% if options.autocompleteOff is defined and options.autocompleteOff %}
@@ -262,7 +264,9 @@
         {% endfor %}
         {{ _self.common_attributes(name, options) }}
         {{ _self.multiple_key(options) }}>
+    {% if options.isLabelFree is defined and options.isLabelFree is not same as(true) %}
     </label>
+    {% endif %}
 {% endmacro %}
 
 {% macro color(name, label, required, value = '', options = {}) %}

@@ -103,6 +103,9 @@ function displayExportModal(exportId) {
         Select2Old.user($modal.find('.select2-user'));
         Select2Old.initFree($modal.find('.select2-free'));
         $modal.find('select[name=columnToExport]').select2({closeOnSelect: false});
+        $modal.find('select[name=referenceTypes]').select2({closeOnSelect: false});
+        $modal.find('select[name=statuses]').select2({closeOnSelect: false});
+        $modal.find('select[name=suppliers]').select2({closeOnSelect: false});
         $modal.find('.select-all-options').on('click', onSelectAll);
 
         if($modal.find('input[name=destinationType]:checked').hasClass('export-by-sftp')){
@@ -217,13 +220,40 @@ function createForm() {
                     if (content.entityToExport === ENTITY_REFERENCE) {
                         window.open(Routing.generate(`settings_export_references`));
                     } else if (content.entityToExport === ENTITY_ARTICLE) {
-                        window.open(Routing.generate(`settings_export_articles`));
+                        const referenceTypes = $modal.find(`[name=referenceTypes]`).val();
+                        const statuses = $modal.find(`[name=statuses]`).val();
+                        const suppliers = $modal.find(`[name=suppliers`).val();
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+                        console.log(referenceTypes, statuses, suppliers);
+
+                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'articles`);
+                            return Promise.resolve();
+                        } else if(referenceTypes.length === 0){
+                            Flash.add(`danger`, `Veuillez choisir au moins un type de référence`);
+                            return Promise.resolve();
+                        } else if (statuses.length === 0) {
+                            Flash.add(`danger`, `Veuillez choisir au moins un statut`);
+                            return Promise.resolve();
+                        } else if (suppliers.length === 0) {
+                            Flash.add(`danger`, `Veuillez choisir au moins un fournisseur`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_articles`, {
+                            dateMin,
+                            dateMax,
+                            referenceTypes,
+                            statuses,
+                            suppliers
+                        }));
                     } else if (content.entityToExport === ENTITY_TRANSPORT_ROUNDS) {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
 
                         if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                            Flash.add(`danger`, `Les bornes de dates sont requise pour les exports de tournées`);
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de tournées`);
                             return Promise.resolve();
                         }
 
@@ -237,7 +267,7 @@ function createForm() {
                         const columnToExport = $modal.find(`[name=columnToExport]`).val();
 
                         if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                            Flash.add(`danger`, `Les bornes de dates sont requise pour les exports de tournées`);
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de tournées`);
                             return Promise.resolve();
                         } else if(columnToExport.length === 0){
                             Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
@@ -280,18 +310,21 @@ function onFormEntityChange() {
     const selectedEntity = $modal.find('[name=entityToExport]:checked').val();
     const $articlesSentence = $modal.find('.articles-sentence');
     const $referencesSentence = $modal.find('.references-sentence');
-    const $dateLimit = $modal.find('.date-limit');
+    const $articleFields = $modal.find('.article-fields');
     const $columnToExportContainer = $modal.find('.column-to-export');
     const $columnToExport = $columnToExportContainer.find('select');
     const $periodInterval = $modal.find('.period-interval');
+    const $dateLimit = $modal.find('.date-limit');
+    const $scheduledArticleDates = $modal.find('.scheduled-article-dates');
 
     $articlesSentence.addClass('d-none');
     $referencesSentence.addClass('d-none');
-    $dateLimit.addClass('d-none');
+    $articleFields.addClass('d-none');
     $columnToExportContainer.addClass('d-none');
-    $columnToExport
-        .removeClass('needed');
+    $columnToExport.removeClass('needed');
     $periodInterval.addClass('d-none');
+    $scheduledArticleDates.addClass('d-none');
+    $dateLimit.addClass('d-none');
 
     switch (selectedEntity) {
         case ENTITY_REFERENCE:
@@ -299,6 +332,8 @@ function onFormEntityChange() {
             break;
         case ENTITY_ARTICLE:
             $articlesSentence.removeClass('d-none');
+            $articleFields.removeClass('d-none');
+            $scheduledArticleDates.removeClass('d-none');
             break;
         case ENTITY_TRANSPORT_ROUNDS:
             $dateLimit.removeClass('d-none');
@@ -320,6 +355,7 @@ function onFormTypeChange(resetFrequency = true) {
     const exportType = $modal.find('[name=type]:checked').val()
     $modal.find('.unique-export-container').toggleClass('d-none', exportType !== EXPORT_UNIQUE);
     $modal.find('.scheduled-export-container').toggleClass('d-none', exportType !== EXPORT_SCHEDULED);
+    $modal.find('.article-date-limit').toggleClass('d-none', exportType !== EXPORT_UNIQUE);
 
     if (resetFrequency) {
         $modal.find('.frequencies').find('input[type=radio]').each(function () {

@@ -12,6 +12,7 @@ use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
 use App\Entity\FiltreSup;
+use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -210,20 +211,29 @@ class DataExportController extends AbstractController {
                                    FreeFieldService       $freeFieldService,
                                    DataExportService      $dataExportService,
                                    ArticleDataService     $articleDataService,
-                                   UserService            $userService,
-                                   CSVExportService       $csvService): StreamedResponse {
+                                   CSVExportService       $csvService,
+                                   Request                $request,
+                                   UserService            $userService): StreamedResponse {
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
         $header = $dataExportService->createArticlesHeader($freeFieldsConfig);
 
+        $dateMin = $request->query->get("dateMin");
+        $dateMax = $request->query->get("dateMax");
+        $dateTimeMin = DateTime::createFromFormat('d/m/Y', $dateMin);
+        $dateTimeMax = DateTime::createFromFormat('d/m/Y', $dateMax);
+        $referenceTypes = $request->query->all('referenceTypes');
+        $statuses = $request->query->all('statuses');
+        $suppliers = $request->query->all('suppliers');
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         $user = $userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $dataExportService, $user, $articleDataService) {
+        return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $dataExportService, $user,
+            $articleDataService, $referenceTypes, $statuses, $suppliers, $dateTimeMin, $dateTimeMax) {
             $articleRepository = $entityManager->getRepository(Article::class);
-            $articles = $articleRepository->iterateAll($user);
+            $articles = $articleRepository->iterateAll($user, $dateTimeMin, $dateTimeMax);
 
             $start = new DateTime();
-            $dataExportService->exportArticles($articleDataService, $freeFieldsConfig, $articles, $output);
+            $dataExportService->exportArticles($articleDataService, $freeFieldsConfig, $articles, $output, $referenceTypes, $statuses, $suppliers);
             $dataExportService->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
         }, "export-articles-$today.csv", $header);
     }
@@ -300,9 +310,22 @@ class DataExportController extends AbstractController {
             : new Export();
 
         $columns = $arrivalService->getArrivalExportableColumns($entityManager);
+        $refTypes = $entityManager->getRepository(Type::class)->findByCategoryLabels([CategoryType::ARTICLE]);
+
+        $statuses = $entityManager->getRepository(Statut::class)->findBy(["nom" => [Article::STATUT_ACTIF, Article::STATUT_INACTIF]]);
+        $suppliers = $entityManager->getRepository(Fournisseur::class)->getForExport();
 
         return new JsonResponse($this->renderView('settings/donnees/export/form.html.twig', [
             "export" => $export,
+            "refTypes" => Stream::from($refTypes)
+                ->keymap(fn(Type $type) => [$type->getId(), $type->getLabel()])
+                ->toArray(),
+            "statuses" => Stream::from($statuses)
+                ->keymap(fn(Statut $status) => [$status->getId(), $status->getNom()])
+                ->toArray(),
+            "suppliers" => Stream::from($suppliers)
+                ->keymap(fn(Fournisseur $supplier) => [$supplier->getId(), $supplier->getNom()])
+                ->toArray(),
             "arrivalFields" => Stream::from($columns)
                 ->keymap(fn(array $config) => [$config['code'], $config['label']])
                 ->toArray()

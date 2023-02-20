@@ -110,7 +110,7 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
-    public function iterateAll(Utilisateur $user): iterable {
+    public function iterateAll(Utilisateur $user, DateTime $dateMin, DateTime $dateMax): iterable {
         $queryBuilder = $this->createQueryBuilder('article');
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
@@ -145,7 +145,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.purchaseOrder')
             ->addSelect('article.deliveryNote')
             ->addSelect('article.manifacturingDate')
-            ->addSelect('nativeCountry.label AS nativeCountry')
+            ->addSelect('nativeCountry.label AS nativeCountryLabel')
             ->addSelect('article.productionDate')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
@@ -156,6 +156,9 @@ class ArticleRepository extends EntityRepository {
             ->leftJoin('article.currentLogisticUnit', 'currentLogisticUnit')
             ->leftJoin('currentLogisticUnit.project', 'project')
             ->leftJoin('article.nativeCountry', 'nativeCountry')
+            ->andWhere('article.stockEntryDate BETWEEN :dateMin AND :dateMax')
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax)
             ->groupBy('article.id')
             ->getQuery()
             ->toIterable();

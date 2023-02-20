@@ -620,34 +620,34 @@ class ArticleDataService
     }
 
     public function putArticleLine($handle,
-                                    array $article,
-                                    array $freeFieldsConfig) {
+                                   Article $article,
+                                   array $freeFieldsConfig) {
         $line = [
-            $article['reference'],
-            $article['label'],
-            $article['quantite'],
-            $article['typeLabel'],
-            $article['statutName'],
-            $article['commentaire'] ? strip_tags($article['commentaire']) : '',
-            $article['empLabel'],
-            $article['barCode'],
-            $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
-            $article['batch'],
-            $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
-            $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
-            $article['visibilityGroup'],
-            $article['projectCode'],
-            $article['prixUnitaire'],
-            $article['destinationArea'],
-            $article['purchaseOrder'],
-            $article['deliveryNote'],
-            $article['nativeCountry'],
-            $article['manifacturingDate'],
-            $article['productionDate'],
+            $article->getReference() ?? '',
+            $article->getLabel() ?? '',
+            $article->getQuantite() ?? '',
+            $article->getType()?->getLabel() ?? '',
+            $article->getStatut()?->getNom() ?? '',
+            $article->getCommentaire() ? strip_tags($article->getCommentaire()) : '',
+            $article->getEmplacement()?->getLabel() ?? '',
+            $article->getBarCode() ?? '',
+            $article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y H:i:s') : '',
+            $article->getBatch() ?? '',
+            $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i:s') : '',
+            $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
+            $article->getReferenceArticle()->getVisibilityGroup()?->getLabel() ?? '',
+            $article->getCurrentLogisticUnit()?->getProject()->getCode() ?? '',
+            $article->getPrixUnitaire() ?? '',
+            $article->getDestinationArea() ?? '',
+            $article->getPurchaseOrder() ?? '',
+            $article->getDeliveryNote() ?? '',
+            $article->getNativeCountry()?->getLabel() ?? '',
+            $article->getManifacturingDate() ? $article->getManifacturingDate()->format('d/m/Y') : '',
+            $article->getProductionDate() ? $article->getProductionDate()->format('d/m/Y') : '',
         ];
 
         foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $line[] = $this->formatService->freeField($article['freeFields'][$freeFieldId] ?? '', $freeField);
+            $line[] = $this->formatService->freeField($article->hasFreeField($freeFieldId) ? $article->getFreeFieldValue($freeFieldId) : '', $freeField);
         }
 
         $this->CSVExportService->putLine($handle, $line);

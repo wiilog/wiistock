@@ -154,4 +154,12 @@ class FournisseurRepository extends EntityRepository
             ->getQuery()
             ->toIterable();
     }
+
+    public function getForSelect(?string $term, array $options = []): array {
+        return $this->createQueryBuilder("supplier")
+            ->andWhere("supplier.nom LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
 }
