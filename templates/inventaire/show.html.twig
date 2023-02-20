@@ -102,5 +102,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('form-add-inventory-locations') }}
     <script src="{{ asset('js/pages/mission-inventaire-show.js') }}?v={{ web_version }}"></script>
 {% endblock %}

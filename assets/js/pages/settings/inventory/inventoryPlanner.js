@@ -1,6 +1,6 @@
 import AJAX, {GET} from "@app/ajax";
 import Form from "@app/form";
-import modal from "bootstrap/js/src/modal";
+import {initFormAddInventoryLocations} from "@app/pages/inventory-mission/form-add-inventory-locations";
 
 let tableInventoryPanning;
 
@@ -28,53 +28,31 @@ export function initializeInventoryPlanificatorTable($container) {
         },
     };
     tableInventoryPanning = initDataTable(`missionRulesTable`, tableInventoryPannerConfig);
-}
 
-function initModalContent($modal) {
-    const locationTypeForm = $modal.find('#locationTypeForm');
-    const articleTypeForm = $modal.find('#articleTypeForm');
-
-    const tableLocations = $modal.find('#tableLocations');
-
-    initModalTableLocations($modal);
-    initAddLocationAndZoneForm(tableLocations, $modal);
-
-
-    $('input[type=radio][name=missionType]').on('change', function (input) {
-        const $input = $(input.target);
-        if ($input.val() === 'location') {
-            locationTypeForm.removeClass('d-none');
-            articleTypeForm.addClass('d-none');
-        } else if ($input.val() === 'article') {
-            articleTypeForm.removeClass('d-none');
-            locationTypeForm.addClass('d-none');
-        }
-    });
-}
-
-function initAddLocationAndZoneForm(tableLocations, $modal) {
-    let locationTypeForm = $('#locationTypeForm');
-
-    Form.create($modal)
+    const $modalEditInventoryPanner = $('#modalFormInventoryPlanner');
+    Form
+        .create($modalEditInventoryPanner)
         .onSubmit((data, form) => {
-            if ($modal.find('input[type="radio"][name="missionType"]:checked').val() === 'location') {
-                const locations = tableLocations.DataTable().column(0).data().toArray();
+            if (data.get('missionType') === 'location') {
+                const locations = $modalEditInventoryPanner.find('.tableLocationsInventoryMission').DataTable().column(0).data().toArray();
                 if (locations.length === 0) {
                     Flash.add('danger', 'Vous devez sélectionner au moins un emplacement');
-                    return;
+                    return ;
                 } else {
                     data.append('locations', JSON.stringify(locations));
                 }
             }
-            data.append('frequency', $modal.find('input[type="radio"][name="frequency"]:checked').val());
+            data.append('frequency', $modalEditInventoryPanner.find('input[type="radio"][name="frequency"]:checked').val());
             form.loading(() => {
                 return AJAX
-                    .route(`POST`, `post_mission_rules_form`, {})
-                    .json(data)
+                    .route(`POST`, `mission_rules_form`, {})
+                    .json(
+                        data
+                    )
                     .then((response) => {
                         if (response.success) {
                             tableInventoryPanning.ajax.reload();
-                            $modal.modal('hide');
+                            $modalEditInventoryPanner.modal('hide');
                         }
                         else {
                             Flash.add('danger', response.message);
@@ -82,66 +60,6 @@ function initAddLocationAndZoneForm(tableLocations, $modal) {
                     });
             });
         });
-
-    locationTypeForm.find('.add-button').on('click', function () {
-        wrapLoadingOnActionButton($(this), () => {
-                let ids = [];
-                $(this).closest('.row').find('select').find('option:selected').each(function () {
-                    ids.push($(this).val());
-                    $(this).parent().empty();
-                });
-                return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
-                    type: $(this).data('type'),
-                    dataIdsToDisplay: ids,
-                })
-                    .json()
-                    .then((response) => {
-                        if (response.success) {
-                            initModalTableLocations($modal, response.data);
-                        }
-                    });
-            }
-        )
-    });
-}
-
-function initModalTableLocations($modal, dataToDisplay = null) {
-    const tableLocations = $modal.find('#tableLocations');
-
-    if (dataToDisplay) {
-        const tableLocationsDatatable = tableLocations.DataTable();
-        const tableLocationsData = tableLocationsDatatable.column(1).data().toArray();
-        for (const lineToAdd of dataToDisplay) {
-            if (Array.isArray(lineToAdd)) {
-                for (const line of lineToAdd) {
-                    if (!tableLocationsData.includes(line.location)) {
-                        tableLocationsDatatable.row.add(line).draw(false);
-                    }
-                }
-            } else {
-                if (!tableLocationsData.includes(lineToAdd.location)) {
-                    tableLocationsDatatable.row.add(lineToAdd).draw(false);
-                }
-            }
-        }
-    } else {
-        initDataTable($container.find('table'), {
-            lengthMenu: [10, 25, 50],
-            columns: [
-                {data: 'id', name: 'id', title: 'id', visible: false},
-                {data: 'zone', name: 'zone', title: 'Zone'},
-                {data: 'location', name: 'location', title: 'Emplacement'},
-            ],
-            order: [
-                ['location', 'asc'],
-            ],
-            domConfig: {
-                removeInfo: true
-            },
-            paging: true,
-            searching: false,
-        });
-    }
 }
 
 function editMissionRule($button) {
@@ -154,7 +72,7 @@ function editMissionRule($button) {
 
     wrapLoadingOnActionButton($wrapperLoader, () => (
         AJAX
-            .route(GET, 'get_mission_rules_form_template', params)
+            .route(GET, 'mission_rules_form_template', params)
             .json()
             .then(({html}) => {
                 $modalEditInventoryPanner.find('.modal-body').html(html);
@@ -162,4 +80,22 @@ function editMissionRule($button) {
                 $modalEditInventoryPanner.modal('show');
             })
     ));
+}
+
+function initModalContent($modal) {
+    const locationTypeForm = $modal.find('#locationTypeForm');
+    const articleTypeForm = $modal.find('#articleTypeForm');
+
+    initFormAddInventoryLocations($modal, null);
+
+    $('input[type=radio][name=missionType]').on('change', function (input) {
+        const $input = $(input.target);
+        if ($input.val() === 'location') {
+            locationTypeForm.removeClass('d-none');
+            articleTypeForm.addClass('d-none');
+        } else if ($input.val() === 'article') {
+            articleTypeForm.removeClass('d-none');
+            locationTypeForm.addClass('d-none');
+        }
+    });
 }
