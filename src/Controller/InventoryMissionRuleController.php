@@ -22,7 +22,7 @@ use WiiCommon\Helper\Stream;
 class InventoryMissionRuleController extends AbstractController
 {
 
-    #[Route('/form-template', name: 'get_mission_rules_form_template', options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route('/form-template', name: 'mission_rules_form_template', options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function getEditFormTemplate(EntityManagerInterface $entityManager,
                                         Request                $request): JsonResponse {
@@ -49,7 +49,7 @@ class InventoryMissionRuleController extends AbstractController
     }
 
     // TODO has rights
-    #[Route('/save', name: 'post_mission_rules_form', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route('/save', name: 'mission_rules_form', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function save(EntityManagerInterface $entityManager,
                          Request                $request): JsonResponse

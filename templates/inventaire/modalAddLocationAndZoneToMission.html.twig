@@ -1,5 +1,3 @@
-{% import 'form.html.twig' as form %}
-
 <div class="modal fade" id="modalAddLocationAndZoneToMission" role="dialog" aria-hidden="true">
     <div class="modal-lg modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -7,43 +5,13 @@
                 title: "Ajouter une mission - Type article sur emplacement"
             } %}
 
-            <input type="hidden" class="data" value="{{ missionId }}" name="missionId" >
             <div class="modal-body modal-input container-fluid">
-                <div class="row align-items-end">
-                    <div class="col-6">
-                        {{ form.select('zones', 'Ajout des emplacements des zones', false, {
-                            type: 'zones',
-                            multiple: true,
-                        }) }}
-                    </div>
-                    <div class="col-6">
-                        <button class="btn btn-primary mt-1 d-flex align-items-center add-button" data-type="zones">
-                            <i class="wii-icon wii-icon-plus mr-2"></i>
-                            Ajouter les emplacements des zones
-                        </button>
-                    </div>
-                </div>
-                <div class="row align-items-end">
-                    <div class="col-6">
-                        {{ form.select('locations', 'Ajout des emplacements', false, {
-                            type: 'location',
-                            multiple: true,
-                        }) }}
-                    </div>
-                    <div class="col-6">
-                        <button class="btn btn-primary mt-1 d-flex align-items-center add-button" data-type="locations">
-                            <i class="wii-icon wii-icon-plus mr-2"></i>
-                            Ajouter les emplacements
-                        </button>
-                    </div>
-                </div>
-                <div class="wii-section-title my-3">Liste des emplacement sélectionnés</div>
-                <div class="row">
-                    <div class="col-12">
-                        <table id="tableLocations" class="table w-100"></table>
-                    </div>
+                <input type="hidden" class="data" value="{{ missionId }}" name="missionId">
+                <div class="raw no-gutters">
+                    {% include 'inventaire/formAddInventoryLocations.html.twig'  %}
                 </div>
             </div>
+
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},

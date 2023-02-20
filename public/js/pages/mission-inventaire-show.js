@@ -15,10 +15,38 @@ $(function () {
     let typeLocation = $('#typeLocation').val();
     let locationsAlreadyAdded = Boolean($('#locationsAlreadyAdded').val());
 
+    const $modalAddLocationAndZoneToMission = $('#modalAddLocationAndZoneToMission');
+    const tableLocations = $modalAddLocationAndZoneToMission.find('.tableLocationsInventoryMission')
+
+    initFormAddInventoryLocations($modalAddLocationAndZoneToMission);
+
+    Form
+        .create($modalAddLocationAndZoneToMission)
+        .onSubmit((data) => {
+            wrapLoadingOnActionButton($modalAddLocationAndZoneToMission.find('button[type=submit]'),() => {
+                const locations = tableLocations.DataTable().column(0).data().toArray();
+                if (locations.length === 0) {
+                    Flash.add('danger', 'Vous devez sélectionner au moins un emplacement');
+                    return;
+                } else {
+                    data.append('locations', JSON.stringify(locations));
+                }
+                return AJAX.route(`POST`, `add_locations_or_zones_to_mission`, {
+                    mission,
+                    locations: locations
+                })
+                    .json()
+                    .then((response) => {
+                        if(response.success){
+                            $modalAddLocationAndZoneToMission.modal('hide');
+                            tableLocationMission.ajax.reload();
+                        }
+                    });
+            });
+        });
+
     if(typeLocation && !locationsAlreadyAdded){
-        const tableLocations = $('#tableLocations');
-        onOpenModalAddLocationAndZone(tableLocations);
-        initModalAddTableLocations();
+        $modalAddLocationAndZoneToMission.modal('show');
     }
 
     initLocationMissionsDataTable();
@@ -210,88 +238,4 @@ function initLocationMissionsDataTable() {
         },
     };
     tableLocationMission = initDataTable('tableLocationMissions', tableLocationMissionsConfig);
-}
-
-function onOpenModalAddLocationAndZone(tableLocations){
-    let $modalAddLocationAndZoneToMission = $('#modalAddLocationAndZoneToMission');
-
-    Form.create($modalAddLocationAndZoneToMission)
-        .onSubmit(() => {
-            wrapLoadingOnActionButton($modalAddLocationAndZoneToMission.find('button[type=submit]'),() => {
-                return AJAX.route(`POST`, `add_locations_or_zones_to_mission`, {
-                    mission,
-                    locations: tableLocations.DataTable().column(2).data().toArray()
-                })
-                    .json()
-                    .then((response) => {
-                        if(response.success){
-                            $modalAddLocationAndZoneToMission.modal('hide');
-                            tableLocationMission.ajax.reload();
-                        }
-                    });
-            });
-        });
-
-    $modalAddLocationAndZoneToMission.find('.add-button').on('click', function(){
-        wrapLoadingOnActionButton($(this), () => {
-            let ids = [];
-            $(this).closest('.row').find('select').find('option:selected').each(function() {
-                ids.push($(this).val());
-                $(this).parent().empty();
-            });
-            return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
-                type: $(this).data('type'),
-                mission,
-                dataIdsToDisplay: ids,
-            })
-                .json()
-                .then((response) => {
-                    if(response.success){
-                        initModalAddTableLocations(response.data);
-                    }
-                });
-            }
-        )
-    });
-
-    $modalAddLocationAndZoneToMission.modal('show');
-}
-
-function initModalAddTableLocations(dataToDisplay = null){
-    const tableLocations = $('#tableLocations');
-
-    if(dataToDisplay){
-        const tableLocationsDatatable = tableLocations.DataTable();
-        const tableLocationsData = tableLocationsDatatable.column(1).data().toArray();
-        for (const lineToAdd of dataToDisplay){
-            if(Array.isArray(lineToAdd)){
-                for (const line of lineToAdd){
-                    if(!tableLocationsData.includes(line.location)){
-                        tableLocationsDatatable.row.add(line).draw(false);
-                    }
-                }
-            } else {
-                if(!tableLocationsData.includes(lineToAdd.location)){
-                    tableLocationsDatatable.row.add(lineToAdd).draw(false);
-                }
-            }
-        }
-    } else {
-        initDataTable('tableLocations', {
-            lengthMenu: [10, 25, 50],
-            columns: [
-                {data: 'zone', name: 'zone', title: 'Zone'},
-                {data: 'location', name: 'location', title: 'Emplacement'},
-                {data: 'id', name: 'id', title: 'id', visible: false },
-            ],
-            order: [
-                ['location', 'asc'],
-            ],
-            domConfig: {
-                removeInfo: true
-            },
-            paging: true,
-            searching: false,
-        });
-    }
 }
