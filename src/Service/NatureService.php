@@ -64,6 +64,7 @@ class NatureService
             'label' => $label,
             'code' => $nature->getCode(),
             'defaultQuantity' => $nature->getDefaultQuantity() ?? 'Non définie',
+            'quantityDefaultForDispatch' => $nature->getDefaultQuantityForDispatch() ?? null,
             'prefix' => $nature->getPrefix() ?? 'Non défini',
             'needsMobileSync' => FormatHelper::bool($nature->getNeedsMobileSync()),
             'displayedOnForms' => !empty($nature->getAllowedForms())

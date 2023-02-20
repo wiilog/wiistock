@@ -1230,14 +1230,6 @@ class RefArticleDataService {
                 "persisted" => true,
                 "required" => $isFromDispatch,
             ],
-            "Volume (m3)" => [
-                "name" => "volume",
-                "type" => "number",
-                "step" => "0.000001",
-                "persisted" => true,
-                "disabled" => true,
-                "required" => $isFromDispatch,
-            ],
             "Poids (kg)" => [
                 "name" => "weight",
                 "type" => "number",
@@ -1279,6 +1271,16 @@ class RefArticleDataService {
                 ]
             );
         }
+        $config = array_merge($config, [
+            "Volume (m3)" => [
+                "name" => "volume",
+                "type" => "number",
+                "step" => "0.000001",
+                "persisted" => true,
+                "disabled" => true,
+                "required" => $isFromDispatch,
+            ]
+        ]);
         return $config;
     }
 

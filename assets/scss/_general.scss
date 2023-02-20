@@ -1075,6 +1075,11 @@ label.required:after {
     img {
         max-width: 100%;
     }
+
+    .ql-editor {
+        white-space: nowrap;
+        padding: 0;
+    }
 }
 
 .history-container {
