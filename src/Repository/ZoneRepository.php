@@ -83,4 +83,10 @@ class ZoneRepository extends EntityRepository
             ->getQuery()
             ->getArrayResult();
     }
+
+    public function countZone(): int {
+        $queryBuilder = $this->createQueryBuilder('zone');
+        return QueryBuilderHelper::count($queryBuilder,'zone');
+    }
+
 }
