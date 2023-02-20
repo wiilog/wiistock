@@ -1,12 +1,13 @@
 import AJAX, {GET} from "@app/ajax";
 import Form from "@app/form";
 import {initFormAddInventoryLocations} from "@app/pages/inventory-mission/form-add-inventory-locations";
+import {toggleFrequencyInput} from '@app/pages/settings/utils';
 
 let tableInventoryPanning;
 
 global.editMissionRule = editMissionRule;
 
-export function initializeInventoryPlanificatorTable($container) {
+export function initializeInventoryPlanificatorTable() {
     const tableInventoryPannerConfig = {
         ajax: {
             "url": Routing.generate('settings_mission_rules_api', true),
@@ -29,20 +30,34 @@ export function initializeInventoryPlanificatorTable($container) {
     };
     tableInventoryPanning = initDataTable(`missionRulesTable`, tableInventoryPannerConfig);
 
-    const $modalEditInventoryPanner = $('#modalFormInventoryPlanner');
+    const $modalFormInventoryPlanner = $('#modalFormInventoryPlanner');
     Form
-        .create($modalEditInventoryPanner)
-        .onSubmit((data, form) => {
+        .create($modalFormInventoryPlanner)
+        .addProcessor((data, errors, $form) => {
             if (data.get('missionType') === 'location') {
-                const locations = $modalEditInventoryPanner.find('.tableLocationsInventoryMission').DataTable().column(0).data().toArray();
+                const $addInventoryLocationsModule = $form.find('.add-inventory-location-container')
+                const $locationTable = $addInventoryLocationsModule.find('table');
+                const locations = $locationTable.DataTable().column(0).data().toArray();
+
                 if (locations.length === 0) {
-                    Flash.add('danger', 'Vous devez sélectionner au moins un emplacement');
-                    return ;
+                    errors.push({
+                        message: `Vous devez sélectionner au moins un emplacement`,
+                    });
                 } else {
-                    data.append('locations', JSON.stringify(locations));
+                    data.append('locations', locations);
                 }
             }
-            data.append('frequency', $modalEditInventoryPanner.find('input[type="radio"][name="frequency"]:checked').val());
+        })
+        .addProcessor((data, errors, $form) => {
+            const $frequency = $form.find('input[type="radio"][name="frequency"]:checked');
+            if (!$frequency.val()) {
+                errors.push({
+                    message: `Veuillez sélectionner une fréquence`,
+                });
+            }
+            data.append('frequency', $frequency.val());
+        })
+        .onSubmit((data, form) => {
             form.loading(() => {
                 return AJAX
                     .route(`POST`, `mission_rules_form`, {})
@@ -52,7 +67,7 @@ export function initializeInventoryPlanificatorTable($container) {
                     .then((response) => {
                         if (response.success) {
                             tableInventoryPanning.ajax.reload();
-                            $modalEditInventoryPanner.modal('hide');
+                            $modalFormInventoryPlanner.modal('hide');
                         }
                         else {
                             Flash.add('danger', response.message);
@@ -83,19 +98,26 @@ function editMissionRule($button) {
 }
 
 function initModalContent($modal) {
-    const locationTypeForm = $modal.find('#locationTypeForm');
-    const articleTypeForm = $modal.find('#articleTypeForm');
 
-    initFormAddInventoryLocations($modal, null);
+    const $checkedFrequency = $modal.find('[name=frequency]:checked');
+    if ($checkedFrequency.exists()) {
+        toggleFrequencyInput($checkedFrequency);
+    }
 
-    $('input[type=radio][name=missionType]').on('change', function (input) {
+    const $locationTypeForm = $modal.find('.location-type-form');
+    const $articleTypeForm = $modal.find('.article-type-form');
+
+    initFormAddInventoryLocations($locationTypeForm.find('.add-inventory-location-container'));
+
+    const $missionType = $modal.find('[name=missionType]');
+    $missionType.on('change', function (input) {
         const $input = $(input.target);
         if ($input.val() === 'location') {
-            locationTypeForm.removeClass('d-none');
-            articleTypeForm.addClass('d-none');
+            $locationTypeForm.removeClass('d-none');
+            $articleTypeForm.addClass('d-none');
         } else if ($input.val() === 'article') {
-            articleTypeForm.removeClass('d-none');
-            locationTypeForm.addClass('d-none');
+            $articleTypeForm.removeClass('d-none');
+            $locationTypeForm.addClass('d-none');
         }
     });
 }

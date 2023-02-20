@@ -16,26 +16,30 @@ $(function () {
     let locationsAlreadyAdded = Boolean($('#locationsAlreadyAdded').val());
 
     const $modalAddLocationAndZoneToMission = $('#modalAddLocationAndZoneToMission');
-    const tableLocations = $modalAddLocationAndZoneToMission.find('.tableLocationsInventoryMission')
+    const $addInventoryLocationsModule = $modalAddLocationAndZoneToMission.find('.add-inventory-location-container')
 
-    initFormAddInventoryLocations($modalAddLocationAndZoneToMission);
+    initFormAddInventoryLocations($addInventoryLocationsModule);
 
     Form
         .create($modalAddLocationAndZoneToMission)
-        .onSubmit((data) => {
-            wrapLoadingOnActionButton($modalAddLocationAndZoneToMission.find('button[type=submit]'),() => {
-                const locations = tableLocations.DataTable().column(0).data().toArray();
-                if (locations.length === 0) {
-                    Flash.add('danger', 'Vous devez sélectionner au moins un emplacement');
-                    return;
-                } else {
-                    data.append('locations', JSON.stringify(locations));
-                }
-                return AJAX.route(`POST`, `add_locations_or_zones_to_mission`, {
+        .addProcessor((data, errors, $form) => {
+            const $addInventoryLocationsModule = $form.find('.add-inventory-location-container')
+            const $locationTable = $addInventoryLocationsModule.find('table');
+            const locations = $locationTable.DataTable().column(0).data().toArray();
+            if (locations.length === 0) {
+                errors.push({
+                    message: `Vous devez sélectionner au moins un emplacement`,
+                });
+            } else {
+                data.append('locations', locations);
+            }
+        })
+        .onSubmit((data, form) => {
+            form.loading(() => {
+                return AJAX.route(AJAX.POST, `add_locations_or_zones_to_mission`, {
                     mission,
-                    locations: locations
                 })
-                    .json()
+                    .json(data)
                     .then((response) => {
                         if(response.success){
                             $modalAddLocationAndZoneToMission.modal('hide');

@@ -3,6 +3,7 @@ import Modal from "@app/modal";
 
 import Form from '@app/form';
 import Flash from '@app/flash';
+import {onSelectAll, toggleFrequencyInput} from '@app/pages/settings/utils';
 import AJAX, {POST} from "@app/ajax";
 
 const EXPORT_UNIQUE = `unique`;
@@ -14,7 +15,6 @@ const ENTITY_TRANSPORT_ROUNDS = "tournee";
 const ENTITY_ARRIVALS = "arrivage";
 
 global.displayExportModal = displayExportModal;
-global.toggleFrequencyInput = toggleFrequencyInput;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
 global.destinationExportChange = destinationExportChange;
 global.forceExport = forceExport;
@@ -111,44 +111,6 @@ function displayExportModal(exportId) {
     });
 
     $modal.modal('show');
-}
-
-function onSelectAll() {
-    const $select = $(this).closest(`.input-group`).find(`select`);
-
-    $select.find(`option:not([disabled])`).each(function () {
-        $(this).prop(`selected`, true);
-    });
-
-    $select.trigger(`change`);
-}
-
-function toggleFrequencyInput($input) {
-    const $modal = $input.closest('.modal');
-    const $globalFrequencyContainer = $modal.find('.frequency-content');
-    const inputName = $input.attr('name');
-    const $inputChecked = $modal.find(`[name="${inputName}"]:checked`);
-    const inputCheckedVal = $inputChecked.val();
-
-    $globalFrequencyContainer.addClass('d-none');
-    $globalFrequencyContainer.find('.frequency').addClass('d-none');
-    $globalFrequencyContainer
-        .find('input.frequency-data, select.frequency-data')
-        .removeClass('data')
-        .removeClass('needed');
-    $globalFrequencyContainer.find('.is-invalid').removeClass('is-invalid');
-
-    if(inputCheckedVal) {
-        $globalFrequencyContainer.removeClass('d-none');
-        const $frequencyContainer = $globalFrequencyContainer.find(`.frequency.${inputCheckedVal}`);
-        $frequencyContainer.removeClass('d-none');
-        $frequencyContainer
-            .find('input.frequency-data, select.frequency-data')
-            .addClass('needed')
-            .addClass('data');
-    }
-
-    $('.select-all-options').on('click', onSelectAll);
 }
 
 function selectHourlyFrequencyIntervalType($select) {

@@ -125,16 +125,19 @@ class InventoryMissionRuleController extends AbstractController
                 ->setCategories([])
                 ->setLocations([]);
             if (isset($data['locations'])) {
-                $locationsId = json_decode($data['locations']);
-                foreach ($locationsId as $locationId) {
-                    $location = $locationRepository->find($locationId);
-                    if ($location) {
-                        $missionRule->addLocation($location);
-                    }
-                }
+                $locationIds = !empty($data['locations'])
+                    ? Stream::explode(',', $data['locations'])
+                        ->map('trim')
+                        ->filter()
+                        ->toArray()
+                    : [];
+                $locations = !empty($locationIds)
+                    ? $locationRepository->findBy(['id' => $locationIds])
+                    : [];
+                $missionRule->setLocations($locations);
             }
             if ($missionRule->getLocations()->isEmpty()) {
-                throw new FormException('Vous devez sélectionner au moins un emplacement');
+                throw new FormException("Veuillez renseigner des emplacements à ajouter.");
             }
         }
 

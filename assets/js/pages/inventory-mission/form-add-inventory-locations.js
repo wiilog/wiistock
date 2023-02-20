@@ -1,10 +1,9 @@
 import AJAX, {POST} from "@app/ajax";
 
 global.initFormAddInventoryLocations = initFormAddInventoryLocations;
-global.addRowInventoryLocations = addRowInventoryLocations;
 
-export function initFormAddInventoryLocations($container){
-    const $tableLocations = $container.find('.tableLocationsInventoryMission');
+export function initFormAddInventoryLocations($container) {
+    const $tableLocations = $container.find('table');
 
     initDataTable($tableLocations, {
         lengthMenu: [10, 25, 50],
@@ -23,30 +22,35 @@ export function initFormAddInventoryLocations($container){
         searching: false,
     });
 
-    $container.find('.add-button').on('click', function(){
-        wrapLoadingOnActionButton($(this), () => {
-            let ids = [];
-            $(this).closest('div').find('select').find('option:selected').each(function() {
-                ids.push($(this).val());
-                $(this).parent().empty();
-            });
-            return AJAX
-                .route(POST, 'add_locations_or_zones_to_mission_datatable', {
-                    buttonType: $(this).data('type'),
-                    dataIdsToDisplay: ids,
-                })
-                .json()
-                .then((response) => {
-                    if(response.success){
-
-                        addRowInventoryLocations($tableLocations, response.data)
-                    }
-                });
-        })
-    });
+    $container
+        .find('.add-button')
+        .off('click.add-inventory-location')
+        .on('click.add-inventory-location', function(){
+            const $button = $(this);
+            wrapLoadingOnActionButton($button, () => {
+                const $select = $button.closest('div').find('select');
+                const $selectedOptions = $select.find('option:selected');
+                const ids = $selectedOptions
+                    .map((_, option) => $(option).val())
+                    .toArray();
+                return AJAX
+                    .route(POST, 'add_locations_or_zones_to_mission_datatable', {
+                        buttonType: $(this).data('type'),
+                        dataIdsToDisplay: ids,
+                    })
+                    .json()
+                    .then((response) => {
+                        if(response.success){
+                            $select.find('option').remove();
+                            $select.val(null).trigger('change');
+                            addRowInventoryLocations($tableLocations, response.data)
+                        }
+                    });
+            })
+        });
 }
 
-export function addRowInventoryLocations($table, dataToDisplay){
+function addRowInventoryLocations($table, dataToDisplay){
     const tableLocationsDatatable = $table.DataTable();
     const tableLocationsData = tableLocationsDatatable.column(0).data().toArray();
     for (const lineToAdd of dataToDisplay){

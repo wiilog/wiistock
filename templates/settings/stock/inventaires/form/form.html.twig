@@ -68,15 +68,17 @@
         } %}
     </div>
 </div>
-<div class="row {{ isMissionLocationType ? '' : 'd-none' }}" id="locationTypeForm">
+<div class="row location-type-form {{ isMissionLocationType ? '' : 'd-none' }}">
     <div class="col-12">
         <div class="wii-section-title my-3">Contenu de l'inventaire</div>
     </div>
-    {% include 'inventaire/formAddInventoryLocations.html.twig' with {
-        initialLocations: initialLocations,
-    } %}
+    <div class="col-12">
+        {% include 'inventaire/formAddInventoryLocations.html.twig' with {
+            initialLocations: initialLocations,
+        } %}
+    </div>
 </div>
-<div class="row {{ isMissionArticleType ? '' : 'd-none' }}" id="articleTypeForm">
+<div class="row article-type-form {{ isMissionArticleType ? '' : 'd-none' }}">
     <div class="col-6">
         {{ form.select('categories', 'Catégorie(s)', true, {
             multiple: true,
