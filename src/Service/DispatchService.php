@@ -347,7 +347,8 @@ class DispatchService {
                         1 => $startDateStr,
                         2 => $endDateStr
                     ], false)
-                    : ''
+                    : '',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DEADLINE_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Général', null, 'Zone liste', 'Traité par', false),
