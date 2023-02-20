@@ -109,6 +109,9 @@ class DispatchService {
 
     private ?array $freeFieldsConfig = null;
 
+    // cache for default nature
+    private ?Nature $defaultNature = null;
+
     public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -703,7 +706,7 @@ class DispatchService {
 
             $code = $pack->getCode();
             $quantity = $dispatchPack->getQuantity();
-            $nature = $this->formatService->nature($pack->getNature());
+            $nature = $pack->getNature();
             $weight = $pack->getWeight();
             $volume = $pack->getVolume();
             $comment = $pack->getComment();
@@ -714,8 +717,8 @@ class DispatchService {
                 ? $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Traité')
                 : $this->translationService->translate('Demande', 'Acheminements', 'Général', 'À traiter');
         } else {
-            $quantity = null;
-            $nature = null;
+            $quantity = $this->defaultNature?->getDefaultQuantityForDispatch() ?: null;
+            $nature = $this->defaultNature;
             $weight = null;
             $volume = null;
             $comment = null;
@@ -743,18 +746,14 @@ class DispatchService {
 
 
             $natureOptions = Stream::from($this->natures)
-                ->map(function(Nature $n) use ($nature) {
-                    $label = $this->formatService->nature($n);
-
-                    return [
-                        "id" => $n->getId(),
-                        "label" => $label,
-                        "selected" => ($label === $nature || (!$nature && $this->defaultNature === $n)) ? "selected" : "",
-                    ];
-                 })
+                ->map(fn(Nature $current) => [
+                    "id" => $current->getId(),
+                    "label" => $this->formatService->nature($current),
+                    "selected" => $current->getId() === $nature?->getId() ? "selected" : "",
+                ])
                 ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                 ->map(fn(array $n) => "<option value='{$n["id"]}' {$n["selected"]}>{$n["label"]}</option>")
-                ->prepend(!$nature && !$this->defaultNature ? "<option disabled selected>$labelNatureSelection</option>" : null)
+                ->prepend(!$nature ? "<option disabled selected>$labelNatureSelection</option>" : null)
                 ->join("");
 
             $data = [

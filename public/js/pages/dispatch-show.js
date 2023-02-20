@@ -430,9 +430,12 @@ function initializePacksTable(dispatchId, isEdit) {
             const $select = $(this);
             const $row = $select.closest(`tr`);
             const $quantity = $row.find(`input[name=quantity]`);
+            const $nature = $row.find(`[name=nature]`);
 
             const [value] = $select.select2(`data`);
-            const defaultQuantity = value.defaultQuantityForDispatch || 1;
+            // only for existing logistic unit
+            // for new logistic unit it will be undefined, the quantity field is directly filled
+            const defaultQuantity = value.defaultQuantityForDispatch;
 
             let code = value.text || '';
             const packPrefix = $select.data('search-prefix');
@@ -458,12 +461,12 @@ function initializePacksTable(dispatchId, isEdit) {
             }
 
             if(value.nature_id && value.nature_label) {
-                $row.find(`[name=nature]`).val(value.nature_id);
+                $nature.val(value.nature_id);
             }
 
             table.columns.adjust().draw();
 
-            if (defaultQuantity !== undefined && value.nature_id && value.nature_label) {
+            if ($quantity.val() && $nature.val()) {
                 // trigger dispatch pack saving if nature and pack filled
                 $quantity.trigger('focusout.keyboardNavigation');
             }
