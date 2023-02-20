@@ -2686,22 +2686,22 @@ class MobileController extends AbstractApiController
      * @Wii\RestVersionChecked()
      */
     public function dispatchValidate(Request                $request,
-                                     EntityManagerInterface $manager,
+                                     EntityManagerInterface $entityManager,
                                      RefArticleDataService  $refArticleDataService,
                                      PackService            $packService,
                                      StatusHistoryService   $statusHistoryService,
                                      KernelInterface        $kernel): Response {
-        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
-        $packRepository = $manager->getRepository(Pack::class);
-        $statusRepository = $manager->getRepository(Statut::class);
-        $settingRepository = $manager->getRepository(Setting::class);
-        $typeRepository = $manager->getRepository(Type::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         $references = json_decode($request->request->get('references'), true);
         $user = $this->getUser();
         $now = new DateTime();
 
-        $dispatch = $manager->find(Dispatch::class, $request->request->get('dispatch'));
+        $dispatch = $entityManager->find(Dispatch::class, $request->request->get('dispatch'));
         $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
 
         if($toTreatStatus) {
@@ -2747,10 +2747,10 @@ class MobileController extends AbstractApiController
                         ->setQuantiteStock(0)
                         ->setQuantiteDisponible(0);
 
-                    $manager->persist($reference);
+                    $entityManager->persist($reference);
                 }
 
-                $description = [
+                $refArticleDataService->updateDescriptionField($entityManager, $reference, [
                     'outFormatEquipment' => $data['outFormatEquipment'],
                     'manufacturerCode' => $data['manufacturerCode'],
                     'volume' => $data['volume'],
@@ -2759,21 +2759,19 @@ class MobileController extends AbstractApiController
                     'height' => $data['height'],
                     'weight' => $data['weight'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
-                ];
-
-                $reference->setDescription($description);
+                ]);
 
                 if ($data['logisticUnit']) {
                     $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']]) ?? $packService->createPackWithCode($data['logisticUnit']);
 
-                    $manager->persist($logisticUnit);
+                    $entityManager->persist($logisticUnit);
 
                     $dispatchPack = (new DispatchPack())
                         ->setDispatch($dispatch)
                         ->setPack($logisticUnit)
                         ->setTreated(false);
 
-                    $manager->persist($dispatchPack);
+                    $entityManager->persist($dispatchPack);
 
                     $dispatchReferenceArticle = (new DispatchReferenceArticle())
                         ->setReferenceArticle($reference)
@@ -2801,18 +2799,18 @@ class MobileController extends AbstractApiController
                                 ->setFullPath("/uploads/attachements/$name.jpeg");
 
                             $dispatchReferenceArticle->addAttachment($attachment);
-                            $manager->persist($attachment);
+                            $entityManager->persist($attachment);
                         }
                         $fileCounter++;
                     } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
 
-                    $manager->persist($dispatchReferenceArticle);
+                    $entityManager->persist($dispatchReferenceArticle);
                 }
             }
 
-            $statusHistoryService->updateStatus($manager, $dispatch, $toTreatStatus);
+            $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus);
 
-            $manager->flush();
+            $entityManager->flush();
 
             return $this->json([
                 'success' => true
