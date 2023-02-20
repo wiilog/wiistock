@@ -1293,6 +1293,7 @@ class RefArticleDataService {
             ->map(fn(array $attributes) => $attributes['name'])
             ->flip()
             ->intersect($data, true)
+            ->keymap(fn($value, string $key) => [$key, !is_null($value) ? (string) $value : null])
             ->toArray();
         $referenceArticle->setDescription($descriptionData);
     }

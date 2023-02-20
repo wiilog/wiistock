@@ -473,8 +473,13 @@ function initializePacksTable(dispatchId, isEdit) {
         $table.on(`change`, `select[name="pack"]`, function() {
             const $select = $(this);
             const $row = $select.closest(`tr`);
+            const $quantity = $row.find(`input[name=quantity]`);
+            const $nature = $row.find(`[name=nature]`);
+
             const [value] = $select.select2(`data`);
-            const defaultQuantity = $select.select2(`data`)[0].defaultQuantityForDispatch || 1
+            // only for existing logistic unit
+            // for new logistic unit it will be undefined, the quantity field is directly filled
+            const defaultQuantity = value.defaultQuantityForDispatch;
 
             let code = value.text || '';
             const packPrefix = $select.data('search-prefix');
@@ -494,14 +499,24 @@ function initializePacksTable(dispatchId, isEdit) {
             $row.find(`.lastLocation`).text(value.lastLocation);
             $row.find(`.operator`).text(value.operator);
             $row.find(`.status`).text(Translation.of('Demande', 'Acheminements', 'Général', 'À traiter', false));
-            $row.find(`input[name=quantity]`).val(defaultQuantity);
+
+            if (defaultQuantity !== undefined) {
+                $quantity.val(defaultQuantity);
+            }
 
             if(value.nature_id && value.nature_label) {
-                $row.find(`[name=nature]`).val(value.nature_id).trigger(`change`);
+                $nature.val(value.nature_id);
             }
 
             table.columns.adjust().draw();
-            $row.find(`[name=quantity]`).focus();
+
+            if ($quantity.val() && $nature.val()) {
+                // trigger dispatch pack saving if nature and pack filled
+                $quantity.trigger('focusout.keyboardNavigation');
+            }
+            else {
+                $quantity.trigger('focus');
+            }
         });
 
         $table.on(`click`, `.add-pack-row`, function() {
@@ -623,10 +638,10 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                                     {data: 'batchNumber', title: 'N° de lot'},
                                     {data: 'manufacturerCode', title: 'Code fabriquant'},
                                     {data: 'sealingNumber', title: 'N° de plombage / scellée'},
+                                    {data: 'ADR', title: 'ADR'},
                                     {data: 'serialNumber', title: 'N° de série'},
                                     {data: 'volume', title: 'Volume (m3)'},
                                     {data: 'weight', title: 'Poids (kg)'},
-                                    {data: 'ADR', title: 'ADR'},
                                     {data: 'outFormatEquipment', title: 'Matériel hors format'},
                                     {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
                                     {data: 'comment', title: 'Commentaire', orderable: false},
