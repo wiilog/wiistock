@@ -1428,9 +1428,9 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function saveFieldParam(Request $request, EntityManagerInterface $manager, FieldsParam $field): Response {
-        if ($field->getModalType() == "FREE") {
+        if ($field->getModalType() == FieldsParam::MODAL_TYPE_FREE) {
             $field->setElements(explode(",", $request->request->get("elements")));
-        } elseif ($field->getModalType() == "USER_BY_TYPE") {
+        } elseif ($field->getModalType() == FieldsParam::MODAL_TYPE_USER) {
             $lines = $request->request->has("lines") ? json_decode($request->request->get("lines"), true) : [];
             $elements = [];
             foreach ($lines as $line) {
