@@ -37,6 +37,7 @@ use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
 use App\Exceptions\ImportException;
+use App\Repository\ZoneRepository;
 use Closure;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
@@ -357,7 +358,6 @@ class ImportService
     {
         $this->currentImport = $import;
         $this->resetCache();
-
         $csvFile = $this->currentImport->getCsvFile();
 
         // we check mode validity
@@ -1716,7 +1716,7 @@ class ImportService
                 $this->throwError("Le champ description est obligatoire lors de la création d'un emplacement");
             }
 
-            $this->persistZone($data, $location, $zoneRepository);
+            $this->treatLocationZone($data, $location, $zoneRepository);
 
         } else {
             if (isset($data['description'])) {
@@ -1724,7 +1724,7 @@ class ImportService
                     $this->throwError("La valeur saisie pour le champ description ne doit pas dépasser 255 caractères");
                 }
             }
-
+        }
         if (isset($data['dateMaxTime'])) {
             if (preg_match("/^\d+:[0-5]\d$/", $data['dateMaxTime'])) {
                 $location->setDateMaxTime($data['dateMaxTime']);
@@ -1818,11 +1818,37 @@ class ImportService
             }
         }
         if (isset($data['zone'])) {
-            $this->persistZone($data, $location, $zoneRepository);
+            $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
+            if (!$zone) {
+                $this->throwError('Zone inconnue.');
+            }
+            $location->setZone($zone);
         } else {
-            $this->persistZone($data, $location, $zoneRepository);
+            if (!isset($this->cache['totalZone'])) {
+                $zoneRepository = $this->entityManager->getRepository(Zone::class);
+                $this->cache['totalZone'] = $zoneRepository->count([]);
+            }
+
+            if ($this->cache['totalZone'] === 0) {
+                $this->throwError("Aucune zone existante. Veuillez créer au moins une zone");
+            }
+            else if ($this->cache['totalZone'] === 1) {
+                $zone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
+                if ($zone) {
+                    $location->setZone($zone);
+                } else {
+                    $this->throwError('La zone ' . $data['zone'] . ' n\'existe pas dans la base de données');
+                }
+            }
+            else if ($this->cache['totalZone'] > 1) {
+                $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
+                if ($zone) {
+                    $location->setZone($zone);
+                } else {
+                    $this->throwError('La zone ' . $data['zone'] . ' n\'existe pas dans la base de données');
+                }
+            }
         }
-    }
 
         $this->entityManager->persist($location);
 
@@ -2258,21 +2284,24 @@ class ImportService
         ];
     }
 
-    private function persistZone($data, $location, $zoneRepository) {
-        $countZone = $zoneRepository->countZone();
+    private function treatLocationZone(Array $data,Emplacement $location,ZoneRepository $zoneRepository): void {
         if (isset($data['zone'])) {
             $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
-            if ($zone && trim(strtolower($data['zone'])) === trim(strtolower($zone->getName()))) {
+            if ($zone) {
                 $location->setZone($zone);
             } else {
                 $this->throwError('La zone ' . $data['zone'] . ' n\'existe pas dans la base de données');
             }
         } else {
-            if ($countZone === 0) {
+            if (!isset($this->cache['totalZone'])) {
+                $zoneRepository = $this->entityManager->getRepository(Zone::class);
+                $this->cache['totalZone'] = $zoneRepository->count([]);
+            }
+            if ($this->cache['totalZone'] === 0) {
                 $this->throwError("Aucune zone existante. Veuillez créer au moins une zone");
-            } else if ($countZone === 1 ) {
-                $zones = $zoneRepository->findAll();
-                $location->setZone($zones[0]);
+            } else if ($this->cache['totalZone'] === 1 ) {
+                $zone = $zoneRepository->findOneBy([]);
+                $location->setZone($zone);
             } else {
                 $this->throwError("Le champ zone doit être renseigné");
             }
