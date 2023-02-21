@@ -9,13 +9,20 @@
 <div class="row">
     {% if missionRule.id %}
         <input type="hidden" class="data" value="{{ missionRule.id }}" name="ruleId"/>
+        <div class="col-12">
+            <div class="wii-field-name">Type de mission</div>
+            <div class="wii-body-text">
+                {{ isMissionArticleType ? 'Quantité article' : 'Article sur emplacement' }}
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            {{ form.switch('missionType', 'Type de mission', true, [
+                {label: 'Quantité article', value: articleType, checked: isMissionArticleType},
+                {label: 'Article sur emplacement', value: locationType, checked: isMissionLocationType},
+            ]) }}
+        </div>
     {% endif %}
-    <div class="col-12">
-        {{ form.switch('missionType', 'Type de mission', true, [
-            {label: 'Quantité article', value: articleType, checked: isMissionArticleType, disabled: missionRule.id != null},
-            {label: 'Article sur emplacement', value: locationType, checked: isMissionLocationType, disabled: missionRule.id != null},
-        ]) }}
-    </div>
     <div class="col-6 mt-3">
         {{ form.input('label', 'Libellé de la tache', true, missionRule.label, {
             type: 'text',
