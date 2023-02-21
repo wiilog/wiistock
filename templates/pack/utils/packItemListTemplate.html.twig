@@ -63,10 +63,9 @@
         {% if content|length > 0 %}
             <tr class="articles-container">
                 <td></td>
-                <td style="max-width: 0; font-size: 1em;">
-                    <div class="articles-wrapper {{ header ? 'sub-articles-wrapper' }}">
-                        <table class="table w-100"
-                               data-initial-data="{{ {data: content}|json_encode }}"></table>
+                <td>
+                    <div class="articles-wrapper">
+                        <table class="table w-100" data-initial-data="{{ {data: content}|json_encode }}"></table>
                     </div>
                 </td>
             </tr>
