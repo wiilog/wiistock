@@ -17,16 +17,16 @@ class PurchaseRequestScheduleRule extends ScheduleRule
     private ?int $id = null;
 
     #[ORM\ManyToMany(targetEntity: Zone::class)]
-    private Collection $zone;
+    private Collection $zones;
 
     #[ORM\ManyToMany(targetEntity: Fournisseur::class)]
-    private Collection $supplier;
+    private Collection $suppliers;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $requester = null;
 
-    #[ORM\Column(length: 255, nullable: false)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
     private ?string $emailSubject = null;
 
     #[ORM\ManyToOne]
@@ -38,8 +38,8 @@ class PurchaseRequestScheduleRule extends ScheduleRule
 
     public function __construct()
     {
-        $this->zone = new ArrayCollection();
-        $this->supplier = new ArrayCollection();
+        $this->zones = new ArrayCollection();
+        $this->suppliers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -50,15 +50,15 @@ class PurchaseRequestScheduleRule extends ScheduleRule
     /**
      * @return Collection<int, Zone>
      */
-    public function getZone(): Collection
+    public function getZones(): Collection
     {
-        return $this->zone;
+        return $this->zones;
     }
 
     public function addZone(Zone $zone): self
     {
-        if (!$this->zone->contains($zone)) {
-            $this->zone->add($zone);
+        if (!$this->zones->contains($zone)) {
+            $this->zones->add($zone);
         }
 
         return $this;
@@ -66,7 +66,7 @@ class PurchaseRequestScheduleRule extends ScheduleRule
 
     public function removeZone(Zone $zone): self
     {
-        $this->zone->removeElement($zone);
+        $this->zones->removeElement($zone);
 
         return $this;
     }
@@ -74,15 +74,15 @@ class PurchaseRequestScheduleRule extends ScheduleRule
     /**
      * @return Collection<int, Fournisseur>
      */
-    public function getSupplier(): Collection
+    public function getSuppliers(): Collection
     {
-        return $this->supplier;
+        return $this->suppliers;
     }
 
     public function addSupplier(Fournisseur $supplier): self
     {
-        if (!$this->supplier->contains($supplier)) {
-            $this->supplier->add($supplier);
+        if (!$this->suppliers->contains($supplier)) {
+            $this->suppliers->add($supplier);
         }
 
         return $this;
@@ -90,7 +90,7 @@ class PurchaseRequestScheduleRule extends ScheduleRule
 
     public function removeSupplier(Fournisseur $supplier): self
     {
-        $this->supplier->removeElement($supplier);
+        $this->suppliers->removeElement($supplier);
 
         return $this;
     }
