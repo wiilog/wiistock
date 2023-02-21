@@ -25,6 +25,9 @@ class Import {
     const ENTITY_USER = 'USER';
     const ENTITY_DELIVERY = 'DELIVERY';
     const ENTITY_LOCATION = 'LOCATION';
+    const ENTITY_CUSTOMER = 'CUSTOMER';
+    const ENTITY_PROJECT = 'PROJECT';
+    const ENTITY_REF_LOCATION = 'REF_LOCATION';
     const ENTITY_LABEL = [
         self::ENTITY_ART => "Articles",
         self::ENTITY_REF => "Références",
@@ -34,6 +37,9 @@ class Import {
         self::ENTITY_USER => "Utilisateurs",
         self::ENTITY_DELIVERY => "Livraisons",
         self::ENTITY_LOCATION => "Emplacements",
+        self::ENTITY_CUSTOMER => "Clients",
+        self::ENTITY_PROJECT => "Projets",
+        self::ENTITY_REF_LOCATION => "Quantité référence par emplacement"
     ];
     const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
@@ -79,6 +85,19 @@ class Import {
         self::ENTITY_LOCATION => [
             'name',
         ],
+        self::ENTITY_CUSTOMER => [
+            'name',
+        ],
+        self::ENTITY_PROJECT => [
+            'code',
+            'projectManager',
+        ],
+        self::ENTITY_REF_LOCATION => [
+            'reference',
+            'location',
+            'securityQuantity',
+            'conditioningQuantity',
+        ],
     ];
     const FIELD_PK = [
         self::ENTITY_ART_FOU => 'reference',
@@ -89,6 +108,9 @@ class Import {
         self::ENTITY_USER => null,
         self::ENTITY_DELIVERY => null,
         self::ENTITY_LOCATION => 'name',
+        self::ENTITY_CUSTOMER => 'name',
+        self::ENTITY_PROJECT => 'code',
+        self::ENTITY_REF_LOCATION => 'reference',
     ];
 
     public const IMPORT_FIELDS_TO_FIELDS_PARAM = [
@@ -98,143 +120,156 @@ class Import {
         'transporteur' => 'transporteur',
     ];
     const FIELDS_ENTITY = [
-        'storageLocation' => 'Emplacement de stockage',
-        'visibilityGroups' => 'Groupes de visibilité',
-        'reference' => 'référence',
-        'barCode' => 'code barre',
-        'quantite' => 'quantité',
-        'label' => 'libellé',
-        'libelle' => 'libellé',
-        'articleFournisseur' => 'article fournisseur',
-        'needsMobileSync' => 'Synchronisation nomade',
-        'prixUnitaire' => 'prix unitaire',
-        'limitSecurity' => 'seuil de sécurité',
-        'limitWarning' => "seuil d'alerte",
-        'quantiteStock' => 'quantité en stock',
-        'typeQuantite' => 'type quantité (article ou référence)',
-        'codeReference' => 'Code',
-        'nom' => 'Nom',
-        'referenceReference' => 'référence article de référence',
-        'fournisseurReference' => 'référence fournisseur',
-        'emplacement' => 'emplacement',
-        'catInv' => 'catégorie inventaire',
-        'articleFournisseurReference' => 'Référence article fournisseur',
-        'typeLabel' => 'type',
-        'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
-        'emergencyComment' => 'commentaire urgence',
-        'orderNumber' => 'numéro de commande',
-        'quantity' => 'quantité',
-        'batch' => 'Lot',
-        'location' => 'Emplacement',
-        'manualUrgent' => 'Urgence',
-        'stockManagement' => 'Gestion de stock',
-        'expiryDate' => 'Date de péremption (jj/mm/AAAA)',
-        'stockEntryDate' => 'Date d\'entrée en stock (jj/mm/AAAA hh:MM)',
-        'managers' => 'Gestionnaire(s)',
-        'orderDate' => 'date commande (jj/mm/AAAA)',
-        'expectedDate' => 'date attendue (jj/mm/AAAA)',
-        'buyer' => 'Acheteur',
+        'default' => [
+            'storageLocation' => 'Emplacement de stockage',
+            'visibilityGroups' => 'Groupes de visibilité',
+            'reference' => 'référence',
+            'barCode' => 'code barre',
+            'quantite' => 'quantité',
+            'label' => 'libellé',
+            'libelle' => 'libellé',
+            'articleFournisseur' => 'article fournisseur',
+            'needsMobileSync' => 'Synchronisation nomade',
+            'prixUnitaire' => 'prix unitaire',
+            'limitSecurity' => 'seuil de sécurité',
+            'limitWarning' => "seuil d'alerte",
+            'quantiteStock' => 'quantité en stock',
+            'typeQuantite' => 'type quantité (article ou référence)',
+            'codeReference' => 'Code',
+            'nom' => 'Nom',
+            'referenceReference' => 'référence article de référence',
+            'fournisseurReference' => 'référence fournisseur',
+            'emplacement' => 'emplacement',
+            'catInv' => 'catégorie inventaire',
+            'articleFournisseurReference' => 'Référence article fournisseur',
+            'typeLabel' => 'type',
+            'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
+            'emergencyComment' => 'commentaire urgence',
+            'orderNumber' => 'numéro de commande',
+            'quantity' => 'quantité',
+            'batch' => 'Lot',
+            'location' => 'Emplacement',
+            'manualUrgent' => 'Urgence',
+            'stockManagement' => 'Gestion de stock',
+            'expiryDate' => 'Date de péremption (jj/mm/AAAA)',
+            'stockEntryDate' => 'Date d\'entrée en stock (jj/mm/AAAA hh:MM)',
+            'managers' => 'Gestionnaire(s)',
+            'orderDate' => 'date commande (jj/mm/AAAA)',
+            'expectedDate' => 'date attendue (jj/mm/AAAA)',
+            'buyer' => 'Acheteur',
+            "outFormatEquipment" => 'Materiel hors format',
+            "ADR" => 'ADR',
+            "manufacturerCode" => 'Code Fabriquant',
+            "volume" => 'Volume (m3)',
+            "weight" => 'Poids (kg)',
+            "associatedDocumentTypes" => 'Type de documents associés',
 
 
-        'role' => 'Rôle',
-        'deliverer' => 'Livreur',
-        'username' => 'Nom d\'utilisateur',
-        'email' => 'Email',
-        'secondaryEmail' => 'Email 2',
-        'lastEmail' => 'Email 3',
-        'phone' => 'Numéro de téléphone',
-        'mobileLoginKey' => 'Clé de connexion nomade',
-        'address' => 'Adresse',
-        'deliveryTypes' => 'Types de livraison',
-        'dispatchTypes' => 'Types d\'acheminement',
-        'handlingTypes' => 'Types de services',
-        'dropzone' => 'Dropzone',
-        'visibilityGroup' => 'Groupes de visibilité',
-        'status' => 'Statut',
-        'quantityDelivery' => 'Quantité à livrer',
-        'articleCode' => 'Code article',
-        'articleReference' => 'Référence',
-        'requester' => 'Demandeur',
+            'role' => 'Rôle',
+            'deliverer' => 'Livreur',
+            'username' => 'Nom d\'utilisateur',
+            'email' => 'Email',
+            'secondaryEmail' => 'Email 2',
+            'lastEmail' => 'Email 3',
+            'phone' => 'Numéro de téléphone',
+            'mobileLoginKey' => 'Clé de connexion nomade',
+            'address' => 'Adresse',
+            'deliveryTypes' => 'Types de livraison',
+            'dispatchTypes' => 'Types d\'acheminement',
+            'handlingTypes' => 'Types de services',
+            'dropzone' => 'Dropzone',
+            'visibilityGroup' => 'Groupes de visibilité',
+            'status' => 'Statut',
+            'quantityDelivery' => 'Quantité à livrer',
+            'articleCode' => 'Code article',
+            'articleReference' => 'Référence',
+            'requester' => 'Demandeur',
+            'signatoryCode' => 'Code Signataire',
 
-        'targetLocationPicking' => 'Emplacement cible picking',
-        'name' => 'Nom',
-        'description' => 'Description',
-        'dateMaxTime' => 'Délais traça HH:MM',
-        'allowedPackNatures' => "Natures autorisées",
-        'allowedDeliveryTypes' => 'Types de livraisons autorisés',
-        'allowedCollectTypes' => 'Types de collectes autorisés',
-        'isDeliveryPoint' => 'Point de livraison',
-        'isOngoingVisibleOnMobile' => 'Encours visible nomade',
-        'isActive' => 'Actif',
+            'targetLocationPicking' => 'Emplacement cible picking',
+            'name' => 'Nom',
+            'description' => 'Description',
+            'dateMaxTime' => 'Délais traça HH:MM',
+            'allowedPackNatures' => "Natures autorisées",
+            'allowedDeliveryTypes' => 'Types de livraisons autorisés',
+            'allowedCollectTypes' => 'Types de collectes autorisés',
+            'isDeliveryPoint' => 'Point de livraison',
+            'isOngoingVisibleOnMobile' => 'Encours visible nomade',
+            'isActive' => 'Actif',
+            'signatory' => 'Signataire',
+            'signatories' => 'Signataires',
 
-        'possibleCustoms' => 'Possible douane',
-        'urgent' => 'Urgent',
+            'possibleCustoms' => 'Possible douane',
+            'urgent' => 'Urgent',
+
+            'fax' => 'Fax',
+
+            'code' => 'Code',
+            'projectManager' => 'Chef de projet',
+
+            'zone' => 'Zone',
+
+            'securityQuantity' => 'Quantité de sécurité',
+            'conditioningQuantity' => 'Quantité de conditionnement',
+        ],
+
+        self::ENTITY_CUSTOMER => [
+            'name' =>  'Client',
+        ],
     ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $label;
+    private ?string $label = null;
 
     #[ORM\Column(type: 'string', length: 64)]
-    private $entity;
+    private ?string $entity = null;
 
-    #[ORM\OneToOne(inversedBy: 'importCsv', targetEntity: 'Attachment')]
-    private $csvFile;
+    #[ORM\OneToOne(inversedBy: 'importCsv', targetEntity: Attachment::class)]
+    private ?Attachment $csvFile = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
-    private $status;
+    private ?Statut $status = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
-    private $user;
+    private ?Utilisateur $user = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $newEntries;
+    private ?int $newEntries = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $updatedEntries;
+    private ?int $updatedEntries = null;
 
-    /**
-     * @var bool
-     */
     #[ORM\Column(type: 'boolean', nullable: false)]
-    private $forced;
+    private ?bool $forced;
 
-    /**
-     * @var bool
-     */
     #[ORM\Column(type: 'boolean', nullable: false)]
-    private $flash;
+    private ?bool $flash;
 
-    /**
-     * @var DateTime
-     */
     #[ORM\Column(type: 'datetime', nullable: false)]
-    private $createdAt;
+    private ?DateTime $createdAt;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $nbErrors;
+    private ?int $nbErrors = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $startDate;
+    private ?DateTime $startDate = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $endDate;
+    private ?DateTime $endDate = null;
 
-    /**
-     * @var Attachment
-     */
-    #[ORM\OneToOne(targetEntity: 'Attachment', inversedBy: 'importLog')]
-    private $logFile;
+    #[ORM\OneToOne(inversedBy: 'importLog', targetEntity: Attachment::class)]
+    private ?Attachment $logFile = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
-    private $columnToField;
+    private ?array $columnToField = null;
 
-    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'import')]
-    private $mouvements;
+    #[ORM\OneToMany(mappedBy: 'import', targetEntity: MouvementStock::class)]
+    private Collection $mouvements;
 
     public function __construct() {
         $this->createdAt = new WiiDateTime();

@@ -241,6 +241,9 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::DAILY_DISPATCHES:
                 $values += $this->serializeDailyDispatches($entityManager, $componentType, $config, $example, $meter);
                 break;
+            case Dashboard\ComponentType::DAILY_DELIVERY_ORDERS:
+                $values += $this->serializeDailyDeliveryOrders($componentType, $config, $meter, $example);
+                break;
             case Dashboard\ComponentType::DAILY_HANDLING:
             case Dashboard\ComponentType::DAILY_OPERATIONS:
                 $values += $this->serializeDailyHandlingOrOperations($entityManager, $componentType, $config, $example, $meter);
@@ -677,7 +680,7 @@ class DashboardSettingsService {
     public function serializeArrivalsAndPacks(Dashboard\ComponentType $componentType,
                                               array $config,
                                               bool $example = false,
-                                              DashboardMeter\Chart $meterChart = null): array {
+                                              DashboardMeter\Chart $meterChart = null): array { // TODO
         $values = $example ? $componentType->getExampleValues() : [];
 
         if (!empty($config['chartColors'])) {
@@ -896,6 +899,70 @@ class DashboardSettingsService {
         return $values;
     }
 
+    private function serializeDailyDeliveryOrders(Dashboard\ComponentType $componentType,
+                                                  array                   $config,
+                                                  ?Dashboard\Meter\Chart  $meterChart = null,
+                                                  bool                    $example = false): array {
+        $values = $example ? $componentType->getExampleValues() : [];
+
+        if (!empty($config['chartColors'])) {
+            $exampleChartColors = $values['chartColors'] ?? null;
+            $values['chartColors'] = $config['chartColors'];
+            if (isset($exampleChartColors)) {
+                foreach ($exampleChartColors as $index => $color) {
+                    if (!isset($values['chartColors'][$index])) {
+                        $values['chartColors'][$index] = $color;
+                    }
+                }
+            }
+        }
+
+        $values['stack'] = true;
+        $values['label'] = 'Livraison';
+        $scale = $config['daysNumber'] ?? DashboardService::DEFAULT_DAILY_REQUESTS_SCALE;
+        $displayDeliveryOrderContentChecked = $config['displayDeliveryOrderContentCheckbox'] ?? false;
+        $displayDeliveryOrderContentValue = $config['displayDeliveryOrderContent'] ?? null;
+
+        // arrivals column
+        if (!$example && isset($meterChart)) {
+            $values['chartData'] = $meterChart->getData();
+        } else {
+            $chartData = $values['chartData'] ?? [];
+            if(!$displayDeliveryOrderContentChecked) {
+                unset($chartData['stack']);
+            }
+
+            $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
+            $keysToKeep[] = 'stack';
+            $chartData = Stream::from($keysToKeep)
+                ->reduce(function(array $carry, string $key) use ($chartData) {
+                    if (isset($chartData[$key])) {
+                        $carry[$key] = $chartData[$key];
+                    }
+                    return $carry;
+                }, []);
+
+            // packs column
+            if (isset($chartData['stack'])) {
+                $label = $displayDeliveryOrderContentValue === 'displayLogisticUnitsCount' ? 'Unité logistique' : 'Article';
+                $chartData['stack'] = array_slice($chartData['stack'], 0, 1);
+                $chartData['stack'][0] = [
+                    'label' => $label,
+                    'backgroundColor' => '#E5E1E1',
+                    'stack' => 'stack',
+                    'data' => $chartData['stack'][0]['data']
+                ];
+                foreach ($chartData['stack'] as $natureData) {
+                    $natureData['data'] = array_slice($natureData['data'], 0, $scale);
+                }
+            }
+
+            $values['chartData'] = $chartData;
+            $values['date'] = $config['date'] ?? "";
+        }
+        return $values;
+    }
+
     /**
      * @param Dashboard\ComponentType $componentType
      * @param array $config
@@ -994,6 +1061,20 @@ class DashboardSettingsService {
         if ($example) {
             $values = $componentType->getExampleValues();
 
+            $displayDeliveryOrderContentChecked = $config['displayDeliveryOrderContentCheckbox'] ?? false;
+            $displayDeliveryOrderContentValue = $config['displayDeliveryOrderContent'] ?? null;
+
+            if ($displayDeliveryOrderContentChecked) {
+                $values['subCounts'] = [
+                    $displayDeliveryOrderContentValue === 'displayLogisticUnitsCount'
+                        ? '<span>Nombre d\'unités logistiques</span>'
+                        : '<span>Nombre d\'articles</span>',
+                    '<span class="dashboard-stats dashboard-stats-counter">5</span>'
+                ];
+            } else {
+                unset($values['subCounts']);
+            }
+
             $convertedDelay = null;
             if(isset($config['treatmentDelay'])
                 && preg_match(Dashboard\ComponentType::ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY, $config['treatmentDelay'])) {
@@ -1005,8 +1086,11 @@ class DashboardSettingsService {
         } else {
             $values = [
                 'count' => $meter ? $meter->getCount() : '-',
-                'delay' => $meter ? $meter->getDelay() : '-'
+                'delay' => $meter ? $meter->getDelay() : '-',
+                'subCounts' => $meter ? $meter->getSubCounts() : []
             ];
+
+
         }
 
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {

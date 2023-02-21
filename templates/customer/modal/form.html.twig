@@ -1,0 +1,31 @@
+{% import 'form.html.twig' as form %}
+
+<div class="row">
+    <div class="col-12">
+        {{ form.input('name', 'Client', true, customer.name, {}) }}
+    </div>
+    <div class="col-12 mt-2">
+        {{ form.textarea('address', 'Adresse', false, customer.address, {}) }}
+    </div>
+    <div class="col-12 mt-2">
+        {{ form.input('phone-number', 'Téléphone', false, customer.phoneNumber, {
+            type: 'tel'
+        }) }}
+    </div>
+    <div class="col-12 mt-2">
+        {{ form.input('email', 'Email', false, customer.email, {
+            type: 'email'
+        }) }}
+    </div>
+    <div class="col-12 mt-2">
+        {{ form.input('fax', 'Fax', false, customer.fax, {
+            type: 'fax',
+        }) }}
+    </div>
+</div>
+
+
+
+
+
+

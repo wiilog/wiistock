@@ -109,11 +109,8 @@ class DisputeService {
         $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? '';
         $references = $receptionReferenceArticleRepository->getAssociatedIdAndReferences($disputeId)[$disputeId] ?? '';
 
-        $isNumeroBLJson = !empty($dispute['arrivageId']);
         $numerosBL = isset($dispute['numCommandeBl'])
-            ? ($isNumeroBLJson
-                ? implode(', ', json_decode($dispute['numCommandeBl'], true))
-                : $dispute['numCommandeBl'])
+            ? (implode(', ', json_decode($dispute['numCommandeBl'], true)))
             : '';
 
         return [
@@ -294,7 +291,7 @@ class DisputeService {
 
             $receptionNumber = $firstArticle ? $firstArticle['receptionNumber'] : '';
             $receptionSupplier = $firstArticle ? $firstArticle['supplier'] : '';
-            $receptionOrderNumber = $firstArticle ? $firstArticle['receptionOrderNumber'] : '';
+            $receptionOrderNumber = $firstArticle ? join(", ", $firstArticle['receptionOrderNumber']) : '';
 
             $references = $associatedIdAndReferences[$dispute["id"]];
             $orderNumbers = $associatedIdsAndOrderNumbers[$dispute["id"]];
@@ -349,10 +346,12 @@ class DisputeService {
             ->setUser($user);
 
         if ($dispute->getStatus()) {
-            $historyRecord->setStatusLabel($this->formatService->status($dispute->getStatus()));
+            // set french status name to translate it after
+            $historyRecord->setStatusLabel($dispute->getStatus()->getNom());
         }
 
         if ($dispute->getType()) {
+            // set french type label to translate it after
             $historyRecord->setTypeLabel($dispute->getType()->getLabel());
         }
 

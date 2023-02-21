@@ -103,7 +103,7 @@ class DisputeController extends AbstractController
             'Statut',
             'Date création',
             'Date modification',
-            'Colis / Réferences',
+            'Unité logistiques / Réferences',
             'Code barre',
             'QteArticle',
             'Ordre arrivage / réception',
@@ -179,17 +179,26 @@ class DisputeController extends AbstractController
                                       Dispute                $dispute): Response
     {
         $rows = [];
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
         $disputeHistoryRecordRepository = $entityManager->getRepository(DisputeHistoryRecord::class);
         $disputeHistory = $disputeHistoryRecordRepository->findBy(['dispute' => $dispute]);
 
-        foreach ($disputeHistory as $record)
-        {
+        foreach ($disputeHistory as $record) {
+            $dispute = $record->getDispute();
+            $categoryStatus = match(true) {
+                $dispute->getArticles()->count() > 0 => CategorieStatut::LITIGE_RECEPT,
+                $dispute->getPacks()->count() > 0 => CategorieStatut::DISPUTE_ARR,
+                default => CategorieStatut::DISPUTE_ARR
+            };
+            $disputeStatus = $statusRepository->findOneByCategorieNameAndStatutCode($categoryStatus, $record->getStatusLabel());
+            $disputeType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DISPUTE, $record->getTypeLabel());
             $rows[] = [
-                'user' => FormatHelper::user($record->getUser()),
-                'date' => FormatHelper::datetime($record->getDate(), "", false, $this->getUser()),
+                'user' => $this->getFormatter()->user($record->getUser()),
+                'date' => $this->getFormatter()->datetime($record->getDate()),
                 'commentaire' => nl2br($record->getComment()),
-                'status' => $record->getStatusLabel(),
-                'type' => $record->getTypeLabel()
+                'status' => $this->getFormatter()->status($disputeStatus) ?? $record->getStatusLabel(),
+                'type' => $this->getFormatter()->type($disputeType) ?? $record->getTypeLabel()
             ];
         }
         $data['data'] = $rows;

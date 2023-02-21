@@ -7,6 +7,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
+use App\Entity\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
@@ -34,7 +35,7 @@ class DataExportService
     public ArrivageService $arrivalService;
 
     #[Required]
-    public ScheduledExportService $scheduledExportService;
+    public ScheduleRuleService $scheduleRuleService;
 
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
@@ -82,7 +83,8 @@ class DataExportService
             'lot',
             'date d\'entrée en stock',
             'date de péremption',
-            'groupe de visibilité'
+            'groupe de visibilité',
+            'projet'
         ], $freeFieldsConfig['freeFieldsHeader']);
     }
 
@@ -279,7 +281,7 @@ class DataExportService
 
         $begin = FormatHelper::parseDatetime($data["startDate"]);
 
-        if (in_array($data["frequency"], [ExportScheduleRule::DAILY, ExportScheduleRule::WEEKLY, ExportScheduleRule::MONTHLY])) {
+        if (in_array($data["frequency"], [ScheduleRule::DAILY, ScheduleRule::WEEKLY, ScheduleRule::MONTHLY])) {
             $begin->setTime(0, 0);
         }
 
@@ -294,6 +296,6 @@ class DataExportService
             ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
 
         $export
-            ->setNextExecution($this->scheduledExportService->calculateNextExecutionDate($export));
+            ->setNextExecution($this->scheduleRuleService->calculateNextExecutionDate($export->getExportScheduleRule()));
     }
 }

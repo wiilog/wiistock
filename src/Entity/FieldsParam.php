@@ -57,6 +57,7 @@ class FieldsParam {
     const FIELD_CODE_ARRIVAL_STATUS = 'arrivalStatus'; // not in settings table
     const FIELD_CODE_ARRIVAL_DATE = 'arrivalDate'; // not in settings table
     const FIELD_CODE_ARRIVAL_CREATOR = 'arrivalCreator'; // not in settings table
+    const FIELD_CODE_PROJECT = 'project';
 
     const FIELD_LABEL_PROVIDER_ARRIVAGE = 'fournisseur';
     const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';
@@ -79,12 +80,15 @@ class FieldsParam {
     const FIELD_LABEL_ARRIVAL_STATUS = 'Statut'; // not in settings table
     const FIELD_LABEL_ARRIVAL_DATE = 'Date'; // not in settings table
     const FIELD_LABEL_ARRIVAL_CREATOR = 'Utilisateur'; // not in settings table
+    const FIELD_LABEL_PROJECT = 'Projet';
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
+    const FIELD_CODE_REQUESTER_DISPATCH = 'requester';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
     const FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH = 'carrierTrackingNumber';
     const FIELD_CODE_RECEIVER_DISPATCH = 'receiver';
     const FIELD_CODE_DEADLINE_DISPATCH = 'deadline';
+    const FIELD_CODE_EMAILS = 'emails';
     const FIELD_CODE_EMERGENCY = 'emergency';
     const FIELD_CODE_COMMAND_NUMBER_DISPATCH = 'commandNumber';
     const FIELD_CODE_COMMENT_DISPATCH = 'comment';
@@ -92,10 +96,12 @@ class FieldsParam {
     const FIELD_CODE_LOCATION_PICK = 'pickLocation';
     const FIELD_CODE_LOCATION_DROP = 'dropLocation';
     const FIELD_CODE_DESTINATION = 'destination';
+    const FIELD_LABEL_REQUESTER_DISPATCH = 'demandeur';
     const FIELD_LABEL_CARRIER_DISPATCH = 'transporteur';
     const FIELD_LABEL_CARRIER_TRACKING_NUMBER_DISPATCH = 'numéro de tracking transporteur';
     const FIELD_LABEL_RECEIVER_DISPATCH = 'destinataire';
     const FIELD_LABEL_DEADLINE_DISPATCH = 'dates d\'échéances';
+    const FIELD_LABEL_EMAILS_DISPATCH = 'email(s)';
     const FIELD_LABEL_EMERGENCY = 'urgence';
     const FIELD_LABEL_COMMAND_NUMBER_DISPATCH = 'numéro de commande';
     const FIELD_LABEL_COMMENT_DISPATCH = 'commentaire';
@@ -114,13 +120,42 @@ class FieldsParam {
     const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
     const FIELD_LABEL_RECEIVERS_HANDLING = 'destinataires';
 
+    const ENTITY_CODE_ARTICLE = 'articles';
+    const FIELD_LABEL_ARTICLE_UNIT_PRICE = 'prix unitaire';
+    const FIELD_LABEL_ARTICLE_BATCH = 'lot';
+    const FIELD_LABEL_ARTICLE_ANOMALY = 'anomalie';
+    const FIELD_LABEL_ARTICLE_EXPIRY_DATE = 'date de péremption';
+    const FIELD_LABEL_ARTICLE_COMMENT = 'commentaire';
+    const FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE = 'ligne bon de livraison';
+    const FIELD_LABEL_ARTICLE_MANUFACTURE_DATE = 'date de fabrication';
+    const FIELD_LABEL_ARTICLE_PRODUCTION_DATE = 'date de production';
+    const FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE = "ligne commande d'achat";
+    const FIELD_LABEL_ARTICLE_NATIVE_COUNTRY = "pays d'origine";
+    const FIELD_LABEL_ARTICLE_DESTINATION_AREA = "zone de destination";
+
+    const FIELD_CODE_ARTICLE_UNIT_PRICE = 'unitPrice';
+    const FIELD_CODE_ARTICLE_BATCH = 'batch';
+    const FIELD_CODE_ARTICLE_ANOMALY = 'anomaly';
+    const FIELD_CODE_ARTICLE_EXPIRY_DATE = 'expiryDate';
+    const FIELD_CODE_ARTICLE_COMMENT = 'comment';
+    const FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE = 'deliveryNoteLine';
+    const FIELD_CODE_ARTICLE_MANUFACTURE_DATE = 'manufactureDate';
+    const FIELD_CODE_ARTICLE_PRODUCTION_DATE = 'productionDate';
+    const FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE = "purchaseOrderLine";
+    const FIELD_CODE_ARTICLE_NATIVE_COUNTRY = "nativeCountry";
+    const FIELD_CODE_ARTICLE_DESTINATION_AREA = 'destinationArea';
 
     const ENTITY_CODE_DEMANDE = 'demande';
     const FIELD_CODE_EXPECTED_AT = 'expectedAt';
     const FIELD_LABEL_EXPECTED_AT = 'date attendue';
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
+        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
         FieldsParam::FIELD_CODE_PJ_ARRIVAGE,
+    ];
+
+    public const FILTER_ONLY_FIELDS = [
+        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
     ];
 
     public const FILTERED_FIELDS = [
@@ -132,6 +167,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_TRANSPORTEUR,
         FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
         FieldsParam::FIELD_CODE_BUSINESS_UNIT,
+        FieldsParam::FIELD_CODE_PROJECT_NUMBER,
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
 
         // Acheminements
@@ -139,42 +175,55 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_RECEIVER_DISPATCH,
         FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
         FieldsParam::FIELD_CODE_DESTINATION,
+        FieldsParam::FIELD_CODE_LOCATION_PICK,
+        FieldsParam::FIELD_CODE_LOCATION_DROP,
+        FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
 
         // Services
         FieldsParam::FIELD_CODE_RECEIVERS_HANDLING,
     ];
 
+    public const NOT_EDITABLE_FIELDS = [
+        // Arrivages
+        FieldsParam::FIELD_CODE_PROJECT
+    ];
+
+    public const ALWAYS_REQUIRED_FIELDS = [
+        // Acheminements
+        FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private ?int $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private ?string $entityCode;
+    private ?string $entityCode = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private ?string $fieldCode;
+    private ?string $fieldCode = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private ?string $fieldLabel;
+    private ?string $fieldLabel = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $requiredCreate;
+    private ?bool $requiredCreate = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $requiredEdit;
+    private ?bool $requiredEdit = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $keptInMemory;
+    private ?bool $keptInMemory = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $displayedCreate;
+    private ?bool $displayedCreate = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $displayedEdit;
+    private ?bool $displayedEdit = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $displayedFilters;
+    private ?bool $displayedFilters = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $elements = [];

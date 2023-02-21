@@ -254,10 +254,8 @@ class CollecteController extends AbstractController
      * @Route("/ajouter-article", name="collecte_add_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function addArticle(Request $request,
-                               FreeFieldService $champLibreService,
+    public function addArticle(Request                $request,
                                EntityManagerInterface $entityManager,
-                               MouvementStockService $mouvementStockService,
                                DemandeCollecteService $demandeCollecteService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -291,7 +289,7 @@ class CollecteController extends AbstractController
                     return $this->redirectToRoute('access_denied');
                 }
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                    $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $champLibreService, $mouvementStockService);
+                    $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $this->getUser());
                 }
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);

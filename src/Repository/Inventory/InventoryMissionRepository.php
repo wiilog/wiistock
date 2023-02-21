@@ -3,15 +3,20 @@
 namespace App\Repository\Inventory;
 
 use App\Entity\Article;
+use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryBuilderHelper;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method InventoryMission|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,7 +29,8 @@ class InventoryMissionRepository extends EntityRepository {
     const DtToDbLabels = [
         'start' => 'startPrevDate',
         'end' => 'endPrevDate',
-        'name' => 'name'
+        'name' => 'name',
+        'requester' => 'requester'
     ];
 
     public function getCurrentMissionRefNotTreated(): mixed {
@@ -40,6 +46,8 @@ class InventoryMissionRepository extends EntityRepository {
             ->addSelect('refArticle.reference AS reference')
             ->addSelect('emplacement.label AS location')
             ->addSelect('1 AS is_ref')
+            ->addSelect('inventoryMission.done AS done')
+            ->addSelect('inventoryMission.type AS type')
             ->addSelect('inventoryEntry.id AS ieid')
             ->addSelect('refArticle.barCode AS barCode')
             ->join('inventoryMission.refArticles', 'refArticle')
@@ -70,12 +78,19 @@ class InventoryMissionRepository extends EntityRepository {
             ->addSelect('inventoryMission.name AS mission_name')
             ->addSelect('referenceArticle.reference AS reference')
             ->addSelect('article.barCode AS barCode')
+            ->addSelect('current_logistic_unit.code as logistic_unit_code')
+            ->addSelect('current_logistic_unit.id as logistic_unit_id')
+            ->addSelect('nature.label as logistic_unit_nature')
             ->addSelect('emplacement.label AS location')
+            ->addSelect('inventoryMission.done AS done')
+            ->addSelect('inventoryMission.type AS type')
             ->addSelect('0 AS is_ref')
             ->addSelect('inventoryMission.id AS ied')
             ->join('inventoryMission.articles', 'article')
             ->join('article.emplacement', 'emplacement')
             ->join('article.articleFournisseur', 'articleFournisseur')
+            ->leftJoin('article.currentLogisticUnit', 'current_logistic_unit')
+            ->leftJoin('current_logistic_unit.nature', 'nature')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->leftJoin('inventoryMission.entries', 'inventoryEntry', Join::WITH, 'inventoryEntry.article = article')
             ->where($exprBuilder->andX(
@@ -212,7 +227,7 @@ class InventoryMissionRepository extends EntityRepository {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
+                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value OR a.barCode LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
                 $countQuery = QueryBuilderHelper::count($qb, 'a');
@@ -268,6 +283,15 @@ class InventoryMissionRepository extends EntityRepository {
                         ->andWhere('im.startPrevDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
+                case 'multipleTypes':
+                    $types = explode(',', $filter['value']);
+                    $types = Stream::from($types)
+                        ->map(fn(string $type) => strtok($type, ':'))
+                        ->toArray();
+                    $qb
+                        ->andWhere('im.type IN (:type_filter)')
+                        ->setParameter('type_filter', $types);
+                    break;
             }
         }
 
@@ -276,7 +300,13 @@ class InventoryMissionRepository extends EntityRepository {
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
-                    $qb->orderBy('im.' . $column, $order);
+                    if ($column === 'requester') {
+                        $qb
+                            ->leftJoin('im.requester', 'order_requester')
+                            ->orderBy('order_requester.username', $order);
+                    } else {
+                        $qb->orderBy('im.' . $column, $order);
+                    }
                 }
             }
         }
@@ -351,4 +381,209 @@ class InventoryMissionRepository extends EntityRepository {
             ->setParameter('endDate', $endDate);
     }
 
+    public function getInventoryMissions(): mixed {
+        $now = new DateTime('now');
+
+        $queryBuilder = $this->createQueryBuilder('inventoryMission');
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
+            ->select('inventoryMission.id AS id')
+            ->addSelect('inventoryMission.startPrevDate AS mission_start')
+            ->addSelect('inventoryMission.endPrevDate AS mission_end')
+            ->addSelect('inventoryMission.name AS mission_name')
+            ->addSelect('inventoryMission.type AS type')
+            ->where($exprBuilder->andX(
+                'inventoryMission.startPrevDate <= :now',
+                'inventoryMission.endPrevDate >= :now',
+                'inventoryMission.done IS NULL OR inventoryMission.done = 0'
+            ))
+            ->setParameter('now', $now->format('Y-m-d'));
+
+        return $queryBuilder
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getInventoryLocationZones(): array {
+        $entityManager = $this->getEntityManager();
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->from(InventoryLocationMission::class, 'inventoryLocationZone');
+
+        $queryBuilder
+            ->select('inventoryLocationZone.id AS id')
+            ->addSelect('location.id AS location_id')
+            ->addSelect('location.label AS location_label')
+            ->addSelect('inventoryMission.id AS mission_id')
+            ->addSelect('locationZone.id AS zone_id')
+            ->addSelect('locationZone.name AS zone_label')
+            ->addSelect('inventoryLocationZone.done AS done')
+            ->leftJoin('inventoryLocationZone.inventoryMission', 'inventoryMission')
+            ->leftJoin('inventoryLocationZone.location', 'location')
+            ->leftJoin('location.zone', 'locationZone');
+
+        return $queryBuilder
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getInventoryLocationMissionsByMission($missionId): mixed
+    {
+        $entityManager = $this->getEntityManager();
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('inventoryLocationMission')
+            ->from(InventoryLocationMission::class, 'inventoryLocationMission');
+
+        $queryBuilder
+            ->leftJoin('inventoryLocationMission.inventoryMission', 'inventoryMission')
+            ->andWhere('inventoryMission.id = :missionId')
+            ->setParameter("missionId", $missionId);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getDataByMission(InventoryMission $mission, InputBag $params  = null, array $filters = []) : array {
+        $start = $params->get('start') ?? 0;
+        $length = $params->get('length') ?? 5;
+        $search = $params->all('search')?? null;
+
+        $queryBuilder = $this->createQueryBuilder('inventory_location_mission');
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
+            ->select('inventory_location_mission.id AS id')
+            ->addSelect('join_inventoryMission.id AS missionId')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('inventory_location_mission.done AS done')
+            ->addSelect('join_zone.name AS zone')
+
+            ->leftJoin('inventory_location_mission.inventoryMission', 'join_inventoryMission')
+            ->leftJoin('inventory_location_mission.location', 'join_location')
+            ->leftJoin('join_location.zone', 'join_zone');
+
+        if ($mission->isDone()) {
+            $queryBuilder
+                ->addSelect('join_referenceArticle.reference AS reference')
+                ->addSelect('join_inventoryLocationMissionReferenceArticles.scannedAt AS date')
+                ->addSelect('join_user.username AS operator')
+                ->addSelect('join_inventoryLocationMissionReferenceArticles.percentage AS percentage')
+                ->leftJoin('inventory_location_mission.inventoryLocationMissionReferenceArticles', 'join_inventoryLocationMissionReferenceArticles')
+                ->leftJoin('join_inventoryLocationMissionReferenceArticles.referenceArticle', 'join_referenceArticle')
+                ->leftJoin('join_inventoryLocationMissionReferenceArticles.operator', 'join_user');
+        }
+
+        $queryBuilder
+            ->andWhere('join_inventoryMission.id = :mission')
+            ->addOrderBy('missionId')
+            ->setParameter('mission', $mission->getId());
+        $total = $mission->isDone()
+            ? QueryBuilderHelper::count($queryBuilder, "join_inventoryLocationMissionReferenceArticles")
+            : QueryBuilderHelper::count($queryBuilder, "join_location");
+
+        // search
+        if (!empty($search) && !empty($search['value'])) {
+            $value = $search['value'];
+            if ($mission->isDone()) {
+                $queryBuilder
+                    ->andWhere($exprBuilder->orX(
+                        'join_zone.name LIKE :search',
+                        'join_location.label LIKE :search',
+                        'join_referenceArticle.reference LIKE :search',
+                        'join_user.username LIKE :search',
+                    ))
+                    ->setParameter('search', "%$value%");
+            } else {
+                $queryBuilder
+                    ->andWhere($exprBuilder->orX(
+                        'join_zone.name LIKE :search',
+                        'join_location.label LIKE :search'
+                    ))
+                    ->setParameter('search', "%$value%");
+            }
+        }
+
+        // filtres sup
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'dateMin':
+                    $queryBuilder
+                        ->andWhere('join_inventoryLocationMissionReferenceArticles.scannedAt >= :dateMin')
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                    break;
+                case 'dateMax':
+                    $queryBuilder
+                        ->andWhere('join_inventoryLocationMissionReferenceArticles.scannedAt <= :dateMax')
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                    break;
+            }
+        }
+
+        $countQuery = $mission->isDone()
+            ? QueryBuilderHelper::count($queryBuilder, "join_inventoryLocationMissionReferenceArticles")
+            : QueryBuilderHelper::count($queryBuilder, "join_location");
+
+        if (!empty($params->all('order'))) {
+            $order = $params->all('order')[0]['dir'];
+            if (!empty($order)) {
+                $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
+                switch ($column) {
+                    case 'percentage':
+                        if ($mission->isDone()) {
+                            $queryBuilder
+                                ->addOrderBy('join_inventoryLocationMissionReferenceArticles.percentage', $order);
+                        }
+                        break;
+                    case 'zone':
+                        $queryBuilder
+                            ->addOrderBy('join_zone.name', $order);
+                        break;
+                    case 'reference':
+                        if ($mission->isDone()) {
+                            $queryBuilder
+                                ->addOrderBy('join_referenceArticle.reference', $order);
+                        }
+                        break;
+                    case 'date':
+                        if ($mission->isDone()) {
+                            $queryBuilder
+                                ->addOrderBy('join_inventoryLocationMissionReferenceArticles.scannedAt', $order);
+                        }
+                        break;
+                    case 'operator':
+                        if ($mission->isDone()) {
+                            $queryBuilder
+                                ->addOrderBy('join_user.username', $order);
+                        }
+                        break;
+                    case 'location':
+                        $queryBuilder
+                            ->addOrderBy('inventory_location_mission.location', $order);
+                        break;
+                }
+            }
+        }
+        $queryBuilder->setFirstResult($start);
+        $queryBuilder->setMaxResults($length);
+
+        $queryResult = $queryBuilder->getQuery()->getResult();
+        $result = Stream::from($queryResult)
+            ->map(fn(array $line) => [
+                "id" => $line["id"],
+                "missionId" => $line["missionId"],
+                "zone" => $line["zone"] ?? null,
+                "location" => $line["location"] ?? null,
+                "reference" => $line["reference"] ?? null,
+                "date" => isset($line["date"]) ? $line["date"]->format("d/m/Y") : null,
+                "operator" => $line["operator"] ?? null,
+                "percentage" => isset($line["percentage"]) ? $line["percentage"] . "%" : null,
+            ]);
+
+        return [
+            "data" => $result->toArray(),
+            'recordsFiltered' => $countQuery,
+            'recordsTotal' => $total
+        ];
+    }
 }

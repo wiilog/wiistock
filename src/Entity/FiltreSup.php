@@ -21,14 +21,17 @@ class FiltreSup {
     const FIELD_TYPE = 'type';
     const FIELD_FILE_NUMBER = 'fileNumber';
     const FIELD_CONTACT = 'contact';
+    const FIELD_PROJECT = 'project';
     const FIELD_EMPLACEMENT = 'emplacement';
-    const FIELD_COLIS = 'colis';
+    const FIELD_PACK = 'UL';
     const FIELD_REFERENCE = 'reference';
     const FIELD_DEM_COLLECTE = 'demCollecte';
     const FIELD_DEMANDE = 'demande';
     const FIELD_EMERGENCY = 'emergency';
     const FIELD_EMERGENCY_MULTIPLE = 'emergencyMultiple';
     const FIELD_BUSINESS_UNIT = 'businessUnit';
+    const FIELD_PROJECT_NUMBER = 'projectNumber';
+    const FIELD_ARTICLE = 'article';
     const FIELD_ANOMALY = 'anomaly';
     const FIELD_RECEPTION_STRING = 'reception_string';
     const FIELD_COMMANDE = 'commande';
@@ -85,6 +88,8 @@ class FiltreSup {
     const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
     const PAGE_IMPORT = 'import';
     const PAGE_EXPORT = 'export';
+    const FIELD_PICK_LOCATION = 'pickLocation';
+    const FIELD_DROP_LOCATION = 'dropLocation';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

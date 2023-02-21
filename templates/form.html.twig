@@ -67,7 +67,7 @@
             {{ attribute.name }}="{{ attribute.value ?? '' }}"
         {% endfor %}
         data-name="{{ name }}"
-        data-title="{{ label | striptags }}{{ required ? '*' }}">
+        data-title="{{ label is not iterable ? label | striptags : label.text | striptags }}{{ required ? '*' }}">
         {% for switch in switches %}
             {% set id = random(100000, 10000000) %}
             {% set disabled = switch.disabled ?? false %}
@@ -151,7 +151,7 @@
                     {{ (item.disabled ?? false) ? 'disabled' }}
                     {{ (item.checked ?? false) ? 'checked' }} />
 
-                <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}-{{ item.id ?? '' }}">
+                <label class="{{ options.labelClass ?? '' }} d-inline-flex align-items-center" for="radio-{{ id }}-{{ item.id ?? '' }}">
                     {% if item.iconUrl ?? false %}
                         <img src="{{ item.iconUrl }}" alt="" width="20px" class="mr-2 {{ options.iconClass }}">
                     {% endif %}
@@ -180,7 +180,7 @@
             <div class="input-group with-select-all-options flex-nowrap no-gutters mb-3">
                 <div class="flex-fill">
         {% endif %}
-                    <select class="form-control data {{ options.inputClass ?? 'w-100' }}"
+                    <select class="form-control data {{ options.inputClass ?? 'w-100' }} {{ required ? 'needed' }}"
                             {{ required ? 'required' }}
                             {{ options.multiple ?? false ? 'multiple' }}
                             {% if options.type is defined %}
@@ -210,7 +210,7 @@
                         {% endif %}
 
                         {% set definedItems = options.items ?? [] %}
-                        {% set items = (definedItems is iterable) ? definedItems : [definedItems] %}
+                        {% set items = definedItems is iterable ? definedItems : [definedItems] %}
 
                         {% for value, text in items|filter((item) => item) %}
                             {% if text.value is defined and text.label is defined %}
@@ -241,14 +241,22 @@
 
 {% macro input(name, label, required, value = '', options = {}) %}
     {% set inline = options.inline ?? false %}
+    {% set type = options.type ?? 'text' %}
+    {% if type == 'fax' %}
+        {% set type = 'tel' %}
+        {% set fax = true %}
+    {% endif %}
 
     <label class="w-100 {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
-        <input type="{{ options.type ?? 'text' }}"
+        <input type="{{ type ?? 'text' }}" {{ fax ?? false ? 'data-fax' }}
                class="form-control w-100 data {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
+               {% if options.autocompleteOff is defined and options.autocompleteOff %}
+                    autocomplete="off"
+               {% endif %}
         {% for attribute in options.additionalAttributes ?? [] %}
             {{ attribute.name }}="{{ attribute.value ?? '' }}"
         {% endfor %}

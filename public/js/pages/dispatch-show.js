@@ -4,12 +4,16 @@ $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
+    loadDispatchReferenceArticle();
+    getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, isEdit);
 
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
     const urlDispatchEdit = Routing.generate('dispatch_edit', true);
-    InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
+    InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit, {
+        success: () => window.location.reload()
+    });
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     const $submitValidatedDispatch = $modalValidateDispatch.find('.submit-button');
@@ -30,11 +34,15 @@ $(function() {
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
     let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: dispatchId}, true);
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
-        success: ({attachmentId}) => {
-            window.location.href = Routing.generate('print_delivery_note_dispatch', {
+        success: ({attachmentId, headerDetailsConfig}) => {
+            $(`.zone-entete`).html(headerDetailsConfig);
+            AJAX.route(`GET`, `print_delivery_note_dispatch`, {
                 dispatch: dispatchId,
                 attachment: attachmentId,
-            });
+            }).file({
+                success: "Votre bon de livraison a bien été imprimée.",
+                error: "Erreur lors de l'impression du bon de livraison."
+            }).then(() => window.location.reload());
         },
         validator: forbiddenPhoneNumberValidator,
     });
@@ -43,14 +51,55 @@ $(function() {
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: dispatchId}, true);
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
-        success: ({attachmentId}) => {
-            window.location.href = Routing.generate('print_waybill_dispatch', {
+        success: ({attachmentId, headerDetailsConfig}) => {
+            $(`.zone-entete`).html(headerDetailsConfig);
+            AJAX.route(`GET`, `print_waybill_dispatch`, {
                 dispatch: dispatchId,
                 attachment: attachmentId,
-            });
+            }).file({
+                success: "Votre lettre de voiture a bien été imprimée.",
+                error: "Erreur lors de l'impression de la lettre de voiture."
+            }).then(() => window.location.reload());
         },
         validator: forbiddenPhoneNumberValidator,
     });
+
+    let $modalEditReference = $('#modalEditReference');
+    Form.create($modalEditReference).onSubmit((data, form) => {
+        form.loading(() => {
+            return AJAX
+                .route(AJAX.POST, `dispatch_form_reference`)
+                .json(data)
+                .then((response) => {
+                    if (response.success) {
+                        $modalEditReference.modal('hide');
+                        loadDispatchReferenceArticle();
+                        packsTable.ajax.reload();
+                    }
+                })
+        });
+    });
+
+    let $modalAddReference = $('#modalAddReference');
+    Form.create($modalAddReference).onSubmit((data, form) => {
+        form.loading(() => {
+            return AJAX
+                .route(AJAX.POST, `dispatch_form_reference`)
+                .json(data)
+                .then((response) => {
+                    if(response.success) {
+                        $modalAddReference.modal('hide');
+                        loadDispatchReferenceArticle();
+                        if ($('.logistic-units-container').exists()) {
+                            packsTable.ajax.reload();
+                        } else {
+                            window.location.reload();
+                        }
+                    }
+                })
+        });
+    });
+
 
     const queryParams = GetRequestQuery();
     const {'print-delivery-note': printDeliveryNote} = queryParams;
@@ -61,16 +110,19 @@ $(function() {
     }
 });
 
-function generateOverconsumptionBill(dispatchId) {
+function generateOverconsumptionBill($button, dispatchId) {
     $.post(Routing.generate('generate_overconsumption_bill', {dispatch: dispatchId}), {}, function(data) {
-        $('.zone-entete').html(data.entete);
-        $('.zone-entete [data-toggle="popover"]').popover();
         $('button[name="newPack"]').addClass('d-none');
 
         packsTable.destroy();
         packsTable = initializePacksTable(dispatchId, data.modifiable);
 
-        Wiistock.download(Routing.generate('print_overconsumption_bill', {dispatch: dispatchId}));
+        AJAX.route(`GET`, `print_overconsumption_bill`, {dispatch: dispatchId})
+            .file({
+                success: "Votre bon de surconsommation a bien été imprimé.",
+                error: "Erreur lors de l'impression du bon de surconsommation."
+            })
+            .then(() => window.location.reload())
     });
 }
 
@@ -110,6 +162,28 @@ function openValidateDispatchModal() {
     $modal.modal('show');
 }
 
+function openAddReferenceModal($button, options = {}) {
+    const $modal = $('#modalAddReference');
+    const dispatchId = $('#dispatchId').val();
+    const $modalbody = $modal.find('.modal-body')
+    const pack = options['unitId'] ?? null;
+    wrapLoadingOnActionButton($button, () => {
+        return AJAX
+            .route(AJAX.GET, 'dispatch_add_reference_api', {dispatch: dispatchId, pack: pack})
+            .json()
+            .then((data)=>{
+                $modalbody.html(data);
+                $modal.modal('show');
+                const selectPack = $modalbody.find('select[name=pack]');
+                selectPack.on('change', function () {
+                    const defaultQuantity = $(this).find('option:selected').data('default-quantity');
+                    $modalbody.find('input[name=quantity]').val(defaultQuantity);
+                })
+                selectPack.trigger('change')
+            })
+    })
+}
+
 function openTreatDispatchModal() {
     const modalSelector = '#modalTreatDispatch';
     const $modal = $(modalSelector);
@@ -119,34 +193,62 @@ function openTreatDispatchModal() {
     $modal.modal('show');
 }
 
-function runDispatchPrint() {
+function runDispatchPrint($button) {
     const dispatchId = $('#dispatchId').val();
-    $.get({
-        url: Routing.generate('get_dispatch_packs_counter', {dispatch: dispatchId}),
-    })
-        .then(function({packsCounter}) {
-            if(!packsCounter) {
-                showBSAlert('Vous ne pouvez pas imprimer un acheminement sans colis', 'danger');
-            } else {
-                window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
-            }
-        });
+
+    wrapLoadingOnActionButton($button, () => (
+        AJAX.route(`GET`, `get_dispatch_packs_counter`, {dispatch: dispatchId})
+            .json()
+            .then(({packsCounter}) => {
+                if (!packsCounter) {
+                    showBSAlert('Vous ne pouvez pas imprimer un acheminement sans UL', 'danger');
+                } else {
+                    AJAX.route(`GET`, `dispatch_note`, {dispatch: dispatchId})
+                        .json()
+                        .then(({success, headerDetailsConfig}) => {
+                            if (success) {
+                                $(`.zone-entete`).html(headerDetailsConfig);
+                                window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
+                            }
+                        });
+                }
+            })));
 }
 
-function openDeliveryNoteModal($button) {
+function openDeliveryNoteModal($button, fromDelivery = false) {
     const dispatchId = $button.data('dispatch-id');
-    $
-        .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId}))
-        .then((result) => {
-            if(result.success) {
-                const $modal = $('#modalPrintDeliveryNote');
-                const $modalBody = $modal.find('.modal-body');
-                $modalBody.html(result.html);
-                $modal.modal('show');
-            } else {
-                showBSAlert(result.msg, "danger");
-            }
-        });
+
+    wrapLoadingOnActionButton($button, () => (
+        AJAX.route(`GET`, `api_delivery_note_dispatch`, {dispatch: dispatchId, fromDelivery})
+            .json()
+            .then((result) => {
+                if (result.success) {
+                    const $modal = $('#modalPrintDeliveryNote');
+                    const $modalBody = $modal.find('.modal-body');
+                    $modalBody.html(result.html);
+                    $modal.modal('show');
+
+                    $('select[name=buyer]').on('change', function () {
+                        const data = $(this).select2('data');
+                        if (data.length > 0) {
+                            const {fax, phoneNumber, address} = data[0];
+                            const $modal = $(this).closest('.modal');
+                            if (fax) {
+                                $modal.find('input[name=buyerFax]').val(fax);
+                            }
+                            if (phoneNumber) {
+                                $modal.find('input[name=buyerPhone]').val(phoneNumber);
+                            }
+                            if (address) {
+                                $modal.find('[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo] ').val(address);
+                            }
+                        }
+                    });
+                } else {
+                    showBSAlert(result.msg, "danger");
+                }
+            })
+    ))
 }
 
 function openWaybillModal($button) {
@@ -168,6 +270,20 @@ function openWaybillModal($button) {
             const $modalBody = $modal.find('.modal-body');
             $modalBody.html(result.html);
             $modal.modal('show');
+
+            $('select[name=receiverUsername]').on('change', function (){
+                const data = $(this).select2('data');
+                if(data.length > 0){
+                    const {email, phoneNumber, address} = data[0];
+                    const $modal = $(this).closest('.modal');
+                    if(phoneNumber || email){
+                        $modal.find('input[name=receiverEmail]').val(phoneNumber.concat(' - ', email));
+                    }
+                    if(address){
+                        $modal.find('[name=receiver]').val(address);
+                    }
+                }
+            });
         } else {
             showBSAlert(result.msg, "danger");
         }
@@ -358,6 +474,7 @@ function initializePacksTable(dispatchId, isEdit) {
             const $select = $(this);
             const $row = $select.closest(`tr`);
             const [value] = $select.select2(`data`);
+            const defaultQuantity = $select.select2(`data`)[0].defaultQuantityForDispatch || 1
 
             let code = value.text || '';
             const packPrefix = $select.data('search-prefix');
@@ -377,6 +494,7 @@ function initializePacksTable(dispatchId, isEdit) {
             $row.find(`.lastLocation`).text(value.lastLocation);
             $row.find(`.operator`).text(value.operator);
             $row.find(`.status`).text(Translation.of('Demande', 'Acheminements', 'Général', 'À traiter', false));
+            $row.find(`input[name=quantity]`).val(defaultQuantity);
 
             if(value.nature_id && value.nature_label) {
                 $row.find(`[name=nature]`).val(value.nature_id).trigger(`change`);
@@ -459,4 +577,145 @@ function addPackRow(table, $button) {
 
 function scrollToBottom() {
     window.scrollTo(0, document.body.scrollHeight);
+}
+
+function getStatusHistory(dispatch) {
+    return $.get(Routing.generate(`dispatch_status_history_api`, {dispatch}, true))
+        .then(({template}) => {
+            const $statusHistoryContainer = $(`.history-container`);
+            $statusHistoryContainer.html(template);
+        });
+}
+
+function loadDispatchReferenceArticle({start, search} = {}) {
+    start = start || 0;
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const dispatch = $('#dispatchId').val();
+
+    const params = {dispatch, start};
+    if (search) {
+        params.search = search;
+    }
+    else {
+        clearPackListSearching();
+    }
+
+    wrapLoadingOnActionButton(
+        $logisticUnitsContainer,
+        () => (
+            AJAX.route('GET', 'dispatch_packs_api', params)
+                .json()
+                .then(data => {
+                    $logisticUnitsContainer.html(data.html);
+                    $logisticUnitsContainer.find('.articles-container table')
+                        .each(function() {
+                            const $table = $(this);
+                            initDataTable($table, {
+                                serverSide: false,
+                                ordering: true,
+                                paging: false,
+                                searching: false,
+                                order: [['reference', "desc"]],
+                                columns: [
+                                    {data: 'actions', className: 'noVis hideOrder', orderable: false},
+                                    {data: 'reference', title: 'Référence'},
+                                    {data: 'quantity', title: 'Quantité'},
+                                    {data: 'batchNumber', title: 'N° de lot'},
+                                    {data: 'manufacturerCode', title: 'Code fabriquant'},
+                                    {data: 'sealingNumber', title: 'N° de plombage / scellée'},
+                                    {data: 'serialNumber', title: 'N° de série'},
+                                    {data: 'volume', title: 'Volume (m3)'},
+                                    {data: 'weight', title: 'Poids (kg)'},
+                                    {data: 'ADR', title: 'ADR'},
+                                    {data: 'outFormatEquipment', title: 'Matériel hors format'},
+                                    {data: 'associatedDocumentTypes', title: 'Types de documents associés'},
+                                    {data: 'comment', title: 'Commentaire', orderable: false},
+                                    {data: 'attachments', title: 'Photos', orderable: false},
+                                ],
+                                domConfig: {
+                                    removeInfo: true,
+                                    needsPaginationRemoval: true,
+                                    removeLength: true,
+                                    removeTableHeader: true,
+                                },
+                                rowConfig: {
+                                    needsRowClickAction: true,
+                                    needsColor: true,
+                                },
+                            });
+                        });
+
+                    $logisticUnitsContainer
+                        .find('.paginate_button:not(.disabled)')
+                        .on('click', function() {
+                            const $button = $(this);
+                            loadDispatchReferenceArticle({
+                                start: $button.data('page'),
+                                search: search
+                            });
+                        });
+                })
+        )
+    )
+}
+
+function launchPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+
+    $searchInput.on('input', function () {
+        const $input = $(this);
+        const referenceArticleSearch = $input.val();
+        loadReceptionLines({search: referenceArticleSearch});
+    });
+}
+
+function clearPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+    $searchInput.val(null);
+}
+
+function refArticleChanged($select) {
+    if (!$select.data(`select2`)) {
+        return;
+    }
+
+    const selectedReference = $select.select2(`data`);
+    let $modalAddReference = $("#modalAddReference");
+
+    if (selectedReference.length > 0) {
+        const description = selectedReference[0]["description"] || [];
+
+        $modalAddReference.find(`input[name=outFormatEquipment][value='${description["outFormatEquipment"] || 0}']`).prop('checked', true);
+        $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
+        $modalAddReference.find("input[name=height]").val(description["height"]);
+        $modalAddReference.find("[name=weight]").val(description["weight"]);
+        $modalAddReference.find("[name=volume]").val(description["volume"]).prop("disabled", true);
+        const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
+        const $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
+        $associatedDocumentTypesSelect
+            .val(associatedDocumentTypes)
+            .trigger('change');
+    }
+}
+
+function deleteRefArticle(dispatchReferenceArticle) {
+    Modal.confirm({
+        ajax: {
+            method: 'DELETE',
+            route: 'dispatch_delete_reference',
+            params: {dispatchReferenceArticle},
+        },
+        message: 'Voulez-vous réellement supprimer cette référence article ?',
+        title: 'Supprimer la référence article',
+        validateButton: {
+            color: 'danger',
+            label: 'Supprimer'
+        },
+    });
 }

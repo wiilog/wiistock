@@ -4,10 +4,12 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Zone;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -28,8 +30,6 @@ class EmplacementRepository extends EntityRepository
         'ongoingVisibleOnMobile' => 'isOngoingVisibleOnMobile',
         'maxDelay' => 'dateMaxTime',
         'active' => 'isActive',
-        'pairing' => 'pairing',
-        'description' => 'description',
     ];
 
     public function getForSelect(?string $term, array $options = []) {
@@ -78,11 +78,8 @@ class EmplacementRepository extends EntityRepository
 
     public function countAll()
     {
-        $qb = $this->createQueryBuilder('location');
-
-        $qb->select('COUNT(location)');
-
-        return $qb
+        return $this->createQueryBuilder('location')
+            ->select('COUNT(location)')
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -150,52 +147,65 @@ class EmplacementRepository extends EntityRepository
     {
         $countTotal = $this->countAll();
 
-        $em = $this->getEntityManager();
-        $qb = $em
-            ->createQueryBuilder()
-            ->from('App\Entity\Emplacement', 'e');
+        $queryBuilder = $this->createQueryBuilder('location');
+        $exprBuilder = $queryBuilder->expr();
 
         if ($excludeInactive) {
-            $qb->where('e.isActive = 1');
+            $queryBuilder->andWhere('location.isActive = 1');
         }
 
         if (!empty($params)) {
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
-                    $qb
-                        ->andWhere('e.label LIKE :value OR e.description LIKE :value')
+                    $queryBuilder
+                        ->leftJoin('location.signatories', 'search_signatory')
+                        ->leftJoin('location.zone', 'search_zone')
+                        ->andWhere($exprBuilder->orX(
+                            'location.label LIKE :value',
+                            'location.description LIKE :value',
+                            'location.email LIKE :value',
+                            'search_signatory.username LIKE :value',
+                            'search_zone.name LIKE :value',
+                        ))
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
             if (!empty($params->all('order'))) {
                 $order = $params->all('order')[0]['dir'];
-                $field = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['name']];
+                $columnName = $params->all('columns')[$params->all('order')[0]['column']]['name'];
+                $field = self::DtToDbLabels[$columnName] ?? $columnName;
                 if (!empty($order) && $field) {
-                    if($field === 'pairing') {
-                        $qb->leftJoin('e.pairings', 'order_pairings')
-                            ->leftJoin('e.locationGroup', 'order_locationGroup')
-                            ->leftJoin('order_locationGroup.pairings', 'order_locationGroupPairings')
-                            ->orderBy('IFNULL(order_pairings.active, order_locationGroupPairings.active)', $order);
-                    } else if(property_exists(Emplacement::class, $field)) {
-                        $qb->orderBy("e.${field}", $order);
+                    switch ($field) {
+                        case 'pairing':
+                            $queryBuilder
+                                ->leftJoin('location.pairings', 'order_pairings')
+                                ->leftJoin('location.locationGroup', 'order_locationGroup')
+                                ->leftJoin('order_locationGroup.pairings', 'order_locationGroupPairings')
+                                ->addOrderBy('IFNULL(order_pairings.active, order_locationGroupPairings.active)', $order);
+                            break;
+                        default:
+                            if(property_exists(Emplacement::class, $field)) {
+                                $queryBuilder->addOrderBy("location.${field}", $order);
+                            }
+                            break;
                     }
                 }
             }
-            $qb->select('count(e)');
-            $countQuery = (int) $qb->getQuery()->getSingleScalarResult();
+            $queryBuilder->select('count(location)');
+            $countQuery = (int) $queryBuilder->getQuery()->getSingleScalarResult();
         }
         else {
             $countQuery = $countTotal;
         }
 
-        $qb
-            ->select('e');
+        $queryBuilder
+            ->select('location');
 
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
 
-        $query = $qb->getQuery();
+        $query = $queryBuilder->getQuery();
         return [
             'data' => $query ? $query->getResult() : null,
             'allEmplacementDataTable' => !empty($params) ? $query->getResult() : null,
@@ -231,6 +241,19 @@ class EmplacementRepository extends EntityRepository
             ->where('pairings.location is null OR pairings.active = 0')
             ->andWhere("location.label LIKE :term")
             ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByMissionAndZone(array $zones, InventoryMission $mission) {
+        return $this->createQueryBuilder('location')
+            ->join('location.inventoryLocationMissions', 'inventory_location_missions')
+            ->andWhere('location.zone IN (:zones)')
+            ->andWhere('inventory_location_missions.inventoryMission = :mission')
+            ->setParameters([
+                'zones' => $zones,
+                'mission' => $mission,
+            ])
             ->getQuery()
             ->getResult();
     }

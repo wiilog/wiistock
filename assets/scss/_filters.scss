@@ -28,6 +28,12 @@
 
     .dropdown-filter {
         border: 1px solid $medium-grey;
+
+        .status-filter-title {
+            font-size: 0.9rem !important;
+            font-weight: 400 !important;
+            color: #495057 !important;
+        }
     }
 
     .date-dropdown {

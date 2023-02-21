@@ -20,6 +20,7 @@ class Pack implements PairedEntity {
     use SensorMessageTrait;
 
     public const CONFIRM_CREATE_GROUP = 'CONFIRM_CREATE_GROUP';
+    public const IN_ONGOING_RECEPTION = 'IN_ONGOING_RECEPTION';
     public const PACK_IS_GROUP = 'PACK_IS_GROUP';
     public const EMPTY_ROUND_PACK = 'passageavide';
 
@@ -104,6 +105,18 @@ class Pack implements PairedEntity {
     #[ORM\OneToOne(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
     private ?TransportDeliveryOrderPack $transportDeliveryOrderPack = null;
 
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
+
+    #[ORM\OneToMany(mappedBy: "currentLogisticUnit", targetEntity: Article::class)]
+    private Collection $childArticles;
+
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
+    private Collection $projectHistoryRecords;
+
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $articleContainer = false;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -113,6 +126,8 @@ class Pack implements PairedEntity {
         $this->childTrackingMovements = new ArrayCollection();
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
+        $this->childArticles = new ArrayCollection();
+        $this->projectHistoryRecords = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -625,6 +640,107 @@ class Pack implements PairedEntity {
             }
         }
 
+        return $this;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Article>
+     */
+    public function getChildArticles(): Collection {
+        return $this->childArticles;
+    }
+
+    public function addChildArticle(Article $childArticle): self {
+        if (!$this->childArticles->contains($childArticle)) {
+            $this->childArticles[] = $childArticle;
+            $childArticle->setCurrentLogisticUnit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChildArticle(Article $childArticle): self {
+        if ($this->childArticles->removeElement($childArticle)) {
+            if ($childArticle->getCurrentLogisticUnit() === $this) {
+                $childArticle->setCurrentLogisticUnit(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setChildArticles(?iterable $childArticles): self {
+        foreach($this->getChildArticles()->toArray() as $childArticle) {
+            $this->removeChildArticle($childArticle);
+        }
+
+        $this->childArticles = new ArrayCollection();
+        foreach($childArticles ?? [] as $childArticle) {
+            $this->addChildArticle($childArticle);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProjectHistoryRecord>
+     */
+    public function getProjectHistoryRecords(): Collection {
+        return $this->projectHistoryRecords;
+    }
+
+    public function addProjectHistoryRecord(ProjectHistoryRecord $projectHistoryRecord): self {
+        if (!$this->projectHistoryRecords->contains($projectHistoryRecord)) {
+            $this->projectHistoryRecords[] = $projectHistoryRecord;
+            $projectHistoryRecord->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProjectHistoryRecord(ProjectHistoryRecord $projectHistoryRecord): self {
+        if ($this->projectHistoryRecords->removeElement($projectHistoryRecord)) {
+            if ($projectHistoryRecord->getPack() === $this) {
+                $projectHistoryRecord->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setProjectHistoryRecords(?iterable $projectHistoryRecords): self {
+        foreach($this->getProjectHistoryRecords()->toArray() as $projectHistoryRecord) {
+            $this->removeProjectHistoryRecord($projectHistoryRecord);
+        }
+
+        $this->projectHistoryRecords = new ArrayCollection();
+        foreach($projectHistoryRecords ?? [] as $projectHistoryRecord) {
+            $this->addProjectHistoryRecord($projectHistoryRecord);
+        }
+
+        return $this;
+    }
+
+    public function isArticleContainer(): ?bool
+    {
+        return $this->articleContainer;
+    }
+
+    public function setArticleContainer(?bool $articleContainer): self
+    {
+        $this->articleContainer = $articleContainer;
         return $this;
     }
 

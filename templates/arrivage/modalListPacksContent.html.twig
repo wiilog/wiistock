@@ -1,0 +1,37 @@
+<h1 class="text-center">{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Arrivage') }} n° {{ arrivage.numeroArrivage }}
+    <a class="btn btn-primary p-2"
+       href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
+        <span class="wii-icon wii-icon-printer-black pointer"></span>
+    </a>
+</h1>
+
+<table class="table table-striped table-bordered w-100">
+    <tr>
+        <th>{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° UL') }}</th>
+        {% set listCodePacks = '' %}
+        {% for pack in arrivage.packs %}
+            {% set comma = loop.first ? '' : ',' %}
+            {% set listCodePacks = listCodePacks~comma~pack.code %}
+        {% endfor %}
+        <th class="d-flex align-items-center justify-content-center">
+            {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Impression') }}
+            <div class="pointer" onclick="printArrival({
+                    'arrivageId': {{ arrivage.id }},
+                    'printPacks' : true,
+                    'printArrivage' : false
+                })">
+                <span class="wii-icon wii-icon-printer-black ml-1"></span>
+            </div>
+        </th>
+    </tr>
+    {% for pack in arrivage.packs %}
+        <tr>
+            <td>{{ pack.code }}</td>
+            <td class="d-flex align-items-center justify-content-center">
+                <a href="{{ path('print_arrivage_single_pack_bar_codes', {arrivage: arrivage.id, pack: pack.id}) }}">
+                    <span class="wii-icon wii-icon-printer-black"></span>
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+</table>

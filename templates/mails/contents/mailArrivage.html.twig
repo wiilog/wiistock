@@ -90,13 +90,42 @@
             </p>
         {% else %}
             <p style="font-weight: bold">
-                Votre colis sera livré en dropzone en milieu d'après-midi.
+                Votre unité logistique sera livrée en dropzone en milieu d'après-midi.
             </p>
         {% endif %}
     {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
         <p>
-            Votre colis est disponible auprès du magasin.
+            Votre unité logistique est disponible auprès du magasin.
         </p>
+    {% endif %}
+    {%  if packsNatureNb is not empty %}
+        <p>
+            Unités logistiques réceptionnées :
+        </p>
+        <table class="table table-stripped" style="border: 1px solid black;border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th class="th" style="border: 1px solid black; padding: 10px; text-align: left; font-weight: bold;">
+                        Nature
+                    </th>
+                    <th class="th" style="border: 1px solid black; padding: 10px; text-align: left; font-weight: bold;">
+                        Quantité
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nature, packNb in packsNatureNb %}
+                    <tr>
+                        <td class="td" style="border: 1px solid black; padding: 10px; text-align: left;">
+                            {{ nature }}
+                        </td>
+                        <td class="td" style="border: 1px solid black; padding: 10px; text-align: left;">
+                            {{ packNb }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% endif %}
 {% endblock %}
 {% block postScriptum %}

@@ -10,9 +10,10 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Livraison;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\Statut;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -35,7 +36,7 @@ class Demande implements PairedEntity {
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
-    use CommentTrait;
+    use CleanedCommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
 
@@ -76,6 +77,9 @@ class Demande implements PairedEntity {
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'demandes')]
     private ?Reception $reception = null;
+
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
 
     #[ORM\ManyToOne(targetEntity: SensorWrapper::class)]
     private ?SensorWrapper $triggeringSensorWrapper = null;
@@ -180,11 +184,9 @@ class Demande implements PairedEntity {
      * @return Livraison[]|Collection
      */
     public function getLivraisons(): Collection {
-        return $this->getPreparations()->map(function(Preparation $preparation) {
-            return $preparation->getLivraison();
-        })->filter(function(?Livraison $livraison) {
-            return isset($livraison);
-        });
+        return $this->getPreparations()
+            ->map(fn(Preparation $preparation) => $preparation->getLivraison())
+            ->filter(fn(?Livraison $livraison) => isset($livraison));
     }
 
     public function getStatut(): ?Statut {
@@ -311,6 +313,16 @@ class Demande implements PairedEntity {
 
     public function setReception(?Reception $reception): self {
         $this->reception = $reception;
+
+        return $this;
+    }
+
+    public function getProject(): ?Project {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self {
+        $this->project = $project;
 
         return $this;
     }

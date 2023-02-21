@@ -80,10 +80,17 @@ class Nature {
     #[ORM\OneToOne(mappedBy: "nature", targetEntity: TranslationSource::class)]
     private ?TranslationSource $labelTranslation = null;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $defaultQuantityForDispatch = null;
+
+    #[ORM\ManyToMany(targetEntity: TagTemplate::class, mappedBy: 'natures')]
+    private Collection $tags;
+
     public function __construct() {
         $this->packs = new ArrayCollection();
         $this->emplacements = new ArrayCollection();
         $this->temperatureRanges = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -300,6 +307,26 @@ class Nature {
         }
 
         return $this;
+    }
+
+    public function getDefaultQuantityForDispatch(): ?int
+    {
+        return $this->defaultQuantityForDispatch;
+    }
+
+    public function setDefaultQuantityForDispatch(?int $defaultQuantityForDispatch): self
+    {
+        $this->defaultQuantityForDispatch = $defaultQuantityForDispatch;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TagTemplate>
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
     }
 
 }

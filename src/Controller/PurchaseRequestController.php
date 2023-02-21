@@ -14,9 +14,9 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use App\Service\PurchaseRequestService;
+use App\Service\ReceptionLineService;
 use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
 use DateTime;
@@ -128,7 +128,8 @@ class PurchaseRequestController extends AbstractController
                 "Commentaire",
                 "Référence",
                 "Code barre",
-                "Libellé"
+                "Libellé",
+                "Fournisseur"
             ];
 
             return $CSVExportService->streamResponse(
@@ -230,6 +231,7 @@ class PurchaseRequestController extends AbstractController
                 'stockQuantity' => isset($reference) ? $reference->getQuantiteStock() : "",
                 'orderedQuantity' => $requestLine->getOrderedQuantity(),
                 'orderNumber' => $requestLine->getOrderNumber(),
+                'supplier' => $this->formatService->supplier($requestLine->getSupplier()),
                 'actions' => $this->renderView('purchase_request/line/actions.html.twig', [
                     'lineId' => $requestLine->getId(),
                     'requestStatus' => $purchaseRequest->getStatus()
@@ -560,11 +562,12 @@ class PurchaseRequestController extends AbstractController
     /**
      * @Route("/{id}/treat", name="treat_purchase_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
-    public function treat(Request $request,
+    public function treat(Request                $request,
                           EntityManagerInterface $entityManager,
-                          PurchaseRequest $purchaseRequest,
+                          PurchaseRequest        $purchaseRequest,
                           PurchaseRequestService $purchaseRequestService,
-                          ReceptionService $receptionService): Response {
+                          ReceptionLineService   $receptionLineService,
+                          ReceptionService       $receptionService): Response {
 
         $data = json_decode($request->getContent(), true);
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -576,7 +579,7 @@ class PurchaseRequestController extends AbstractController
         if($treatedStatus->getAutomaticReceptionCreation()) {
             $unfilledLines = Stream::from($purchaseRequest->getPurchaseRequestLines()->toArray())
                 ->filter(fn (PurchaseRequestLine $line) => (!$line->getOrderedQuantity() || $line->getOrderedQuantity() == 0))
-                ->filterMap(fn (PurchaseRequestLine $line) => ($line && $line->getReference() ? $line->getReference()->getReference() : null))
+                ->filterMap(fn (PurchaseRequestLine $line) => $line->getReference()?->getReference())
                 ->values();
 
             if (!empty($unfilledLines)) {
@@ -592,9 +595,15 @@ class PurchaseRequestController extends AbstractController
 
             foreach ($purchaseRequest->getPurchaseRequestLines() as $purchaseRequestLine) {
                 $orderNumber = $purchaseRequestLine->getOrderNumber() ?? null;
-                $expectedDate = FormatHelper::date($purchaseRequestLine->getExpectedDate());
-                $orderDate = FormatHelper::date($purchaseRequestLine->getOrderDate());
-                $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $orderNumber, $expectedDate);
+                $expectedDate = $this->formatService->date($purchaseRequestLine->getExpectedDate());
+
+                $uniqueReceptionConstraint = [
+                    'orderNumber' => $orderNumber,
+                    'expectedDate' => $expectedDate,
+                ];
+
+                $orderDate = $this->formatService->date($purchaseRequestLine->getOrderDate());
+                $reception = $receptionService->getAlreadySavedReception($entityManager, $receptionsWithCommand, $uniqueReceptionConstraint);
                 $receptionData = [
                     'fournisseur' => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
                     'orderNumber' => $orderNumber,
@@ -603,18 +612,21 @@ class PurchaseRequestController extends AbstractController
                     'dateCommande' => $orderDate,
                 ];
                 if (!$reception) {
-                    $reception = $receptionService->createAndPersistReception($entityManager, $this->getUser(), $receptionData);
-                    $receptionService->setAlreadySavedReception($receptionsWithCommand, $orderNumber, $expectedDate, $reception);
+                    $reception = $receptionService->persistReception($entityManager, $this->getUser(), $receptionData);
+                    $receptionService->setAlreadySavedReception($receptionsWithCommand, $uniqueReceptionConstraint, $reception);
                 } else if($reception->getFournisseur() !== $purchaseRequestLine->getSupplier()) {
-                    $reception = $receptionService->createAndPersistReception($entityManager, $this->getUser(), $receptionData);
+                    $reception = $receptionService->persistReception($entityManager, $this->getUser(), $receptionData);
                 }
+
+                $receptionLine = $reception->getLine(null)
+                    ?? $receptionLineService->persistReceptionLine($entityManager, $reception, null);
 
                 $receptionReferenceArticle = new ReceptionReferenceArticle();
                 $receptionReferenceArticle
-                    ->setReception($reception)
+                    ->setReceptionLine($receptionLine)
                     ->setReferenceArticle($purchaseRequestLine->getReference())
                     ->setQuantiteAR($purchaseRequestLine->getOrderedQuantity())
-                    ->setCommande($reception->getOrderNumber())
+                    ->setCommande($orderNumber)
                     ->setQuantite(0);
 
                 $entityManager->persist($receptionReferenceArticle);

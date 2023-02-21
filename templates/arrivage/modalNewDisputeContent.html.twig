@@ -134,7 +134,7 @@
     <div class="form-group col-4">
         <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unités logistiques') }}*</label>
         <select class="form-control w-100 data needed" name="disputePacks" data-s2
-                data-placeholder="Sélectionner un ou plusieurs colis..." multiple>
+                data-placeholder="Sélectionner une ou plusieurs UL..." multiple>
             {% for pack in packs %}
                 <option value="{{ pack.id }}">{{ pack.code }}</option>
             {% endfor %}

@@ -6,6 +6,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\FieldsParam;
 use App\Entity\Import;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
@@ -49,6 +50,10 @@ class DataImportController extends AbstractController
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
+
+        if ($post->get('deleteDifData')) {
+            $entityManager->getRepository(StorageRule::class)->clearTable();
+        }
 
         $import = new Import();
         $import
@@ -215,7 +220,7 @@ class DataImportController extends AbstractController
 
         if ($import) {
             $importModeTodo = ($force ? ImportService::IMPORT_MODE_FORCE_PLAN : ImportService::IMPORT_MODE_PLAN);
-            $importModeDone = $importService->treatImport($import, $this->getUser(), $importModeTodo);
+            $importModeDone = $importService->treatImport($import, $importModeTodo);
 
             $success = true;
             $message = (

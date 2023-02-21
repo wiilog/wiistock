@@ -276,25 +276,6 @@ class ArticleFournisseurRepository extends EntityRepository
     }
 
     /**
-     * @param $reference
-     * @return array
-     */
-    public function getIdAndLibelleByRefRef($reference)
-    {
-        $queryBuilder = $this->createQueryBuilder('articleFournisseur');
-        $queryBuilder
-            ->select('articleFournisseur.id AS id')
-            ->addSelect('articleFournisseur.reference as reference')
-            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
-            ->where('referenceArticle.reference = :reference')
-            ->setParameter('reference', $reference);
-
-        return $queryBuilder
-            ->getQuery()
-            ->execute();
-    }
-
-    /**
      * @param string $reference
      * @return int
      * @throws NoResultException
@@ -331,5 +312,23 @@ class ArticleFournisseurRepository extends EntityRepository
             ->setParameter('label', $label);
 
         return (int) $query->getSingleScalarResult();
+    }
+
+    public function getForSelect(?string $search, ?string $supplier = null): array {
+        $qb = $this->createQueryBuilder("supplier_article")
+            ->select("supplier_article.id AS id")
+            ->addSelect("supplier_article.reference AS text")
+            ->andWhere("supplier_article.reference LIKE :search")
+            ->setParameter("search", "%$search%");
+
+        if($supplier) {
+            $qb->leftJoin("supplier_article.fournisseur", "join_supplier")
+                ->andWhere("join_supplier.id = :supplier")
+                ->setParameter("supplier", $supplier);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getResult();
     }
 }

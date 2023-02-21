@@ -8,6 +8,8 @@ use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Inventory\InventoryMission;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -112,6 +114,9 @@ class UserService
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $inventoryMissionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
+        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -123,6 +128,9 @@ class UserService
         $isUsedInDispatches = $dispatchRepository->countByUser($user);
         $isUsedInArrivals = $arrivageRepository->countByUser($user);
         $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
+        $hasSignatoryLocation = $locationRepository->count(['signatory' => $user]);
+        $hasInventoryMissionRules = $inventoryMissionRuleRepository->count(['creator' => $user]);
+        $hasInventoryMissions = $inventoryMissionRepository->count(['requester' => $user]);
 
         return [
             'demande(s) de livraison' => $isUsedInRequests,
@@ -135,6 +143,9 @@ class UserService
             'acheminement(s)' => $isUsedInDispatches,
             'arrivage(s)' => $isUsedInArrivals,
             'mouvement(s) de traçabilité' => $hasTrackingMovement,
+            'emplacement(s)' => $hasSignatoryLocation,
+            "planification(s) d'inventaire" => $hasInventoryMissionRules,
+            "mission(s) d'inventaire" => $hasInventoryMissions,
         ];
 	}
 
@@ -185,7 +196,9 @@ class UserService
             'ungroup' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_UNGROUP, $user),
             'demande' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
             'inventoryManager' => $this->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),
-            'emptyRound' => $this->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user)
+            'groupedSignature' => $this->hasRightFunction(Menu::DEM, Action::GROUPED_SIGNATURE, $user),
+            'emptyRound' => $this->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user),
+            'createArticleFromNomade' => $this->hasRightFunction(Menu::NOMADE, Action::CREATE_ARTICLE_FROM_NOMADE, $user)
         ];
     }
 

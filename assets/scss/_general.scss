@@ -122,6 +122,21 @@ a {
     &:hover {
         color: $white;
     }
+
+    &:has(.btn-outline-primary) {
+        &[disabled] {
+            cursor: not-allowed !important;
+            border-color: $medium-grey !important;
+            background-color: $white !important;
+            color: $medium-grey !important;
+            opacity: 1 !important;
+            pointer-events: none;
+
+            svg {
+                color: $medium-grey !important;
+            }
+        }
+    }
 }
 
 .pointer {
@@ -425,6 +440,7 @@ label.required:after {
         display: flex;
         align-items: center;
         justify-content: center;
+        z-index: 4;
     }
 }
 
@@ -682,7 +698,7 @@ label.required:after {
     margin-top: $grid-gutter-width / 2;
 
     .header {
-        padding: 16px;
+        padding: $grid-gutter-width / 2;
         border-bottom: 1px solid $medium-grey;
 
         &.optioned {
@@ -779,7 +795,7 @@ label.required:after {
 }
 
 .wii-field-text {
-    color: $black !important;
+    color: $black;
     font-size: 16px;
     font-weight: normal;
 }
@@ -860,7 +876,7 @@ label.required:after {
     height: 18px;
 }
 
-.wii-icon-trash-black {
+.wii-icon-trash-black, .wii-icon-cart, .wii-icon-lu {
     display: inline-block;
     background-color: $black;
     width: 17px;
@@ -948,12 +964,16 @@ label.required:after {
     height: 15px;
     display: inline-block;
 
+    &.black {
+        background-color: $black;
+    }
+
     .dropdown-item:active & {
         background-color: $white;
     }
 }
 
-.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack, .wii-icon-iot-vehicle {
+.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack, .wii-icon-iot-vehicle, .wii-icon-quantity {
     background-color: $white;
     width: 15px;
     height: 15px;
@@ -1043,7 +1063,7 @@ label.required:after {
     padding-bottom: 7px;
 
     strong {
-        font-size: 17px;
+        font-size: 16px;
     }
 }
 
@@ -1055,9 +1075,14 @@ label.required:after {
     img {
         max-width: 100%;
     }
+
+    .ql-editor {
+        white-space: nowrap;
+        padding: 0;
+    }
 }
 
-.status-history-container {
+.history-container {
     overflow-x: hidden;
 
     .header {
@@ -1068,6 +1093,22 @@ label.required:after {
 
     .history-line {
         display: flex;
+
+        &:has(.associated-details) {
+            height: 140px;
+
+            &:first-child {
+                margin-top: -10px;
+            }
+        }
+
+        &:not(.has-logistic-unit-parent) {
+            height: 80px !important;
+        }
+
+        &.has-logistic-unit-parent {
+            margin-top: -30px;
+        }
 
         & > * {
             flex: 1;
@@ -1087,6 +1128,7 @@ label.required:after {
                 margin-right: 3px;
                 width: auto;
                 padding: 10px 25px;
+                z-index: 2;
 
                 &.past {
                     background-color: $primary;
@@ -1104,6 +1146,23 @@ label.required:after {
                 &.cancelled {
                     background-color: $danger;
                     font-weight: 600;
+                }
+            }
+
+            .associated-details {
+                position: absolute;
+                top: 34px;
+                right: 10px;
+                text-align: end;
+
+                .outline {
+                    padding: 5px 15px;
+                    border: 2px solid $primary;
+                    border-radius: 20px;
+
+                    &.current {
+                        border-color: $success !important;
+                    }
                 }
             }
 
@@ -1140,23 +1199,49 @@ label.required:after {
             }
         }
 
-        .history-date {
+        .history-line-left-content {
             display: flex;
             justify-content: end;
+
+            .line-event {
+                position: relative;
+                display: flex;
+                justify-content: end;
+                flex: 1;
+                width: 100%;
+            }
+
+            .line-date {
+                margin-left: 35%;
+            }
         }
 
-        &:last-child .history-status {
+        &:last-child .history-line-right-content {
             &:before,
             &:after {
                 background-color: $white;
             }
         }
 
-        .history-status {
+        .history-line-right-content {
             position: relative;
 
-            &.last-status-history::before {
+            &.last-history-line::before {
                 background-color: $medium-grey !important;
+            }
+
+            &.last-history-line.inversed {
+                &::before {
+                    background-color: $primary !important;
+                }
+            }
+
+            &.first-history-line::before {
+                background-color: white;
+            }
+
+            &.first-history-line.last-history-line::before {
+                display: none;
             }
 
             &:before {
@@ -1175,6 +1260,7 @@ label.required:after {
                 &:after {
                     border: 3px solid $primary;
                     outline: 2px solid $white;
+                    z-index: 3;
                 }
             }
 
@@ -1213,11 +1299,12 @@ label.required:after {
                 width: 0;
             }
 
-            &.last-status-history:after {
+            &.last-history-line:after {
                 width: 20px;
                 height: 20px;
                 left: -10px;
                 top: calc(50% - 10px);
+                z-index: 3;
             }
 
             &:before {
@@ -1225,6 +1312,10 @@ label.required:after {
                 top: 50%;
                 width: 2px;
                 height: 100%;
+            }
+
+            &.has-logistic-unit-parent:before {
+                height: 140px !important;
             }
 
             &:after {
@@ -1307,6 +1398,14 @@ label.required:after {
     max-width: 50%;
 }
 
+.capitalize {
+    display: inline-block;
+
+    &:first-letter {
+        text-transform: uppercase;
+    }
+}
+
 .frequencies {
     border: $medium-grey solid 1px;
     border-radius: 5px;
@@ -1331,4 +1430,243 @@ label.required:after {
     .select-all-options {
         height: 36px;
     }
+}
+
+.ul-detail {
+    display: table;
+    width: 100%;
+    table{
+        height: 1px ; // utile pour remplissage des cellules
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+
+        tr{
+            &.ul td{
+                &:nth-child(1) {
+                    background: var(--reference-color);
+                    color: $white;
+                    font-weight: bold;
+                    font-size: 1rem;
+                    text-align: center;
+                    text-transform: uppercase;
+                    writing-mode: vertical-rl;
+                    transform: rotate(180deg);
+                    border-bottom-right-radius: 0.25rem;
+                    border-top-right-radius: 0.25rem;
+                    padding-top: 5px;
+                    padding-bottom: 5px;
+                    overflow-wrap: break-word;
+                    height: min-content;
+                }
+
+                &:nth-child(2) {
+                    border-left: 1px solid var(--reference-color);
+                    vertical-align: top;
+
+                    div.main-ul-data {
+                        border: 1px solid var(--reference-color);
+                        border-top-right-radius: 0.25rem;
+                        border-bottom-right-radius: 0.25rem;
+                        height: 100%;
+                        width: 100%;
+                        z-index: 2;
+                        background-color: #f2f3f7;
+
+                        div.col {
+                            margin-top: 15px;
+                            margin-bottom: 15px;
+                            padding-left: 5%;
+                            padding-right: 5%;
+                            display: flex;
+                            align-items: center;
+
+                            span.wii-icon {
+                                background-color: $primary;
+                            ;
+                            }
+
+                            &:nth-child(2){
+                                border-left: lightblue solid 1px;
+                                border-right: lightblue solid 1px;
+                            }
+                        }
+                    }
+                }
+            }
+            &.list-article {
+                width: max-content;
+                .data-table-container {
+                    border-left: 1px solid lightblue;
+                    border-right: 1px solid lightblue;
+                    border-bottom: 1px solid lightblue;
+                    border-bottom-left-radius: 0.25rem;
+                    border-bottom-right-radius: 0.25rem;
+                    height: 100%;
+                    margin-top: -0.20rem;
+                    z-index: 1;
+                }
+            }
+        }
+    }
+}
+
+.packsTableContainer .dataTables_wrapper {
+    flex: 1 1 auto;
+    width: calc(100% - 400px);
+}
+
+.logistic-unit-content {
+    background: $light-blue;
+    max-width: 400px;
+    min-width: 400px;
+    margin-left: 10px;
+    border-radius: 4px;
+    padding: 10px 15px;
+
+    .logistic-unit-tabs {
+        display: flex;
+        margin-top: 15px;
+        margin-bottom: 10px;
+
+        .logistic-unit-tab {
+            flex: 1 1 auto;
+            color: black;
+            text-align: center;
+            border-bottom: 2px solid $light-grey;
+            width: 50%;
+            padding-bottom: 5px;
+            cursor: pointer;
+
+            &.active {
+                font-weight: bold;
+                border-bottom-color: black;
+            }
+        }
+    }
+
+    .logistic-unit-history-interstice {
+        display: flex;
+        align-items: center;
+        border-left: 2px solid $medium-grey;
+        margin-left: 20px;
+        padding: 15px 5px 5px;
+
+        .logistic-unit-entry, .logistic-unit-exit {
+            border-radius: 4px;
+            padding: 0 5px;
+            margin-right: 10px;
+            border: 2px solid transparent;
+            font-size: 14px;
+        }
+        .logistic-unit-entry {
+            border-color: $green;
+        }
+
+        .logistic-unit-exit {
+            border-color: $orange;
+        }
+    }
+
+    .logistic-unit-no-items {
+        margin: 30px 50px;
+        text-align: center;
+        color: lighten($dark-grey, 15%);
+        font-size: 14px;
+
+        .logistic-unit-no-items-icon-circle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 15px;
+            background: white;
+            border-radius: 300px;
+            width: 80px;
+            height: 80px;
+
+            img {
+                width: 35px;
+                opacity: 45%;
+            }
+        }
+    }
+}
+
+.logistic-unit-card {
+    background: white;
+    border-radius: 4px;
+    margin-top: 10px;
+    padding: 7px;
+    box-shadow: 0 0 4px rgba($black, 0.1);
+
+    .article-code {
+        display: flex;
+        align-items: center;
+        color: $primary;
+        font-weight: bold;
+        font-size: 16px;
+    }
+}
+
+.logistic-unit-number.active {
+    color: $primary;
+    font-weight: bold;
+
+    &.wii-icon, .wii-icon {
+        background: $primary;
+    }
+}
+
+.badge {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: $black;
+    font-size: 0.9rem;
+    height: 30px;
+    font-weight: 400 !important;
+
+    &.large {
+        padding: 5px 12px;
+    }
+
+    img {
+        max-height: 30px;
+        max-width: 30px;
+    }
+
+    &.grey {
+        color: $dark-grey;
+        background: $light-blue;
+    }
+
+    &.primary {
+        background: $lightest-primary;
+    }
+
+    &.orange {
+        background: $lightest-orange;
+    }
+
+    &.blue {
+        background: $lightest-info;
+    }
+
+    &.purple {
+        background: $lightest-purple;
+    }
+
+    &.green {
+        background: $lightest-success;
+    }
+
+    &.red {
+        background: $lightest-danger;
+    }
+}
+
+.treated-line {
+    background-color: #c5eee7 !important;
 }

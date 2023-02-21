@@ -1,0 +1,127 @@
+{% extends 'utils/show-header.html.twig' %}
+
+{% block showHiddenInputs %}
+    <input id="receptionId" value="{{ reception.id }}" type="hidden"/>
+{% endblock %}
+
+{% block showTitleTooltip 'réception'  %}
+{% block showTitle trans('Ordre','Réceptions', 'réception', false) %}
+{% block showSubtitle (reception.number) %}
+
+{% block showActions %}
+    <div class="btn-group">
+        {% set canReceive = (hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) and modifiable) %}
+        {% set canDelete = (hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) and modifiable) %}
+        {% set hasDemande = (hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) and reception.demandes|length > 0) %}
+        {% set hasTransfer = (hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_TRANS')) and reception.transferRequest|length > 0) %}
+        {% set hasArrival = (hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_ARRI')) and reception.arrival is not null) %}
+
+        {% include 'utils/action-buttons/header-buttons.html.twig' with {
+            forceActionButton: true,
+            actions: [
+                {
+                    id: "finishReceptionButton",
+                    title: "Finir la " ~ trans('Ordre', 'Réceptions', 'réception', false),
+                    icon: "wii-icon wii-icon-check-white",
+                    class: "d-flex align-items-center",
+                    buttonClass: "btn btn-primary",
+                    hasRight: canReceive,
+                    attributes: {
+                        onclick: "finishReception(" ~ reception.id ~ ", false, $(this))",
+                    },
+                },
+                {
+                    title: "Modifier",
+                    icon: "fa fa-edit",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: canReceive,
+                    attributes: {
+                        "data-id": reception.id,
+                        "data-target": "#modalEditReception",
+                        "data-toggle": "modal",
+                        "onclick": "editRow(
+                           $(this),
+                           Routing.generate('api_reception_edit', true),
+                           $('#modalEditReception'),
+                           $('#submitEditReception'),
+                           false,
+                           initEditReception
+                       )",
+                    },
+                },
+                {
+                    title: "Annuler&nbsp" ~ trans('Ordre', 'Réceptions', 'cette réception'),
+                    icon: "wii-icon wii-icon-trash-black",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: not modifiable,
+                    attributes: {
+                        "data-id": reception.id,
+                        "data-target": "#modalCancelReception",
+                        "data-toggle": "modal",
+                    },
+                },
+                {
+                    title: "Voir les demandes de livraison",
+                    icon: "fas fa-external-link-alt",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: hasDemande,
+                    href: path('demande_index', {reception: reception.id }),
+                },
+                {
+                    title: "Voir les ordres de transfert",
+                    icon: "fas fa-external-link-alt",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: hasTransfer,
+                    href: path('transfer_order_index', {reception: reception.id }),
+                },
+                {
+                    title: "Aller sur la demande d'achat",
+                    icon: "fas fa-external-link-alt",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: reception.purchaseRequestLines is not empty,
+                    href: reception.purchaseRequestLines is not empty ? path('purchase_request_show', {id: (reception.purchaseRequestLines|first).purchaseRequest.id }) : null,
+                },
+                {
+                    title: "Supprimer",
+                    icon: "wii-icon wii-icon-trash-black",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: canDelete,
+                    attributes: {
+                        "data-id": reception.id,
+                        "data-target": "#modalDeleteReception",
+                        "data-toggle": "modal",
+                        "onclick": "checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')"
+                    },
+                },
+                {
+                    title: trans('Flux - Arrivages', 'Divers', 'Arrivage'),
+                    icon: "wii-icon wii-icon-arrival wii-icon-17px-black",
+                    class: "d-flex align-items-center",
+                    dropdownOnly: true,
+                    hasRight: hasArrival,
+                    href: reception.arrival ? path('arrivage_show', {id: reception.arrival.id}),
+                },
+            ]
+        } %}
+    </div>
+{% endblock %}
+
+{% block showUrgence %}
+    {% set manualUrgent = reception.manualUrgent %}
+    {% set urgentArticles = reception.urgentArticles %}
+    {% if manualUrgent or urgentArticles %}
+        <i class="fa fa-exclamation-triangle mr-2"></i>
+        {{
+            ((manualUrgent and urgentArticles) ? trans('Ordre','Réceptions', 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes')
+                : (manualUrgent ? trans('Ordre','Réceptions', 'Cette réception est urgente')
+                    : (urgentArticles ? trans('Ordre','Réceptions', 'Une ou plusieurs références liées à cette réception sont urgentes')
+                        : '')))
+        }}
+    {% endif %}
+{% endblock %}

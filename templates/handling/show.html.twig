@@ -4,7 +4,7 @@
 {% block titleLink path('handling_index') %}
 
 {% block page_content %}
-<div class="mb-4 ra-container d-flex justify-content-center align-content-center">
+<div class="mb-4 details-page-container d-flex justify-content-center align-content-center">
     <div class="row wii-column">
         <div class="col-md-6 col-12">
             <div class="wii-box">
@@ -75,8 +75,8 @@
                             <div class="box-item my-2">
                                 <span class="wii-field-name">{{ trans( 'Demande', 'Général', 'Urgence') }}</span>
                                 <span class="wii-field-text">
-                                        {{ emergency == '' ? '-' : emergency}}
-                                    </span>
+                                    {{ emergency == '' ? '-' : emergency}}
+                                </span>
                             </div>
                         </div>
                     {% endif %}
@@ -159,7 +159,7 @@
                     </div>
                 </div>
             </div>
-            <div class="wii-box ">
+            <div class="wii-box">
                 <div class="header wii-title">{{ trans('Général', null, 'Modale', 'Champs libres') }}</div>
                 <div class="content row no-gutters">
                     {% include 'free_field/freeFieldsShow.html.twig' with {
@@ -186,7 +186,7 @@
                     {% endif %}
                 </div>
                 <div class="content p-0">
-                    <div class="content status-history-container p-0">
+                    <div class="content history-container p-0">
                         <div class="d-flex align-items-center justify-content-center p-3">
                             <div class="spinner-border text-primary" role="status"></div>
                             <span class="ml-3">{{ trans('Demande', 'Services', 'Modale et détails', 'Génération de l\'historique en cours') }}</span>

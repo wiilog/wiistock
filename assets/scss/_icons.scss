@@ -14,6 +14,8 @@
 $icons: (
     "accueil": "../../public/svg/accueil.svg",
     "ask-quantity": "../../public/svg/ask-quantity.svg",
+    "article": "../../public/svg/article.svg",
+    "article-in-lu": "../../public/svg/article-in-lu.svg",
     "addlist": "../../public/svg/addlist.svg",
     "addref": "../../public/svg/addref.svg",
     "association": "../../public/svg/association.svg",
@@ -107,9 +109,19 @@ $icons: (
     'new-article': "../../public/svg/new-article.svg",
     'calendar-preparation-black': "../../public/svg/calendar-preparation-black.svg",
     'documentation': "../../public/svg/documentation.svg",
+    'document': "../../public/svg/document.svg",
+    'reception-black': "../../public/svg/reception-black.svg",
+    'reception-white': "../../public/svg/reception-white.svg",
     'dots': "../../public/svg/dotsblack.svg",
+    'quantity': "../../public/svg/quantity.svg",
+    'arrival': "../../public/svg/arrival.svg",
+    'lu': "../../public/svg/UL.svg",
+    'reference-article-stock': "../../public/svg/reference_article/stock.svg",
     'cross-grey': "../../public/svg/cross-grey.svg",
     'link-slash': "../../public/svg/link-slash.svg",
+    'add-reference': "../../public/svg/add-reference.svg",
+    'reference-article-location': "../../public/svg/reference_article/location-blue.svg",
+    'signature': "../../public/svg/signature.svg",
 );
 
 @each $iconName, $iconPath in $icons {
@@ -140,4 +152,8 @@ $icon-colors: (
             background: $val;
         }
     }
+}
+
+.primary-on-hover:hover {
+    background: $primary;
 }

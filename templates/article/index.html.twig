@@ -10,17 +10,13 @@
             <div class="col-auto ml-auto">
                 <div class="btn-group">
                     {% if hasRightToCreate %}
-                        <button type="button"
-                                class="btn btn-primary split-button d-flex align-items-center"
-                                data-toggle="modal"
-                                data-target="#modalNewArticle"
-                                onclick="Select2Old.articleReference($('.ajax-autocomplete'), {typeQuantity: `article`}); clearNewArticleContent($('#submitNewArticle'))">
+                        <button type="button" class="btn btn-primary split-button d-flex align-items-center"
+                                onclick="window.location.href = Routing.generate('article_new_page', {}, true)">
                             <span class="wii-icon wii-icon-plus mr-2"></span>
                             Nouvel article
                         </button>
                     {% elseif hasRightToExport %}
-                        <div tabindex="0"
-                             data-toggle="tooltip"
+                        <div tabindex="0" class="has-tooltip"
                              title="Veuillez faire une recherche pour imprimer.">
                             <button type="button"
                                     class="btn btn-primary split-button printButton btn-disabled d-flex align-items-center"
@@ -88,6 +84,7 @@
 
     {% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
     <input type="hidden" class='statutVisible' name="statutVisible" value="{{ statutVisible }}">
+    <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
 
     {% include "article/modalEditArticle.html.twig" %}
     {% include "article/modalShowArticle.html.twig" %}

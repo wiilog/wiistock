@@ -28,7 +28,7 @@ use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 /**
- * @Route("/nature-colis")
+ * @Route("/nature-unite-logistique")
  */
 class NatureController extends AbstractController
 {
@@ -97,6 +97,7 @@ class NatureController extends AbstractController
                 ->setColor($data['color'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setDefaultQuantity($data['quantity'])
+                ->setDefaultQuantityForDispatch($data['defaultQuantityDispatch'] ?? null)
                 ->setDescription($data['description'] ?? null)
                 ->setCode($data['code'])
                 ->setLabel($frenchLabel['label'] ?? $data['code'])
@@ -253,8 +254,10 @@ class NatureController extends AbstractController
             $translationService->editEntityTranslations($entityManager, $labelTranslationSource, $labels);
 
             $currentNature
+                ->setLabel($frenchLabel)
                 ->setPrefix($data['prefix'] ?? null)
                 ->setDefaultQuantity($data['quantity'])
+                ->setDefaultQuantityForDispatch($data['defaultQuantityDispatch'] ?? null)
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setDescription($data['description'] ?? null)
                 ->setColor($data['color'])

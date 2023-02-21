@@ -1,0 +1,19 @@
+<div class="d-flex">
+    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) and dispatch.statut.state == constant('App\\Entity\\Statut::DRAFT') %}
+    <div class="dropdown dropright">
+        {{ include('datatable/dotsRow.html.twig') }}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <div class="dropdown-item d-flex align-items-center action-on-click" data-id='{{ ligneId }}' data-toggle='modal' data-target='#modalEditReference'
+                 onclick="editRow($(this), Routing.generate('dispatch_edit_reference_api', {dispatchReferenceArticle: {{ ligneId }}}, true), $('#modalEditReference'), $('#submitEditReference')),
+                          clearModal('#modalEditReference')">
+                <i class='fas fa-pencil-alt mr-2'></i>Modifier
+            </div>
+            <div class="dropdown-item d-flex align-items-center"
+                 onclick="deleteRefArticle({{ ligneId }})"
+                 data-id='{{ ligneId }}' data-target='#modalDeleteLigneRef' data-toggle='modal'>
+                <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>

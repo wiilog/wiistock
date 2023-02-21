@@ -8,11 +8,13 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
 use DateTime;
@@ -21,6 +23,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -38,6 +41,9 @@ class LivraisonsManagerService
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
 
     private $entityManager;
     private $mailerService;
@@ -98,7 +104,7 @@ class LivraisonsManagerService
     public function finishLivraison(Utilisateur $user,
                                     Livraison $livraison,
                                     DateTime $dateEnd,
-                                    ?Emplacement $emplacementTo): void
+                                    ?Emplacement $nextLocation): void
     {
         $pairings = $livraison->getPreparation()->getPairings();
         $pairingEnd = new DateTime('now');
@@ -114,7 +120,7 @@ class LivraisonsManagerService
 
             // repositories
             $statutRepository = $this->entityManager->getRepository(Statut::class);
-            $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
+            $movementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
             $statutForLivraison = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::ORDRE_LIVRAISON,
@@ -138,13 +144,88 @@ class LivraisonsManagerService
             );
 
             $statutLivre = $statutRepository->findOneByCategorieNameAndStatutCode(
-                CategorieStatut::DEM_LIVRAISON, $demandeIsPartial ? Demande::STATUT_LIVRE_INCOMPLETE : Demande::STATUT_LIVRE);
+                CategorieStatut::DEM_LIVRAISON,
+                $demandeIsPartial ? Demande::STATUT_LIVRE_INCOMPLETE : Demande::STATUT_LIVRE
+            );
             $demande->setStatut($statutLivre);
 
             $preparation = $livraison->getPreparation();
 
             $inactiveArticleStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
             $articleLines = $preparation->getArticleLines();
+
+            $packs = stream::from($articleLines)
+                ->map(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit())
+                ->filter()
+                ->unique()
+                ->toArray();
+
+            foreach ($packs as $pack) {
+                $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $pack,
+                    $pack->getLastDrop()->getEmplacement(),
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    false,
+                    ['delivery' => $livraison]
+                );
+            }
+
+            foreach ($articleLines as $articleLine) {
+                $article = $articleLine->getArticle();
+                $tracking = $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $article->getTrackingPack() ?? $article->getBarCode(),
+                    $article->getEmplacement(),
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    false,
+                    ['delivery' => $livraison]
+                );
+
+                $pickingMovement = $tracking["movement"];
+
+                $tracking = $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $pickingMovement->getPack(), // same pack of picking
+                    $nextLocation,
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    false,
+                    ['delivery' => $livraison]
+                );
+
+                $dropMovement = $tracking["movement"];
+
+                if ($articleLine->getPack()) {
+                    $pickingMovement->setLogisticUnitParent($articleLine->getPack());
+                    $dropMovement->setLogisticUnitParent($articleLine->getPack());
+                }
+            }
+
+            foreach ($packs as $pack) {
+                $dropMovement = $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $pack,
+                    $nextLocation,
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    false,
+                    ['delivery' => $livraison]
+                );
+                $pack
+                    ->setLastDrop($dropMovement['movement'])
+                    ->setLastTracking($dropMovement['movement']);
+            }
 
             /** @var PreparationOrderArticleLine $articleLine */
             foreach ($articleLines as $articleLine) {
@@ -178,14 +259,14 @@ class LivraisonsManagerService
             }
 
             // on termine les mouvements de livraison
-            $mouvements = $mouvementRepository->findByLivraison($livraison);
-
-            foreach ($mouvements as $mouvement) {
-                $mouvement->setDate($dateEnd);
-                if (isset($emplacementTo)) {
-                    $mouvement->setEmplacementTo($emplacementTo);
+            $movements = $movementRepository->findBy(['livraisonOrder' => $livraison]);
+            foreach ($movements as $pickingMovement) {
+                $pickingMovement->setDate($dateEnd);
+                if (isset($nextLocation)) {
+                    $pickingMovement->setEmplacementTo($nextLocation);
                 }
             }
+
             $title = $demandeIsPartial ? 'FOLLOW GT // Livraison effectuée partiellement' : 'FOLLOW GT // Livraison effectuée';
             $bodyTitle = $demandeIsPartial ? 'Votre demande a été livrée partiellement.' : 'Votre demande a bien été livrée.';
 

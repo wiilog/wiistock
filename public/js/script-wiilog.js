@@ -43,7 +43,7 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
 const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59';
 const MAX_DATE_HTML_INPUT = '2100-12-31';
 
-const TEAM_SIZE = 11;
+const TEAM_SIZE = 18;
 
 const SELECT2_TRIGGER_CHANGE = 'change.select2';
 
@@ -145,19 +145,24 @@ function openQueryModal(query = null, event) {
     const openModalNew = 'new';
     const openModalEdit = 'edit';
 
-    if (query["open-modal"] === openModalNew
-        || query["open-modal"] === openModalEdit) {
+    if (query["open-modal"]) {
         if (query["open-modal"] === openModalNew) {
             const $modal = $('[data-modal-type="new"]').first();
-            clearModal($modal)
+            if (query["clear-modal"] !== '0') {
+                clearModal($modal);
+            }
             $modal.modal("show");
-        } else { // edit
+        } else if (query["open-modal"] === openModalEdit) { // edit
             const $openModal = $(`.open-modal-edit`);
             $openModal.data('id', query['modal-edit-id']);
             $openModal.trigger('click');
             delete query['modal-edit-id'];
+        } else { // modal selector
+            $(query["open-modal"]).trigger('click');
         }
         delete query["open-modal"];
+        delete query["clear-modal"];
+
         SetRequestQuery(query);
     }
 }
@@ -202,45 +207,55 @@ function showRow(button, path, modal) {
 
 function editRow(button, path, modal, submit, setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
     clearFormErrors(modal);
-    let id = button.data('id');
-    let ref = button.data('ref');
-    let json = {id: id, isADemand: 0};
-    if (ref !== false) {
-        json.ref = ref;
+
+    let params;
+    if (button) {
+        let id = button.data('id');
+        let ref = button.data('ref');
+        let json = {id: id, isADemand: 0};
+        if (ref !== false) {
+            json.ref = ref;
+        }
+
+        modal.find(submit).attr('value', id);
+        params = JSON.stringify(json);
+    }
+    else {
+        params = null;
     }
 
-    modal.find(submit).attr('value', id);
+    let $modalBody;
+    if(modal.find('.to-replace').exists()) {
+        $modalBody = modal.find('.to-replace');
+    } else {
+        $modalBody = modal.find('.modal-body');
+    }
+    $modalBody.html('');
 
-    $.post(path, JSON.stringify(json), function (resp) {
-        let $modalBody;
-        if(modal.find('.to-replace').exists()) {
-            $modalBody = modal.find('.to-replace');
-        } else {
-            $modalBody = modal.find('.modal-body');
-        }
+    return wrapLoadingOnActionButton($modalBody, () => {
+        return $.post(path, params, function (resp) {
+            $modalBody.html(resp);
 
-        $modalBody.html(resp);
+            modal.find('.select2').select2();
+            Select2Old.initFree(modal.find('.select2-free'));
+            Select2Old.provider(modal.find('.ajax-autocomplete-fournisseur-edit'));
+            Select2Old.frequency(modal.find('.ajax-autocomplete-frequency'));
+            Select2Old.articleReference(modal.find('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
+            Select2Old.location(modal.find('.ajax-autocomplete-location-edit'));
+            Select2Old.carrier(modal.find('.ajax-autocomplete-transporteur-edit'));
+            Select2Old.user(modal.find('.ajax-autocomplete-user-edit'));
 
-        modal.find('.select2').select2();
-        Select2Old.initFree(modal.find('.select2-free'));
-        Select2Old.provider(modal.find('.ajax-autocomplete-fournisseur-edit'));
-        Select2Old.frequency(modal.find('.ajax-autocomplete-frequency'));
-        Select2Old.articleReference(modal.find('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
-        Select2Old.location(modal.find('.ajax-autocomplete-location-edit'));
-        Select2Old.carrier(modal.find('.ajax-autocomplete-transporteur-edit'));
-        Select2Old.user(modal.find('.ajax-autocomplete-user-edit'));
+            if (wantsFreeFieldsRequireCheck) {
+                toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
+            }
 
-        if (wantsFreeFieldsRequireCheck) {
-            toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
-        }
+            if (setMaxQuantity) {
+                setMaxQuantityEdit($('#referenceEdit'));
+            }
 
-        if (setMaxQuantity) {
-            setMaxQuantityEdit($('#referenceEdit'));
-        }
-
-        afterLoadingEditModal(modal);
-    }, 'json');
-
+            afterLoadingEditModal(modal);
+        }, 'json');
+    });
 }
 
 function setMaxQuantityEdit(select) {
@@ -525,7 +540,7 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
         $filterDateExpectedPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
     }
 
-    $.post(path, JSON.stringify(params), function (response) {
+    return $.post(path, JSON.stringify(params), function (response) {
         if (response) {
             if (callback) {
                 callback();
@@ -815,6 +830,8 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'statut':
                 case 'carriers':
                 case 'emplacement':
+                case 'pickLocation':
+                case 'dropLocation':
                 case 'demCollecte':
                 case 'disputeNumber':
                 case 'demande':
@@ -826,6 +843,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'dispatchNumber':
                 case 'emergencyMultiple':
                 case 'businessUnit':
+                case 'article':
                 case 'managers':
                 case 'deliverers':
                     let valuesElement = element.value.split(',');

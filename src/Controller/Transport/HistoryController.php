@@ -198,7 +198,7 @@ class HistoryController extends AbstractController
         }
         else {
             $packingLabel = $packCounter > 0
-                ? ($packCounter . ' colis')
+                ? ($packCounter . ' unité(s) logistique(s)')
                 : 'Colisage non fait';
         }
 

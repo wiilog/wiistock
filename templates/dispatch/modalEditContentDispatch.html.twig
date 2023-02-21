@@ -13,29 +13,34 @@
     <div class="col-md-4 col-12">
         <div class="form-group">
             <label class="wii-field-name">{{ trans('Demande', 'Général', 'Statut') }}*</label>
-            {% set partialStatuses = statuses | filter(statut => statut.state == constant('App\\Entity\\Statut::PARTIAL') and statut.id != dispatch.statut.id) %}
             <select name="statut"
-                    {{ partialStatuses | length == 0 ? 'disabled' }}
+                    disabled
                     class="form-control data d-block needed"
                     title="Statut">
                 {# outside the for if status is treated #}
                 <option value="{{ dispatch.statut.id }}" selected>{{ dispatch.statut|format_helper('status')  }}</option>
 
-                {% for status in partialStatuses %}
-                    <option value="{{ status.id }}">{{ status|format_helper('status') }}</option>
+                {% for status in statuses %}
+                    {% if not dispatch.statut or dispatch.statut.id != status.id %}
+                        <option value="{{ status.id }}">{{ status|format_helper('status') }}</option>
+                    {% endif %}
                 {% endfor %}
             </select>
         </div>
     </div>
-    <div class="form-group col-md-4 col-12">
-        <label class="wii-field-name" for="demandeur">{{ trans('Demande', 'Général', 'Demandeur') }}*</label>
-        <select class="demandeur form-control data needed w-100" name="requester" data-s2="user">
-            {% if dispatch.requester is defined and dispatch.requester is not null %}
-                <option selected value="{{ dispatch.requester.id }}">{{ dispatch.requester.username }}</option>
-            {% endif %}
-        </select>
-    </div>
 
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_REQUESTER_DISPATCH') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+        <div class="form-group col-md-4 col-12">
+            <label class="wii-field-name" for="demandeur">{{ trans('Demande', 'Général', 'Demandeur') }}{{ required ? '*' }}</label>
+            <select class="demandeur form-control data w-100 {{ required ? 'needed' }}" name="requester" data-s2="user">
+                {% if dispatch.requester is defined and dispatch.requester is not null %}
+                    <option selected value="{{ dispatch.requester.id }}">{{ dispatch.requester.username }}</option>
+                {% endif %}
+            </select>
+        </div>
+    {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_PICK') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
@@ -182,6 +187,22 @@
 
                 {% for businessUnit in dispatchBusinessUnits %}
                     <option value="{{ businessUnit }}" {{ businessUnit == dispatch.businessUnit ? 'selected' }}>{{ businessUnit }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMAILS') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+        <div class="form-group col-md-4 col-12">
+            <label class="wii-field-name" for="destinataire">Email(s){{ required ? '*' }}</label>
+            <select class="form-control data w-100 {{ required ? 'needed' }}" data-s2
+                    name="emails"
+                    multiple
+                    data-editable>
+                {% for email in dispatch.emails %}
+                    <option value="{{ email }}" selected>{{ email }}</option>
                 {% endfor %}
             </select>
         </div>

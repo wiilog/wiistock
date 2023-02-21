@@ -102,6 +102,20 @@ class DispatchRepository extends EntityRepository
                     $qb->andWhere('dispatch.destination LIKE :filter_destination_value')
                         ->setParameter("filter_destination_value", '%' . $filter['value'] . '%');
                     break;
+                case 'pickLocation':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('dispatch.locationFrom', 'filter_pick_location')
+                        ->andWhere("filter_pick_location.id in (:pickLocationId)")
+                        ->setParameter('pickLocationId', $value);
+                    break;
+                case 'dropLocation':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('dispatch.locationTo', 'filter_drop_location')
+                        ->andWhere("filter_drop_location.id in (:dropLocationId)")
+                        ->setParameter('dropLocationId', $value);
+                    break;
             }
         }
         if (!empty($params)) {
@@ -180,6 +194,11 @@ class DispatchRepository extends EntityRepository
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
+        $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
+        if ($pageLength) {
+            $qb->setMaxResults($pageLength);
+        }
+
         $query = $qb->getQuery();
 
         return [
@@ -229,7 +248,7 @@ class DispatchRepository extends EntityRepository
         return $result ? $result[0]['number'] : null;
     }
 
-    public function getMobileDispatches(Utilisateur $user)
+    public function getMobileDispatches(?Utilisateur $user = null, ?Dispatch $dispatch = null)
     {
         $queryBuilder = $this->createQueryBuilder('dispatch');
         $queryBuilder
@@ -244,17 +263,31 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.destination AS destination')
             ->addSelect('type.label AS typeLabel')
             ->addSelect('type.id AS typeId')
+            ->addSelect('status.id AS statusId')
             ->addSelect('status.nom AS statusLabel')
+            ->addSelect('IF(status.state = 0, 1, 0) AS draft')
+            ->addSelect("reference_article.reference as packReferences")
             ->join('dispatch.requester', 'dispatch_requester')
+            ->leftJoin('dispatch.dispatchPacks', 'dispatch_packs')
+            ->leftJoin('dispatch_packs.dispatchReferenceArticles', 'dispatch_reference_articles')
+            ->leftJoin('dispatch_reference_articles.referenceArticle', 'reference_article')
             ->leftJoin('dispatch.locationFrom', 'locationFrom')
             ->leftJoin('dispatch.locationTo', 'locationTo')
             ->join('dispatch.type', 'type')
-            ->join('dispatch.statut', 'status')
-            ->where('status.needsMobileSync = true')
-            ->andWhere('status.state IN (:untreatedStates)')
-            ->andWhere('type.id IN (:dispatchTypeIds)')
-            ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL])
-            ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
+            ->join('dispatch.statut', 'status');
+
+        if ($dispatch) {
+            $queryBuilder
+                ->andWhere("dispatch = :dispatch")
+                ->setParameter("dispatch", $dispatch);
+        } else {
+            $queryBuilder
+                ->andWhere('type.id IN (:dispatchTypeIds)')
+                ->andWhere('status.needsMobileSync = true')
+                ->andWhere('status.state IN (:untreatedStates)')
+                ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds())
+                ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL]);
+        }
 
         return $queryBuilder->getQuery()->getResult();
     }

@@ -202,6 +202,20 @@ class MouvementStockController extends AbstractController
                         $trackingMovementService->persistSubEntities($entityManager, $associatedPickTracaMvt);
                         $createdPack = $associatedPickTracaMvt->getPack();
 
+                        if($chosenArticleToMove->getCurrentLogisticUnit()){
+                            $associatedPickLUTracaMvt = $trackingMovementService->createTrackingMovement(
+                                $chosenArticleToMove->getBarCode(),
+                                $emplacementFrom,
+                                $loggedUser,
+                                $now,
+                                false,
+                                true,
+                                TrackingMovement::TYPE_PICK_LU,
+                                ['quantity' => $quantity]
+                            );
+                            $trackingMovementService->persistSubEntities($entityManager, $associatedPickLUTracaMvt);
+                        }
+
                         $associatedDropTracaMvt = $trackingMovementService->createTrackingMovement(
                             $createdPack,
                             $emplacementTo,
@@ -214,6 +228,7 @@ class MouvementStockController extends AbstractController
                         );
                         $trackingMovementService->persistSubEntities($entityManager, $associatedDropTracaMvt);
                         $entityManager->persist($associatedPickTracaMvt);
+                        $entityManager->persist($associatedPickLUTracaMvt);
                         $entityManager->persist($associatedDropTracaMvt);
                     }
                 }

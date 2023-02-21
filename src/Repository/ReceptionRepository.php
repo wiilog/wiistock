@@ -70,8 +70,9 @@ class ReceptionRepository extends EntityRepository
         $end->setTime(23, 59, 59);
         return $this->createQueryBuilder('reception')
             ->join('reception.statut', 'statut')
-            ->join('reception.receptionReferenceArticles', 'referenceLines')
-            ->where('referenceLines.referenceArticle = :reference')
+            ->join('reception.lines', 'line')
+            ->join('line.receptionReferenceArticles', 'referenceLine')
+            ->where('referenceLine.referenceArticle = :reference')
             ->andWhere('reception.dateAttendue BETWEEN :start and :end')
             ->andWhere('statut.code = :validated')
             ->setParameters([
@@ -103,6 +104,7 @@ class ReceptionRepository extends EntityRepository
             ->addSelect('referenceArticle.reference AS referenceArticleReference')
             ->addSelect('referenceArticle.typeQuantite AS referenceArticleTypeQuantite')
             ->addSelect('referenceArticle.libelle AS referenceArticleLibelle')
+            ->addSelect('pack.code AS currentLogisticUnit')
             ->addSelect('referenceArticle.quantiteStock AS referenceArticleQuantiteStock')
             ->addSelect('referenceArticleType.label AS referenceArticleTypeLabel')
             ->addSelect('referenceArticle.barCode AS referenceArticleBarcode')
@@ -122,10 +124,12 @@ class ReceptionRepository extends EntityRepository
             ->leftJoin('reception.utilisateur', 'user')
             ->leftJoin('reception.statut', 'status')
             ->leftJoin('reception.storageLocation', 'join_storageLocation')
-            ->leftJoin('reception.receptionReferenceArticles', 'receptionReferenceArticle')
+            ->leftJoin('reception.lines', 'receptionLine')
+            ->leftJoin('receptionLine.receptionReferenceArticles', 'receptionReferenceArticle')
             ->leftJoin('receptionReferenceArticle.referenceArticle', 'referenceArticle')
             ->leftJoin('referenceArticle.type', 'referenceArticleType')
             ->leftJoin('receptionReferenceArticle.articles', 'article')
+            ->leftJoin('article.currentLogisticUnit', 'pack')
             ->leftJoin('article.type', 'articleType')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('articleFournisseur.referenceArticle', 'articleReferenceArticle')
@@ -168,9 +172,14 @@ class ReceptionRepository extends EntityRepository
                     $value = Stream::from(explode(',', $filter['value']))
                         ->map(fn($v) => explode(':', $v)[0])
                         ->toArray();
-                    $qb
-                        ->andWhere('reception.orderNumber in (:commandList)')
-                        ->setParameter('commandList', $value);
+
+                    $ors = $qb->expr()->orX();
+                    foreach($value as $command) {
+                        $ors->add("(:number{$ors->count()}) IN reception.orderNumber");
+                        $qb->setParameter("number{$ors->count()}", $command);
+                    }
+
+                    $qb->andWhere($ors);
                     break;
                 case 'utilisateurs':
                     $values = array_map(function ($value) {

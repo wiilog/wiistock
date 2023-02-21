@@ -1,0 +1,40 @@
+<div class="w-100 p-3">
+        <div class="wii-section-title">Informations</div>
+        <div class="wii-section">
+            <div class="row">
+                <div class="col-12 col-md-6 col-lg-4 py-2">
+                    <div class="wii-field-name">Date dernier mouvement</div>
+                    <div class="wii-body-text">{{ logisticUnit.lastTracking.datetime | date('d/m/Y à H:i') }}</div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4 py-2">
+                    <div class="wii-field-name">Dernier emplacement</div>
+                    <div class="wii-body-text">{{ logisticUnit.lastTracking.emplacement }}</div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4 py-2">
+                    <div class="wii-field-name">Nature</div>
+                    <div class="wii-body-text">{{ logisticUnit.nature ? logisticUnit.nature.label : '/' }}</div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4 py-2">
+                    <div class="wii-field-name">Quantité</div>
+                    <div class="wii-body-text">{{ logisticUnit.quantity }}</div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4 py-2">
+                    <div class="wii-field-name">Projet</div>
+                    <div class="wii-body-text">{{ logisticUnit.project ? logisticUnit.project.code : '/' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="wii-section-title mt-2">Contenu unité logistique</div>
+        <div class="wii-section">
+            <div class="row">
+                {% for article in logisticUnit.childArticles %}
+                    <div class="col-12 col-md-6">
+                        {% include 'pack/article-card.html.twig' with {
+                            article: article,
+                        } %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+</div>

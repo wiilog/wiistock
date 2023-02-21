@@ -1,0 +1,7 @@
+{% set articles = pack.childArticles | length %}
+{% if articles %}
+    <span
+        class="wii-icon-cart wii-icon mr-2 add-cart"
+        data-id="{{ pack.id }}">
+    </span>
+{% endif %}

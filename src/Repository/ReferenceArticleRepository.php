@@ -62,7 +62,7 @@ class ReferenceArticleRepository extends EntityRepository {
         "availableQuantity" => "quantiteDisponible",
     ];
 
-    public function getForSelect(?string $term, Utilisateur $user) {
+    public function getForSelect(?string $term, Utilisateur $user, ?bool $needsOnlyMobileSyncReference = false) {
         $queryBuilder = $this->createQueryBuilder("reference");
 
         $visibilityGroup = $user->getVisibilityGroups();
@@ -75,8 +75,12 @@ class ReferenceArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
+        if($needsOnlyMobileSyncReference){
+            $queryBuilder->andWhere('reference.needsMobileSync = 1');
+        }
+
         return $queryBuilder
-            ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label, emplacement.label AS location")
+            ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label, emplacement.label AS location, reference.description AS description")
             ->andWhere("reference.reference LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
@@ -85,6 +89,16 @@ class ReferenceArticleRepository extends EntityRepository {
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
             ->getQuery()
             ->getArrayResult();
+    }
+
+    public function getForNomade() {
+        $qb = $this->createQueryBuilder('referenceArticle');
+
+        $qb->select('referenceArticle.id AS id')
+            ->addSelect('referenceArticle.barCode AS label')
+            ->andWhere('referenceArticle.needsMobileSync = true');
+
+        return $qb->getQuery()->getResult();
     }
 
     public function iterateAll(Utilisateur $user): iterable {
@@ -1116,39 +1130,6 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         return $queryBuilder;
-    }
-
-    public function getRefTypeQtyArticleByReception($id, $reference = null, $commande = null)
-    {
-
-        $queryBuilder = $this->createQueryBuilder('ra')
-            ->select('ra.reference as reference')
-            ->addSelect('rra.commande as commande')
-            ->join('ra.receptionReferenceArticles', 'rra')
-            ->join('rra.reception', 'r')
-            ->andWhere('r.id = :id')
-            ->andWhere('(rra.quantiteAR > rra.quantite OR rra.quantite IS NULL)')
-            ->andWhere('ra.typeQuantite = :typeQty')
-            ->setParameters([
-                'id' => $id,
-                'typeQty' => ReferenceArticle::QUANTITY_TYPE_ARTICLE
-            ]);
-
-        if (!empty($reference)) {
-            $queryBuilder
-                ->andWhere('ra.reference = :reference')
-                ->setParameter('reference', $reference);
-        }
-
-        if (!empty($commande)) {
-            $queryBuilder
-                ->andWhere('rra.commande = :commande')
-                ->setParameter('commande', $commande);
-        }
-
-        return $queryBuilder
-            ->getQuery()
-            ->execute();
     }
 
     public function getReferenceArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {

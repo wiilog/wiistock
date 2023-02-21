@@ -1,0 +1,14 @@
+<table class="full-width">
+    <tr>
+        <th>{{ trans('Demande', 'Acheminements', 'Général', "Code") }}</th>
+        <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Description") }}</th>
+        <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Quantité") }}</th>
+    </tr>
+    {% for pack in dn.packs %}
+        <tr>
+            <td>{{ pack.code }}</td>
+            <td>{{ pack.comment }}</td>
+            <td>{{ pack.quantity }}</td>
+        </tr>
+    {% endfor %}
+</table>

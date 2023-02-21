@@ -107,6 +107,7 @@ class StatusController extends AbstractController
                 $sendMailBuyers = $status->getSendNotifToBuyer() ? 'checked' : "";
                 $sendMailRequesters = $status->getSendNotifToDeclarant() ? 'checked' : "";
                 $sendMailDest = $status->getSendNotifToRecipient() ? 'checked' : "";
+                $sendReport = $status->getSendReport() ? 'checked' : "";
                 $needsMobileSync = (!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()) ? 'checked' : "";
                 $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
@@ -123,6 +124,7 @@ class StatusController extends AbstractController
                     "sendMailBuyers" => "<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data' {$sendMailBuyers}/></div>",
                     "sendMailRequesters" => "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
                     "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
+                    "sendReport" => "<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data' {$sendReport}/></div>",
                     "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSync} {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
@@ -139,6 +141,7 @@ class StatusController extends AbstractController
                     "sendMailBuyers" => $this->formatService->bool($status->getSendNotifToBuyer()),
                     "sendMailRequesters" => $this->formatService->bool($status->getSendNotifToDeclarant()),
                     "sendMailDest" => $this->formatService->bool($status->getSendNotifToRecipient()),
+                    "sendReport" => $this->formatService->bool($status->getSendReport()),
                     "needsMobileSync" => $this->formatService->bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
                     "commentNeeded" => $this->formatService->bool($status->getCommentNeeded()),
                     "automaticReceptionCreation" => $this->formatService->bool($status->getAutomaticReceptionCreation()),

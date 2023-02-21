@@ -48,7 +48,36 @@
                 <input name="expectedAt"
                        type="date"
                        value="{{ demande.expectedAt ? demande.expectedAt|date('Y-m-d') }}"
-                       class="form-control data {{fieldRequired ? 'needed'}}"/>
+                       class="form-control data {{ fieldRequired ? 'needed' }}"/>
+            </div>
+        </div>
+    {% endif %}
+
+    {% set fieldCodeProject = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT') %}
+    {% set fieldLabelProject = constant('App\\Entity\\FieldsParam::FIELD_LABEL_PROJECT') %}
+    {% if fieldsParam|isFieldRequired(fieldCodeProject, 'displayedEdit') %}
+        {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeProject, 'requiredEdit') %}
+        {% set disabled = demande.articleLines.count %}
+
+        <div class="col-12 col-md-6">
+            <div class="form-group w-100">
+                <label class="wii-field-name">
+                    {{ fieldLabelProject }}{{ fieldRequired ? '*' }}
+                    {% if disabled %}
+                        <sup>
+                            <img src="{{ asset('svg/information.svg') }}"
+                                 alt="Icône information"
+                                 width="10px"
+                                 class="has-tooltip"
+                                 title="Le projet ne peut pas être modifié car la demande contient des unités logistiques">
+                        </sup>
+                    {% endif %}
+                </label>
+                <select name="project" data-s2="project" class="form-control data d-block {{ fieldRequired ? 'needed' }}" {{ disabled ? 'disabled' }}>
+                    {% if demande.project is defined and demande.project != null %}
+                        <option value="{{ demande.project.id }}" selected>{{ demande.project.code }}</option>
+                    {% endif %}
+                </select>
             </div>
         </div>
     {% endif %}

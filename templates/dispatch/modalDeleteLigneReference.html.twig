@@ -1,0 +1,21 @@
+<div class="modal fade" id="modalDeleteLigneRef" role="dialog" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: Supprimer la ligne
+            } %}
+
+            <div class="modal-body">
+                <span>Voulez-vous vraiment supprimer la ligne ?</span>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-danger data', text: trans('Général', null, 'Modale', 'Supprimer'), dismiss: true, name: 'pack', id: 'submitDeleteLigneRef'}
+                ],
+                renderErrorContainer: false
+            } %}
+
+        </div>
+    </div>
+</div>

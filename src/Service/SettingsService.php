@@ -21,9 +21,12 @@ use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
 use App\Entity\MailerServer;
+use App\Entity\NativeCountry;
+use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
@@ -357,7 +360,7 @@ class SettingsService {
             [Setting::FILE_TOP_LEFT_LOGO, Setting::DEFAULT_TOP_LEFT_VALUE],
             [Setting::FILE_TOP_RIGHT_LOGO, null],
             [Setting::FILE_LABEL_EXAMPLE_LOGO, Setting::DEFAULT_LABEL_EXAMPLE_VALUE],
-            [Setting::FILE_WAYBILL_LOGO, null],
+            [Setting::FILE_WAYBILL_LOGO, null], // TODO WIIS-8882
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],
             [Setting::FILE_SHIPMENT_NOTE_LOGO, null],
             [Setting::LABEL_LOGO, null],
@@ -581,6 +584,41 @@ class SettingsService {
             }
         }
 
+        if(isset($tables["tagTemplateTable"])) {
+            $tagTemplateRepository = $this->manager->getRepository(TagTemplate::class);
+            $typeRepository = $this->manager->getRepository(Type::class);
+            $natureRepository = $this->manager->getRepository(Nature::class);
+
+            foreach (array_filter($tables["tagTemplateTable"]) as $tagTemplateData) {
+                $tagTemplateExist = $tagTemplateRepository->findOneBy(['prefix' => $tagTemplateData['prefix']]);
+                if ($tagTemplateExist && $tagTemplateExist->getId() !== intval($tagTemplateData['tagTemplateId'] ?? null)){
+                    throw new RuntimeException("Un modèle d'étiquette existe déjà avec ce préfixe.");
+                }
+
+                $tagTemplate = isset($tagTemplateData['tagTemplateId'])
+                    ? $tagTemplateRepository->find($tagTemplateData['tagTemplateId'])
+                    : new TagTemplate();
+
+                $tagTemplate->setPrefix($tagTemplateData['prefix']);
+                $tagTemplate->setBarcodeOrQr($tagTemplateData['barcodeType']);
+                $tagTemplate->setHeight($tagTemplateData['height']);
+                $tagTemplate->setWidth($tagTemplateData['width']);
+                $tagTemplate->setModule($tagTemplateData['module']);
+                Stream::explode(',', $tagTemplateData['natureOrType'])
+                    ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate) {
+                        if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
+                            $nature = $natureRepository->find($id);
+                            $tagTemplate->addNature($nature);
+                        } else {
+                            $type = $typeRepository->find($id);
+                            $tagTemplate->addType($type);
+                        }
+                    } );
+
+                $this->manager->persist($tagTemplate);
+            }
+        }
+
         if (isset($tables["missionRulesTable"])) {
             $missionRuleRepository = $this->manager->getRepository(InventoryMissionRule::class);
             $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
@@ -747,15 +785,17 @@ class SettingsService {
                 ->toArray();
 
             foreach (array_filter($tables["fixedFields"]) as $item) {
-                /** @var FreeField $freeField */
+                /** @var FieldsParam $fieldsParam */
                 $fieldsParam = $fieldsParams[$item["id"]] ?? null;
 
                 if ($fieldsParam) {
+                    $code = $fieldsParam->getFieldCode();
+                    $alwaysRequired = in_array($code, FieldsParam::ALWAYS_REQUIRED_FIELDS);
                     $fieldsParam->setDisplayedCreate($item["displayedCreate"])
-                        ->setRequiredCreate($item["requiredCreate"])
+                        ->setRequiredCreate($alwaysRequired || $item["requiredCreate"])
                         ->setKeptInMemory($item["keptInMemory"] ?? null)
                         ->setDisplayedEdit($item["displayedEdit"])
-                        ->setRequiredEdit($item["requiredEdit"])
+                        ->setRequiredEdit($alwaysRequired || $item["requiredEdit"])
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
                 }
             }
@@ -857,6 +897,7 @@ class SettingsService {
                         ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)
                         ->setSendNotifToRecipient($statusData['sendMailDest'] ?? false)
+                        ->setSendReport($statusData['sendReport'] ?? false)
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
                         ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
@@ -934,6 +975,37 @@ class SettingsService {
                 $this->requestTemplateService->updateRequestTemplateLine($line, $item);
 
                 $this->manager->persist($line);
+            }
+        }
+
+        if (isset($tables["nativeCountriesTable"])) {
+            $nativeCountriesData = array_filter($tables["nativeCountriesTable"]);
+            $nativeCountryRepository = $this->manager->getRepository(NativeCountry::class);
+
+            if (!empty($nativeCountriesData)) {
+                foreach ($nativeCountriesData as $nativeCountryData) {
+                    $persistedNativeCountries = [];
+                    if (isset($nativeCountryData['nativeCountryId'])) {
+                        $nativeCountry = Stream::from($persistedNativeCountries)
+                            ->filter(fn(NativeCountry $nativeCountry) => $nativeCountry->getId() == $nativeCountryData['nativeCountryId'])
+                            ->first();
+
+                        if (!$nativeCountry) {
+                            $nativeCountry = $nativeCountryRepository->find($nativeCountryData['nativeCountryId']);
+                            $persistedNativeCountries[] = $nativeCountry;
+                        }
+                    } else {
+                        $nativeCountry = new NativeCountry();
+                        $persistedNativeCountries[] = $nativeCountry;
+                    }
+
+                    $nativeCountry
+                        ->setCode($nativeCountryData['code'])
+                        ->setLabel($nativeCountryData['label'])
+                        ->setActive($nativeCountryData['active']);
+
+                    $this->manager->persist($nativeCountry);
+                }
             }
         }
     }

@@ -6,11 +6,12 @@ use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryLocationMissionReferenceArticle;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Traits\AttachmentTrait;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Repository\ReferenceArticleRepository;
@@ -27,7 +28,7 @@ class ReferenceArticle
 
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
-    use CommentTrait;
+    use CleanedCommentTrait;
     use LitePropertiesSetterTrait;
 
     const CATEGORIE = 'referenceArticle';
@@ -194,6 +195,15 @@ class ReferenceArticle
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $upToDateInventory;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $description = [];
+
+    #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: StorageRule::class, orphanRemoval: true)]
+    private Collection $storageRules;
+
+    #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: InventoryLocationMissionReferenceArticle::class)]
+    private Collection $inventoryLocationMissionReferenceArticles;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -212,6 +222,8 @@ class ReferenceArticle
         $this->carts = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
         $this->requestTemplateLines = new ArrayCollection();
+        $this->storageRules = new ArrayCollection();
+        $this->inventoryLocationMissionReferenceArticles = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
@@ -892,6 +904,18 @@ class ReferenceArticle
         return $this->purchaseRequestLines;
     }
 
+    public function getAssociatedArticles(bool $active = false, bool $count = false): array|int {
+        $articles = $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE
+            ? []
+            : Stream::from($this->articlesFournisseur)
+                ->flatMap(fn(ArticleFournisseur $articleFournisseur) => $articleFournisseur->getArticles()->toArray())
+                ->unique()
+                ->filter(fn( Article $article) => !$active || $article->getStatut()->getCode() === Article::STATUT_ACTIF)
+                ->toArray();
+
+        return $count ? count($articles) : $articles;
+    }
+
     public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
         if(!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
             $this->purchaseRequestLines[] = $purchaseRequestLine;
@@ -922,18 +946,6 @@ class ReferenceArticle
         }
 
         return $this;
-    }
-
-    public function getAssociatedArticles(): array {
-        return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE
-            ? []
-            : Stream::from($this->articlesFournisseur)
-                ->map(function(ArticleFournisseur $articleFournisseur) {
-                    return $articleFournisseur->getArticles()->toArray();
-                })
-                ->flatten()
-                ->unique()
-                ->toArray();
     }
 
     public function getOrderState(): ?string {
@@ -1078,4 +1090,89 @@ class ReferenceArticle
         return $this;
     }
 
+    public function getDescription(): ?array {
+        return $this->description;
+    }
+
+    public function setDescription(?array $description): self {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function isHandledByReference(): bool {
+        return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE;
+    }
+
+    public function getInventoryLocationMissionReferenceArticles(): Collection {
+        return $this->inventoryLocationMissionReferenceArticles;
+    }
+
+    public function addInventoryLocationMissionReferenceArticle(InventoryLocationMissionReferenceArticle $inventoryLocationMissionReferenceArticle): self {
+        if (!$this->inventoryLocationMissionReferenceArticles->contains($inventoryLocationMissionReferenceArticle)) {
+            $this->inventoryLocationMissionReferenceArticles[] = $inventoryLocationMissionReferenceArticle;
+            $inventoryLocationMissionReferenceArticle->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryLocationMissionReferenceArticle(InventoryLocationMissionReferenceArticle $inventoryLocationMissionReferenceArticle): self {
+        if ($this->inventoryLocationMissionReferenceArticles->removeElement($inventoryLocationMissionReferenceArticle)) {
+            if ($inventoryLocationMissionReferenceArticle->getReferenceArticle() === $this) {
+                $inventoryLocationMissionReferenceArticle->setReferenceArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setInventoryLocationMissionReferenceArticles(?iterable $inventoryLocationMissionReferenceArticles): self {
+        foreach($this->getInventoryLocationMissionReferenceArticles()->toArray() as $inventoryLocationMissionReferenceArticle) {
+            $this->removeInventoryLocationMissionReferenceArticle($inventoryLocationMissionReferenceArticle);
+        }
+
+        $this->inventoryLocationMissionReferenceArticles = new ArrayCollection();
+        foreach($inventoryLocationMissionReferenceArticles ?? [] as $inventoryLocationMissionReferenceArticle) {
+            $this->addInventoryLocationMissionReferenceArticle($inventoryLocationMissionReferenceArticle);
+        }
+
+        return $this;
+    }
+
+    public function getStorageRules(): Collection {
+        return $this->storageRules;
+    }
+
+    public function addStorageRule(StorageRule $storageRule): self {
+        if (!$this->storageRules->contains($storageRule)) {
+            $this->storageRules[] = $storageRule;
+            $storageRule->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStorageRule(StorageRule $storageRule): self {
+        if ($this->storageRules->removeElement($storageRule)) {
+            if ($storageRule->getReferenceArticle() === $this) {
+                $storageRule->setReferenceArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setStorageRules(?iterable $storageRules): self {
+        foreach($this->getStorageRules()->toArray() as $storageRule) {
+            $this->removeStorageRule($storageRule);
+        }
+
+        $this->storageRules = new ArrayCollection();
+        foreach($storageRules ?? [] as $storageRule) {
+            $this->addStorageRule($storageRule);
+        }
+
+        return $this;
+    }
 }

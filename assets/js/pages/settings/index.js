@@ -13,7 +13,7 @@ import {
     createFreeFieldsPage,
     initializeTraceMovementsFreeFields,
     initializeIotFreeFields,
-    initializeReceptionsFreeFields, createArrivalsFreeFieldsPage, createDispatchFreeFieldsPage, createHandlingFreeFieldsPage,
+    initializeReceptionsFreeFields, createArrivalsFreeFieldsPage, createDispatchFreeFieldsPage, createHandlingFreeFieldsPage, createDeliveryRequestFieldsPage,
 } from "./free-fields";
 import {
     initializeArrivalDisputeStatuses,
@@ -28,6 +28,8 @@ import {onHeaderPageEditStop} from "./utils";
 import Form from '../../form';
 import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import AJAX, {GET, POST} from "@app/ajax";
+import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
+import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -53,7 +55,8 @@ const initializers = {
     global_etiquettes: initializeGlobalLabels,
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
-    stock_demandes_types_champs_libres_livraisons: createFreeFieldsPage,
+    stock_articles_champs_fixes: initializeArticleFixedFields,
+    stock_demandes_types_champs_libres_livraisons: createDeliveryRequestFieldsPage,
     stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
     track_demande_transport_types_champs_libres_livraisons: createFreeFieldsPage,
     track_demande_transport_types_champs_libres_collectes: createFreeFieldsPage,
@@ -76,7 +79,7 @@ const initializers = {
     stock_demandes_livraisons: initializeDeliveries,
     stock_inventaires_frequences: initializeInventoryFrequenciesTable,
     stock_inventaires_categories: initializeInventoryCategoriesTable,
-    stock_inventaires_missions: initializeInventoryMissionsTable,
+    stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
     stock_borne_tactile: initializeTouchTerminal,
     utilisateurs_utilisateurs: initUserPage,
@@ -91,9 +94,13 @@ const initializers = {
     stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
+    stock_demandes_planification_achats: initializePurchaseRequestPlanner,
     track_tournees: initializeTransportRound,
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
-    modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate
+    modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
+    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
+    stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
+    stock_articles_creation_nomade_rfid: initializeMobileRFIDCreation
 };
 
 const saveCallbacks = {
@@ -442,6 +449,62 @@ function initializeSiteAppearance() {
 
 function initializeGlobalLabels() {
     $('#upload-label-logo').on('change', () => updateImagePreview('#preview-label-logo', '#upload-label-logo'));
+
+    const $typeOptions = JSON.parse($(`#type_options`).val());
+    const $natureOptions = JSON.parse($(`#nature_options`).val());
+
+    const table = EditableDatatable.create(`#tagTemplateTable`, {
+        route: Routing.generate('settings_tag_template_api', true),
+        deleteRoute: `settings_delete_tag_template`,
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `prefix`, title: `Préfixe`, required: true},
+            {data: `barcodeType`, title: `Type d'étiquette`, required: true},
+            {data: `height`, title: `Hauteur (mm)`, required: true},
+            {data: `width`, title: `Largeur (mm)`, required: true},
+            {data: `module`, title: `Brique`, required: true},
+            {data: `natureOrType`, title: `Nature(s) / Type(s)`, required: true},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            prefix: `<input type='text' name='prefix' class='form-control data needed' data-global-error='Préfixe'/>`,
+            barcodeType: () => {
+                const elements = [{label: 'Code 128', value: '1', checked: false}, {label: 'QR Code', value: '0', checked: true}]
+                    .map(({label, value, checked}) => {
+                        const id = 'barcodeType-' + Math.floor(Math.random() * 1000000);
+                        return `
+                            <input type='radio' id='${id}' name='barcodeType' class='form-control data d-none' value='${value}' ${checked ? 'checked' : ''} content='${label}'>
+                            <label for="${id}">${label}</label>
+                        `;
+                    })
+                    .join('');
+                return `<form><div class='wii-switch needed' data-title="Type d'étiquette" data-name="barcodeType">${elements}</div></form>`;
+            },
+            height: `<input type='number' name='height' class='form-control data needed' data-global-error='Hauteur'/>`,
+            width: `<input type='number' name='width' class='form-control data needed' data-global-error='Largeur'/>`,
+            module: `<select name='module' class='form-control data needed' data-global-error='Brique'>
+                        <option value='arrivage' selected>Arrivage</option>
+                        <option value='article'>Article</option>
+                    </select>`,
+            natureOrType: `<select name='natureOrType' multiple data-s2="natureOrTypeSelect" data-include-params-parent="tr" data-include-params='select[name=module]' class='form-control data needed' data-global-error='Nature(s) / Type(s)'>`+$typeOptions+`</select>`,
+        },
+    });
+
+    $(window).on('resize', function () {
+        table.table.columns.adjust();
+    });
 }
 
 function initializeStockArticlesLabels($container) {
@@ -544,6 +607,30 @@ function initializeDemandesFixedFields($container, canEdit) {
 function initializeDispatchFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-dispatch-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+}
+
+function initializeArticleFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-article-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `articles`}),
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
@@ -1152,4 +1239,38 @@ function deleteTemplate($elem) {
     $parent.find(`.custom-template-preview`).html(`<span class="wii-small-text my-2">Aucun modèle personnalisé.</span>`);
     $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
     $(`input[name=${name}]`).val('1');
+}
+
+function initializeArticleNativeCountriesTable() {
+    const table = EditableDatatable.create(`#nativeCountriesTable`, {
+        route: Routing.generate('settings_native_countries_api', true),
+        deleteRoute: `settings_delete_native_country`,
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paging: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: 'code', title: 'Code', required: true},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `active`, title: `Actif`, required: true},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            code: `<input type='text' name='code' class='form-control data needed' data-global-error="Code"/>`,
+            label: `<input type='text' name='label' class='form-control data needed' data-global-error="Libellé"/>`,
+            active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
+        },
+    });
+}
+
+function initializeMobileRFIDCreation($container){
 }

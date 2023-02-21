@@ -14,12 +14,15 @@ use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Entity\Zone;
 use DateTime;
 use DateTimeInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -131,6 +134,10 @@ class FormatService
         return $date ? $date->format($this->getUser($user)?->getDateFormat()) : $else;
     }
 
+    public function carrier(?Transporteur $carrier, string $else = ""): string {
+        return $carrier?->getLabel() ?: $else;
+    }
+
     public function carriers($carriers) {
         return $this->entity($carriers, "label");
     }
@@ -138,6 +145,10 @@ class FormatService
     public function datetime(?DateTimeInterface $date, $else = "", $addAt = false, ?Utilisateur $user = null) {
         $prefix = $this->getUser($user)?->getDateFormat() ?: Utilisateur::DEFAULT_DATE_FORMAT;
         return $date ? $date->format($addAt ? "$prefix à H:i" : "$prefix H:i") : $else;
+    }
+
+    public function project(?Project $project, $else = "") {
+        return $project ? $project->getCode() : $else;
     }
 
     public function time(?DateTimeInterface $date, $else = "") {
@@ -152,6 +163,7 @@ class FormatService
         $short = $options['short'] ?? false;
         $time = $options['time'] ?? false;
         $year = $options['year'] ?? true;
+        $at = ($options['removeAt'] ?? false) ? 'à' : '';
 
         return $date
             ? (($short
@@ -162,7 +174,7 @@ class FormatService
                 . " "
                 . strtolower(self::MONTHS[$date->format("n")])
                 . ($year ? (" " . $date->format("Y")) : '')
-                . ($time ? $date->format(" à H:i") : ""))
+                . ($time ? $date->format(" $at H:i") : ""))
             : $else;
     }
 
@@ -196,7 +208,7 @@ class FormatService
                 ?: $else;
     }
 
-    public function entity($entities, string $field, string $separator = ", ") {
+    public function entity($entities, string $field, string $separator = ", "): string {
         return Stream::from($entities)
             ->filter(function($entity) use ($field) {
                 return $entity !== null && is_array($entity) ? $entity[$field] : $entity->{"get$field"}();
@@ -352,5 +364,9 @@ class FormatService
             "<a href=\"tel:$0\">$0</a>",
             $stringWithPhone
         ) : null;
+    }
+
+    public function zone(?Zone $zone, $else = "") {
+        return $zone ? $zone->getName() : $else;
     }
 }

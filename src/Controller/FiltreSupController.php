@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
-use App\Service\DisputeService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Utilisateur;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -57,6 +56,8 @@ class FiltreSupController extends AbstractController
                 'requestNumber' => FiltreSup::FIELD_REQUEST_NUMBER,
                 'category' => FiltreSup::FIELD_CATEGORY,
                 'contact' => FiltreSup::FIELD_CONTACT,
+                'projectNumber' => FiltreSup::FIELD_PROJECT_NUMBER,
+                'project' => FiltreSup::FIELD_PROJECT,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {
@@ -94,9 +95,11 @@ class FiltreSupController extends AbstractController
                 'multipleTypes' => FiltreSup::FIELD_MULTIPLE_TYPES,
                 'declarants' => FiltreSup::FIELD_DECLARANTS,
                 'emplacement' => FiltreSup::FIELD_EMPLACEMENT,
+                'pickLocation' => FiltreSup::FIELD_PICK_LOCATION,
+                'dropLocation' => FiltreSup::FIELD_DROP_LOCATION,
                 'reference' => FiltreSup::FIELD_REFERENCE,
                 'statut' => FiltreSup::FIELD_STATUT,
-                'colis' => FiltreSup::FIELD_COLIS,
+                'UL' => FiltreSup::FIELD_PACK,
                 'carriers' => FiltreSup::FIELD_CARRIERS,
                 'providers' => FiltreSup::FIELD_PROVIDERS,
                 'demCollecte' => FiltreSup::FIELD_DEM_COLLECTE,
@@ -111,6 +114,7 @@ class FiltreSupController extends AbstractController
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
                 'businessUnit' => FiltreSup::FIELD_BUSINESS_UNIT,
+                'article' => FiltreSup::FIELD_ARTICLE,
                 'deliverers' => FiltreSup::FIELD_DELIVERERS,
             ];
 
@@ -151,7 +155,6 @@ class FiltreSupController extends AbstractController
                 'statuses-filter',
                 'date-choice'
             ];
-
             foreach ($filterCheckboxes as $filterCheckbox) {
                 $value = Stream::from($data)
                     ->filter(fn ($filter, $key) => str_starts_with($key, $filterCheckbox) && $filter === true)

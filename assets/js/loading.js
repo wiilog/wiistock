@@ -2,6 +2,7 @@ import Flash, {INFO} from "@app/flash";
 
 const SPINNER_WRAPPER_CLASS = 'spinner-border-wrapper';
 export const LOADING_CLASS = 'wii-loading';
+export const MULTIPLE_LOADING_CLASS = 'wii-multiple-loading';
 
 /**
  * Add a loader on the element
@@ -57,13 +58,16 @@ jQuery.fn.popLoader = function() {
 export function wrapLoadingOnActionButton($loaderContainers, action = null, endLoading = true) {
     $.each($loaderContainers, function() {
         const $loaderContainer = $(this);
-        if (!$loaderContainer.hasClass(LOADING_CLASS)) {
+        if (!$loaderContainer.hasClass(LOADING_CLASS) || $loaderContainer.hasClass(MULTIPLE_LOADING_CLASS)) {
+            const loaderModal = $loaderContainer.hasClass('modal-body');
             const loadingColor = (
                 $loaderContainer.data('loader-color') ? $loaderContainer.data('loader-color') :
                 ($loaderContainer.hasClass('btn-light') || $loaderContainer.hasClass('btn-link')) ? 'black' :
+                loaderModal ? 'primary' :
                 'white'
             );
-            const loadingSize = $loaderContainer.data('loader-size') || 'small';
+            const defaultLoadingSize = loaderModal ? 'normal' : 'small';
+            const loadingSize = $loaderContainer.data('loader-size') || defaultLoadingSize;
 
             $loaderContainer.pushLoader(loadingColor, loadingSize);
         }

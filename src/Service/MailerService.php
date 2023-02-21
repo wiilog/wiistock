@@ -6,6 +6,7 @@ namespace App\Service;
 use App\Entity\MailerServer;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -23,6 +24,9 @@ class MailerService
 
     #[Required]
     public TranslationService $translationService;
+
+    #[Required]
+    public KernelInterface $kernel;
 
     #[Required]
     public ?EntityManagerInterface $entityManager = null;
@@ -88,7 +92,12 @@ class MailerService
                 ->setContentType('text/html');
 
             foreach ($attachments as $attachment) {
-                $message->attach(\Swift_Attachment::fromPath($attachment));
+                $swiftAttachment = \Swift_Attachment::fromPath("{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}");
+                $attachmentOriginalName = $attachment->getOriginalName();
+                if ($attachmentOriginalName) {
+                    $swiftAttachment->setFilename($attachmentOriginalName);
+                }
+                $message->attach($swiftAttachment);
             }
 
             $mailer = (new \Swift_Mailer($transport));

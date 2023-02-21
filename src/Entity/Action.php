@@ -21,13 +21,13 @@ class Action {
     const DISPLAY_MOUV = 'afficher mouvements';
     const DISPLAY_ASSO = 'afficher associations BR';
     const DISPLAY_ENCO = 'afficher encours';
-    const DISPLAY_PACK = 'afficher colis';
+    const DISPLAY_PACK = 'afficher unité logistique';
     const DISPLAY_URGE = 'afficher urgences';
     const LIST_ALL = 'lister tous les arrivages';
-    const ADD_PACK = 'ajouter colis';
-    const EDIT_PACK = 'modifier colis';
-    const MANAGE_PACK = 'gérer colis';
-    const DELETE_PACK = 'supprimer colis';
+    const ADD_PACK = 'ajouter unité logistique';
+    const EDIT_PACK = 'modifier unité logistique';
+    const MANAGE_PACK = 'gérer unité logistique';
+    const DELETE_PACK = 'supprimer unité logistique';
     const EDIT_ARRI = 'modifier arrivage';
     const DELETE_ARRI = 'supprimer arrivage';
     const EMPTY_ROUND = 'autoriser la sélection du Passage à vide';
@@ -67,6 +67,8 @@ class Action {
     const EDIT_DRAFT_PURCHASE_REQUEST = "modifier demandes d'achat brouillon";
     const DELETE_ONGOING_PURCHASE_REQUESTS = "supprimer demandes d'achat à traiter et en cours";
     const TRACK_SENSOR = "suivre un capteur";
+    const GROUPED_SIGNATURE = "signature groupée";
+    const ADD_REFERENCE_IN_LU = "ajouter référence dans UL";
 
     const DISPLAY_TRANSPORT = 'afficher transport';
     const CREATE_TRANSPORT = 'créer transport';
@@ -108,7 +110,9 @@ class Action {
     const DISPLAY_CHAU = 'afficher chauffeurs';
     const DISPLAY_TRAN = 'afficher transporteurs';
     const DISPLAY_VEHICLE = 'afficher véhicule';
-    const DISPLAY_PACK_NATURE = 'afficher nature de colis';
+    const DISPLAY_PACK_NATURE = 'afficher nature d\'unité logistique';
+    const DISPLAY_PROJECTS = 'afficher projets';
+    const DISPLAY_CUSTOMER = 'afficher clients';
     // menu IOT
     const DISPLAY_SENSOR = 'afficher capteurs';
     const DISPLAY_TRIGGER = 'afficher actionneurs';
@@ -144,6 +148,7 @@ class Action {
     const SETTINGS_DISPLAY_MOBILE_HAND = 'afficher services mobile';
     const SETTINGS_DISPLAY_TRANSFER_TO_TREAT = 'afficher transferts à traiter';
     const SETTINGS_DISPLAY_PREPA = 'afficher préparations';
+    const SETTINGS_DISPLAY_PREPA_DELIV = 'afficher préparations / livraisons';
     const SETTINGS_DISPLAY_MANAGE_VALIDATIONS = 'afficher gestion des validations';
 
     const SETTINGS_DISPLAY_DASHBOARD = 'afficher Dashboard';
@@ -174,6 +179,7 @@ class Action {
     const MODULE_NOTIFICATIONS = 'Activer les notifications';
     const MODULE_TRACK = 'Accès Track';
     const DEMO_MODE = 'Mode découverte';
+    const CREATE_ARTICLE_FROM_NOMADE = 'Accès création article RFID';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

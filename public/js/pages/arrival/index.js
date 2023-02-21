@@ -93,7 +93,8 @@ function initTableArrival(dispatchMode = false) {
     let pathArrivage = Routing.generate('arrivage_api', {dispatchMode}, true);
     let initialVisible = $(`#arrivalsTable`).data(`initial-visible`);
     if(dispatchMode || !initialVisible) {
-        return $.post(Routing.generate('arrival_api_columns', {dispatchMode}))
+        return $
+            .post(Routing.generate('arrival_api_columns', {dispatchMode}))
             .then(columns => proceed(columns));
     } else {
         return new Promise((resolve) => {
@@ -172,10 +173,10 @@ function initTableArrival(dispatchMode = false) {
     }
 }
 
-function listColis(elem) {
+function listPacks(elem) {
     let arrivageId = elem.data('id');
-    let path = Routing.generate('arrivage_list_colis_api', true);
-    let modal = $('#modalListColis');
+    let path = Routing.generate('arrivage_list_packs_api', true);
+    let modal = $('#modalListPacks');
     let params = {id: arrivageId};
 
     $.post(path, JSON.stringify(params), function (data) {
@@ -254,11 +255,10 @@ function createArrival(form = null) {
                     },
                     success: (res) => {
                         res = res || {};
-                        let newForm = JSON.parse(res.new_form);
-                        $(`#arrivalForm`).val(res.new_form);
-                        createArrival(newForm);
-                        if (res.success === false) {
-                            $submit.popLoader();
+                        let newForm = res.new_form;
+                        if (newForm) {
+                            $(`#arrivalForm`).val(JSON.stringify(newForm));
+                            createArrival(newForm);
                         }
 
                         arrivalCallback(
@@ -270,10 +270,6 @@ function createArrival(form = null) {
                             },
                             arrivalsTable
                         );
-
-                        $.get(Routing.generate(`arrivage_new_api`, true), function (data) {
-                            $(`#arrivalForm`).val(JSON.stringify(data));
-                        });
                     },
                 }).catch(() => {});
         })

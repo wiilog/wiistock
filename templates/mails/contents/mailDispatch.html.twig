@@ -38,11 +38,8 @@
         <li>{{ translateIn(language, "Demande", "Général", "Destinataire(s)") }} : <strong>{{ receivers }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Type") }} : <strong>{{ dispatch.type.labelIn(language, getDefaultLanguage()) }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Statut") }} : <strong>{{ dispatch.statut.labelIn(language, getDefaultLanguage()) }}</strong></li>
-        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Dates d\'échéance') }} : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
         <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Transporteur') }} : <strong>{{ dispatch.carrier.label ?? '' }}</strong></li>
         <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° tracking transporteur') }} : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
-        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° projet') }} : <strong>{{ dispatch.projectNumber ?? '' }}</strong></li>
-        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Business unit') }} : <strong>{{ dispatch.businessUnit ?? '' }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Urgence") }} : <strong>{{ emergency }}</strong></li>
         <li>{{ translateIn(language, "Général", null, "Modale", "Commentaire") }} : {{ comment|striptags }}</li>
         {% if dispatch.attachments|length > 0 %}
@@ -57,109 +54,273 @@
         {% endif %}
     </ul>
 
-    <table class="table"
-           style="border: 1px solid black;border-collapse: collapse;"
-           role="presentation"
-           cellspacing="0"
-           border="0">
-        <thead>
-        <tr>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Nature') }}
-            </th>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Code') }}
-            </th>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Quantité à acheminer') }}
-            </th>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Date dernier mouvement') }}
-            </th>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Dernier emplacement') }}
-            </th>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Opérateur') }}
-            </th>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Poids (kg)') }}
-            </th>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Volume (m3)') }}
-            </th>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Statut') }}
-            </th>
-        </tr>
-        </thead>
-        <tbody>
-        {% if dispatch.dispatchPacks.count == 0 %}
+    {% if reportTable is defined and reportTable %}
+        <table class="table"
+               style="border: 1px solid black;border-collapse: collapse;"
+               role="presentation"
+               cellspacing="0"
+               border="0">
+            <thead>
             <tr>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;"
-                    colspan="6">
-                    {{ translateIn(language, 'Général', null, 'Zone liste', 'Aucune donnée disponible') }}
-                </td>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Unité logisitque') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Emplacement de prise') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Emplacement de dépose') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Référence') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Quantité') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° de série') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° de lot') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Code fabricant') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° de scellé') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Volume (m3)') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Poids (kg)') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'ADR') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Types de documents associés') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Commentaire') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Photos') }}
+                </th>
             </tr>
-        {% endif %}
-        {% for dispatchPack in dispatch.dispatchPacks %}
-            {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.labelIn(language, getDefaultLanguage()) : '' %}
-            {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
-            {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
+            </thead>
+            <tbody>
+            {% if dispatch.dispatchPacks.count == 0 %}
+                <tr>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;"
+                        colspan="6">
+                        {{ translateIn(language, 'Général', null, 'Zone liste', 'Aucune donnée disponible') }}
+                    </td>
+                </tr>
+            {% endif %}
+            {% for dispatchPack in dispatch.dispatchPacks %}
+                {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.labelIn(language, getDefaultLanguage()) : '' %}
+                {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
+                {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
+                {% set dispatchReferenceArticles = dispatchPack.dispatchReferenceArticles is not empty ? dispatchPack.dispatchReferenceArticles : [null] %}
+
+                {% for dispatchReferenceArticle in dispatchReferenceArticles %}
+                    {% set description = dispatchReferenceArticle ? dispatchReferenceArticle.referenceArticle.description : null %}
+                    <tr>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchPack.pack.code }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatch.locationFrom ? dispatch.locationFrom.label }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatch.locationTo ? dispatch.locationTo.label }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.referenceArticle.reference }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.quantity }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.serialNumber }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.batchNumber }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ description and description['manufacturerCode'] ? description['manufacturerCode'] : '' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.sealingNumber }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ description and description['volume'] is defined ? description['volume'] : '' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ description and description['weight'] ? description['weight'] : '' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{
+                                dispatchReferenceArticle.ADR
+                                        ? translateIn(language, 'Général', null, 'Modale', 'Oui')
+                                        : translateIn(language, 'Général', null, 'Modale', 'Non')
+                            }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ description ? description['associatedDocumentTypes'] : '' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.comment }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {% if dispatchReferenceArticle %}
+                                {% for attachement in dispatchReferenceArticle.attachments %}
+                                    {{ attachement.originalName }}
+                                {% endfor %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <table class="table"
+               style="border: 1px solid black;border-collapse: collapse;"
+               role="presentation"
+               cellspacing="0"
+               border="0">
+            <thead>
             <tr>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ natureLabel }}
-                </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ dispatchPack.pack.code }}
-                </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ dispatchPack.quantity }}
-                </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ packLastTracking ? packLastTracking.datetime|date('d/m/Y H:i:s') : '-' }}
-                </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ packLocationLastTracking ? packLocationLastTracking.label : '-' }}
-                </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ packLastTracking ? packLastTracking.operateur.username : '-' }}
-                </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ dispatchPack.pack.weight ?? '-' }}
-                </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ dispatchPack.pack.volume ?? '-' }}
-                </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ dispatchPack.treated
-                        ? translateIn(language, 'Demande', 'Acheminements', 'Général', 'Traité')
-                        : translateIn(language, 'Demande', 'Acheminements', 'Général', 'À traiter')
-                    }}
-                </td>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Nature') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Code') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Quantité à acheminer') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Date dernier mouvement') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Dernier emplacement') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Opérateur') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Poids (kg)') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Volume (m3)') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Statut') }}
+                </th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {% if dispatch.dispatchPacks.count == 0 %}
+                <tr>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;"
+                        colspan="6">
+                        {{ translateIn(language, 'Général', null, 'Zone liste', 'Aucune donnée disponible') }}
+                    </td>
+                </tr>
+            {% endif %}
+            {% for dispatchPack in dispatch.dispatchPacks %}
+                {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.labelIn(language, getDefaultLanguage()) : '' %}
+                {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
+                {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
+                <tr>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ natureLabel }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ dispatchPack.pack.code }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ dispatchPack.quantity }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ packLastTracking ? packLastTracking.datetime|date('d/m/Y H:i:s') : '-' }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ packLocationLastTracking ? packLocationLastTracking.label : '-' }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ packLastTracking ? packLastTracking.operateur.username : '-' }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ dispatchPack.pack.weight ?? '-' }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ dispatchPack.pack.volume ?? '-' }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ dispatchPack.treated
+                            ? translateIn(language, 'Demande', 'Acheminements', 'Général', 'Traité')
+                            : translateIn(language, 'Demande', 'Acheminements', 'Général', 'À traiter')
+                        }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
     <br>
     <br>
 

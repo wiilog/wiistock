@@ -6,7 +6,7 @@ use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
-use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\CollecteRepository;
 use DateTimeInterface;
@@ -26,7 +26,7 @@ class Collecte implements PairedEntity {
     const DESTRUCT_STATE = 0;
     const STOCKPILLING_STATE = 1;
 
-    use CommentTrait;
+    use CleanedCommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
 

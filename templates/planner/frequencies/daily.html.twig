@@ -1,0 +1,30 @@
+<div class="frequency every-day-frequency {{ checked ? '' : 'd-none' }}">
+    <div class="col-12 p-2 mt-1 mb-0 form-inline form-group">
+        <label class="wii-field-name">Démarrer le</label>
+        <input type="date"
+               class="form-control form-control-sm ml-2 frequency-data"
+               name="startDate"
+               title="Démarrer le"
+               placeholder="jj/mm/aaaa"
+               min='now'
+               value="{{ begin|date('Y-m-d') }}"/>
+    </div>
+
+    <div class="form-inline">
+        <div class="col-12 p-2">
+            Répéter tous les
+            <input type="number"
+                   name="repeatPeriod"
+                   class="form-control form-control-sm mx-2 w-px-100 frequency-data"
+                   data-label="Intervalle de jours"
+                   min="1"
+                   value="{{ period }}">
+            jours à
+            <input type="time"
+                   name="intervalTime"
+                   class="form-control form-control-sm mx-2 w-px-100 frequency-data"
+                   data-label="Heures et minutes"
+                   value="{{ intervalTime }}">
+        </div>
+    </div>
+</div>

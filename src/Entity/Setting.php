@@ -17,6 +17,7 @@ class Setting {
 
     const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/delivery_template.dotx';
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/dispatch_template.dotx';
+    const DEFAULT_DISPATCH_RECAP_TEMPLATE_VALUE = 'modele/recap/dispatch_template.dotx';
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE = 'modele/waybill/dispatch_arrival_template.dotx';
 
     //temporary settings
@@ -25,7 +26,7 @@ class Setting {
     // arrivages
     const REDIRECT_AFTER_NEW_ARRIVAL = "REDIRECT_AFTER_NEW_ARRIVAL";
     const SEND_MAIL_AFTER_NEW_ARRIVAL = "SEND_MAIL_AFTER_NEW_ARRIVAL";
-    const AUTO_PRINT_COLIS = "AUTO_PRINT_COLIS";
+    const AUTO_PRINT_LU = "AUTO_PRINT_LU";
     const PRINT_TWICE_CUSTOMS = "PRINT_TWICE_CUSTOMS";
     const DROP_OFF_LOCATION_IF_CUSTOMS = 'DROP_OFF_LOCATION_IF_CUSTOMS';
     const DROP_OFF_LOCATION_IF_EMERGENCY = 'DROP_OFF_LOCATION_IF_EMERGENCY';
@@ -47,6 +48,7 @@ class Setting {
     const REQUESTER_IN_DELIVERY = 'REQUESTER_IN_DELIVERY';
     const DISPLAY_PICKING_LOCATION = 'DISPLAY_PICKING_LOCATION';
     const MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST = "MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST";
+    const SET_PREPARED_UPON_DELIVERY_VALIDATION = "SET_PREPARED_UPON_DELIVERY_VALIDATION";
     const MANAGE_PREPARATIONS_WITH_PLANNING = "MANAGE_PREPARATIONS_WITH_PLANNING";
 
     // collectes
@@ -65,6 +67,16 @@ class Setting {
     const SEND_MAIL_MANAGER_SECURITY_THRESHOLD = 'SEND_MAIL_MANAGER_SECURITY_THRESHOLD';
     const STOCK_EXPIRATION_DELAY = 'STOCK_EXPIRATION_DELAY';
     const DEFAULT_LOCATION_REFERENCE = 'DEFAULT_LOCATION_REFERENCE';
+    const REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES = 'REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES';
+
+    // stock - articles
+    const ARTICLE_TYPE = 'ARTICLE_TYPE';
+    const ARTICLE_REFERENCE = 'ARTICLE_REFERENCE';
+    const ARTICLE_SUPPLIER = 'ARTICLE_SUPPLIER';
+    const ARTICLE_SUPPLIER_REFERENCE = 'ARTICLE_SUPPLIER_REFERENCE';
+    const ARTICLE_LABEL = 'ARTICLE_LABEL';
+    const ARTICLE_QUANTITY = 'ARTICLE_QUANTITY';
+    const ARTICLE_LOCATION = 'ARTICLE_LOCATION';
 
     // borne tactile - général
     const FILE_TOP_LEFT_LOGO = 'FILE_TOP_LEFT_LOGO';
@@ -152,6 +164,10 @@ class Setting {
     const DELIVERY_WAYBILL_CONTACT_NAME = 'DELIVERY_WAYBILL_CONTACT_NAME';
     const DELIVERY_WAYBILL_CONTACT_PHONE_OR_MAIL = 'DELIVERY_WAYBILL_CONTACT_PHONE_OR_MAIL';
 
+    const DISPATCH_NEW_REFERENCE_TYPE = 'DISPATCH_NEW_REFERENCE_TYPE';
+    const DISPATCH_NEW_REFERENCE_STATUS = 'DISPATCH_NEW_REFERENCE_STATUS';
+    const DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT = 'DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT';
+
     // mobile configuration
     const TRANSFER_TO_TREAT_SKIP_VALIDATIONS = 'TRANSFER_TO_TREAT_SKIP_VALIDATIONS';
     const MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS = 'MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS';
@@ -163,18 +179,21 @@ class Setting {
     const TRANSFER_FREE_DROP = 'TRANSFER_FREE_DROP';
     const PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL = 'PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL';
     const MANUAL_DELIVERY_DISABLE_VALIDATIONS = 'MANUAL_DELIVERY_DISABLE_VALIDATIONS';
+    const DELIVERY_EXPECTED_DATE_COLOR_AFTER = 'DELIVERY_EXPECTED_DATE_COLOR_AFTER';
+    const DELIVERY_EXPECTED_DATE_COLOR_D_DAY = 'DELIVERY_EXPECTED_DATE_COLOR_D_DAY';
+    const DELIVERY_EXPECTED_DATE_COLOR_BEFORE = 'DELIVERY_EXPECTED_DATE_COLOR_BEFORE';
 
     // document
     const DELIVERY_NOTE_LOGO = 'DELIVERY_NOTE_LOGO';
 
 
-//    TODO WIIS-8753 remove usage ?
+    // TODO WIIS-8882
     const FILE_WAYBILL_LOGO = 'WAYBILL_LOGO';
 
     // étiquettes
     const INCLUDE_BL_IN_LABEL = "INCLURE_BL_SUR_ETIQUETTE";
     const INCLUDE_QTT_IN_LABEL = "INCLURE_QTT_SUR_ETIQUETTE";
-    const BARCODE_TYPE_IS_128 = 'BARCORE_TYPE';
+    const BARCODE_TYPE_IS_128 = 'BARCODE_TYPE';
     const LABEL_WIDTH = 'LABEL_WIDTH';
     const LABEL_HEIGHT = 'LABEL_HEIGHT';
     const LABEL_LOGO = 'LABEL_LOGO';
@@ -194,11 +213,12 @@ class Setting {
 
     const INCLUDE_DZ_LOCATION_IN_LABEL = "INCLURE_EMPLACEMENT_DROPZONE_SUR_ETIQUETTE";
     const INCLUDE_ARRIVAL_TYPE_IN_LABEL = "INCLURE_TYPE_ARRIVAGE_SUR_ETIQUETTE";
-    const INCLUDE_PACK_COUNT_IN_LABEL = "INCLURE_NOMBRE_DE_COLIS_SUR_ETIQUETTE";
+    const INCLUDE_PACK_COUNT_IN_LABEL = "INCLURE_NOMBRE_DE_UL_SUR_ETIQUETTE";
     const INCLUDE_EMERGENCY_IN_LABEL = "INCLURE_URGENCE_SUR_ETIQUETTE";
     const INCLUDE_CUSTOMS_IN_LABEL = "INCLURE_DOUANE_SUR_ETIQUETTE";
     const CL_USED_IN_LABELS = "CL_USED_IN_LABELS";
     const INCLUDE_BUSINESS_UNIT_IN_LABEL = "INCLURE_BUSINESS_UNIT_SUR_ETIQUETTE";
+    const INCLUDE_PROJECT_IN_LABEL = "INCLUDE_PROJECT_IN_LABEL";
 
     // modèles de document
     const DEFAULT_DELIVERY_WAYBILL_TEMPLATE = "DEFAULT_DELIVERY_WAYBILL_TEMPLATE";
@@ -213,6 +233,10 @@ class Setting {
     const CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE = "CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE";
     const CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE_FILE_NAME = "CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE_FILE_NAME";
 
+    const DEFAULT_DISPATCH_RECAP_TEMPLATE = "DEFAULT_DISPATCH_RECAP_TEMPLATE";
+    const CUSTOM_DISPATCH_RECAP_TEMPLATE = "CUSTOM_DISPATCH_RECAP_TEMPLATE";
+    const CUSTOM_DISPATCH_RECAP_TEMPLATE_FILE_NAME = "CUSTOM_DISPATCH_RECAP_TEMPLATE_FILE_NAME";
+
     const QR_CODE = [
         "value" => false,
         "label" => 'QR Code',
@@ -221,6 +245,10 @@ class Setting {
         "value" => true,
         "label" => 'Code 128',
     ];
+    // Stock inventaire
+    const RFID_PREFIX = "RFID_PREFIX";
+    const RFID_KPI_MIN = "RFID_KPI_MIN";
+    const RFID_KPI_MAX = "RFID_KPI_MAX";
 
     // export csv
     const USES_UTF8 = 'USES_UTF8';
@@ -271,7 +299,7 @@ class Setting {
                 "demandeurliv" => "demandeur de la livraison",
                 "projetliv" => "numéro de projet de la livraison",
             ],
-            "Champs Liste des unités logistiques acheminements" => [
+            "Champs Liste des unités logistiques livraison" => [
                 "UL" => "code d'une unité logistiques contenue dans la livraison",
                 "nature" => "nature d'une unité logistique contenue dans la livraison",
                 "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
@@ -297,49 +325,94 @@ class Setting {
             ],
         ],
         "dispatch" => [
-            "Champs fixes acheminement" => [
-                "numach" => "numéro de l'acheminement",
-                "qrcodenumach" => "QR Code du numéro de l'acheminement",
-                "typeach" => "type de l'acheminement",
-                "transporteurach" => "transporteur de l'acheminement",
-                "numtracktransach" => "numéro de tracking transporteur de l'acheminement",
-                "demandeurach" => "demandeur de l'acheminement",
-                "destinatairesach" => "destinataires de l'acheminement",
-                "numprojetach" => "numéro de projet de l'acheminement",
-                "numcommandeach" => "numéro de commande de l'acheminement ",
-                "date1ach" => "date d'échéance 1 de l'acheminement",
-                "date2ach" => "date d'échéance 2 de l'acheminement",
+            "waybill" => [
+                "Champs fixes acheminement" => [
+                    "numach" => "numéro de l'acheminement",
+                    "qrcodenumach" => "QR Code du numéro de l'acheminement",
+                    "typeach" => "type de l'acheminement",
+                    "transporteurach" => "transporteur de l'acheminement",
+                    "numtracktransach" => "numéro de tracking transporteur de l'acheminement",
+                    "demandeurach" => "demandeur de l'acheminement",
+                    "destinatairesach" => "destinataires de l'acheminement",
+                    "numprojetach" => "numéro de projet de l'acheminement",
+                    "numcommandeach" => "numéro de commande de l'acheminement ",
+                    "date1ach" => "date d'échéance 1 de l'acheminement",
+                    "date2ach" => "date d'échéance 2 de l'acheminement",
+                ],
+                "Champs Liste des unités logistiques livraison" => [
+                    "UL" => "code d'une unité logistiques contenue dans la livraison",
+                    "nature" => "nature d'une unité logistique contenue dans la livraison",
+                    "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
+                    "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
+                    "poids" => "poids d'une unité logistique contenue dans la livraison",
+                    "totalpoids" => "total du poids des unités logistiques contenues dans la livraison",
+                    "volume" => "volume d'une unité logistique contenue dans la livraison",
+                    "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
+                    "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
+                ],
+                "Champs formulaire lettre de voiture" => [
+                    "dateacheminement" => "date renseignée dans le champ \"Date d'acheminement\" sur le formulaire de création de lettre de voiture",
+                    "transporteur" => "chaîne de caractères renseignée dans le champ \"Transporteur\" sur le formulaire de création de lettre de voiture",
+                    "expediteur" => "chaîne de caractères renseignée dans le champ \"Expéditeur\" sur le formulaire de création de lettre de voiture",
+                    "destinataire" => "chaîne de caractères renseignée dans le champ \"Destinataire\" sur le formulaire de création de lettre de voiture",
+                    "nomexpediteur" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
+                    "telemailexpediteur" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
+                    "nomdestinataire" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact destinataire\" sur le formulaire de création de lettre de voiture",
+                    "telemaildestinataire" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact destinataire\" sur le formulaire de création delettre de voiture",
+                    "note" => "chaîne de caractères renseignée dans le champ \"Note de bas de page\" sur le formulaire de création de lettre de voiture",
+                    "lieuchargement" => "chaîne de caractères renseignée dans le champ \"Lieu de chargement\" sur le formulaire de création de lettre de voiture",
+                    "lieudechargement" => "chaîne de caractères renseignée dans le champ \"Lieu de déchargement\" sur le formulaire de création de lettre de voiture",
+                ],
+                "Champs de l'arrivage de provenance des unités logistiques" => [
+                    "numarrivage" => "numéro de l'arrivage dont est issue l'unité logistique",
+                    "numcommandearrivage" => "numéros de commande de l'arrivage dont est issue l'unité logistique",
+                    "tableauULarrivage" => "tableau contenant la liste des unités logistiques contenues dans l'arrivage de provenance. Le tableau contient les colonnes : Unité de tracking, Nature, Quantité, Poids et Numero commande arrivage.",
+                ],
             ],
-            "Champs Liste des unités logistiques livraison" => [
-                "UL" => "code d'une unité logistiques contenue dans la livraison",
-                "nature" => "nature d'une unité logistique contenue dans la livraison",
-                "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
-                "totalquantite" => "total des quantités des articles contenus dans l'unité logistique contenue dans la livraison",
-                "poids" => "poids d'une unité logistique contenue dans la livraison",
-                "totalpoids" => "total du poids des unités logistiques contenues dans la livraison",
-                "volume" => "volume d'une unité logistique contenue dans la livraison",
-                "totalvolume" => "total du volume des unités logistiques contenues dans la livraison",
-                "commentaire" => "commentaire d'une unité logistique contenue dans la livraison",
+            "report" => [
+                "Champs fixes acheminement" => [
+                    "numach" => "numéro de l'acheminement",
+                    "qrcodenumach" => "QR Code du numéro de l'acheminement",
+                    "typeach" => "type de l'acheminement",
+                    "statutach" => "statut de l'acheminement",
+                    "emppriseach" => "emplacement de prise de l'acheminement",
+                    "empdeposeach" => "emplacement de dépose de l'acheminement",
+                    "transporteurach" => "transporteur de l'acheminement",
+                    "numtracktransach" => "numéro de tracking transporteur de l'acheminement",
+                    "demandeurach" => "demandeur de l'acheminement",
+                    "signataireach" => "signataire de l'acheminement",
+                    "destinatairesach" => "destinataires de l'acheminement",
+                    "numprojetach" => "numéro de projet de l'acheminement",
+                    "numcommandeach" => "numéro de commande de l'acheminement ",
+                    "date1ach" => "date d'échéance 1 de l'acheminement",
+                    "date2ach" => "date d'échéance 2 de l'acheminement",
+                    "urgenceach" => "urgence de l'acheminement",
+                    "commentaireach" => "commentaire de l'acheminement",
+                    "datestatutach" => "date et heure du changement de statut de l'acheminement",
+                ],
+                "Champs Liste des unités logistiques acheminements" => [
+                    "UL" => "code d'une unité logistiques contenue dans l'acheminement. Il y aura autant de lignes que d'UL dans l'acheminement",
+                    "natureul" => "nature d'une unité logistique contenue dans l'acheminement",
+                    "quantiteul" => "quantité d'une unité logistique contenue dans l'acheminement",
+                ],
+                "Champs Liste des références dans UL" => [
+                    "referenceref" => "référence contenue dans l'UL",
+                    "quantiteref" => "quantité d'une référence contenue dans l'UL",
+                    "materielhorsformatref" => "matériel hors format d'une référence contenue dans l'UL",
+                    "numeroserieref" => "numéro de série d'une référence contenue dans l'UL",
+                    "numerolotref" => "numéro de lot d'une référence contenue dans l'UL",
+                    "codefabricantref" => "code farbicant d'une référence contenue dans l'UL",
+                    "numeroscelleref" => "numéro scellée d'une référence contenue dans l'UL",
+                    "dimensionsref" => "dimensions d'une référence contenue dans l'UL",
+                    "poidsref" => "poids d'une référence contenue dans l'UL",
+                    "volumeref" => "volume d'une référence contenue dans l'UL",
+                    "adrref" => "ADR présent sur une référence contenue dans l'UL",
+                    "documentsref" => "documents associés d'une référence contenue dans l'UL",
+                    "commentaireref" => "commentaire d'une référence contenue dans l'UL",
+                    "photoref" => "photo d'une référence contenue dans l'UL",
+                ],
             ],
-            "Champs formulaire lettre de voiture" => [
-                "dateacheminement" => "date renseignée dans le champ \"Date d'acheminement\" sur le formulaire de création de lettre de voiture",
-                "transporteur" => "chaîne de caractères renseignée dans le champ \"Transporteur\" sur le formulaire de création de lettre de voiture",
-                "expediteur" => "chaîne de caractères renseignée dans le champ \"Expéditeur\" sur le formulaire de création de lettre de voiture",
-                "destinataire" => "chaîne de caractères renseignée dans le champ \"Destinataire\" sur le formulaire de création de lettre de voiture",
-                "nomexpediteur" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
-                "telemailexpediteur" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact expéditeur\" sur le formulaire de création de lettre de voiture",
-                "nomdestinataire" => "chaîne de caractères renseignée dans le champ \"Nom\" sous \"Contact destinataire\" sur le formulaire de création de lettre de voiture",
-                "telemaildestinataire" => "chaîne de caractères renseignée dans le champ \"Téléphone - Email\" sous \"Contact destinataire\" sur le formulaire de création delettre de voiture",
-                "note" => "chaîne de caractères renseignée dans le champ \"Note de bas de page\" sur le formulaire de création de lettre de voiture",
-                "lieuchargement" => "chaîne de caractères renseignée dans le champ \"Lieu de chargement\" sur le formulaire de création de lettre de voiture",
-                "lieudechargement" => "chaîne de caractères renseignée dans le champ \"Lieu de déchargement\" sur le formulaire de création de lettre de voiture",
-            ],
-            "Champs de l'arrivage de provenance des unités logistiques" => [
-                "numarrivage" => "numéro de l'arrivage dont est issue l'unité logistique",
-                "numcommandearrivage" => "numéros de commande de l'arrivage dont est issue l'unité logistique",
-                "tableauULarrivage" => "tableau contenant la liste des unités logistiques contenues dans l'arrivage de provenance. Le tableau contient les colonnes : Unité de tracking, Nature, Quantité, Poids",
-            ],
-        ]
+        ],
     ];
 
     #[ORM\Id]

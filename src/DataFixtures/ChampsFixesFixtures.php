@@ -5,10 +5,12 @@ namespace App\DataFixtures;
 
 use App\Entity\FieldsParam;
 
+use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
@@ -34,6 +36,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
             FieldsParam::ENTITY_CODE_DEMANDE => [
                 ['code' => FieldsParam::FIELD_CODE_EXPECTED_AT, 'label' => FieldsParam::FIELD_LABEL_EXPECTED_AT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_PROJECT, 'label' => FieldsParam::FIELD_LABEL_PROJECT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
 
             FieldsParam::ENTITY_CODE_ARRIVAGE => [
@@ -53,6 +56,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
                 ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
                 ['code' => FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_DROP_LOCATION_ARRIVAGE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_PROJECT, 'label' => FieldsParam::FIELD_LABEL_PROJECT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
 
             FieldsParam::ENTITY_CODE_DISPATCH => [
@@ -60,6 +64,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_CARRIER_TRACKING_NUMBER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_RECEIVER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_RECEIVER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_DEADLINE_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_DEADLINE_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FieldsParam::FIELD_CODE_EMAILS, 'label' => FieldsParam::FIELD_LABEL_EMAILS_DISPATCH, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMAND_NUMBER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_COMMENT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMENT_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
@@ -68,7 +73,8 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_PICK, 'label' => FieldsParam::FIELD_LABEL_LOCATION_PICK, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_DROP, 'label' => FieldsParam::FIELD_LABEL_LOCATION_DROP, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
-                ['code' => FieldsParam::FIELD_CODE_DESTINATION, 'label' => FieldsParam::FIELD_LABEL_DESTINATION, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_DESTINATION, 'label' => FieldsParam::FIELD_LABEL_DESTINATION, 'displayedCreate' => false,'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_REQUESTER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_REQUESTER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
             ],
 
             FieldsParam::ENTITY_CODE_HANDLING => [
@@ -77,7 +83,21 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, 'label' => FieldsParam::FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FieldsParam::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true]
-            ]
+            ],
+
+            FieldsParam::ENTITY_CODE_ARTICLE => [
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_UNIT_PRICE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_UNIT_PRICE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_BATCH, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_BATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_ANOMALY, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_ANOMALY, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_EXPIRY_DATE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_EXPIRY_DATE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_COMMENT, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_COMMENT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_MANUFACTURE_DATE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_MANUFACTURE_DATE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_PRODUCTION_DATE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_PRODUCTION_DATE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_NATIVE_COUNTRY, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_NATIVE_COUNTRY, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ARTICLE_DESTINATION_AREA, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_DESTINATION_AREA, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+            ],
         ];
 
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);

@@ -1,0 +1,26 @@
+{% for line in lines %}
+    {% set logisticUnit = line.pack ?? null %}
+    {% include 'pack/utils/packItemListTemplate.html.twig' with {
+        header: logisticUnit
+            ? {
+                data: {
+                    'pack-id': logisticUnit.packId,
+                },
+                sideLabel: logisticUnit.nature,
+                color: logisticUnit.color,
+                content: [
+                    {label: 'Unité logistique', value: logisticUnit.code, bold: 'value'},
+                    {label: 'Emplacement', value: logisticUnit.location, bold: 'label'},
+                    {label: 'Nombre d\'articles demandé', value: line.articles|length ~ '/' ~ logisticUnit.quantityArticleInLocation, bold: 'label'}
+                ]
+            }
+            : null,
+        content: line.articles,
+        action: logisticUnit
+            ? {
+                icon: 'wii-icon wii-icon-trash-black',
+                datatarget: "#modalDeleteArticle",
+                onclick: "removeLogisticUnitRow(" ~ logisticUnit.packId ~ ", 'unit')",
+            }
+    } %}
+{% endfor %}

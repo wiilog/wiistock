@@ -1,5 +1,6 @@
 import WysiwygManager from "./wysiwyg-manager";
 import Flash from "./flash";
+import AJAX, {POST} from "@app/ajax";
 
 export default class Form {
 
@@ -98,6 +99,30 @@ export default class Form {
         return this;
     }
 
+    submitTo(method, route, options) {
+        this.onSubmit((data, form) => {
+            form.loading(
+                () => AJAX.route(method,route)
+                    .json(data)
+                    .then(response => {
+                        if(response.success) {
+                            this.element.modal(`hide`);
+
+                            if(options.success) {
+                                options.success(response);
+                            }
+
+                            if(options.table) {
+                                options.table.ajax.reload();
+                            }
+                        }
+                    })
+            )
+        })
+
+        return this;
+    }
+
     clearOpenListeners() {
         this.openListeners = [];
         return this;
@@ -134,7 +159,7 @@ export default class Form {
      * @param {boolean} endLoading default to true
      */
     loading(action, endLoading = true) {
-        const $submit = this.element.find('[type=submit]');
+        const $submit = this.element.find(`[type=submit]`);
         wrapLoadingOnActionButton($submit, action, endLoading);
     }
 
@@ -395,12 +420,13 @@ function treatInputError($input, errors, form) {
                 message,
             });
         }
-    } else if ($input.attr(`type`) === `tel`) {
+    }
+    else if ($input.attr(`type`) === `tel`) {
         const regex = /^(?:(?:\+|00)33[\s.-]{0,3}(?:\(0\)[\s.-]{0,3})?|0)[1-9](?:(?:[\s.-]?\d{2}){4}|\d{2}(?:[\s.-]?\d{3}){2})$/;
         if ($input.val() && !$input.val().match(regex)) {
             errors.push({
                 elements: [$input],
-                message: `Le numéro de téléphone n'est pas valide`,
+                message: `Le numéro de ${$input.is(`[data-fax]`) ? `fax` : `téléphone`} n'est pas valide`,
             });
         }
     }
@@ -459,6 +485,10 @@ function formatInputValue($input) {
         value = $input.is(`:checked`) ? `1` : `0`;
     } else if ($input.attr(`type`) === `file`) {
         value = $input[0].files[0] || null;
+    } else if ($input.attr(`type`) === `radio`) {
+        value = $input.is(`:checked`)
+            ? $input.val()
+            : null;
     } else {
         value = $input.val() || null;
     }
@@ -516,7 +546,7 @@ export function formatIconSelector(state) {
     const $option = $(state.element);
     return $(`
         <span class="d-flex align-items-center">
-            <img src="${$option.data('icon')??''}" width="20px" height="20px" class="round mr-2"/>
+            <img src="${$option.data('icon') || ''}" width="20px" height="20px" class="round mr-2"/>
             ${state.text}
         </span>
     `);

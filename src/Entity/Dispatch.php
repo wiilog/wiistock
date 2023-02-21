@@ -2,15 +2,18 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\DispatchRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: DispatchRepository::class)]
-class Dispatch {
+class Dispatch extends StatusHistoryContainer {
 
     use FreeFieldsManagerTrait;
 
@@ -160,12 +163,23 @@ class Dispatch {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $destination = null;
 
+    #[ORM\OneToMany(mappedBy: 'dispatch', targetEntity: StatusHistory::class)]
+    private Collection $statusHistory;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $emails = [];
+
+    // old handling request without timeline
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private ?bool $withoutHistory = false;
+
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->waybillData = [];
         $this->deliveryNoteData = [];
         $this->receivers = new ArrayCollection();
+        $this->statusHistory = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -248,8 +262,8 @@ class Dispatch {
         return $this->statut;
     }
 
-    public function setStatut(?Statut $statut): self {
-        $this->statut = $statut;
+    public function setStatus(?Statut $status): self {
+        $this->statut = $status;
 
         return $this;
     }
@@ -530,5 +544,64 @@ class Dispatch {
 
         return $this;
     }
+
+    public function getStatusHistory(string $order = Criteria::ASC): Collection {
+        return $this->statusHistory
+            ->matching(Criteria::create()
+                ->orderBy([
+                    'date' => $order,
+                    'id' => $order,
+                ])
+            );
+    }
+
+    public function addStatusHistory(StatusHistory $statusHistory): self
+    {
+        if (!$this->statusHistory->contains($statusHistory)) {
+            $this->statusHistory[] = $statusHistory;
+            $statusHistory->setDispatch($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStatusHistory(StatusHistory $statusHistory): self
+    {
+        if ($this->statusHistory->removeElement($statusHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($statusHistory->getHandling() === $this) {
+                $statusHistory->setHandling(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getEmails(): ?array {
+        return $this->emails;
+    }
+
+    public function setEmails(?array $emails): self {
+        $this->emails = $emails;
+
+        return $this;
+    }
+
+    public function hasReferenceArticles() {
+        return Stream::from($this->dispatchPacks)
+            ->some(fn(DispatchPack $dispatchPack) => count($dispatchPack->getDispatchReferenceArticles()) > 0
+        );
+    }
+
+    public function isWithoutHistory(): ?bool {
+        return $this->withoutHistory;
+    }
+
+    public function setWithoutHistory(?bool $withoutHistory): self {
+        $this->withoutHistory = $withoutHistory;
+        return $this;
+    }
+
+
 
 }

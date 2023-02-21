@@ -2,13 +2,19 @@
 
 namespace App\Repository;
 
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
+use App\Entity\Reception;
+use App\Entity\ReceptionLine;
 use App\Entity\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use DateTimeInterface;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -37,7 +43,8 @@ class PackRepository extends EntityRepository
         'packOrigin' => 'packOrigin',
         'packLocation' => 'packLocation',
         'quantity' => 'quantity',
-        'arrivageType' => 'arrivage'
+        'arrivageType' => 'arrivage',
+        'project' => 'project',
     ];
 
     public function countPacksByDates(DateTime $dateMin,
@@ -150,7 +157,10 @@ class PackRepository extends EntityRepository
             ->groupBy('pack.id');
 
         if ($mode === self::PACKS_MODE) {
-            $queryBuilder->where('pack.groupIteration IS NULL');
+            $queryBuilder
+                ->leftJoin('pack.article', 'article')
+                ->andWhere('article.currentLogisticUnit IS NULL')
+                ->andWhere('pack.groupIteration IS NULL');
             $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
         }
         else if ($mode === self::GROUPS_MODE) {
@@ -162,12 +172,12 @@ class PackRepository extends EntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'emplacement':
-                    $emplacementValue = explode(':', $filter['value']);
+                    $emplacementValue = explode(',', $filter['value']);
                     $queryBuilder
                         ->join('pack.lastTracking', 'mFilter0')
                         ->join('mFilter0.emplacement', 'e')
-                        ->andWhere('e.label = :location')
-                        ->setParameter('location', $emplacementValue[1] ?? $filter['value']);
+                        ->andWhere('e.id IN (:location)')
+                        ->setParameter('location', $emplacementValue, Connection::PARAM_INT_ARRAY);
                     break;
                 case 'dateMin':
                     $queryBuilder
@@ -181,10 +191,10 @@ class PackRepository extends EntityRepository
                         ->andWhere('mFilter2.datetime <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
-                case 'colis':
+                case 'UL':
                     $queryBuilder
-                        ->andWhere('pack.code LIKE :colis')
-                        ->setParameter('colis', '%' . $filter['value'] . '%');
+                        ->andWhere('pack.code LIKE :UL')
+                        ->setParameter('UL', '%' . $filter['value'] . '%');
                     break;
                 case 'numArrivage':
                     $queryBuilder
@@ -206,6 +216,12 @@ class PackRepository extends EntityRepository
                         ->andWhere('natureFilter.id IN (:naturesFilter)')
                         ->setParameter('naturesFilter', $natures, Connection::PARAM_INT_ARRAY);
                     break;
+                case 'project':
+                    $queryBuilder
+                        ->join('pack.project', 'projectFilter')
+                        ->andWhere('projectFilter.id LIKE :projectCode')
+                        ->setParameter('projectCode', $filter['value']);
+                    break;
             }
         }
 
@@ -220,12 +236,14 @@ class PackRepository extends EntityRepository
                         ->leftJoin('pack.nature', 'n2')
                         ->leftJoin('pack.arrivage', 'arrivage')
                         ->leftJoin('arrivage.type','arrival_type')
+                        ->leftJoin('pack.childArticles', 'child_articles_search')
                         ->andWhere("(
                             pack.code LIKE :value OR
                             e2.label LIKE :value OR
                             n2.label LIKE :value OR
                             arrivage.numeroArrivage LIKE :value OR
-                            arrival_type.label LIKE :value
+                            arrival_type.label LIKE :value OR
+                            child_articles_search.barCode LIKE :value
 						)")
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -258,6 +276,10 @@ class PackRepository extends EntityRepository
                         $queryBuilder
                             ->leftJoin('pack.pairings', 'order_pairings')
                             ->orderBy('order_pairings.active', $order);
+                    } else if ($column === 'project') {
+                        $queryBuilder
+                            ->leftJoin('pack.project', 'order_project')
+                            ->orderBy('order_project.code', $order);
                     } else {
                         $queryBuilder
                             ->orderBy('pack.' . $column, $order);
@@ -290,21 +312,22 @@ class PackRepository extends EntityRepository
     {
         $natures = $options['natures'] ?? [];
         $isCount = $options['isCount'] ?? true;
-        $field = $options['field'] ?? 'colis.id';
+        $field = $options['field'] ?? 'pack.id';
         $start = $options['start'] ?? null;
         $limit = $options['limit'] ?? null;
         $order = $options['order'] ?? 'desc';
         $onlyLate = $options['onlyLate'] ?? false;
 
-        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilder = $this->createQueryBuilder('pack');
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
             ->select($isCount ? $queryBuilderExpr->count($field) : $field)
-            ->leftJoin('colis.nature', 'nature')
-            ->leftJoin('colis.arrivage', 'pack_arrival')
-            ->join('colis.lastDrop', 'lastDrop')
+            ->leftJoin('pack.nature', 'nature')
+            ->leftJoin('pack.arrivage', 'pack_arrival')
+            ->leftjoin('pack.article', 'article')
+            ->join('pack.lastDrop', 'lastDrop')
             ->join('lastDrop.emplacement', 'emplacement')
-            ->where('colis.groupIteration IS NULL');
+            ->where('pack.groupIteration IS NULL');
 
         if (!empty($locations)) {
             $queryBuilder
@@ -347,6 +370,9 @@ class PackRepository extends EntityRepository
         }
 
         if ($isCount) {
+            $queryBuilder
+                ->andWhere('article.currentLogisticUnit IS NULL');
+
             return $queryBuilder
                 ->getQuery()
                 ->getSingleScalarResult();
@@ -358,16 +384,16 @@ class PackRepository extends EntityRepository
     }
 
     public function countPacksByArrival(DateTime $from, DateTime $to) {
-        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilder = $this->createQueryBuilder('pack');
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
-            ->select('count(colis.id) as nbColis')
+            ->select('count(pack.id) as nbUL')
             ->addSelect('nature.id AS natureId')
             ->addSelect('arrivage.id AS arrivageId')
-            ->join('colis.nature', 'nature')
-            ->join('colis.arrivage', 'arrivage')
+            ->join('pack.nature', 'nature')
+            ->join('pack.arrivage', 'arrivage')
             ->where($queryBuilderExpr->between('arrivage.date', ':dateFrom', ':dateTo'))
-            ->andWhere('colis.groupIteration IS NULL')
+            ->andWhere('pack.groupIteration IS NULL')
             ->groupBy('nature.id')
             ->addGroupBy('arrivage.id')
             ->setParameter('dateFrom', $from)
@@ -380,11 +406,11 @@ class PackRepository extends EntityRepository
             function (array $carry, $counter) {
                 $arrivageId = $counter['arrivageId'];
                 $natureId = $counter['natureId'];
-                $nbColis = $counter['nbColis'];
+                $nbPacks = $counter['nbUL'];
                 if (!isset($carry[$arrivageId])) {
                     $carry[$arrivageId] = [];
                 }
-                $carry[$arrivageId][$natureId] = intval($nbColis);
+                $carry[$arrivageId][$natureId] = intval($nbPacks);
                 return $carry;
             },
             []
@@ -522,10 +548,13 @@ class PackRepository extends EntityRepository
         return $res[0]['count'] ?? 0;
     }
 
-    public function getForSelect(?string $term, $exclude) {
+    public function getForSelect(?string $term, array $options = [], ?bool $withoutArticle = false) {
+        $exclude = $options['exclude'] ?? null;
         if($exclude && !is_array($exclude)) {
             $exclude = [$exclude];
         }
+
+        $dispatchId = $options['dispatchId'] ?? null;
 
         $qb = $this->createQueryBuilder("pack")
             ->select("pack.id AS id")
@@ -537,7 +566,9 @@ class PackRepository extends EntityRepository
             ->addSelect("pack.comment AS comment")
             ->addSelect("DATE_FORMAT(last_tracking.datetime, '%d/%m/%Y %H:%i') AS lastMvtDate")
             ->addSelect("last_tracking_location.label AS lastLocation")
+            ->addSelect("last_tracking_location.id AS lastLocationId")
             ->addSelect("last_tracking_user.username AS operator")
+            ->addSelect("nature.defaultQuantityForDispatch AS defaultQuantityForDispatch")
             ->andWhere("pack.code LIKE :term")
             ->leftJoin("pack.nature", "nature")
             ->leftJoin("pack.lastTracking", "last_tracking")
@@ -548,6 +579,17 @@ class PackRepository extends EntityRepository
         if($exclude) {
             $qb->andWhere("pack.code NOT IN (:exclude)")
                 ->setParameter("exclude", $exclude);
+        }
+
+        if($dispatchId) {
+            $qb->leftJoin("pack.dispatchPacks", "dispatch_packs")
+                ->andWhere("dispatch_packs.dispatch = :dispatch")
+                ->setParameter("dispatch", $dispatchId);
+        }
+
+        if($withoutArticle) {
+            $qb->leftJoin("pack.article", "article")
+                ->andWhere("article.id IS NULL");
         }
 
         return $qb->getQuery()->getResult();
@@ -593,4 +635,103 @@ class PackRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function isInOngoingReception(Pack|int $pack): bool {
+        if(!$pack || !$pack->getId()) {
+            return false;
+        }
+
+        return intval($this->createQueryBuilder("pack")
+            ->select("COUNT(reception)")
+            ->join(ReceptionLine::class, "reception_line", Join::WITH, "reception_line.pack = pack")
+            ->join("reception_line.reception", "reception")
+            ->join("reception.statut", "status")
+            ->andWhere("status.code = :ongoing")
+            ->andWhere("pack.id = :pack")
+            ->setParameter("pack", $pack)
+            ->setParameter("ongoing", Reception::STATUT_EN_ATTENTE)
+            ->getQuery()
+            ->getSingleScalarResult()) > 0;
+    }
+
+    public function getForSelectFromDelivery(?string $term, ?int $delivery, bool $allowNoProject): array {
+        $qb = $this->createQueryBuilder("pack")
+            ->select("pack.id AS id, pack.code AS text")
+            ->leftJoin(DeliveryRequestArticleLine::class, "request_line", Join::WITH, "request_line.pack = pack")
+            ->leftJoin("request_line.request",  "request")
+            ->leftJoin("request.statut",  "request_status")
+            ->join(Demande::class, "edited_request", Join::WITH, "edited_request.id = :delivery")
+            ->andWhere('pack.childArticles IS NOT EMPTY')
+            ->andWhere("pack.code LIKE :term")
+            ->andWhere("request.id IS NULL OR request_status.code NOT IN (:ongoing_statuses)")
+            ->andWhere("edited_request.project IS NULL OR edited_request.project = pack.project")
+            ->groupBy("pack")
+            ->setParameters([
+                "term" => "%$term%",
+                "delivery" => $delivery,
+                "ongoing_statuses" => [
+                    Demande::STATUT_BROUILLON,
+                    Demande::STATUT_A_TRAITER,
+                    Demande::STATUT_PREPARE,
+                    Demande::STATUT_INCOMPLETE,
+                ]
+            ]);
+
+        if(!$allowNoProject) {
+            $qb->andWhere("pack.project IS NOT NULL");
+        }
+
+        return $qb
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getOneArticleByBarCodeAndLocation(string $barCode, ?string $location) {
+        $query = $this->createQueryBuilder("pack")
+            ->addSelect("pack.id AS id")
+            ->addSelect("pack.code AS barCode")
+            ->addSelect("pack.quantity AS quantity")
+            ->addSelect("pack_location.label AS location")
+            ->addSelect("GROUP_CONCAT(child_articles.barCode SEPARATOR ';') AS articles")
+            ->addSelect("COUNT(child_articles.id) AS articlesCount")
+            ->addSelect("0 AS is_ref")
+            ->addSelect("1 AS is_lu")
+            ->addSelect("pack_project.code AS project")
+            ->addSelect("join_nature.code AS natureCode")
+            ->addSelect("join_nature.color AS natureColor")
+            ->addSelect("DATE_FORMAT(last_tracking.datetime, '%d/%m/%Y %H:%i:%s') AS lastTrackingDate")
+            ->join("pack.lastTracking", "last_tracking")
+            ->join("last_tracking.emplacement", "pack_location")
+            ->leftJoin("pack.childArticles", "child_articles")
+            ->leftJoin("pack.project", "pack_project")
+            ->leftJoin("pack.nature", 'join_nature')
+            ->andWhere("pack.code = :barcode")
+            ->andWhere("pack.groupIteration IS NULL")
+            ->groupBy("pack")
+            ->setParameter("barcode", $barCode);
+
+        if ($location) {
+            $query
+                ->andWhere("pack_location.label = :location")
+                ->setParameter("location", $location);
+        }
+
+        $result = $query
+            ->getQuery()
+            ->getArrayResult();
+
+        return !empty($result) ? $result[0] : null;
+    }
+
+    public function findWithoutArticle(string $code): ?Pack {
+        return $this->createQueryBuilder("pack")
+            ->leftJoin("pack.article", "article")
+            ->andWhere("pack.article IS NULL")
+            ->andWhere("pack.code = :code")
+            ->setParameter("code", $code)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }

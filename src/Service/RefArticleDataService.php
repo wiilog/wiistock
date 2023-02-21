@@ -8,7 +8,6 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -23,16 +22,21 @@ use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Reception;
+use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
@@ -131,6 +135,9 @@ class RefArticleDataService {
     #[Required]
     public TranslationService $translationService;
 
+    #[Required]
+    public DemandeLivraisonService $demandeLivraisonService;
+
     private ?array $freeFieldsConfig = null;
 
     public function __construct(TokenStorageInterface $tokenStorage,
@@ -178,23 +185,16 @@ class RefArticleDataService {
         ];
     }
 
-    public function getDataEditForRefArticle($articleRef) {
+    public function getDataEditForRefArticle($articleRef, $articleRepository) {
         $totalQuantity = $articleRef->getQuantiteDisponible();
         return $data = [
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
-                function(array $carry, ArticleFournisseur $articleFournisseur) use ($articleRef) {
-                    $articles = $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
-                        ? $articleFournisseur->getArticles()->toArray()
-                        : [];
+                function(array $carry, ArticleFournisseur $articleFournisseur) use ($articleRef, $articleRepository) {
                     $carry[] = [
                         'reference' => $articleFournisseur->getReference(),
                         'label' => $articleFournisseur->getLabel(),
                         'fournisseurCode' => $articleFournisseur->getFournisseur()->getCodeReference(),
-                        'quantity' => array_reduce($articles, function(int $carry, Article $article) {
-                            return $article->getStatut()?->getCode() === Article::STATUT_ACTIF
-                                ? ($carry + $article->getQuantite())
-                                : $carry;
-                        }, 0)
+                        'quantity' => $articleRepository->getQuantityForSupplier($articleFournisseur)
                     ];
                     return $carry;
                 }, []),
@@ -207,11 +207,11 @@ class RefArticleDataService {
                                           $preloadCategories = true,
                                           $showAttachments = false) {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
-
-        $data = $this->getDataEditForRefArticle($refArticle);
+        $data = $this->getDataEditForRefArticle($refArticle, $articleRepository);
         $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $editAttachments = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
@@ -237,7 +237,6 @@ class RefArticleDataService {
                 'typeId' => $type->getId()
             ];
         }
-
         return $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
@@ -267,28 +266,36 @@ class RefArticleDataService {
         ]);
     }
 
-    public function editRefArticle(ReferenceArticle $refArticle,
-                                   $data,
-                                   Utilisateur $user,
-                                   FreeFieldService $champLibreService,
-                                   MouvementStockService $mouvementStockService,
-                                   ?Request $request = null) {
-        $typeRepository = $this->entityManager->getRepository(Type::class);
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
-        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
-        $visibilityGroupRepository = $this->entityManager->getRepository(VisibilityGroup::class);
+    public function editRefArticle(EntityManagerInterface $entityManager,
+                                   ReferenceArticle      $refArticle,
+                                                         $data,
+                                   Utilisateur           $user,
+                                   ?Request              $request = null) {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
+        $supplierArticleRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $storageRuleRepository = $entityManager->getRepository(StorageRule::class);
 
         //modification champsFixes
-        $entityManager = $this->entityManager;
         if (isset($data['reference'])) {
             $refArticle->setReference($data['reference']);
         }
 
         if (isset($data['suppliers-to-remove']) && $data['suppliers-to-remove'] !== "") {
-            $suppliers = $this->entityManager->getRepository(ArticleFournisseur::class)->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
+            $suppliers = $supplierArticleRepository->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
             foreach ($suppliers as $supplier) {
                 $refArticle->removeArticleFournisseur($supplier);
+            }
+        }
+
+        if (isset($data['storage-rules-to-remove']) && $data['storage-rules-to-remove'] !== "") {
+            $storageRules = $storageRuleRepository->findBy(['id' => explode(',', $data['storage-rules-to-remove'])]);
+            foreach ($storageRules as $storageRule) {
+                $refArticle->removeStorageRule($storageRule);
             }
         }
 
@@ -304,12 +311,14 @@ class RefArticleDataService {
             }
         }
 
+        $this->updateDescriptionField($entityManager, $refArticle, $data);
+
         $isVisible = $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS;
         if (isset($data['frl'])) {
             $supplierReferenceLines = json_decode($data['frl'], true);
             foreach ($supplierReferenceLines as $supplierReferenceLine) {
                 $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
-                $existingSupplierArticle = $entityManager->getRepository(ArticleFournisseur::class)->findOneBy([
+                $existingSupplierArticle = $supplierArticleRepository->findOneBy([
                     'reference' => $referenceArticleFournisseur
                 ]);
 
@@ -344,6 +353,36 @@ class RefArticleDataService {
                     $existingSupplierArticle
                         ->setVisible($isVisible)
                         ->setReferenceArticle($refArticle);
+                }
+            }
+        }
+
+        if(isset($data['srl'])) {
+            $storageRuleLines = json_decode($data['srl'], true);
+            foreach ($storageRuleLines as $storageRuleLine) {
+                $storageRuleLocationId = $storageRuleLine['storageRuleLocation'] ?? null;
+                $storageRuleSecurityQuantity = $storageRuleLine['storageRuleSecurityQuantity'] ?? null;
+                $storageRuleConditioningQuantity = $storageRuleLine['storageRuleConditioningQuantity'] ?? null;
+                if ($storageRuleLocationId && $storageRuleSecurityQuantity && $storageRuleConditioningQuantity) {
+                    $storageRuleLocation = $locationRepository->find($storageRuleLocationId);
+                    if(!$storageRuleLocation) {
+                        return [
+                            'success' => false,
+                            'msg' => "Une règle de stockage n'a pas pu être créée car l'emplacement n'a pas été trouvé."
+                        ];
+                    }
+                    $storageRule = new StorageRule();
+                    $storageRule
+                        ->setLocation($storageRuleLocation)
+                        ->setSecurityQuantity($storageRuleSecurityQuantity)
+                        ->setConditioningQuantity($storageRuleConditioningQuantity)
+                        ->setReferenceArticle($refArticle);
+                    $entityManager->persist($storageRule);
+                } else {
+                    return [
+                        'success' => false,
+                        'msg' => "Une règle de stockage n'a pas pu être créée car un des champs requis n'a pas été renseigné."
+                    ];
                 }
             }
         }
@@ -419,7 +458,21 @@ class RefArticleDataService {
             }
         }
 
-        $entityManager->flush();
+        try{
+            $entityManager->flush();
+        } catch (UniqueConstraintViolationException $e) {
+            if (str_contains($e->getPrevious()->getMessage(), StorageRule::uniqueConstraintLocationReferenceArticleName)) {
+                return [
+                    'success' => false,
+                    'msg' => "Impossible de créer deux règles de stockage pour le même emplacement."
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'msg' => "Une erreur est survenue lors de la sauvegarde. Veuillez réessayer."
+                ];
+            }
+        }
 
         if (isset($data["visibility-group"])) {
             if ($data["visibility-group"] !== 'null') {
@@ -434,14 +487,14 @@ class RefArticleDataService {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
             $wasDraft && $refArticle->getStatut()->getCode() === ReferenceArticle::STATUT_ACTIF) {
-            $mvtStock = $mouvementStockService->createMouvementStock(
+            $mvtStock = $this->mouvementStockService->createMouvementStock(
                 $user,
                 null,
                 $refArticle->getQuantiteStock(),
                 $refArticle,
                 MouvementStock::TYPE_ENTREE
             );
-            $mouvementStockService->finishMouvementStock(
+            $this->mouvementStockService->finishMouvementStock(
                 $mvtStock,
                 new DateTime('now'),
                 $refArticle->getEmplacement()
@@ -457,7 +510,7 @@ class RefArticleDataService {
         $entityManager->flush();
         //modification ou création des champsLibres
 
-        $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
+        $this->freeFieldService->manageFreeFields($refArticle, $data, $entityManager);
         if(isset($request)) {
             if($request->files->has('image')) {
                 $file = $request->files->get('image');
@@ -481,9 +534,6 @@ class RefArticleDataService {
         $rows = $this->dataRowRefArticle($refArticle);
         $response['success'] = true;
         $response['id'] = $refArticle->getId();
-        $response['data'] = [
-            "id" => $refArticle->getId(),
-        ];
         $response['edit'] = $rows;
         if ($sendMail){
             $this->sendMailCreateDraftOrDraftToActive($refArticle, $refArticle->getCreatedBy());
@@ -584,7 +634,8 @@ class RefArticleDataService {
                                           bool                   $fromNomade,
                                           EntityManagerInterface $entityManager,
                                           Demande                $demande,
-                                          ?FreeFieldService      $champLibreService, $editRef = true, $fromCart = false) {
+                                                                 $editRef = true,
+                                                                 $fromCart = false) {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
         $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
@@ -612,7 +663,7 @@ class RefArticleDataService {
             }
 
             if(!$fromNomade && $editRef) {
-                $this->editRefArticle($referenceArticle, $data, $user, $champLibreService, $this->mouvementStockService);
+                $this->editRefArticle($entityManager, $referenceArticle, $data, $user);
             }
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             if($fromNomade || $loggedUserRole->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE || $fromCart) {
@@ -625,18 +676,19 @@ class RefArticleDataService {
                         ->setTargetLocationPicking($targetLocationPicking);
                     $entityManager->persist($line);
                 } else {
-                    $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande, true);
+                    $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                     $line->setQuantityToPick($line->getQuantityToPick() + max($data["quantity-to-pick"], 0));
                 }
             } else {
                 $article = $articleRepository->find($data['article']);
-                $line = new DeliveryRequestArticleLine();
-                $line
-                    ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
-                    ->setArticle($article)
-                    ->setRequest($demande)
-                    ->setTargetLocationPicking($targetLocationPicking);
+
+                $line = $this->demandeLivraisonService->createArticleLine($article, $demande, [
+                    'quantityToPick' => max($data["quantity-to-pick"], 0), // protection contre quantités négatives
+                    'targetLocationPicking' => $targetLocationPicking
+                ]);
+
                 $entityManager->persist($line);
+
                 $resp = 'article';
             }
         } else {
@@ -1016,7 +1068,8 @@ class RefArticleDataService {
 
     private function extractIncomingReceptionsData(array $quantityByDatesWithEvents, array $receptions, ReferenceArticle $referenceArticle): array {
         foreach ($receptions as $reception) {
-            $reservedQuantity = Stream::from($reception->getReceptionReferenceArticles())
+            $reservedQuantity = Stream::from($reception->getLines())
+                ->flatMap(fn(ReceptionLine $line) => $line->getReceptionReferenceArticles()->toArray())
                 ->filterMap(function(ReceptionReferenceArticle $line) use ($referenceArticle) {
                     return $line->getReferenceArticle()->getId() === $referenceArticle->getId()
                         ? $line->getQuantiteAR() - $line->getQuantite()
@@ -1154,6 +1207,94 @@ class RefArticleDataService {
         }
 
         $this->CSVExportService->putLine($handle, $line);
+    }
+
+    public function getDescriptionConfig(EntityManagerInterface $entityManager, bool $isFromDispatch = false): array {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+        $associatedDocumentTypes = $associatedDocumentTypesStr
+            ? Stream::explode(',', $associatedDocumentTypesStr)
+                ->filter()
+                ->toArray()
+            : [];
+
+        $config = [
+            "Matériel hors format" => [
+                "name" => "outFormatEquipment",
+                "type" => "bool",
+                "persisted" => true,
+            ],
+            "Code fabriquant" => [
+                "name" => "manufacturerCode",
+                "type" => "text",
+                "persisted" => true,
+                "required" => $isFromDispatch,
+            ],
+            "Poids (kg)" => [
+                "name" => "weight",
+                "type" => "number",
+                "step" => "0.01",
+                "persisted" => true,
+                "required" => $isFromDispatch,
+            ],
+            "Types de documents associés" => [
+                "name" => "associatedDocumentTypes",
+                "type" => "select",
+                "values" => $associatedDocumentTypes,
+                "persisted" => true,
+                "required" => $isFromDispatch,
+            ],
+        ];
+
+        if (!$isFromDispatch) {
+            $config = array_merge(
+                $config,
+                [
+                    "Longueur (cm)" => [
+                        "name" => "length",
+                        "type" => "number",
+                        "step" => "0.01",
+                        "persisted" => true,
+                    ],
+                    "Largeur (cm)" => [
+                        "name" => "width",
+                        "type" => "number",
+                        "step" => "0.01",
+                        "persisted" => true,
+                    ],
+                    "Hauteur (cm)" => [
+                        "name" => "height",
+                        "type" => "number",
+                        "step" => "0.01",
+                        "persisted" => true,
+                    ],
+                ]
+            );
+        }
+        $config = array_merge($config, [
+            "Volume (m3)" => [
+                "name" => "volume",
+                "type" => "number",
+                "step" => "0.000001",
+                "persisted" => true,
+                "disabled" => true,
+                "required" => $isFromDispatch,
+            ]
+        ]);
+        return $config;
+    }
+
+    public function updateDescriptionField(EntityManagerInterface $entityManager,
+                                           ReferenceArticle       $referenceArticle,
+                                           array                  $data): void {
+        $descriptionConfig = $this->getDescriptionConfig($entityManager);
+        $descriptionData = Stream::from($descriptionConfig)
+            ->filter(fn(array $config) => $config["persisted"] ?? true)
+            ->map(fn(array $attributes) => $attributes['name'])
+            ->flip()
+            ->intersect($data, true)
+            ->toArray();
+        $referenceArticle->setDescription($descriptionData);
     }
 
 }

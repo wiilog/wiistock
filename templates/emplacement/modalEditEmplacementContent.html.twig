@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="form-group">
     <label class="wii-field-name">Nom</label>
     <input class="form-control data needed is-barcode" type="text" value='{{ location.label }}' name="Label" id="Label">
@@ -12,6 +14,23 @@
     <label class="wii-field-name">Délais traça HH:MM</label>
     <input class="form-control data" type="text" value='{{ location.dateMaxTime }}' name="dateMaxTime"
            id="dateMaxTime">
+</div>
+
+<div class="form-group">
+    {{ form.select('zone', 'Zone', true, {
+        type: 'zones',
+        items: locationZone,
+        emptyOption: (
+            selectZone
+            ? {
+                text: selectZone.name,
+                value: selectZone.id,
+                selected: true,
+            }
+            : {}
+        ),
+        disabled: selectZone,
+    }) }}
 </div>
 
 <div class="form-group">
@@ -75,4 +94,18 @@
         <input class="checkbox data needed" type="checkbox" {{ isActiveChecked }} name="isActive">
         <span class="slider round"></span>
     </label>
+</div>
+
+<div class="form-group">
+    <label class="wii-field-name">Signataires</label>
+    <select class="form-control data" name="signatories" data-s2="user" multiple>
+        {% for signatory in location.signatories %}
+            <option selected value="{{ signatory.id }}">{{ signatory.username }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label class="wii-field-name">Email</label>
+    <input class="form-control data" type="text" value='{{ location.email }}' name="email" id="mail">
 </div>

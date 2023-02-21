@@ -1,0 +1,33 @@
+{% for pack in dn.packs %}
+    <table class="full-width">
+        <tr>
+            <th>{{ trans('Demande', 'Acheminements', 'Général', "Code") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Description") }}</th>
+            <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Quantité") }}</th>
+        </tr>
+        <tr>
+            <td>{{ pack.code }}</td>
+            <td>{{ pack.comment }}</td>
+            <td>{{ pack.quantity }}</td>
+        </tr>
+        {% if pack.packArticles is defined %}
+            <table class="articles w-100">
+                <tr>
+                    <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Article contenu") }}</th>
+                    <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Référence") }}</th>
+                    <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Désignation") }}</th>
+                    <th>{{ trans('Demande', 'Acheminements', 'Bon de livraison', "Quantité") }}</th>
+                </tr>
+                {% for article in pack.packArticles %}
+                    <tr>
+                        <td>{{ article.barcode }}</td>
+                        <td>{{ article.reference }}</td>
+                        <td>{{ article.label | slice(1,37) }}{{ (article.label | length) > 37 ? '...' }}</td>
+                        <td>{{ article.quantity }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </table>
+{% endfor %}
+

@@ -10,6 +10,7 @@ $(function () {
             $table.DataTable().columns.adjust().draw();
         });
     });
+
     onToggleInputRadioOnRow();
 });
 
@@ -143,17 +144,22 @@ function createDatatableDomFooter({information, length, pagination}) {
         : ''
 }
 
-function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo}) {
+function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo, removeLength, removeTableHeader}) {
 
+    const domHeader = removeTableHeader
+        ? ''
+        : (
+            '<"row mb-2"' +
+                '<"col-auto d-none"f>' +
+            '>'
+        );
     const domFooter = createDatatableDomFooter({
         information: !removeInfo,
-        length: true,
+        length: !removeLength,
         pagination: !needsPaginationRemoval
     });
     let dtDefaultValue = (
-        '<"row mb-2"' +
-        '<"col-auto d-none"f>' +
-        '>' +
+        domHeader +
         't' +
         domFooter +
         'r'
@@ -379,6 +385,7 @@ function initDataTable($table, options) {
         };
 
     const initial = $table.data(`initial-data`);
+
     if(initial && typeof initial === `object`) {
         config = {
             ...config,
@@ -429,6 +436,10 @@ function initDataTable($table, options) {
                 setTimeout(() => {
                     drawCallback(response);
                 });
+
+                //remove any ghost tooltip that could be caused by
+                //datatable refresh while a tooltip is open
+                $('body > [role=tooltip]').remove();
             },
             initComplete: () => {
                 setTimeout(() => {

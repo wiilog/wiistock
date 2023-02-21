@@ -1,37 +1,49 @@
 <div class="d-flex">
-    <div class="dropdown dropright">
-        {{ include('datatable/dotsRow.html.twig') }}
-        <div class="dropdown-menu dropdown-follow-gt pointer">
-            {% if isReferenceTypeLinked %}
-                <a href="{{ path('mvt_traca_index') }}{{ packFilter is not empty ? ('?colis=' ~ packFilter) }}" class="dropdown-item">
-                    <i class="fas fa-list mr-2"></i>Voir mouvements de tracabilité
-                </a>
-                <a class="dropdown-item d-flex align-items-center"
-                   href="{{ path('reception_ligne_article_bar_code_print', {reception: receptionId, ligneArticle: ligneId}) }}">
-                    <span class="wii-icon wii-icon-printer-black mr-2"></span>Imprimer
-                </a>
-            {% elseif (isArticleTypeLinked and ligneArticleQuantity > 0)%}
-                <div class="dropdown-item"
-                     onclick='openModalArticlesFromLigneArticle({{ ligneId }})'>
-                    <i class="fas fa-list mr-2"></i>Voir les articles
-                </div>
-            {% endif %}
-            {% if modifiable %}
-                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                    <div class="d-none">
-                        <div class="action-on-click" data-id='{{ ligneId }}' data-toggle='modal' data-target='#modalEditLigneArticle'
-                             onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle')),
-                                      clearModal('#modalEditLigneArticle')">
-                            <i class='fas fa-pencil-alt'></i>
-                        </div>
-                    </div>
-                    <div class="dropdown-item d-flex align-items-center"
-                         onclick="checkAndDeleteRow($(this), '#modalDeleteLigneArticle', 'ligne_recep_check_delete', '#submitDeleteLigneArticle')"
-                         data-id='{{ ligneId }}' data-target='#modalDeleteLigneArticle' data-toggle='modal'>
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
-                    </div>
-                {% endif %}
-            {% endif %}
-        </div>
-    </div>
+    {% include 'utils/action-buttons/dropdown.html.twig' with {
+        actions: [
+            {
+                icon: "fas fa-list",
+                title: "Voir mouvements de traçabilité",
+                href: path('mvt_traca_index', packFilter is not empty ? {pack: packFilter} : {}),
+                hasRight: isReferenceTypeLinked,
+            },
+            {
+                icon: "wii-icon wii-icon-printer-black",
+                title: "Imprimer",
+                href: path('reception_ligne_article_bar_code_print', {reception: receptionId, receptionReferenceArticle: ligneId}),
+                hasRight: isReferenceTypeLinked,
+            },
+            {
+                icon: "fas fa-list",
+                title: "Voir les articles",
+                hasRight: isArticleTypeLinked and ligneArticleQuantity > 0,
+                attributes: {
+                    onclick: "openModalArticlesFromLigneArticle(" ~ ligneId ~ ")"
+                }
+            },
+            {
+                title: "Modifier",
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')),
+                actionOnClick: true,
+                attributes: {
+                    "data-id": ligneId,
+                    "data-toggle": "modal",
+                    "data-target": "#modalEditReceptionReferenceArticle",
+                    onclick: 'editRow($(this), "' ~ path('reception_reference_article_edit_api') ~ '", $("#modalEditReceptionReferenceArticle"), $("#submitEditLigneArticle")),
+                              clearModal("#modalEditReceptionReferenceArticle")',
+                }
+            },
+            {
+                title: "Supprimer",
+                hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')),
+                icon: "wii-icon wii-icon-trash-black",
+                attributes: {
+                    "data-id": ligneId,
+                    "data-target": "#modalDeleteReceptionReferenceArticle",
+                    "data-toggle": "modal",
+                    onclick: "checkAndDeleteRow($(this), '#modalDeleteReceptionReferenceArticle', 'reception_reference_article_check_delete', '#submitDeleteReceptionReferenceArticle')",
+                }
+            },
+        ]
+    } %}
 </div>

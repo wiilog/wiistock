@@ -1,0 +1,124 @@
+{% macro supplier_article_line(reference, line, editable = false, index = 0 , withDeleteButton = false) %}
+    <div class="ligneFournisseurArticle"
+         data-multiple-key="frl"
+         data-multiple-object-index="{{ index }}">
+        <div class="row">
+            <div class="form-group col-md-6 col-12">
+                <label class="wii-field-name">Nom fournisseur*</label>
+                <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierLabel"
+                        onchange="loadAndDisplayLabels($(this))"
+                        name="fournisseurLabel">
+                    {% if line and line.fournisseur %}
+                        <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.nom }}</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="form-group col-md-6 col-12">
+                <label class="wii-field-name">Code fournisseur*</label>
+                <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierCode"
+                        onchange="loadAndDisplayInfos($(this))"
+                        name="fournisseur">
+                    {% if line and line.fournisseur %}
+                        <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.codeReference }}</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="form-group col-md-6 col-12">
+                <label class="wii-field-name">Ref article fournisseur*</label>
+                <input class="form-control data w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
+                       name="referenceFournisseur" value="{{ line ? line.reference }}">
+            </div>
+            <div class="form-group col-md-6 col-12">
+                <label class="wii-field-name">Libellé*</label>
+                <input class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
+                       name="labelFournisseur" value="{{ line ? line.label }}">
+            </div>
+        </div>
+        {% if index > 0 or withDeleteButton %}
+            <span class="delete-supplier-article">Supprimer l'article fournisseur</span>
+        {% endif %}
+        <hr>
+    </div>
+{% endmacro %}
+
+{% macro storage_rule_line(reference, line, editable = false) %}
+    {% import 'form.html.twig' as form %}
+    <div class="lineStorageRule"
+         data-multiple-key="srl"
+         data-multiple-object-index="0">
+        <div class="row">
+            <div class="form-group col-4">
+                {{ form.select('storageRuleLocation', 'Emplacement', true, {
+                    type: 'location',
+                }) }}
+            </div>
+            <div class="form-group col-4">
+                {{  form.number('storageRuleSecurityQuantity', 'Qté sécurité', true, null, {
+                    min: 0,
+                    step: 1,
+                }) }}
+            </div>
+            <div class="form-group col-4">
+                {{  form.number('storageRuleConditioningQuantity', 'Qté conditionnement', true, null, {
+                    min: 0,
+                    step: 1,
+                }) }}
+            </div>
+        </div>
+        <span class="delete-storage-rule">Supprimer la règle de stockage</span>
+        <hr>
+    </div>
+{% endmacro %}
+
+{% macro descriptionForm(description, descriptionConfig, col = 6) %}
+    {% for field, attributes in descriptionConfig %}
+        {% set name = attributes.name %}
+        {% set disabled = attributes.disabled ?? false %}
+        {% set required = attributes.required ?? false %}
+        <div class="col-{{ col }} d-flex flex-column form-group">
+            <label class="wii-field-name">{{ field }}{{ required ? "*" }}</label>
+            {% if attributes.type in ['text', 'number'] %}
+                <input type="{{ attributes.type }}"
+                       class="form-control {{ attributes.persisted ? "data" }}"
+                       name="{{ name }}"
+                       value="{{ attributes.persisted ? (description[name] ?? '') }}"
+                       {{ disabled ? 'disabled' }}
+                       {{ required ? 'required' }}
+                       {% if attributes.step is defined %}step="{{ attributes.step }}"{% endif %}>
+            {% elseif attributes.type == 'bool' %}
+                <div class="wii-switch w-fit-content" data-title="{{ field }}">
+                    <input type="radio"
+                           name="{{ name }}"
+                           value="0"
+                           content="Non"
+                           data-title="non"
+                           {{ disabled ? 'disabled' }}
+                           {{ attributes.persisted and description[name] is defined ? (((description[name] == '0' or description[name] == null)) ? 'checked') : 'checked' }}>
+                    <input type="radio"
+                           name="{{ name }}"
+                           value="1"
+                           content="Oui"
+                           data-title="oui"
+                           {{ disabled ? 'disabled' }}
+                           {{ (attributes.persisted and description[name] is defined and description[name] == '1') ? 'checked' }}>
+                </div>
+            {% elseif attributes.type == 'select' %}
+                {% set values = attributes.values ?? [] %}
+                {% set selectedValues = description[name] is defined and description[name]
+                    ? (description[name]|split(','))
+                    : [] %}
+                <select name="{{ name }}"
+                        class="form-control input-sm select2-free {{ attributes.required ? 'needed' }} {{ attributes.persisted ? "data" }} w-100"
+                        data-s2
+                        multiple="multiple"
+                        data-default-values="{{ selectedValues|join(',') }}"
+                        {{ disabled ? 'disabled' }}>
+                        {{ required ? 'required' }}>
+                    {% for value in values %}
+                        <option value="{{ value }}" {{ attributes.persisted and value in selectedValues ? "selected" }}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% endmacro %}

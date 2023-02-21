@@ -173,24 +173,34 @@
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
-        <div class="form-group col-2">
-            <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}</label>
-            <label class="switch d-block-switch mt-2">
+        <div class="form-group col-2 d-flex align-items-end">
+            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
                 {% set checked =  arrivage.customs ? 'checked' : '' %}
-                <input class="checkbox no-clear" type="checkbox" name="customs" {{ checked }}>
-                <span class="slider round"></span>
+                <input
+                    class="checkbox mr-2"
+                    type="checkbox"
+                    name="customs"
+                    {{ checked }}>
+                <label class="text-break text-wrap">
+                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}
+                </label>
             </label>
         </div>
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
-        <div class="form-group col-2">
-            <label class="wii-field-text">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}</label>
-            <label class="switch d-block-switch mt-2">
-                {% set checked =  arrivage.frozen ? 'checked' : '' %}
-                <input class="checkbox no-clear" type="checkbox" name="frozen" {{ checked }}>
-                <span class="slider round"></span>
+        <div class="form-group col-2 d-flex align-items-end">
+            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
+                <input
+                    class="checkbox data no-clear mr-2"
+                    type="checkbox"
+                    name="frozen"
+                    {% set checked =  arrivage.frozen ? 'checked' : '' %}
+                    {{ checked }}>
+                <label class="text-break text-wrap">
+                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}
+                </label>
             </label>
         </div>
     {% endif %}

@@ -22,7 +22,11 @@
                 {% else %}
                     {% for status in statuts | sort((a, b) => a.nom <=> b.nom) %}
                         {% set selected = (filterStatus is defined and status.nom == filterStatus) ? 'selected' %}
-                        <option class="d-none" value="{{ status.id }}" {{ selected }}>
+                        <option class="d-none" value="{{ status.id }}"
+                                {% if status.isDraft or status.isNotTreated or status.isPartial %}
+                                    data-allowed-state="1"
+                                {% endif %}
+                            {{ selected }}>
                             {% if forTrackMov is defined and forTrackMov %}
                                 {{ trans('Traçabilité', 'Mouvements', status.nom, false) }}
                             {% else %}

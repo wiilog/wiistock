@@ -32,10 +32,22 @@ const ROUTES = {
     purchaseRequest: `ajax_select_references_by_buyer`,
     keyboardPacks: `ajax_select_keyboard_pack`,
     businessUnit: `ajax_select_business_unit`,
+    article: `ajax_select_articles`,
+    availableArticle: `ajax_select_available_articles`,
     carrier: 'ajax_select_carrier',
     types: 'ajax_select_types',
     vehicles: 'ajax_select_vehicles',
     inventoryCategories: 'ajax_select_inventory_categories',
+    project: 'ajax_select_project',
+    receptionLogisticUnits: 'ajax_select_reception_logistic_units',
+    deliveryLogisticUnits: 'ajax_select_delivery_logistic_units',
+    customers: 'ajax_select_customers',
+    natureOrTypeSelect: 'ajax_select_nature_or_type',
+    dispatchPacks: 'ajax_select_dispatch_packs',
+    zones: 'ajax_select_zones',
+    provider: 'ajax_select_provider',
+    nativeCountries: 'ajax_select_native_countries',
+    supplierArticles: 'ajax_select_supplier_articles',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -72,8 +84,12 @@ export default class Select2 {
                     $element.prepend(`<option selected>`);
                 }
 
-                $element.attr(`data-s2-initialized`, ``);
-                $element.removeAttr(`data-s2`);
+                $element
+                    .attr(`data-s2-initialized`, type || '')
+                    .data(`s2-initialized`, type || '');
+                $element
+                    .removeAttr(`data-s2`)
+                    .removeData(`s2`);
 
                 const config = {};
                 if (type) {
@@ -167,6 +183,15 @@ export default class Select2 {
                         } else {
                             $option.remove();
                         }
+
+                        if($element.is(`[data-default-values]`)) {
+                            const defaultValues = $element.data(`default-values`).split(`,`);
+                            const $option = $(event.params.args.data.element);
+
+                            if(defaultValues.includes($option.val())) {
+                                $element.append($option);
+                            }
+                        }
                     });
                 }
 
@@ -238,21 +263,21 @@ export default class Select2 {
     }
 
     static includeParams($element, params) {
-        if ($element.is('[data-other-params]')) {
-            const attributes = $element.attr();
-            const otherParams = Object.keys(attributes)
-                .reduce((carry, key) => {
-                    const [_, keyWithoutPrefix] = key.match(/other-params-(.+)/) || [];
-                    if (keyWithoutPrefix) {
-                        carry[keyWithoutPrefix] = attributes[key];
-                    }
-                    return carry;
-                }, {});
-            params = {
-                ...params,
-                ...otherParams,
-            };
-        }
+        //check for other params
+        const attributes = $element.attr();
+        const otherParams = Object.keys(attributes)
+            .reduce((carry, key) => {
+                const [_, keyWithoutPrefix] = key.match(/other-params-(.+)/) || [];
+                if (keyWithoutPrefix) {
+                    carry[keyWithoutPrefix] = attributes[key];
+                }
+                return carry;
+            }, {});
+
+        params = {
+            ...params,
+            ...otherParams,
+        };
 
         if ($element.is('[data-search-prefix]')) {
             const searchPrefix = $element.data('search-prefix');
@@ -284,11 +309,25 @@ export default class Select2 {
     }
 
     static destroy($element) {
-        if($element.is(`.select2-hidden-accessible`)) {
+        if ($element.is(`.select2-hidden-accessible`)) {
             $element.val(null).html(``);
             $element.select2(`data`, null);
             $element.select2(`destroy`);
+
+            if ($element.is(`[data-s2-initialized]`)) {
+                const type = $element.data(`s2-initialized`);
+                $element
+                    .attr(`data-s2`, type)
+                    .data(`s2`, type)
+                    .removeAttr(`data-s2-initialized`)
+                    .removeData(`s2-initialized`);
+            }
         }
+    }
+
+    static reload($element) {
+        Select2.destroy($element);
+        Select2.init($element);
     }
 }
 

@@ -20,6 +20,15 @@ class MobileApiService {
     /** @Required */
     public NatureService $natureService;
 
+    const MOBILE_TRANSLATIONS = [
+        "Acheminements",
+        "Objet",
+        "Nombre d'opération(s) réalisée(s)",
+        "Nature",
+        "Emplacement de prise",
+        "Emplacement de dépose",
+    ];
+
     public function getDispatchesData(EntityManagerInterface $entityManager,
                                       Utilisateur $loggedUser): array {
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -33,14 +42,25 @@ class MobileApiService {
         ];
 
         $dispatches = $dispatchRepository->getMobileDispatches($loggedUser);
-        $dispatches = Stream::from($dispatches)
+        $dispatches = Stream::from(
+            Stream::from($dispatches)
+                ->reduce(function (array $accumulator, array $dispatch) {
+                    if (!isset($accumulator[$dispatch['id']])) {
+                        $accumulator[$dispatch['id']] = $dispatch;
+                    } else if ($accumulator[$dispatch['id']]['packReferences'] && $dispatch['packReferences']) {
+                        $accumulator[$dispatch['id']]['packReferences'] .= (',' . $dispatch['packReferences']);
+                    } else if ($dispatch['packReferences']) {
+                        $accumulator[$dispatch['id']]['packReferences'] = $dispatch['packReferences'];
+                    }
+                    return $accumulator;
+                }, []))
             ->map(function (array $dispatch) use ($dispatchExpectedDateColors) {
                 $dispatch['color'] = $this->expectedDateColor($dispatch['endDate'] ?? null, $dispatchExpectedDateColors);
                 $dispatch['startDate'] = $dispatch['startDate'] ? $dispatch['startDate']->format('d/m/Y') : null;
                 $dispatch['endDate'] = $dispatch['endDate'] ? $dispatch['endDate']->format('d/m/Y') : null;
                 return $dispatch;
             })
-            ->toArray();
+            ->values();
         $dispatchPacks = array_map(function($dispatchPack) {
             if(!empty($dispatchPack['comment'])) {
                 $dispatchPack['comment'] = substr(strip_tags($dispatchPack['comment']), 0, 200);
@@ -67,7 +87,7 @@ class MobileApiService {
         $translationsRepository = $entityManager->getRepository(Translation::class);
 
         $userLanguage = $user->getLanguage();
-        $translations = Stream::from($translationsRepository->findBy(['language' => $userLanguage]))
+        $translations = Stream::from($translationsRepository->findForMobile())
             ->map(fn(Translation $translation) => [
                 'topMenu' => $translation->getSource()->getCategory()?->getParent()?->getParent()?->getLabel(),
                 'menu' => $translation->getSource()->getCategory()?->getParent()?->getLabel(),
@@ -103,19 +123,19 @@ class MobileApiService {
 
     public function getMobileParameters(SettingRepository $globalsParameters): array {
         return Stream::from([
-            "skipValidationsManualTransfer" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS),
-            "skipValidationsLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_VALIDATIONS),
-            "skipQuantitiesLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_QUANTITIES),
-            "skipValidationsToTreatTransfer" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS),
-            "displayReferencesOnTransferCards" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS),
-            "dropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_FREE_DROP),
-            "displayTargetLocationPicking" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
-            "skipValidationsPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_VALIDATIONS),
-            "skipQuantitiesPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_QUANTITIES),
-            "preparationDisplayArticleWithoutManual" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL),
-            "manualDeliveryDisableValidations" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS),
+            "skipValidationsManualTransfer" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
+            "skipValidationsLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_VALIDATIONS) == 1,
+            "skipQuantitiesLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_QUANTITIES) == 1,
+            "skipValidationsToTreatTransfer" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
+            "displayReferencesOnTransferCards" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS) == 1,
+            "dropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_FREE_DROP) == 1,
+            "displayTargetLocationPicking" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION) == 1,
+            "skipValidationsPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_VALIDATIONS) == 1,
+            "skipQuantitiesPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_QUANTITIES) == 1,
+            "preparationDisplayArticleWithoutManual" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL) == 1,
+            "manualDeliveryDisableValidations" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS) == 1,
+            "rfidPrefix" => $globalsParameters->getOneParamByLabel(Setting::RFID_PREFIX) ?: null,
         ])
-            ->keymap(fn($value, string $key) => [$key, $value == 1])
             ->toArray();
     }
 

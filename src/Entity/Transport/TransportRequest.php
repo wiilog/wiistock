@@ -120,7 +120,7 @@ abstract class TransportRequest extends StatusHistoryContainer {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private ?string $number = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class)]

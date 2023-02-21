@@ -51,7 +51,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_INVENTORY = 'inventaire';
     const SUB_MENU_ARRIVALS = 'arrivages';
     const SUB_MENU_MOVEMENTS = 'mouvements';
-    const SUB_MENU_PACKS = 'colis';
+    const SUB_MENU_PACKS = 'unités logistiques';
     const SUB_MENU_ASSOCIATION_BR = 'association BR';
     const SUB_MENU_ENCO = 'encours';
     const SUB_MENU_EMERGENCYS = 'urgences';
@@ -130,6 +130,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DELETE_DRAFT_DISPATCH,
                 Action::DELETE_UNPROCESSED_DISPATCH,
                 Action::DELETE_PROCESSED_DISPATCH,
+                Action::GROUPED_SIGNATURE,
+                Action::ADD_REFERENCE_IN_LU,
                 Action::MANAGE_PACK,
                 Action::SHOW_CARRIER_FIELD,
                 Action::GENERATE_DISPATCH_BILL,
@@ -245,6 +247,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DISPLAY_TRAN,
                 Action::DISPLAY_VEHICLE,
                 Action::DISPLAY_PACK_NATURE,
+                Action::DISPLAY_PROJECTS,
+                Action::DISPLAY_CUSTOMER,
             ],
         ],
         Menu::IOT => [
@@ -294,6 +298,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_MOBILE_HAND,
                 Action::SETTINGS_DISPLAY_TRANSFER_TO_TREAT,
                 Action::SETTINGS_DISPLAY_PREPA,
+                Action::SETTINGS_DISPLAY_PREPA_DELIV,
                 Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS
             ],
             self::SUB_MENU_DASHBOARD => [
@@ -334,6 +339,9 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_TRACING => [
                 Action::MODULE_ACCESS_GROUP,
                 Action::MODULE_ACCESS_UNGROUP,
+            ],
+            self::SUB_MENU_STOCK => [
+                Action::CREATE_ARTICLE_FROM_NOMADE
             ],
         ],
     ];

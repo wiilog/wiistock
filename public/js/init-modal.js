@@ -88,6 +88,8 @@ function InitModal($modal, submit, path, options = {}) {
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
+ *
+ * @deprecated
  */
 function SubmitAction($modal,
                       $submit,
@@ -121,6 +123,9 @@ function SubmitAction($modal,
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
+ *
+ * @deprecated
+ *
  */
 function processSubmitAction($modal,
                              $submit,
@@ -162,6 +167,9 @@ function processSubmitAction($modal,
     }
 }
 
+/**
+ * @deprecated
+ */
 function postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, error, keepLoading) {
     return $
         .ajax({
@@ -174,11 +182,8 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
             dataType: 'json',
         })
         .then((data) => {
-            if (!keepLoading) {
-                $submit.popLoader();
-            }
-
             if (data.success === false) {
+                $submit.popLoader();
                 const errorMessage = data.msg || data.message;
                 displayFormErrors($modal, {
                     $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
@@ -190,7 +195,11 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
                 }
             }
             else {
-                const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
+                if (!keepLoading) {
+                    $submit.popLoader();
+                }
+
+                const res = treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable);
                 if (!res) {
                     return;
                 }
@@ -227,11 +236,18 @@ function clearFormErrors($modal) {
         .empty();
 }
 
-function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable) {
+/**
+ * @deprecated
+ */
+function treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable) {
     resetDroppedFiles();
+
     if (data.redirect && !keepModal) {
         window.location.href = data.redirect;
         return;
+    }
+    else if (!keepLoading) {
+        $submit.popLoader();
     }
 
     if (data.nextModal) {
@@ -297,6 +313,9 @@ function refreshHeader(entete, headerCallback) {
  * @param {boolean} [isAttachmentForm]
  * @param {function} [validator]
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
+ *
+ * @deprecated
+ *
  */
 function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined) {
     const data = {};
@@ -363,6 +382,8 @@ function matchesAll(value, ...regexes) {
  * @param $modal jQuery modal
  * @param {Object.<*,*>} data
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
+ *
+ * @deprecated
  */
 function processInputsForm($modal, data, isAttachmentForm) {
     const $inputs = $modal.find('.data:not([name^="savedFiles"]):not([type=radio])');
@@ -477,9 +498,9 @@ function processInputsForm($modal, data, isAttachmentForm) {
         else if ($input.attr('type') === 'number') {
             if (val
                 && !$input.is(':disabled')) {
-                let val = parseInt($input.val());
-                let min = parseInt($input.attr('min'));
-                let max = parseInt($input.attr('max'));
+                let val = Number($input.val());
+                let min = Number($input.attr('min'));
+                let max = Number($input.attr('max'));
                 if (!isNaN(val)
                     && (
                         val > max
@@ -901,7 +922,6 @@ function withoutExtension(fileName) {
 }
 
 function removeAttachment($elem, callback = null) {
-    console.log(callback);
     if (callback) {
         callback($elem);
     }

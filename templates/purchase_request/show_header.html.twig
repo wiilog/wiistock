@@ -22,66 +22,72 @@
 {% endif %}
 
 {% block showActions %}
-    <div class="btn-group">
-        {% if hasRightEdit %}
-            {% if request.status.draft %}
-                <button type="button"
-                        onclick="openEvolutionModal($('#modalValidatePurchaseRequest'))"
-                        data-id='{{ request.id }}'
-                        class="btn btn-primary  d-flex align-items-center">
-                    <span class="wii-icon wii-icon-check-white mr-2"></span>
-                    Valider
-                </button>
-            {% elseif request.status.notTreated %}
-                <button type="button"
-                        data-id='{{ request.id }}'
-                        onclick="openEvolutionModal($('#modalConsiderPurchaseRequest'))"
-                        class="btn btn-primary split-button d-flex align-items-center">
-                    <span class="wii-icon wii-icon-check-white mr-2"></span>
-                    Prendre en compte
-                </button>
-            {% elseif request.status.inProgress %}
-                <button type="button"
-                        data-id='{{ request.id }}'
-                        onclick="openEvolutionModal($('#modalTreatPurchaseRequest'))"
-                        class="btn btn-primary split-button d-flex align-items-center">
-                    <span class="wii-icon wii-icon-check-white mr-2"></span>
-                    Terminer la demande
-                </button>
-            {% endif %}
-        {% endif %}
-        {% if hasRightEdit or hasRightDelete or displayReceptionLink %}
-            <button type="button"
-                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-                <span class="fa fa-angle-down"></span>
-            </button>
-            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                {% if displayReceptionLink %}
-                    <a href="{{ path('reception_index', {'purchaseRequest': request.id }) }}"
-                       class="dropdown-item" target="_blank">
-                        <i class="fas fa-external-link-alt mr-2"></i>Aller vers les réceptions</a>
-                {% endif %}
-                {% if hasRightEdit %}
-                    <a  onclick="editRow($(this), Routing.generate('purchase_request_api_edit', true), $('#modalEditPurchaseRequest'), $('#submitEditPurchaseRequest'), false)"
-                        title="Modification"
-                        data-id='{{ request.id }}'
-                        data-target="#modalEditPurchaseRequest"
-                        data-toggle="modal"
-                        class="dropdown-item">
-                        <i class="fa fa-pen mr-2"></i>Modifier</a>
-                {% endif %}
-                {% if hasRightDelete %}
-                    <a href="" onclick="deleteRow($(this), $('#modalDeleteRequest'), $('#submitDeleteRequest'))"
-                       data-id='{{ request.id }}' data-target='#modalDeleteRequest' data-toggle='modal'
-                       class="dropdown-item d-flex align-items-center">
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer</a>
-                {% endif %}
-            </div>
-        {% endif %}
-    </div>
+    {% include 'utils/action-buttons/header-buttons.html.twig' with {
+        forceActionButton: true,
+        actions: [
+            {
+                hasRight: hasRightEdit and request.status.draft,
+                icon: "wii-icon wii-icon-check-white",
+                title: "Valider",
+                attributes: {
+                    "data-id": request ? request.id,
+                    "onclick": "openEvolutionModal($('#modalValidatePurchaseRequest'))",
+                },
+            },
+            {
+                hasRight: hasRightEdit and request.status.notTreated,
+                icon: "wii-icon wii-icon-check-white",
+                title: "Prendre en compte",
+                attributes: {
+                    "data-id": request ? request.id,
+                    "onclick": "openEvolutionModal($('#modalConsiderPurchaseRequest'))",
+                },
+            },
+            {
+                hasRight: hasRightEdit and request.status.inProgress,
+                icon: "wii-icon wii-icon-check-white",
+                title: "Terminer la demande",
+                attributes: {
+                    "data-id": request ? request.id,
+                    "onclick": "openEvolutionModal($('#modalTreatPurchaseRequest'))",
+                },
+            },
+            {
+                hasRight: displayReceptionLink,
+                icon: "fas fa-external-link-alt",
+                title: "Aller vers les réceptions",
+                dropdownOnly: true,
+                href: path('reception_index', {'purchaseRequest': request.id }),
+                attributes: {
+                    "target": "_blank",
+                }
+            },
+            {
+                hasRight: hasRightEdit,
+                icon: "fa fa-pen",
+                title: "Modifier",
+                dropdownOnly: true,
+                attributes: {
+                    "data-id": request ? request.id,
+                    "data-target": '#modalEditPurchaseRequest',
+                    "data-toggle": 'modal',
+                    "onclick": "editRow($(this), Routing.generate('purchase_request_api_edit', true), $('#modalEditPurchaseRequest'), $('#submitEditPurchaseRequest'), false)"
+                },
+            },
+            {
+                hasRight: hasRightDelete,
+                icon: "wii-icon wii-icon-trash-black",
+                title: "Supprimer",
+                dropdownOnly: true,
+                attributes: {
+                    "data-id": request ? request.id,
+                    "data-target": '#modalDeleteRequest',
+                    "data-toggle": 'modal',
+                    "onclick": "deleteRow($(this), $('#modalDeleteRequest'), $('#submitDeleteRequest'))",
+                },
+            },
+        ]
+    } %}
 {% endblock %}
 
 {% block showHiddenInputs %}

@@ -8,10 +8,13 @@
         placeholder: trans('Demande', 'Général', 'Statut', false),
     } %}
     {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {types: types} %}
-    {% include 'filters/filter_item/filterUser.html.twig' with {
-        name: 'requesters',
-        placeholder: trans('Demande', 'Général', 'Demandeurs', false)
-    } %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_REQUESTER_DISPATCH') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterUser.html.twig' with {
+            name: 'requesters',
+            placeholder: trans('Demande', 'Général', 'Demandeurs', false)
+        } %}
+    {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCarrier.html.twig' %}
@@ -34,5 +37,19 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DESTINATION') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterDestination.html.twig' %}
+    {% endif %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_PICK') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterLocation.html.twig' with {
+            name: 'pickLocation',
+            removeId: true,
+        } %}
+    {% endif %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterLocation.html.twig' with {
+            name: 'dropLocation',
+            removeId: true,
+        } %}
     {% endif %}
 {% endblock %}

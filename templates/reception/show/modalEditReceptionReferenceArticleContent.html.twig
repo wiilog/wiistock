@@ -1,0 +1,83 @@
+{% set receptionLine = receptionReferenceArticle.receptionLine %}
+<div class="row">
+    <div class="form-group {{ reception.hasPacks ? 'col-xl-6' }} col-12  w-100 mb-3">
+        <label for="reference" class="wii-field-name">
+            {{ trans('Stock', 'Références', 'référence') }}*
+        </label>
+        <select class="{{ not receptionReferenceArticle.receptionBegun ? 'ajax-autocomplete-edit' }} data form-control needed"
+                name="referenceArticle"
+                {{ receptionReferenceArticle.receptionBegun ? 'disabled' }}>
+            <option value="{{receptionReferenceArticle.referenceArticle.id}}">{{receptionReferenceArticle.referenceArticle.reference}}</option>
+        </select>
+    </div>
+    {% if reception.hasPacks %}
+        <div class="form-group col-xl-6 col-12">
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
+            {% if not receptionReferenceArticle.receptionBegun %}
+                <select class="ajax-autocomplete w-100 data form-control wii-field-text"
+                        name="pack"
+                        data-s2="receptionLogisticUnits"
+                        data-other-params
+                        data-other-params-all="1"
+                        data-other-params-reception="{{ reception.id }}">
+                </select>
+            {% else %}
+                {% set pack = receptionLine.pack %}
+                <input class="form-control" disabled type="text" name="logisticUnit" value="{{ pack ? pack.code }}">
+            {% endif %}
+        </div>
+    {% endif %}
+    <div class="form-group col-6">
+        <label class="wii-field-name">Numéro de commande d'achat*</label>
+        {% if reception.orderNumber is not empty %}
+            <select name="commande"
+                    class="form-control needed w-100 data"
+                    {{ receptionReferenceArticle.receptionBegun ? 'disabled' }}>
+                {% for orderNumber in reception.orderNumber %}
+                    <option {{ receptionReferenceArticle.commande == orderNumber ? 'selected' }}
+                            value="{{ orderNumber }}">
+                        {{ orderNumber }}
+                    </option>
+                {% endfor %}
+            </select>
+        {% else %}
+            <input type="text"
+                   class="form-control data needed wii-field-text"
+                   name="commande"
+                   value="{{receptionReferenceArticle.commande}}"
+                   {{ receptionReferenceArticle.receptionBegun ? 'disabled' }}/>
+        {% endif %}
+    </div>
+    <div class="form-group col-6">
+        <label class="wii-field-name">Quantité à recevoir*</label>
+        <input type="number"
+               class="form-control data needed"
+               value="{{receptionReferenceArticle.quantiteAR}}"
+               name="quantiteAR"
+               min="{{ minValue }}"
+               onchange="updateQuantityToReceive($(this));"/>
+    </div>
+    {% if canUpdateQuantity %}
+        <div class="form-group col-6">
+            <label class="wii-field-name">Quantité reçue*</label>
+            <input type="number"
+                   class="form-control data needed"
+                   name="quantite"
+                   value="{{ receptionReferenceArticle.quantite is not empty ? receptionReferenceArticle.quantite : 0 }}"
+                   min=0
+                   max="{{ receptionReferenceArticle.quantiteAR }}">
+        </div>
+    {% endif %}
+    <div class="form-group col-6">
+        <label class="wii-field-text">Anomalie</label>
+        <label class="switch">
+            <input class="checkbox" type="checkbox" name="anomalie" {{ receptionReferenceArticle.anomalie == 'true' ? 'checked': ''}}>
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="form-group col-12">
+        <label class="wii-field-name">Commentaire</label>
+        <input id='commentaire' class="form-control data" name="commentaire" type="hidden">
+        <div class="editor-container-article" data-wysiwyg>{{receptionReferenceArticle.commentaire | raw}}</div>
+    </div>
+</div>

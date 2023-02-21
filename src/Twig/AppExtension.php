@@ -74,6 +74,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('formatHistory', [$this, 'formatHistory']),
             new TwigFunction('isImage', [$this, 'isImage']),
             new TwigFunction('merge', "array_merge"),
+            new TwigFunction('diff', "array_diff"),
             new TwigFunction('getLanguage', [$this, "getLanguage"]),
             new TwigFunction('getDefaultLanguage', [$this, "getDefaultLanguage"]),
             new TwigFunction('trans', [$this, "translate"], [
@@ -94,7 +95,9 @@ class AppExtension extends AbstractExtension {
             new TwigFilter("format_helper", [$this, "formatHelper"]),
             new TwigFilter("json_decode", "json_decode"),
             new TwigFilter("flip", [$this, "flip"]),
+            new TwigFilter("unique", [$this, "unique"]),
             new TwigFilter("some", [$this, "some"]),
+            new TwigFilter("ucfirst", "ucfirst"),
             new TwigFilter("transFreeFieldElements", [$this, "transFreeFieldElements"]),
         ];
     }
@@ -246,6 +249,10 @@ class AppExtension extends AbstractExtension {
 
     public function flip(array $array): array {
         return array_flip($array);
+    }
+
+    public function unique(array $array): array {
+        return array_unique($array);
     }
 
     public function formatHistory(TransportHistory $history): ?string {

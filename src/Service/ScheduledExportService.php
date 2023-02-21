@@ -57,6 +57,9 @@ class ScheduledExportService
     #[Required]
     public FTPService $ftpService;
 
+    #[Required]
+    public ScheduleRuleService $scheduleRuleService;
+
     public function saveScheduledExportsCache(EntityManagerInterface $entityManager): void {
         $this->cacheService->set(CacheService::EXPORTS, "scheduled", $this->buildScheduledExportsCache($entityManager));
     }
@@ -69,7 +72,7 @@ class ScheduledExportService
         $exportRepository = $entityManager->getRepository(Export::class);
 
         return Stream::from($exportRepository->findScheduledExports())
-            ->keymap(fn(Export $export) => [$export->getId(), $this->calculateNextExecutionDate($export)])
+            ->keymap(fn(Export $export) => [$export->getId(), $this->scheduleRuleService->calculateNextExecutionDate($export->getExportScheduleRule())])
             ->filter(fn(?DateTime $nextExecutionDate) => isset($nextExecutionDate))
             ->map(fn(DateTime $date) => $this->getScheduleExportKeyCache($date))
             ->reduce(function ($accumulator, $date, $id) {
@@ -80,167 +83,6 @@ class ScheduledExportService
 
     public function getScheduleExportKeyCache(DateTime $dateTime) {
         return $dateTime->format("Y-m-d-H-i");
-    }
-
-    public function calculateNextExecutionDate(Export $export): ?DateTime {
-        $now = new DateTime();
-        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
-        $rule = $export->getExportScheduleRule();
-        $now = new DateTime();
-        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
-
-        $executionDate = match ($rule->getFrequency()) {
-            ExportScheduleRule::ONCE => $this->calculateOnce($rule, $now),
-            ExportScheduleRule::DAILY => $this->calculateFromDailyRule($rule, $now),
-            ExportScheduleRule::WEEKLY => $this->calculateFromWeeklyRule($rule, $now),
-            ExportScheduleRule::HOURLY => $this->calculateFromHourlyRule($rule, $now),
-            ExportScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $now),
-            default => throw new RuntimeException('Invalid schedule rule frequency'),
-        };
-        if ($export->isForced()) {
-            $now->setTime($now->format('H'), ((int)$now->format('i')) + 2, 0, 0);
-            $executionDate = min($now, $executionDate);
-        }
-        return $executionDate;
-    }
-
-    public function calculateFromWeeklyRule(ExportScheduleRule $rule, DateTime $now): ?DateTime {
-        $DAY_LABEL = [
-            1 => "monday",
-            2 => "tuesday",
-            3 => "wednesday",
-            4 => "thursday",
-            5 => "friday",
-            6 => "saturday",
-            7 => "sunday",
-        ];
-
-        [$hour, $minute] = explode(":", $rule->getIntervalTime());
-        $nextOccurrence = clone $rule->getBegin();
-
-        $weeksDifferential = floor($now->diff($rule->getBegin())->days / 7);
-        $add = $weeksDifferential + $weeksDifferential % $rule->getPeriod();
-        $nextOccurrence->modify("+$add weeks");
-
-        $goToNextWeek = false;
-        if ($now->format("W") != $nextOccurrence->format("W")) {
-            $day = $rule->getWeekDays()[0];
-        } else {
-            $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $now);
-            $currentDay = $now->format("N");
-
-            $day = Stream::from($rule->getWeekDays())
-                ->filter(fn($day) => $isTimeEqualOrBefore ? $day > $currentDay : $day >= $currentDay)
-                ->firstOr(function() use ($rule, &$goToNextWeek) {
-                    $goToNextWeek = true;
-                    return $rule->getWeekDays()[0];
-                });
-        }
-
-        if ($goToNextWeek) {
-            $nextOccurrence->modify("+{$rule->getPeriod()} week");
-        }
-
-        $dayAsString = $DAY_LABEL[$day];
-        $nextOccurrence->modify("$dayAsString this week");
-        $nextOccurrence->setTime($hour, $minute);
-
-        return $nextOccurrence;
-    }
-
-    public function calculateFromMonthlyRule(ExportScheduleRule $rule, DateTime $now): ?DateTime {
-        $start = ($now > $rule->getBegin()) ? $now : $rule->getBegin();
-        $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $start);
-
-        $year = $start->format("Y");
-        $currentMonth = $start->format("n");
-        $currentDay = (int) $start->format("j");
-        $currentLastDayMonth = (int) (clone $start)
-            ->modify('last day this month')
-            ->format("j");
-
-        $day = Stream::from($rule->getMonthDays())
-            ->filter(function ($day) use ($isTimeEqualOrBefore, $currentDay) {
-                $day = $day === ExportScheduleRule::LAST_DAY_OF_WEEK ? 32 : $day;
-                return $isTimeEqualOrBefore
-                    ? $day > $currentDay
-                    : $day >= $currentDay;
-            })
-            ->firstOr(fn() => $rule->getMonthDays()[0]);
-
-        $day = $day !== ExportScheduleRule::LAST_DAY_OF_WEEK ? $day : $currentLastDayMonth;
-        $isDayEqual = $day == $currentDay;
-        $isDayBefore = $day < $currentDay;
-
-        $ignoreCurrentMonth = $isDayBefore || ($isDayEqual && $isTimeEqualOrBefore);
-
-        $month = Stream::from($rule->getMonths())
-            ->filter(fn($month) => $ignoreCurrentMonth ? $month > $currentMonth : $month >= $currentMonth)
-            ->firstOr(function() use ($rule, &$year) {
-                $year += 1;
-                return $rule->getMonths()[0];
-            });
-
-        return DateTime::createFromFormat("d/m/Y H:i", "$day/$month/$year {$rule->getIntervalTime()}");
-    }
-
-    public function calculateFromDailyRule(ExportScheduleRule $rule, DateTime $now): ?DateTime {
-        $start = $rule->getBegin();
-        // set time to 0
-        $start->setTime(0, 0);
-        $period = $rule->getPeriod();
-        [$hour, $minute] = explode(":", $rule->getIntervalTime());
-
-        if ($now >= $start) {
-            $nextOccurrence = clone $start;
-            $daysDifferential = $now->diff($start)->days;
-
-            $add = $daysDifferential - $daysDifferential % $period;
-            if ($add < $daysDifferential) {
-                $add += $period;
-            }
-            $nextOccurrence->modify("+$add day");
-            $nextOccurrence->setTime($hour, $minute);
-
-            if ($this->isTimeEqualOrBefore($rule->getIntervalTime(), $now)) {
-                $nextOccurrence->modify("+1 day");
-            }
-        } else {
-            $nextOccurrence = clone $start;
-            $nextOccurrence->setTime($hour, $minute);
-        }
-
-        return $nextOccurrence;
-    }
-
-    public function calculateFromHourlyRule(ExportScheduleRule $rule, DateTime $now): ?DateTime {
-        $intervalPeriod = $rule->getIntervalPeriod();
-        if (!$intervalPeriod) {
-            return null;
-        }
-
-        $hoursBetweenDates = $now->diff($rule->getBegin(), true)->format("%h");
-        if($hoursBetweenDates % $intervalPeriod === 0) {
-            $hoursToAdd = $intervalPeriod - ($hoursBetweenDates % $intervalPeriod);
-        } else {
-            $hoursToAdd = 0;
-        }
-
-        $nextOccurrence = clone $now;
-        $nextOccurrence->setTime((int)$now->format("H") + $hoursToAdd, $rule->getBegin()->format("i"));
-
-        return $nextOccurrence;
-    }
-
-    public function calculateOnce(ExportScheduleRule $rule, DateTime $now): ?DateTime {
-        return $now <= $rule->getBegin()
-            ? $rule->getBegin()
-            : null;
-    }
-
-    private function isTimeEqualOrBefore(string $time, DateTime $date) {
-        [$hour, $minute] = explode(":", $time);
-        return $date->format('H') > $hour || ($date->format('H') == $hour && $date->format('i') >= $minute);
     }
 
     public function export(EntityManagerInterface $entityManager, Export $export) {
@@ -350,8 +192,7 @@ class ScheduledExportService
 
         $export
             ->setForced(false)
-            ->setNextExecution($this->calculateNextExecutionDate($exportToRun));
-
+            ->setNextExecution($this->scheduleRuleService->calculateNextExecutionDate($exportToRun->getExportScheduleRule()));
 
         $entityManager->persist($exportToRun);
         $entityManager->flush();

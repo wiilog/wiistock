@@ -1,0 +1,10 @@
+<div class="frequency once-frequency col-12 p-2 mt-1 form-inline form-group {{ checked ? '' : 'd-none' }}">
+    <label class="wii-field-name">Démarrer le</label>
+    <input type="datetime-local"
+           class="form-control form-control-sm ml-2 frequency-data"
+           name="startDate"
+           title="Démarrer le"
+           placeholder="jj/mm/aaaa HH:MM"
+           min="now"
+           value="{{ begin|date('Y-m-d\\TH:i') }}"/>
+</div>

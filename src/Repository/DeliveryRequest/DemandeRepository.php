@@ -186,6 +186,8 @@ class DemandeRepository extends EntityRepository
                         "number" => "delivery_request.numero LIKE :search_value",
                         "status" => "search_status.nom LIKE :search_value",
                         "type" => "search_type.label LIKE :search_value",
+                        "project" => "search_project.code LIKE :search_value",
+                        "expectedAt" => "DATE_FORMAT(delivery_request.expectedAt, '%d/%m/%Y') LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'deliveryRequest', $qb, $user, $search);
@@ -193,6 +195,7 @@ class DemandeRepository extends EntityRepository
                     $qb
                         ->leftJoin('delivery_request.statut', 'search_status')
                         ->leftJoin('delivery_request.type', 'search_type')
+                        ->leftJoin('delivery_request.project', 'search_project')
                         ->leftJoin('delivery_request.utilisateur', 'search_user')
                         ->leftJoin('delivery_request.destination', 'search_location_destination');
                 }
