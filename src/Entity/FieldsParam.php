@@ -8,6 +8,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: FieldsParamRepository::class)]
 class FieldsParam {
 
+    const MODAL_TYPE_FREE = 'FREE';
+    const MODAL_TYPE_USER = 'USER_BY_TYPE';
+
     const ENTITY_CODE_RECEPTION = 'réception';
 
     const FIELD_CODE_FOURNISSEUR = 'fournisseur';
