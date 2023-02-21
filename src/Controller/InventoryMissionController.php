@@ -74,7 +74,7 @@ class InventoryMissionController extends AbstractController
      */
     public function new(Request $request, EntityManagerInterface $em): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
+        if ($data = $request->request->all()) {
             if ($data['startDate'] > $data['endDate'])
                 return new JsonResponse([
                     'success' => false,
@@ -179,7 +179,7 @@ class InventoryMissionController extends AbstractController
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request->all();
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $mission = $inventoryMissionRepository->find($data['missionId']);
 

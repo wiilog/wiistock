@@ -35,22 +35,42 @@ $(function () {
     let tableMissions = initDataTable(`tableMissionsInv`, tableMisionsConfig);
 
     let modalNewMission = $("#modalNewMission");
-    let submitNewMission = $("#submitNewMission");
-    let urlNewMission = Routing.generate(`mission_new`, true);
-    InitModal(modalNewMission, submitNewMission, urlNewMission, {
-        tables: [tableMissions],
-        success: ({redirect}) => {
-            window.location.href = redirect;
-        }
-    });
+    Form
+        .create(modalNewMission, { clearOnOpen : false })
+        .submitTo(
+            AJAX.POST,
+            'mission_new',
+            {
+                table: tableMissions,
+                success: ({redirect}) => {
+                    window.location.href = redirect;
+                }
+            }
+        );
 
     let modalDeleteMission = $("#modalDeleteMission");
-    let submitDeleteMission = $("#submitDeleteMission");
-    let urlDeleteMission = Routing.generate(`mission_delete`, true)
-    InitModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, {tables: [tableMissions]});
+    Form
+        .create(modalDeleteMission, { clearOnOpen : false })
+        .submitTo(
+            AJAX.POST,
+            'mission_delete',
+            {
+                table: tableMissions,
+            }
+        );
 
-    InitModal($('#modalDuplicateMission'), $('#submitDuplicateMission'), urlNewMission);
-
+    Form
+        .create($('#modalDuplicateMission'), { clearOnOpen : false })
+        .submitTo(
+            AJAX.POST,
+            'mission_new',
+            {
+                table: tableMissions,
+                success: ({redirect}) => {
+                    window.location.href = redirect;
+                }
+            }
+        );
     initSearchDate(tableMissions);
 });
 
