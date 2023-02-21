@@ -23,8 +23,7 @@ $(function () {
             needsRowClickAction: true,
         },
         columns: [
-            {data: `actions`, title: ``, className: `d-none`, orderable: false},
-            {data: `delete`, title: ``, className: `noVis`, orderable: false},
+            {data: `actions`, title: ``, className: `noVis`, orderable: false},
             {data: `name`, title: `Libellé`},
             {data: `start`, title: `Date de début`},
             {data: `end`, title: `Date de fin`},
@@ -50,5 +49,20 @@ $(function () {
     let urlDeleteMission = Routing.generate(`mission_delete`, true)
     InitModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, {tables: [tableMissions]});
 
+    InitModal($('#modalDuplicateMission'), $('#submitDuplicateMission'), urlNewMission);
+
     initSearchDate(tableMissions);
 });
+
+function openDuplicateInventoryMissionModal($button) {
+    wrapLoadingOnActionButton($('#tableMissionsInv'), ()=>{
+        return AJAX
+            .route(AJAX.GET, "get_form_mission_duplicate", {'id': $button.data('id')})
+            .json()
+            .then((data)=>{
+                const $modal = $('#modalDuplicateMission');
+                $modal.find('.modal-body').html(data.html);
+                $modal.modal('show');
+        })
+    })
+}

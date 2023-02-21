@@ -15,6 +15,7 @@ use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
+use App\Repository\Inventory\InventoryMissionRepository;
 use App\Repository\TypeRepository;
 use App\Entity\Type;
 use App\Entity\CategoryType;
@@ -51,6 +52,7 @@ class InventoryMissionController extends AbstractController
                     'label' => $type
                 ])
                 ->toArray(),
+            'newMission' => new InventoryMission(),
         ]);
     }
 
@@ -117,6 +119,26 @@ class InventoryMissionController extends AbstractController
         }
         throw new BadRequestHttpException();
     }
+
+    #[Route("/api/dupliquer", name: "get_form_mission_duplicate", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
+
+    public function duplicate(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $missionId = $request->query->get('id');
+        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $mission = $inventoryMissionRepository->find($missionId);
+
+        $content = $this->renderView('inventaire/formInventoryMission.html.twig', [
+            'mission'=> $mission
+        ]);
+        return $this->json([
+            'success' => true,
+            'html' => $content,
+        ]);
+
+    }
+
 
     /**
      * @Route("/verification", name="mission_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
