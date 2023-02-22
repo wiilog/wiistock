@@ -71,40 +71,41 @@
                         &:nth-child(2) {
                             border-left: $medium-grey solid 1px;
 
-                                &:not(:last-child) {
-                                    border-right: $medium-grey solid 1px;
-                                }
+                            &:not(:last-child) {
+                                border-right: $medium-grey solid 1px;
                             }
                         }
                     }
                 }
             }
-            &.articles-container {
-                width: max-content;
-                .articles-wrapper {
-                    height: 100%;
-                    z-index: 1;
+        }
+        tr.articles-container{
+            font-size: 1.2rem;
 
-                    &.sub-articles-wrapper {
-                        border-left: 1px solid $medium-grey;
-                        border-right: 1px solid $medium-grey;
-                        border-bottom: 1px solid $medium-grey;
+            td:nth-child(2) {
+                max-width: 0
+            }
+
+            .articles-wrapper{
+                border-left: 1px solid $medium-grey;
+                border-right: 1px solid $medium-grey;
+                border-bottom: 1px solid $medium-grey;
+                border-bottom-left-radius: 0.35rem;
+                border-bottom-right-radius: 0.35rem;
+
+                td {
+                    border-color: $medium-grey;
+                }
+
+                tr:last-child {
+                    &, & td {
                         border-bottom-left-radius: 0.35rem;
                         border-bottom-right-radius: 0.35rem;
-
-                        td {
-                            border-color: $medium-grey;
-                        }
-
-                    tr:last-child {
-                        &, & td {
-                            border-bottom-left-radius: 0.35rem;
-                            border-bottom-right-radius: 0.35rem;
-                            border-bottom: none !important;
-                        }
+                        border-bottom: none !important;
                     }
                 }
             }
         }
     }
 }
+

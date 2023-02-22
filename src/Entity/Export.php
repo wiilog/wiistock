@@ -21,12 +21,14 @@ class Export {
     const ENTITY_ARTICLE = "article";
     const ENTITY_DELIVERY_ROUND = "tournee";
     const ENTITY_ARRIVAL = "arrivage";
+    const ENTITY_REF_LOCATION = "reference_emplacement";
 
     const ENTITY_LABELS = [
         self::ENTITY_REFERENCE => "Références",
         self::ENTITY_ARTICLE => "Articles",
         self::ENTITY_DELIVERY_ROUND => "Tournées",
         self::ENTITY_ARRIVAL => "Arrivages",
+        self::ENTITY_REF_LOCATION => "Référence emplacement"
     ];
 
     const DESTINATION_EMAIL = 1;

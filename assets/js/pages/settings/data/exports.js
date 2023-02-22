@@ -13,6 +13,7 @@ const ENTITY_REFERENCE = "reference";
 const ENTITY_ARTICLE = "article";
 const ENTITY_TRANSPORT_ROUNDS = "tournee";
 const ENTITY_ARRIVALS = "arrivage";
+const ENTITY_REF_LOCATION = "reference_emplacement";
 
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -86,7 +87,7 @@ function displayExportModal(exportId) {
             </div>
         `);
 
-    $.get(Routing.generate('export_template', params, true), function(resp){
+    $.get(Routing.generate('export_template', params, true), function(resp) {
         $modal.find('.modal-body').html(resp);
         onFormEntityChange();
         onFormTypeChange(false);
@@ -108,7 +109,7 @@ function displayExportModal(exportId) {
         $modal.find('select[name=suppliers]').select2({closeOnSelect: false});
         $modal.find('.select-all-options').on('click', onSelectAll);
 
-        if($modal.find('input[name=destinationType]:checked').hasClass('export-by-sftp')){
+        if($modal.find('input[name=destinationType]:checked').hasClass('export-by-sftp')) {
             destinationExportChange();
         }
     });
@@ -158,14 +159,14 @@ function createForm() {
         .on('change', '[name=periodInterval]', function() {
             onPeriodIntervalChange($modal);
         })
-        .addProcessor((data, errors, $form) => {
+        .addProcessor((data, errors, form) => {
             const destinationType = Number(data.get('destinationType'));
             const recipientUsers = data.get('recipientUsers');
             const recipientEmails = data.get('recipientEmails');
             const isEmailExport = destinationType === 1;
             if (isEmailExport && !recipientUsers && !recipientEmails) {
                 errors.push({
-                    elements: [$form.find('[name=recipientUsers]'), $form.find('[name=recipientEmails]')],
+                    elements: [form.find('[name=recipientUsers]'), form.find('[name=recipientEmails]')],
                     message: `Vous devez renseigner au moins un utilisateur ou une adresse email destinataire`,
                 });
             }
@@ -241,6 +242,8 @@ function createForm() {
                             dateMax,
                             columnToExport
                         }));
+                    } else if (content.entityToExport === ENTITY_REF_LOCATION) {
+                        window.open(Routing.generate(`settings_export_ref_location`));
                     }
 
                     return new Promise((resolve) => {

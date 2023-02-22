@@ -35,4 +35,18 @@ class StorageRuleRepository extends EntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function iterateAll(): iterable {
+        $qb = $this->createQueryBuilder('storage_rule')
+            ->select('reference.reference')
+            ->addSelect('location.label AS locationLabel')
+            ->addSelect('storage_rule.securityQuantity AS securityQuantity')
+            ->addSelect('storage_rule.conditioningQuantity AS conditioningQuantity')
+            ->leftjoin('storage_rule.referenceArticle', 'reference')
+            ->leftjoin('storage_rule.location', 'location');
+
+        return $qb
+            ->getQuery()
+            ->toIterable();
+    }
 }

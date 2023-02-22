@@ -10,6 +10,7 @@ use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
 use App\Entity\ScheduleRule;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
@@ -34,6 +35,9 @@ class DataExportService
 
     #[Required]
     public ArrivageService $arrivalService;
+
+    #[Required]
+    public StorageRuleService $storageRuleService;
 
     #[Required]
     public ScheduleRuleService $scheduleRuleService;
@@ -135,6 +139,16 @@ class DataExportService
             ->toArray();
     }
 
+    public function createStorageRulesHeader(): array
+    {
+        return [
+            'Référence',
+            'Emplacement',
+            'Quantité sécurité',
+            'Quantité de conditionnement',
+        ];
+    }
+
     public function exportReferences(RefArticleDataService $refArticleDataService,
                                      array $freeFieldsConfig,
                                      iterable $data,
@@ -205,6 +219,15 @@ class DataExportService
         /** @var Arrivage $arrival */
         foreach ($data as $arrival) {
             $this->arrivalService->putArrivalLine($output, $arrival, $columnToExport);
+        }
+    }
+
+    public function exportRefLocation(iterable $data,
+                                      mixed $output)
+    {
+        /** @var StorageRule $storageRule */
+        foreach ($data as $storageRule) {
+            $this->storageRuleService->putStorageRuleLine($output, $storageRule);
         }
     }
 
