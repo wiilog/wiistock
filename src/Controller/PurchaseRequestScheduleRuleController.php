@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Fournisseur;
 use App\Entity\PurchaseRequestScheduleRule;
+use App\Entity\Zone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,11 +20,11 @@ class PurchaseRequestScheduleRuleController extends AbstractController
         $data = Stream::from($purchaseRequestScheduleRuleRepository->findAll())
             ->map(fn(PurchaseRequestScheduleRule $purchaseRequestScheduleRule) => [
                 "action" => $this->render('settings/stock/demandes/planification_achats.html.twig', [ "purchaseRequestScheduleRule" => $purchaseRequestScheduleRule ]),
-                "zone" => $purchaseRequestScheduleRule->getZone(),
-                "supplier" => $purchaseRequestScheduleRule->getSupplier(),
-                "requester" => $purchaseRequestScheduleRule->getRequester(),
+                "zone" => Stream::from($purchaseRequestScheduleRule->getZones())->map(fn(Zone $zone) => $zone->getName())->join(', '),
+                "supplier" => Stream::from($purchaseRequestScheduleRule->getSuppliers())->map(fn(Fournisseur $supplier) => $supplier->getNom())->join(', '),
+                "requester" => $purchaseRequestScheduleRule->getRequester()->getUsername(),
                 "emailSubject" => $purchaseRequestScheduleRule->getEmailSubject(),
-                "createdAt" => $purchaseRequestScheduleRule->getCreatedAt(),
+                "createdAt" => $purchaseRequestScheduleRule->getCreatedAt()->format("d/m/Y"),
                 "frequency" => $purchaseRequestScheduleRule->getFrequency(),
             ])
             ->toArray();

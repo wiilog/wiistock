@@ -353,7 +353,7 @@ class ArticleDataService
             ]];
         }
 
-        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
+        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
 
         $articles = $queryResult['data'];
 
@@ -430,6 +430,9 @@ class ArticleDataService
             "deliveryNoteLine" => $article->getDeliveryNote() ?: '',
             "purchaseOrderLine" => $article->getPurchaseOrder() ?: '',
             "nativeCountry" => $article->getNativeCountry() ? $article->getNativeCountry()->getLabel() : '',
+            'RFIDtag' => $article->getRFIDtag(),
+            'manifacturingDate' => $article->getManifacturingDate() ? $article ->getManifacturingDate()->format('d/m/Y') : '',
+            'purchaseOrder' => $article->getPurchaseOrder(),
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
@@ -609,6 +612,7 @@ class ArticleDataService
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
             ["title" => "Projet", "name" => "project", 'searchable' => true],
             ["title" => "Zone de destination", "name" => "destinationArea", 'searchable' => true],
+            ["title" => "Tag RFID", "name" => "RFIDtag", 'searchable' => true],
             ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
             ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],
             ["title" => "Ligne bon de livraison", "name" => "deliveryNoteLine", 'searchable' => true],
