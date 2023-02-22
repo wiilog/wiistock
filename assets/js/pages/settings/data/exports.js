@@ -97,7 +97,7 @@ function displayExportModal(exportId) {
             toggleFrequencyInput($checkedFrequency);
         }
 
-        const $dateInput = $modal.find('[name=dateMin], [name=dateMax]');
+        const $dateInput = $modal.find('[name=dateMin], [name=dateMax], [name=scheduledDateMin], [name=scheduledDateMax], [name=articleDateMin], [name=articleDateMax]');
         initDateTimePicker($dateInput);
 
         Select2Old.user($modal.find('.select2-user'));
@@ -185,8 +185,8 @@ function createForm() {
                         const referenceTypes = $modal.find(`[name=referenceTypes]`).val();
                         const statuses = $modal.find(`[name=statuses]`).val();
                         const suppliers = $modal.find(`[name=suppliers`).val();
-                        const dateMin = $modal.find(`[name=dateMin]`).val();
-                        const dateMax = $modal.find(`[name=dateMax]`).val();
+                        const dateMin = $modal.find(`[name=articleDateMin]`).val();
+                        const dateMax = $modal.find(`[name=articleDateMax]`).val();
                         console.log(referenceTypes, statuses, suppliers);
 
                         if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
