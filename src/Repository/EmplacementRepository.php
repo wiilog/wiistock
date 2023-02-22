@@ -9,7 +9,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\Transport\TransportRound;
-use App\Entity\Zone;
+use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -501,5 +501,17 @@ class EmplacementRepository extends EntityRepository
             ->setParameter('now', new DateTime())
             ->getQuery()
             ->getResult();
+    }
+
+    public function countByUser(Utilisateur $user) {
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        return $queryBuilder
+            ->from(Emplacement::class, 'location')
+            ->select('COUNT(location)')
+            ->andWhere('user = :user')
+            ->join('location.signatories', 'user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

@@ -1,0 +1,60 @@
+{% import 'form.html.twig' as form %}
+
+<div class="row">
+    {% if purchaseRequestScheduleRule.id  %}
+        <div class="d-none">
+            {{ form.input('id', 'id', true, purchaseRequestScheduleRule.id , {
+                type: 'hidden',
+            }) }}
+        </div>
+    {% endif %}
+    <div class="col-6">
+        {{ form.select('zones', 'Zone', true, {
+            type: 'zones',
+            multiple: true,
+            items: purchaseRequestScheduleRule.zones|map((zone) => {value: zone.id, label: zone.name, selected: true}),
+        } ) }}
+    </div>
+    <div class="col-6">
+        {{ form.select('suppliers', 'Fournisseur', true, {
+            type: 'provider',
+            multiple: true,
+            items: purchaseRequestScheduleRule.suppliers|map((supplier) => {value: supplier.id, label: supplier.nom, selected: true}),
+        } ) }}
+    </div>
+    <div class="col-6">
+        {% set requester = purchaseRequestScheduleRule.requester ?? app.user %}
+        {{ form.select('requester', 'Demandeur', true, {
+            type: 'user',
+            multiple: false,
+            items: {
+                (requester.id): (requester.username),
+            }
+        } ) }}
+    </div>
+    <div class="col-6">
+        {{ form.select('status', 'Statut', true, {
+            type: null,
+            items : status,
+            search: false,
+        } ) }}
+    </div>
+    <div class="col-6">
+        {{ form.input('mailSubject', 'Objet du mail', true, purchaseRequestScheduleRule.emailSubject ) }}
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        {% include 'planner/planner.html.twig' with {
+            frequency: purchaseRequestScheduleRule.frequency,
+            begin: purchaseRequestScheduleRule.begin,
+            intervalPeriod: purchaseRequestScheduleRule.intervalPeriod,
+            intervalTime: purchaseRequestScheduleRule.intervalTime,
+            period: purchaseRequestScheduleRule.period,
+            weekDays: purchaseRequestScheduleRule.weekDays,
+            months: purchaseRequestScheduleRule.months,
+            monthDays: purchaseRequestScheduleRule.monthDays,
+            required: true,
+        } %}
+    </div>
+</div>

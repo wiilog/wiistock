@@ -207,7 +207,10 @@ class SettingsController extends AbstractController {
                             "label" => "Collectes - Types et champs libres", "wrapped" => false,
                         ],
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
-                        self::MENU_PURCHASE_PLANIFICATION => ["label" => "Achats - Planification"],
+                        self::MENU_PURCHASE_PLANIFICATION => [
+                            "label" => "Achats - Planification",
+                            "right" => Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE
+                        ],
                     ],
                 ],
                 self::MENU_VISIBILITY_GROUPS => [
