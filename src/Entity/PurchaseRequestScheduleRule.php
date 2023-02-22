@@ -36,6 +36,9 @@ class PurchaseRequestScheduleRule extends ScheduleRule
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $lastRun = null;
+
     public function __construct()
     {
         $this->zones = new ArrayCollection();
@@ -71,6 +74,13 @@ class PurchaseRequestScheduleRule extends ScheduleRule
         return $this;
     }
 
+    public function setZones(Collection $zones): self
+    {
+        $this->zones = $zones;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Fournisseur>
      */
@@ -91,6 +101,13 @@ class PurchaseRequestScheduleRule extends ScheduleRule
     public function removeSupplier(Fournisseur $supplier): self
     {
         $this->suppliers->removeElement($supplier);
+
+        return $this;
+    }
+
+    public function setSuppliers(Collection $suppliers): self
+    {
+        $this->suppliers = $suppliers;
 
         return $this;
     }
@@ -139,6 +156,18 @@ class PurchaseRequestScheduleRule extends ScheduleRule
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getLastRun(): ?\DateTimeInterface
+    {
+        return $this->lastRun;
+    }
+
+    public function setLastRun(?\DateTimeInterface $lastRun): self
+    {
+        $this->lastRun = $lastRun;
 
         return $this;
     }
