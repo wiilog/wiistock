@@ -1,19 +1,17 @@
-<div class="modal fade" id="modalDeleteMission" role="dialog" aria-hidden="true">
+{% import 'form.html.twig' as form %}
+<div class="modal fade" id="modalDuplicateMission" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Supprimer la mission"
+                title: "Dupliquer une mission"
             } %}
-
-            <div class="modal-body">
-                Voulez-vous réellement supprimer cette mission ?
+            <div class="modal-body modal-input container-fluid">
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', text: 'Supprimer', dismiss: true, name: 'missionId', id: 'submitDeleteMission', type: 'submit'}
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit', id: 'submitDuplicateMission'}
                 ],
-                renderErrorContainer: false
             } %}
 
         </div>

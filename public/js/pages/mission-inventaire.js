@@ -23,8 +23,7 @@ $(function () {
             needsRowClickAction: true,
         },
         columns: [
-            {data: `actions`, title: ``, className: `d-none`, orderable: false},
-            {data: `delete`, title: ``, className: `noVis`, orderable: false},
+            {data: `actions`, title: ``, className: `noVis`, orderable: false},
             {data: `name`, title: `Libellé`},
             {data: `start`, title: `Date de début`},
             {data: `end`, title: `Date de fin`},
@@ -36,19 +35,54 @@ $(function () {
     let tableMissions = initDataTable(`tableMissionsInv`, tableMisionsConfig);
 
     let modalNewMission = $("#modalNewMission");
-    let submitNewMission = $("#submitNewMission");
-    let urlNewMission = Routing.generate(`mission_new`, true);
-    InitModal(modalNewMission, submitNewMission, urlNewMission, {
-        tables: [tableMissions],
-        success: ({redirect}) => {
-            window.location.href = redirect;
-        }
-    });
+    Form
+        .create(modalNewMission, { clearOnOpen : false })
+        .submitTo(
+            AJAX.POST,
+            'mission_new',
+            {
+                table: tableMissions,
+                success: ({redirect}) => {
+                    window.location.href = redirect;
+                }
+            }
+        );
 
     let modalDeleteMission = $("#modalDeleteMission");
-    let submitDeleteMission = $("#submitDeleteMission");
-    let urlDeleteMission = Routing.generate(`mission_delete`, true)
-    InitModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, {tables: [tableMissions]});
+    Form
+        .create(modalDeleteMission, { clearOnOpen : false })
+        .submitTo(
+            AJAX.POST,
+            'mission_delete',
+            {
+                table: tableMissions,
+            }
+        );
 
+    Form
+        .create($('#modalDuplicateMission'), { clearOnOpen : false })
+        .submitTo(
+            AJAX.POST,
+            'mission_new',
+            {
+                table: tableMissions,
+                success: ({redirect}) => {
+                    window.location.href = redirect;
+                }
+            }
+        );
     initSearchDate(tableMissions);
 });
+
+function openDuplicateInventoryMissionModal($button) {
+    wrapLoadingOnActionButton($('#tableMissionsInv'), ()=>{
+        return AJAX
+            .route(AJAX.GET, "get_form_mission_duplicate", {'id': $button.data('id')})
+            .json()
+            .then((data)=>{
+                const $modal = $('#modalDuplicateMission');
+                $modal.find('.modal-body').html(data.html);
+                $modal.modal('show');
+        })
+    })
+}
