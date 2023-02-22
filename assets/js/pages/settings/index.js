@@ -29,6 +29,7 @@ import Form from '../../form';
 import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import AJAX, {GET, POST} from "@app/ajax";
 import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
+import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -93,6 +94,7 @@ const initializers = {
     stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
+    stock_demandes_planification_achats: initializePurchaseRequestPlanner,
     track_tournees: initializeTransportRound,
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
@@ -868,6 +870,84 @@ function initializeInventoryCategoriesTable(){
             label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
             frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence">`+$frequencyOptions+`</select>`,
         },
+    });
+}
+
+function initializeInventoryMissionsTable($container){
+    $container.on(`click`, `.force-missions`, function() {
+        AJAX.route(`POST`, `settings_mission_rules_force`)
+            .json()
+            .then(() => Flash.add(`success`, `Les missions d'inventaire ont été générées`));
+    });
+
+    const table = EditableDatatable.create(`#missionRulesTable`, {
+        route: Routing.generate('settings_mission_rules_api', true),
+        deleteRoute: `settings_delete_mission_rule`,
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `categories`, title: `Catégorie(s)`, required: true},
+            {data: `periodicity`, title: `Périodicité`, required: true},
+            {data: `duration`, title: `Durée`, required: true},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed' data-global-error='Libellé'/>`,
+            categories: `<select name='categories' class='form-control data needed' data-s2='inventoryCategories' multiple data-parent='body' data-global-error='Catégorie(s)'></select>`,
+            periodicity: `
+                <div class='d-flex'>
+                    <input type='text' name='periodicity' class='form-control data needed mr-1 w-50px' data-global-error='Périodicité'/>
+                    <select name='periodicityUnit' class='form-control data needed maxw-150px' data-global-error='Unité de periodicité'>
+                        <option value='weeks'>semaine(s)</option>
+                        <option value='months'>mois(s)</option>
+                    </select>
+                </div>
+            `,
+            duration: `
+                <div class='d-flex'>
+                    <input type='text' name='duration' class='form-control data needed mr-1 w-50px' data-global-error='Durée'/>
+                    <select name='durationUnit' class='form-control data needed maxw-150px' data-global-error='Unité de durée'>
+                        <option value='weeks'>semaine(s)</option>
+                        <option value='months'>mois(s)</option>
+                    </select>
+                </div>
+            `,
+        },
+    });
+}
+
+function initializePurchasePlanificationTable() {
+    const table = EditableDatatable.create(`#purchasesTable`, {
+        route: Routing.generate('', true),
+        deleteRoute: ``,
+        mode: MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        search: true,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `missionType`, title: `Type de mission`, required: true},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `periodicity`, title: `Périodicité`, required: true},
+            {data: `categories`, title: `Catégorie(s)`, required: true},
+            {data: `duration`, title: `Durée`, required: true},
+            {data: `creator`, title: `Créateur`, required: true},
+            {data: `lastExecution`, title: `Dernière exécution`, required: true},
+        ],
     });
 }
 

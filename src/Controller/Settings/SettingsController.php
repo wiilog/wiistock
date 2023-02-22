@@ -207,6 +207,7 @@ class SettingsController extends AbstractController {
                             "label" => "Collectes - Types et champs libres", "wrapped" => false,
                         ],
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
+                        self::MENU_PURCHASE_PLANIFICATION => ["label" => "Achats - Planification"],
                     ],
                 ],
                 self::MENU_VISIBILITY_GROUPS => [
@@ -576,6 +577,7 @@ class SettingsController extends AbstractController {
     public const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
     public const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
     public const MENU_PURCHASE_STATUSES = "statuts_achats";
+    public const MENU_PURCHASE_PLANIFICATION = "planification_achats";
 
     public const MENU_PREPARATIONS = "preparations";
     public const MENU_PREPARATIONS_DELIVERIES = "preparations_livraisons";
