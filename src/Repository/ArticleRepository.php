@@ -167,7 +167,13 @@ class ArticleRepository extends EntityRepository {
             ->andWhere('refType.id IN (:referenceTypes)')
             ->andWhere('statut.id IN (:statuses)')
             ->andWhere('fournisseur.id IN (:suppliers)')
-            ->setParameters(['dateMin' => $dateMin, 'dateMax' => $dateMax, 'referenceTypes' => $referenceTypes, 'statuses' => $statuses, 'suppliers' => $suppliers])
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax,
+                'referenceTypes' => $referenceTypes,
+                'statuses' => $statuses,
+                'suppliers' => $suppliers
+            ])
             ->groupBy('article.id')
             ->getQuery()
             ->toIterable();

@@ -323,8 +323,8 @@ class DataExportService
                     ->setStockEntryEndDate(DateTime::createFromFormat('d/m/Y', $data["scheduledDateMax"]));
             } else {
                 $now = new DateTime("now");
-                $startDate = (clone $now)->modify("-{$data["minus-day"]} days");
-                $endDate = (clone $now)->modify("+{$data["additional-day"]} days");
+                $endDate = (clone $now)->modify("-{$data["minus-day"]} days");
+                $startDate = (clone $endDate)->modify("-{$data["additional-day"]} days");
 
                 $export->setStockEntryStartDate($startDate)
                     ->setStockEntryEndDate($endDate);
