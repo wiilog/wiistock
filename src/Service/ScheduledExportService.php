@@ -108,11 +108,12 @@ class ScheduledExportService
             $this->dataExportService->exportReferences($this->refArticleDataService, $freeFieldsConfig, $references, $output);
         } else if($exportToRun->getEntity() === Export::ENTITY_ARTICLE) {
             $referenceArticleRepository = $entityManager->getRepository(Article::class);
-            $articles = $referenceArticleRepository->iterateAll($exportToRun->getCreator(), $exportToRun->getStockEntryStartDate(), $exportToRun->getStockEntryEndDate());
+            $articles = $referenceArticleRepository->iterateAll($exportToRun->getCreator(), $exportToRun->getStockEntryStartDate(),
+                $exportToRun->getStockEntryEndDate(), $exportToRun->getReferenceTypes(), $exportToRun->getStatuses(), $exportToRun->getSuppliers());
             $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
 
             $this->csvExportService->putLine($output, $this->dataExportService->createArticlesHeader($freeFieldsConfig));
-            $this->dataExportService->exportArticles($this->articleDataService, $freeFieldsConfig, $articles, $output, $exportToRun->getReferenceTypes(), $exportToRun->getStatuses(), $exportToRun->getSuppliers());
+            $this->dataExportService->exportArticles($this->articleDataService, $freeFieldsConfig, $articles, $output);
         } else if($exportToRun->getEntity() === Export::ENTITY_DELIVERY_ROUND) {
             $transportRoundRepository = $entityManager->getRepository(TransportRound::class);
 

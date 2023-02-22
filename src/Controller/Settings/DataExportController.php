@@ -230,10 +230,10 @@ class DataExportController extends AbstractController {
         return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $dataExportService, $user,
             $articleDataService, $referenceTypes, $statuses, $suppliers, $dateTimeMin, $dateTimeMax) {
             $articleRepository = $entityManager->getRepository(Article::class);
-            $articles = $articleRepository->iterateAll($user, $dateTimeMin, $dateTimeMax);
+            $articles = $articleRepository->iterateAll($user, $dateTimeMin, $dateTimeMax,$referenceTypes, $statuses, $suppliers);
 
             $start = new DateTime();
-            $dataExportService->exportArticles($articleDataService, $freeFieldsConfig, $articles, $output, $referenceTypes, $statuses, $suppliers);
+            $dataExportService->exportArticles($articleDataService, $freeFieldsConfig, $articles, $output);
             $dataExportService->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
         }, "export-articles-$today.csv", $header);
     }

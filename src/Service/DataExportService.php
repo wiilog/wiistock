@@ -148,16 +148,9 @@ class DataExportService
     public function exportArticles(ArticleDataService   $articleDataService,
                                    array                $freeFieldsConfig,
                                    iterable             $data,
-                                   mixed                $output,
-                                   array                $referenceTypes,
-                                   array                $statuses,
-                                   array                $suppliers) {
-        /** @var Article $article */
+                                   mixed                $output) {
         foreach($data as $article) {
-            if (in_array(strval($article->getArticleFournisseur()->getFournisseur()->getId()), $suppliers) && in_array(strval($article->getReferenceArticle()->getType()->getId()), $referenceTypes)
-                && in_array(strval($article->getStatut()->getId()), $statuses)) {
                 $articleDataService->putArticleLine($output, $article, $freeFieldsConfig);
-            }
         }
     }
 

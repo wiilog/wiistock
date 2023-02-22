@@ -115,7 +115,7 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
-    public function iterateAll(Utilisateur $user, DateTime $dateMin, DateTime $dateMax): iterable {
+    public function iterateAll(Utilisateur $user, DateTime $dateMin, DateTime $dateMax, array $referenceTypes, array $statuses, array $suppliers): iterable {
         $queryBuilder = $this->createQueryBuilder('article');
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
@@ -134,7 +134,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.label')
             ->addSelect('article.quantite')
             ->addSelect('type.label as typeLabel')
-            ->addSelect('statut.nom as statutName')
+            ->addSelect('statut.nom as statusName')
             ->addSelect('article.commentaire')
             ->addSelect('emplacement.label as empLabel')
             ->addSelect('article.barCode')
@@ -153,17 +153,21 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('nativeCountry.label AS nativeCountryLabel')
             ->addSelect('article.productionDate')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
+            ->leftJoin('articleFournisseur.fournisseur', 'fournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->leftJoin('referenceArticle.type', 'refType')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
             ->leftJoin('article.currentLogisticUnit', 'currentLogisticUnit')
             ->leftJoin('currentLogisticUnit.project', 'project')
             ->leftJoin('article.nativeCountry', 'nativeCountry')
             ->andWhere('article.stockEntryDate BETWEEN :dateMin AND :dateMax')
-            ->setParameter('dateMin', $dateMin)
-            ->setParameter('dateMax', $dateMax)
+            ->andWhere('refType.id IN (:referenceTypes)')
+            ->andWhere('statut.id IN (:statuses)')
+            ->andWhere('fournisseur.id IN (:suppliers)')
+            ->setParameters(['dateMin' => $dateMin, 'dateMax' => $dateMax, 'referenceTypes' => $referenceTypes, 'statuses' => $statuses, 'suppliers' => $suppliers])
             ->groupBy('article.id')
             ->getQuery()
             ->toIterable();
