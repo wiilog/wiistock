@@ -20,11 +20,6 @@
         <input type="text" class="data form-control" name="description" value="{{ nature.description }}">
     </div>
     <div class="form-group col-md-6 col-12">
-        <label class="wii-field-name">Quantité par défaut*</label>
-        <input type="number" class="data form-control needed" name="quantity"
-               value="{{ nature.defaultQuantity is defined ? nature.defaultQuantity : '' }}" min="0">
-    </div>
-    <div class="form-group col-md-6 col-12">
         <label class="wii-field-name">Couleur*</label>
         <input type="color" class="data form-control needed" name="color" value="{{ nature.color ? nature.color : '' }}">
     </div>
@@ -46,6 +41,24 @@
                 <option value="{{ temperature.id }}" {{ selected }}>{{ temperature.value }}</option>
             {% endfor %}
         </select>
+    </div>
+    <div class="col-12 mt-3">
+        <div class="wii-section-title my-3 d-flex align-items-center">
+            Quantité par défaut
+        </div>
+        <table id="groupHistoryTable" class="table w-100"></table>
+    </div>
+    <div class="form-group col-md-6 col-12">
+        {{ form.input("quantity", "Quantité par défaut de l'arrivage", true, nature.defaultQuantity, {
+            type: 'number',
+            min: 0,
+        })}}
+    </div>
+    <div class="form-group col-md-6 col-12">
+        {{ form.input("defaultQuantityDispatch", "Quantité par défaut de l'acheminement", false, nature.defaultQuantityForDispatch, {
+            type: 'number',
+            min: 0,
+        })}}
     </div>
     <div class="form-group col-12">
         <div class="wii-checkbox pl-0 pointer">

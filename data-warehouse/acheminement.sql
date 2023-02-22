@@ -30,7 +30,13 @@ SELECT dispatch.id                                        AS id,
        dernier_mouvement.datetime                         AS date_dernier_mouvement,
        dispatch.emergency                                 AS urgence,
        dispatch.project_number                            AS numero_projet,
-       dispatch.business_unit                             AS business_unit
+       dispatch.business_unit                             AS business_unit,
+       reference_article.reference                        AS reference,
+       reference_article.quantite_stock                   AS quantite_reference,
+       dispatch_reference_article.batch_number            AS numero_lot,
+       dispatch_reference_article.serial_number           AS numero_serie,
+       dispatch_reference_article.sealing_number          AS numero_plombage_scelle,
+       dispatch_reference_article.adr                     AS adr
 
 FROM dispatch
 
@@ -51,6 +57,8 @@ FROM dispatch
                    ON dernier_emplacement.emplacement_id = dernier_emplacement_colis.id
          LEFT JOIN tracking_movement AS dernier_mouvement ON pack.last_tracking_id = dernier_mouvement.id
          LEFT JOIN utilisateur AS operateur ON dernier_mouvement.operateur_id = operateur.id
+         LEFT JOIN dispatch_reference_article ON dispatch_pack.id = dispatch_reference_article.dispatch_pack_id
+         LEFT JOIN reference_article ON dispatch_reference_article.reference_article_id = reference_article.id
 
 GROUP BY id,
          numero,
@@ -79,4 +87,5 @@ GROUP BY id,
          date_dernier_mouvement,
          urgence,
          numero_projet,
-         business_unit
+         business_unit,
+         reference

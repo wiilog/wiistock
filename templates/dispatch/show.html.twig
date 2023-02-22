@@ -163,13 +163,13 @@
                     </div>
                     <div class="content comment-container">
                         <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
-                        <div class="ql-editor">
-                            {% if dispatch.commentaire != '<p><br></p>' %}
-                                {{ dispatch.commentaire | raw | nl2br }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </div>
+                        {% if dispatch.commentaire != '<p><br></p>' %}
+                            <div class="ql-editor">
+                                {{ dispatch.commentaire | raw }}
+                            </div>
+                        {% else %}
+                            -
+                        {% endif %}
                     </div>
                 </div>
                 <div class="wii-box">
@@ -241,7 +241,7 @@
                     </div>
                     <div class="p-3 table-container">
                         {% if dispatch.hasReferenceArticles %}
-                            <div class="col-12 logistic-units-container wii-multiple-loading"
+                            <div class="col-12 logistic-units-container wii-multiple-loading py-3"
                                  data-loader-color="primary"
                                  data-loader-size="normal">
                             </div>

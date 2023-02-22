@@ -15,9 +15,7 @@ use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
-use App\Repository\TypeRepository;
-use App\Entity\Type;
-use App\Entity\CategoryType;
+use App\Exceptions\FormException;
 use WiiCommon\Helper\Stream;
 use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
@@ -562,18 +560,24 @@ class InventoryMissionController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function addLocationsOrZonesToMission(Request $request, EntityManagerInterface $entityManager){
-        if(!$request->query->has('locations')){
-            return new JsonResponse([
-                'success' => false,
-                'msg' => "Veuillez renseigner des emplacements à ajouter."
-            ]);
-        }
-
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
+        $locationIdsStr = $request->request->get('locations');
+        $locationIds = $locationIdsStr
+            ? Stream::explode(',', $locationIdsStr)
+                ->map('trim')
+                ->filter()
+                ->toArray()
+            : [];
         $inventoryMission = $inventoryMissionRepository->find($request->query->get('mission'));
-        $locations = $locationRepository->findBy(['id' => $request->query->all('locations')]);
+        $locations = !empty($locationIds)
+            ? $locationRepository->findBy(['id' => $locationIds])
+            : [];
+
+        if(empty($locations)){
+            throw new FormException("Veuillez renseigner des emplacements à ajouter.");
+        }
 
         foreach ($locations as $location){
             $inventoryLocationMission = (new InventoryLocationMission())

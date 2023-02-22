@@ -3,7 +3,6 @@
 .attachment-item, .attachement {
     display: flex;
     align-items: center;
-    width: 45%;
     border: $medium-grey solid 1px;
     border-radius: 5px;
     padding: 5px 10px;
@@ -189,13 +188,11 @@ $wii-switch-height: $input-height;
     input:disabled {
         cursor: not-allowed;
 
-        &:checked {
-            background-color: $medium-grey;
-            color: $black;
-        }
-
         /* appearance for checked radiobutton */
-        &:disabled + label {
+        &:checked + label {
+            background-color: $medium-grey;
+        }
+        & + label {
             background-color: $light-grey;
             color: $dark-grey;
             .wii-icon {

@@ -36,13 +36,18 @@ class ArticleRepository extends EntityRepository {
     private const FIELD_ENTITY_NAME = [
         "location" => "emplacement",
         "unitPrice" => "prixUnitaire",
-        "quantity" => "quantite"
+        "quantity" => "quantite",
+        "RFIDtag" => "RFIDtag",
+        "deliveryNote" => "deliveryNote",
+        "purchaseOrder" => "purchaseOrder"
     ];
 
     private const FIELDS_TYPE_DATE = [
         "dateLastInventory",
         "expiryDate",
-        "stockEntryDate"
+        "stockEntryDate",
+        "manifacturingDate",
+        "productionDate"
     ];
 
     public function findExpiredToGenerate($delay = 0) {
@@ -272,7 +277,7 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user)
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $entityManager = $this->getEntityManager();
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -398,52 +403,49 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "nativeCountry":
-                                $subqb = $this->createQueryBuilder("article")
-                                    ->select('article.id')
-                                    ->leftJoin('article.nativeCountry', 'search_nativeCountry')
-                                    ->andWhere('search_nativeCountry.label LIKE :search')
-                                    ->setParameter('search', $search);
+                                if(in_array('nativeCountry', $user->getVisibleColumns()['article'])){
+                                    $subqb = $this->createQueryBuilder("article")
+                                        ->select('article.id')
+                                        ->leftJoin('article.nativeCountry', 'country_search')
+                                        ->andWhere('country_search.label LIKE :search')
+                                        ->setParameter('search', $search);
 
-                                foreach ($subqb->getQuery()->execute() as $idArray) {
-                                    $ids[] = $idArray['id'];
+                                    foreach ($subqb->getQuery()->execute() as $idArray) {
+                                        $ids[] = $idArray['id'];
+                                    }
                                 }
-
                                 break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
-                                if(is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
-                                    if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
+                                if(in_array($field, $user->getVisibleColumns()['article'])){
+                                    if (is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
+                                        if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
 
-                                        $lowerSearchValue = strtolower($searchValue);
-                                        if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
-                                            $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
-                                            $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
-                                            $queryBuilder->setParameter("search", $booleanValue);
+                                            $lowerSearchValue = strtolower($searchValue);
+                                            if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
+                                                $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
+                                                $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
+                                                $queryBuilder->setParameter("search", $booleanValue);
+                                            }
+                                        } else {
+                                            $query[] = "JSON_SEARCH(LOWER(article.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                            $queryBuilder->setParameter("search", $date ?: strtolower($search));
                                         }
-                                    }
-                                    else {
-                                        $query[] = "JSON_SEARCH(LOWER(article.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                        $queryBuilder->setParameter("search", $date ?: strtolower($search));
-                                    }
-                                } else if (property_exists(Article::class, $field)) {
-                                    if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
-                                        $query[] = "article.$field BETWEEN :dateMin AND :dateMax";
-                                        $queryBuilder
-                                            ->setParameter('dateMin' , $date . ' 00:00:00')
-                                            ->setParameter('dateMax' , $date . ' 23:59:59');
-                                    } else {
-                                        $query[] = "article.$field LIKE :search";
-                                        $queryBuilder->setParameter('search', $search);
+                                    } else if (property_exists(Article::class, $field)) {
+                                        if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
+                                            $query[] = "article.$field BETWEEN :dateMin AND :dateMax";
+                                            $queryBuilder
+                                                ->setParameter('dateMin', $date . ' 00:00:00')
+                                                ->setParameter('dateMax', $date . ' 23:59:59');
+                                        } else {
+                                            $query[] = "article.$field LIKE :search";
+                                            $queryBuilder->setParameter('search', $search);
+                                        }
                                     }
                                 }
                                 break;
                         }
-                    }
-
-                    // si le résultat de la recherche est vide on renvoie []
-                    if (empty($ids)) {
-                        $ids = [0];
                     }
 
                     foreach ($ids as $id) {

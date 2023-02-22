@@ -221,25 +221,18 @@
             }) }}
         </div>
         <div>
-            <div class="wii-section-title my-3">Fréquence</div>
-            <div class="row frequencies mt-3">
-                {{ form.radio('frequency', null, false, [
-                    {label: 'Une fois', value: constant('App\\Entity\\ExportScheduleRule::ONCE'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::ONCE')},
-                    {label: 'Chaque heure', value: constant('App\\Entity\\ExportScheduleRule::HOURLY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::HOURLY')},
-                    {label: 'Chaque jour', value: constant('App\\Entity\\ExportScheduleRule::DAILY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::DAILY')},
-                    {label: 'Chaque semaine', value: constant('App\\Entity\\ExportScheduleRule::WEEKLY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::WEEKLY')},
-                    {label: 'Chaque mois', value: constant('App\\Entity\\ExportScheduleRule::MONTHLY'), checked: export.exportScheduleRule and export.exportScheduleRule.frequency == constant('App\\Entity\\ExportScheduleRule::MONTHLY')}
-                ], {
-                    containerClass: 'col-4 frequencies-container',
-                    onChange: 'toggleFrequencyInput($(this))'
-                }) }}
-                <div class="col-8 frequency-content d-none">
-                    {% include 'settings/donnees/export/frequencies/once.html.twig' with {export: export} %}
-                    {% include 'settings/donnees/export/frequencies/hourly.html.twig' with {export: export} %}
-                    {% include 'settings/donnees/export/frequencies/daily.html.twig' with {export: export} %}
-                    {% include 'settings/donnees/export/frequencies/weekly.html.twig' with {export: export} %}
-                    {% include 'settings/donnees/export/frequencies/monthly.html.twig' with {export: export} %}
-                </div>
+            <div>
+                {% include 'planner/planner.html.twig' with {
+                    frequency: export.exportScheduleRule ? export.exportScheduleRule.frequency : null,
+                    begin: export.exportScheduleRule ? export.exportScheduleRule.begin : null,
+                    intervalPeriod: export.exportScheduleRule ? export.exportScheduleRule.intervalPeriod : null,
+                    intervalTime: export.exportScheduleRule ? export.exportScheduleRule.intervalTime : null,
+                    period: export.exportScheduleRule ? export.exportScheduleRule.period : null,
+                    weekDays: export.exportScheduleRule ? export.exportScheduleRule.weekDays : null,
+                    months: export.exportScheduleRule ? export.exportScheduleRule.months : null,
+                    monthDays: export.exportScheduleRule ? export.exportScheduleRule.monthDays : null,
+                    intervalTime: export.exportScheduleRule ? export.exportScheduleRule.intervalTime : null,
+                } %}
             </div>
         </div>
         <div>

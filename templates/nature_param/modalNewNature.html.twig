@@ -23,10 +23,6 @@
                         <input type="text" class="data form-control" name="description">
                     </div>
                     <div class="form-group col-md-6 col-12">
-                        <label class="wii-field-name">Quantité par défaut*</label>
-                        <input type="number" class="data form-control needed" name="quantity" min="0">
-                    </div>
-                    <div class="form-group col-md-6 col-12">
                         <label class="wii-field-name">Couleur*</label>
                         <input type="color" class="data form-control needed" name="color">
                     </div>
@@ -47,6 +43,24 @@
                                 <option value="{{ temperature.id }}">{{ temperature.value }}</option>
                             {% endfor %}
                         </select>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="wii-section-title my-3 d-flex align-items-center">
+                            Quantité par défaut
+                        </div>
+                        <table id="groupHistoryTable" class="table w-100"></table>
+                    </div>
+                    <div class="form-group col-md-6 col-12">
+                        {{ form.input("quantity", "Quantité par défaut de l'arrivage", true, null, {
+                            type: 'number',
+                            min: 0,
+                        })}}
+                    </div>
+                    <div class="form-group col-md-6 col-12">
+                        {{ form.input("defaultQuantityDispatch", "Quantité par défaut de l'acheminement", false, null, {
+                            type: 'number',
+                            min: 0,
+                        })}}
                     </div>
                     <div class="form-group col-12">
                         <div class="wii-checkbox pl-0 pointer">
