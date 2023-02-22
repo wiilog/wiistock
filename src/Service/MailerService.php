@@ -3,6 +3,7 @@
 namespace App\Service;
 
 
+use App\Entity\Attachment;
 use App\Entity\MailerServer;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
@@ -92,7 +93,11 @@ class MailerService
                 ->setContentType('text/html');
 
             foreach ($attachments as $attachment) {
-                $message->attach(\Swift_Attachment::fromPath("{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}"));
+                if($attachment instanceof Attachment){
+                    $message->attach(\Swift_Attachment::fromPath("{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}"));
+                } else {
+                    $message->attach(\Swift_Attachment::fromPath($attachment));
+                }
             }
 
             $mailer = (new \Swift_Mailer($transport));
