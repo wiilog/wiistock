@@ -2757,13 +2757,14 @@ class MobileController extends AbstractApiController
                     $entityManager->persist($reference);
                 }
 
+                $oldDescription = $reference->getDescription();
                 $refArticleDataService->updateDescriptionField($entityManager, $reference, [
                     'outFormatEquipment' => $data['outFormatEquipment'],
                     'manufacturerCode' => $data['manufacturerCode'],
-                    'volume' => $creation ? $data['volume'] : $reference->getDescription()['volume'],
-                    'length' => $creation ? $data['length'] : $reference->getDescription()['length'],
-                    'width' => $creation ? $data['width'] : $reference->getDescription()['width'],
-                    'height' => $creation ? $data['height'] : $reference->getDescription()['height'],
+                    'volume' => $creation ? $data['volume'] : $oldDescription['volume'] ?? null,
+                    'length' => $creation ? $data['length'] : $oldDescription['length'] ?? null,
+                    'width' => $creation ? $data['width'] : $oldDescription['width'] ?? null,
+                    'height' => $creation ? $data['height'] : $oldDescription['height'] ?? null,
                     'weight' => $data['weight'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
                 ]);
