@@ -1442,10 +1442,10 @@ class DispatchController extends AbstractController {
      *     methods="GET"
      * )
      */
-    public function printWaybillNote(Dispatch $dispatch,
+    public function printWaybillNote(Dispatch           $dispatch,
                                      TranslationService $translationService,
-                                     KernelInterface $kernel,
-                                     Attachment $attachment): Response {
+                                     KernelInterface    $kernel,
+                                     Attachment         $attachment): Response {
         if(!$dispatch->getWaybillData()) {
             return $this->json([
                 "success" => false,
