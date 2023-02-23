@@ -14,6 +14,7 @@ use App\Service\TranslationService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
 use App\Service\ZoneService;
+use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,7 +45,8 @@ class ZoneController extends AbstractController
         $zone = (new Zone())
             ->setName($request->request->get("name"))
             ->setDescription($request->request->get("description"))
-            ->setInventoryIndicator($request->request->get("inventoryIndicator") ?? null);
+            ->setInventoryIndicator($request->request->get("inventoryIndicator") ?? null)
+            ->setActive($request->request->get("active"));
 
         $manager->persist($zone);
         $manager->flush();
@@ -90,7 +92,8 @@ class ZoneController extends AbstractController
             $zone
                 ->setName($data["name"])
                 ->setDescription($data["description"])
-                ->setInventoryIndicator($data["inventoryIndicator"] ?? null);
+                ->setInventoryIndicator($data["inventoryIndicator"] ?? null)
+                ->setActive($data['active']);
 
             $manager->persist($zone);
             $manager->flush();
@@ -111,9 +114,16 @@ class ZoneController extends AbstractController
             $zoneRepository = $manager->getRepository(Zone::class);
             $zone = $zoneRepository->find($data["id"]);
 
-            return $this->json($this->renderView("zone/delete_content.html.twig", [
-                "zone" => $zone
-            ]));
+            if ($zone->getLocations()->isEmpty()){
+                $delete = true;
+                $html = $this->renderView('zone/delete_content.html.twig');
+
+            } else {
+                $delete = false;
+                $html = $this->renderView('zone/delete_content_wrong.html.twig');
+            }
+
+            return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
 
         throw new BadRequestHttpException();
@@ -128,9 +138,10 @@ class ZoneController extends AbstractController
         $zoneRepository = $entityManager->getRepository(Zone::class);
         $zone = $zoneRepository->find($data['id']);
 
-        foreach ($zone->getLocations() as $location){
-            $location->setZone(null);
+        if (!$zone->getLocations()->isEmpty()){
+            throw new FormException("Vous ne pouvez pas supprimer cette zone car elle est lié à un ou plusieur(s) emplacements.");
         }
+
         $entityManager->remove($zone);
         $entityManager->flush();
 

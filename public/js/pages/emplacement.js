@@ -253,7 +253,14 @@ function deleteZone(zoneId){
     $modalDeleteZone.find("[name=id]").val(zoneId);
 
     $.post(Routing.generate('zone_delete_api', true), JSON.stringify({id: zoneId}), function (resp) {
-        $modalDeleteZone.find('.modal-body').html(resp);
+        $modalDeleteZone.find('.modal-body').html(resp.html);
+        if (resp.delete == false) {
+            $('#dismissDeleteZone').text('Fermer');
+            $('#submitDeleteZone').hide();
+        } else {
+            $('#dismissDeleteZone').text('Annuler');
+            $('#submitDeleteZone').show();
+        }
     }, 'json');
 
     Form.create($modalDeleteZone)

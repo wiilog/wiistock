@@ -10,8 +10,8 @@
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
-                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-danger data', text: 'Supprimer', name: 'id', type: 'submit'}
+                    {classes: 'btn btn-outline-secondary', id: 'dismissDeleteZone' , dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger data', id: 'submitDeleteZone', text: 'Supprimer', name: 'id', type: 'submit'}
                 ],
             } %}
 
