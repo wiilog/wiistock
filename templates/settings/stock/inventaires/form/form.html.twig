@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 
-{% set articleType = constant('App\\Entity\\inventory\\InventoryMission::ARTICLE_TYPE') %}
-{% set locationType = constant('App\\Entity\\inventory\\InventoryMission::LOCATION_TYPE') %}
+{% set articleType = constant('App\\Entity\\Inventory\\InventoryMission::ARTICLE_TYPE') %}
+{% set locationType = constant('App\\Entity\\Inventory\\InventoryMission::LOCATION_TYPE') %}
 {% set isMissionArticleType = missionRule.id ? missionRule.missionType == articleType : false %}
 {% set isMissionLocationType = missionRule.id ? missionRule.missionType == locationType : false %}
 
@@ -51,8 +51,8 @@
                 <div class="col-8">
                     {{ form.select('durationUnit', null ,true, {
                         items: {
-                            (constant('App\\Entity\\inventory\\InventoryMissionRule::DURATION_UNIT_WEEKS')): 'Semaines',
-                            (constant('App\\Entity\\inventory\\InventoryMissionRule::DURATION_UNIT_MONTHS')): 'Mois',
+                            (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_WEEKS')): 'Semaines',
+                            (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_MONTHS')): 'Mois',
                         },
                         value: missionRule.durationUnit
                     }) }}
