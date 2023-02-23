@@ -1231,7 +1231,22 @@ class DispatchService {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $location = $locationRepository->find($locationData);
+        $groupedSignatureStatus = $statusRepository->find($statusData);
+        dump($locationData);
+        $locationId = '';
+        if($locationData[0] && $locationData[1]){
+            if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::TAKING){
+                $locationId = $locationData[0];
+            } else if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::DROP){
+                $locationId = $locationData[1];
+            }
+        } else if($locationData[0]){
+            $locationId = $locationData[0];
+        } else if($locationData[1]){
+            $locationId = $locationData[1];
+        }
+        $location = $locationRepository->find($locationId);
+
         $signatory = $signatoryTrigramData && !$fromNomade
             ? $userRepository->find($signatoryTrigramData)
             : ($signatoryTrigramData
@@ -1278,7 +1293,7 @@ class DispatchService {
             throw new FormException("Le signataire renseigné n'est pas correct");
         }
 
-        $groupedSignatureStatus = $statusRepository->find($statusData);
+
         $dispatchesToSign = $dispatchesToSignIds
             ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
             : [];
@@ -1346,5 +1361,15 @@ class DispatchService {
             'success' => true,
             'msg' => "Signature groupée effectuée avec succès."
         ];
+    }
+
+    public function getGroupedSignatureTypes(?string $groupedSignatureType = ''): string
+    {
+        $emptyOption = "<option value=''></option>";
+        return $emptyOption .= Stream::from(Dispatch::GROUPED_SIGNATURE_TYPES)
+            ->map(function(string $type) use ($groupedSignatureType) {
+                $selected = $type === $groupedSignatureType ? 'selected' : '';
+                return "<option value='{$type}' {$selected}>{$type}</option>";
+            })->join('');
     }
 }

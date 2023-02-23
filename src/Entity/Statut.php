@@ -122,6 +122,9 @@ class Statut {
     #[ORM\OneToOne(mappedBy: "status", targetEntity: TranslationSource::class)]
     private ?TranslationSource $labelTranslation = null;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $groupedSignatureType = '';
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -787,6 +790,18 @@ class Statut {
         if($this->labelTranslation && $this->labelTranslation->getType() !== $this) {
             $this->labelTranslation->setStatus($this);
         }
+
+        return $this;
+    }
+
+    public function getGroupedSignatureType(): ?string
+    {
+        return $this->groupedSignatureType;
+    }
+
+    public function setGroupedSignatureType(?string $groupedSignatureType): self
+    {
+        $this->groupedSignatureType = $groupedSignatureType;
 
         return $this;
     }

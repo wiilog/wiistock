@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Service\DispatchService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
@@ -39,6 +40,7 @@ class StatusController extends AbstractController
     public function statusesApi(Request                $request,
                                 UserService            $userService,
                                 StatusService          $statusService,
+                                DispatchService        $dispatchService,
                                 EntityManagerInterface $entityManager): JsonResponse {
         $edit = $request->query->getBoolean("edit");
         $translate = $request->query->getBoolean("translate");
@@ -100,6 +102,7 @@ class StatusController extends AbstractController
 
             if ($edit) {
                 $stateOptions = $statusService->getStatusStatesOptions($mode, $status->getState(), true);
+                $groupedSignatureTypes = $dispatchService->getGroupedSignatureTypes($status->getGroupedSignatureType());
 
                 $disabledMobileSync = in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) ? 'disabled' : '';
 
@@ -125,6 +128,7 @@ class StatusController extends AbstractController
                     "sendMailRequesters" => "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
                     "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
                     "sendReport" => "<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data' {$sendReport}/></div>",
+                    "groupedSignatureType" => "<select name='groupedSignatureType' class='data form-control select-size'>{$groupedSignatureTypes}</select>",
                     "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSync} {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
@@ -142,6 +146,7 @@ class StatusController extends AbstractController
                     "sendMailRequesters" => $this->formatService->bool($status->getSendNotifToDeclarant()),
                     "sendMailDest" => $this->formatService->bool($status->getSendNotifToRecipient()),
                     "sendReport" => $this->formatService->bool($status->getSendReport()),
+                    "groupedSignatureType" => $status->getGroupedSignatureType(),
                     "needsMobileSync" => $this->formatService->bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
                     "commentNeeded" => $this->formatService->bool($status->getCommentNeeded()),
                     "automaticReceptionCreation" => $this->formatService->bool($status->getAutomaticReceptionCreation()),
