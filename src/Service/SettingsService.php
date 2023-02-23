@@ -861,6 +861,7 @@ class SettingsService {
                         ->setSendNotifToRecipient($statusData['sendMailDest'] ?? false)
                         ->setSendReport($statusData['sendReport'] ?? false)
                         ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
+                        ->setGroupedSignatureColor($statusData['color'] ?? null)
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
                         ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)

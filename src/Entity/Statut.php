@@ -125,6 +125,9 @@ class Statut {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $groupedSignatureType = '';
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $groupedSignatureColor = null;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -802,6 +805,18 @@ class Statut {
     public function setGroupedSignatureType(?string $groupedSignatureType): self
     {
         $this->groupedSignatureType = $groupedSignatureType;
+
+        return $this;
+    }
+
+    public function getGroupedSignatureColor(): ?string
+    {
+        return $this->groupedSignatureColor;
+    }
+
+    public function setGroupedSignatureColor(?string $groupedSignatureColor): self
+    {
+        $this->groupedSignatureColor = $groupedSignatureColor;
 
         return $this;
     }

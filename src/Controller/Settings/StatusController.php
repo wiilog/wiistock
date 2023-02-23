@@ -129,6 +129,17 @@ class StatusController extends AbstractController
                     "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
                     "sendReport" => "<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data' {$sendReport}/></div>",
                     "groupedSignatureType" => "<select name='groupedSignatureType' class='data form-control select-size'>{$groupedSignatureTypes}</select>",
+                    "groupedSignatureColor" => "<input type='color' class='form-control wii-color-picker data' name='color' value='{$status->getGroupedSignatureColor()}' list='type-color'/>
+                        <datalist id='type-color'>
+                            <option>#D76433</option>
+                            <option>#D7B633</option>
+                            <option>#A5D733</option>
+                            <option>#33D7D1</option>
+                            <option>#33A5D7</option>
+                            <option>#3353D7</option>
+                            <option>#6433D7</option>
+                            <option>#D73353</option>
+                        </datalist>",
                     "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSync} {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
@@ -147,6 +158,7 @@ class StatusController extends AbstractController
                     "sendMailDest" => $this->formatService->bool($status->getSendNotifToRecipient()),
                     "sendReport" => $this->formatService->bool($status->getSendReport()),
                     "groupedSignatureType" => $status->getGroupedSignatureType(),
+                    "groupedSignatureColor" => $status->getGroupedSignatureColor() ? "<div class='dt-type-color' style='background: {$status->getGroupedSignatureColor()}'></div>": null,
                     "needsMobileSync" => $this->formatService->bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
                     "commentNeeded" => $this->formatService->bool($status->getCommentNeeded()),
                     "automaticReceptionCreation" => $this->formatService->bool($status->getAutomaticReceptionCreation()),
