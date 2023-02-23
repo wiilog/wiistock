@@ -72,13 +72,13 @@ class Export {
     private array $columnToExport = [];
 
     #[ORM\Column(type: "json", nullable: true)]
-    private array $referenceTypes = [];
+    private ?array $referenceTypes = [];
 
     #[ORM\Column(type: "json", nullable: true)]
-    private array $statuses = [];
+    private ?array $statuses = [];
 
     #[ORM\Column(type: "json", nullable: true)]
-    private array $suppliers = [];
+    private ?array $suppliers = [];
 
     #[ORM\Column(type: "date", nullable: true)]
     private ?DateTime $stockEntryStartDate = null;
