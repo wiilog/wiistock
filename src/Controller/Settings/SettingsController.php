@@ -47,6 +47,7 @@ use App\Repository\SettingRepository;
 use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
+use App\Service\DispatchService;
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
@@ -92,6 +93,9 @@ class SettingsController extends AbstractController {
 
     #[Required]
     public StatusService $statusService;
+
+    #[Required]
+    public DispatchService $dispatchService;
 
     #[Required]
     public SettingsService $settingsService;
@@ -1179,6 +1183,7 @@ class SettingsController extends AbstractController {
                             'types' => $types,
                             'categoryType' => CategoryType::DEMANDE_DISPATCH,
                             'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
+                            'groupedSignatureTypes' => $this->dispatchService->getGroupedSignatureTypes(),
                         ];
                     },
                 ],

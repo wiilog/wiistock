@@ -3256,7 +3256,11 @@ class MobileController extends AbstractApiController
                                            EntityManagerInterface $manager,
                                            DispatchService $dispatchService) {
 
-        $locationData = $request->request->get('location');
+//        $locationData = $request->request->get('location');
+        $locationData = [
+            'from' => $request->request->get('from') === "null" ? null : $request->request->get('from'),
+            'to' => $request->request->get('to') === "null" ? null : $request->request->get('to'),
+        ];
         $signatoryTrigramData = $request->request->get("signatoryTrigram");
         $signatoryPasswordData = $request->request->get("signatoryPassword");
         $statusData = $request->request->get("status");
@@ -3271,7 +3275,8 @@ class MobileController extends AbstractApiController
             $statusData,
             $commentData,
             $dispatchesToSignIds,
-            true
+            true,
+            $this->getUser()
         );
 
         $manager->flush();
@@ -3553,13 +3558,14 @@ class MobileController extends AbstractApiController
                     $entityManager->persist($reference);
                 }
 
+                $oldDescription = $reference->getDescription();
                 $refArticleDataService->updateDescriptionField($entityManager, $reference, [
                     'outFormatEquipment' => $data['outFormatEquipment'],
                     'manufacturerCode' => $data['manufacturerCode'],
-                    'volume' => $creation ? $data['volume'] : $reference->getDescription()['volume'],
-                    'length' => $creation ? $data['length'] : $reference->getDescription()['length'],
-                    'width' => $creation ? $data['width'] : $reference->getDescription()['width'],
-                    'height' => $creation ? $data['height'] : $reference->getDescription()['height'],
+                    'volume' => $creation ? $data['volume'] : $oldDescription['volume'] ?? null,
+                    'length' => $creation ? $data['length'] : $oldDescription['length'] ?? null,
+                    'width' => $creation ? $data['width'] : $oldDescription['width'] ?? null,
+                    'height' => $creation ? $data['height'] : $oldDescription['height'] ?? null,
                     'weight' => $data['weight'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
                 ]);
@@ -3610,7 +3616,8 @@ class MobileController extends AbstractApiController
                     $entityManager->persist($dispatchReferenceArticle);
                 }
             }
-
+            $dispatch
+                ->setValidationDate(new DateTime('now'));
             $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus);
 
             $entityManager->flush();

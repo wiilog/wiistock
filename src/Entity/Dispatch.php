@@ -19,6 +19,11 @@ class Dispatch extends StatusHistoryContainer {
 
     const CATEGORIE = 'acheminements';
     const NUMBER_PREFIX = 'A';
+
+    const TAKING = 'Enlèvement';
+    const DROP = 'Livraison';
+    const GROUPED_SIGNATURE_TYPES = [Dispatch::TAKING, Dispatch::DROP];
+
     /**
      * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
      */

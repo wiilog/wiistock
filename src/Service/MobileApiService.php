@@ -52,6 +52,13 @@ class MobileApiService {
                     } else if ($dispatch['packReferences']) {
                         $accumulator[$dispatch['id']]['packReferences'] = $dispatch['packReferences'];
                     }
+
+                    if ($accumulator[$dispatch['id']]['packs'] && $dispatch['packs']) {
+                        $accumulator[$dispatch['id']]['packs'] .= (',' . $dispatch['packs']);
+                    } else if ($dispatch['packs']) {
+                        $accumulator[$dispatch['id']]['packs'] = $dispatch['packs'];
+                    }
+
                     return $accumulator;
                 }, []))
             ->map(function (array $dispatch) use ($dispatchExpectedDateColors) {
