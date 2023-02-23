@@ -23,7 +23,6 @@ final class Version20230222140513 extends AbstractMigration
         $this->addSql('ALTER TABLE inventory_mission_rule ADD COLUMN mission_type VARCHAR(255)');
         $this->addSql('UPDATE inventory_mission_rule SET mission_type = :article', ['article' => InventoryMission::ARTICLE_TYPE]);
 
-
         // begin
         $this->addSql('ALTER TABLE inventory_mission_rule ADD COLUMN begin DATE');
         $this->addSql('UPDATE inventory_mission_rule SET begin = last_run');
@@ -33,22 +32,19 @@ final class Version20230222140513 extends AbstractMigration
         $this->addSql('ALTER TABLE inventory_mission_rule ADD COLUMN period INT');
         $this->addSql('UPDATE inventory_mission_rule SET period = periodicity');
 
-
         // interval time
         // new column 'interval_time' varchar(255) format: '15:00' 'hh:mm'
         $this->addSql('ALTER TABLE inventory_mission_rule ADD COLUMN interval_time VARCHAR(255)');
         // set interval_time to the value of last_run hour and minute
         $this->addSql('UPDATE inventory_mission_rule SET interval_time = DATE_FORMAT(last_run, "%H:%i")');
 
-
         // periodicity / frequency
         $this->addSql('ALTER TABLE inventory_mission_rule ADD COLUMN frequency VARCHAR(255)');
         // weekly
-        $this->addSql('UPDATE inventory_mission_rule SET frequency = :weekly WHERE duration_unit = "weeks"', ['weekly' => ScheduleRule::WEEKLY]);
+        $this->addSql('UPDATE inventory_mission_rule SET frequency = :weekly WHERE periodicity_unit = "weeks"', ['weekly' => ScheduleRule::WEEKLY]);
 
         // monthly
-        $this->addSql('UPDATE inventory_mission_rule SET frequency = :monthly WHERE duration_unit = "months"', ['monthly' => ScheduleRule::MONTHLY]);
-
+        $this->addSql('UPDATE inventory_mission_rule SET frequency = :monthly WHERE periodicity_unit = "months"', ['monthly' => ScheduleRule::MONTHLY]);
 
         // week_days
         $this->addSql('ALTER TABLE inventory_mission_rule ADD COLUMN week_days JSON');
@@ -62,7 +58,30 @@ final class Version20230222140513 extends AbstractMigration
 
         // months
         $this->addSql('ALTER TABLE inventory_mission_rule ADD COLUMN months JSON');
-        // set months to all the months 1 = january, 12 = december
-        $this->addSql('UPDATE inventory_mission_rule SET months = JSON_ARRAY(1,2,3,4,5,6,7,8,9,10,11,12)');
+        /* set months depend on inventory_mission_rule.inventory_category.inventory_frequency.nb_month
+         * like this: [
+         *      month of last_run,
+         *      month of last_run + nb_month,
+         *      month of last_run + nb_month * 2,
+         *      ... while this < 12
+         */
+        $inventoryMissionRules = $this->connection->fetchAllAssociative('
+            SELECT *
+            FROM inventory_mission_rule
+            JOIN inventory_mission_rule_inventory_category ON inventory_mission_rule_inventory_category.inventory_category_id = inventory_mission_rule.id
+            JOIN inventory_category ON inventory_category.id = inventory_mission_rule_inventory_category.inventory_category_id
+            JOIN inventory_frequency ON inventory_frequency.id = inventory_category.frequency_id
+        ');
+        foreach ($inventoryMissionRules as $inventoryMissionRule) {
+            $nbMonth = $inventoryMissionRule['nb_months'];
+            $lastRun = $inventoryMissionRule['last_run'];
+            $months = [];
+            $month = (int)date('m', strtotime($lastRun));
+            while ($month <= 12) {
+                $months[] = $month;
+                $month += $nbMonth;
+            }
+            $this->addSql('UPDATE inventory_mission_rule SET months = :months WHERE id = :id', ['months' => json_encode($months), 'id' => $inventoryMissionRule['id']]);
+        }
     }
 }
