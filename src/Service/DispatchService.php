@@ -783,7 +783,7 @@ class DispatchService {
             $data = [
                 "actions" => $actions,
                 "code" => $code,
-                "nature" => $nature,
+                "nature" => $nature->getLabel(),
                 "quantity" => $quantity,
                 "weight" => $weight,
                 "volume" => $volume,
@@ -1294,13 +1294,39 @@ class DispatchService {
                                            $statusData,
                                            $commentData,
                                            $dispatchesToSignIds,
-                                           $fromNomade = false){
+                                           $fromNomade = false,
+                                           $user = null) {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $location = $locationRepository->find($locationData);
+        $groupedSignatureStatus = $statusRepository->find($statusData);
+
+        $locationId = null;
+        if($locationData['from'] && $locationData['to']) {
+            $locationId = $groupedSignatureStatus->getGroupedSignatureType() === Dispatch::TAKING ? $locationData['from'] : $locationData['to'];
+        } else if($locationData['from']) {
+            if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::TAKING){
+                $locationId = $locationData['from'];
+            } else {
+                return [
+                    'success' => false,
+                    'msg' => "Le statut sélectionné ne correspond pas à un processus d'enlèvement."
+                ];
+            }
+        } else if($locationData['to']) {
+            if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::DROP){
+                $locationId = $locationData['to'];
+            } else {
+                return [
+                    'success' => false,
+                    'msg' => "Le statut sélectionné ne correspond pas à un processus de livraison."
+                ];
+            }
+        }
+        $location = $locationRepository->find($locationId);
+
         $signatory = $signatoryTrigramData && !$fromNomade
             ? $userRepository->find($signatoryTrigramData)
             : ($signatoryTrigramData
@@ -1347,7 +1373,7 @@ class DispatchService {
             throw new FormException("Le signataire renseigné n'est pas correct");
         }
 
-        $groupedSignatureStatus = $statusRepository->find($statusData);
+
         $dispatchesToSign = $dispatchesToSignIds
             ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
             : [];
@@ -1402,6 +1428,7 @@ class DispatchService {
 
             $dispatch
                 ->setTreatmentDate($now)
+                ->setTreatedBy($user)
                 ->setCommentaire($newCommentDispatch . $commentData);
 
             $entityManager->flush();
@@ -1415,5 +1442,15 @@ class DispatchService {
             'success' => true,
             'msg' => "Signature groupée effectuée avec succès."
         ];
+    }
+
+    public function getGroupedSignatureTypes(?string $groupedSignatureType = ''): string
+    {
+        $emptyOption = "<option value=''></option>";
+        return $emptyOption .= Stream::from(Dispatch::GROUPED_SIGNATURE_TYPES)
+            ->map(function(string $type) use ($groupedSignatureType) {
+                $selected = $type === $groupedSignatureType ? 'selected' : '';
+                return "<option value='{$type}' {$selected}>{$type}</option>";
+            })->join('');
     }
 }

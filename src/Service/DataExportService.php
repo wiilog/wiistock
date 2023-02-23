@@ -146,6 +146,7 @@ class DataExportService
             'Emplacement',
             'Quantité sécurité',
             'Quantité de conditionnement',
+            'Zone'
         ];
     }
 

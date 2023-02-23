@@ -425,6 +425,30 @@ class ArticleRepository extends EntityRepository {
                                     }
                                 }
                                 break;
+                            case "deliveryNoteLine":
+                                if(in_array('deliveryNoteLine', $user->getVisibleColumns()['article'])){
+                                    $subqb = $this->createQueryBuilder("article")
+                                        ->select('article.id')
+                                        ->andWhere('article.deliveryNote LIKE :search')
+                                        ->setParameter('search', $search);
+
+                                    foreach ($subqb->getQuery()->execute() as $idArray) {
+                                        $ids[] = $idArray['id'];
+                                    }
+                                }
+                                break;
+                            case "purchaseOrderLine":
+                                if(in_array('purchaseOrderLine', $user->getVisibleColumns()['article'])){
+                                    $subqb = $this->createQueryBuilder("article")
+                                        ->select('article.id')
+                                        ->andWhere('article.purchaseOrder LIKE :search')
+                                        ->setParameter('search', $search);
+
+                                    foreach ($subqb->getQuery()->execute() as $idArray) {
+                                        $ids[] = $idArray['id'];
+                                    }
+                                }
+                                break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
