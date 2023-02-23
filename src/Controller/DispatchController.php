@@ -744,12 +744,10 @@ class DispatchController extends AbstractController {
         foreach($dispatch->getDispatchPacks() as $dispatchPack) {
             $data[] = $service->packRow($dispatch, $dispatchPack, false, $edit);
         }
-
         if($edit) {
             if(empty($data)) {
                 $data[] = $service->packRow($dispatch, null, true, true);
             }
-
             $data[] = [
                 'createRow' => true,
                 "actions" => "<span class='d-flex justify-content-start align-items-center'><span class='wii-icon wii-icon-plus'></span></span>",
@@ -765,7 +763,6 @@ class DispatchController extends AbstractController {
                 "status" => null,
             ];
         }
-
         return $this->json([
             "data" => $data
         ]);

@@ -2457,8 +2457,8 @@ class MobileController extends AbstractApiController
 
 //        $locationData = $request->request->get('location');
         $locationData = [
-            $request->request->get('from'),
-            $request->request->get('to')
+            'from' => $request->request->get('from') === "null" ? null : $request->request->get('from'),
+            'to' => $request->request->get('to') === "null" ? null : $request->request->get('to'),
         ];
         $signatoryTrigramData = $request->request->get("signatoryTrigram");
         $signatoryPasswordData = $request->request->get("signatoryPassword");
@@ -2474,7 +2474,8 @@ class MobileController extends AbstractApiController
             $statusData,
             $commentData,
             $dispatchesToSignIds,
-            true
+            true,
+            $this->getUser()
         );
 
         $manager->flush();
@@ -2813,7 +2814,8 @@ class MobileController extends AbstractApiController
                     $entityManager->persist($dispatchReferenceArticle);
                 }
             }
-
+            $dispatch
+                ->setValidationDate(new DateTime('now'));
             $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus);
 
             $entityManager->flush();

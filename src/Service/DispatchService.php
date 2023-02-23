@@ -783,7 +783,7 @@ class DispatchService {
             $data = [
                 "actions" => $actions,
                 "code" => $code,
-                "nature" => $nature,
+                "nature" => $nature->getLabel(),
                 "quantity" => $quantity,
                 "weight" => $weight,
                 "volume" => $volume,
@@ -1225,33 +1225,30 @@ class DispatchService {
                                            $statusData,
                                            $commentData,
                                            $dispatchesToSignIds,
-                                           $fromNomade = false){
+                                           $fromNomade = false,
+                                           $user = null) {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $groupedSignatureStatus = $statusRepository->find($statusData);
-        dump($locationData);
-        $locationId = '';
-        if($locationData[0] && $locationData[1]){
+
+        $locationId = null;
+        if($locationData['from'] && $locationData['to']) {
+            $locationId = $groupedSignatureStatus->getGroupedSignatureType() === Dispatch::TAKING ? $locationData['from'] : $locationData['to'];
+        } else if($locationData['from']) {
             if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::TAKING){
-                $locationId = $locationData[0];
-            } else if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::DROP){
-                $locationId = $locationData[1];
-            }
-        } else if($locationData[0]){
-            if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::TAKING){
-                $locationId = $locationData[0];
+                $locationId = $locationData['from'];
             } else {
                 return [
                     'success' => false,
                     'msg' => "Le statut sélectionné ne correspond pas à un processus d'enlèvement."
                 ];
             }
-        } else if($locationData[1]){
+        } else if($locationData['to']) {
             if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::DROP){
-                $locationId = $locationData[1];
+                $locationId = $locationData['to'];
             } else {
                 return [
                     'success' => false,
@@ -1362,6 +1359,7 @@ class DispatchService {
 
             $dispatch
                 ->setTreatmentDate($now)
+                ->setTreatedBy($user)
                 ->setCommentaire($newCommentDispatch . $commentData);
 
             $entityManager->flush();
