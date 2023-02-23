@@ -108,7 +108,7 @@ class CartService {
 
                             if ($quantity > 0) {
                                 if (!isset($associatedPurchaseRequest)) {
-                                    $associatedPurchaseRequest = $this->purchaseRequestService->createPurchaseRequest($entityManager, $status, $user, null, null, $buyer);
+                                    $associatedPurchaseRequest = $this->purchaseRequestService->createPurchaseRequest($status, $user, ["buyer" => $buyer]);
                                     $entityManager->persist($associatedPurchaseRequest);
 
                                     $entityManager->flush();
@@ -126,11 +126,7 @@ class CartService {
                                 if ($associatedLine) {
                                     $associatedLine->setRequestedQuantity($associatedLine->getRequestedQuantity() + $quantity);
                                 } else {
-                                    $line = new PurchaseRequestLine();
-                                    $line
-                                        ->setRequestedQuantity($quantity)
-                                        ->setReference($reference)
-                                        ->setPurchaseRequest($associatedPurchaseRequest);
+                                    $line = $this->purchaseRequestService->createPurchaseRequestLine($reference, $quantity, ["purchaseRequest" => $associatedPurchaseRequest]);
                                     $entityManager->persist($line);
                                 }
                             }
