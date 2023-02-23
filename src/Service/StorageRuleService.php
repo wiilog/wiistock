@@ -22,6 +22,7 @@ class StorageRuleService
             $storageRule['locationLabel'],
             $storageRule['securityQuantity'],
             $storageRule['conditioningQuantity'],
+            $storageRule['zoneName'],
         ];
         $this->CSVExportService->putLine($output, $line);
     }
