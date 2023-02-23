@@ -232,7 +232,7 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         sendMailDest: `<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
         sendReport: `<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data'/></div>`,
         groupedSignatureType: `<select name='groupedSignatureType' class='data form-control select-size'>${groupedSignatureTypes}</select>`,
-        groupedSignatureColor: `<input type='color' class='form-control wii-color-picker data' name='color' value='#a5d733' list='type-color'/>
+        groupedSignatureColor: `<input type='color' class='form-control wii-color-picker data' name='color' value='#3353D7' list='type-color'/>
                         <datalist id='type-color'>
                             <option>#D76433</option>
                             <option>#D7B633</option>

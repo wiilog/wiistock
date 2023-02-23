@@ -100,11 +100,12 @@ class StatusController extends AbstractController
                    <input type='hidden' name='mode' class='data' value='{$mode}'/>"
                 : "";
 
+            $groupedSignatureColor = $status->getGroupedSignatureColor() ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR;
             if ($edit) {
                 $stateOptions = $statusService->getStatusStatesOptions($mode, $status->getState(), true);
                 $groupedSignatureTypes = $dispatchService->getGroupedSignatureTypes($status->getGroupedSignatureType());
 
-                $disabledMobileSync = in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) ? 'disabled' : '';
+                $disabledMobileSyncAndColor = in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) ? 'disabled' : '';
 
                 $defaultStatut = $status->isDefaultForCategory() ? 'checked' : "";
                 $sendMailBuyers = $status->getSendNotifToBuyer() ? 'checked' : "";
@@ -129,7 +130,7 @@ class StatusController extends AbstractController
                     "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
                     "sendReport" => "<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data' {$sendReport}/></div>",
                     "groupedSignatureType" => "<select name='groupedSignatureType' class='data form-control select-size'>{$groupedSignatureTypes}</select>",
-                    "groupedSignatureColor" => "<input type='color' class='form-control wii-color-picker data' name='color' value='{$status->getGroupedSignatureColor()}' list='type-color'/>
+                    "groupedSignatureColor" => "<input type='color' class='form-control wii-color-picker data' name='color' value='{$groupedSignatureColor}' list='type-color' {$disabledMobileSyncAndColor}/>
                         <datalist id='type-color'>
                             <option>#D76433</option>
                             <option>#D7B633</option>
@@ -140,7 +141,7 @@ class StatusController extends AbstractController
                             <option>#6433D7</option>
                             <option>#D73353</option>
                         </datalist>",
-                    "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSync} {$needsMobileSync}/></div>",
+                    "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSyncAndColor} {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
@@ -158,7 +159,7 @@ class StatusController extends AbstractController
                     "sendMailDest" => $this->formatService->bool($status->getSendNotifToRecipient()),
                     "sendReport" => $this->formatService->bool($status->getSendReport()),
                     "groupedSignatureType" => $status->getGroupedSignatureType(),
-                    "groupedSignatureColor" => $status->getGroupedSignatureColor() ? "<div class='dt-type-color' style='background: {$status->getGroupedSignatureColor()}'></div>": null,
+                    "groupedSignatureColor" => "<div class='dt-type-color' style='background: {$groupedSignatureColor}'></div>",
                     "needsMobileSync" => $this->formatService->bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
                     "commentNeeded" => $this->formatService->bool($status->getCommentNeeded()),
                     "automaticReceptionCreation" => $this->formatService->bool($status->getAutomaticReceptionCreation()),

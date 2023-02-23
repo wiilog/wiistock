@@ -21,6 +21,8 @@ class Statut {
     const PARTIAL = 4;
     const IN_PROGRESS = 5;
 
+    const GROUPED_SIGNATURE_DEFAULT_COLOR = '#3353D7';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -125,8 +127,8 @@ class Statut {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $groupedSignatureType = '';
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $groupedSignatureColor = null;
+    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['default' => Statut::GROUPED_SIGNATURE_DEFAULT_COLOR])]
+    private ?string $groupedSignatureColor = Statut::GROUPED_SIGNATURE_DEFAULT_COLOR;
 
     public function __construct() {
         $this->articles = new ArrayCollection();
