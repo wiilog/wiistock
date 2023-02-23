@@ -440,10 +440,13 @@ class PurchaseRequestController extends AbstractController
             $statuses = $currentStatus
                 ? $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [$currentStatus->getState()])
                 : [];
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
             $json = $this->renderView('purchase_request/edit_content_modal.html.twig', [
                 'purchaseRequest' => $purchaseRequest,
-                'statuses' => $statuses
+                'statuses' => $statuses,
+                'fieldsParam' => $fieldsParam
             ]);
 
             return new JsonResponse($json);
@@ -463,9 +466,10 @@ class PurchaseRequestController extends AbstractController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
 
         $post = $request->request;
-
+        $supplier = $supplierRepository->find($post->get('supplier'));
         $purchaseRequest = $purchaseRequestRepository->find($post->get('id'));
 
         /** @var Utilisateur $requester */
@@ -482,7 +486,8 @@ class PurchaseRequestController extends AbstractController
 
         $purchaseRequest
             ->setComment(StringHelper::cleanedComment($comment))
-            ->setRequester($requester);
+            ->setRequester($requester)
+            ->setSupplier($supplier ?? null);
 
         $purchaseRequest->removeIfNotIn($data['files'] ?? []);
         $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);

@@ -107,13 +107,15 @@ class PurchaseRequestService {
 
     public function createHeaderDetailsConfig(PurchaseRequest $request): array {
         return [
-            ['label' => 'Statut', 'value' => FormatHelper::status($request->getStatus())],
-            ['label' => 'Demandeur', 'value' => FormatHelper::user($request->getRequester())],
-            ['label' => 'Acheteur', 'value' => FormatHelper::user($request->getBuyer())],
-            ['label' => 'Date de création', 'value' => FormatHelper::datetime($request->getCreationDate())],
-            ['label' => 'Date de validation', 'value' => FormatHelper::datetime($request->getValidationDate())],
-            ['label' => 'Date de prise en compte', 'value' => FormatHelper::datetime($request->getConsiderationDate())],
-            ['label' => 'Date de traitement', 'value' => FormatHelper::datetime($request->getProcessingDate())],
+
+            ['label' => 'Statut', 'value' => $request->getStatus() ? $this->formatService->status($request->getStatus()) : ''],
+            ['label' => 'Demandeur', 'value' => $request->getRequester() ? $request->getRequester()->getUsername() : ''],
+            ['label' => 'Acheteur', 'value' => $request->getBuyer() ? $request->getBuyer()->getUsername() : ''],
+            ['label' => 'Date de création', 'value' => $request->getCreationDate() ? $request->getCreationDate()->format('d/m/Y H:i') : ''],
+            ['label' => 'Date de validation', 'value' => $request->getValidationDate() ? $request->getValidationDate()->format('d/m/Y H:i') : ''],
+            ['label' => 'Date de prise en compte', 'value' => $request->getConsiderationDate() ? $request->getConsiderationDate()->format('d/m/Y H:i') : ''],
+            ['label' => 'Date de traitement', 'value' => $request->getProcessingDate() ? $request->getProcessingDate()->format('d/m/Y H:i') : ''],
+            ['label' => 'Fournisseur', 'value' => $request->getSupplier() ? $request->getSupplier()->getNom() : ''],
             [
                 'label' => 'Commentaire',
                 'value' => $request->getComment() ?: "",
