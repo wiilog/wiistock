@@ -1241,9 +1241,23 @@ class DispatchService {
                 $locationId = $locationData[1];
             }
         } else if($locationData[0]){
-            $locationId = $locationData[0];
+            if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::TAKING){
+                $locationId = $locationData[0];
+            } else {
+                return [
+                    'success' => false,
+                    'msg' => "Le statut sélectionné ne correspond pas à un processus d'enlèvement."
+                ];
+            }
         } else if($locationData[1]){
-            $locationId = $locationData[1];
+            if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::DROP){
+                $locationId = $locationData[1];
+            } else {
+                return [
+                    'success' => false,
+                    'msg' => "Le statut sélectionné ne correspond pas à un processus de livraison."
+                ];
+            }
         }
         $location = $locationRepository->find($locationId);
 
