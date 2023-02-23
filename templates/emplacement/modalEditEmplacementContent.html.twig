@@ -79,7 +79,7 @@
 
 <div class="form-group">
     <label class="wii-field-name">Signataires</label>
-    <select class="form-control data" name="signatories" data-s2="user" multiple>
+    <select class="form-control data w-100" name="signatories" data-s2="user" multiple>
         {% for signatory in location.signatories %}
             <option selected value="{{ signatory.id }}">{{ signatory.username }}</option>
         {% endfor %}
