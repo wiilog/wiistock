@@ -46,7 +46,7 @@ class ScheduleInventoryMissionCommand extends Command
 
             $nextExecutionDate = $this->scheduleRuleService->calculateNextExecutionDate($rule, true);
 
-            if ($now >= $nextExecutionDate) {
+            if (isset($nextExecutionDate) && $now >= $nextExecutionDate) {
                 $this->invMissionService->generateMission($rule);
             }
         }

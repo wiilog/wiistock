@@ -40,9 +40,6 @@ class InventoryMissionRule extends ScheduleRule
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $durationUnit = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $lastRun = null;
-
     #[ORM\OneToMany(mappedBy: 'creator', targetEntity: InventoryMission::class)]
     private Collection $createdMissions;
 
@@ -152,15 +149,6 @@ class InventoryMissionRule extends ScheduleRule
     public function setDurationUnit(string $durationUnit): self {
         $this->durationUnit = $durationUnit;
 
-        return $this;
-    }
-
-    public function getLastRun(): ?DateTime {
-        return $this->lastRun;
-    }
-
-    public function setLastRun(?DateTime $lastRun): self {
-        $this->lastRun = $lastRun;
         return $this;
     }
 
