@@ -52,7 +52,7 @@ class ScheduledPurchaseRequestCommand extends Command
 
             $nextExecutionDate = $this->scheduleRuleService->calculateNextExecutionDate($rule, true);
 
-            if ($now >= $nextExecutionDate) {
+            if (isset($nextExecutionDate) && $now >= $nextExecutionDate) {
                 $this->purchaseRequestRuleService->treatRequestRule($rule);
             }
         }
