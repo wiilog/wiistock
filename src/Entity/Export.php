@@ -219,7 +219,7 @@ class Export {
         return $this;
     }
 
-    public function getReferenceTypes(): array
+    public function getReferenceTypes(): ?array
     {
         return $this->referenceTypes;
     }
@@ -231,7 +231,7 @@ class Export {
         return $this;
     }
 
-    public function getStatuses(): array
+    public function getStatuses(): ?array
     {
         return $this->statuses;
     }
@@ -243,7 +243,7 @@ class Export {
         return $this;
     }
 
-    public function getSuppliers(): array
+    public function getSuppliers(): ?array
     {
         return $this->suppliers;
     }

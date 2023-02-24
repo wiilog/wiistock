@@ -253,7 +253,7 @@
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <input type="{{ type ?? 'text' }}" {{ fax ?? false ? 'data-fax' }}
-               class="form-control w-100 data {{ options.inputClass ?? '' }} {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }}"
+               class="form-control {{ options.width ?? 'w-100' }}  data {{ options.inputClass ?? '' }} {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
                {% if options.autocompleteOff is defined and options.autocompleteOff %}

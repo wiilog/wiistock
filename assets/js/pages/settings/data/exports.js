@@ -98,7 +98,7 @@ function displayExportModal(exportId) {
             toggleFrequencyInput($checkedFrequency);
         }
 
-        const $dateInput = $modal.find('[name=dateMin], [name=dateMax], [name=scheduledDateMin], [name=scheduledDateMax], [name=articleDateMin], [name=articleDateMax]');
+        const $dateInput = $modal.find('[name=dateMin], [name=dateMax], [name=articleDateMin], [name=articleDateMax]');
         initDateTimePicker($dateInput);
 
         Select2Old.user($modal.find('.select2-user'));
