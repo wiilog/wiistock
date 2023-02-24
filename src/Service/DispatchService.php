@@ -438,11 +438,11 @@ class DispatchService {
                 ? 'Acheminement {1} traité partiellement le {2}'
                 : 'Acheminement {1} traité le {2}';
 
-
+            $customGroupedSignatureTitle = $status->getGroupedSignatureType() === Dispatch::DROP ? 'Bon de livraison' : "Bon d'enlèvement";
             // Attention!! return traduction parameters to give to translationService::translate
             $title = fn(string $slug) => (
                 $fromGroupedSignature
-                ? ['Demande', 'Acheminements', 'Emails', "Bon d'enlèvement généré pour l'acheminement {1} au statut {2} le {3}", [
+                ? ['Demande', 'Acheminements', 'Emails', "$customGroupedSignatureTitle généré pour l'acheminement {1} au statut {2} le {3}", [
                     1 => $dispatch->getNumber(),
                     2 => $this->formatService->status($status),
                     3 => $this->formatService->datetime($validationDate)
@@ -1039,6 +1039,8 @@ class DispatchService {
                                                        Dispatch $dispatch,
                                                        ?Utilisateur $signatory = null): Attachment {
 
+        $status = $dispatch->getStatut();
+        $customGroupedSignatureTitle = $status->getGroupedSignatureType() === Dispatch::DROP ? 'Bon de livraison' : "Bon d'enlèvement";
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -1052,6 +1054,7 @@ class DispatchService {
             ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray());
 
         $variables = [
+            "titredocument" => $customGroupedSignatureTitle,
             "numach" => $dispatch->getNumber(),
             "qrcodenumach" => $dispatch->getNumber(),
             "statutach" => $this->formatService->status($dispatch->getStatut()),
@@ -1116,7 +1119,7 @@ class DispatchService {
         $this->PDFGeneratorService->generateFromDocx($docxPath, $reportOutdir);
         unlink($docxPath);
 
-        $title = "Bon d'enlèvement - {$dispatch->getNumber()}";
+        $title = "$customGroupedSignatureTitle - {$dispatch->getNumber()}";
 
         $reportAttachment = new Attachment();
         $reportAttachment
