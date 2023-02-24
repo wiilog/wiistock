@@ -146,4 +146,24 @@ class InventoryMissionRuleController extends AbstractController
             'success' => true,
         ]);
     }
+
+    #[Route('/delete', name: 'mission_rules_delete', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
+    public function delete(EntityManagerInterface $entityManager,
+                           Request                $request): JsonResponse {
+        $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
+        $missionRuleId = $request->query->get('id') ?? null;
+        $missionRule = $missionRuleId ? $missionRuleRepository->find($missionRuleId) : null;
+
+        if ($missionRule) {
+            $entityManager->remove($missionRule);
+            $entityManager->flush();
+            return $this->json([
+                'success' => true,
+                'msg' => "La planification de mission d'inventaire a été supprimée avec succès"
+            ]);
+        } else {
+            throw new FormException("Une erreur est survenue lors de la suppression de la planification d'inventaire");
+        }
+    }
 }

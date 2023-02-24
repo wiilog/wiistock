@@ -7,7 +7,8 @@ let tableInventoryPanning;
 
 global.editMissionRule = editMissionRule;
 
-export function initializeInventoryPlanificatorTable() {
+export function initializeInventoryPlanificatorTable($container) {
+    const $missionRulesTable = $container.find('table#missionRulesTable');
     const tableInventoryPannerConfig = {
         ajax: {
             "url": Routing.generate('settings_mission_rules_api', true),
@@ -28,7 +29,18 @@ export function initializeInventoryPlanificatorTable() {
             needsRowClickAction: true,
         },
     };
-    tableInventoryPanning = initDataTable(`missionRulesTable`, tableInventoryPannerConfig);
+    tableInventoryPanning = initDataTable($missionRulesTable, tableInventoryPannerConfig);
+
+    $missionRulesTable.on('click', 'button.delete-row', function () {
+        AJAX
+            .route(AJAX.DELETE, 'mission_rules_delete', {id: $(this).data('id')})
+            .json()
+            .then((data) => {
+                if (data.success) {
+                    tableInventoryPanning.ajax.reload();
+                }
+            })
+    });
 
     const $modalFormInventoryPlanner = $('#modalFormInventoryPlanner');
     Form
