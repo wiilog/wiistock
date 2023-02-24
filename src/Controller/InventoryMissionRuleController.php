@@ -152,10 +152,15 @@ class InventoryMissionRuleController extends AbstractController
     public function delete(EntityManagerInterface $entityManager,
                            Request                $request): JsonResponse {
         $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
+        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $missionRuleId = $request->query->get('id') ?? null;
         $missionRule = $missionRuleId ? $missionRuleRepository->find($missionRuleId) : null;
 
         if ($missionRule) {
+            $inventoryMissions = $inventoryMissionRepository->findBy(['creator' => $missionRule]);
+            foreach ($inventoryMissions as $mission) {
+                $mission->setCreator(null);
+            }
             $entityManager->remove($missionRule);
             $entityManager->flush();
             return $this->json([
