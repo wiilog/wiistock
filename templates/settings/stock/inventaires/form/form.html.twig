@@ -90,7 +90,7 @@
         {{ form.select('categories', 'Catégorie(s)', true, {
             multiple: true,
             type: 'inventoryCategories',
-            value: missionRule.categories,
+            items: missionRule.categories|map((categorie) => {value: categorie.id, label: categorie.label, selected: true}),
         }) }}
     </div>
 </div>

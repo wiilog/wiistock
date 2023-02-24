@@ -48,7 +48,6 @@ class InventoryMissionRuleController extends AbstractController
         ]);
     }
 
-    // TODO has rights
     #[Route('/save', name: 'mission_rules_form', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function save(EntityManagerInterface $entityManager,
