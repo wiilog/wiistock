@@ -1442,9 +1442,10 @@ class DispatchController extends AbstractController {
      *     methods="GET"
      * )
      */
-    public function printWaybillNote(Dispatch $dispatch,
+    public function printWaybillNote(Dispatch           $dispatch,
                                      TranslationService $translationService,
-                                     DispatchService    $dispatchService): Response {
+                                     KernelInterface    $kernel,
+                                     Attachment         $attachment): Response {
         if(!$dispatch->getWaybillData()) {
             return $this->json([
                 "success" => false,
@@ -1452,9 +1453,9 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        $data = $dispatchService->getWaybillData($dispatch);
-
-        return new PdfResponse($data['file'], "{$data['name']}.pdf");
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
+        return $response;
     }
 
     /**
