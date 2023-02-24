@@ -94,7 +94,7 @@ class InvMissionService {
             'rate' => $this->templating->render('inventaire/datatableMissionsBar.html.twig', [
                 'rateBar' => $rateBar,
             ]),
-            'type' => $mission->getType() ?? '',
+            'type' => $mission->getType() ? InventoryMission::TYPES_LABEL[$mission->getType()] ?? '' : '',
             'requester' => $this->formatService->user($mission->getRequester()),
             'actions' => $this->templating->render('inventaire/datatableMissionsRow.html.twig', [
                 'id' => $mission->getId(),
