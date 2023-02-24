@@ -109,13 +109,25 @@ class ScheduledExportService
             $this->dataExportService->exportReferences($this->refArticleDataService, $freeFieldsConfig, $references, $output);
         } else if($exportToRun->getEntity() === Export::ENTITY_ARTICLE) {
             $articleRepository = $entityManager->getRepository(Article::class);
+
+            $options = [];
+            if ($exportToRun->getStockEntryStartDate() !== null && $exportToRun->getStockEntryEndDate() !== null) {
+                $options["dateMin"] = $exportToRun->getStockEntryStartDate();
+                $options["dateMax"] = $exportToRun->getStockEntryEndDate();
+            }
+            if (!empty($exportToRun->getReferenceTypes())) {
+                $options["referenceTypes"] = $exportToRun->getReferenceTypes();
+            }
+            if (!empty($exportToRun->getStatuses())) {
+                $options["statuses"] = $exportToRun->getStatuses();
+            }
+            if (!empty($exportToRun->getSuppliers())) {
+                $options["suppliers"] = $exportToRun->getSuppliers();
+            }
+
             $articles = $articleRepository->iterateAll(
                 $exportToRun->getCreator(),
-                $exportToRun->getStockEntryStartDate(),
-                $exportToRun->getStockEntryEndDate(),
-                $exportToRun->getReferenceTypes(),
-                $exportToRun->getStatuses(),
-                $exportToRun->getSuppliers());
+                $options);
             $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
 
             $this->csvExportService->putLine($output, $this->dataExportService->createArticlesHeader($freeFieldsConfig));

@@ -188,21 +188,6 @@ function createForm() {
                         const suppliers = $modal.find(`[name=suppliers`).val();
                         const dateMin = $modal.find(`[name=articleDateMin]`).val();
                         const dateMax = $modal.find(`[name=articleDateMax]`).val();
-                        console.log(referenceTypes, statuses, suppliers);
-
-                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'articles`);
-                            return Promise.resolve();
-                        } else if(referenceTypes.length === 0){
-                            Flash.add(`danger`, `Veuillez choisir au moins un type de référence`);
-                            return Promise.resolve();
-                        } else if (statuses.length === 0) {
-                            Flash.add(`danger`, `Veuillez choisir au moins un statut`);
-                            return Promise.resolve();
-                        } else if (suppliers.length === 0) {
-                            Flash.add(`danger`, `Veuillez choisir au moins un fournisseur`);
-                            return Promise.resolve();
-                        }
 
                         window.open(Routing.generate(`settings_export_articles`, {
                             dateMin,

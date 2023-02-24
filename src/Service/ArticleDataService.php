@@ -629,6 +629,9 @@ class ArticleDataService
         $line = [
             $article['reference'],
             $article['label'],
+            $article['nomFournisseur'],
+            $article['codeRefFournisseur'],
+            $article['RFIDtag'],
             $article['quantite'],
             $article['typeLabel'],
             $article['statusName'],
