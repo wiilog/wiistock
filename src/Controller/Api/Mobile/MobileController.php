@@ -39,6 +39,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ArticleRepository;
@@ -1886,7 +1887,7 @@ class MobileController extends AbstractApiController
         $articleDefaultLocation = $articleDefaultLocationId ? $locationRepository->find($articleDefaultLocationId) : null;
 
         $defaultValues = [
-            'location' => $articleDefaultLocation?->getLabel(),
+            'destination' => $articleDefaultLocation?->getId(),
             'type' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_TYPE),
             'reference' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_REFERENCE),
             'label' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_LABEL),
@@ -1953,88 +1954,67 @@ class MobileController extends AbstractApiController
                                 TrackingMovementService $trackingMovementService): Response
     {
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $supplierArticleRepository = $entityManager->getRepository(ArticleFournisseur::class);
+
         $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
         $data = $request->request->all();
-        $cleanedData = [];
-        foreach ($data as $key => $datum) {
-            if ($datum === 'null') {
-                $cleanedData[$key] = null;
-            } else {
-                $cleanedData[$key] = $datum;
-            }
-        }
+        $cleanedData = Stream::from($data)
+            ->keymap(fn($value, $key) => [
+                $key,
+                $value === 'null' ? null : $value
+            ])
+            ->toArray();
         if (!empty($rfidPrefix) && !str_starts_with($cleanedData['rfidTag'], $rfidPrefix)) {
-            return $this->json([
-                'success' => false,
-                'message' => "Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix)."
-            ]);
+            throw new FormException("Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix).");
         }
-        $article = $entityManager->getRepository(Article::class)->findOneBy([
-            'RFIDtag' => $cleanedData['rfidTag']
-        ]);
+        $article = $articleRepository->findOneBy(['RFIDtag' => $cleanedData['rfidTag']]);
 
         if ($article) {
-            return $this->json([
-                'success' => false,
-                'message' => "Tag RFID déjà existant en base."
-            ]);
+            throw new FormException("Tag RFID déjà existant en base.");
         }
-        $type = $entityManager->getRepository(Type::class)->find($cleanedData['type']);
-        $statut = $entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-        $location = $entityManager->getRepository(Emplacement::class)->findOneBy([
-            'label' => $cleanedData['location']
-        ]);
-        $countryFrom = $entityManager->getRepository(NativeCountry::class)->findOneBy([
-            'code' => $cleanedData['country']
-        ]);
+        $type = $typeRepository->find($cleanedData['type']);
+        $statut = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        $destination = $locationRepository->find($cleanedData['destination']);
+        $countryFrom = $nativeCountryRepository->findOneBy(['code' => $cleanedData['country']]);
         if (!$countryFrom && $cleanedData['country']) {
-            return $this->json([
-                'success' => false,
-                'message' => "Le code pays est inconnu"
-            ]);
+            throw new FormException("Le code pays est inconnu");
         }
-        if (!$location) {
-            return $this->json([
-                'success' => false,
-                'message' => "Erreur sur l'emplacement par défaut."
-            ]);
+        if (!$destination) {
+            throw new FormException("L'emplacement de destination de l'article est inconnu.");
         }
         $fromMatrix = isset($data['fromMatrix']) && $data['fromMatrix'];
         if ($fromMatrix) {
-            $ref = $entityManager->getRepository(ReferenceArticle::class)->findOneBy(['reference' => $cleanedData['reference']]);
+            $ref = $referenceArticleRepository->findOneBy([
+                'reference' => $cleanedData['reference'],
+                'typeQuantite' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+            ]);
         } else {
-            $ref = $entityManager->getRepository(ReferenceArticle::class)->find($cleanedData['reference']);
-            $articleSupplier = $entityManager->getRepository(ArticleFournisseur::class)->find($cleanedData['supplier_reference']);
+            $ref = $referenceArticleRepository->find($cleanedData['reference']);
+            $articleSupplier = $supplierArticleRepository->find($cleanedData['supplier_reference']);
         }
         if (!$ref) {
-            return $this->json([
-                'success' => false,
-                'message' => "Référence scannée (${cleanedData['reference']}) inconnue."
-            ]);
+            throw new FormException("Référence scannée (${cleanedData['reference']}) inconnue.");
         } else if ($fromMatrix) {
             $type = $ref->getType();
             if ($ref->getArticlesFournisseur()->isEmpty()) {
-                return $this->json([
-                    'success' => false,
-                    'message' => "La référence scannée (${cleanedData['reference']}) n'a pas d'article fournisseur paramétré."
-                ]);
+                throw new FormException("La référence scannée (${cleanedData['reference']}) n'a pas d'article fournisseur paramétré.");
             } else {
                 $articleSupplier = $ref->getArticlesFournisseur()->first();
             }
         }
         $refTypeLabel = $ref->getType()->getLabel();
         if ($ref->getType()?->getId() !== $type?->getId()) {
-            return $this->json([
-                'success' => false,
-                'message' => "Le type selectionné est différent de celui de la référence (${refTypeLabel})"
-            ]);
+            throw new FormException("Le type selectionné est différent de celui de la référence (${refTypeLabel})");
         }
 
         if (!$articleSupplier) {
-            return $this->json([
-                'success' => false,
-                'message' => "Référence fournisseur inconnue."
-            ]);
+            throw new FormException("Référence fournisseur inconnue.");
         }
 
         $expiryDate = $cleanedData['expiryDate']
@@ -2065,7 +2045,7 @@ class MobileController extends AbstractApiController
             ->setPrixUnitaire(floatval($cleanedData['price']))
             ->setReference($ref)
             ->setQuantite(intval($cleanedData['quantity']))
-            ->setEmplacement($location)
+            ->setEmplacement($destination)
             ->setArticleFournisseur($articleSupplier)
             ->setType($type)
             ->setBarCode($articleDataService->generateBarCode())
@@ -2073,7 +2053,6 @@ class MobileController extends AbstractApiController
             ->setDeliveryNote(intval($cleanedData['deliveryLine']))
             ->setNativeCountry($countryFrom)
             ->setProductionDate($productionDate)
-            ->setDestinationArea($data['destination'] ?? null)
             ->setManifacturingDate($manufacturingDate)
             ->setPurchaseOrder($cleanedData['commandNumber'])
             ->setRFIDtag($cleanedData['rfidTag'] ?? null)
@@ -2090,29 +2069,28 @@ class MobileController extends AbstractApiController
             MouvementStock::TYPE_ENTREE
         );
 
+        $now = new DateTime('now');
         $mouvementStockService->finishMouvementStock(
             $stockMovement,
-            new DateTime('now'),
+            $now,
             $article->getEmplacement()
         );
 
         $entityManager->persist($stockMovement);
-        $entityManager->flush();
 
         $trackingMovement = $trackingMovementService->createTrackingMovement(
             $article,
             $article->getEmplacement(),
             $this->getUser(),
-            new DateTime('now'),
+            $now,
             true,
             true,
             TrackingMovement::TYPE_DEPOSE,
             [
                 "refOrArticle" => $article,
+                "mouvementStock" => $stockMovement,
             ]
         );
-
-        $trackingMovement->setMouvementStock($stockMovement);
 
         $entityManager->persist($trackingMovement);
         $entityManager->flush();
