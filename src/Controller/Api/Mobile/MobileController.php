@@ -1963,47 +1963,56 @@ class MobileController extends AbstractApiController
         $supplierArticleRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
         $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
-        $data = $request->request->all();
-        $cleanedData = Stream::from($data)
-            ->keymap(fn($value, $key) => [
-                $key,
-                $value === 'null' ? null : $value
-            ])
-            ->toArray();
-        if (!empty($rfidPrefix) && !str_starts_with($cleanedData['rfidTag'], $rfidPrefix)) {
+
+        $now = new DateTime('now');
+
+        $rfidTag = $request->request->get('rfidTag');
+        $countryStr = $request->request->get('country');
+        $destinationStr = $request->request->get('destination');
+        $referenceStr = $request->request->get('reference');
+
+        if (empty($rfidTag)) {
+            throw new FormException("Le tag RFID est invalide.");
+        }
+
+        if (!empty($rfidPrefix) && !str_starts_with($rfidTag, $rfidPrefix)) {
             throw new FormException("Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix).");
         }
-        $article = $articleRepository->findOneBy(['RFIDtag' => $cleanedData['rfidTag']]);
+        $article = $articleRepository->findOneBy(['RFIDtag' => $rfidTag]);
 
         if ($article) {
             throw new FormException("Tag RFID déjà existant en base.");
         }
-        $type = $typeRepository->find($cleanedData['type']);
+        $type = $typeRepository->find($request->request->get('type'));
         $statut = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-        $destination = $locationRepository->find($cleanedData['destination']);
-        $countryFrom = $nativeCountryRepository->findOneBy(['code' => $cleanedData['country']]);
-        if (!$countryFrom && $cleanedData['country']) {
+        $destination = !empty($destinationStr)
+            ? $locationRepository->find($destinationStr)
+            : null;
+        $countryFrom = !empty($countryStr)
+            ? $nativeCountryRepository->findOneBy(['code' => $countryStr])
+            : null;
+        if (!$countryFrom && $countryStr) {
             throw new FormException("Le code pays est inconnu");
         }
         if (!$destination) {
             throw new FormException("L'emplacement de destination de l'article est inconnu.");
         }
-        $fromMatrix = isset($data['fromMatrix']) && $data['fromMatrix'];
+        $fromMatrix = $request->request->getBoolean('fromMatrix');
         if ($fromMatrix) {
             $ref = $referenceArticleRepository->findOneBy([
-                'reference' => $cleanedData['reference'],
+                'reference' => $referenceStr,
                 'typeQuantite' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
             ]);
         } else {
-            $ref = $referenceArticleRepository->find($cleanedData['reference']);
-            $articleSupplier = $supplierArticleRepository->find($cleanedData['supplier_reference']);
+            $ref = $referenceArticleRepository->find($referenceStr);
+            $articleSupplier = $supplierArticleRepository->find($request->request->get('supplier_reference'));
         }
         if (!$ref) {
-            throw new FormException("Référence scannée (${cleanedData['reference']}) inconnue.");
+            throw new FormException("Référence scannée (${referenceStr}) inconnue.");
         } else if ($fromMatrix) {
             $type = $ref->getType();
             if ($ref->getArticlesFournisseur()->isEmpty()) {
-                throw new FormException("La référence scannée (${cleanedData['reference']}) n'a pas d'article fournisseur paramétré.");
+                throw new FormException("La référence scannée (${referenceStr}) n'a pas d'article fournisseur paramétré.");
             } else {
                 $articleSupplier = $ref->getArticlesFournisseur()->first();
             }
@@ -2017,46 +2026,57 @@ class MobileController extends AbstractApiController
             throw new FormException("Référence fournisseur inconnue.");
         }
 
-        $expiryDate = $cleanedData['expiryDate']
+        $expiryDateStr = $request->request->get('expiryDate');
+        $expiryDate = $expiryDateStr
             ? ($fromMatrix
-                ? DateTime::createFromFormat('dmY', $cleanedData['expiryDate'])
-                : new DateTime($cleanedData['expiryDate']))
+                ? DateTime::createFromFormat('dmY', $expiryDateStr)
+                : new DateTime($expiryDateStr))
             : null;
 
 
-        $manufacturingDate = $cleanedData['manufacturingDate']
+        $manufacturingDateStr = $request->request->get('manufacturingDate');
+        $manufacturingDate = $manufacturingDateStr
             ? ($fromMatrix
-                ? DateTime::createFromFormat('dmY', $cleanedData['manufacturingDate'])
-                : new DateTime($cleanedData['manufacturingDate']))
+                ? DateTime::createFromFormat('dmY', $manufacturingDateStr)
+                : new DateTime($manufacturingDateStr))
             : null;
 
-        $productionDate = $cleanedData['productionDate']
+        $productionDateStr = $request->request->get('productionDate');
+        $productionDate = $productionDateStr
             ? ($fromMatrix
-                ? DateTime::createFromFormat('dmY', $cleanedData['productionDate'])
-                : new DateTime($cleanedData['productionDate']))
+                ? DateTime::createFromFormat('dmY', $productionDateStr)
+                : new DateTime($productionDateStr))
             : null;
+
+        $labelStr = $request->request->get('label');
+        $commentStr = $request->request->get('comment');
+        $priceStr = $request->request->get('price');
+        $quantityStr = $request->request->getInt('quantity');
+        $deliveryLineStr = $request->request->get('deliveryLine');
+        $commandNumberStr = $request->request->get('commandNumber');
+        $batchStr = $request->request->get('batch');
 
         $article = new Article();
         $article
-            ->setLabel($cleanedData['label'])
+            ->setLabel($labelStr)
             ->setConform(true)
             ->setStatut($statut)
-            ->setCommentaire(isset($cleanedData['comment']) ? StringHelper::cleanedComment($data['commentaire']) : null)
-            ->setPrixUnitaire(floatval($cleanedData['price']))
+            ->setCommentaire(!empty($commentStr) ? StringHelper::cleanedComment($commentStr) : null)
+            ->setPrixUnitaire(floatval($priceStr))
             ->setReference($ref)
-            ->setQuantite(intval($cleanedData['quantity']))
+            ->setQuantite($quantityStr)
             ->setEmplacement($destination)
             ->setArticleFournisseur($articleSupplier)
             ->setType($type)
             ->setBarCode($articleDataService->generateBarCode())
-            ->setStockEntryDate(new DateTime("now"))
-            ->setDeliveryNote(intval($cleanedData['deliveryLine']))
+            ->setStockEntryDate($now)
+            ->setDeliveryNote($deliveryLineStr)
             ->setNativeCountry($countryFrom)
             ->setProductionDate($productionDate)
             ->setManifacturingDate($manufacturingDate)
-            ->setPurchaseOrder($cleanedData['commandNumber'])
-            ->setRFIDtag($cleanedData['rfidTag'] ?? null)
-            ->setBatch($cleanedData['batch'])
+            ->setPurchaseOrder($commandNumberStr)
+            ->setRFIDtag($rfidTag)
+            ->setBatch($batchStr)
             ->setExpiryDate($expiryDate);
 
         $entityManager->persist($article);
@@ -2069,7 +2089,6 @@ class MobileController extends AbstractApiController
             MouvementStock::TYPE_ENTREE
         );
 
-        $now = new DateTime('now');
         $mouvementStockService->finishMouvementStock(
             $stockMovement,
             $now,
@@ -2243,8 +2262,6 @@ class MobileController extends AbstractApiController
 
             $suppliers = $supplierRepository->getForNomade();
             $refs = $referenceArticleRepository->getForNomade();
-
-
 
             $collectesIds = Stream::from($collectes)
                 ->map(function ($collecteArray) {
