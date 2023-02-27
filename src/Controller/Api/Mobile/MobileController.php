@@ -1962,14 +1962,22 @@ class MobileController extends AbstractApiController
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $supplierArticleRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
+        $data = $request->request->all();
+        $data = Stream::from($data)
+            ->keymap(fn($value, $key) => [
+                $key,
+                $value === 'null' ? null : $value
+            ])
+            ->toArray();
+
         $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
 
         $now = new DateTime('now');
 
-        $rfidTag = $request->request->get('rfidTag');
-        $countryStr = $request->request->get('country');
-        $destinationStr = $request->request->get('destination');
-        $referenceStr = $request->request->get('reference');
+        $rfidTag = $data['rfidTag'];
+        $countryStr = $data['country'];
+        $destinationStr = $data['destination'];
+        $referenceStr = $data['reference'];
 
         if (empty($rfidTag)) {
             throw new FormException("Le tag RFID est invalide.");
@@ -1983,10 +1991,15 @@ class MobileController extends AbstractApiController
         if ($article) {
             throw new FormException("Tag RFID déjà existant en base.");
         }
-        $type = $typeRepository->find($request->request->get('type'));
+        $type = $typeRepository->find($data['type']);
         $statut = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        $fromMatrix = $request->request->getBoolean('fromMatrix');
         $destination = !empty($destinationStr)
-            ? $locationRepository->find($destinationStr)
+            ? ( $fromMatrix
+                ? $locationRepository->findOneBy([
+                    'label' => $data['destination']
+                ])
+                : $locationRepository->find($destinationStr))
             : null;
         $countryFrom = !empty($countryStr)
             ? $nativeCountryRepository->findOneBy(['code' => $countryStr])
@@ -1997,7 +2010,7 @@ class MobileController extends AbstractApiController
         if (!$destination) {
             throw new FormException("L'emplacement de destination de l'article est inconnu.");
         }
-        $fromMatrix = $request->request->getBoolean('fromMatrix');
+
         if ($fromMatrix) {
             $ref = $referenceArticleRepository->findOneBy([
                 'reference' => $referenceStr,
@@ -2005,7 +2018,7 @@ class MobileController extends AbstractApiController
             ]);
         } else {
             $ref = $referenceArticleRepository->find($referenceStr);
-            $articleSupplier = $supplierArticleRepository->find($request->request->get('supplier_reference'));
+            $articleSupplier = $supplierArticleRepository->find($data['supplier_reference']);
         }
         if (!$ref) {
             throw new FormException("Référence scannée (${referenceStr}) inconnue.");
@@ -2026,7 +2039,7 @@ class MobileController extends AbstractApiController
             throw new FormException("Référence fournisseur inconnue.");
         }
 
-        $expiryDateStr = $request->request->get('expiryDate');
+        $expiryDateStr = $data['expiryDate'];
         $expiryDate = $expiryDateStr
             ? ($fromMatrix
                 ? DateTime::createFromFormat('dmY', $expiryDateStr)
@@ -2034,27 +2047,27 @@ class MobileController extends AbstractApiController
             : null;
 
 
-        $manufacturingDateStr = $request->request->get('manufacturingDate');
+        $manufacturingDateStr = $data['manufacturingDate'];
         $manufacturingDate = $manufacturingDateStr
             ? ($fromMatrix
                 ? DateTime::createFromFormat('dmY', $manufacturingDateStr)
                 : new DateTime($manufacturingDateStr))
             : null;
 
-        $productionDateStr = $request->request->get('productionDate');
+        $productionDateStr = $data['productionDate'];
         $productionDate = $productionDateStr
             ? ($fromMatrix
                 ? DateTime::createFromFormat('dmY', $productionDateStr)
                 : new DateTime($productionDateStr))
             : null;
 
-        $labelStr = $request->request->get('label');
-        $commentStr = $request->request->get('comment');
-        $priceStr = $request->request->get('price');
-        $quantityStr = $request->request->getInt('quantity');
-        $deliveryLineStr = $request->request->get('deliveryLine');
-        $commandNumberStr = $request->request->get('commandNumber');
-        $batchStr = $request->request->get('batch');
+        $labelStr = $data['label'];
+        $commentStr = $data['comment'];
+        $priceStr = $data['price'];
+        $quantityStr = $data['quantity'];
+        $deliveryLineStr = $data['deliveryLine'];
+        $commandNumberStr = $data['commandNumber'];
+        $batchStr = $data['batch'];
 
         $article = new Article();
         $article
