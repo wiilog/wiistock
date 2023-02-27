@@ -1784,7 +1784,6 @@ class MobileController extends AbstractApiController
         }
 
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
-
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],

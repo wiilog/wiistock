@@ -882,7 +882,8 @@ class DispatchService {
     }
 
     public function persistNewWaybillAttachment(EntityManagerInterface $entityManager,
-                                                Dispatch               $dispatch): Attachment {
+                                                Dispatch               $dispatch,
+                                                Utilisateur $user): Attachment {
 
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -918,7 +919,6 @@ class DispatchService {
             ->sum();
 
         $waybillDate = $this->formatService->parseDatetime($waybillData['dispatchDate'] ?? null, ["Y-m-d"]);
-
         $variables = [
             "numach" => $dispatch->getNumber(),
             "qrcodenumach" => $dispatch->getNumber(),
@@ -932,7 +932,7 @@ class DispatchService {
             "date1ach" => $this->formatService->date($dispatch->getStartDate()),
             "date2ach" => $this->formatService->date($dispatch->getEndDate()),
             // dispatch waybill data
-            "dateacheminement" => $this->formatService->date($waybillDate),
+            "dateacheminement" => $this->formatService->date($waybillDate, "", $user),
             "transporteur" => $waybillData['carrier'] ?? '',
             "expediteur" => $waybillData['consignor'] ?? '',
             "destinataire" => $waybillData['receiver'] ?? '',
@@ -1104,7 +1104,6 @@ class DispatchService {
                 ];
             })
             ->toArray();
-
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "${projectDir}/public/$reportTemplatePath",
             $variables,
@@ -1151,7 +1150,7 @@ class DispatchService {
 
         $entityManager->flush();
 
-        return $this->persistNewWaybillAttachment($entityManager, $dispatch);
+        return $this->persistNewWaybillAttachment($entityManager, $dispatch, $user);
     }
 
     public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse

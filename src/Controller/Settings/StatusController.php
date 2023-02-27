@@ -120,7 +120,7 @@ class StatusController extends AbstractController
                 $statusLabel = $this->getFormatter()->status($status);
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => "<input type='text' name='label' value='$statusLabel' class='form-control data needed'/>",
+                    "label" => "<input type='text' name='label' value='$statusLabel' class='form-control data needed select-size'/>",
                     "state" => "<select name='state' class='data form-control needed select-size'>{$stateOptions}</select>",
                     "comment" => "<input type='text' name='comment' value='{$status->getComment()}' class='form-control data'/>",
                     "type" => $this->formatService->type($status->getType()),

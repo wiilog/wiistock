@@ -263,6 +263,8 @@ class DispatchRepository extends EntityRepository
             ->addSelect('locationTo.label AS locationToLabel')
             ->addSelect('locationTo.id AS locationToId')
             ->addSelect('dispatch.destination AS destination')
+            ->addSelect('dispatch.carrierTrackingNumber AS carrierTrackingNumber')
+            ->addSelect('dispatch.commentaire AS comment')
             ->addSelect('type.label AS typeLabel')
             ->addSelect('type.id AS typeId')
             ->addSelect('status.id AS statusId')
