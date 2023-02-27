@@ -1095,6 +1095,7 @@ class DispatchService {
                     "numeroscelleref" => $dispatchReferenceArticle->getSealingNumber(),
                     "poidsref" => $description['weight'] ?? '',
                     "volumeref" => $description['volume'] ?? '',
+                    "photoref" => $dispatchReferenceArticle->getAttachments()->isEmpty() ? 'Non' : 'Oui',
                     "adrref" => $dispatchReferenceArticle->isADR() ? 'Oui' : 'Non' ,
                     "documentsref" => $description['associatedDocumentTypes'] ?? '',
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
