@@ -2541,7 +2541,6 @@ class MobileController extends AbstractApiController
      */
     public function rfidSummary(Request $request, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response
     {
-        dump($inventoryService->parseAndSummarizeInventory($request->request->all(), $entityManager, $this->getUser()));
         return $this->json([
             "success" => true,
             "data" => $inventoryService->parseAndSummarizeInventory($request->request->all(), $entityManager, $this->getUser())
