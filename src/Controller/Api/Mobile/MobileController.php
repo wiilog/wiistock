@@ -2455,7 +2455,6 @@ class MobileController extends AbstractApiController
                                            EntityManagerInterface $manager,
                                            DispatchService $dispatchService) {
 
-//        $locationData = $request->request->get('location');
         $locationData = [
             'from' => $request->request->get('from') === "null" ? null : $request->request->get('from'),
             'to' => $request->request->get('to') === "null" ? null : $request->request->get('to'),
