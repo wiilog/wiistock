@@ -156,12 +156,16 @@ class InventoryMissionRuleController extends AbstractController
         $missionRule = $missionRuleId ? $missionRuleRepository->find($missionRuleId) : null;
 
         if ($missionRule) {
-            $entityManager->remove($missionRule);
-            $entityManager->flush();
-            return $this->json([
-                'success' => true,
-                'msg' => "La planification de mission d'inventaire a été supprimée avec succès"
-            ]);
+            if(!$missionRule->getCreatedMissions()->isEmpty()) {
+                throw new FormException("Vous ne pouvez pas supprimer cette planification d'inventaire car des missions d'inventaires ont déjà été crée à partir de celle-ci");
+            } else {
+                $entityManager->remove($missionRule);
+                $entityManager->flush();
+                return $this->json([
+                    'success' => true,
+                    'msg' => "La planification de mission d'inventaire a été supprimée avec succès"
+                ]);
+            }
         } else {
             throw new FormException("Une erreur est survenue lors de la suppression de la planification d'inventaire");
         }
