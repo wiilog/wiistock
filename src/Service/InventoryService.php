@@ -230,6 +230,7 @@ class InventoryService {
 
         $min = intval($settingRepository->getOneParamByLabel(Setting::RFID_KPI_MIN));
         $max = intval($settingRepository->getOneParamByLabel(Setting::RFID_KPI_MAX));
+        $result['lines'][] = [];
         foreach ($expected as $expectedResult) {
             $quantity = $expectedResult['quantity'];
             $reference = $expectedResult['reference'];
@@ -252,7 +253,7 @@ class InventoryService {
             $entityManager->flush();
             if ((!isset($min) || $percentage >= $min)
                 && (!isset($max) || $percentage <= $max)) {
-                $result[] = [
+                $result['lines'][] = [
                     'reference' => $reference,
                     'location' => $location,
                     'ratio' => $percentage,
@@ -260,6 +261,7 @@ class InventoryService {
             }
         }
 
+        $result['numScannedObjects'] = count($scannedArticles);
         return $result;
     }
 
