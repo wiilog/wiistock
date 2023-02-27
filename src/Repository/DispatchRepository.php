@@ -267,6 +267,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('type.id AS typeId')
             ->addSelect('status.id AS statusId')
             ->addSelect('status.nom AS statusLabel')
+            ->addSelect('status.groupedSignatureColor AS groupedSignatureStatusColor')
             ->addSelect('IF(status.state = 0, 1, 0) AS draft')
             ->addSelect("reference_article.reference as packReferences")
             ->addSelect("pack.code as packs")
