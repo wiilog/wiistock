@@ -128,7 +128,7 @@ class UserService
         $isUsedInDispatches = $dispatchRepository->countByUser($user);
         $isUsedInArrivals = $arrivageRepository->countByUser($user);
         $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
-        $hasSignatoryLocation = $locationRepository->count(['signatory' => $user]);
+        $hasSignatoryLocation = $locationRepository->countLocationByUser($user);
         $hasInventoryMissionRules = $inventoryMissionRuleRepository->count(['creator' => $user]);
         $hasInventoryMissions = $inventoryMissionRepository->count(['requester' => $user]);
 
