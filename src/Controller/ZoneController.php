@@ -89,6 +89,22 @@ class ZoneController extends AbstractController
 
         $zone = $zoneRepository->find($data["id"]);
         if ($zone) {
+            if (!$data['active']) {
+                foreach ($zone->getLocations()->toArray() as $location) {
+                    foreach ($location->getInventoryLocationMissions() as $inventoryLocationMission) {
+                        if (!$inventoryLocationMission->isDone()) {
+                            throw new FormException("La zone et ses emplacements sont contenus dans une planification d’inventaire, mission d’inventaire en cours ou une planification de demande d’achat, vous ne pouvez donc pas la désactiver");
+                        }
+                    }
+                    if ($location->getInventoryMissionRules()->count() > 0) {
+                        throw new FormException("La zone et ses emplacements sont contenus dans une planification d’inventaire, mission d’inventaire en cours ou une planification de demande d’achat, vous ne pouvez donc pas la désactiver");
+                    }
+                }
+                if ($zone->getPurchaseRequestScheduleRules()->count() > 0) {
+                    throw new FormException("La zone et ses emplacements sont contenus dans une planification d’inventaire, mission d’inventaire en cours ou une planification de demande d’achat, vous ne pouvez donc pas la désactiver");
+                }
+            }
+
             $zone
                 ->setName($data["name"])
                 ->setDescription($data["description"])

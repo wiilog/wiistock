@@ -57,6 +57,8 @@ class EmplacementRepository extends EntityRepository
         return $query->select("CONCAT('$idPrefix', location.id) AS id, location.label AS text")
             ->andWhere("location.label LIKE :term")
             ->andWhere("location.isActive = true")
+            ->leftJoin("location.zone", "location_zone")
+            ->andWhere("location_zone.active = true")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();

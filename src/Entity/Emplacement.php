@@ -146,8 +146,8 @@ class Emplacement implements PairedEntity {
     private Collection $inventoryLocationMissions;
 
     #[ORM\ManyToOne(targetEntity: Zone::class, inversedBy: 'locations')]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Zone $zone = null;
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?Zone $zone;
 
     #[ORM\ManyToMany(targetEntity: InventoryMissionRule::class, mappedBy: 'locations')]
     private Collection $inventoryMissionRules;
@@ -1071,12 +1071,12 @@ class Emplacement implements PairedEntity {
         return $this->zone;
     }
 
-    public function setZone(?Zone $zone): self {
+    public function setZone($zone): self {
         if($this->zone && $this->zone !== $zone) {
             $this->zone->removeLocation($this);
         }
         $this->zone = $zone;
-        $zone?->addLocation($this);
+        $zone->addLocation($this);
 
         return $this;
     }

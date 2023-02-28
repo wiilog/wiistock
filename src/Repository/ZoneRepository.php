@@ -36,7 +36,6 @@ class ZoneRepository extends EntityRepository
                         ->andWhere("(
                             zone.name LIKE :value OR
                             zone.description LIKE :value
-                            zone.active = 1
 						)")
                         ->setParameter('value', '%' . $search . '%');
                 }

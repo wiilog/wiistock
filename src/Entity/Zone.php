@@ -30,6 +30,9 @@ class Zone
     #[ORM\OneToMany(mappedBy: 'zone', targetEntity: Emplacement::class)]
     private Collection $locations;
 
+    #[ORM\ManyToMany(targetEntity: PurchaseRequestScheduleRule::class, mappedBy: 'zones')]
+    private Collection $purchaseRequestScheduleRules;
+
     #[ORM\Column(type: "boolean")]
     private ?bool $active = true;
 
@@ -128,6 +131,27 @@ class Zone
         $this->locations = new ArrayCollection();
         foreach($locations ?? [] as $location) {
             $this->addLocation($location);
+        }
+
+        return $this;
+    }
+
+    public function getPurchaseRequestScheduleRules(): Collection {
+        return $this->purchaseRequestScheduleRules;
+    }
+
+    public function addPurchaseRequestScheduleRules(PurchaseRequestScheduleRule $purchaseRequestScheduleRule): self {
+        if (!$this->purchaseRequestScheduleRules->contains($purchaseRequestScheduleRule)) {
+            $this->purchaseRequestScheduleRules[] = $purchaseRequestScheduleRule;
+            $purchaseRequestScheduleRule->addZone($this);
+        }
+
+        return $this;
+    }
+
+    public function removePurchaseRequestScheduleRules(PurchaseRequestScheduleRule $purchaseRequestScheduleRule): self {
+        if ($this->purchaseRequestScheduleRules->removeElement($purchaseRequestScheduleRule)) {
+            $purchaseRequestScheduleRule->removeZone($this);
         }
 
         return $this;
