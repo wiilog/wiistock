@@ -1645,8 +1645,10 @@ class DispatchController extends AbstractController {
                                            EntityManagerInterface $entityManager,
                                            DispatchService        $dispatchService): Response {
 
-
-        $locationData = $request->query->get('location');
+        $locationData = [
+            'from' => $request->query->get('from') === "null" ? null : $request->query->get('from'),
+            'to' => $request->query->get('to') === "null" ? null : $request->query->get('to'),
+        ];
         $signatoryTrigramData = $request->request->get("signatoryTrigram");
         $signatoryPasswordData = $request->request->get("signatoryPassword");
         $statusData = $request->request->get("status");
