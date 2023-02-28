@@ -198,7 +198,7 @@
                     <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
                     <div>
                         <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
-                        <div class="editor-container-new" data-wysiwyg>{{ handling.comment | striptags }}</div>
+                        <div class="editor-container-new" data-wysiwyg>{{ handling.comment | raw }}</div>
                     </div>
                 </div>
             </div>
