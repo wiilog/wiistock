@@ -56,20 +56,20 @@
                         : null,
         }) }}
     </div>
-    <div class="col-4 d-flex mt-2">
+    <div class="col-4 mt-2">
         {{ form.input('quantity', 'Quantité', true, dispatchReferenceArticle ? dispatchReferenceArticle.quantity : null, {
             labelClass: 'w-100',
             min: 1,
             type: 'number',
         }) }}
     </div>
-    <div class="col-4 d-flex mt-2">
+    <div class="col-4 mt-2">
         {{ form.input('batch', 'N° de lot', true, dispatchReferenceArticle ? dispatchReferenceArticle.batchNumber : null, {})}}
     </div>
-    <div class="col-4 d-flex mt-2">
+    <div class="col-4 mt-2">
         {{ form.input('sealing', 'N° de plombage / scellée', false, dispatchReferenceArticle ? dispatchReferenceArticle.sealingNumber : null, {})}}
     </div>
-    <div class="col-4 d-flex mt-2">
+    <div class="col-4 mt-2">
         {{ form.input('series', 'N° de série', false, dispatchReferenceArticle ? dispatchReferenceArticle.serialNumber : null, {})}}
     </div>
     <div class="col-6 d-flex mt-2">
