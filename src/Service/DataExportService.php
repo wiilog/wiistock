@@ -319,8 +319,8 @@ class DataExportService
                 ->setSuppliers(explode(",", $data["suppliers"]));
 
             if (isset($data["scheduled-date-radio"]) && $data["scheduled-date-radio"] === "fixed-date") {
-                $export->setStockEntryStartDate(DateTime::createFromFormat('d/m/Y', $data["scheduledDateMin"]))
-                    ->setStockEntryEndDate(DateTime::createFromFormat('d/m/Y', $data["scheduledDateMax"]));
+                $export->setStockEntryStartDate(DateTime::createFromFormat('Y-m-d', $data["scheduledDateMin"]))
+                    ->setStockEntryEndDate(DateTime::createFromFormat('Y-m-d', $data["scheduledDateMax"]));
             } else {
                 $now = new DateTime("now");
                 $endDate = (clone $now)->modify("-{$data["minus-day"]} days");
