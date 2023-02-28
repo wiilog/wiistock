@@ -94,7 +94,6 @@ class DataExportService
             'groupe de visibilité',
             'projet',
             'prix unitaire',
-            'zone de destination',
             'numéro de commande',
             'numéro de bon de livraison',
             'pays d\'origine',

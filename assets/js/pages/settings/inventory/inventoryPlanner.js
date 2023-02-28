@@ -46,8 +46,7 @@ export function initializeInventoryPlanificatorTable($container) {
     Form
         .create($modalFormInventoryPlanner)
         .addProcessor((data, errors, $form) => {
-            if (data.get('missionType') === 'location') {
-                const $addInventoryLocationsModule = $form.find('.add-inventory-location-container')
+                const $addInventoryLocationsModule = $form.find('.add-inventory-location-container');
                 const $locationTable = $addInventoryLocationsModule.find('table');
                 const locations = $locationTable.DataTable().column(0).data().toArray();
 
@@ -58,7 +57,6 @@ export function initializeInventoryPlanificatorTable($container) {
                 } else {
                     data.append('locations', locations);
                 }
-            }
         })
         .addProcessor((data, errors, $form) => {
             const $frequency = $form.find('input[type="radio"][name="frequency"]:checked');
