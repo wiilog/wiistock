@@ -103,10 +103,12 @@ class LocationController extends AbstractController {
                 return $errorResponse;
             }
 
-            $signatoryIds = Stream::explode(',', $data['signatories'])
-                ->filter()
-                ->map('trim')
-                ->toArray();
+            $signatoryIds = is_array($data['signatories'])
+                ? $data['signatories']
+                : Stream::explode(',', $data['signatories'])
+                    ->filter()
+                    ->map('trim')
+                    ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
                 : null;
@@ -207,11 +209,12 @@ class LocationController extends AbstractController {
             if ($errorResponse) {
                 return $errorResponse;
             }
-
-            $signatoryIds = Stream::explode(',', $data['signatories'])
-                ->filter()
-                ->map('trim')
-                ->toArray();
+            $signatoryIds = is_array($data['signatories'])
+                ? $data['signatories']
+                : Stream::explode(',', $data['signatories'])
+                    ->filter()
+                    ->map('trim')
+                    ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
                 : null;
