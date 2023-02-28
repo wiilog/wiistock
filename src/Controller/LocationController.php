@@ -94,12 +94,14 @@ class LocationController extends AbstractController {
             if ($errorResponse) {
                 return $errorResponse;
             }
-
             $zone = $data['zone'] ? $zoneRepository->find($data['zone']) : null;
-            $signatoryIds = Stream::explode(',', $data['signatories'])
-                ->filter()
-                ->map('trim')
-                ->toArray();
+
+            $signatoryIds = is_array($data['signatories'])
+                ? $data['signatories']
+                : Stream::explode(',', $data['signatories'])
+                    ->filter()
+                    ->map('trim')
+                    ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
                 : [];
@@ -238,12 +240,13 @@ class LocationController extends AbstractController {
             if ($errorResponse) {
                 return $errorResponse;
             }
-
             $zone = $zoneRepository->find($data['zone']);
-            $signatoryIds = Stream::explode(',', $data['signatories'])
-                ->filter()
-                ->map('trim')
-                ->toArray();
+            $signatoryIds = is_array($data['signatories'])
+                ? $data['signatories']
+                : Stream::explode(',', $data['signatories'])
+                    ->filter()
+                    ->map('trim')
+                    ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
                 : null;

@@ -2376,7 +2376,6 @@ class MobileController extends AbstractApiController
         }
 
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
-
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
@@ -3256,7 +3255,6 @@ class MobileController extends AbstractApiController
                                            EntityManagerInterface $manager,
                                            DispatchService $dispatchService) {
 
-//        $locationData = $request->request->get('location');
         $locationData = [
             'from' => $request->request->get('from') === "null" ? null : $request->request->get('from'),
             'to' => $request->request->get('to') === "null" ? null : $request->request->get('to'),
@@ -3650,7 +3648,7 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function getAssociatedPackIntels(EntityManagerInterface $manager, string $packCode, Dispatch $dispatch): Response {
+    public function getAssociatedPackIntels(EntityManagerInterface $manager, string $packCode, Dispatch $dispatch, KernelInterface $kernel): Response {
 
         $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $packCode]);
 
@@ -3667,6 +3665,15 @@ class MobileController extends AbstractApiController
                 ->getDispatchReferenceArticles()
                 ->first();
             if ($ref) {
+                $photos = Stream::from($ref->getAttachments())
+                    ->map(function(Attachment $attachment) use ($kernel) {
+                        $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                        $type = pathinfo($path, PATHINFO_EXTENSION);
+                        $data = file_get_contents($path);
+
+                        return 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    })->toArray();
+
                 $data = [
                     'reference' => $ref->getReferenceArticle()->getReference(),
                     'quantity' => $ref->getQuantity(),
@@ -3682,7 +3689,8 @@ class MobileController extends AbstractApiController
                     'volume' => $ref->getReferenceArticle()->getDescription()['volume'] ?? null,
                     'adr' => $ref->isADR() ? 'Oui' : 'Non',
                     'associatedDocumentTypes' => $ref->getReferenceArticle()->getDescription()['associatedDocumentTypes'] ?? null,
-                    'comment' => $ref->getCleanedComment(),
+                    'comment' => $ref->getCleanedComment() ?: $ref->getComment(),
+                    'photos' => json_encode($photos)
                 ];
             }
         }

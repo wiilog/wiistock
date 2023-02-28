@@ -438,11 +438,11 @@ class DispatchService {
                 ? 'Acheminement {1} traité partiellement le {2}'
                 : 'Acheminement {1} traité le {2}';
 
-
+            $customGroupedSignatureTitle = $status->getGroupedSignatureType() === Dispatch::DROP ? 'Bon de livraison' : "Bon d'enlèvement";
             // Attention!! return traduction parameters to give to translationService::translate
             $title = fn(string $slug) => (
                 $fromGroupedSignature
-                ? ['Demande', 'Acheminements', 'Emails', "Bon d'enlèvement généré pour l'acheminement {1} au statut {2} le {3}", [
+                ? ['Demande', 'Acheminements', 'Emails', "$customGroupedSignatureTitle généré pour l'acheminement {1} au statut {2} le {3}", [
                     1 => $dispatch->getNumber(),
                     2 => $this->formatService->status($status),
                     3 => $this->formatService->datetime($validationDate)
@@ -951,7 +951,8 @@ class DispatchService {
     }
 
     public function persistNewWaybillAttachment(EntityManagerInterface $entityManager,
-                                                Dispatch               $dispatch): Attachment {
+                                                Dispatch               $dispatch,
+                                                Utilisateur $user): Attachment {
 
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -987,7 +988,6 @@ class DispatchService {
             ->sum();
 
         $waybillDate = $this->formatService->parseDatetime($waybillData['dispatchDate'] ?? null, ["Y-m-d"]);
-
         $variables = [
             "numach" => $dispatch->getNumber(),
             "qrcodenumach" => $dispatch->getNumber(),
@@ -1001,7 +1001,7 @@ class DispatchService {
             "date1ach" => $this->formatService->date($dispatch->getStartDate()),
             "date2ach" => $this->formatService->date($dispatch->getEndDate()),
             // dispatch waybill data
-            "dateacheminement" => $this->formatService->date($waybillDate),
+            "dateacheminement" => $this->formatService->date($waybillDate, "", $user),
             "transporteur" => $waybillData['carrier'] ?? '',
             "expediteur" => $waybillData['consignor'] ?? '',
             "destinataire" => $waybillData['receiver'] ?? '',
@@ -1108,6 +1108,8 @@ class DispatchService {
                                                        Dispatch $dispatch,
                                                        ?Utilisateur $signatory = null): Attachment {
 
+        $status = $dispatch->getStatut();
+        $customGroupedSignatureTitle = $status->getGroupedSignatureType() === Dispatch::DROP ? 'Bon de livraison' : "Bon d'enlèvement";
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -1121,6 +1123,7 @@ class DispatchService {
             ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray());
 
         $variables = [
+            "titredocument" => $customGroupedSignatureTitle,
             "numach" => $dispatch->getNumber(),
             "qrcodenumach" => $dispatch->getNumber(),
             "statutach" => $this->formatService->status($dispatch->getStatut()),
@@ -1161,6 +1164,7 @@ class DispatchService {
                     "numeroscelleref" => $dispatchReferenceArticle->getSealingNumber(),
                     "poidsref" => $description['weight'] ?? '',
                     "volumeref" => $description['volume'] ?? '',
+                    "photoref" => $dispatchReferenceArticle->getAttachments()->isEmpty() ? 'Non' : 'Oui',
                     "adrref" => $dispatchReferenceArticle->isADR() ? 'Oui' : 'Non' ,
                     "documentsref" => $description['associatedDocumentTypes'] ?? '',
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
@@ -1170,7 +1174,6 @@ class DispatchService {
                 ];
             })
             ->toArray();
-
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "${projectDir}/public/$reportTemplatePath",
             $variables,
@@ -1185,7 +1188,7 @@ class DispatchService {
         $this->PDFGeneratorService->generateFromDocx($docxPath, $reportOutdir);
         unlink($docxPath);
 
-        $title = "Bon d'enlèvement - {$dispatch->getNumber()}";
+        $title = "$customGroupedSignatureTitle - {$dispatch->getNumber()}";
 
         $reportAttachment = new Attachment();
         $reportAttachment
@@ -1217,7 +1220,7 @@ class DispatchService {
 
         $entityManager->flush();
 
-        return $this->persistNewWaybillAttachment($entityManager, $dispatch);
+        return $this->persistNewWaybillAttachment($entityManager, $dispatch, $user);
     }
 
     public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
