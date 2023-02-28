@@ -45,12 +45,12 @@
                         min: 0,
                         max: 999,
                         step: 1,
-                        width: 'w-25',
                     }) }}
                 </div>
                 <div class="col-8">
                     {{ form.select('durationUnit', null ,true, {
                         items: {
+                            (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_DAYS')): 'Jours',
                             (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_WEEKS')): 'Semaines',
                             (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_MONTHS')): 'Mois',
                         },

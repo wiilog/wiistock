@@ -46,17 +46,17 @@ export function initializeInventoryPlanificatorTable($container) {
     Form
         .create($modalFormInventoryPlanner)
         .addProcessor((data, errors, $form) => {
-                const $addInventoryLocationsModule = $form.find('.add-inventory-location-container');
-                const $locationTable = $addInventoryLocationsModule.find('table');
-                const locations = $locationTable.DataTable().column(0).data().toArray();
+            const $addInventoryLocationsModule = $form.find('.add-inventory-location-container');
+            const $locationTable = $addInventoryLocationsModule.find('table');
+            const locations = $locationTable.DataTable().column(0).data().toArray();
 
-                if (locations.length === 0) {
-                    errors.push({
-                        message: `Vous devez sélectionner au moins un emplacement`,
-                    });
-                } else {
-                    data.append('locations', locations);
-                }
+            if (locations.length === 0) {
+                errors.push({
+                    message: `Vous devez sélectionner au moins un emplacement`,
+                });
+            } else {
+                data.append('locations', locations);
+            }
         })
         .addProcessor((data, errors, $form) => {
             const $frequency = $form.find('input[type="radio"][name="frequency"]:checked');
