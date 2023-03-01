@@ -1,6 +1,9 @@
 {% import 'form.html.twig' as form %}
 
 <div class="row">
+    {{ form.input('duplicatedMission', '', false, mission.id, {
+        type: 'hidden',
+    }) }}
     <div class="form-group col-12">
         {{ form.input('name', 'Libellé', true, mission.name ? mission.name ~ '- copie', {
             type: 'text',
