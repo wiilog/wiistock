@@ -61,6 +61,14 @@
             </div>
         </label>
     </div>
+    <div class="col-6 mt-3">
+        {{ form.select('creator', 'Demandeur', true, {
+            type: 'user',
+            items: {
+                (app.user.id): (app.user.username),
+            }
+        }) }}
+    </div>
     <div class="col-12">
         {% include 'planner/planner.html.twig' with {
             frequency: missionRule.frequency,

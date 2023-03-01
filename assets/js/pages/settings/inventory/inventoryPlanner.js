@@ -22,7 +22,7 @@ export function initializeInventoryPlanificatorTable($container) {
             {data: `periodicity`, title: `Périodicité`},
             {data: `categories`, title: `Catégorie(s)`},
             {data: `duration`, title: `Durée`},
-            {data: `creator`, title: `Créateur`},
+            {data: `creator`, title: `Demandeur`},
             {data: `lastExecution`, title: `Dernière exécution`},
         ],
         rowConfig: {

@@ -10,6 +10,7 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Menu;
 use App\Entity\ScheduleRule;
+use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -87,8 +88,19 @@ class InventoryMissionRuleController extends AbstractController
             ->setPeriod($data['repeatPeriod'] ?? null)
             ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
             ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
-            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null)
-            ->setCreator($this->getUser());
+            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
+
+        $creatorId = $data['creator'] ?? null;
+        if ($creatorId) {
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
+            $creator = $userRepository->find($creatorId);
+            $missionRule->setCreator($creator);
+        } else {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Veuillez sélectionner un demandeur."
+            ]);
+        }
 
 
         if (isset($data['durationUnit']) && in_array($data['durationUnit'], InventoryMissionRule::DURATION_UNITS)) {
