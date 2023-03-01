@@ -903,13 +903,43 @@ class DispatchService {
         $waybillData = $dispatch->getWaybillData();
 
         $totalWeight = Stream::from($dispatch->getDispatchPacks())
-            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
-            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getWeight())
+            ->filter(fn(DispatchPack $dispatchPack) => (
+                !$waybillTypeToUse
+                || $waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD
+                || $dispatchPack->getPack()?->getArrivage())
+            )
+            ->map(function(DispatchPack $dispatchPack) {
+                if ($dispatchPack->getPack()->getWeight()) {
+                    return $dispatchPack->getPack()->getWeight();
+                } else {
+                    $references = $dispatchPack->getDispatchReferenceArticles();
+                    $weight = Stream::from($references)
+                        ->reduce(function(int $carry, DispatchReferenceArticle $line) {
+                            return $carry + intval($line->getReferenceArticle()->getDescription()['weight'] ?? 0);
+                        });
+                    return $weight ?: null;
+                }
+            })
             ->filter()
             ->sum();
         $totalVolume = Stream::from($dispatch->getDispatchPacks())
-            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
-            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getVolume())
+            ->filter(fn(DispatchPack $dispatchPack) => (
+                !$waybillTypeToUse
+                || $waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD
+                || $dispatchPack->getPack()?->getArrivage())
+            )
+            ->map(function(DispatchPack $dispatchPack) {
+                if ($dispatchPack->getPack()->getVolume()) {
+                    return $dispatchPack->getPack()->getVolume();
+                } else {
+                    $references = $dispatchPack->getDispatchReferenceArticles();
+                    $volume = Stream::from($references)
+                        ->reduce(function(int $carry, DispatchReferenceArticle $line) {
+                            return $carry + floatval($line->getReferenceArticle()->getDescription()['volume'] ?? 0);
+                        });
+                    return $volume ?: null;
+                }
+            })
             ->filter()
             ->sum();
         $totalQuantities = Stream::from($dispatch->getDispatchPacks())
@@ -951,18 +981,41 @@ class DispatchService {
         if ($waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD) {
             $variables['UL'] = $dispatch->getDispatchPacks()
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
-                ->map(fn(DispatchPack $dispatchPack) => [
-                    "UL" => $dispatchPack->getPack()->getCode(),
-                    "nature" => $this->formatService->nature($dispatchPack->getPack()->getNature()),
-                    "quantite" => $dispatchPack->getQuantity(),
-                    "poids" => $this->formatService->decimal($dispatchPack->getPack()->getWeight(), [], '-'),
-                    "volume" => $this->formatService->decimal($dispatchPack->getPack()->getVolume(), [], '-'),
-                    "commentaire" => strip_tags($dispatchPack->getPack()->getComment()) ?: '-',
-                    "numarrivage" => $dispatchPack->getPack()->getArrivage()?->getNumeroArrivage() ?: '-',
-                    "numcommandearrivage" => $dispatchPack->getPack()->getArrivage()
-                        ? Stream::from($dispatchPack->getPack()->getArrivage()->getNumeroCommandeList())->join("\n")
-                        : "-",
-                ])
+                ->map(function (DispatchPack $dispatchPack) {
+                    if ($dispatchPack->getPack()->getVolume()) {
+                        $volume = $dispatchPack->getPack()->getVolume();
+                    } else {
+                        $references = $dispatchPack->getDispatchReferenceArticles();
+                        $volume = Stream::from($references)
+                            ->reduce(function(int $carry, DispatchReferenceArticle $line) {
+                                return $carry + floatval($line->getReferenceArticle()->getDescription()['volume'] ?? 0);
+                            });
+                        $volume = $volume ?: null;
+                    }
+
+                    if ($dispatchPack->getPack()->getWeight()) {
+                        $weight = $dispatchPack->getPack()->getWeight();
+                    } else {
+                        $references = $dispatchPack->getDispatchReferenceArticles();
+                        $weight = Stream::from($references)
+                            ->reduce(function(int $carry, DispatchReferenceArticle $line) {
+                                return $carry + floatval($line->getReferenceArticle()->getDescription()['weight'] ?? 0);
+                            });
+                        $weight = $weight ?: null;
+                    }
+                    return [
+                        "UL" => $dispatchPack->getPack()->getCode(),
+                        "nature" => $this->formatService->nature($dispatchPack->getPack()->getNature()),
+                        "quantite" => $dispatchPack->getQuantity(),
+                        "poids" => $this->formatService->decimal($weight, [], '-'),
+                        "volume" => $this->formatService->decimal($volume, [], '-'),
+                        "commentaire" => strip_tags($dispatchPack->getPack()->getComment()) ?: '-',
+                        "numarrivage" => $dispatchPack->getPack()->getArrivage()?->getNumeroArrivage() ?: '-',
+                        "numcommandearrivage" => $dispatchPack->getPack()->getArrivage()
+                            ? Stream::from($dispatchPack->getPack()->getArrivage()->getNumeroCommandeList())->join("\n")
+                            : "-",
+                    ];
+                })
                 ->toArray();
         }
         else { // $waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_RUPTURE
