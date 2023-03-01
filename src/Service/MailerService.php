@@ -3,6 +3,7 @@
 namespace App\Service;
 
 
+use App\Entity\Attachment;
 use App\Entity\MailerServer;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
@@ -96,9 +97,11 @@ class MailerService
                     ? $attachment
                     : "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}"
                 );
-                $attachmentOriginalName = $attachment->getOriginalName();
-                if ($attachmentOriginalName) {
-                    $swiftAttachment->setFilename($attachmentOriginalName);
+                if ($attachment instanceof Attachment) {
+                    $attachmentOriginalName = $attachment->getOriginalName();
+                    if ($attachmentOriginalName) {
+                        $swiftAttachment->setFilename($attachmentOriginalName);
+                    }
                 }
                 $message->attach($swiftAttachment);
             }
