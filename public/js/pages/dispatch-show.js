@@ -101,6 +101,7 @@ $(function() {
     let $modalAddUl = $('#modalAddLogisticUnit');
     Form.create($modalAddUl).onSubmit((data, form) => {
         form.loading(() => {
+            data.set('fromModal', true);
             return AJAX
                 .route(AJAX.POST, `dispatch_new_pack`, {dispatch: $('#dispatchId').val()})
                 .json(data)
@@ -734,10 +735,10 @@ function selectUlChanged($select){
     const ulNature = $modal.find('select[name=nature]');
     const ulQuantity = $modal.find('[name=quantity]');
 
-    ulLastMvtDate.text(ulData.lastMvtDate);
-    ulLastLocation.text(ulData.lastLocation);
+    ulLastMvtDate.text(ulData.lastMvtDate || '-');
+    ulLastLocation.text(ulData.lastLocation || '-');
     ulQuantity.val(defaultQuantityNatureForDispatch);
-    ulOperator.text(ulData.operator);
+    ulOperator.text(ulData.operator || '-');
     if(defaultNatureId && defaultNatureLabel){
         let newOption = new Option(defaultNatureLabel, defaultNatureId, true, true);
         ulNature.append(newOption).trigger('change');
