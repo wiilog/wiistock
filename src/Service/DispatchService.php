@@ -935,13 +935,15 @@ class DispatchService {
                     $references = $dispatchPack->getDispatchReferenceArticles();
                     $volume = Stream::from($references)
                         ->reduce(function(int $carry, DispatchReferenceArticle $line) {
+                            dump($carry + floatval($line->getReferenceArticle()->getDescription()['volume'] ?? 0));
                             return $carry + floatval($line->getReferenceArticle()->getDescription()['volume'] ?? 0);
                         });
                     return $volume ?: null;
                 }
             })
             ->filter()
-            ->sum();
+            ->sum(6);
+
         $totalQuantities = Stream::from($dispatch->getDispatchPacks())
             ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
             ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getQuantity())
@@ -974,7 +976,7 @@ class DispatchService {
             "lieudechargement" => $waybillData['locationTo'] ?? '',
             "note" => $waybillData['notes'] ?? '',
             "totalpoids" => $this->formatService->decimal($totalWeight, [], '-'),
-            "totalvolume" => $this->formatService->decimal($totalVolume, [], '-'),
+            "totalvolume" => $this->formatService->decimal($totalVolume, ["decimals" => 6], '-'),
             "totalquantite" => $totalQuantities,
         ];
 
@@ -1008,7 +1010,7 @@ class DispatchService {
                         "nature" => $this->formatService->nature($dispatchPack->getPack()->getNature()),
                         "quantite" => $dispatchPack->getQuantity(),
                         "poids" => $this->formatService->decimal($weight, [], '-'),
-                        "volume" => $this->formatService->decimal($volume, [], '-'),
+                        "volume" => $this->formatService->decimal($volume, ["decimals" => 6], '-'),
                         "commentaire" => strip_tags($dispatchPack->getPack()->getComment()) ?: '-',
                         "numarrivage" => $dispatchPack->getPack()->getArrivage()?->getNumeroArrivage() ?: '-',
                         "numcommandearrivage" => $dispatchPack->getPack()->getArrivage()
