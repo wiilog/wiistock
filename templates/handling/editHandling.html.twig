@@ -145,9 +145,9 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.input('destination', trans('Demande', 'Services', 'Modale et détails', 'Déchargement'), required, handling.source, {
+                                {{ form.input('destination', trans('Demande', 'Services', 'Modale et détails', 'Déchargement'), required, handling.destination, {
                                     attributes: {
-                                        'data-short-label': 'Chargement',
+                                        'data-short-label': 'Déchargement',
                                     },
                                 }) }}
                             </div>
