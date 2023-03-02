@@ -230,13 +230,30 @@
                     <div class="header wii-title d-flex justify-content-between align-items-center">
                         {{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Liste des UL', false) }}
                         {% if hasRightToAddReferenceInLu %}
-                            <button
-                                id="addReferenceModalButton"
-                                class="btn btn-primary ml-auto d-flex align-items-center"
-                                onclick="openAddReferenceModal($(this))">
-                                <span class="wii-icon-add-reference wii-icon wii-icon-17px mr-2"></span>
-                                Ajouter une référence
-                            </button>
+                            <div class="btn-group">
+                                <button
+                                    id="addReferenceModalButton"
+                                    class="btn btn-primary ml-auto d-flex align-items-center"
+                                    onclick="openAddReferenceModal($(this))">
+                                    <span class="wii-icon-add-reference wii-icon wii-icon-17px mr-2"></span>
+                                    Ajouter une référence
+                                </button>
+                                {% if addNewUlToDispatch %}
+                                    <button type="button"
+                                            class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                            data-toggle="dropdown"
+                                            aria-haspopup="true"
+                                            aria-expanded="false">
+                                        <span class="fa fa-angle-down"></span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                                        <a class="dropdown-item pointer" data-toggle="modal" data-target="#modalAddLogisticUnit" onclick="openAddLogisticUnitModal()">
+                                            <i class="fa fa-plus mr-2"></i>
+                                            Ajouter une UL
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
                         {% endif %}
                     </div>
                     <div class="p-3 table-container">
@@ -265,6 +282,7 @@
         {% include "dispatch/modalEditReference.html.twig" %}
         {% include "dispatch/modalAddReference.html.twig" with {descriptionConfig: descriptionFormConfig } %}
     {% endif %}
+    {% include "dispatch/modalAddLogisticUnit.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

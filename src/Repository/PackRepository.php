@@ -536,6 +536,7 @@ class PackRepository extends EntityRepository
             ->addSelect("pack.code AS text")
             ->addSelect("nature.id AS nature_id")
             ->addSelect("nature.label AS nature_label")
+            ->addSelect("nature.defaultQuantityForDispatch AS nature_default_quantity_for_dispatch")
             ->addSelect("pack.weight AS weight")
             ->addSelect("pack.volume AS volume")
             ->addSelect("pack.comment AS comment")
