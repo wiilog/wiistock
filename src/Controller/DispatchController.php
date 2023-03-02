@@ -780,11 +780,10 @@ class DispatchController extends AbstractController {
                             PackService $packService,
                             Dispatch $dispatch): Response {
         $data = $request->request->all();
-
         $noPrefixPackCode = trim($data["pack"]);
         $natureId = $data["nature"];
         $quantity = $data["quantity"];
-        $fromModal = isset($data["fromModal"]);
+        $existing = isset($data["packID"]);
         $comment = $data["comment"] ?? "";
         $weight = (floatval(str_replace(',', '.', $data["weight"] ?? "")) ?: null);
         $volume = (floatval(str_replace(',', '.', $data["volume"] ?? "")) ?: null);
@@ -792,7 +791,7 @@ class DispatchController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $prefixPackCodeWithDispatchNumber = $settingRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
-        if($prefixPackCodeWithDispatchNumber && !str_starts_with($noPrefixPackCode, $dispatch->getNumber()) && !$fromModal) {
+        if($prefixPackCodeWithDispatchNumber && !str_starts_with($noPrefixPackCode, $dispatch->getNumber()) && !$existing) {
             $packCode = "{$dispatch->getNumber()}-$noPrefixPackCode";
         } else {
             $packCode = $noPrefixPackCode;
@@ -805,8 +804,8 @@ class DispatchController extends AbstractController {
             $pack = Stream::from($dispatch->getDispatchPacks())
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getCode() === $noPrefixPackCode)
                 ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
-                ->firstOr(function() use ($fromModal, $packCode, $packRepository) {
-                    if ($fromModal){
+                ->firstOr(function() use ($existing, $packCode, $packRepository) {
+                    if ($existing){
                         return $packRepository->find($packCode);
                     } else {
                         return $packRepository->findOneBy(["code" => $packCode]);

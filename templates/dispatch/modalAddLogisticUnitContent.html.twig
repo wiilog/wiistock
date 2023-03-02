@@ -13,9 +13,12 @@
     {{ form.input('defaultQuantityNatureForDispatch', '', false, nature ? nature.defaultQuantityForDispatch : null, {
         type: 'hidden'
     }) }}
+    {{ form.input('packID', '', false, null, {
+        type: 'hidden'
+    }) }}
     <div class="col-4 d-flex mt-2">
         {{ form.select('pack', 'Code', true, {
-            type: 'pack',
+            type: 'keyboardPacks',
             onChange: 'selectUlChanged($(this))'
         }) }}
     </div>

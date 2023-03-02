@@ -915,7 +915,7 @@ class DispatchService {
                     $references = $dispatchPack->getDispatchReferenceArticles();
                     $weight = Stream::from($references)
                         ->reduce(function(int $carry, DispatchReferenceArticle $line) {
-                            return $carry + intval($line->getReferenceArticle()->getDescription()['weight'] ?? 0);
+                            return $carry + floatval($line->getReferenceArticle()->getDescription()['weight'] ?? 0);
                         });
                     return $weight ?: null;
                 }
@@ -944,7 +944,10 @@ class DispatchService {
             ->sum(6);
 
         $totalQuantities = Stream::from($dispatch->getDispatchPacks())
-            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
+            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse
+                || $waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD
+                || $dispatchPack->getPack()?->getArrivage())
+            )
             ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getQuantity())
             ->filter()
             ->sum();

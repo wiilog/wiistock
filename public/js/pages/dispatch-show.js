@@ -724,23 +724,26 @@ function openAddLogisticUnitModal() {
 function selectUlChanged($select){
     const $modal = $('#modalAddLogisticUnit');
     const ulData = $select.select2('data')[0];
+    console.log(ulData);
+    if (ulData) {
+        const defaultNatureId = ulData.nature_id || $modal.find('[name=defaultNatureId]').val();
+        const defaultNatureLabel = ulData.nature_label || $modal.find('[name=defaultNatureLabel]').val();
+        const defaultQuantityNatureForDispatch = ulData.nature_default_quantity_for_dispatch || $modal.find('[name=defaultQuantityNatureForDispatch]').val();
 
-    const defaultNatureId = ulData.nature_id || $modal.find('[name=defaultNatureId]').val();
-    const defaultNatureLabel = ulData.nature_label || $modal.find('[name=defaultNatureLabel]').val();
-    const defaultQuantityNatureForDispatch = ulData.nature_default_quantity_for_dispatch || $modal.find('[name=defaultQuantityNatureForDispatch]').val();
+        const ulLastMvtDate = $modal.find('.ul-last-movement-date');
+        const ulLastLocation = $modal.find('.ul-last-location');
+        const ulOperator = $modal.find('.ul-operator');
+        const ulNature = $modal.find('select[name=nature]');
+        const ulQuantity = $modal.find('[name=quantity]');
 
-    const ulLastMvtDate = $modal.find('.ul-last-movement-date');
-    const ulLastLocation = $modal.find('.ul-last-location');
-    const ulOperator = $modal.find('.ul-operator');
-    const ulNature = $modal.find('select[name=nature]');
-    const ulQuantity = $modal.find('[name=quantity]');
-
-    ulLastMvtDate.text(ulData.lastMvtDate || '-');
-    ulLastLocation.text(ulData.lastLocation || '-');
-    ulQuantity.val(defaultQuantityNatureForDispatch);
-    ulOperator.text(ulData.operator || '-');
-    if(defaultNatureId && defaultNatureLabel){
-        let newOption = new Option(defaultNatureLabel, defaultNatureId, true, true);
-        ulNature.append(newOption).trigger('change');
+        ulLastMvtDate.text(ulData.lastMvtDate || '-');
+        ulLastLocation.text(ulData.lastLocation || '-');
+        ulQuantity.val(defaultQuantityNatureForDispatch);
+        ulOperator.text(ulData.operator || '-');
+        if (defaultNatureId && defaultNatureLabel) {
+            let newOption = new Option(defaultNatureLabel, defaultNatureId, true, true);
+            ulNature.append(newOption).trigger('change');
+        }
+        $modal.find('[name=packID]').val(ulData.exists ? ulData.id : null);
     }
 }

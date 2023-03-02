@@ -534,6 +534,7 @@ class PackRepository extends EntityRepository
         $qb = $this->createQueryBuilder("pack")
             ->select("pack.id AS id")
             ->addSelect("pack.code AS text")
+            ->addSelect("1 AS exists")
             ->addSelect("nature.id AS nature_id")
             ->addSelect("nature.label AS nature_label")
             ->addSelect("nature.defaultQuantityForDispatch AS nature_default_quantity_for_dispatch")
