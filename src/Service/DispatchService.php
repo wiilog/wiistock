@@ -935,7 +935,6 @@ class DispatchService {
                     $references = $dispatchPack->getDispatchReferenceArticles();
                     $volume = Stream::from($references)
                         ->reduce(function(int $carry, DispatchReferenceArticle $line) {
-                            dump($carry + floatval($line->getReferenceArticle()->getDescription()['volume'] ?? 0));
                             return $carry + floatval($line->getReferenceArticle()->getDescription()['volume'] ?? 0);
                         });
                     return $volume ?: null;
