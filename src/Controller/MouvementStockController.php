@@ -214,6 +214,7 @@ class MouvementStockController extends AbstractController
                                 ['quantity' => $quantity]
                             );
                             $trackingMovementService->persistSubEntities($entityManager, $associatedPickLUTracaMvt);
+                            $entityManager->persist($associatedPickLUTracaMvt);
                         }
 
                         $associatedDropTracaMvt = $trackingMovementService->createTrackingMovement(
@@ -228,7 +229,6 @@ class MouvementStockController extends AbstractController
                         );
                         $trackingMovementService->persistSubEntities($entityManager, $associatedDropTracaMvt);
                         $entityManager->persist($associatedPickTracaMvt);
-                        $entityManager->persist($associatedPickLUTracaMvt);
                         $entityManager->persist($associatedDropTracaMvt);
                     }
                 }
