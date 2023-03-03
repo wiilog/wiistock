@@ -522,7 +522,7 @@ class ImportService
                         $this->importFournisseurEntity($data, $stats);
                         break;
                     case Import::ENTITY_ART_FOU:
-                        $this->importArticleFournisseurEntity($data, $stats);
+                        $this->importArticleFournisseurEntity($data, $stats, $this->currentImport->isEraseData());
                         break;
                     case Import::ENTITY_REF:
                         $this->importReferenceEntity($data, $colChampsLibres, $row, $dataToCheck, $stats);
@@ -726,7 +726,7 @@ class ImportService
         $this->updateStats($stats, !$supplier->getId());
     }
 
-    private function importArticleFournisseurEntity(array $data, array &$stats): void
+    private function importArticleFournisseurEntity(array $data, array &$stats, ?bool $erase): void
     {
         $newEntity = false;
 
@@ -755,6 +755,9 @@ class ImportService
         if (empty($refArticle)) {
             $this->throwError("La valeur renseignée pour la référence de l'article de référence ne correspond à aucune référence connue.");
         } else {
+            if($erase) {
+                $refArticle->cleanArticleFournisseur();
+            }
             $articleFournisseur->setReferenceArticle($refArticle);
         }
 

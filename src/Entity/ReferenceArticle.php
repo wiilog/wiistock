@@ -342,6 +342,13 @@ class ReferenceArticle
         return $this;
     }
 
+    public function cleanArticleFournisseur() {
+        $articlesFournisseurs = $this->getArticlesFournisseur();
+        foreach ($articlesFournisseurs as $articlesFournisseur) {
+            $this->removeArticleFournisseur($articlesFournisseur);
+        }
+    }
+
     public function removeArticleFournisseur(ArticleFournisseur $articlesFournisseur): self {
         if($this->articlesFournisseur->contains($articlesFournisseur)) {
             $this->articlesFournisseur->removeElement($articlesFournisseur);

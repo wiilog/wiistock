@@ -271,6 +271,9 @@ class Import {
     #[ORM\OneToMany(mappedBy: 'import', targetEntity: MouvementStock::class)]
     private Collection $mouvements;
 
+    #[ORM\Column(type: 'boolean', nullable: false)]
+    private ?bool $eraseData;
+
     public function __construct() {
         $this->createdAt = new WiiDateTime();
         $this->mouvements = new ArrayCollection();
@@ -458,6 +461,15 @@ class Import {
 
     public function getCreateAt(): DateTime {
         return $this->createdAt;
+    }
+
+    public function isEraseData(): bool {
+        return $this->eraseData;
+    }
+
+    public function setEraseData(bool $eraseData): self {
+        $this->eraseData = $eraseData;
+        return $this;
     }
 
 }
