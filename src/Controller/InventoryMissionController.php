@@ -111,7 +111,8 @@ class InventoryMissionController extends AbstractController
 
             if (isset($data['duplicatedMission'])){
                 $inventoryMissionRepository = $em->getRepository(InventoryMission::class);
-                $duplicatedInventoryLocationMissions = $inventoryMissionRepository->find($data['duplicatedMission'])->getInventoryLocationMissions()->toArray();
+                $duplicatedMission = $inventoryMissionRepository->find($data['duplicatedMission']);
+                $duplicatedInventoryLocationMissions = $duplicatedMission->getInventoryLocationMissions()->toArray();
 
                 foreach ($duplicatedInventoryLocationMissions as $duplicatedInventoryLocationMission){
                     $inventoryLocationMission = (new InventoryLocationMission())
