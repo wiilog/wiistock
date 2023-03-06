@@ -293,6 +293,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_TRACING => [
                 Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
                 Action::SETTINGS_DISPLAY_ARRI,
+                Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS,
                 Action::SETTINGS_DISPLAY_MOVEMENT,
                 Action::SETTINGS_DISPLAY_TRACING_HAND
             ],
