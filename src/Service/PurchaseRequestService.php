@@ -114,6 +114,7 @@ class PurchaseRequestService {
             ['label' => 'Date de validation', 'value' => FormatHelper::datetime($request->getValidationDate())],
             ['label' => 'Date de prise en compte', 'value' => FormatHelper::datetime($request->getConsiderationDate())],
             ['label' => 'Date de traitement', 'value' => FormatHelper::datetime($request->getProcessingDate())],
+            ['label' => 'Fournisseur', 'value' => $request->getSupplier() ? $request->getSupplier()->getNom() : ''],
             [
                 'label' => 'Commentaire',
                 'value' => $request->getComment() ?: "",

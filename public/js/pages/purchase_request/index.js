@@ -1,7 +1,10 @@
+let purchaseRequestTable = null;
+
+
 $(function() {
     const $statusSelector = $('.filterService select[name="statut"]');
 
-    initPageDataTable();
+
 
     initDateTimePicker();
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
@@ -27,6 +30,15 @@ $(function() {
             displayFiltersSup(data);
         }, 'json');
     }
+    let table = initPageDataTable();
+    initPageModals(table);
+
+
+    const $modalNewPurchaseRequest = $('#modalNewPurchaseRequest');
+    $modalNewPurchaseRequest.on('show.bs.modal', function () {
+        clearModal("#modalNewPurchaseRequest");
+        initNewPurchaseRequestEditor('#modalNewPurchaseRequest');
+    });
 });
 
 function initPageDataTable() {
@@ -60,5 +72,17 @@ function initPageDataTable() {
             {"data": 'supplier', 'name': 'Fournisseur', 'title': 'Fournisseur'},
         ]
     };
-    return initDataTable('tablePurchaseRequest', purchaseRequestTableConfig);
+    purchaseRequestTable = initDataTable('tablePurchaseRequest', purchaseRequestTableConfig);
+}
+
+function initPageModals(purchaseRequestTable) {
+    let modalNewPurchaseRequest = $("#modalNewPurchaseRequest");
+    let SubmitNewPurchaseRequest = $("#SubmitNewPurchaseRequest");
+    let urlNewPurchaseRequest = Routing.generate('purchase_request_new', true)
+    InitModal(modalNewPurchaseRequest, SubmitNewPurchaseRequest, urlNewPurchaseRequest, {tables: [purchaseRequestTable]});
+}
+
+function initNewPurchaseRequestEditor(modal) {
+    clearModal(modal);
+    Select2Old.location($('.ajax-autocomplete-location'));
 }

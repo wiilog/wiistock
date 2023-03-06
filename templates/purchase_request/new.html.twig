@@ -1,0 +1,24 @@
+<div class="modal fade"
+     id="modalNewPurchaseRequest"
+     role="dialog"
+     aria-hidden="true"
+     data-modal-type="new">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Nouvelle demande d'achat"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                {% include 'purchase_request/edit_content_modal.html.twig' %}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', type: 'submit', id: 'SubmitNewPurchaseRequest'}
+                ],
+            } %}
+
+        </div>
+    </div>
+</div>

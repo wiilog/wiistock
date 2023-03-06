@@ -1,8 +1,14 @@
+{% import 'form.html.twig' as form %}
+
 <div class="row">
     <div class="form-group needed col-md-6 col-12">
         <label class="wii-field-name" for="requester">Demandeur</label>
         <select class="demandeur form-control data needed input" name="requester" disabled>
-            <option value="{{ purchaseRequest.requester.id }}">{{ purchaseRequest.requester.username }}</option>
+            {% if purchaseRequest.requester %}
+                <option value="{{ purchaseRequest.requester.id}}">{{ purchaseRequest.requester.username }}</option>
+            {% else %}
+                <option value="{{ app.user.id }}">{{ app.user.username }}</option>
+            {% endif %}
         </select>
     </div>
 
@@ -12,11 +18,30 @@
             <select name="status"
                     class="form-control data needed select2"
                     title="Statut">
-                {% for status in statuses %}
-                    <option value="{{ status.id }} {{ status.id == purchaseRequest.status.id ? 'selected' }}">{{ status.nom }}</option>
-                {% endfor %}
+                {% if purchaseRequest.status %}
+                    {% for status in statuses %}
+                        {% set Default = status.id == purchaseRequest.status.id %}
+                        <option value="{{ status.id }}" {{ Default ? 'selected' : " " }}>{{ status.nom }}</option>
+                    {% endfor %}
+                {% else %}
+                    {% for status in statuses %}
+                        {% set Default = status.defaultForCategory == 1 %}
+                        <option value="{{ status.id }}" {{ Default ? 'selected' : " " }}>{{ status.nom }}</option>
+                    {% endfor %}
+                {% endif %}
             </select>
         </div>
+    </div>
+
+    <div class="form-group col-12 col-md-6">
+        {{ form.select('supplier', 'Fournisseur', fieldsParam|isFieldRequired('fournisseur', 'requiredCreate'), {
+            type: 'provider',
+            multiple: false,
+            items: {(purchaseRequest.supplier.id ?? '' ): (purchaseRequest.supplier.nom ?? '')}
+        }) }}
+    </div>
+
+    <div class="form-group col-md-6 col-12">
     </div>
 
     <div class="form-group col-md-6 col-12">

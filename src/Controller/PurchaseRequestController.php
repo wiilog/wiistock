@@ -48,9 +48,13 @@ class PurchaseRequestController extends AbstractController
     public function index(EntityManagerInterface $entityManager): Response
     {
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
         return $this->render('purchase_request/index.html.twig', [
-            'statuts' => $statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST),
+            'statuses' => $statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST),
+            'purchaseRequest' => new PurchaseRequest(),
+            'fieldsParam' => $fieldsParam,
         ]);
     }
 
@@ -327,6 +331,7 @@ class PurchaseRequestController extends AbstractController
 
         $statusRepository = $entityManager->getRepository(Statut::class);
         $statuses = $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [Statut::DRAFT]);
+        $defaultStatus = $statusRepository->getIdDefaultsByCategoryName(CategorieStatut::PURCHASE_REQUEST);
         $status = $statuses[0] ?? null;
         if (!$status) {
             return new JsonResponse([
@@ -433,6 +438,8 @@ class PurchaseRequestController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
+            $defaultStatus = $statusRepository->getIdDefaultsByCategoryName(CategorieStatut::PURCHASE_REQUEST);
+
 
             $purchaseRequest = $purchaseRequestRepository->find($data['id']);
 
@@ -440,10 +447,14 @@ class PurchaseRequestController extends AbstractController
             $statuses = $currentStatus
                 ? $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [$currentStatus->getState()])
                 : [];
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
             $json = $this->renderView('purchase_request/edit_content_modal.html.twig', [
                 'purchaseRequest' => $purchaseRequest,
-                'statuses' => $statuses
+                'statuses' => $statuses,
+                'fieldsParam' => $fieldsParam,
+                'defaultStatus' => $defaultStatus
             ]);
 
             return new JsonResponse($json);
@@ -463,6 +474,7 @@ class PurchaseRequestController extends AbstractController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
 
         $post = $request->request;
 
@@ -472,6 +484,7 @@ class PurchaseRequestController extends AbstractController
         $requester = $post->has('requester') ? $userRepository->find($post->get('requester')) : $purchaseRequest->getRequester();
         $comment = $post->get('comment') ?: '';
         $newStatus = $statusRepository->find($post->get('status'));
+        $supplier = $supplierRepository->find($post->get('supplier'));
 
         $currentStatus = $purchaseRequest->getStatus();
         if (!$currentStatus
@@ -482,7 +495,8 @@ class PurchaseRequestController extends AbstractController
 
         $purchaseRequest
             ->setComment(StringHelper::cleanedComment($comment))
-            ->setRequester($requester);
+            ->setRequester($requester)
+            ->setSupplier($supplier ?? null);
 
         $purchaseRequest->removeIfNotIn($data['files'] ?? []);
         $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);
