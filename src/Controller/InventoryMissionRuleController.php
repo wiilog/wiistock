@@ -90,10 +90,9 @@ class InventoryMissionRuleController extends AbstractController
             ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
             ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
 
-        $creatorId = $data['creator'] ?? null;
-        if ($creatorId) {
+        if (isset($data['creator'])) {
             $userRepository = $entityManager->getRepository(Utilisateur::class);
-            $creator = $userRepository->find($creatorId);
+            $creator = $userRepository->find($data['creator']);
             $missionRule->setCreator($creator);
         } else {
             return new JsonResponse([
