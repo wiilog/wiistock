@@ -17,7 +17,7 @@ class Action {
     const DELETE = 'supprimer';
     const EXPORT = 'exporter';
     // menu traça
-    const DISPLAY_ARRI = 'afficher arrivages';
+    const DISPLAY_ARRI = 'afficher arrivages UL';
     const DISPLAY_MOUV = 'afficher mouvements';
     const DISPLAY_ASSO = 'afficher associations BR';
     const DISPLAY_ENCO = 'afficher encours';
@@ -28,13 +28,20 @@ class Action {
     const EDIT_PACK = 'modifier colis';
     const MANAGE_PACK = 'gérer colis';
     const DELETE_PACK = 'supprimer colis';
-    const EDIT_ARRI = 'modifier arrivage';
-    const DELETE_ARRI = 'supprimer arrivage';
+    const EDIT_ARRI = 'modifier arrivage UL';
+    const DELETE_ARRI = 'supprimer arrivage UL';
     const EMPTY_ROUND = 'autoriser la sélection du Passage à vide';
-    const CREATE_ARRIVAL = 'créer arrivage';
+    const CREATE_ARRIVAL = 'créer arrivage UL';
     const CREATE_EMERGENCY = 'créer urgence';
     const CREATE_TRACKING_MOVEMENT = 'créer mouvements';
     const FULLY_EDIT_TRACKING_MOVEMENTS = "modifier l'ensemble de la modale mouvement";
+    const DISPLAY_TRUCK_ARRIVALS = 'afficher arrivages camion';
+    const CREATE_TRUCK_ARRIVALS = 'créer arrivages camion';
+    const EDIT_TRUCK_ARRIVALS = 'modifier arrivage camion';
+    const DELETE_TRUCK_ARRIVALS = 'supprimer arrivage camion';
+    const ADD_CARRIER_TRACKING_NUMBER = 'ajouter n° de tracking transporteur';
+    const DELETE_CARRIER_TRACKING_NUMBER = 'supprimer n° de tracking transporteur';
+    const EDIT_RESERVES = 'modifier réserves';
     // menu qualité
     const DISPLAY_LITI = 'afficher litiges';
     const TREAT_DISPUTE = 'traiter les litiges';
@@ -133,7 +140,8 @@ class Action {
     const SETTINGS_DISPLAY_RECEP = 'afficher réceptions';
 
     const SETTINGS_DISPLAY_TRACING_DISPATCH = 'afficher acheminements trace';
-    const SETTINGS_DISPLAY_ARRI = 'afficher arrivages';
+    const SETTINGS_DISPLAY_ARRI = 'afficher arrivages UL';
+    const SETTINGS_DISPLAY_TRUCK_ARRIVALS = 'afficher arrivages camion';
     const SETTINGS_DISPLAY_MOVEMENT = 'afficher mouvements';
     const SETTINGS_DISPLAY_TRACING_HAND = 'afficher services trace';
 
@@ -176,6 +184,7 @@ class Action {
     const MODULE_NOTIFICATIONS = 'Activer les notifications';
     const MODULE_TRACK = 'Accès Track';
     const DEMO_MODE = 'Mode découverte';
+    const MODULE_ACCESS_TRUCK_ARRIVALS = 'Accès arrivages camion';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
