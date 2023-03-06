@@ -36,6 +36,15 @@ class Transporteur {
     #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'carrier')]
     private Collection $emergencies;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $recurrent = false;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $minTrackingNumberLength = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $maxTrackingNumberLength = null;
+
     public function __construct() {
         $this->chauffeurs = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
@@ -211,6 +220,42 @@ class Transporteur {
         foreach($emergencies as $emergency) {
             $this->addEmergency($emergency);
         }
+
+        return $this;
+    }
+
+    public function isRecurrent(): ?bool
+    {
+        return $this->recurrent;
+    }
+
+    public function setRecurrent(bool $recurrent): self
+    {
+        $this->recurrent = $recurrent;
+
+        return $this;
+    }
+
+    public function getMinTrackingNumberLength(): ?int
+    {
+        return $this->minTrackingNumberLength;
+    }
+
+    public function setMinTrackingNumberLength(?int $minTrackingNumberLength): self
+    {
+        $this->minTrackingNumberLength = $minTrackingNumberLength;
+
+        return $this;
+    }
+
+    public function getMaxTrackingNumberLength(): ?int
+    {
+        return $this->maxTrackingNumberLength;
+    }
+
+    public function setMaxTrackingNumberLength(?int $maxTrackingNumberLength): self
+    {
+        $this->maxTrackingNumberLength = $maxTrackingNumberLength;
 
         return $this;
     }
