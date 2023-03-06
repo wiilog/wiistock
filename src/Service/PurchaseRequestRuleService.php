@@ -42,10 +42,9 @@ class PurchaseRequestRuleService
         $storageRuleRepository = $this->em->getRepository(StorageRule::class);
         $purchaseRequestLineRepository = $this->em->getRepository(PurchaseRequestLine::class);
 
-        // vérification des quantités dans le repo
+        // getting storage rules by the purchase rule, quantity rule applied here
         $storageRules = $storageRuleRepository->getByPuchaseRequestRuleWithStockQuantity($rule);
 
-        // ajout à une demande d'achat
         $rulesWithSeveralSuppliers = [];
         $refAdded = [];
         $purchaseRequests = [];
@@ -57,6 +56,7 @@ class PurchaseRequestRuleService
             if ($refArticle->getArticlesFournisseur()->count() > 1) {
                 $rulesWithSeveralSuppliers[] = $storageRule;
             } else {
+                // one purchase request per supplier
                 if (isset($purchaseRequests[$supplier->getId()])) {
                     $purchaseRequest = $purchaseRequests[$supplier->getId()];
                 } else {
@@ -64,14 +64,14 @@ class PurchaseRequestRuleService
                     $purchaseRequests[$supplier->getId()] = $purchaseRequest;
                 }
 
-                // on ajoute une ligne de demande d'achat par ref
+                // one purchase request line per reference art
                 if (!in_array($refArticle->getId(), $refAdded)) {
-                    $purchaseRequestLine = $this->purchaseRequestService->createPurchaseRequestLine($refArticle, $storageRule->getConditioningQuantity(), ["supplier" => $supplier]);
+                    $purchaseRequestLine = $this->purchaseRequestService->createPurchaseRequestLine($refArticle, $storageRule->getSecurityQuantity(), ["supplier" => $supplier]);
                     $purchaseRequest->addPurchaseRequestLine($purchaseRequestLine);
                     $refAdded[] = $refArticle->getId();
-                } else {
+                } else { // if one ref is on several locations, requestedQuantity = sum of each storage rule's security quantity
                     $purchaseRequestLine = $purchaseRequestLineRepository->findOneBy(["purchaseRequest" => $purchaseRequest, "reference" => $refArticle]);
-                    $purchaseRequestLine->setRequestedQuantity($purchaseRequestLine->getRequestedQuantity() + $storageRule->getConditioningQuantity());
+                    $purchaseRequestLine->setRequestedQuantity($purchaseRequestLine->getRequestedQuantity() + $storageRule->getSecurityQuantity());
                 }
 
                 $this->em->persist($purchaseRequestLine);
@@ -81,6 +81,7 @@ class PurchaseRequestRuleService
             }
         }
 
+        // storage rules with multiple supplier all in the same purchase request
         if (!empty($rulesWithSeveralSuppliers)) {
             foreach ($rulesWithSeveralSuppliers as $severalSuppliersRule) {
                 $purchaseRequestLine = $this->purchaseRequestService->createPurchaseRequestLine($severalSuppliersRule->getReferenceArticle(), $severalSuppliersRule->getConditioningQuantity());
@@ -95,9 +96,6 @@ class PurchaseRequestRuleService
         }
 
         $this->em->flush();
-
-
-
     }
 }
 

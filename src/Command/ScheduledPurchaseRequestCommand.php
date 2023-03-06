@@ -57,7 +57,6 @@ class ScheduledPurchaseRequestCommand extends Command
             }
         }
 
-        throw new \Exception();
         return 0;
     }
 
