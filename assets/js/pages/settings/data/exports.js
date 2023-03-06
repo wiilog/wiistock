@@ -189,6 +189,11 @@ function createForm() {
                         const dateMin = $modal.find(`[name=articleDateMin]`).val();
                         const dateMax = $modal.find(`[name=articleDateMax]`).val();
 
+                        if (dateMin !== '' && dateMax !== '' && dateMin > dateMax) {
+                            Flash.add(`danger`, `Les bornes de dates d'entrée de stock sont invalides`);
+                            return Promise.resolve();
+                        }
+
                         window.open(Routing.generate(`settings_export_articles`, {
                             dateMin,
                             dateMax,
@@ -243,6 +248,14 @@ function createForm() {
                     const exportId = $modal.find('[name=exportId]').val();
                     const route = exportId ? 'settings_edit_export' : 'settings_new_export';
                     const params = exportId ? {export: exportId} : {};
+
+                    if ($modal.find(`[name=scheduledDateMin]`).val()
+                        && $modal.find(`[name=scheduledDateMax]`).val()
+                        && $modal.find(`[name=scheduledDateMin]`).val() > $modal.find(`[name=scheduledDateMax]`).val()) {
+                        Flash.add(`danger`, `Les dates fixes d'entrée en stock sont invalides`);
+                        return Promise.resolve();
+                    }
+
                     return AJAX.route(POST, route, params)
                         .json(data)
                         .then(({success}) => {

@@ -220,6 +220,9 @@ class DataExportController extends AbstractController {
 
         $options = [];
         if ($request->query->get("dateMin") !== "" && $request->query->get("dateMax") !== "") {
+            if($request->query->get("dateMin") > $request->query->get("dateMax")) {
+
+            }
             $options["dateMin"] = DateTime::createFromFormat('d/m/Y', $request->query->get("dateMin"));
             $options["dateMax"] = DateTime::createFromFormat('d/m/Y', $request->query->get("dateMax"));
         }
