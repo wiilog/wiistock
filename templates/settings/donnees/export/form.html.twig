@@ -146,19 +146,23 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text w-50px d-flex justify-content-center">Du</span>
                             </div>
-                            <input type="text"
-                                   class="form-control cursor-default filter-date-min data"
-                                   name="scheduledDateMin"
-                                   placeholder="jj/mm/aaaa"
-                                   autocomplete="off"/>
+                            {{ form.input('scheduledDateMin', null, false, export.stockEntryStartDate ? export.stockEntryStartDate|date('Y-m-d') : null, {
+                                type: 'date',
+                                isLabelFree: true,
+                                inputClass: 'form-control cursor-default data',
+                                autocompleteOff: true,
+                                width: ''
+                            }) }}
                             <div class="input-group-prepend input-group-append">
                                 <span class="input-group-text w-50px d-flex justify-content-center">Au</span>
                             </div>
-                            <input type="text"
-                                   class="form-control cursor-default filter-date-max data"
-                                   name="scheduledDateMax"
-                                   placeholder="jj/mm/aaaa"
-                                   autocomplete="off"/>
+                            {{ form.input('scheduledDateMax', null, false,  export.stockEntryStartDate ? export.stockEntryEndDate|date('Y-m-d') : null, {
+                                type: 'date',
+                                isLabelFree: true,
+                                inputClass: 'form-control cursor-default data',
+                                autocompleteOff: true,
+                                width: ''
+                            }) }}
                         </div>
                     </div>
                 </div>

@@ -14,10 +14,12 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: InventoryMissionRuleRepository::class)]
 class InventoryMissionRule extends ScheduleRule
 {
+    public const DURATION_UNIT_DAYS = "days";
     public const DURATION_UNIT_WEEKS = "weeks";
     public const DURATION_UNIT_MONTHS = "months";
 
     public const DURATION_UNITS = [
+        self::DURATION_UNIT_DAYS,
         self::DURATION_UNIT_WEEKS,
         self::DURATION_UNIT_MONTHS,
     ];

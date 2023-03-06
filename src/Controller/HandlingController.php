@@ -573,7 +573,7 @@ class HandlingController extends AbstractController {
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => $this->getFormatter()->status($statusHistory->getStatus()),
                         "date" => $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG
-                                    ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                                    ? $this->getFormatter()->longDate($statusHistory->getDate(), ["short" => true, "time" => true])
                                     : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user),
                     ])
                     ->toArray(),

@@ -299,8 +299,7 @@ class ArticleDataService
                 ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setBatch($data['batch'] ?? null)
-                ->setDestinationArea($data['destinationArea'] ?? null);
+                ->setBatch($data['batch'] ?? null);
 
             if(isset($data['nativeCountry'])) {
                 $article->setNativeCountry($entityManager->find(NativeCountry::class, $data['nativeCountry']));
@@ -406,7 +405,6 @@ class ArticleDataService
             "stockEntryDate" => $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i') : '',
             "expiryDate" => $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
             "comment" => $article->getCommentaire(),
-            "destinationArea" => $article->getDestinationArea(),
             "actions" => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
@@ -611,7 +609,6 @@ class ArticleDataService
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
             ["title" => "Projet", "name" => "project", 'searchable' => true],
-            ["title" => "Zone de destination", "name" => "destinationArea", 'searchable' => true],
             ["title" => "Tag RFID", "name" => "RFIDtag", 'searchable' => true],
             ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
             ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],
@@ -645,7 +642,6 @@ class ArticleDataService
             $article['visibilityGroup'],
             $article['projectCode'],
             $article['prixUnitaire'],
-            $article['destinationArea'],
             $article['purchaseOrder'],
             $article['deliveryNote'],
             $article['nativeCountryLabel'],

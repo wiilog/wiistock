@@ -45,12 +45,12 @@
                         min: 0,
                         max: 999,
                         step: 1,
-                        width: 'w-25',
                     }) }}
                 </div>
                 <div class="col-8">
                     {{ form.select('durationUnit', null ,true, {
                         items: {
+                            (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_DAYS')): 'Jours',
                             (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_WEEKS')): 'Semaines',
                             (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_MONTHS')): 'Mois',
                         },
@@ -60,6 +60,14 @@
                 </div>
             </div>
         </label>
+    </div>
+    <div class="col-6 mt-3">
+        {{ form.select('creator', 'Demandeur', true, {
+            type: 'user',
+            items: {
+                (app.user.id): (app.user.username),
+            }
+        }) }}
     </div>
     <div class="col-12">
         {% include 'planner/planner.html.twig' with {
@@ -90,7 +98,7 @@
         {{ form.select('categories', 'Catégorie(s)', true, {
             multiple: true,
             type: 'inventoryCategories',
-            value: missionRule.categories,
+            items: missionRule.categories|map((categorie) => {value: categorie.id, label: categorie.label, selected: true}),
         }) }}
     </div>
 </div>

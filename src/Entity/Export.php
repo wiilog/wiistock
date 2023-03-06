@@ -116,7 +116,7 @@ class Export {
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $error = null;
 
-    #[ORM\OneToOne(mappedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
+    #[ORM\OneToOne(inversedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
     private ?ExportScheduleRule $exportScheduleRule = null;
 
     public function __construct() {
@@ -219,7 +219,7 @@ class Export {
         return $this;
     }
 
-    public function getReferenceTypes(): array
+    public function getReferenceTypes(): ?array
     {
         return $this->referenceTypes;
     }
@@ -231,7 +231,7 @@ class Export {
         return $this;
     }
 
-    public function getStatuses(): array
+    public function getStatuses(): ?array
     {
         return $this->statuses;
     }
@@ -243,7 +243,7 @@ class Export {
         return $this;
     }
 
-    public function getSuppliers(): array
+    public function getSuppliers(): ?array
     {
         return $this->suppliers;
     }

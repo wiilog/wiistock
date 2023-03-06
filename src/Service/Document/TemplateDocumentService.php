@@ -38,6 +38,7 @@ class TemplateDocumentService {
                     foreach ($value as $rowKey => $rowData) {
                         $rowNumber = $rowKey + 1;
                         foreach ($rowData as $macro => $replace) {
+
                             $this->setTemplateProcessorValue($templateProcessor, $macro . '#' . $rowNumber, $replace, $barcodeVariables);
                         }
                     }
@@ -55,6 +56,8 @@ class TemplateDocumentService {
                                               string             $name,
                                                                  $value,
                                               array              $barcodeVariables): void {
+
+
         if (in_array($name, $barcodeVariables)) {
             $templateDocumentImagePath = $this->generateBarcodeTmpImage($value);
             $templateProcessor->setImageValue($name, $templateDocumentImagePath);

@@ -97,7 +97,6 @@ class DataExportService
             'groupe de visibilité',
             'projet',
             'prix unitaire',
-            'zone de destination',
             'numéro de commande',
             'numéro de bon de livraison',
             'pays d\'origine',
@@ -324,8 +323,8 @@ class DataExportService
 
             if (isset($data["scheduled-date-radio"]) && $data["scheduled-date-radio"] === "fixed-date") {
                 if (isset($data["scheduledDateMin"]) && isset($data["scheduledDateMax"])) {
-                    $export->setStockEntryStartDate(DateTime::createFromFormat('d/m/Y', $data["scheduledDateMin"]))
-                        ->setStockEntryEndDate(DateTime::createFromFormat('d/m/Y', $data["scheduledDateMax"]));
+                    $export->setStockEntryStartDate(DateTime::createFromFormat('Y-m-d', $data["scheduledDateMin"]))
+                        ->setStockEntryEndDate(DateTime::createFromFormat('Y-m-d', $data["scheduledDateMax"]));
                 }
             } else {
                 if (isset($data["minus-day"]) && isset($data["additional-day"])) {
