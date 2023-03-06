@@ -38,6 +38,7 @@
         <li>{{ translateIn(language, "Demande", "Général", "Destinataire(s)") }} : <strong>{{ receivers }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Type") }} : <strong>{{ dispatch.type.labelIn(language, getDefaultLanguage()) }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Statut") }} : <strong>{{ dispatch.statut.labelIn(language, getDefaultLanguage()) }}</strong></li>
+        <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Dates d\'échéance') }} : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
         <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Transporteur') }} : <strong>{{ dispatch.carrier.label ?? '' }}</strong></li>
         <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° tracking transporteur') }} : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Urgence") }} : <strong>{{ emergency }}</strong></li>
