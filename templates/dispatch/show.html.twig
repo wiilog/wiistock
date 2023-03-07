@@ -201,7 +201,7 @@
                                         <span class="wii-icon wii-icon-check-white mr-2"></span>
                                         {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Valider la demande', false) }}
                                     </button>
-                                {% elseif not dispatch.statut.treated %}
+                                {% elseif not dispatch.statut.treated and not setting_value('FORCE_GROUPED_SIGNATURE') %}
                                     <button type="button"
                                             data-id='{{ dispatch.id }}'
                                             onclick="openTreatDispatchModal()"

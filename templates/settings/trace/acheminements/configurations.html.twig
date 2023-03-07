@@ -4,6 +4,9 @@
 <div class="wii-section">
     <div class="row">
         <div class="col-md-6 col-12 d-flex align-items-center my-1">
+            {{ form.checkbox(setting('FORCE_GROUPED_SIGNATURE'), 'Obliger la signature groupée pour traiter les acheminements', false, setting_value('FORCE_GROUPED_SIGNATURE')) }}
+        </div>
+        <div class="col-md-6 col-12 d-flex align-items-center my-1">
             {{ form.checkbox(setting('PREFILL_DUE_DATE_TODAY'), 'Pré-remplir la date du jour dans le champ à échéance Du et échéance Au', false, setting_value('PREFILL_DUE_DATE_TODAY')) }}
         </div>
         <div class="col-md-6 col-12 d-flex align-items-center my-1">
