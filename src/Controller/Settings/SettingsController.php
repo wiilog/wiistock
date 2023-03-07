@@ -290,6 +290,10 @@ class SettingsController extends AbstractController {
                             "save" => true,
                             "discard" => true,
                         ],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                        ],
                     ],
                 ],
                 self::MENU_MOVEMENTS => [
@@ -1170,6 +1174,9 @@ class SettingsController extends AbstractController {
                             'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL),
                         ];
                     },
+                ],
+                self::MENU_TRUCK_ARRIVALS => [
+
                 ],
                 self::MENU_HANDLINGS => [
                     self::MENU_FIXED_FIELDS => function() use ($userRepository, $typeRepository, $fixedFieldRepository) {
@@ -2120,7 +2127,6 @@ class SettingsController extends AbstractController {
 
         $rows = [];
         foreach ($arrayFields as $field) {
-            $requireDisabled = in_array($field->getFieldCode(), FieldsParam::ALWAYS_REQUIRED_FIELDS) ? "disabled" : "";
             $label = ucfirst($field->getFieldLabel());
             $displayedCreate = $field->isDisplayedCreate() ? "checked" : "";
             $requiredCreate = $field->isRequiredCreate() ? "checked" : "";
@@ -2131,6 +2137,9 @@ class SettingsController extends AbstractController {
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
 
+            $filterOnly = in_array($field->getFieldCode(), FieldsParam::FILTER_ONLY_FIELDS) ? "disabled" : "";
+            $requireDisabled = $filterOnly || in_array($field->getFieldCode(), FieldsParam::ALWAYS_REQUIRED_FIELDS) ? "disabled" : "";
+
             if ($edit) {
                 $labelAttributes = "class='font-weight-bold'";
                 if ($field->getElements() !== null) {
@@ -2140,8 +2149,8 @@ class SettingsController extends AbstractController {
 
                 $row = [
                     "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
-                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
-                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit/>",
+                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate $filterOnly/>",
+                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit $filterOnly/>",
                     "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate $requireDisabled/>",
                     "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit $requireDisabled/>",
                     "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",

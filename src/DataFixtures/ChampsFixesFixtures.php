@@ -79,6 +79,13 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_FREE],
                 ['code' => FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, 'label' => FieldsParam::FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FieldsParam::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_USER]
+            ],
+
+            FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL => [
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_DRIVER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
             ]
         ];
 
