@@ -1161,7 +1161,6 @@ function initializeArrivalsTruckConfigurations($elem) {
 }
 
 function initializeTruckArrivalFixedFields($container, canEdit) {
-    console.log('oui')
     EditableDatatable.create(`#table-truck-arrival-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `truckArrivals`}),
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,

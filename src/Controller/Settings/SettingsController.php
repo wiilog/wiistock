@@ -1175,9 +1175,6 @@ class SettingsController extends AbstractController {
                         ];
                     },
                 ],
-                self::MENU_TRUCK_ARRIVALS => [
-
-                ],
                 self::MENU_HANDLINGS => [
                     self::MENU_FIXED_FIELDS => function() use ($userRepository, $typeRepository, $fixedFieldRepository) {
                         $field = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY);
