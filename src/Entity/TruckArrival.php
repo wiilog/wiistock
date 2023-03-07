@@ -26,9 +26,9 @@ class TruckArrival
     #[ORM\OneToMany(mappedBy: 'truckArrival', targetEntity: TruckArrivalLine::class)]
     private Collection $trackingLines;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Chauffeur::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Chauffeur $chauffeur = null;
+    private ?Chauffeur $driver = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?DateTime $creationDate = null;
@@ -115,14 +115,14 @@ class TruckArrival
         return $this;
     }
 
-    public function getChauffeur(): ?Chauffeur
+    public function getDriver(): ?Chauffeur
     {
-        return $this->chauffeur;
+        return $this->driver;
     }
 
-    public function setChauffeur(?Chauffeur $chauffeur): self
+    public function setDriver(?Chauffeur $driver): self
     {
-        $this->chauffeur = $chauffeur;
+        $this->driver = $driver;
 
         return $this;
     }
