@@ -189,7 +189,8 @@
 
             <div class="col-md-8 col-12">
                 <div class="wii-box">
-                    <div class="header wii-title d-flex justify-content-between align-items-center">
+                    {% set hasButtons = hasRightEdit and (dispatch.statut.draft or not dispatch.statut.treated and not setting_value('FORCE_GROUPED_SIGNATURE')) %}
+                    <div class="header wii-title justify-content-between align-items-center {{ not hasButtons ? 'd-flex' : 'row no-gutters py-2' }}">
                         Informations
                         {% if hasRightEdit %}
                             <div class="col-auto">
