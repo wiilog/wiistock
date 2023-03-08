@@ -2,7 +2,7 @@
     <div class="row wii-page-card-header">
         <div class="col-auto ml-auto">
             <button class="btn btn-primary d-flex align-items-center"
-                    onclick=''>
+                    onclick='openFormPurchaseRequestPlanner($(this))'>
                 <span class="wii-icon wii-icon-plus mr-2"></span>
                 Planifier un achat
             </button>
@@ -14,3 +14,5 @@
         </div>
     </div>
 </div>
+
+{{ include('settings/stock/demandes/purchase-request-planner/modalFormPurchaseRequestPlanner.html.twig') }}

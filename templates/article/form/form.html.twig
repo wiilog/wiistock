@@ -154,7 +154,7 @@
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
                             <div class="col-6 mt-2">
-                                {{ form.input('manufactureDate', 'Date de fabrication', required, article.id ? article.manifacturingDate|date('Y-m-d'), {
+                                {{ form.input('manufactureDate', 'Date de fabrication', required, article.id and article.manifacturingDate ? article.manifacturingDate|date('Y-m-d'), {
                                     type: 'date'
                                 }) }}
                             </div>
@@ -164,7 +164,7 @@
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
                             <div class="col-6 mt-2">
-                                {{ form.input('productionDate', 'Date de production', required, article.id ? article.productionDate|date('Y-m-d'), {
+                                {{ form.input('productionDate', 'Date de production', required, article.id and article.productionDate ? article.productionDate|date('Y-m-d'), {
                                     type: 'date'
                                 }) }}
                             </div>
@@ -188,14 +188,6 @@
                                 }) }}
                             </div>
                         {% endif %}
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DESTINATION_AREA') %}
-                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
-                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
-                            <div class="col-6 mt-2">
-                                {{ form.input('destinationArea', "Zone de destination", required, article.id ? article.destinationArea : null) }}
-                            </div>
-                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -209,11 +201,11 @@
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
-                            <div class="col-12 col-md-6 d-flex">
+                            <div class="col-12 col-md-6">
                                 {{ form.input('batch', {url: '/svg/reference_article/stock.svg', text: 'Lot'}, false, article.id and article.batch ? article.batch) }}
                             </div>
                         {% endif %}
-                        <div class="col-12 col-md-6 d-flex">
+                        <div class="col-12 col-md-6">
                             {{ form.input('expiry', {url: '/svg/calendar.svg', text: 'Date de péremption'}, false, article.id and article.expiryDate ? article.expiryDate|date('Y-m-d'), {
                                 type: 'date'
                             }) }}
@@ -222,7 +214,7 @@
                         {% if article.id %}
                             {% set managers = article.referenceArticle.managers|map((manager) => manager.username)|join(', ') %}
                             {% set plural = article.referenceArticle.managers | length > 1 ? 's' : '' %}
-                            <div class="col-12 col-md-6 d-flex mt-3">
+                            <div class="col-12 col-md-6 mt-3">
                                 <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Gestionnaire{{ plural }}</span>
@@ -235,7 +227,7 @@
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
-                            <div class="col-12 col-md-6 d-flex mt-3">
+                            <div class="col-12 col-md-6 mt-3">
                                 {{ form.input('prix', {url: '/svg/price.svg', text: 'Prix unitaire (€)'}, false, article.id and article.prixUnitaire is not null ? article.prixUnitaire, {
                                     type: 'number',
                                     min: 0,
@@ -313,8 +305,8 @@
             {% endif %}
 
             <div class="wii-box mt-3">
+                <div class="header wii-title">Champs libres</div>
                 {% if not article.id %}
-                    <div class="header wii-title">Champs libres</div>
                     <div class="px-3 free-fields-container">
                         <div class="content d-flex align-items-center justify-content-center">
                             <div class="spinner-border text-primary" role="status"></div>

@@ -95,7 +95,7 @@ class ReferenceArticleRepository extends EntityRepository {
         $qb = $this->createQueryBuilder('referenceArticle');
 
         $qb->select('referenceArticle.id AS id')
-            ->addSelect('referenceArticle.barCode AS label')
+            ->addSelect('referenceArticle.reference AS label')
             ->andWhere('referenceArticle.needsMobileSync = true');
 
         return $qb->getQuery()->getResult();

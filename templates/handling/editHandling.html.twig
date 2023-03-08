@@ -145,9 +145,9 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.input('destination', trans('Demande', 'Services', 'Modale et détails', 'Déchargement'), required, handling.source, {
+                                {{ form.input('destination', trans('Demande', 'Services', 'Modale et détails', 'Déchargement'), required, handling.destination, {
                                     attributes: {
-                                        'data-short-label': 'Chargement',
+                                        'data-short-label': 'Déchargement',
                                     },
                                 }) }}
                             </div>
@@ -198,7 +198,7 @@
                     <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
                     <div>
                         <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
-                        <div class="editor-container-new" data-wysiwyg>{{ handling.comment | striptags }}</div>
+                        <div class="editor-container-new" data-wysiwyg>{{ handling.comment | raw }}</div>
                     </div>
                 </div>
             </div>

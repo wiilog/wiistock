@@ -14,6 +14,7 @@ use Composer\Semver\Semver;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class MobileApiService {
 
@@ -52,12 +53,20 @@ class MobileApiService {
                     } else if ($dispatch['packReferences']) {
                         $accumulator[$dispatch['id']]['packReferences'] = $dispatch['packReferences'];
                     }
+
+                    if ($accumulator[$dispatch['id']]['packs'] && $dispatch['packs']) {
+                        $accumulator[$dispatch['id']]['packs'] .= (',' . $dispatch['packs']);
+                    } else if ($dispatch['packs']) {
+                        $accumulator[$dispatch['id']]['packs'] = $dispatch['packs'];
+                    }
+
                     return $accumulator;
                 }, []))
             ->map(function (array $dispatch) use ($dispatchExpectedDateColors) {
                 $dispatch['color'] = $this->expectedDateColor($dispatch['endDate'] ?? null, $dispatchExpectedDateColors);
                 $dispatch['startDate'] = $dispatch['startDate'] ? $dispatch['startDate']->format('d/m/Y') : null;
                 $dispatch['endDate'] = $dispatch['endDate'] ? $dispatch['endDate']->format('d/m/Y') : null;
+                $dispatch['comment'] = StringHelper::cleanedComment($dispatch['comment']);
                 return $dispatch;
             })
             ->values();

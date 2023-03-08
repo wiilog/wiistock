@@ -109,6 +109,19 @@ class InventoryMissionController extends AbstractController
                 $mission->setDescription($data['description']);
             }
 
+            if (isset($data['duplicatedMission'])){
+                $inventoryMissionRepository = $em->getRepository(InventoryMission::class);
+                $duplicatedMission = $inventoryMissionRepository->find($data['duplicatedMission']);
+                $duplicatedInventoryLocationMissions = $duplicatedMission->getInventoryLocationMissions()->toArray();
+
+                foreach ($duplicatedInventoryLocationMissions as $duplicatedInventoryLocationMission){
+                    $inventoryLocationMission = (new InventoryLocationMission())
+                        ->setInventoryMission($mission)
+                        ->setLocation($duplicatedInventoryLocationMission->getLocation());
+                    $em->persist($inventoryLocationMission);
+                }
+            }
+
             $em->persist($mission);
             $em->flush();
 
@@ -153,17 +166,29 @@ class InventoryMissionController extends AbstractController
             $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
 
             $mission = $inventoryMissionRepository->find($missionId);
             $missionArt = $articleRepository->countByMission($missionId);
             $missionRef = $referenceArticleRepository->countByMission($missionId);
             $missionEntries = $inventoryEntryRepository->count(['mission' => $mission]);
+            $missionLocationsDone = $inventoryLocationMissionRepository->count(['inventoryMission' => $mission, 'done' => true]);
 
-            $missionIsUsed = (intval($missionArt) + intval($missionRef) + $missionEntries > 0);
+            $canBeDeleted = true;
+            $message = "";
+            if (intval($missionArt) + intval($missionRef) + $missionEntries > 0) {
+                $canBeDeleted = false;
+                $message = "Cette mission est liée à des références articles ou articles.";
+            } elseif ($missionLocationsDone > 0) {
+                $canBeDeleted = false;
+                $message = "Cette mission a été commencée.";
+            }
 
-            if ($missionIsUsed) {
+            if (!$canBeDeleted) {
                 $delete = false;
-                $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig');
+                $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig', [
+                    'message' => $message
+                ]);
             } else {
                 $delete = true;
                 $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
@@ -183,7 +208,14 @@ class InventoryMissionController extends AbstractController
         $data = $request->request->all();
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $mission = $inventoryMissionRepository->find($data['missionId']);
+        $missionLocations = $mission->getInventoryLocationMissions();
 
+        foreach ($missionLocations as $missionLocation) {
+            foreach ($missionLocation->getInventoryLocationMissionReferenceArticles() as $missionLocationRef) {
+                $entityManager->remove($missionLocationRef);
+            }
+            $entityManager->remove($missionLocation);
+        }
         $entityManager->remove($mission);
         $entityManager->flush();
 
@@ -198,10 +230,13 @@ class InventoryMissionController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
     public function show(InventoryMission $mission): Response {
+        $startPrevDate = $mission->getStartPrevDate();
+        $isInventoryStarted =  new DateTime('now') < $startPrevDate;
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
             'typeLocation' => $mission->getType() === InventoryMission::LOCATION_TYPE,
             'locationsAlreadyAdded' => !$mission->getInventoryLocationMissions()->isEmpty(),
+            'isInventoryStarted' => $isInventoryStarted,
             'done' => $mission->isDone(),
         ]);
     }
@@ -588,7 +623,7 @@ class InventoryMissionController extends AbstractController
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $locationIdsStr = $request->request->get('locations');
+        $locationIdsStr = $request->query->all('locations');
         $locationIds = $locationIdsStr
             ? Stream::explode(',', $locationIdsStr)
                 ->map('trim')

@@ -1,4 +1,4 @@
-import AJAX from "@app/ajax";
+import AJAX, {GET} from "@app/ajax";
 
 const confirmationModalId = 'confirmation-modal'
 
@@ -106,5 +106,19 @@ export default class Modal {
         });
 
         $modal.modal('show');
+    }
+
+    static load(route, params = {}, $modal, $wrapperLoader, options = { $formContainer: null, onOpen: ()=>{} }) {
+        const container = options.$formContainer || $modal.find('.modal-body');
+        wrapLoadingOnActionButton($wrapperLoader, () => (
+            AJAX
+                .route(GET, route, params)
+                .json()
+                .then(({html}) => {
+                    container.html(html);
+                    options.onOpen && options.onOpen();
+                    $modal.modal('show');
+                })
+        ));
     }
 }

@@ -371,6 +371,7 @@ class Setting {
             ],
             "report" => [
                 "Champs fixes acheminement" => [
+                    "titredocument" => "titre du document",
                     "numach" => "numéro de l'acheminement",
                     "qrcodenumach" => "QR Code du numéro de l'acheminement",
                     "typeach" => "type de l'acheminement",

@@ -15,42 +15,10 @@ $(function () {
     let typeLocation = $('#typeLocation').val();
     let locationsAlreadyAdded = Boolean($('#locationsAlreadyAdded').val());
 
-    const $modalAddLocationAndZoneToMission = $('#modalAddLocationAndZoneToMission');
-    const $addInventoryLocationsModule = $modalAddLocationAndZoneToMission.find('.add-inventory-location-container')
-
-    initFormAddInventoryLocations($addInventoryLocationsModule);
-
-    Form
-        .create($modalAddLocationAndZoneToMission)
-        .addProcessor((data, errors, $form) => {
-            const $addInventoryLocationsModule = $form.find('.add-inventory-location-container')
-            const $locationTable = $addInventoryLocationsModule.find('table');
-            const locations = $locationTable.DataTable().column(0).data().toArray();
-            if (locations.length === 0) {
-                errors.push({
-                    message: `Vous devez sélectionner au moins un emplacement`,
-                });
-            } else {
-                data.append('locations', locations);
-            }
-        })
-        .onSubmit((data, form) => {
-            form.loading(() => {
-                return AJAX.route(AJAX.POST, `add_locations_or_zones_to_mission`, {
-                    mission,
-                })
-                    .json(data)
-                    .then((response) => {
-                        if(response.success){
-                            $modalAddLocationAndZoneToMission.modal('hide');
-                            tableLocationMission.ajax.reload();
-                        }
-                    });
-            });
-        });
-
+    initModalAddTableLocations();
     if(typeLocation && !locationsAlreadyAdded){
-        $modalAddLocationAndZoneToMission.modal('show');
+        const $tableLocations = $('.add-inventory-location-container').find('table');
+        onOpenModalAddLocationAndZone($tableLocations);
     }
 
     initLocationMissionsDataTable();
@@ -242,4 +210,88 @@ function initLocationMissionsDataTable() {
         },
     };
     tableLocationMission = initDataTable('tableLocationMissions', tableLocationMissionsConfig);
+}
+
+function onOpenModalAddLocationAndZone(tableLocations){
+    let $modalAddLocationAndZoneToMission = $('#modalAddLocationAndZoneToMission');
+    Form.create($modalAddLocationAndZoneToMission)
+        .onSubmit(() => {
+            wrapLoadingOnActionButton($modalAddLocationAndZoneToMission.find('button[type=submit]'),() => {
+                return AJAX.route(`POST`, `add_locations_or_zones_to_mission`, {
+                    mission,
+                    locations: tableLocations.DataTable().column(0).data().toArray()
+                })
+                    .json()
+                    .then((response) => {
+                        if(response.success){
+                            $modalAddLocationAndZoneToMission.modal('hide');
+                            tableLocationMission.ajax.reload();
+                        }
+                    });
+            });
+        });
+
+    $modalAddLocationAndZoneToMission.find('.add-button').on('click', function(){
+        wrapLoadingOnActionButton($(this), () => {
+            const buttonType = $(this).data('type');
+            let ids = [];
+            $(this).closest('.row').find('select').find('option:selected').each(function() {
+                ids.push($(this).val());
+                $(this).parent().empty();
+            });
+            return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
+                buttonType,
+                mission,
+                dataIdsToDisplay: ids,
+            })
+                .json()
+                .then((response) => {
+                    if(response.success){
+                        initModalAddTableLocations(response.data);
+                    }
+                });
+            }
+        )
+    });
+
+    $modalAddLocationAndZoneToMission.modal('show');
+}
+
+function initModalAddTableLocations(dataToDisplay = null){
+    const $tableLocations = $('.add-inventory-location-container').find('table');
+
+    if(dataToDisplay){
+        const tableLocationsDatatable = $tableLocations.DataTable();
+        const tableLocationsData = tableLocationsDatatable.column(1).data().toArray();
+        for (const lineToAdd of dataToDisplay){
+            if(Array.isArray(lineToAdd)){
+                for (const line of lineToAdd){
+                    if(!tableLocationsData.includes(line.location)){
+                        tableLocationsDatatable.row.add(line).draw(false);
+                    }
+                }
+            } else {
+                if(!tableLocationsData.includes(lineToAdd.location)){
+                    tableLocationsDatatable.row.add(lineToAdd).draw(false);
+                }
+            }
+        }
+    } else {
+        initDataTable($tableLocations, {
+            lengthMenu: [10, 25, 50],
+            columns: [
+                {data: 'id', name: 'id', title: 'id', visible: false },
+                {data: 'zone', name: 'zone', title: 'Zone'},
+                {data: 'location', name: 'location', title: 'Emplacement'},
+            ],
+            order: [
+                ['location', 'asc'],
+            ],
+            domConfig: {
+                removeInfo: true
+            },
+            paging: true,
+            searching: false,
+        });
+    }
 }
