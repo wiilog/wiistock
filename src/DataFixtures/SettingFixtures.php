@@ -130,6 +130,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::AUTO_PRINT_COLIS => [
                 'default' => true,
             ],
+            Setting::USE_TRUCK_ARRIVALS => [
+                'default' => false,
+            ],
             Setting::SEND_MAIL_MANAGER_WARNING_THRESHOLD => [
                 'default' => false,
                 SpecificService::CLIENT_ARCELOR => true
