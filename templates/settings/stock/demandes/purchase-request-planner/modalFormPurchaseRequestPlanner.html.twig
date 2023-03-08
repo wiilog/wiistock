@@ -1,0 +1,24 @@
+<div
+    class="modal fade"
+    id="modalFormPurchaseRequestPlanner"
+    role="dialog"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg"
+         role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Planification de demande d'achat"
+            } %}
+            <div class="modal-body modal-input container-fluid">
+
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {input: true, name: 'importId', classes: 'data'},
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Valider', type: 'submit'}
+                ],
+            } %}
+        </div>
+    </div>
+</div>

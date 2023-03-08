@@ -96,8 +96,16 @@ class FormatService
         return $user ? $user->getUsername() : $else;
     }
 
-    public function supplier(?Fournisseur $supplier, $else = "") {
+    public function supplier(?Fournisseur $supplier, string $else = ""): string {
         return $supplier ? $supplier->getNom() : $else;
+    }
+
+    public function suppliers(?array $suppliers, string $else = ""): string {
+        return $suppliers
+            ? Stream::from($suppliers)
+                ->map(fn(Fournisseur $supplier) => $this->supplier($supplier))
+                ->join(', ')
+            : $else;
     }
 
     public function users($users) {
@@ -366,7 +374,15 @@ class FormatService
         ) : null;
     }
 
-    public function zone(?Zone $zone, $else = "") {
+    public function zone(?Zone $zone, string $else = ""): string {
         return $zone ? $zone->getName() : $else;
+    }
+
+    public function zones(?array $zones, string $else = ""): string {
+        return $zones
+            ? Stream::from($zones)
+                ->map(fn(Zone $zone) => $this->zone($zone))
+                ->join(', ')
+            : $else;
     }
 }

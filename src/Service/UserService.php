@@ -15,6 +15,7 @@ use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PurchaseRequestScheduleRule;
 use App\Entity\Reception;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
@@ -117,6 +118,7 @@ class UserService
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $inventoryMissionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $purchaseRequestScheduleRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -131,6 +133,7 @@ class UserService
         $hasSignatoryLocation = $locationRepository->countLocationByUser($user);
         $hasInventoryMissionRules = $inventoryMissionRuleRepository->count(['creator' => $user]);
         $hasInventoryMissions = $inventoryMissionRepository->count(['requester' => $user]);
+        $hasPurchaseRequestShcheduleRules = $purchaseRequestScheduleRuleRepository->count(['requester' => $user]);
 
         return [
             'demande(s) de livraison' => $isUsedInRequests,
@@ -146,6 +149,7 @@ class UserService
             'emplacement(s)' => $hasSignatoryLocation,
             "planification(s) d'inventaire" => $hasInventoryMissionRules,
             "mission(s) d'inventaire" => $hasInventoryMissions,
+            "planification(s) de demande d'achat" => $hasPurchaseRequestShcheduleRules,
         ];
 	}
 
