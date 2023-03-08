@@ -1330,4 +1330,16 @@ class ArticleRepository extends EntityRepository {
             ->getQuery()
             ->getResult();
     }
+
+    public function findByEmplacementAndRefAndStatus(string $location, string $reference, string $status): int
+    {
+        $query = $this->createQueryBuilder('article')
+            ->join('article.articleFournisseur', 'join_articleFournisseur')
+            ->join('join_articleFournisseur.referenceArticle', 'join_referenceArticle')
+            ->join('article.statut', 'join_statut')
+            ->join('article.emplacement', 'join_emplacement')
+            ->setParameters(['join_emplacement.label' => $location, 'join_referenceArticle.reference' => $reference, 'join_statut.code' => $status]);
+
+        return $query->getQuery()->getResult();
+    }
 }

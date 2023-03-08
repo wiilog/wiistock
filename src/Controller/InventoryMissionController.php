@@ -230,10 +230,13 @@ class InventoryMissionController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
     public function show(InventoryMission $mission): Response {
+        $startPrevDate = $mission->getStartPrevDate();
+        $isInventoryStarted =  new DateTime('now') < $startPrevDate;
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
             'typeLocation' => $mission->getType() === InventoryMission::LOCATION_TYPE,
             'locationsAlreadyAdded' => !$mission->getInventoryLocationMissions()->isEmpty(),
+            'isInventoryStarted' => $isInventoryStarted,
             'done' => $mission->isDone(),
         ]);
     }
@@ -620,7 +623,7 @@ class InventoryMissionController extends AbstractController
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $locationIdsStr = $request->request->get('locations');
+        $locationIdsStr = $request->query->all('locations');
         $locationIds = $locationIdsStr
             ? Stream::explode(',', $locationIdsStr)
                 ->map('trim')

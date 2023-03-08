@@ -62,6 +62,7 @@ class Action {
     const DISPLAY_PURCHASE_REQUESTS = "afficher demandes d'achat";
     const DELETE_DRAFT_PURCHASE_REQUEST = "supprimer demandes d'achat brouillon";
     const CREATE_PURCHASE_REQUESTS = "créer demandes d'achat";
+    const MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE = "planifier demandes d'achat";
     const EDIT_ONGOING_PURCHASE_REQUESTS = "modifier demandes d'achat à traiter et en cours";
     const DELETE_TREATED_PURCHASE_REQUESTS = "supprimer demandes d'achat traitées";
     const EDIT_DRAFT_PURCHASE_REQUEST = "modifier demandes d'achat brouillon";

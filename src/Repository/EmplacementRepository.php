@@ -514,4 +514,16 @@ class EmplacementRepository extends EntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function countByUser(Utilisateur $user) {
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        return $queryBuilder
+            ->from(Emplacement::class, 'location')
+            ->select('COUNT(location)')
+            ->andWhere('user = :user')
+            ->join('location.signatories', 'user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
