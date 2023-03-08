@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\PurchaseRequestScheduleRule;
+use App\Entity\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
@@ -38,7 +39,14 @@ class PurchaseRequestScheduleRuleController extends AbstractController
                 "requester" => $formatService->user($purchaseRequestScheduleRule->getRequester()),
                 "emailSubject" => $purchaseRequestScheduleRule->getEmailSubject(),
                 "createdAt" => $purchaseRequestScheduleRule->getCreatedAt()->format("d/m/Y"),
-                "frequency" => $purchaseRequestScheduleRule->getFrequency(),
+                "frequency" => match($purchaseRequestScheduleRule->getFrequency()) {
+                    ScheduleRule::ONCE => "Une fois",
+                    ScheduleRule::HOURLY => "Chaque heure",
+                    ScheduleRule::DAILY => "Chaque jour",
+                    ScheduleRule::WEEKLY => "Chaque semaine",
+                    ScheduleRule::MONTHLY => "Chaque mois",
+                    default => null,
+                },
                 "lastExecution" => $purchaseRequestScheduleRule->getlastRun()?->format("d/m/Y"),
             ])
             ->toArray();

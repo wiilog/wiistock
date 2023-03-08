@@ -49,7 +49,7 @@ export function initializePurchaseRequestPlanner($container) {
         })
         .submitTo(POST, 'purchase_request_schedule_form_submit', {
             table : tablePurchaseRequestPlannerConfig
-        })
+        });
 
     $tablePurchaseRequestPlanner.on('click', '.delete-purchase-request-schedule-rule', function () {
         AJAX
