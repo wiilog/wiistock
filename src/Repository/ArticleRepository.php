@@ -115,7 +115,13 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
-    public function iterateAll(Utilisateur $user, DateTime $dateMin, DateTime $dateMax, array $referenceTypes, array $statuses, array $suppliers): iterable {
+    public function iterateAll(Utilisateur $user, $options = []): iterable {
+        $dateMin = $options["dateMin"] ?? null;
+        $dateMax = $options["dateMax"] ?? null;
+        $referenceTypes = $options["referenceTypes"] ?? [];
+        $statuses = $options["statuses"] ?? [];
+        $suppliers = $options["suppliers"] ?? [];
+
         $queryBuilder = $this->createQueryBuilder('article');
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
@@ -129,7 +135,7 @@ class ArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
-        return $queryBuilder->distinct()
+        $qb = $queryBuilder->distinct()
             ->select('referenceArticle.reference')
             ->addSelect('article.label')
             ->addSelect('article.quantite')
@@ -151,6 +157,9 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.manifacturingDate')
             ->addSelect('nativeCountry.label AS nativeCountryLabel')
             ->addSelect('article.productionDate')
+            ->addSelect('article.RFIDtag')
+            ->addSelect('fournisseur.nom AS nomFournisseur')
+            ->addSelect('fournisseur.codeReference AS codeRefFournisseur')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('articleFournisseur.fournisseur', 'fournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
@@ -161,19 +170,32 @@ class ArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
             ->leftJoin('article.currentLogisticUnit', 'currentLogisticUnit')
             ->leftJoin('currentLogisticUnit.project', 'project')
-            ->leftJoin('article.nativeCountry', 'nativeCountry')
-            ->andWhere('article.stockEntryDate BETWEEN :dateMin AND :dateMax')
-            ->andWhere('refType.id IN (:referenceTypes)')
-            ->andWhere('statut.id IN (:statuses)')
-            ->andWhere('fournisseur.id IN (:suppliers)')
-            ->setParameters([
-                'dateMin' => $dateMin,
-                'dateMax' => $dateMax,
-                'referenceTypes' => $referenceTypes,
-                'statuses' => $statuses,
-                'suppliers' => $suppliers
-            ])
-            ->groupBy('article.id')
+            ->leftJoin('article.nativeCountry', 'nativeCountry');
+
+        if (isset($dateMin) && isset($dateMax)) {
+            $qb->andWhere('article.stockEntryDate BETWEEN :dateMin AND :dateMax')
+                ->setParameters([
+                    'dateMin' => $dateMin,
+                    'dateMax' => $dateMax
+                ]);
+        }
+        if (!empty($referenceTypes)) {
+            $qb
+                ->andWhere('refType.id IN (:referenceTypes)')
+                ->setParameter('referenceTypes', $referenceTypes);
+        }
+        if (!empty($statuses)) {
+            $qb
+                ->andWhere('statut.id IN (:statuses)')
+                ->setParameter('statuses', $statuses);
+        }
+        if (!empty($suppliers)) {
+            $qb
+                ->andWhere('fournisseur.id IN (:suppliers)')
+                ->setParameter('suppliers', $suppliers);
+        }
+
+        return $qb->groupBy('article.id')
             ->getQuery()
             ->toIterable();
     }
