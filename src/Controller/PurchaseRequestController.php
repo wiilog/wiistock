@@ -50,7 +50,8 @@ class PurchaseRequestController extends AbstractController
         $statusRepository = $entityManager->getRepository(Statut::class);
 
         return $this->render('purchase_request/index.html.twig', [
-            'statuts' => $statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST),
+            'statuses' => $statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST),
+            'purchaseRequest' => new PurchaseRequest(),
         ]);
     }
 
@@ -315,44 +316,38 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="purchase_request_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/creer", name="purchase_request_new", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::CREATE_PURCHASE_REQUESTS}, mode=HasPermission::IN_JSON)
      */
-    public function new(PurchaseRequestService $purchaseRequestService,
-                        EntityManagerInterface $entityManager): Response
-    {
-
-        /** @var Utilisateur $requester */
-        $requester = $this->getUser();
-
+    public function new(EntityManagerInterface $entityManager,
+                        Request $request,
+                        AttachmentService $attachmentService,
+                        PurchaseRequestService $purchaseRequestService): Response {
+        $data = $request->request->all();
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $statuses = $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [Statut::DRAFT]);
-        $defaultStatus = $statusRepository->getIdDefaultsByCategoryName(CategorieStatut::PURCHASE_REQUEST);
-        $status = $statuses[0] ?? null;
-        if (!$status) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'Aucun statut brouillon créé pour les demandes d\'achat. Veuillez en paramétrer un.'
-            ]);
-        }
-        $purchaseRequest = $purchaseRequestService->createPurchaseRequest($entityManager, $status, $requester);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
+
+        $status = $statusRepository->find($data['status']);
+        $requester = $userRepository->find($data['requester']);
+        $supplier = isset($data['supplier']) ? $supplierRepository->find($data['supplier']) : null;
+        $purchaseRequest = $purchaseRequestService->createPurchaseRequest(
+            $entityManager,
+            $status,
+            $requester,
+            $data['comment'] ?? null,
+            null,
+            null,
+            $supplier
+        );
 
         $entityManager->persist($purchaseRequest);
+        $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);
+        $entityManager->flush();
 
-        try {
-            $entityManager->flush();
-        } /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException $e) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'Une autre demande d\'achat est en cours de création, veuillez réessayer.'
-            ]);
-        }
-        $number = $purchaseRequest->getNumber();
         return $this->json([
             'success' => true,
             'redirect' => $this->generateUrl('purchase_request_show', ['id' => $purchaseRequest->getId()]),
-            'msg' => "La demande d'achat <strong>${number}</strong> a bien été créée"
         ]);
     }
 
@@ -444,7 +439,7 @@ class PurchaseRequestController extends AbstractController
                 ? $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [$currentStatus->getState()])
                 : [];
 
-            $json = $this->renderView('purchase_request/edit_content_modal.html.twig', [
+            $json = $this->renderView('purchase_request/form_content_modal.html.twig', [
                 'purchaseRequest' => $purchaseRequest,
                 'statuses' => $statuses,
             ]);

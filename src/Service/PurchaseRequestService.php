@@ -4,6 +4,7 @@
 namespace App\Service;
 
 use App\Entity\FiltreSup;
+use App\Entity\Fournisseur;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\Statut;
@@ -138,7 +139,8 @@ class PurchaseRequestService {
                                           ?Utilisateur $requester,
                                           ?string $comment = null,
                                           ?DateTime $validationDate = null,
-                                          ?Utilisateur $buyer = null): PurchaseRequest {
+                                          ?Utilisateur $buyer = null,
+                                          ?Fournisseur $supplier = null): PurchaseRequest {
         $now =  new DateTime("now");
         $purchase = new PurchaseRequest();
         $purchaseRequestNumber = $this->uniqueNumberService->create($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
@@ -148,7 +150,8 @@ class PurchaseRequestService {
             ->setRequester($requester)
             ->setComment(StringHelper::cleanedComment($comment))
             ->setNumber($purchaseRequestNumber)
-            ->setValidationDate($validationDate);
+            ->setValidationDate($validationDate)
+            ->setSupplier($supplier);
 
         if($buyer) {
             $purchase->setBuyer($buyer);

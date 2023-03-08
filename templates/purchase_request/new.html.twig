@@ -10,7 +10,9 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
-                {% include 'purchase_request/edit_content_modal.html.twig' %}
+                {% include 'purchase_request/form_content_modal.html.twig' with {
+                    statuses: [statuses|first],
+                }%}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
