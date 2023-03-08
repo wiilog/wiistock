@@ -419,7 +419,6 @@ class DispatchService {
             }
 
             if($sendReport){
-                $receiverEmailUses = [];
                 $receiverEmailUses[] = $dispatch->getLocationFrom()->getEmail();
                 $receiverEmailUses[] = $dispatch->getLocationTo()->getEmail();
                 $receiverEmailUses[] = $signatory?->getEmail();
