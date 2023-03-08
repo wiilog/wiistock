@@ -288,7 +288,9 @@ export default class Form {
             const prefixMessage = label ? `${label} : ` : '';
             Flash.add(`danger`, `${prefixMessage}${message}`);
         } else {
-            $parent.append(`<span class="invalid-feedback">${message}</span>`);
+            if (message) {
+                $parent.append(`<span class="invalid-feedback">${message}</span>`);
+            }
         }
     }
 
