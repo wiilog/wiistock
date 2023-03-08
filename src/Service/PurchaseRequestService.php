@@ -107,13 +107,15 @@ class PurchaseRequestService {
 
     public function createHeaderDetailsConfig(PurchaseRequest $request): array {
         return [
-            ['label' => 'Statut', 'value' => FormatHelper::status($request->getStatus())],
-            ['label' => 'Demandeur', 'value' => FormatHelper::user($request->getRequester())],
-            ['label' => 'Acheteur', 'value' => FormatHelper::user($request->getBuyer())],
-            ['label' => 'Date de création', 'value' => FormatHelper::datetime($request->getCreationDate())],
-            ['label' => 'Date de validation', 'value' => FormatHelper::datetime($request->getValidationDate())],
-            ['label' => 'Date de prise en compte', 'value' => FormatHelper::datetime($request->getConsiderationDate())],
-            ['label' => 'Date de traitement', 'value' => FormatHelper::datetime($request->getProcessingDate())],
+
+            ['label' => 'Statut', 'value' => $this->formatService->status($request->getStatus())],
+            ['label' => 'Demandeur', 'value' =>  $this->formatService->user($request->getRequester())],
+            ['label' => 'Acheteur', 'value' => $this->formatService->user($request->getBuyer())],
+            ['label' => 'Date de création', 'value' => $this->formatService->datetime($request->getCreationDate())],
+            ['label' => 'Date de validation', 'value' => $this->formatService->datetime($request->getValidationDate())],
+            ['label' => 'Date de prise en compte', 'value' => $this->formatService->datetime($request->getConsiderationDate())],
+            ['label' => 'Date de traitement', 'value' => $this->formatService->datetime($request->getProcessingDate())],
+            ['label' => 'Fournisseur', 'value' => $this->formatService->supplier($request->getSupplier())],
             [
                 'label' => 'Commentaire',
                 'value' => $request->getComment() ?: "",

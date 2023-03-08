@@ -2,7 +2,12 @@
     <div class="row">
         <div class="form-group col-12">
             <label class="wii-field-name">Quantité commandée*</label>
-            <input type="number" class="w-100 form-control data needed" name="orderedQuantity" min="1" title="Quantité commandée" value="{{ line.orderedQuantity }}">
+            <input type="number"
+                   class="w-100 form-control data needed"
+                   name="orderedQuantity"
+                   min="1"
+                   title="Quantité commandée"
+                   value="{{ line.orderedQuantity }}">
         </div>
     </div>
     <div class="row">
@@ -17,13 +22,15 @@
         <div class="form-group col-12 col-md-6">
             <label class="wii-field-name">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? '*' }}</label>
             <div class="w-100">
-                <select class="form-control data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' }}"
-                        title="Fournisseur"
-                        name="supplier">
-                    {% if line.supplier %}
-                        <option value="{{ line.supplier.id }}" selected>{{ line.supplier.nom }}</option>
-                    {% else %}
-                         <option selected></option>
+                {% set supplier = line.supplier ?? line.purchaseRequest.supplier ?? null %}
+                {% set disabled = not line.supplier and line.purchaseRequest.supplier %}
+                <select
+                    class="form-control data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' }}"
+                    title="Fournisseur"
+                    name="supplier"
+                    {{ disabled ? "disabled" }}>
+                    {% if supplier %}
+                        <option value="{{supplier.id }}" selected>{{ supplier.nom }}</option>
                     {% endif %}
                 </select>
             </div>
