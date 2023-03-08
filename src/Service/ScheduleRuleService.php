@@ -41,7 +41,7 @@ class ScheduleRuleService
             ScheduleRule::ONCE => $this->calculateOnce($rule, $now),
             ScheduleRule::DAILY => $this->calculateFromDailyRule($rule, $now, $instant),
             ScheduleRule::WEEKLY => $this->calculateFromWeeklyRule($rule, $now, $instant),
-            ScheduleRule::HOURLY => $this->calculateFromHourlyRule($rule, $now, $instant),
+            ScheduleRule::HOURLY => $this->calculateFromHourlyRule($rule, $now),
             ScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $now, $instant),
             default => throw new RuntimeException('Invalid schedule rule frequency'),
         };
@@ -168,17 +168,21 @@ class ScheduleRuleService
         return $nextOccurrence;
     }
 
-    public function calculateFromHourlyRule(ScheduleRule $rule, DateTime $now, bool $instant): ?DateTime {
+    public function calculateFromHourlyRule(ScheduleRule $rule, DateTime $now): ?DateTime {
         $intervalPeriod = $rule->getIntervalPeriod();
         if (!$intervalPeriod) {
             return null;
         }
 
-        $hoursBetweenDates = $now->diff($rule->getBegin(), true)->format("%h");
-        if($hoursBetweenDates % $intervalPeriod === 0 && !$instant) {
-            $hoursToAdd = $intervalPeriod - ($hoursBetweenDates % $intervalPeriod);
+        $hoursBetweenDates = intval($now->diff($rule->getBegin(), true)->format("%h"));
+        if($hoursBetweenDates % $intervalPeriod === 0) {
+            if (intval($rule->getBegin()->format('i')) < intval($now->format('i'))) {
+                $hoursToAdd = $intervalPeriod;
+            } else {
+                $hoursToAdd = 0;
+            }
         } else {
-            $hoursToAdd = 0;
+            $hoursToAdd = $hoursBetweenDates % $intervalPeriod;
         }
 
         $nextOccurrence = clone $now;
