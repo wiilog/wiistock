@@ -438,11 +438,11 @@ class DispatchService {
                 ? 'Acheminement {1} traité partiellement le {2}'
                 : 'Acheminement {1} traité le {2}';
 
-
+            $customGroupedSignatureTitle = $status->getGroupedSignatureType() === Dispatch::DROP ? 'Bon de livraison' : "Bon d'enlèvement";
             // Attention!! return traduction parameters to give to translationService::translate
             $title = fn(string $slug) => (
                 $fromGroupedSignature
-                ? ['Demande', 'Acheminements', 'Emails', "Bon d'enlèvement généré pour l'acheminement {1} au statut {2} le {3}", [
+                ? ['Demande', 'Acheminements', 'Emails', "$customGroupedSignatureTitle généré pour l'acheminement {1} au statut {2} le {3}", [
                     1 => $dispatch->getNumber(),
                     2 => $this->formatService->status($status),
                     3 => $this->formatService->datetime($validationDate)
@@ -783,7 +783,7 @@ class DispatchService {
             $data = [
                 "actions" => $actions,
                 "code" => $code,
-                "nature" => $nature,
+                "nature" => $nature->getLabel(),
                 "quantity" => $quantity,
                 "weight" => $weight,
                 "volume" => $volume,
@@ -951,7 +951,8 @@ class DispatchService {
     }
 
     public function persistNewWaybillAttachment(EntityManagerInterface $entityManager,
-                                                Dispatch               $dispatch): Attachment {
+                                                Dispatch               $dispatch,
+                                                Utilisateur $user): Attachment {
 
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -987,7 +988,6 @@ class DispatchService {
             ->sum();
 
         $waybillDate = $this->formatService->parseDatetime($waybillData['dispatchDate'] ?? null, ["Y-m-d"]);
-
         $variables = [
             "numach" => $dispatch->getNumber(),
             "qrcodenumach" => $dispatch->getNumber(),
@@ -1001,7 +1001,7 @@ class DispatchService {
             "date1ach" => $this->formatService->date($dispatch->getStartDate()),
             "date2ach" => $this->formatService->date($dispatch->getEndDate()),
             // dispatch waybill data
-            "dateacheminement" => $this->formatService->date($waybillDate),
+            "dateacheminement" => $this->formatService->date($waybillDate, "", $user),
             "transporteur" => $waybillData['carrier'] ?? '',
             "expediteur" => $waybillData['consignor'] ?? '',
             "destinataire" => $waybillData['receiver'] ?? '',
@@ -1108,6 +1108,8 @@ class DispatchService {
                                                        Dispatch $dispatch,
                                                        ?Utilisateur $signatory = null): Attachment {
 
+        $status = $dispatch->getStatut();
+        $customGroupedSignatureTitle = $status->getGroupedSignatureType() === Dispatch::DROP ? 'Bon de livraison' : "Bon d'enlèvement";
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -1121,6 +1123,7 @@ class DispatchService {
             ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray());
 
         $variables = [
+            "titredocument" => $customGroupedSignatureTitle,
             "numach" => $dispatch->getNumber(),
             "qrcodenumach" => $dispatch->getNumber(),
             "statutach" => $this->formatService->status($dispatch->getStatut()),
@@ -1161,6 +1164,7 @@ class DispatchService {
                     "numeroscelleref" => $dispatchReferenceArticle->getSealingNumber(),
                     "poidsref" => $description['weight'] ?? '',
                     "volumeref" => $description['volume'] ?? '',
+                    "photoref" => $dispatchReferenceArticle->getAttachments()->isEmpty() ? 'Non' : 'Oui',
                     "adrref" => $dispatchReferenceArticle->isADR() ? 'Oui' : 'Non' ,
                     "documentsref" => $description['associatedDocumentTypes'] ?? '',
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
@@ -1170,7 +1174,6 @@ class DispatchService {
                 ];
             })
             ->toArray();
-
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "${projectDir}/public/$reportTemplatePath",
             $variables,
@@ -1185,7 +1188,7 @@ class DispatchService {
         $this->PDFGeneratorService->generateFromDocx($docxPath, $reportOutdir);
         unlink($docxPath);
 
-        $title = "Bon d'enlèvement - {$dispatch->getNumber()}";
+        $title = "$customGroupedSignatureTitle - {$dispatch->getNumber()}";
 
         $reportAttachment = new Attachment();
         $reportAttachment
@@ -1217,7 +1220,7 @@ class DispatchService {
 
         $entityManager->flush();
 
-        return $this->persistNewWaybillAttachment($entityManager, $dispatch);
+        return $this->persistNewWaybillAttachment($entityManager, $dispatch, $user);
     }
 
     public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
@@ -1294,13 +1297,39 @@ class DispatchService {
                                            $statusData,
                                            $commentData,
                                            $dispatchesToSignIds,
-                                           $fromNomade = false){
+                                           $fromNomade = false,
+                                           $user = null) {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $location = $locationRepository->find($locationData);
+        $groupedSignatureStatus = $statusRepository->find($statusData);
+
+        $locationId = null;
+        if($locationData['from'] && $locationData['to']) {
+            $locationId = $groupedSignatureStatus->getGroupedSignatureType() === Dispatch::TAKING ? $locationData['from'] : $locationData['to'];
+        } else if($locationData['from']) {
+            if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::TAKING){
+                $locationId = $locationData['from'];
+            } else {
+                return [
+                    'success' => false,
+                    'msg' => "Le statut sélectionné ne correspond pas à un processus d'enlèvement."
+                ];
+            }
+        } else if($locationData['to']) {
+            if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::DROP){
+                $locationId = $locationData['to'];
+            } else {
+                return [
+                    'success' => false,
+                    'msg' => "Le statut sélectionné ne correspond pas à un processus de livraison."
+                ];
+            }
+        }
+        $location = $locationRepository->find($locationId);
+
         $signatory = $signatoryTrigramData && !$fromNomade
             ? $userRepository->find($signatoryTrigramData)
             : ($signatoryTrigramData
@@ -1347,7 +1376,7 @@ class DispatchService {
             throw new FormException("Le signataire renseigné n'est pas correct");
         }
 
-        $groupedSignatureStatus = $statusRepository->find($statusData);
+
         $dispatchesToSign = $dispatchesToSignIds
             ? $dispatchRepository->findBy(['id' => $dispatchesToSignIds])
             : [];
@@ -1402,6 +1431,7 @@ class DispatchService {
 
             $dispatch
                 ->setTreatmentDate($now)
+                ->setTreatedBy($user)
                 ->setCommentaire($newCommentDispatch . $commentData);
 
             $entityManager->flush();
@@ -1415,5 +1445,15 @@ class DispatchService {
             'success' => true,
             'msg' => "Signature groupée effectuée avec succès."
         ];
+    }
+
+    public function getGroupedSignatureTypes(?string $groupedSignatureType = ''): string
+    {
+        $emptyOption = "<option value=''></option>";
+        return $emptyOption .= Stream::from(Dispatch::GROUPED_SIGNATURE_TYPES)
+            ->map(function(string $type) use ($groupedSignatureType) {
+                $selected = $type === $groupedSignatureType ? 'selected' : '';
+                return "<option value='{$type}' {$selected}>{$type}</option>";
+            })->join('');
     }
 }

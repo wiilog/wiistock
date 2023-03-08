@@ -103,17 +103,16 @@ $(function() {
 
                         const pickLocationFilterValue = $(`.filters-container select[name=pickLocation]`).val();
                         const dropLocationFilterValue = $(`.filters-container select[name=dropLocation]`).val();
-                        const location = pickLocationFilterValue !== null
-                            ? pickLocationFilterValue
-                            : (dropLocationFilterValue !== null
-                                ? dropLocationFilterValue
-                                : '');
                         displayCommentNeededAttributes($modalGroupedSignature.find('select[name=status]'));
                         Form.create($modalGroupedSignature)
                             .clearSubmitListeners()
                             .onSubmit((data, form) => {
                                 form.loading(() => (
-                                    AJAX.route(AJAX.POST, 'finish_grouped_signature', {dispatchesToSign, location})
+                                    AJAX.route(AJAX.POST, 'finish_grouped_signature', {
+                                        dispatchesToSign,
+                                        from: pickLocationFilterValue,
+                                        to: dropLocationFilterValue
+                                    })
                                         .json(data)
                                         .then(({success}) => {
                                             if(success){

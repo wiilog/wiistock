@@ -7,7 +7,8 @@ let tableInventoryPanning;
 
 global.editMissionRule = editMissionRule;
 
-export function initializeInventoryPlanificatorTable() {
+export function initializeInventoryPlanificatorTable($container) {
+    const $missionRulesTable = $container.find('table#missionRulesTable');
     const tableInventoryPannerConfig = {
         ajax: {
             "url": Routing.generate('settings_mission_rules_api', true),
@@ -21,31 +22,40 @@ export function initializeInventoryPlanificatorTable() {
             {data: `periodicity`, title: `Périodicité`},
             {data: `categories`, title: `Catégorie(s)`},
             {data: `duration`, title: `Durée`},
-            {data: `creator`, title: `Créateur`},
+            {data: `creator`, title: `Demandeur`},
             {data: `lastExecution`, title: `Dernière exécution`},
         ],
         rowConfig: {
             needsRowClickAction: true,
         },
     };
-    tableInventoryPanning = initDataTable(`missionRulesTable`, tableInventoryPannerConfig);
+    tableInventoryPanning = initDataTable($missionRulesTable, tableInventoryPannerConfig);
+
+    $missionRulesTable.on('click', 'button.delete-row', function () {
+        AJAX
+            .route(AJAX.DELETE, 'mission_rules_delete', {id: $(this).data('id')})
+            .json()
+            .then((data) => {
+                if (data.success) {
+                    tableInventoryPanning.ajax.reload();
+                }
+            })
+    });
 
     const $modalFormInventoryPlanner = $('#modalFormInventoryPlanner');
     Form
         .create($modalFormInventoryPlanner)
         .addProcessor((data, errors, $form) => {
-            if (data.get('missionType') === 'location') {
-                const $addInventoryLocationsModule = $form.find('.add-inventory-location-container')
-                const $locationTable = $addInventoryLocationsModule.find('table');
-                const locations = $locationTable.DataTable().column(0).data().toArray();
+            const $addInventoryLocationsModule = $form.find('.add-inventory-location-container');
+            const $locationTable = $addInventoryLocationsModule.find('table');
+            const locations = $locationTable.DataTable().column(0).data().toArray();
 
-                if (locations.length === 0) {
-                    errors.push({
-                        message: `Vous devez sélectionner au moins un emplacement`,
-                    });
-                } else {
-                    data.append('locations', locations);
-                }
+            if (locations.length === 0) {
+                errors.push({
+                    message: `Vous devez sélectionner au moins un emplacement`,
+                });
+            } else {
+                data.append('locations', locations);
             }
         })
         .addProcessor((data, errors, $form) => {

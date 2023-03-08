@@ -770,12 +770,10 @@ class DispatchController extends AbstractController {
         foreach($dispatch->getDispatchPacks() as $dispatchPack) {
             $data[] = $service->packRow($dispatch, $dispatchPack, false, $edit);
         }
-
         if($edit) {
             if(empty($data)) {
                 $data[] = $service->packRow($dispatch, null, true, true);
             }
-
             $data[] = [
                 'createRow' => true,
                 "actions" => "<span class='d-flex justify-content-start align-items-center'><span class='wii-icon wii-icon-plus'></span></span>",
@@ -791,7 +789,6 @@ class DispatchController extends AbstractController {
                 "status" => null,
             ];
         }
-
         return $this->json([
             "data" => $data
         ]);
@@ -1445,9 +1442,10 @@ class DispatchController extends AbstractController {
      *     methods="GET"
      * )
      */
-    public function printWaybillNote(Dispatch $dispatch,
+    public function printWaybillNote(Dispatch           $dispatch,
                                      TranslationService $translationService,
-                                     DispatchService    $dispatchService): Response {
+                                     KernelInterface    $kernel,
+                                     Attachment         $attachment): Response {
         if(!$dispatch->getWaybillData()) {
             return $this->json([
                 "success" => false,
@@ -1455,9 +1453,9 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        $data = $dispatchService->getWaybillData($dispatch);
-
-        return new PdfResponse($data['file'], "{$data['name']}.pdf");
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
+        return $response;
     }
 
     /**
@@ -1647,8 +1645,10 @@ class DispatchController extends AbstractController {
                                            EntityManagerInterface $entityManager,
                                            DispatchService        $dispatchService): Response {
 
-
-        $locationData = $request->query->get('location');
+        $locationData = [
+            'from' => $request->query->get('from') === "null" ? null : $request->query->get('from'),
+            'to' => $request->query->get('to') === "null" ? null : $request->query->get('to'),
+        ];
         $signatoryTrigramData = $request->request->get("signatoryTrigram");
         $signatoryPasswordData = $request->request->get("signatoryPassword");
         $statusData = $request->request->get("status");

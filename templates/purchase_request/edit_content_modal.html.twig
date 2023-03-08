@@ -4,6 +4,8 @@
     <div class="form-group needed col-md-6 col-12">
         <label class="wii-field-name" for="requester">Demandeur</label>
         <select class="demandeur form-control data needed input" name="requester" disabled>
+
+{#            TODO CHACK !!!!!!!!!!!!!!!!!!!!!!!!!!#}
             {% if purchaseRequest.requester %}
                 <option value="{{ purchaseRequest.requester.id}}">{{ purchaseRequest.requester.username }}</option>
             {% else %}
@@ -18,6 +20,8 @@
             <select name="status"
                     class="form-control data needed select2"
                     title="Statut">
+
+{#                TODO CHECK !!!!!!!!!!!!!!!!!#}
                 {% if purchaseRequest.status %}
                     {% for status in statuses %}
                         {% set Default = status.id == purchaseRequest.status.id %}
@@ -33,6 +37,7 @@
         </div>
     </div>
 
+    {# TODO !!!!!!!!!!!!!!!!!!!!!!!!! #}
     <div class="form-group col-12 col-md-6">
         {{ form.select('supplier', 'Fournisseur', fieldsParam|isFieldRequired('fournisseur', 'requiredCreate'), {
             type: 'provider',
@@ -44,6 +49,15 @@
     <div class="form-group col-md-6 col-12">
     </div>
 
+    <div class="form-group col-12 col-md-6">
+        {{ form.select('supplier', 'Fournisseur', false, {
+            type: 'provider',
+            multiple: false,
+            items: {(purchaseRequest.supplier.id ?? '' ): (purchaseRequest.supplier.nom ?? '')}
+        }) }}
+    </div>
+</div>
+<div class="row">
     <div class="form-group col-md-6 col-12">
         <label class="wii-field-name">Commentaire</label>
         <input class="comment form-control data"

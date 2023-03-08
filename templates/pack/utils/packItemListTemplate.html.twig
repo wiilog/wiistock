@@ -61,7 +61,7 @@
             </tr>
         {% endif %}
         {% if content|length > 0 %}
-            <tr class="articles-container">
+            <tr class="articles-container {{ not header ? 'no-header' }}">
                 <td></td>
                 <td>
                     <div class="articles-wrapper">

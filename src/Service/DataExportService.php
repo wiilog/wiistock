@@ -81,6 +81,9 @@ class DataExportService
         return array_merge([
             'reference',
             'libelle',
+            'fournisseur',
+            'référence fournisseur',
+            'tag RFID',
             'quantité',
             'type',
             'statut',
@@ -94,7 +97,6 @@ class DataExportService
             'groupe de visibilité',
             'projet',
             'prix unitaire',
-            'zone de destination',
             'numéro de commande',
             'numéro de bon de livraison',
             'pays d\'origine',
@@ -146,6 +148,7 @@ class DataExportService
             'Emplacement',
             'Quantité sécurité',
             'Quantité de conditionnement',
+            'Zone'
         ];
     }
 
@@ -319,15 +322,19 @@ class DataExportService
                 ->setSuppliers(explode(",", $data["suppliers"]));
 
             if (isset($data["scheduled-date-radio"]) && $data["scheduled-date-radio"] === "fixed-date") {
-                $export->setStockEntryStartDate(DateTime::createFromFormat('d/m/Y', $data["scheduledDateMin"]))
-                    ->setStockEntryEndDate(DateTime::createFromFormat('d/m/Y', $data["scheduledDateMax"]));
+                if (isset($data["scheduledDateMin"]) && isset($data["scheduledDateMax"])) {
+                    $export->setStockEntryStartDate(DateTime::createFromFormat('Y-m-d', $data["scheduledDateMin"]))
+                        ->setStockEntryEndDate(DateTime::createFromFormat('Y-m-d', $data["scheduledDateMax"]));
+                }
             } else {
-                $now = new DateTime("now");
-                $endDate = (clone $now)->modify("-{$data["minus-day"]} days");
-                $startDate = (clone $endDate)->modify("-{$data["additional-day"]} days");
+                if (isset($data["minus-day"]) && isset($data["additional-day"])) {
+                    $now = new DateTime("now");
+                    $endDate = (clone $now)->modify("-{$data["minus-day"]} days");
+                    $startDate = (clone $endDate)->modify("-{$data["additional-day"]} days");
 
-                $export->setStockEntryStartDate($startDate)
-                    ->setStockEntryEndDate($endDate);
+                    $export->setStockEntryStartDate($startDate)
+                        ->setStockEntryEndDate($endDate);
+                }
             }
         }
 

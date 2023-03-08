@@ -16,6 +16,7 @@ use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
@@ -47,6 +48,7 @@ use App\Repository\SettingRepository;
 use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
+use App\Service\DispatchService;
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
@@ -92,6 +94,9 @@ class SettingsController extends AbstractController {
 
     #[Required]
     public StatusService $statusService;
+
+    #[Required]
+    public DispatchService $dispatchService;
 
     #[Required]
     public SettingsService $settingsService;
@@ -1179,6 +1184,7 @@ class SettingsController extends AbstractController {
                             'types' => $types,
                             'categoryType' => CategoryType::DEMANDE_DISPATCH,
                             'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
+                            'groupedSignatureTypes' => $this->dispatchService->getGroupedSignatureTypes(),
                         ];
                     },
                 ],
@@ -2446,7 +2452,7 @@ class SettingsController extends AbstractController {
                         </button>
                     </div>
                 ",
-                "missionType" => $mission->getMissionType(),
+                "missionType" => $mission->getMissionType() ? InventoryMission::TYPES_LABEL[$mission->getMissionType()] ?? '' : '',
                 "label" => $mission->getLabel(),
                 "categories" => Stream::from($mission->getCategories())
                     ->map(fn(InventoryCategory $category) => $category->getLabel())

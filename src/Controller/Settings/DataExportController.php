@@ -218,20 +218,33 @@ class DataExportController extends AbstractController {
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
         $header = $dataExportService->createArticlesHeader($freeFieldsConfig);
 
-        $dateMin = $request->query->get("dateMin");
-        $dateMax = $request->query->get("dateMax");
-        $dateTimeMin = DateTime::createFromFormat('d/m/Y', $dateMin);
-        $dateTimeMax = DateTime::createFromFormat('d/m/Y', $dateMax);
-        $referenceTypes = $request->query->all('referenceTypes');
-        $statuses = $request->query->all('statuses');
-        $suppliers = $request->query->all('suppliers');
+        $options = [];
+        if ($request->query->get("dateMin") !== "" && $request->query->get("dateMax") !== "") {
+            if($request->query->get("dateMin") > $request->query->get("dateMax")) {
+
+            }
+            $options["dateMin"] = DateTime::createFromFormat('d/m/Y', $request->query->get("dateMin"));
+            $options["dateMax"] = DateTime::createFromFormat('d/m/Y', $request->query->get("dateMax"));
+        }
+
+        if ($request->query->all("referenceTypes") !== null) {
+            $options["referenceTypes"] = $request->query->all("referenceTypes");
+        }
+        if ($request->query->all("statuses") !== null) {
+            $options["statuses"] = $request->query->all("statuses");
+        }
+        if ($request->query->all("suppliers") !== null) {
+            $options["suppliers"] = $request->query->all("suppliers");
+        }
+
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         $user = $userService->getUser();
 
         return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $dataExportService, $user,
-            $articleDataService, $referenceTypes, $statuses, $suppliers, $dateTimeMin, $dateTimeMax) {
+            $articleDataService, $options) {
             $articleRepository = $entityManager->getRepository(Article::class);
-            $articles = $articleRepository->iterateAll($user, $dateTimeMin, $dateTimeMax,$referenceTypes, $statuses, $suppliers);
+
+            $articles = $articleRepository->iterateAll($user, $options);
 
             $start = new DateTime();
             $dataExportService->exportArticles($articleDataService, $freeFieldsConfig, $articles, $output);

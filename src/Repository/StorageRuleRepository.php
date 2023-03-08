@@ -42,8 +42,10 @@ class StorageRuleRepository extends EntityRepository
             ->addSelect('location.label AS locationLabel')
             ->addSelect('storage_rule.securityQuantity AS securityQuantity')
             ->addSelect('storage_rule.conditioningQuantity AS conditioningQuantity')
+            ->addSelect('zone.name AS zoneName')
             ->leftjoin('storage_rule.referenceArticle', 'reference')
-            ->leftjoin('storage_rule.location', 'location');
+            ->leftjoin('storage_rule.location', 'location')
+            ->leftJoin('location.zone', 'zone');
 
         return $qb
             ->getQuery()

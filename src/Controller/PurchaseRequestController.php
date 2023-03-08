@@ -48,13 +48,9 @@ class PurchaseRequestController extends AbstractController
     public function index(EntityManagerInterface $entityManager): Response
     {
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
         return $this->render('purchase_request/index.html.twig', [
-            'statuses' => $statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST),
-            'purchaseRequest' => new PurchaseRequest(),
-            'fieldsParam' => $fieldsParam,
+            'statuts' => $statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST),
         ]);
     }
 
@@ -447,14 +443,10 @@ class PurchaseRequestController extends AbstractController
             $statuses = $currentStatus
                 ? $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [$currentStatus->getState()])
                 : [];
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
             $json = $this->renderView('purchase_request/edit_content_modal.html.twig', [
                 'purchaseRequest' => $purchaseRequest,
                 'statuses' => $statuses,
-                'fieldsParam' => $fieldsParam,
-                'defaultStatus' => $defaultStatus
             ]);
 
             return new JsonResponse($json);

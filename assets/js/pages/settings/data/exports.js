@@ -98,7 +98,7 @@ function displayExportModal(exportId) {
             toggleFrequencyInput($checkedFrequency);
         }
 
-        const $dateInput = $modal.find('[name=dateMin], [name=dateMax], [name=scheduledDateMin], [name=scheduledDateMax], [name=articleDateMin], [name=articleDateMax]');
+        const $dateInput = $modal.find('[name=dateMin], [name=dateMax], [name=articleDateMin], [name=articleDateMax]');
         initDateTimePicker($dateInput);
 
         Select2Old.user($modal.find('.select2-user'));
@@ -188,19 +188,9 @@ function createForm() {
                         const suppliers = $modal.find(`[name=suppliers`).val();
                         const dateMin = $modal.find(`[name=articleDateMin]`).val();
                         const dateMax = $modal.find(`[name=articleDateMax]`).val();
-                        console.log(referenceTypes, statuses, suppliers);
 
-                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'articles`);
-                            return Promise.resolve();
-                        } else if(referenceTypes.length === 0){
-                            Flash.add(`danger`, `Veuillez choisir au moins un type de référence`);
-                            return Promise.resolve();
-                        } else if (statuses.length === 0) {
-                            Flash.add(`danger`, `Veuillez choisir au moins un statut`);
-                            return Promise.resolve();
-                        } else if (suppliers.length === 0) {
-                            Flash.add(`danger`, `Veuillez choisir au moins un fournisseur`);
+                        if (dateMin !== '' && dateMax !== '' && dateMin > dateMax) {
+                            Flash.add(`danger`, `Les bornes de dates d'entrée de stock sont invalides`);
                             return Promise.resolve();
                         }
 
@@ -258,6 +248,14 @@ function createForm() {
                     const exportId = $modal.find('[name=exportId]').val();
                     const route = exportId ? 'settings_edit_export' : 'settings_new_export';
                     const params = exportId ? {export: exportId} : {};
+
+                    if ($modal.find(`[name=scheduledDateMin]`).val()
+                        && $modal.find(`[name=scheduledDateMax]`).val()
+                        && $modal.find(`[name=scheduledDateMin]`).val() > $modal.find(`[name=scheduledDateMax]`).val()) {
+                        Flash.add(`danger`, `Les dates fixes d'entrée en stock sont invalides`);
+                        return Promise.resolve();
+                    }
+
                     return AJAX.route(POST, route, params)
                         .json(data)
                         .then(({success}) => {
