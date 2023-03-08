@@ -22,18 +22,16 @@
         <div class="form-group col-12 col-md-6">
             <label class="wii-field-name">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? '*' }}</label>
             <div class="w-100">
-                {% if line.supplier %}
-                    <select class="form-control data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' }}"
-                            title="Fournisseur"
-                            name="supplier"
-                            disabled>
-                        <option value="{{ line.supplier.id }}" selected>{{ line.supplier.nom }}</option>
-                {% else %}
-                    <select class="form-control data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' }}"
-                            title="Fournisseur"
-                            name="supplier"
-                        <option selected></option>
-                {% endif %}
+                {% set supplier = line.supplier ?? line.purchaseRequest.supplier ?? null %}
+                {% set disabled = not line.supplier and line.purchaseRequest.supplier %}
+                <select
+                    class="form-control data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' }}"
+                    title="Fournisseur"
+                    name="supplier"
+                    {{ disabled ? "disabled" }}>
+                    {% if supplier %}
+                        <option value="{{supplier.id }}" selected>{{ supplier.nom }}</option>
+                    {% endif %}
                 </select>
             </div>
         </div>

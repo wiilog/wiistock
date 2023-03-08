@@ -108,14 +108,14 @@ class PurchaseRequestService {
     public function createHeaderDetailsConfig(PurchaseRequest $request): array {
         return [
 
-            ['label' => 'Statut', 'value' => $request->getStatus() ? $this->formatService->status($request->getStatus()) : ''],
-            ['label' => 'Demandeur', 'value' => $request->getRequester() ? $request->getRequester()->getUsername() : ''],
-            ['label' => 'Acheteur', 'value' => $request->getBuyer() ? $request->getBuyer()->getUsername() : ''],
-            ['label' => 'Date de création', 'value' => $request->getCreationDate() ? $request->getCreationDate()->format('d/m/Y H:i') : ''],
-            ['label' => 'Date de validation', 'value' => $request->getValidationDate() ? $request->getValidationDate()->format('d/m/Y H:i') : ''],
-            ['label' => 'Date de prise en compte', 'value' => $request->getConsiderationDate() ? $request->getConsiderationDate()->format('d/m/Y H:i') : ''],
-            ['label' => 'Date de traitement', 'value' => $request->getProcessingDate() ? $request->getProcessingDate()->format('d/m/Y H:i') : ''],
-            ['label' => 'Fournisseur', 'value' => $request->getSupplier() ? $request->getSupplier()->getNom() : ''],
+            ['label' => 'Statut', 'value' => $this->formatService->status($request->getStatus())],
+            ['label' => 'Demandeur', 'value' =>  $this->formatService->user($request->getRequester())],
+            ['label' => 'Acheteur', 'value' => $this->formatService->user($request->getBuyer())],
+            ['label' => 'Date de création', 'value' => $this->formatService->datetime($request->getCreationDate())],
+            ['label' => 'Date de validation', 'value' => $this->formatService->datetime($request->getValidationDate())],
+            ['label' => 'Date de prise en compte', 'value' => $this->formatService->datetime($request->getConsiderationDate())],
+            ['label' => 'Date de traitement', 'value' => $this->formatService->datetime($request->getProcessingDate())],
+            ['label' => 'Fournisseur', 'value' => $this->formatService->supplier($request->getSupplier())],
             [
                 'label' => 'Commentaire',
                 'value' => $request->getComment() ?: "",

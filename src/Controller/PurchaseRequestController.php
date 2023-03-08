@@ -440,13 +440,10 @@ class PurchaseRequestController extends AbstractController
             $statuses = $currentStatus
                 ? $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [$currentStatus->getState()])
                 : [];
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
             $json = $this->renderView('purchase_request/edit_content_modal.html.twig', [
                 'purchaseRequest' => $purchaseRequest,
                 'statuses' => $statuses,
-                'fieldsParam' => $fieldsParam
             ]);
 
             return new JsonResponse($json);
