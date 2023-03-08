@@ -94,7 +94,8 @@ const initializers = {
     track_tournees: initializeTransportRound,
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
-    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate
+    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
+    trace_arrivages_camion_configurations : initializeArrivalsTruckConfigurations,
 };
 
 const saveCallbacks = {
@@ -1130,4 +1131,30 @@ function deleteTemplate($elem) {
     $parent.find(`.custom-template-preview`).html(`<span class="wii-small-text my-2">Aucun modèle personnalisé.</span>`);
     $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
     $(`input[name=${name}]`).val('1');
+}
+
+function initializeArrivalsTruckConfigurations($elem) {
+    const $timeSelectsEnd = $elem.find('input[type=time]');
+    $timeSelectsEnd.on('change', function () {
+        const $this = $(this);
+        const $input = $this.closest('label').hasClass('start');
+        const $brotherInput = $this.closest('div').find(`${$input? ':not(.start)' : '.start'} input[type=time]`);
+        const $errorMessage = $this.closest('div').find('.error-msg');
+        const $saveButton = $('button.save-settings');
+        if (( $this.val() && $brotherInput.val()) && ($input && $this.val() >= $brotherInput.val() || !$input && $this.val() <= $brotherInput.val())) {
+            $this.addClass('is-invalid');
+            $brotherInput.addClass('is-invalid');
+            $errorMessage.show();
+        } else {
+            $this.removeClass('is-invalid');
+            $brotherInput.removeClass('is-invalid');
+            $errorMessage.hide();
+        }
+        if ($elem.find('input.is-invalid').length > 0) {
+            $saveButton.attr('disabled', true);
+        } else {
+            $saveButton.attr('disabled', false);
+        }
+    });
+    $timeSelectsEnd.trigger('change');
 }
