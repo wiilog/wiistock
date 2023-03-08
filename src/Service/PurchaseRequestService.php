@@ -4,8 +4,10 @@
 namespace App\Service;
 
 use App\Entity\FiltreSup;
+use App\Entity\Fournisseur;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -17,7 +19,8 @@ use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\StringHelper;
 
-class PurchaseRequestService {
+class PurchaseRequestService
+{
 
     #[Required]
     public Twig_Environment $templating;
@@ -62,7 +65,8 @@ class PurchaseRequestService {
         ];
     }
 
-    public function dataRowPurchaseRequest(PurchaseRequest $request) {
+    public function dataRowPurchaseRequest(PurchaseRequest $request)
+    {
         $url = $this->router->generate('purchase_request_show', [
             "id" => $request->getId()
         ]);
@@ -87,7 +91,8 @@ class PurchaseRequestService {
     public function putPurchaseRequestLine($handle,
                                            CSVExportService $CSVExportService,
                                            array $request,
-                                           array $line = []) {
+                                           array $line = [])
+    {
         $CSVExportService->putLine($handle, [
             $request['number'] ?? '',
             $request['statusName'] ?? '',
@@ -105,7 +110,8 @@ class PurchaseRequestService {
         ]);
     }
 
-    public function createHeaderDetailsConfig(PurchaseRequest $request): array {
+    public function createHeaderDetailsConfig(PurchaseRequest $request): array
+    {
         return [
 
             ['label' => 'Statut', 'value' => $this->formatService->status($request->getStatus())],
@@ -133,31 +139,51 @@ class PurchaseRequestService {
         ];
     }
 
-    public function createPurchaseRequest(EntityManagerInterface $entityManager,
-                                          ?Statut $status,
+    public function createPurchaseRequest(?Statut      $status,
                                           ?Utilisateur $requester,
-                                          ?string $comment = null,
-                                          ?DateTime $validationDate = null,
-                                          ?Utilisateur $buyer = null): PurchaseRequest {
-        $now =  new DateTime("now");
+                                                       $options = []): PurchaseRequest
+    {
+        $comment = $options["comment"] ?? null;
+        $validationDate = $options["validationDate"] ?? null;
+        $buyer = $options["buyer"] ?? null;
+        $supplier = $options["supplier"] ?? null;
+        $now = new DateTime("now");
         $purchase = new PurchaseRequest();
-        $purchaseRequestNumber = $this->uniqueNumberService->create($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $purchaseRequestNumber = $this->uniqueNumberService->create($this->em, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $purchase
             ->setCreationDate($now)
             ->setStatus($status)
             ->setRequester($requester)
             ->setComment(StringHelper::cleanedComment($comment))
             ->setNumber($purchaseRequestNumber)
+            ->setSupplier($supplier)
             ->setValidationDate($validationDate);
 
-        if($buyer) {
+        if ($buyer) {
             $purchase->setBuyer($buyer);
         }
 
         return $purchase;
     }
 
-    public function sendMailsAccordingToStatus(PurchaseRequest $purchaseRequest) {
+    public function createPurchaseRequestLine(?ReferenceArticle $reference,
+                                              ?int              $requestedQuantity,
+                                                                $options = []): PurchaseRequestLine
+    {
+        $supplier = $options["supplier"] ?? null;
+        $purchaseRequest = $options["purchaseRequest"] ?? null;
+        $purchaseLine = new PurchaseRequestLine();
+        $purchaseLine
+            ->setReference($reference)
+            ->setRequestedQuantity($requestedQuantity)
+            ->setSupplier($supplier)
+            ->setPurchaseRequest($purchaseRequest);
+
+        return $purchaseLine;
+    }
+
+    public function sendMailsAccordingToStatus(PurchaseRequest $purchaseRequest)
+    {
         /** @var Statut $status */
         $status = $purchaseRequest->getStatus();
         $buyerAbleToReceivedMail = $status->getSendNotifToBuyer();
@@ -198,7 +224,8 @@ class PurchaseRequestService {
         }
     }
 
-    public function getDataForReferencesDatatable($params = null) {
+    public function getDataForReferencesDatatable($params = null)
+    {
         $demande = $this->em->find(PurchaseRequest::class, $params);
         $referenceLines = $demande->getPurchaseRequestLines();
 
@@ -213,7 +240,8 @@ class PurchaseRequestService {
         ];
     }
 
-    public function dataRowReference(PurchaseRequestLine $line) {
+    public function dataRowReference(PurchaseRequestLine $line)
+    {
         return [
             'reference' => $line->getReference()->getReference(),
             'libelle' => $line->getReference()->getLibelle(),
