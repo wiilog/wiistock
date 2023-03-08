@@ -623,7 +623,7 @@ class InventoryMissionController extends AbstractController
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $locationIdsStr = $request->request->get('locations');
+        $locationIdsStr = $request->query->all('locations');
         $locationIds = $locationIdsStr
             ? Stream::explode(',', $locationIdsStr)
                 ->map('trim')

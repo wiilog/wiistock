@@ -17,8 +17,8 @@ $(function () {
 
     initModalAddTableLocations();
     if(typeLocation && !locationsAlreadyAdded){
-        const tableLocations = $('#tableLocations');
-        onOpenModalAddLocationAndZone(tableLocations);
+        const $tableLocations = $('.add-inventory-location-container').find('table');
+        onOpenModalAddLocationAndZone($tableLocations);
     }
 
     initLocationMissionsDataTable();
@@ -219,7 +219,7 @@ function onOpenModalAddLocationAndZone(tableLocations){
             wrapLoadingOnActionButton($modalAddLocationAndZoneToMission.find('button[type=submit]'),() => {
                 return AJAX.route(`POST`, `add_locations_or_zones_to_mission`, {
                     mission,
-                    locations: tableLocations.DataTable().column(2).data().toArray()
+                    locations: tableLocations.DataTable().column(0).data().toArray()
                 })
                     .json()
                     .then((response) => {
@@ -258,10 +258,10 @@ function onOpenModalAddLocationAndZone(tableLocations){
 }
 
 function initModalAddTableLocations(dataToDisplay = null){
-    const tableLocations = $('#tableLocations');
+    const $tableLocations = $('.add-inventory-location-container').find('table');
 
     if(dataToDisplay){
-        const tableLocationsDatatable = tableLocations.DataTable();
+        const tableLocationsDatatable = $tableLocations.DataTable();
         const tableLocationsData = tableLocationsDatatable.column(1).data().toArray();
         for (const lineToAdd of dataToDisplay){
             if(Array.isArray(lineToAdd)){
@@ -277,12 +277,12 @@ function initModalAddTableLocations(dataToDisplay = null){
             }
         }
     } else {
-        initDataTable('tableLocations', {
+        initDataTable($tableLocations, {
             lengthMenu: [10, 25, 50],
             columns: [
+                {data: 'id', name: 'id', title: 'id', visible: false },
                 {data: 'zone', name: 'zone', title: 'Zone'},
                 {data: 'location', name: 'location', title: 'Emplacement'},
-                {data: 'id', name: 'id', title: 'id', visible: false },
             ],
             order: [
                 ['location', 'asc'],
