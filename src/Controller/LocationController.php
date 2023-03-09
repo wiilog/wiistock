@@ -122,7 +122,7 @@ class LocationController extends AbstractController {
                 ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatories($signatories)
+                ->setSignatories($signatories ?? [])
                 ->setEmail($email)
                 ->setZone($zone);
 
@@ -267,7 +267,7 @@ class LocationController extends AbstractController {
                 ->setIsActive($data['isActive'])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatories($signatories)
+                ->setSignatories($signatories ?? [])
                 ->setEmail($email)
                 ->setZone($zone);
 
