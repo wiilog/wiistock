@@ -5,6 +5,7 @@ import {toggleFrequencyInput} from "@app/pages/settings/utils";
 global.openFormPurchaseRequestPlanner = openFormPurchaseRequestPlanner;
 export function initializePurchaseRequestPlanner($container) {
     const tablePurchaseRequestPlannerConfig = {
+        processing: true,
         ajax: {
             "url": Routing.generate('purchase_request_schedule_rule_api', true),
             "type": GET
@@ -48,7 +49,7 @@ export function initializePurchaseRequestPlanner($container) {
             });
         })
         .submitTo(POST, 'purchase_request_schedule_form_submit', {
-            table : tablePurchaseRequestPlannerConfig
+            table : tablePurchaseRequestPlanner,
         });
 
     $tablePurchaseRequestPlanner.on('click', '.delete-purchase-request-schedule-rule', function () {
