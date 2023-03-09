@@ -18,6 +18,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
+use App\Service\MailerService;
+
 
 #[Route('/inventaires/missions/planifier')]
 class InventoryMissionRuleController extends AbstractController
@@ -52,8 +54,10 @@ class InventoryMissionRuleController extends AbstractController
     #[Route('/save', name: 'mission_rules_form', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function save(EntityManagerInterface $entityManager,
-                         Request                $request): JsonResponse
+                         Request                $request,
+                         MailerService          $mailerService): JsonResponse
     {
+
         $data = $request->request->all();
 
         $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
@@ -152,6 +156,32 @@ class InventoryMissionRuleController extends AbstractController
         }
 
         $entityManager->flush();
+
+        $mailerService->sendMail(
+            'FOLLOW GT // Création planification d’inventaire' ,
+            $this->renderView('mails/contents/mailScheduledInventory.html.twig', [
+                'requester' => $creator ?? $this->getUser(),
+                'creator' => $this->getUser(),
+                'missionType' => match ($missionRule->getMissionType()) {
+                    InventoryMission::ARTICLE_TYPE => "Quantité article",
+                    InventoryMission::LOCATION_TYPE => "Article sur emplacement",
+                },
+                'missionLabel' => $missionRule->getLabel(),
+                'describe' => $missionRule->getDescription(),
+                "frequency" => match ($missionRule->getFrequency()) {
+                    ScheduleRule::ONCE => "une fois",
+                    ScheduleRule::HOURLY => "chaque heure",
+                    ScheduleRule::DAILY => "chaque jour",
+                    ScheduleRule::WEEKLY => "chaque semaine",
+                    ScheduleRule::MONTHLY => "chaque mois",
+                    default => null,
+                },
+                'locations' => $missionRule->getLocations(),
+            ]),
+            $creator->getEmail() != $this->getUser()->getEmail()
+                ? [$this->getUser(), $creator]
+                : $this->getUser(),
+        );
 
         return $this->json([
             'success' => true,
