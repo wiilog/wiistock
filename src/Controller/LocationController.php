@@ -249,7 +249,7 @@ class LocationController extends AbstractController {
                     ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
-                : null;
+                : [];
             $email = $data['email'] ?? null;
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
