@@ -90,7 +90,7 @@ class StorageRuleRepository extends EntityRepository
             ->join('join_articlesFournisseurRef.fournisseur', 'join_fournisseur')
             ->andWhere('join_zone.id in (:zones)')
             ->andWhere('join_fournisseur.id in (:suppliers)')
-            ->andHaving('(SUM(IF(join_statut.code = :available, join_article.quantite, 0)) - MAX(IF(s.code = :available, a.quantite, 0)))) < storage_rule.securityQuantity')
+            ->andHaving('(SUM(IF(join_statut.code = :available, join_article.quantite, 0)) - MAX(IF(join_statut.code = :available, join_article.quantite, 0))) < storage_rule.securityQuantity')
             ->setParameters(array(
                 'zones' => $zones,
                 'suppliers' => $suppliers,
