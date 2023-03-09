@@ -146,8 +146,8 @@ class ScheduleRuleService
         $period = $rule->getPeriod();
         [$hour, $minute] = explode(":", $rule->getIntervalTime());
 
+        $nextOccurrence = clone $start;
         if ($now >= $start) {
-            $nextOccurrence = clone $start;
             $daysDifferential = $now->diff($start)->days;
 
             $add = $daysDifferential - $daysDifferential % $period;
@@ -157,11 +157,14 @@ class ScheduleRuleService
             $nextOccurrence->modify("+$add day");
             $nextOccurrence->setTime($hour, $minute);
 
-            if ($this->isTimeEqualOrBefore($rule->getIntervalTime(), $now) && !$instant) {
+            if ($instant && $this->isTimeEqual($rule->getIntervalTime(), $now)) {
+                return $nextOccurrence;
+            }
+
+            if ($this->isTimeEqualOrBefore($rule->getIntervalTime(), $now)) {
                 $nextOccurrence->modify("+1 day");
             }
         } else {
-            $nextOccurrence = clone $start;
             $nextOccurrence->setTime($hour, $minute);
         }
 
@@ -200,5 +203,10 @@ class ScheduleRuleService
     private function isTimeEqualOrBefore(string $time, DateTime $date) {
         [$hour, $minute] = explode(":", $time);
         return $date->format('H') > $hour || ($date->format('H') == $hour && $date->format('i') >= $minute);
+    }
+
+    private function isTimeEqual(string $time, DateTime $date) {
+        [$hour, $minute] = explode(":", $time);
+        return $date->format('H') == $hour && $date->format('i') == $minute;
     }
 }
