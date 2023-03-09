@@ -145,6 +145,8 @@ class GeoService
 
     // retourne en mètre la distance entre un tableau de point
     public function getDistanceBetween(array $coordinates): float {
+        // Reindex array for even keys
+        $coordinates = array_values($coordinates);
         $length = count($coordinates);
         return Stream::from($coordinates)
             ->map(function(array $current, $index) use ($length, $coordinates) {

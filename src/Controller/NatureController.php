@@ -251,7 +251,9 @@ class NatureController extends AbstractController
                 $frenchLabel = $label['language-id'] == "1" ? $label['label'] : $frenchLabel;
             }
 
-            $translationService->editEntityTranslations($entityManager, $labelTranslationSource, $labels);
+            if($labelTranslationSource) {
+                $translationService->editEntityTranslations($entityManager, $labelTranslationSource, $labels);
+            }
 
             $currentNature
                 ->setLabel($frenchLabel)
