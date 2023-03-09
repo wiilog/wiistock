@@ -2461,7 +2461,7 @@ class SettingsController extends AbstractController {
                     ->map(fn(InventoryCategory $category) => $category->getLabel())
                     ->join(", "),
                 "periodicity" => ScheduleRule::FREQUENCIES_LABELS[$mission->getFrequency()] ?? null,
-                "duration" => $mission->getDurationUnit() === InventoryMissionRule::DURATION_UNIT_WEEKS ? "{$mission->getDuration()} semaine(s)" : "{$mission->getDuration()} mois",
+                "duration" => $mission->getDuration().' '.InventoryMissionRule::DURATION_UNITS_LABELS[$mission->getDurationUnit()] ?? null,
                 "creator" => $mission->getCreator() ? $mission->getCreator()->getUsername() : "",
                 "lastExecution" => $mission->getLastRun() ? $mission->getLastRun()->getTimestamp() : "",
             ];

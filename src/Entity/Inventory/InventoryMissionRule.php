@@ -24,6 +24,12 @@ class InventoryMissionRule extends ScheduleRule
         self::DURATION_UNIT_MONTHS,
     ];
 
+    public const DURATION_UNITS_LABELS = [
+        self::DURATION_UNIT_DAYS => "jour(s)",
+        self::DURATION_UNIT_WEEKS => "semaine(s)",
+        self::DURATION_UNIT_MONTHS => "mois",
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
