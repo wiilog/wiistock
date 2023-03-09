@@ -5,7 +5,9 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Emplacement;
 use App\Entity\Menu;
+use App\Entity\PurchaseRequestScheduleRule;
 use App\Entity\Urgence;
 use App\Entity\Zone;
 use App\Service\CSVExportService;
@@ -86,22 +88,17 @@ class ZoneController extends AbstractController
         $data = $request->request->all();
 
         $zoneRepository = $manager->getRepository(Zone::class);
-
         $zone = $zoneRepository->find($data["id"]);
         if ($zone) {
             if (!$data['active']) {
-                foreach ($zone->getLocations()->toArray() as $location) {
-                    foreach ($location->getInventoryLocationMissions() as $inventoryLocationMission) {
-                        if (!$inventoryLocationMission->isDone()) {
-                            throw new FormException("La zone et ses emplacements sont contenus dans une planification d’inventaire, mission d’inventaire en cours ou une planification de demande d’achat, vous ne pouvez donc pas la désactiver");
-                        }
-                    }
-                    if ($location->getInventoryMissionRules()->count() > 0) {
-                        throw new FormException("La zone et ses emplacements sont contenus dans une planification d’inventaire, mission d’inventaire en cours ou une planification de demande d’achat, vous ne pouvez donc pas la désactiver");
-                    }
-                }
-                if ($zone->getPurchaseRequestScheduleRules()->count() > 0) {
-                    throw new FormException("La zone et ses emplacements sont contenus dans une planification d’inventaire, mission d’inventaire en cours ou une planification de demande d’achat, vous ne pouvez donc pas la désactiver");
+                $locationRepository = $manager->getRepository(Emplacement::class);
+                $purchaseRequestScheduleRuleRepository = $manager->getRepository(PurchaseRequestScheduleRule::class);
+                $issue = ($locationRepository->isLocationInNotDoneInventoryMission($zone) ? ' une mission d’inventaire en cours, ' : '')
+                    . ($locationRepository->isLocationInZoneInventoryMissionRule($zone) ? ' une planification d’inventaire, ' : '')
+                    . ( $purchaseRequestScheduleRuleRepository->isZoneInPurchaseRequestScheduleRule($zone) ? ' une planification de demande d’achat, ' : '');
+
+                if ($issue) {
+                    throw new FormException("La zone ou ses emplacements sont contenus dans".$issue."vous ne pouvez donc pas la désactiver");
                 }
             }
 

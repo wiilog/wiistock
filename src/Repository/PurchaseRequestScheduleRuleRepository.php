@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\PurchaseRequestScheduleRule;
+use App\Entity\Zone;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -37,6 +38,16 @@ class PurchaseRequestScheduleRuleRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    public function isZoneInPurchaseRequestScheduleRule(Zone $zone): bool {
+        return $this->createQueryBuilder('purchaseRequestScheduleRule')
+            ->select('COUNT(purchaseRequestScheduleRule.id)')
+            ->where('zone.id = :zoneId')
+            ->join('purchaseRequestScheduleRule.zones', 'zone')
+            ->setParameter('zoneId', $zone->getId())
+            ->getQuery()
+            ->getSingleScalarResult() > 0 ;
     }
 
 //    /**

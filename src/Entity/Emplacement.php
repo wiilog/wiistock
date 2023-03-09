@@ -146,8 +146,8 @@ class Emplacement implements PairedEntity {
     private Collection $inventoryLocationMissions;
 
     #[ORM\ManyToOne(targetEntity: Zone::class, inversedBy: 'locations')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private ?Zone $zone;
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Zone $zone = null;
 
     #[ORM\ManyToMany(targetEntity: InventoryMissionRule::class, mappedBy: 'locations')]
     private Collection $inventoryMissionRules;
