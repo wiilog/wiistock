@@ -1715,9 +1715,6 @@ class ImportService
             } else {
                 $this->throwError("Le champ description est obligatoire lors de la création d'un emplacement");
             }
-
-            $this->treatLocationZone($data, $location, $zoneRepository);
-
         } else {
             if (isset($data['description'])) {
                 if ((strlen($data['description'])) > 255) {
@@ -1817,38 +1814,8 @@ class ImportService
                 $location->setIsActive($value === 'oui');
             }
         }
-        if (isset($data['zone'])) {
-            $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
-            if (!$zone) {
-                $this->throwError('Zone inconnue.');
-            }
-            $location->setZone($zone);
-        } else {
-            if (!isset($this->cache['totalZone'])) {
-                $zoneRepository = $this->entityManager->getRepository(Zone::class);
-                $this->cache['totalZone'] = $zoneRepository->count([]);
-            }
 
-            if ($this->cache['totalZone'] === 0) {
-                $this->throwError("Aucune zone existante. Veuillez créer au moins une zone");
-            }
-            else if ($this->cache['totalZone'] === 1) {
-                $zone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
-                if ($zone) {
-                    $location->setZone($zone);
-                } else {
-                    $this->throwError('La zone ' . $data['zone'] . ' n\'existe pas dans la base de données');
-                }
-            }
-            else if ($this->cache['totalZone'] > 1) {
-                $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
-                if ($zone) {
-                    $location->setZone($zone);
-                } else {
-                    $this->throwError('La zone ' . $data['zone'] . ' n\'existe pas dans la base de données');
-                }
-            }
-        }
+        $this->treatLocationZone($data, $location, $zoneRepository);
 
         $this->entityManager->persist($location);
 
@@ -2284,7 +2251,7 @@ class ImportService
         ];
     }
 
-    private function treatLocationZone(Array $data,Emplacement $location,ZoneRepository $zoneRepository): void {
+    private function treatLocationZone(Array $data, Emplacement $location, ZoneRepository $zoneRepository): void {
         if (isset($data['zone'])) {
             $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
             if ($zone) {
