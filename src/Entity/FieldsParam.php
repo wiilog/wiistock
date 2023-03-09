@@ -8,6 +8,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: FieldsParamRepository::class)]
 class FieldsParam {
 
+    const MODAL_TYPE_FREE = 'FREE';
+    const MODAL_TYPE_USER = 'USER_BY_TYPE';
+
     const ENTITY_CODE_RECEPTION = 'réception';
 
     const FIELD_CODE_FOURNISSEUR = 'fournisseur';
@@ -131,7 +134,6 @@ class FieldsParam {
     const FIELD_LABEL_ARTICLE_PRODUCTION_DATE = 'date de production';
     const FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE = "ligne commande d'achat";
     const FIELD_LABEL_ARTICLE_NATIVE_COUNTRY = "pays d'origine";
-    const FIELD_LABEL_ARTICLE_DESTINATION_AREA = "zone de destination";
 
     const FIELD_CODE_ARTICLE_UNIT_PRICE = 'unitPrice';
     const FIELD_CODE_ARTICLE_BATCH = 'batch';
@@ -143,7 +145,6 @@ class FieldsParam {
     const FIELD_CODE_ARTICLE_PRODUCTION_DATE = 'productionDate';
     const FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE = "purchaseOrderLine";
     const FIELD_CODE_ARTICLE_NATIVE_COUNTRY = "nativeCountry";
-    const FIELD_CODE_ARTICLE_DESTINATION_AREA = 'destinationArea';
 
     const ENTITY_CODE_DEMANDE = 'demande';
     const FIELD_CODE_EXPECTED_AT = 'expectedAt';

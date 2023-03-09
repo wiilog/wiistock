@@ -12,10 +12,12 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\FiltreSup;
+use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\ScheduleRule;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -210,17 +212,39 @@ class DataExportController extends AbstractController {
                                    FreeFieldService       $freeFieldService,
                                    DataExportService      $dataExportService,
                                    ArticleDataService     $articleDataService,
-                                   UserService            $userService,
-                                   CSVExportService       $csvService): StreamedResponse {
+                                   CSVExportService       $csvService,
+                                   Request                $request,
+                                   UserService            $userService): StreamedResponse {
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
         $header = $dataExportService->createArticlesHeader($freeFieldsConfig);
+
+        $options = [];
+        if ($request->query->get("dateMin") !== "" && $request->query->get("dateMax") !== "") {
+            if($request->query->get("dateMin") > $request->query->get("dateMax")) {
+
+            }
+            $options["dateMin"] = DateTime::createFromFormat('d/m/Y', $request->query->get("dateMin"));
+            $options["dateMax"] = DateTime::createFromFormat('d/m/Y', $request->query->get("dateMax"));
+        }
+
+        if ($request->query->all("referenceTypes") !== null) {
+            $options["referenceTypes"] = $request->query->all("referenceTypes");
+        }
+        if ($request->query->all("statuses") !== null) {
+            $options["statuses"] = $request->query->all("statuses");
+        }
+        if ($request->query->all("suppliers") !== null) {
+            $options["suppliers"] = $request->query->all("suppliers");
+        }
 
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         $user = $userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $dataExportService, $user, $articleDataService) {
+        return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $dataExportService, $user,
+            $articleDataService, $options) {
             $articleRepository = $entityManager->getRepository(Article::class);
-            $articles = $articleRepository->iterateAll($user);
+
+            $articles = $articleRepository->iterateAll($user, $options);
 
             $start = new DateTime();
             $dataExportService->exportArticles($articleDataService, $freeFieldsConfig, $articles, $output);
@@ -286,6 +310,26 @@ class DataExportController extends AbstractController {
         }, $nameFile, $csvHeader);
     }
 
+    #[Route("/export/unique/ref-location", name: "settings_export_ref_location", options: ["expose" => true], methods: "GET")]
+    public function exportRefLocation(CSVExportService     $csvService,
+                                   DataExportService      $dataExportService,
+                                   EntityManagerInterface $entityManager,
+                                   Request                $request): Response {
+
+        $today = new DateTime();
+        $today = $today->format("d-m-Y H:i:s");
+        $nameFile = "export-reference-emplacement-$today.csv";
+
+        $csvHeader = $dataExportService->createStorageRulesHeader();
+        $refLocationsIterator = $entityManager->getRepository(StorageRule::class)->iterateAll();
+
+        return $csvService->streamResponse(function ($output) use ($dataExportService, $refLocationsIterator) {
+            $start = new DateTime();
+            $dataExportService->exportRefLocation($refLocationsIterator, $output);
+            $dataExportService->createUniqueExportLine(Export::ENTITY_REF_LOCATION, $start);
+        }, $nameFile, $csvHeader);
+    }
+
     #[Route("/export-template", name: "export_template", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportTemplate(EntityManagerInterface $entityManager,
@@ -300,9 +344,22 @@ class DataExportController extends AbstractController {
             : new Export();
 
         $columns = $arrivalService->getArrivalExportableColumns($entityManager);
+        $refTypes = $entityManager->getRepository(Type::class)->findByCategoryLabels([CategoryType::ARTICLE]);
+
+        $statuses = $entityManager->getRepository(Statut::class)->findBy(["nom" => [Article::STATUT_ACTIF, Article::STATUT_INACTIF]]);
+        $suppliers = $entityManager->getRepository(Fournisseur::class)->getForExport();
 
         return new JsonResponse($this->renderView('settings/donnees/export/form.html.twig', [
             "export" => $export,
+            "refTypes" => Stream::from($refTypes)
+                ->keymap(fn(Type $type) => [$type->getId(), $type->getLabel()])
+                ->toArray(),
+            "statuses" => Stream::from($statuses)
+                ->keymap(fn(Statut $status) => [$status->getId(), $status->getNom()])
+                ->toArray(),
+            "suppliers" => Stream::from($suppliers)
+                ->keymap(fn(Fournisseur $supplier) => [$supplier->getId(), $supplier->getNom()])
+                ->toArray(),
             "arrivalFields" => Stream::from($columns)
                 ->keymap(fn(array $config) => [$config['code'], $config['label']])
                 ->toArray()

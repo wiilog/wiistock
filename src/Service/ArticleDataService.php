@@ -299,8 +299,7 @@ class ArticleDataService
                 ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setBatch($data['batch'] ?? null)
-                ->setDestinationArea($data['destinationArea'] ?? null);
+                ->setBatch($data['batch'] ?? null);
 
             if(isset($data['nativeCountry'])) {
                 $article->setNativeCountry($entityManager->find(NativeCountry::class, $data['nativeCountry']));
@@ -353,7 +352,7 @@ class ArticleDataService
             ]];
         }
 
-        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
+        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
 
         $articles = $queryResult['data'];
 
@@ -406,7 +405,6 @@ class ArticleDataService
             "stockEntryDate" => $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i') : '',
             "expiryDate" => $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
             "comment" => $article->getCommentaire(),
-            "destinationArea" => $article->getDestinationArea(),
             "actions" => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
@@ -430,6 +428,9 @@ class ArticleDataService
             "deliveryNoteLine" => $article->getDeliveryNote() ?: '',
             "purchaseOrderLine" => $article->getPurchaseOrder() ?: '',
             "nativeCountry" => $article->getNativeCountry() ? $article->getNativeCountry()->getLabel() : '',
+            'RFIDtag' => $article->getRFIDtag(),
+            'manifacturingDate' => $article->getManifacturingDate() ? $article ->getManifacturingDate()->format('d/m/Y') : '',
+            'purchaseOrder' => $article->getPurchaseOrder(),
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
@@ -608,7 +609,7 @@ class ArticleDataService
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
             ["title" => "Projet", "name" => "project", 'searchable' => true],
-            ["title" => "Zone de destination", "name" => "destinationArea", 'searchable' => true],
+            ["title" => "Tag RFID", "name" => "RFIDtag", 'searchable' => true],
             ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
             ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],
             ["title" => "Ligne bon de livraison", "name" => "deliveryNoteLine", 'searchable' => true],
@@ -620,14 +621,17 @@ class ArticleDataService
     }
 
     public function putArticleLine($handle,
-                                    array $article,
-                                    array $freeFieldsConfig) {
+                                   array $article,
+                                   array $freeFieldsConfig) {
         $line = [
             $article['reference'],
             $article['label'],
+            $article['nomFournisseur'],
+            $article['codeRefFournisseur'],
+            $article['RFIDtag'],
             $article['quantite'],
             $article['typeLabel'],
-            $article['statutName'],
+            $article['statusName'],
             $article['commentaire'] ? strip_tags($article['commentaire']) : '',
             $article['empLabel'],
             $article['barCode'],
@@ -636,7 +640,13 @@ class ArticleDataService
             $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
             $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
             $article['visibilityGroup'],
-            $article['projectCode']
+            $article['projectCode'],
+            $article['prixUnitaire'],
+            $article['purchaseOrder'],
+            $article['deliveryNote'],
+            $article['nativeCountryLabel'],
+            $article['manifacturingDate'] ? $article['manifacturingDate']->format('d/m/Y') : '',
+            $article['productionDate'] ? $article['productionDate']->format('d/m/Y') : '',
         ];
 
         foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {

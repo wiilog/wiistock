@@ -88,24 +88,17 @@ class InvMissionService {
                 : 0);
         return [
             'name' => $mission->getName() ?? '',
-            'start' => FormatHelper::date($mission->getStartPrevDate()),
-            'end' => FormatHelper::date($mission->getEndPrevDate()),
+            'start' => $this->formatService->date($mission->getStartPrevDate()),
+            'end' => $this->formatService->date($mission->getEndPrevDate()),
             'anomaly' => $inventoryMissionRepository->countAnomaliesByMission($mission) > 0,
             'rate' => $this->templating->render('inventaire/datatableMissionsBar.html.twig', [
                 'rateBar' => $rateBar,
             ]),
-            'type' => $mission->getType() ?? '',
+            'type' => $mission->getType() ? InventoryMission::TYPES_LABEL[$mission->getType()] ?? '' : '',
             'requester' => $this->formatService->user($mission->getRequester()),
-            'delete' => $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)
-                ? $this->templating->render('datatable/trash.html.twig', [
-                    'id' => $mission->getId(),
-                    'modal' => '#modalDeleteMission',
-                    'route' => 'mission_check_delete',
-                    'submit' => '#submitDeleteMission',
-                    'color' => 'black'
-                ]) : [],
             'actions' => $this->templating->render('inventaire/datatableMissionsRow.html.twig', [
                 'id' => $mission->getId(),
+                'type' => $mission->getType(),
             ]),
         ];
     }

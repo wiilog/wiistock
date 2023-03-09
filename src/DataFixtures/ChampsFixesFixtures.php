@@ -54,7 +54,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_CUSTOMS_ARRIVAGE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'hidden' => true],
                 ['code' => FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_FROZEN_ARRIVAGE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'hidden' => true],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
-                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false, 'modalType' => FieldsParam::MODAL_TYPE_FREE],
                 ['code' => FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_DROP_LOCATION_ARRIVAGE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT, 'label' => FieldsParam::FIELD_LABEL_PROJECT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
@@ -65,11 +65,11 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_RECEIVER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_RECEIVER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_DEADLINE_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_DEADLINE_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMAILS, 'label' => FieldsParam::FIELD_LABEL_EMAILS_DISPATCH, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_FREE],
                 ['code' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMAND_NUMBER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_COMMENT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMENT_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_ATTACHMENTS_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_FREE],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_PICK, 'label' => FieldsParam::FIELD_LABEL_LOCATION_PICK, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_DROP, 'label' => FieldsParam::FIELD_LABEL_LOCATION_DROP, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
@@ -80,9 +80,9 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
             FieldsParam::ENTITY_CODE_HANDLING => [
                 ['code' => FieldsParam::FIELD_CODE_LOADING_ZONE, 'label' => FieldsParam::FIELD_LABEL_LOADING_ZONE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_UNLOADING_ZONE, 'label' => FieldsParam::FIELD_LABEL_UNLOADING_ZONE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_FREE],
                 ['code' => FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, 'label' => FieldsParam::FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FieldsParam::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FieldsParam::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true]
+                ['code' => FieldsParam::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FieldsParam::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_USER]
             ],
 
             FieldsParam::ENTITY_CODE_ARTICLE => [
@@ -96,7 +96,6 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_ARTICLE_PRODUCTION_DATE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_PRODUCTION_DATE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_ARTICLE_NATIVE_COUNTRY, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_NATIVE_COUNTRY, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FieldsParam::FIELD_CODE_ARTICLE_DESTINATION_AREA, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_DESTINATION_AREA, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
         ];
 
@@ -136,6 +135,10 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 $field
                     ->setFieldLabel($fieldCode['label'])
                     ->setFieldRequiredHidden($fieldCode['hidden'] ?? false);
+
+                if (isset($fieldCode['modalType'])) {
+                    $field->setModalType($fieldCode['modalType']);
+                }
                 $manager->flush();
             }
         }

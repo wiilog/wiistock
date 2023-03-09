@@ -49,6 +49,8 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     const $translateLabels = $container.find('.translate-labels');
     const $statusStateOptions = $container.find('[name=status-state-options]');
     const statusStateOptions = JSON.parse($statusStateOptions.val());
+    const $groupedSignatureTypes = $container.find('[name=grouped-signature-types]');
+    const groupedSignatureTypes = $groupedSignatureTypes.val() ? JSON.parse($groupedSignatureTypes.val()) : '';
     const tableSelector = `#${mode}-statuses-table`;
     const type = $('[name=type]:checked').val();
     const $modalEditTranslations = $container.find(".edit-translation-modal");
@@ -101,7 +103,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
             $pageBody.find('.wii-title').remove();
         },
         columns: getStatusesColumn(mode),
-        form: getFormColumn(mode, statusStateOptions, categoryType),
+        form: getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes),
     });
 
     let submitEditTranslations = $modalEditTranslations.find("[type=submit]");
@@ -165,6 +167,16 @@ function getStatusesColumn(mode) {
             modes: [MODE_DISPATCH]
         },
         {
+            data: `groupedSignatureType`,
+            title: `<div class='small-column'>Signature groupée</div>`,
+            modes: [MODE_DISPATCH]
+        },
+        {
+            data: `groupedSignatureColor`,
+            title: `<div class='small-column'>Couleur signature groupée</div>`,
+            modes: [MODE_DISPATCH]
+        },
+        {
             data: `automaticReceptionCreation`,
             title: `<div class='small-column' style="max-width: 160px !important;">Création automatique d'une réception</div>`,
             modes: [MODE_PURCHASE_REQUEST]
@@ -188,13 +200,13 @@ function getStatusesColumn(mode) {
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
 }
 
-function getFormColumn(mode, statusStateOptions, categoryType){
+function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes){
     return {
         actions: `
             <button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>
             <input type='hidden' name='mode' class='data' value='${mode}'/>
         `,
-        label: `<input type='text' name='label' class='form-control data needed' data-global-error="Libellé"/>`,
+        label: `<input type='text' name='label' class='form-control data needed select-size' data-global-error="Libellé"/>`,
         state: `<select name='state' class='data form-control needed select-size'>${statusStateOptions}</select>`,
         type: categoryType
             ? `
@@ -219,6 +231,18 @@ function getFormColumn(mode, statusStateOptions, categoryType){
         commentNeeded: `<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data'/></div>`,
         sendMailDest: `<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
         sendReport: `<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data'/></div>`,
+        groupedSignatureType: `<select name='groupedSignatureType' class='data form-control select-size'>${groupedSignatureTypes}</select>`,
+        groupedSignatureColor: `<input type='color' class='form-control wii-color-picker data' name='color' value='#3353D7' list='type-color'/>
+                        <datalist id='type-color'>
+                            <option>#D76433</option>
+                            <option>#D7B633</option>
+                            <option>#A5D733</option>
+                            <option>#33D7D1</option>
+                            <option>#33A5D7</option>
+                            <option>#3353D7</option>
+                            <option>#6433D7</option>
+                            <option>#D73353</option>
+                        </datalist>`,
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
     };
@@ -252,6 +276,7 @@ function initializeStatusesByTypes($container, canEdit, mode) {
 function onStatusStateChange($select) {
     const $form = $select.closest('tr');
     const $needMobileSync = $form.find('[name=needsMobileSync]');
+    const $color = $form.find('[name=color]');
     const $automaticReceptionCreation = $form.find('[name=automaticReceptionCreation]');
     const disabledNeedMobileSync = $select
         .find(`option[value=${$select.val()}]`)
@@ -261,6 +286,7 @@ function onStatusStateChange($select) {
         .data('automatic-reception-creation-disabled');
 
     $needMobileSync.prop('disabled', Boolean(disabledNeedMobileSync));
+    $color.prop('disabled', Boolean(disabledNeedMobileSync));
     if (disabledNeedMobileSync) {
         $needMobileSync.prop('checked', false);
     }

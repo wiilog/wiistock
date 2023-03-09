@@ -15,9 +15,11 @@ use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
+use App\Repository\Inventory\InventoryMissionRepository;
 use App\Repository\TypeRepository;
 use App\Entity\Type;
 use App\Entity\CategoryType;
+use App\Exceptions\FormException;
 use WiiCommon\Helper\Stream;
 use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
@@ -51,6 +53,7 @@ class InventoryMissionController extends AbstractController
                     'label' => $type
                 ])
                 ->toArray(),
+            'newMission' => new InventoryMission(),
         ]);
     }
 
@@ -72,7 +75,7 @@ class InventoryMissionController extends AbstractController
      */
     public function new(Request $request, EntityManagerInterface $em): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
+        if ($data = $request->request->all()) {
             if ($data['startDate'] > $data['endDate'])
                 return new JsonResponse([
                     'success' => false,
@@ -106,6 +109,19 @@ class InventoryMissionController extends AbstractController
                 $mission->setDescription($data['description']);
             }
 
+            if (isset($data['duplicatedMission'])){
+                $inventoryMissionRepository = $em->getRepository(InventoryMission::class);
+                $duplicatedMission = $inventoryMissionRepository->find($data['duplicatedMission']);
+                $duplicatedInventoryLocationMissions = $duplicatedMission->getInventoryLocationMissions()->toArray();
+
+                foreach ($duplicatedInventoryLocationMissions as $duplicatedInventoryLocationMission){
+                    $inventoryLocationMission = (new InventoryLocationMission())
+                        ->setInventoryMission($mission)
+                        ->setLocation($duplicatedInventoryLocationMission->getLocation());
+                    $em->persist($inventoryLocationMission);
+                }
+            }
+
             $em->persist($mission);
             $em->flush();
 
@@ -117,6 +133,26 @@ class InventoryMissionController extends AbstractController
         }
         throw new BadRequestHttpException();
     }
+
+    #[Route("/api/dupliquer", name: "get_form_mission_duplicate", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
+
+    public function duplicate(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $missionId = $request->query->get('id');
+        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $mission = $inventoryMissionRepository->find($missionId);
+
+        $content = $this->renderView('inventaire/formInventoryMission.html.twig', [
+            'mission'=> $mission
+        ]);
+        return $this->json([
+            'success' => true,
+            'html' => $content,
+        ]);
+
+    }
+
 
     /**
      * @Route("/verification", name="mission_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
@@ -130,17 +166,29 @@ class InventoryMissionController extends AbstractController
             $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
 
             $mission = $inventoryMissionRepository->find($missionId);
             $missionArt = $articleRepository->countByMission($missionId);
             $missionRef = $referenceArticleRepository->countByMission($missionId);
             $missionEntries = $inventoryEntryRepository->count(['mission' => $mission]);
+            $missionLocationsDone = $inventoryLocationMissionRepository->count(['inventoryMission' => $mission, 'done' => true]);
 
-            $missionIsUsed = (intval($missionArt) + intval($missionRef) + $missionEntries > 0);
+            $canBeDeleted = true;
+            $message = "";
+            if (intval($missionArt) + intval($missionRef) + $missionEntries > 0) {
+                $canBeDeleted = false;
+                $message = "Cette mission est liée à des références articles ou articles.";
+            } elseif ($missionLocationsDone > 0) {
+                $canBeDeleted = false;
+                $message = "Cette mission a été commencée.";
+            }
 
-            if ($missionIsUsed) {
+            if (!$canBeDeleted) {
                 $delete = false;
-                $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig');
+                $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig', [
+                    'message' => $message
+                ]);
             } else {
                 $delete = true;
                 $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
@@ -157,10 +205,17 @@ class InventoryMissionController extends AbstractController
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request->all();
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $mission = $inventoryMissionRepository->find($data['missionId']);
+        $missionLocations = $mission->getInventoryLocationMissions();
 
+        foreach ($missionLocations as $missionLocation) {
+            foreach ($missionLocation->getInventoryLocationMissionReferenceArticles() as $missionLocationRef) {
+                $entityManager->remove($missionLocationRef);
+            }
+            $entityManager->remove($missionLocation);
+        }
         $entityManager->remove($mission);
         $entityManager->flush();
 
@@ -175,10 +230,13 @@ class InventoryMissionController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
     public function show(InventoryMission $mission): Response {
+        $startPrevDate = $mission->getStartPrevDate();
+        $isInventoryStarted =  new DateTime('now') < $startPrevDate;
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
             'typeLocation' => $mission->getType() === InventoryMission::LOCATION_TYPE,
             'locationsAlreadyAdded' => !$mission->getInventoryLocationMissions()->isEmpty(),
+            'isInventoryStarted' => $isInventoryStarted,
             'done' => $mission->isDone(),
         ]);
     }
@@ -562,18 +620,24 @@ class InventoryMissionController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function addLocationsOrZonesToMission(Request $request, EntityManagerInterface $entityManager){
-        if(!$request->query->has('locations')){
-            return new JsonResponse([
-                'success' => false,
-                'msg' => "Veuillez renseigner des emplacements à ajouter."
-            ]);
-        }
-
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
+        $locationIdsStr = $request->query->all('locations');
+        $locationIds = $locationIdsStr
+            ? Stream::explode(',', $locationIdsStr)
+                ->map('trim')
+                ->filter()
+                ->toArray()
+            : [];
         $inventoryMission = $inventoryMissionRepository->find($request->query->get('mission'));
-        $locations = $locationRepository->findBy(['id' => $request->query->all('locations')]);
+        $locations = !empty($locationIds)
+            ? $locationRepository->findBy(['id' => $locationIds])
+            : [];
+
+        if(empty($locations)){
+            throw new FormException("Veuillez renseigner des emplacements à ajouter.");
+        }
 
         foreach ($locations as $location){
             $inventoryLocationMission = (new InventoryLocationMission())

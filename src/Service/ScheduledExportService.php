@@ -10,7 +10,9 @@ use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduleRule;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
 use App\Exceptions\FTPException;
 use App\Helper\FormatHelper;
@@ -107,8 +109,26 @@ class ScheduledExportService
 
             $this->dataExportService->exportReferences($this->refArticleDataService, $freeFieldsConfig, $references, $output);
         } else if($exportToRun->getEntity() === Export::ENTITY_ARTICLE) {
-            $referenceArticleRepository = $entityManager->getRepository(Article::class);
-            $articles = $referenceArticleRepository->iterateAll($exportToRun->getCreator());
+            $articleRepository = $entityManager->getRepository(Article::class);
+
+            $options = [];
+            if ($exportToRun->getStockEntryStartDate() !== null && $exportToRun->getStockEntryEndDate() !== null) {
+                $options["dateMin"] = $exportToRun->getStockEntryStartDate();
+                $options["dateMax"] = $exportToRun->getStockEntryEndDate();
+            }
+            if (!empty($exportToRun->getReferenceTypes())) {
+                $options["referenceTypes"] = $exportToRun->getReferenceTypes();
+            }
+            if (!empty($exportToRun->getStatuses())) {
+                $options["statuses"] = $exportToRun->getStatuses();
+            }
+            if (!empty($exportToRun->getSuppliers())) {
+                $options["suppliers"] = $exportToRun->getSuppliers();
+            }
+
+            $articles = $articleRepository->iterateAll(
+                $exportToRun->getCreator(),
+                $options);
             $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
 
             $this->csvExportService->putLine($output, $this->dataExportService->createArticlesHeader($freeFieldsConfig));
@@ -131,6 +151,12 @@ class ScheduledExportService
             $csvHeader = $this->dataExportService->createArrivalsHeader($entityManager, $exportToRun->getColumnToExport());
             $this->csvExportService->putLine($output, $csvHeader);
             $this->dataExportService->exportArrivages($arrivals, $output, $exportToRun->getColumnToExport());
+        } else if ($exportToRun->getEntity() === Export::ENTITY_REF_LOCATION) {
+            $storageRules = $entityManager->getRepository(StorageRule::class)->iterateAll();
+
+            $csvHeader = $this->dataExportService->createStorageRulesHeader();
+            $this->csvExportService->putLine($output, $csvHeader);
+            $this->dataExportService->exportRefLocation($storageRules, $output);
         } else {
             throw new RuntimeException("Unknown entity type");
         }
@@ -149,11 +175,11 @@ class ScheduledExportService
                         "entity" => $entity,
                         "export" => $exportToRun,
                         "frequency" => match ($exportToRun->getExportScheduleRule()?->getFrequency()) {
-                            ExportScheduleRule::ONCE => "une fois",
-                            ExportScheduleRule::HOURLY => "chaque heure",
-                            ExportScheduleRule::DAILY => "chaque jour",
-                            ExportScheduleRule::WEEKLY => "chaque semaine",
-                            ExportScheduleRule::MONTHLY => "chaque mois",
+                            ScheduleRule::ONCE => "une fois",
+                            ScheduleRule::HOURLY => "chaque heure",
+                            ScheduleRule::DAILY => "chaque jour",
+                            ScheduleRule::WEEKLY => "chaque semaine",
+                            ScheduleRule::MONTHLY => "chaque mois",
                             default => null,
                         },
                         "setting" => $this->getFrequencyDescription($exportToRun),

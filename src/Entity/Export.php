@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ExportRepository;
+use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -20,12 +21,14 @@ class Export {
     const ENTITY_ARTICLE = "article";
     const ENTITY_DELIVERY_ROUND = "tournee";
     const ENTITY_ARRIVAL = "arrivage";
+    const ENTITY_REF_LOCATION = "reference_emplacement";
 
     const ENTITY_LABELS = [
         self::ENTITY_REFERENCE => "Références",
         self::ENTITY_ARTICLE => "Articles",
         self::ENTITY_DELIVERY_ROUND => "Tournées",
         self::ENTITY_ARRIVAL => "Arrivages",
+        self::ENTITY_REF_LOCATION => "Référence emplacement"
     ];
 
     const DESTINATION_EMAIL = 1;
@@ -68,6 +71,21 @@ class Export {
     #[ORM\Column(type: "json", nullable: true)]
     private array $columnToExport = [];
 
+    #[ORM\Column(type: "json", nullable: true)]
+    private ?array $referenceTypes = [];
+
+    #[ORM\Column(type: "json", nullable: true)]
+    private ?array $statuses = [];
+
+    #[ORM\Column(type: "json", nullable: true)]
+    private ?array $suppliers = [];
+
+    #[ORM\Column(type: "date", nullable: true)]
+    private ?DateTime $stockEntryStartDate = null;
+
+    #[ORM\Column(type: "date", nullable: true)]
+    private ?DateTime $stockEntryEndDate = null;
+
     #[ORM\Column(type: "integer", nullable: true)]
     private ?string $destinationType = null;
 
@@ -98,7 +116,7 @@ class Export {
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $error = null;
 
-    #[ORM\OneToOne(mappedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
+    #[ORM\OneToOne(inversedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
     private ?ExportScheduleRule $exportScheduleRule = null;
 
     public function __construct() {
@@ -190,6 +208,78 @@ class Export {
     public function setColumnToExport(?array $columnToExport): self
     {
         $this->columnToExport = $columnToExport;
+
+        return $this;
+    }
+
+    public function setReferenceTypes(?array $referenceTypes): self
+    {
+        $this->referenceTypes = $referenceTypes;
+
+        return $this;
+    }
+
+    public function getReferenceTypes(): ?array
+    {
+        return $this->referenceTypes;
+    }
+
+    public function setStatuses(?array $statuses): self
+    {
+        $this->statuses = $statuses;
+
+        return $this;
+    }
+
+    public function getStatuses(): ?array
+    {
+        return $this->statuses;
+    }
+
+    public function setSuppliers(?array $suppliers): self
+    {
+        $this->suppliers = $suppliers;
+
+        return $this;
+    }
+
+    public function getSuppliers(): ?array
+    {
+        return $this->suppliers;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getStockEntryStartDate(): ?DateTime
+    {
+        return $this->stockEntryStartDate;
+    }
+
+    /**
+     * @param DateTime|null $stockEntryStartDate
+     */
+    public function setStockEntryStartDate(?DateTime $stockEntryStartDate): self
+    {
+        $this->stockEntryStartDate = $stockEntryStartDate;
+
+        return $this;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getStockEntryEndDate(): ?DateTime
+    {
+        return $this->stockEntryEndDate;
+    }
+
+    /**
+     * @param DateTime|null $stockEntryEndDate
+     */
+    public function setStockEntryEndDate(?DateTime $stockEntryEndDate): self
+    {
+        $this->stockEntryEndDate = $stockEntryEndDate;
 
         return $this;
     }

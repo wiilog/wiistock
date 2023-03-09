@@ -16,6 +16,7 @@ use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
@@ -47,6 +48,7 @@ use App\Repository\SettingRepository;
 use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
+use App\Service\DispatchService;
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
@@ -92,6 +94,9 @@ class SettingsController extends AbstractController {
 
     #[Required]
     public StatusService $statusService;
+
+    #[Required]
+    public DispatchService $dispatchService;
 
     #[Required]
     public SettingsService $settingsService;
@@ -207,6 +212,10 @@ class SettingsController extends AbstractController {
                             "label" => "Collectes - Types et champs libres", "wrapped" => false,
                         ],
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
+                        self::MENU_PURCHASE_PLANIFICATION => [
+                            "label" => "Achats - Planification",
+                            "right" => Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE
+                        ],
                     ],
                 ],
                 self::MENU_VISIBILITY_GROUPS => [
@@ -576,6 +585,7 @@ class SettingsController extends AbstractController {
     public const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
     public const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
     public const MENU_PURCHASE_STATUSES = "statuts_achats";
+    public const MENU_PURCHASE_PLANIFICATION = "planification_achats";
 
     public const MENU_PREPARATIONS = "preparations";
     public const MENU_PREPARATIONS_DELIVERIES = "preparations_livraisons";
@@ -1177,6 +1187,7 @@ class SettingsController extends AbstractController {
                             'types' => $types,
                             'categoryType' => CategoryType::DEMANDE_DISPATCH,
                             'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
+                            'groupedSignatureTypes' => $this->dispatchService->getGroupedSignatureTypes(),
                         ];
                     },
                 ],
@@ -1490,9 +1501,9 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function saveFieldParam(Request $request, EntityManagerInterface $manager, FieldsParam $field): Response {
-        if ($field->getModalType() == "FREE") {
+        if ($field->getModalType() == FieldsParam::MODAL_TYPE_FREE) {
             $field->setElements(explode(",", $request->request->get("elements")));
-        } elseif ($field->getModalType() == "USER_BY_TYPE") {
+        } elseif ($field->getModalType() == FieldsParam::MODAL_TYPE_USER) {
             $lines = $request->request->has("lines") ? json_decode($request->request->get("lines"), true) : [];
             $elements = [];
             foreach ($lines as $line) {
@@ -2444,7 +2455,7 @@ class SettingsController extends AbstractController {
                         </button>
                     </div>
                 ",
-                "missionType" => $mission->getMissionType(),
+                "missionType" => $mission->getMissionType() ? InventoryMission::TYPES_LABEL[$mission->getMissionType()] ?? '' : '',
                 "label" => $mission->getLabel(),
                 "categories" => Stream::from($mission->getCategories())
                     ->map(fn(InventoryCategory $category) => $category->getLabel())

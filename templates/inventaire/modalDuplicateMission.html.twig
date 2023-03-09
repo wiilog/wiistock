@@ -1,0 +1,19 @@
+{% import 'form.html.twig' as form %}
+<div class="modal fade" id="modalDuplicateMission" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Dupliquer une mission"
+            } %}
+            <div class="modal-body modal-input container-fluid">
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit', id: 'submitDuplicateMission'}
+                ],
+            } %}
+
+        </div>
+    </div>
+</div>

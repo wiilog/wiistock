@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 
-{% set articleType = constant('App\\Entity\\inventory\\InventoryMission::ARTICLE_TYPE') %}
-{% set locationType = constant('App\\Entity\\inventory\\InventoryMission::LOCATION_TYPE') %}
+{% set articleType = constant('App\\Entity\\Inventory\\InventoryMission::ARTICLE_TYPE') %}
+{% set locationType = constant('App\\Entity\\Inventory\\InventoryMission::LOCATION_TYPE') %}
 {% set isMissionArticleType = missionRule.id ? missionRule.missionType == articleType : false %}
 {% set isMissionLocationType = missionRule.id ? missionRule.missionType == locationType : false %}
 
@@ -9,13 +9,20 @@
 <div class="row">
     {% if missionRule.id %}
         <input type="hidden" class="data" value="{{ missionRule.id }}" name="ruleId"/>
+        <div class="col-12">
+            <div class="wii-field-name">Type de mission</div>
+            <div class="wii-body-text">
+                {{ isMissionArticleType ? 'Quantité article' : 'Article sur emplacement' }}
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            {{ form.switch('missionType', 'Type de mission', true, [
+                {label: 'Quantité article', value: articleType, checked: isMissionArticleType},
+                {label: 'Article sur emplacement', value: locationType, checked: isMissionLocationType},
+            ]) }}
+        </div>
     {% endif %}
-    <div class="col-12">
-        {{ form.switch('missionType', 'Type de mission', true, [
-            {label: 'Quantité article', value: articleType, checked: isMissionArticleType, disabled: missionRule.id != null},
-            {label: 'Article sur emplacement', value: locationType, checked: isMissionLocationType, disabled: missionRule.id != null},
-        ]) }}
-    </div>
     <div class="col-6 mt-3">
         {{ form.input('label', 'Libellé de la tache', true, missionRule.label, {
             type: 'text',
@@ -38,14 +45,14 @@
                         min: 0,
                         max: 999,
                         step: 1,
-                        width: 'w-25',
                     }) }}
                 </div>
                 <div class="col-8">
                     {{ form.select('durationUnit', null ,true, {
                         items: {
-                            (constant('App\\Entity\\inventory\\InventoryMissionRule::DURATION_UNIT_WEEKS')): 'Semaines',
-                            (constant('App\\Entity\\inventory\\InventoryMissionRule::DURATION_UNIT_MONTHS')): 'Mois',
+                            (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_DAYS')): 'Jours',
+                            (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_WEEKS')): 'Semaines',
+                            (constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNIT_MONTHS')): 'Mois',
                         },
                         value: missionRule.durationUnit
                     }) }}
@@ -53,6 +60,14 @@
                 </div>
             </div>
         </label>
+    </div>
+    <div class="col-6 mt-3">
+        {{ form.select('creator', 'Demandeur', true, {
+            type: 'user',
+            items: {
+                (app.user.id): (app.user.username),
+            }
+        }) }}
     </div>
     <div class="col-12">
         {% include 'planner/planner.html.twig' with {
@@ -68,47 +83,22 @@
         } %}
     </div>
 </div>
-<div class="row {{ isMissionLocationType ? '' : 'd-none' }}" id="locationTypeForm">
+<div class="row location-type-form {{ isMissionLocationType ? '' : 'd-none' }}">
     <div class="col-12">
         <div class="wii-section-title my-3">Contenu de l'inventaire</div>
     </div>
-    <div class="col-6 mt-3">
-        {{ form.select('zones', 'Ajout des emplacements des zones', false, {
-            type: 'zones',
-            multiple: true,
-        }) }}
-        <button class="btn btn-primary mt-1 d-flex align-items-center add-button" data-type="zones">
-            <i class="wii-icon wii-icon-plus mr-2"></i>
-            Ajouter les emplacements des zones
-        </button>
-    </div>
-    <div class="col-6 mt-3">
-        {{ form.select('locations', 'Ajout des emplacements', false, {
-            type: 'location',
-            multiple: true,
-        }) }}
-        <button class="btn btn-primary mt-1 d-flex align-items-center add-button" data-type="locations">
-            <i class="wii-icon wii-icon-plus mr-2"></i>
-            Ajouter les emplacements
-        </button>
-    </div>
     <div class="col-12">
-        <div class="wii-section-title my-3">Liste des emplacement sélectionnés</div>
-    </div>
-    <div class="col-12">
-        <table
-            id="tableLocations"
-            class="table w-100"
-            data-initial-data="{{ {data: initialLocations}|json_encode }}">
-        </table>
+        {% include 'inventaire/formAddInventoryLocations.html.twig' with {
+            initialLocations: initialLocations,
+        } %}
     </div>
 </div>
-<div class="row {{ isMissionArticleType ? '' : 'd-none' }}" id="articleTypeForm">
+<div class="row article-type-form {{ isMissionArticleType ? '' : 'd-none' }}">
     <div class="col-6">
         {{ form.select('categories', 'Catégorie(s)', true, {
             multiple: true,
             type: 'inventoryCategories',
-            value: missionRule.categories,
+            items: missionRule.categories|map((categorie) => {value: categorie.id, label: categorie.label, selected: true}),
         }) }}
     </div>
 </div>

@@ -10,6 +10,7 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Menu;
 use App\Entity\ScheduleRule;
+use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,7 +23,7 @@ use WiiCommon\Helper\Stream;
 class InventoryMissionRuleController extends AbstractController
 {
 
-    #[Route('/form-template', name: 'get_mission_rules_form_template', options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route('/form-template', name: 'mission_rules_form_template', options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function getEditFormTemplate(EntityManagerInterface $entityManager,
                                         Request                $request): JsonResponse {
@@ -48,8 +49,7 @@ class InventoryMissionRuleController extends AbstractController
         ]);
     }
 
-    // TODO has rights
-    #[Route('/save', name: 'post_mission_rules_form', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route('/save', name: 'mission_rules_form', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function save(EntityManagerInterface $entityManager,
                          Request                $request): JsonResponse
@@ -88,8 +88,18 @@ class InventoryMissionRuleController extends AbstractController
             ->setPeriod($data['repeatPeriod'] ?? null)
             ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
             ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
-            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null)
-            ->setCreator($this->getUser());
+            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
+
+        if (isset($data['creator'])) {
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
+            $creator = $userRepository->find($data['creator']);
+            $missionRule->setCreator($creator);
+        } else {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Veuillez sélectionner un demandeur."
+            ]);
+        }
 
 
         if (isset($data['durationUnit']) && in_array($data['durationUnit'], InventoryMissionRule::DURATION_UNITS)) {
@@ -125,16 +135,19 @@ class InventoryMissionRuleController extends AbstractController
                 ->setCategories([])
                 ->setLocations([]);
             if (isset($data['locations'])) {
-                $locationsId = json_decode($data['locations']);
-                foreach ($locationsId as $locationId) {
-                    $location = $locationRepository->find($locationId);
-                    if ($location) {
-                        $missionRule->addLocation($location);
-                    }
-                }
+                $locationIds = !empty($data['locations'])
+                    ? Stream::explode(',', $data['locations'])
+                        ->map('trim')
+                        ->filter()
+                        ->toArray()
+                    : [];
+                $locations = !empty($locationIds)
+                    ? $locationRepository->findBy(['id' => $locationIds])
+                    : [];
+                $missionRule->setLocations($locations);
             }
             if ($missionRule->getLocations()->isEmpty()) {
-                throw new FormException('Vous devez sélectionner au moins un emplacement');
+                throw new FormException("Veuillez renseigner des emplacements à ajouter.");
             }
         }
 
@@ -143,5 +156,30 @@ class InventoryMissionRuleController extends AbstractController
         return $this->json([
             'success' => true,
         ]);
+    }
+
+    #[Route('/delete', name: 'mission_rules_delete', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
+    public function delete(EntityManagerInterface $entityManager,
+                           Request                $request): JsonResponse {
+        $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
+        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $missionRuleId = $request->query->get('id') ?? null;
+        $missionRule = $missionRuleId ? $missionRuleRepository->find($missionRuleId) : null;
+
+        if ($missionRule) {
+            if(!$missionRule->getCreatedMissions()->isEmpty()) {
+                throw new FormException("Vous ne pouvez pas supprimer cette planification d'inventaire car des missions d'inventaires ont déjà été crée à partir de celle-ci");
+            } else {
+                $entityManager->remove($missionRule);
+                $entityManager->flush();
+                return $this->json([
+                    'success' => true,
+                    'msg' => "La planification de mission d'inventaire a été supprimée avec succès"
+                ]);
+            }
+        } else {
+            throw new FormException("Une erreur est survenue lors de la suppression de la planification d'inventaire");
+        }
     }
 }

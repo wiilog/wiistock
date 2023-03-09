@@ -11,7 +11,7 @@
                 title: "Modifier le paramétrage d'un champ fixe"
             } %}
 
-            {% if modalType == "FREE" %}
+            {% if modalType == constant('App\\Entity\\FieldsParam::MODAL_TYPE_FREE') %}
                 <div class="modal-body">
                     <input type="hidden" name="field" value="{{ field }}"/>
                     {{ form.select('elements', 'Valeurs possibles', false, {
@@ -22,7 +22,7 @@
                         placeholder: 'Ajoutez des éléments',
                     }) }}
                 </div>
-            {% elseif modalType == "USER_BY_TYPE" %}
+            {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_TYPE_USER') %}
                 <div class="modal-body pt-0">
                     <input type="hidden" name="field" value="{{ field }}"/>
                     <span class="wii-section-title">Destinataire par défaut par type</span>

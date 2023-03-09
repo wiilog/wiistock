@@ -898,6 +898,8 @@ class SettingsService {
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)
                         ->setSendNotifToRecipient($statusData['sendMailDest'] ?? false)
                         ->setSendReport($statusData['sendReport'] ?? false)
+                        ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
+                        ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR)
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
                         ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)

@@ -36,13 +36,18 @@ class ArticleRepository extends EntityRepository {
     private const FIELD_ENTITY_NAME = [
         "location" => "emplacement",
         "unitPrice" => "prixUnitaire",
-        "quantity" => "quantite"
+        "quantity" => "quantite",
+        "RFIDtag" => "RFIDtag",
+        "deliveryNote" => "deliveryNote",
+        "purchaseOrder" => "purchaseOrder"
     ];
 
     private const FIELDS_TYPE_DATE = [
         "dateLastInventory",
         "expiryDate",
-        "stockEntryDate"
+        "stockEntryDate",
+        "manifacturingDate",
+        "productionDate"
     ];
 
     public function findExpiredToGenerate($delay = 0) {
@@ -110,7 +115,13 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
-    public function iterateAll(Utilisateur $user): iterable {
+    public function iterateAll(Utilisateur $user, $options = []): iterable {
+        $dateMin = $options["dateMin"] ?? null;
+        $dateMax = $options["dateMax"] ?? null;
+        $referenceTypes = $options["referenceTypes"] ?? [];
+        $statuses = $options["statuses"] ?? [];
+        $suppliers = $options["suppliers"] ?? [];
+
         $queryBuilder = $this->createQueryBuilder('article');
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
@@ -124,12 +135,12 @@ class ArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
-        return $queryBuilder->distinct()
+        $qb = $queryBuilder->distinct()
             ->select('referenceArticle.reference')
             ->addSelect('article.label')
             ->addSelect('article.quantite')
             ->addSelect('type.label as typeLabel')
-            ->addSelect('statut.nom as statutName')
+            ->addSelect('statut.nom as statusName')
             ->addSelect('article.commentaire')
             ->addSelect('emplacement.label as empLabel')
             ->addSelect('article.barCode')
@@ -140,16 +151,51 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.expiryDate')
             ->addSelect("join_visibilityGroup.label AS visibilityGroup")
             ->addSelect('project.code AS projectCode')
-            ->addSelect('article.destinationArea')
+            ->addSelect('article.prixUnitaire')
+            ->addSelect('article.purchaseOrder')
+            ->addSelect('article.deliveryNote')
+            ->addSelect('article.manifacturingDate')
+            ->addSelect('nativeCountry.label AS nativeCountryLabel')
+            ->addSelect('article.productionDate')
+            ->addSelect('article.RFIDtag')
+            ->addSelect('fournisseur.nom AS nomFournisseur')
+            ->addSelect('fournisseur.codeReference AS codeRefFournisseur')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
+            ->leftJoin('articleFournisseur.fournisseur', 'fournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->leftJoin('referenceArticle.type', 'refType')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
             ->leftJoin('article.currentLogisticUnit', 'currentLogisticUnit')
             ->leftJoin('currentLogisticUnit.project', 'project')
-            ->groupBy('article.id')
+            ->leftJoin('article.nativeCountry', 'nativeCountry');
+
+        if (isset($dateMin) && isset($dateMax)) {
+            $qb->andWhere('article.stockEntryDate BETWEEN :dateMin AND :dateMax')
+                ->setParameters([
+                    'dateMin' => $dateMin,
+                    'dateMax' => $dateMax
+                ]);
+        }
+        if (!empty($referenceTypes)) {
+            $qb
+                ->andWhere('refType.id IN (:referenceTypes)')
+                ->setParameter('referenceTypes', $referenceTypes);
+        }
+        if (!empty($statuses)) {
+            $qb
+                ->andWhere('statut.id IN (:statuses)')
+                ->setParameter('statuses', $statuses);
+        }
+        if (!empty($suppliers)) {
+            $qb
+                ->andWhere('fournisseur.id IN (:suppliers)')
+                ->setParameter('suppliers', $suppliers);
+        }
+
+        return $qb->groupBy('article.id')
             ->getQuery()
             ->toIterable();
     }
@@ -262,7 +308,7 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user)
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $entityManager = $this->getEntityManager();
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -388,52 +434,73 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "nativeCountry":
-                                $subqb = $this->createQueryBuilder("article")
-                                    ->select('article.id')
-                                    ->leftJoin('article.nativeCountry', 'search_nativeCountry')
-                                    ->andWhere('search_nativeCountry.label LIKE :search')
-                                    ->setParameter('search', $search);
+                                if(in_array('nativeCountry', $user->getVisibleColumns()['article'])){
+                                    $subqb = $this->createQueryBuilder("article")
+                                        ->select('article.id')
+                                        ->leftJoin('article.nativeCountry', 'country_search')
+                                        ->andWhere('country_search.label LIKE :search')
+                                        ->setParameter('search', $search);
 
-                                foreach ($subqb->getQuery()->execute() as $idArray) {
-                                    $ids[] = $idArray['id'];
+                                    foreach ($subqb->getQuery()->execute() as $idArray) {
+                                        $ids[] = $idArray['id'];
+                                    }
                                 }
+                                break;
+                            case "deliveryNoteLine":
+                                if(in_array('deliveryNoteLine', $user->getVisibleColumns()['article'])){
+                                    $subqb = $this->createQueryBuilder("article")
+                                        ->select('article.id')
+                                        ->andWhere('article.deliveryNote LIKE :search')
+                                        ->setParameter('search', $search);
 
+                                    foreach ($subqb->getQuery()->execute() as $idArray) {
+                                        $ids[] = $idArray['id'];
+                                    }
+                                }
+                                break;
+                            case "purchaseOrderLine":
+                                if(in_array('purchaseOrderLine', $user->getVisibleColumns()['article'])){
+                                    $subqb = $this->createQueryBuilder("article")
+                                        ->select('article.id')
+                                        ->andWhere('article.purchaseOrder LIKE :search')
+                                        ->setParameter('search', $search);
+
+                                    foreach ($subqb->getQuery()->execute() as $idArray) {
+                                        $ids[] = $idArray['id'];
+                                    }
+                                }
                                 break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
-                                if(is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
-                                    if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
+                                if(in_array($field, $user->getVisibleColumns()['article'])){
+                                    if (is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
+                                        if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
 
-                                        $lowerSearchValue = strtolower($searchValue);
-                                        if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
-                                            $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
-                                            $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
-                                            $queryBuilder->setParameter("search", $booleanValue);
+                                            $lowerSearchValue = strtolower($searchValue);
+                                            if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
+                                                $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
+                                                $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
+                                                $queryBuilder->setParameter("search", $booleanValue);
+                                            }
+                                        } else {
+                                            $query[] = "JSON_SEARCH(LOWER(article.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                            $queryBuilder->setParameter("search", $date ?: strtolower($search));
                                         }
-                                    }
-                                    else {
-                                        $query[] = "JSON_SEARCH(LOWER(article.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                        $queryBuilder->setParameter("search", $date ?: strtolower($search));
-                                    }
-                                } else if (property_exists(Article::class, $field)) {
-                                    if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
-                                        $query[] = "article.$field BETWEEN :dateMin AND :dateMax";
-                                        $queryBuilder
-                                            ->setParameter('dateMin' , $date . ' 00:00:00')
-                                            ->setParameter('dateMax' , $date . ' 23:59:59');
-                                    } else {
-                                        $query[] = "article.$field LIKE :search";
-                                        $queryBuilder->setParameter('search', $search);
+                                    } else if (property_exists(Article::class, $field)) {
+                                        if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
+                                            $query[] = "article.$field BETWEEN :dateMin AND :dateMax";
+                                            $queryBuilder
+                                                ->setParameter('dateMin', $date . ' 00:00:00')
+                                                ->setParameter('dateMax', $date . ' 23:59:59');
+                                        } else {
+                                            $query[] = "article.$field LIKE :search";
+                                            $queryBuilder->setParameter('search', $search);
+                                        }
                                     }
                                 }
                                 break;
                         }
-                    }
-
-                    // si le résultat de la recherche est vide on renvoie []
-                    if (empty($ids)) {
-                        $ids = [0];
                     }
 
                     foreach ($ids as $id) {
@@ -1262,5 +1329,17 @@ class ArticleRepository extends EntityRepository {
             ->setMaxResults(3)
             ->getQuery()
             ->getResult();
+    }
+
+    public function findByEmplacementAndRefAndStatus(string $location, string $reference, string $status): int
+    {
+        $query = $this->createQueryBuilder('article')
+            ->join('article.articleFournisseur', 'join_articleFournisseur')
+            ->join('join_articleFournisseur.referenceArticle', 'join_referenceArticle')
+            ->join('article.statut', 'join_statut')
+            ->join('article.emplacement', 'join_emplacement')
+            ->setParameters(['join_emplacement.label' => $location, 'join_referenceArticle.reference' => $reference, 'join_statut.code' => $status]);
+
+        return $query->getQuery()->getResult();
     }
 }
