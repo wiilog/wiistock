@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
@@ -174,11 +175,11 @@ class ScheduledExportService
                         "entity" => $entity,
                         "export" => $exportToRun,
                         "frequency" => match ($exportToRun->getExportScheduleRule()?->getFrequency()) {
-                            ExportScheduleRule::ONCE => "une fois",
-                            ExportScheduleRule::HOURLY => "chaque heure",
-                            ExportScheduleRule::DAILY => "chaque jour",
-                            ExportScheduleRule::WEEKLY => "chaque semaine",
-                            ExportScheduleRule::MONTHLY => "chaque mois",
+                            ScheduleRule::ONCE => "une fois",
+                            ScheduleRule::HOURLY => "chaque heure",
+                            ScheduleRule::DAILY => "chaque jour",
+                            ScheduleRule::WEEKLY => "chaque semaine",
+                            ScheduleRule::MONTHLY => "chaque mois",
                             default => null,
                         },
                         "setting" => $this->getFrequencyDescription($exportToRun),
