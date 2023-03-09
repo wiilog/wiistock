@@ -1,5 +1,5 @@
 $max: 50;
-$step: 10;
+$step: 5;
 
 @for $i from 1 through $max {
     $value: $i * $step;

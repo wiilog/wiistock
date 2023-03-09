@@ -165,8 +165,10 @@
                                     </a>
                                 {% endif %}
                                 {% if hasPurchaseRequestRights %}
+                                    {% set isCurrentPage = (app.request.attributes.get('_route') == 'purchase_request_index') %}
                                     <a class="d-flex align-items-center"
-                                       onclick="createPurchaseRequest()"
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('purchase_request_index', {'open-modal': 'new'}) }}"
                                        title="Achat">
                                         <span class="wii-icon wii-icon-menu-achat quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Achat</span>

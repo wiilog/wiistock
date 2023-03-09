@@ -1,7 +1,7 @@
 $(function() {
     const $statusSelector = $('.filterService select[name="statut"]');
 
-    initPageDataTable();
+    const purchaseRequestTable = initPageDataTable();
 
     initDateTimePicker();
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
@@ -27,6 +27,16 @@ $(function() {
             displayFiltersSup(data);
         }, 'json');
     }
+
+    const $modalNewPurchaseRequest = $('#modalNewPurchaseRequest');
+
+    Form
+        .create($modalNewPurchaseRequest, {clearOnOpen: true})
+        .submitTo( AJAX.POST, 'purchase_request_new', {
+            success: ({redirect}) => {
+                window.location.href = redirect;
+            }
+        });
 });
 
 function initPageDataTable() {
