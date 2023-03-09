@@ -159,7 +159,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.productionDate')
             ->addSelect('article.RFIDtag')
             ->addSelect('fournisseur.nom AS nomFournisseur')
-            ->addSelect('fournisseur.codeReference AS codeRefFournisseur')
+            ->addSelect('articleFournisseur.reference AS RefArtFournisseur')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('articleFournisseur.fournisseur', 'fournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
