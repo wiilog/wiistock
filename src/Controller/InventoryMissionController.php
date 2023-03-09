@@ -50,7 +50,7 @@ class InventoryMissionController extends AbstractController
             'types' => Stream::from(InventoryMission::INVENTORY_TYPES)
                 ->map(fn(String $type) => [
                     'id' => $type,
-                    'label' => $type
+                    'label' => InventoryMission::TYPES_LABEL[$type]
                 ])
                 ->toArray(),
             'newMission' => new InventoryMission(),
