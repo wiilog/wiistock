@@ -37,20 +37,36 @@ class MobileApiService {
         $dispatches = Stream::from(
             Stream::from($dispatches)
                 ->reduce(function (array $accumulator, array $dispatch) {
+                    $first = false;
+                    // Set dispatch
                     if (!isset($accumulator[$dispatch['id']])) {
                         $accumulator[$dispatch['id']] = $dispatch;
-                    } else if ($accumulator[$dispatch['id']]['packReferences'] && $dispatch['packReferences']) {
+                        $first = true;
+                    }
+
+                    // Set reference fields, format : REF1,REF2,...
+                    if (!$first && $accumulator[$dispatch['id']]['packReferences'] && $dispatch['packReferences']) {
                         $accumulator[$dispatch['id']]['packReferences'] .= (',' . $dispatch['packReferences']);
                     } else if ($dispatch['packReferences']) {
                         $accumulator[$dispatch['id']]['packReferences'] = $dispatch['packReferences'];
                     }
 
-                    if ($accumulator[$dispatch['id']]['packs'] && $dispatch['packs']) {
+                    // Set reference quantity fields, format : REF1 (1),REF2 (4),...
+                    if (!isset($accumulator[$dispatch['id']]['quantities']) && $dispatch['lineQuantity'] && $dispatch['packReferences']) {
+                        $accumulator[$dispatch['id']]['quantities'] = $dispatch['packReferences'] . ' (' . $dispatch['lineQuantity'] . ')';
+                    } else if ($dispatch['lineQuantity'] && $dispatch['packReferences']) {
+                        $accumulator[$dispatch['id']]['quantities'] .= (',' . $dispatch['packReferences'] . ' (' . $dispatch['lineQuantity'] . ')');
+                    }
+                    if (isset($accumulator[$dispatch['id']]['lineQuantity'])) {
+                        unset($accumulator[$dispatch['id']]['lineQuantity']);
+                    }
+
+                    // Set packs fields, format : PACK1,PACK2,...
+                    if (!$first && $accumulator[$dispatch['id']]['packs'] && $dispatch['packs']) {
                         $accumulator[$dispatch['id']]['packs'] .= (',' . $dispatch['packs']);
                     } else if ($dispatch['packs']) {
                         $accumulator[$dispatch['id']]['packs'] = $dispatch['packs'];
                     }
-
                     return $accumulator;
                 }, []))
             ->map(function (array $dispatch) use ($dispatchExpectedDateColors) {
@@ -61,6 +77,7 @@ class MobileApiService {
                 return $dispatch;
             })
             ->values();
+        dump($dispatches);
         $dispatchPacks = array_map(function($dispatchPack) {
             if(!empty($dispatchPack['comment'])) {
                 $dispatchPack['comment'] = substr(strip_tags($dispatchPack['comment']), 0, 200);
