@@ -173,7 +173,8 @@ class ArticleRepository extends EntityRepository {
             ->leftJoin('article.nativeCountry', 'nativeCountry');
 
         if (isset($dateMin) && isset($dateMax)) {
-            $qb->andWhere('article.stockEntryDate BETWEEN :dateMin AND :dateMax')
+            $qb
+                ->andWhere('article.stockEntryDate BETWEEN :dateMin AND :dateMax')
                 ->setParameters([
                     'dateMin' => $dateMin,
                     'dateMax' => $dateMax
