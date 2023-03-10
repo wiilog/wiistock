@@ -43,7 +43,7 @@ class TruckArrivalRepository extends ServiceEntityRepository
         }
     }
 
-    public function findByParamsAndFilters(InputBag $params, Utilisateur $user, VisibleColumnService $visibleColumnService): array {
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array {
         $qb = $this->createQueryBuilder('truckArrival');
         $countTotal =  QueryBuilderHelper::count($qb, 'truckArrival');
 
@@ -137,7 +137,54 @@ class TruckArrivalRepository extends ServiceEntityRepository
             }
         }
 
-        // TODO FILTERS
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'dateMin':
+                    $qb
+                        ->andWhere('truckArrival.creationDate >= :dateMin')
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                    break;
+                case 'dateMax':
+                    $qb
+                        ->andWhere('truckArrival.creationDate <= :dateMax')
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                    break;
+                case 'registrationNumber':
+                    $qb
+                        ->andWhere('truckArrival.registrationNumber LIKE :registrationNumber')
+                        ->setParameter('registrationNumber', '%' . $filter['value'] . '%');
+                    break;
+                case 'truckArrivalNumber':
+                    $qb
+                        ->andWhere('truckArrival.number LIKE :truckArrivalNumber')
+                        ->setParameter('truckArrivalNumber', '%' . $filter['value'] . '%');
+                    break;
+                case 'carrierTrackingNumber':
+                    $qb
+                        ->andWhere('trackingLinesJ.number LIKE :carrierTrackingNumber')
+                        ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ')
+                        ->setParameter('carrierTrackingNumber', '%' . $filter['value'] . '%');
+                    break;
+                case 'carrier':
+                    $qb
+                        ->andWhere('truckArrival.carrier = :carrier')
+                        ->setParameter('carrier', $filter['value']);
+                    break;
+                case 'driver':
+                    $qb
+                        ->andWhere('truckArrival.driver = :driver')
+                        ->setParameter('driver', $filter['value']);
+                    break;
+                case 'carrierTrackingNumberNotAssigned':
+                    if ($filter['value'] == 'true') {
+                        $qb
+                            ->andWhere('trackingLinesJ.number IS NULL')
+                            ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ');
+                    }
+                    break;
+            }
+        }
+
         $countFiltered = QueryBuilderHelper::count($qb, 'truckArrival');
 
         $truckarrivals = $qb->getQuery()->getResult();

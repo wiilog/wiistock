@@ -4,8 +4,10 @@
 {% block title_tooltip %}Traçabilité | Arrivages camion{% endblock %}
 
 {% block page_filter %}
-    {# TODO filters #}
-    FILTERS
+    {% include 'filters/filtersTruckArrival.html.twig' with {
+        page: 'PAGE_TRUCK_ARRIVAL',
+        tableSelector: '#truckArrivalsTable'
+    } %}
 {% endblock %}
 
 {% block page_content %}
@@ -43,6 +45,8 @@
             </div>
         </div>
     </div>
+
+    <input id="truck-arrival-filters" value="{{ initial_filters }}" hidden>
 
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,

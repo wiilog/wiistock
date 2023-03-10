@@ -3,6 +3,7 @@
 namespace App\Service;
 
 
+use App\Entity\FiltreSup;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
@@ -32,8 +33,10 @@ class TruckArrivalService
 
     public function getDataForDatatable(Request $request, Utilisateur $user): array{
         $truckArrivalRepository = $this->entityManager->getRepository(TruckArrival::class);
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
 
-        $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->query, $user, $this->visibleColumnService);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRUCK_ARRIVAL, $user);
+        $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->query, $filters, $user, $this->visibleColumnService);
         $truckArrivals = Stream::from($queryResult['data'])
             ->map(function (TruckArrival $truckArrival) {
                 return $this->dataRowTruckArrival($truckArrival);
@@ -47,7 +50,7 @@ class TruckArrivalService
         ];
     }
 
-    public function dataRowTruckArrival(TruckArrival $truckArrival): array{
+    public function dataRowTruckArrival(TruckArrival $truckArrival): array {
         $formatService = $this->formatService;
         return [
             'actions' => $this->templating->render('utils/action-buttons.html.twig', [
@@ -79,7 +82,7 @@ class TruckArrivalService
         ];
     }
 
-    public function getVisibleColumns(Utilisateur $user): array{
+    public function getVisibleColumns(Utilisateur $user): array {
         $columnsVisible = $user->getVisibleColumns()['truckArrival'];
         $columns = [
             ['title' => 'Chauffeur', 'name' => 'driver'],

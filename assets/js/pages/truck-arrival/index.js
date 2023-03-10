@@ -1,6 +1,13 @@
-import AJAX, {GET} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 
 $(function () {
+    Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
+    initDateTimePicker('#dateMin, #dateMax');
+
+    const filters = JSON.parse($(`#truck-arrival-filters`).val())
+    console.log(filters);
+    displayFiltersSup(filters);
+
     initTruckArrivalTable();
 });
 
