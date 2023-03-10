@@ -53,4 +53,15 @@ class ChauffeurRepository extends EntityRepository
 
         return $query->execute();
     }
+
+    function getDriversArray(){
+        return $this->createQueryBuilder('chauffeur')
+            ->select('chauffeur.id AS id')
+            ->addSelect('chauffeur.nom AS label')
+            ->addSelect('chauffeur.prenom AS prenom')
+            ->addSelect('join_transporteur.id AS id_transporteur')
+            ->leftJoin('chauffeur.transporteur', 'join_transporteur')
+            ->getQuery()
+            ->getResult();
+    }
 }

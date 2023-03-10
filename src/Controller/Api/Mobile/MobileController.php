@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Chauffeur;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
@@ -1623,6 +1624,7 @@ class MobileController extends AbstractApiController
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $driverRepository = $entityManager->getRepository(Chauffeur::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -1832,6 +1834,7 @@ class MobileController extends AbstractApiController
             'dispatchTypes' => $dispatchTypes ?? [],
             'users' => $users ?? [],
             'fieldsParam' => $fieldsParam ?? [],
+            'drivers' => $driverRepository->getDriversArray()
         ];
     }
 
@@ -2895,6 +2898,18 @@ class MobileController extends AbstractApiController
         }
 
         return $this->json($data);
+    }
+
+    /**
+     * @Rest\Get("/api/get-truck-arrival-default-unloading-location", name="api_get_truck_arrival_default_unloading_location", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getTruckArrivalDefaultUnloadingLocation(EntityManagerInterface $manager): Response {
+        $settingRepository = $manager->getRepository(Setting::class);
+        $truckArrivalDefaultUnloadingLocation = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+
+        return $this->json($truckArrivalDefaultUnloadingLocation);
     }
 
 }
