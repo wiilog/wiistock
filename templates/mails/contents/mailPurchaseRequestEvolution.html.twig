@@ -32,7 +32,7 @@
     </div>
     {% if not notTreatedStatus %}
         <div>Acheteur :
-            <strong>{{ purchaseRequest.buyer.username }}</strong>
+            <strong>{{ purchaseRequest.buyer is defined and purchaseRequest.buyer is not null ? purchaseRequest.buyer.username : '' }}</strong>
         </div>
     {% endif %}
     {% if not treatedStatus %}
