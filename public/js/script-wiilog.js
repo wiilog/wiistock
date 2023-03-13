@@ -495,7 +495,7 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
         'filter-input': ($input) => ($input.val() || '').trim(),
         'filter-select2': ($input) => ($input.select2('data') || [])
                 .filter(({id, text}) => (id.trim() && text.trim()))
-                .map(({id, text}) => ({id, text})),
+                .map(({id, text}) => ({id, text: text.replace(/(\r\n|\n|\r)/gm, "").trim()})),
         'filter-checkbox': ($input) => $input.is(':checked'),
         'filter-switch': ($input) => $input.closest(`.wii-expanded-switch, .wii-switch`).find(':checked').val(),
     };

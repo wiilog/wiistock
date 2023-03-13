@@ -23,7 +23,6 @@ class CategorieCL {
     const AUCUNE = 'aucune';
     const DELIVERY_TRANSPORT = 'transport livraison';
     const COLLECT_TRANSPORT = 'transport collecte';
-    const TRUCK_ARRIVAL = 'arrivage camion';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

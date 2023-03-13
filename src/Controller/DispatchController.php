@@ -1697,10 +1697,10 @@ class DispatchController extends AbstractController {
 
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
-        $start = $request->query->get('start') ?: 0;
-        $search = $request->query->get('search') ?: 0;
+        $start = 0;
+        $search = $request->query->get('search') ?: null;
 
-        $listLength = 5;
+        $listLength = $dispatch->getDispatchPacks()->count();
 
         $result = $dispatchPackRepository->getByDispatch($dispatch, [
             "start" => $start,

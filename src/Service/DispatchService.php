@@ -419,7 +419,6 @@ class DispatchService {
             }
 
             if($sendReport){
-                $receiverEmailUses = [];
                 $receiverEmailUses[] = $dispatch->getLocationFrom()->getEmail();
                 $receiverEmailUses[] = $dispatch->getLocationTo()->getEmail();
                 $receiverEmailUses[] = $signatory?->getEmail();
@@ -1265,6 +1264,9 @@ class DispatchService {
             'outFormatEquipment' => $data['outFormatEquipment'] ?? null,
             'manufacturerCode' => $data['manufacturerCode'] ?? null,
             'volume' => $data['volume'] ?? null,
+            'width' => $data['width'] ?? null,
+            'height' => $data['height'] ?? null,
+            'length' => $data['length'] ?? null,
             'weight' => $data['weight'] ?? null,
             'associatedDocumentTypes' => $data['associatedDocumentTypes'] ?? null,
         ];

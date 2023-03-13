@@ -37,9 +37,6 @@ function initTruckArrivalTable() {
                 ajax: {
                     "url": pathTruckArrivalList,
                     "type": GET,
-                    'data': {
-                        // TODO : add filters
-                    },
                 },
                 hideColumnConfig: {
                     columns: [
