@@ -57,13 +57,15 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/api-list', name: 'truck_arrival_api_list', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
-    public function apiList(TruckArrivalService $truckArrivalService, Request $request): JsonResponse {
+    public function apiList(TruckArrivalService $truckArrivalService,
+                            EntityManagerInterface $entityManager,
+                            Request $request): JsonResponse {
         return new JsonResponse(
-            $truckArrivalService->getDataForDatatable($request, $this->getUser()),
+            $truckArrivalService->getDataForDatatable($entityManager, $request, $this->getUser()),
         );
     }
 
-    #[Route('/', name: 'save_column_visible_for_truck_arrival', methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/save-columns', name: 'save_column_visible_for_truck_arrival', methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     public function saveColumns(VisibleColumnService $visibleColumnService, Request $request, EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);

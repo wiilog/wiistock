@@ -6,24 +6,17 @@ use App\Entity\TruckArrival;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
- * @extends ServiceEntityRepository<TruckArrival>
- *
  * @method TruckArrival|null find($id, $lockMode = null, $lockVersion = null)
  * @method TruckArrival|null findOneBy(array $criteria, array $orderBy = null)
  * @method TruckArrival[]    findAll()
  * @method TruckArrival[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TruckArrivalRepository extends ServiceEntityRepository
+class TruckArrivalRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, TruckArrival::class);
-    }
 
     public function save(TruckArrival $entity, bool $flush = false): void
     {

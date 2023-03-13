@@ -11,9 +11,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use WiiCommon\Helper\Stream;
 
 class TruckArrivalService
@@ -23,17 +20,16 @@ class TruckArrivalService
     public VisibleColumnService $visibleColumnService;
 
     #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
     public FormatService $formatService;
 
     #[Required]
     public Environment $templating;
 
-    public function getDataForDatatable(Request $request, Utilisateur $user): array{
-        $truckArrivalRepository = $this->entityManager->getRepository(TruckArrival::class);
-        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+    public function getDataForDatatable(EntityManagerInterface $entityManager,
+                                        Request                $request,
+                                        Utilisateur            $user): array {
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRUCK_ARRIVAL, $user);
         $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->query, $filters, $user, $this->visibleColumnService);
@@ -64,7 +60,7 @@ class TruckArrivalService
                     [
                         'title' => 'Supprimer',
                         'icon' => 'fa fa-trash',
-                        'class' => 'delete',
+                        'class' => 'truck-arrival-delete',
                     ],
                 ],
             ]),
@@ -75,7 +71,11 @@ class TruckArrivalService
             'registrationNumber' => $truckArrival->getRegistrationNumber(),
             'number' => $truckArrival->getNumber(),
             'trackingLinesNumber' => $formatService->truckArrivalLines($truckArrival->getTrackingLines()),
-            'countTrackingLines' => $truckArrival->getTrackingLines()->filter(fn(TruckArrivalLine $line) => $line->getArrival()->count())->count() . '/' . $truckArrival->getTrackingLines()->count(),
+            'countTrackingLines' => $truckArrival->getTrackingLines()
+                    ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
+                    ->count()
+                . '/'
+                . $truckArrival->getTrackingLines()->count(),
             'operator' => $formatService->user($truckArrival->getOperator()),
             'reserves' => $truckArrival->getReserves()->isEmpty() ? 'non' : 'oui',
             'carrier' => $formatService->carrier($truckArrival->getCarrier()),

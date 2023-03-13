@@ -25,7 +25,6 @@ class CategoryType {
     const DELIVERY_TRANSPORT = 'demande transport livraison';
     const COLLECT_TRANSPORT = 'demande transport collecte';
     const EXPORT = 'export';
-    const TRUCK_ARRIVAL = 'arrivage camion';
 
     public const ALL = [
         self::RECEPTION,
