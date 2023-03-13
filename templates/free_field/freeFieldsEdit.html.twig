@@ -53,8 +53,9 @@
                                 {% set selectedValue = entityValue|transFreeFieldElements(freeField)
                                     ?: freeField.defaultValue %}
                                 {{ form.select(freeField.id, displayedLabel, needed, {
-                                    items: elements|map((elem) => {value: elem, label: elem}),
+                                    items: elements|map((elem) => {value: elem, label: elem}) | sort((a, b) => a.label <=> b.label),
                                     value: selectedValue,
+                                    type: "",
                                     inputClass: 'needs-default w-100',
                                     emptyOption: {text: '', value: ''},
                                     additionalAttributes: [{
