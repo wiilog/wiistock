@@ -261,7 +261,7 @@ class InventoryService {
             }
         }
 
-        $result['numScannedObjects'] = count($scannedArticles);
+        $result['numScannedObjects'] = count($actual);
         return $result;
     }
 

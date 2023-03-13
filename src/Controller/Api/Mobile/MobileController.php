@@ -1962,22 +1962,14 @@ class MobileController extends AbstractApiController
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $supplierArticleRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
-        $data = $request->request->all();
-        $data = Stream::from($data)
-            ->keymap(fn($value, $key) => [
-                $key,
-                $value === 'null' ? null : $value
-            ])
-            ->toArray();
-
         $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
 
         $now = new DateTime('now');
 
-        $rfidTag = $data['rfidTag'];
-        $countryStr = $data['country'];
-        $destinationStr = $data['destination'];
-        $referenceStr = $data['reference'];
+        $rfidTag = $request->request->get('rfidTag');
+        $countryStr = $request->request->get('country');
+        $destinationStr = $request->request->get('destination');
+        $referenceStr = $request->request->get('reference');
 
         if (empty($rfidTag)) {
             throw new FormException("Le tag RFID est invalide.");
@@ -1991,14 +1983,13 @@ class MobileController extends AbstractApiController
         if ($article) {
             throw new FormException("Tag RFID déjà existant en base.");
         }
-        $type = $typeRepository->find($data['type']);
+        $type = $typeRepository->find($request->request->get('type'));
         $statut = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+
         $fromMatrix = $request->request->getBoolean('fromMatrix');
         $destination = !empty($destinationStr)
-            ? ( $fromMatrix
-                ? $locationRepository->findOneBy([
-                    'label' => $data['destination']
-                ])
+            ? ($fromMatrix
+                ? $locationRepository->findOneBy(['label' => $destinationStr])
                 : $locationRepository->find($destinationStr))
             : null;
         $countryFrom = !empty($countryStr)
@@ -2018,7 +2009,7 @@ class MobileController extends AbstractApiController
             ]);
         } else {
             $ref = $referenceArticleRepository->find($referenceStr);
-            $articleSupplier = $supplierArticleRepository->find($data['supplier_reference']);
+            $articleSupplier = $supplierArticleRepository->find($request->request->get('supplier_reference'));
         }
         if (!$ref) {
             throw new FormException("Référence scannée (${referenceStr}) inconnue.");
@@ -2039,35 +2030,34 @@ class MobileController extends AbstractApiController
             throw new FormException("Référence fournisseur inconnue.");
         }
 
-        $expiryDateStr = $data['expiryDate'];
+        $expiryDateStr = $request->request->get('expiryDate');
         $expiryDate = $expiryDateStr
             ? ($fromMatrix
                 ? DateTime::createFromFormat('dmY', $expiryDateStr)
                 : new DateTime($expiryDateStr))
             : null;
 
-
-        $manufacturingDateStr = $data['manufacturingDate'];
+        $manufacturingDateStr = $request->request->get('manufacturingDate');
         $manufacturingDate = $manufacturingDateStr
             ? ($fromMatrix
                 ? DateTime::createFromFormat('dmY', $manufacturingDateStr)
                 : new DateTime($manufacturingDateStr))
             : null;
 
-        $productionDateStr = $data['productionDate'];
+        $productionDateStr = $request->request->get('productionDate');
         $productionDate = $productionDateStr
             ? ($fromMatrix
                 ? DateTime::createFromFormat('dmY', $productionDateStr)
                 : new DateTime($productionDateStr))
             : null;
 
-        $labelStr = $data['label'];
-        $commentStr = $data['comment'];
-        $priceStr = $data['price'];
-        $quantityStr = $data['quantity'];
-        $deliveryLineStr = $data['deliveryLine'];
-        $commandNumberStr = $data['commandNumber'];
-        $batchStr = $data['batch'];
+        $labelStr = $request->request->get('label');
+        $commentStr = $request->request->get('comment');
+        $priceStr = $request->request->get('price');
+        $quantityStr = $request->request->getInt('quantity');
+        $deliveryLineStr = $request->request->get('deliveryLine');
+        $commandNumberStr = $request->request->get('commandNumber');
+        $batchStr = $request->request->get('batch');
 
         $article = new Article();
         $article
@@ -3393,6 +3383,7 @@ class MobileController extends AbstractApiController
                                 EntityManagerInterface $manager,
                                 UniqueNumberService $uniqueNumberService,
                                 DispatchService $dispatchService,
+                                MobileApiService $mobileApiService,
                                 StatusHistoryService $statusHistoryService): Response {
         $data = Stream::from($request->request->all())
             ->keymap(fn(?string $value, string $key) => [$key, !in_array($value, ['undefined', 'null']) ? $value : null])
@@ -3449,6 +3440,9 @@ class MobileController extends AbstractApiController
         }
 
         $serializedDispatch = $dispatchRepository->getMobileDispatches(null, $dispatch);
+        $serializedDispatch = Stream::from($serializedDispatch)
+            ->reduce(fn(array $accumulator, array $dispatch) => $mobileApiService->serializeDispatch($accumulator, $dispatch), []);
+        $serializedDispatch = $serializedDispatch[array_key_first($serializedDispatch)];
         return $this->json([
             'success' => true,
             'dispatch' => $serializedDispatch
@@ -3568,10 +3562,10 @@ class MobileController extends AbstractApiController
                 $refArticleDataService->updateDescriptionField($entityManager, $reference, [
                     'outFormatEquipment' => $data['outFormatEquipment'],
                     'manufacturerCode' => $data['manufacturerCode'],
-                    'volume' => $creation ? $data['volume'] : $oldDescription['volume'] ?? null,
-                    'length' => $creation ? $data['length'] : $oldDescription['length'] ?? null,
-                    'width' => $creation ? $data['width'] : $oldDescription['width'] ?? null,
-                    'height' => $creation ? $data['height'] : $oldDescription['height'] ?? null,
+                    'volume' =>  $data['volume'],
+                    'length' =>  $data['length'],
+                    'width' =>  $data['width'],
+                    'height' =>  $data['height'],
                     'weight' => $data['weight'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
                 ]);

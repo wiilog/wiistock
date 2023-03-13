@@ -49,13 +49,16 @@ export function initializeInventoryPlanificatorTable($container) {
             const $addInventoryLocationsModule = $form.find('.add-inventory-location-container');
             const $locationTable = $addInventoryLocationsModule.find('table');
             const locations = $locationTable.DataTable().column(0).data().toArray();
+            const $missionType = $modalFormInventoryPlanner.find('[name=missionType]:checked');
 
-            if (locations.length === 0) {
-                errors.push({
-                    message: `Vous devez sélectionner au moins un emplacement`,
-                });
-            } else {
-                data.append('locations', locations);
+            if($missionType.val() === 'location'){
+                if (locations.length === 0) {
+                    errors.push({
+                        message: `Vous devez sélectionner au moins un emplacement`,
+                    });
+                } else {
+                    data.append('locations', locations);
+                }
             }
         })
         .addProcessor((data, errors, $form) => {

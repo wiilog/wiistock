@@ -5,6 +5,7 @@ import Form from '@app/form';
 import Flash from '@app/flash';
 import {onSelectAll, toggleFrequencyInput} from '@app/pages/settings/utils';
 import AJAX, {POST} from "@app/ajax";
+import moment from "moment";
 
 const EXPORT_UNIQUE = `unique`;
 const EXPORT_SCHEDULED = `scheduled`;
@@ -189,7 +190,7 @@ function createForm() {
                         const dateMin = $modal.find(`[name=articleDateMin]`).val();
                         const dateMax = $modal.find(`[name=articleDateMax]`).val();
 
-                        if (dateMin !== '' && dateMax !== '' && dateMin > dateMax) {
+                        if (dateMin !== '' && dateMax !== '' && moment(dateMin).isAfter(moment(dateMax))) {
                             Flash.add(`danger`, `Les bornes de dates d'entrée de stock sont invalides`);
                             return Promise.resolve();
                         }

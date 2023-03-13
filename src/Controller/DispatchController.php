@@ -434,8 +434,10 @@ class DispatchController extends AbstractController {
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
 
         $dispatchReferenceArticleAttachments = [];
+        $addNewUlToDispatch = false;
         foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
             foreach ($dispatchPack->getDispatchReferenceArticles() as $dispatchReferenceArticle) {
+                $addNewUlToDispatch = true;
                 foreach ($dispatchReferenceArticle->getAttachments() as $attachment)
                     $dispatchReferenceArticleAttachments[] = $attachment;
             }
@@ -466,7 +468,8 @@ class DispatchController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'freeFields' => $freeFields,
             "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
-            "attachments" => $attachments
+            "attachments" => $attachments,
+            'addNewUlToDispatch' => $addNewUlToDispatch
         ]);
     }
 
@@ -803,10 +806,10 @@ class DispatchController extends AbstractController {
                             PackService $packService,
                             Dispatch $dispatch): Response {
         $data = $request->request->all();
-
         $noPrefixPackCode = trim($data["pack"]);
         $natureId = $data["nature"];
         $quantity = $data["quantity"];
+        $existing = isset($data["packID"]);
         $comment = $data["comment"] ?? "";
         $weight = (floatval(str_replace(',', '.', $data["weight"] ?? "")) ?: null);
         $volume = (floatval(str_replace(',', '.', $data["volume"] ?? "")) ?: null);
@@ -814,7 +817,7 @@ class DispatchController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $prefixPackCodeWithDispatchNumber = $settingRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
-        if($prefixPackCodeWithDispatchNumber && !str_starts_with($noPrefixPackCode, $dispatch->getNumber())) {
+        if($prefixPackCodeWithDispatchNumber && !str_starts_with($noPrefixPackCode, $dispatch->getNumber()) && !$existing) {
             $packCode = "{$dispatch->getNumber()}-$noPrefixPackCode";
         } else {
             $packCode = $noPrefixPackCode;
@@ -827,7 +830,13 @@ class DispatchController extends AbstractController {
             $pack = Stream::from($dispatch->getDispatchPacks())
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getCode() === $noPrefixPackCode)
                 ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
-                ->firstOr(fn() => $packRepository->findOneBy(["code" => $packCode]));
+                ->firstOr(function() use ($existing, $packCode, $packRepository) {
+                    if ($existing){
+                        return $packRepository->find($packCode);
+                    } else {
+                        return $packRepository->findOneBy(["code" => $packCode]);
+                    }
+                });
         }
 
         $packMustBeNew = $settingRepository->getOneParamByLabel(Setting::PACK_MUST_BE_NEW);
@@ -867,8 +876,9 @@ class DispatchController extends AbstractController {
         $pack->setVolume($volume ? round($volume, 3) : null);
 
         $success = true;
-        $toTranslate = 'L\'unité logistique {1} a bien été ' . ($dispatchPack->getId() ? "modifiée" : "ajoutée");
-        $message = $translationService->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', $toTranslate, [1 => '<strong>{$pack->getCode()}</strong>']);
+        $packCode = $pack->getCode();
+        $toTranslate = 'Le colis {1} a bien été ' . ($dispatchPack->getId() ? "modifiée" : "ajoutée");
+        $message = $translationService->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', $toTranslate, [1 => "<strong>$packCode</strong>"]);
 
         $entityManager->flush();
 
@@ -1783,6 +1793,22 @@ class DispatchController extends AbstractController {
             'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
             'packs' => $packs,
             'pack' => $pack,
+        ]);
+
+        return new JsonResponse($html);
+    }
+
+    #[Route("/add-logistic-unit-api/{dispatch}", name: "dispatch_add_logistic_unit_api", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
+    public function addLogisticUnitApi(Dispatch $dispatch,
+                                    EntityManagerInterface $entityManager): JsonResponse
+    {
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $defaultNature = $natureRepository->findOneBy(['defaultForDispatch' => true]);
+
+        $html = $this->renderView('dispatch/modalAddLogisticUnitContent.html.twig', [
+            'dispatch' => $dispatch,
+            'nature' => $defaultNature
         ]);
 
         return new JsonResponse($html);

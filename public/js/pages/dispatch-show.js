@@ -100,6 +100,22 @@ $(function() {
         });
     });
 
+    let $modalAddUl = $('#modalAddLogisticUnit');
+    Form.create($modalAddUl).onSubmit((data, form) => {
+        form.loading(() => {
+            data.set('fromModal', true);
+            return AJAX
+                .route(AJAX.POST, `dispatch_new_pack`, {dispatch: $('#dispatchId').val()})
+                .json(data)
+                .then((response) => {
+                    if(response.success) {
+                        $modalAddUl.modal('hide');
+                        window.location.reload();
+                    }
+                })
+        });
+    });
+
 
     const queryParams = GetRequestQuery();
     const {'print-delivery-note': printDeliveryNote} = queryParams;
@@ -710,12 +726,17 @@ function refArticleChanged($select) {
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
         $modalAddReference.find("input[name=height]").val(description["height"]);
         $modalAddReference.find("[name=weight]").val(description["weight"]);
+        $modalAddReference.find("[name=height]").val(description["height"]);
+        $modalAddReference.find("[name=width]").val(description["width"]);
+        $modalAddReference.find("[name=length]").val(description["length"]);
         $modalAddReference.find("[name=volume]").val(description["volume"]).prop("disabled", true);
         const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
         const $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
         $associatedDocumentTypesSelect
             .val(associatedDocumentTypes)
             .trigger('change');
+
+        registerVolumeChanges();
     }
 }
 
@@ -733,4 +754,59 @@ function deleteRefArticle(dispatchReferenceArticle) {
             label: 'Supprimer'
         },
     });
+}
+
+
+function openAddLogisticUnitModal() {
+    const $modalAddUl = $('#modalAddLogisticUnit');
+    const dispatchId = $('#dispatchId').val();
+    const $modalbody = $modalAddUl.find('.modal-body')
+
+    AJAX.route(AJAX.GET, 'dispatch_add_logistic_unit_api', {dispatch: dispatchId})
+        .json()
+        .then((data)=>{
+            $modalbody.html(data);
+            $modalAddUl.modal('show');
+        });
+}
+
+function registerVolumeChanges() {
+    let $inputs = $(`input[name=length], input[name=width], input[name=height]`);
+    $inputs.off('input');
+    $inputs.on(`input`, () => {
+        computeDescriptionFormValues({
+            $length: $(`input[name=length]`),
+            $width: $(`input[name=width]`),
+            $height: $(`input[name=height]`),
+            $volume: $(`input[name=volume]`),
+            $size: $(`input[name=size]`),
+        });
+    });
+}
+
+function selectUlChanged($select){
+    const $modal = $('#modalAddLogisticUnit');
+    const ulData = $select.select2('data')[0];
+    console.log(ulData);
+    if (ulData) {
+        const defaultNatureId = ulData.nature_id || $modal.find('[name=defaultNatureId]').val();
+        const defaultNatureLabel = ulData.nature_label || $modal.find('[name=defaultNatureLabel]').val();
+        const defaultQuantityNatureForDispatch = ulData.nature_default_quantity_for_dispatch || $modal.find('[name=defaultQuantityNatureForDispatch]').val();
+
+        const ulLastMvtDate = $modal.find('.ul-last-movement-date');
+        const ulLastLocation = $modal.find('.ul-last-location');
+        const ulOperator = $modal.find('.ul-operator');
+        const ulNature = $modal.find('select[name=nature]');
+        const ulQuantity = $modal.find('[name=quantity]');
+
+        ulLastMvtDate.text(ulData.lastMvtDate || '-');
+        ulLastLocation.text(ulData.lastLocation || '-');
+        ulQuantity.val(defaultQuantityNatureForDispatch);
+        ulOperator.text(ulData.operator || '-');
+        if (defaultNatureId && defaultNatureLabel) {
+            let newOption = new Option(defaultNatureLabel, defaultNatureId, true, true);
+            ulNature.append(newOption).trigger('change');
+        }
+        $modal.find('[name=packID]').val(ulData.exists ? ulData.id : null);
+    }
 }
