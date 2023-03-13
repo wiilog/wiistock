@@ -689,19 +689,14 @@ class PreparationController extends AbstractController
             ->map(fn(PreparationOrderArticleLine $line) => $articleDataService->getBarcodeConfig($line->getArticle()))
             ->toArray();
 
-        /** @var PreparationOrderReferenceLine $ligne */
-        foreach ($lignesArticle as $ligne) {
-            $reference = $ligne->getReference();
-            if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                $referenceArticles[] = $reference;
-            }
-        }
-        $barcodeConfigs = array_merge($barCodesArticles, !$forceTagEmpty ? [] : array_map(
-            function (ReferenceArticle $referenceArticle) use ($refArticleDataService) {
-                return $refArticleDataService->getBarcodeConfig($referenceArticle);
-            },
-            $referenceArticles
-        ));
+        $referenceBarCode = $forceTagEmpty
+            ? Stream::from($lignesArticle)
+                ->filter(fn(PreparationOrderReferenceLine $line) => $line->getReference()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE)
+                ->map(fn(PreparationOrderReferenceLine $line) => $refArticleDataService->getBarcodeConfig($line->getReference()))
+                ->toArray()
+            : [];
+
+        $barcodeConfigs = array_merge($barCodesArticles, $referenceBarCode);
         $barcodeCounter = count($barcodeConfigs);
 
         if ($barcodeCounter > 0) {
