@@ -85,6 +85,13 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FieldsParam::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_USER]
             ],
 
+            FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL => [
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_DRIVER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
+            ],
+
             FieldsParam::ENTITY_CODE_ARTICLE => [
                 ['code' => FieldsParam::FIELD_CODE_ARTICLE_UNIT_PRICE, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_UNIT_PRICE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_ARTICLE_BATCH, 'label' => FieldsParam::FIELD_LABEL_ARTICLE_BATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],

@@ -283,7 +283,7 @@ class SettingsController extends AbstractController {
                     ],
                 ],
                 self::MENU_ARRIVALS => [
-                    "label" => "Arrivages",
+                    "label" => "Arrivages UL",
                     "right" => Action::SETTINGS_DISPLAY_ARRI,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
@@ -307,6 +307,21 @@ class SettingsController extends AbstractController {
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                         self::MENU_DISPUTE_TYPES => ["label" => "Litiges - Types"],
+                    ],
+                ],
+                self::MENU_TRUCK_ARRIVALS => [
+                    "label" => "Arrivages camion",
+                    "right" => Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS,
+                    "menus" => [
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                        ],
                     ],
                 ],
                 self::MENU_MOVEMENTS => [
@@ -573,6 +588,7 @@ class SettingsController extends AbstractController {
     public const MENU_FREE_FIELDS = "champs_libres";
     public const MENU_HANDLINGS = "services";
     public const MENU_REQUEST_TEMPLATES = "modeles_demande";
+    public const MENU_TRUCK_ARRIVALS = "arrivages_camion";
 
     public const MENU_TRANSPORT_REQUESTS = "demande_transport";
     public const MENU_ROUNDS = "tournees";

@@ -1,0 +1,51 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-md-6 col-12 my-1">
+            {% set location = setting_value('TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION', 'App\\Entity\\Emplacement') %}
+            {{ form.select(setting('TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION'),'Emplacement par défaut de déchargement',false,{
+                value: location ? location.id,
+                items: location ? [{value: location.id, label: location.label}],
+                type: 'location'
+            }) }}
+        </div>
+        <div class="col-12 my-1">
+            <label class="w-100">
+                <span class="d-inline-flex align-items-center field-label wii-field-name">Emplacement par défaut de déchargement</span>
+                <div class="mt-1">
+                    {% set param = 'TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_START' %}
+                    {% set paramValue = setting_value(param) %}
+                    {% set date = paramValue ? paramValue|date('H:i') : null %}
+                    Créé avant {{ form.input(setting(param), null, false, paramValue ,{
+                        type: 'time',
+                        labelClass: 'w-auto start',
+                    }) }}
+                    {% set param = 'TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END' %}
+                    {% set paramValue = setting_value(param) %}
+                    {% set date = paramValue ? paramValue|date('H:i') : null %}
+                    à traiter avant {{ form.input(setting(param), null, false, paramValue ,{
+                        type: 'time',
+                        labelClass: 'w-auto',
+                    }) }}
+                </div>
+                <div class="mt-1">
+                    {% set param = 'TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START' %}
+                    {% set paramValue = setting_value(param) %}
+                    {% set date = paramValue ? paramValue|date('H:i') : null %}
+                    Créé apres {{ form.input(setting(param), null, false, paramValue ,{
+                        type: 'time',
+                        labelClass: 'w-auto start',
+                    }) }}
+                    {% set param = 'TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END' %}
+                    {% set paramValue = setting_value(param) %}
+                    {% set date = paramValue ? paramValue|date('H:i') : null %}
+                    à traiter avant {{ form.input(setting(param), null, false, paramValue ,{
+                        type: 'time',
+                        labelClass: 'w-auto',
+                    }) }}
+                </div>
+            </label>
+        </div>
+    </div>
+</div>

@@ -94,12 +94,16 @@ class Arrivage {
     #[ORM\OneToOne(mappedBy: 'arrival', targetEntity: Reception::class)]
     private ?Reception $reception = null;
 
+    #[ORM\ManyToMany(targetEntity: TruckArrivalLine::class, mappedBy: 'arrival')]
+    private Collection $truckArrivalLines;
+
     public function __construct() {
         $this->acheteurs = new ArrayCollection();
         $this->packs = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->urgences = new ArrayCollection();
         $this->numeroCommandeList = [];
+        $this->truckArrivalLines = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -481,6 +485,46 @@ class Arrivage {
         if($this->dropLocation
             && $oldDropLocation !== $this->dropLocation) {
             $this->dropLocation->addArrival($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TruckArrivalLine>
+     */
+    public function getTruckArrivalLines(): Collection
+    {
+        return $this->truckArrivalLines;
+    }
+
+    public function addTruckArrivalLine(TruckArrivalLine $truckArrivalLine): self
+    {
+        if (!$this->truckArrivalLines->contains($truckArrivalLine)) {
+            $this->truckArrivalLines[] = $truckArrivalLine;
+            $truckArrivalLine->addArrival($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTruckArrivalLine(TruckArrivalLine $truckArrivalLine): self
+    {
+        if ($this->truckArrivalLines->removeElement($truckArrivalLine)) {
+            $truckArrivalLine->removeArrival($this);
+        }
+
+        return $this;
+    }
+
+    public function setTruckarrivalLines(?iterable $truckArrivalLines): self {
+        foreach($this->getTruckArrivalLines()->toArray() as $truckArrivalLine) {
+            $this->removeTruckArrivalLine($truckArrivalLine);
+        }
+
+        $this->truckArrivalLines = new ArrayCollection();
+        foreach($truckArrivalLines ?? [] as $truckArrivalLine) {
+            $this->addTruckArrivalLine($truckArrivalLine);
         }
 
         return $this;
