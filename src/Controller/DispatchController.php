@@ -1715,9 +1715,9 @@ class DispatchController extends AbstractController {
                 "dispatchPacks" => $result["data"],
                 "total" => $result["total"],
                 "current" => $start,
-                "currentPage" => floor($start / $listLength),
+                "currentPage" => $listLength === 0 ? 1 : floor($start / $listLength),
                 "pageLength" => $listLength,
-                "pagesCount" => ceil($result["total"] / $listLength),
+                "pagesCount" => $listLength === 0 ? 1 : ceil($result["total"] / $listLength),
             ]),
         ]);
     }
