@@ -2584,6 +2584,7 @@ class MobileController extends AbstractApiController
                                 EntityManagerInterface $manager,
                                 UniqueNumberService $uniqueNumberService,
                                 DispatchService $dispatchService,
+                                MobileApiService $mobileApiService,
                                 StatusHistoryService $statusHistoryService): Response {
         $data = Stream::from($request->request->all())
             ->keymap(fn(?string $value, string $key) => [$key, !in_array($value, ['undefined', 'null']) ? $value : null])
@@ -2640,6 +2641,9 @@ class MobileController extends AbstractApiController
         }
 
         $serializedDispatch = $dispatchRepository->getMobileDispatches(null, $dispatch);
+        $serializedDispatch = Stream::from($serializedDispatch)
+            ->reduce(fn(array $accumulator, array $dispatch) => $mobileApiService->serializeDispatch($accumulator, $dispatch), []);
+        $serializedDispatch = $serializedDispatch[array_key_first($serializedDispatch)];
         return $this->json([
             'success' => true,
             'dispatch' => $serializedDispatch
@@ -2759,10 +2763,10 @@ class MobileController extends AbstractApiController
                 $refArticleDataService->updateDescriptionField($entityManager, $reference, [
                     'outFormatEquipment' => $data['outFormatEquipment'],
                     'manufacturerCode' => $data['manufacturerCode'],
-                    'volume' => $creation ? $data['volume'] : $oldDescription['volume'] ?? null,
-                    'length' => $creation ? $data['length'] : $oldDescription['length'] ?? null,
-                    'width' => $creation ? $data['width'] : $oldDescription['width'] ?? null,
-                    'height' => $creation ? $data['height'] : $oldDescription['height'] ?? null,
+                    'volume' =>  $data['volume'],
+                    'length' =>  $data['length'],
+                    'width' =>  $data['width'],
+                    'height' =>  $data['height'],
                     'weight' => $data['weight'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
                 ]);
