@@ -678,7 +678,7 @@ class PreparationController extends AbstractController
 
         $articles = $preparation->getArticleLines()->toArray();
         $lignesArticle = $preparation->getReferenceLines()->toArray();
-        $referenceArticles = [];
+
         $barCodesArticles = Stream::from($articles)
             ->filter(function(PreparationOrderArticleLine $line) use ($forceTagEmpty, $tag) {
                 $article = $line->getArticle();
