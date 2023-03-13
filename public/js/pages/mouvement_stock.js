@@ -169,7 +169,7 @@ function newMvtStockTypeChanged($select) {
         if ($selectOption.data('needs-quantity-cap')) {
             $quantityMvt.attr('max', $('#chosen-ref-quantity').val());
         } else {
-            $quantityMvt.attr('max', '');
+            $quantityMvt.removeAttr('max');
         }
 
         $quantityMvt.addClass('needed');
