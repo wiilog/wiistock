@@ -88,7 +88,7 @@ class TransporteurRepository extends EntityRepository
 	 * @throws NoResultException
 	 * @throws NonUniqueResultException
 	 */
-    public function countByCode($code)
+    public function countByCode($code, $id = null)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -96,6 +96,11 @@ class TransporteurRepository extends EntityRepository
           FROM App\Entity\Transporteur t
           WHERE t.code = :code"
 		)->setParameter('code', $code);
+
+        if ($id) {
+            $query->setParameter('id', $id);
+            $query->setDQL($query->getDQL() . " AND t.id != :id");
+        }
 
 		return $query->getSingleScalarResult();
 	}
@@ -106,7 +111,7 @@ class TransporteurRepository extends EntityRepository
 	 * @throws NoResultException
 	 * @throws NonUniqueResultException
 	 */
-    public function countByLabel($label)
+    public function countByLabel($label, $id)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -114,6 +119,11 @@ class TransporteurRepository extends EntityRepository
           FROM App\Entity\Transporteur t
           WHERE t.label = :label"
 		)->setParameter('label', $label);
+
+        if ($id) {
+            $query->setParameter('id', $id);
+            $query->setDQL($query->getDQL() . " AND t.id != :id");
+        }
 
 		return $query->getSingleScalarResult();
 	}

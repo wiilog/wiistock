@@ -6,9 +6,12 @@ use App\Repository\TransporteurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Traits\AttachmentTrait;
 
 #[ORM\Entity(repositoryClass: TransporteurRepository::class)]
 class Transporteur {
+
+    use AttachmentTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -50,6 +53,7 @@ class Transporteur {
         $this->arrivages = new ArrayCollection();
         $this->reception = new ArrayCollection();
         $this->emergencies = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int {
