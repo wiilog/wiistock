@@ -1792,7 +1792,7 @@ class ImportService
         if (!empty($data['signatories'])) {
             $signatoryUsernames = Stream::explode(',', $data['signatories'])
                 ->filter()
-                ->map('trim')
+                ->map(fn(string $id) => trim($id))
                 ->toArray();
             $signatories = $userRepository->findBy(['username' => $signatoryUsernames]);
             $location->setSignatories($signatories);

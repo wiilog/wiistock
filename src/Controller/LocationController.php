@@ -100,7 +100,7 @@ class LocationController extends AbstractController {
                 ? $data['signatories']
                 : Stream::explode(',', $data['signatories'])
                     ->filter()
-                    ->map('trim')
+                    ->map(fn(string $id) => trim($id))
                     ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
@@ -245,7 +245,7 @@ class LocationController extends AbstractController {
                 ? $data['signatories']
                 : Stream::explode(',', $data['signatories'])
                     ->filter()
-                    ->map('trim')
+                    ->map(fn(string $id) => trim($id))
                     ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])

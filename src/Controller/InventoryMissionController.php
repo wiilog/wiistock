@@ -625,11 +625,12 @@ class InventoryMissionController extends AbstractController
 
         $locationIdsStr = $request->query->all('locations');
         $locationIds = $locationIdsStr
-            ? Stream::explode(',', $locationIdsStr)
-                ->map('trim')
+            ? Stream::from($locationIdsStr)
+                ->map(fn(string $id) => trim($id))
                 ->filter()
                 ->toArray()
             : [];
+
         $inventoryMission = $inventoryMissionRepository->find($request->query->get('mission'));
         $locations = !empty($locationIds)
             ? $locationRepository->findBy(['id' => $locationIds])

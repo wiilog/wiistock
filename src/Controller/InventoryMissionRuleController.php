@@ -137,7 +137,7 @@ class InventoryMissionRuleController extends AbstractController
             if (isset($data['locations'])) {
                 $locationIds = !empty($data['locations'])
                     ? Stream::explode(',', $data['locations'])
-                        ->map('trim')
+                        ->map(fn(string $id) => trim($id))
                         ->filter()
                         ->toArray()
                     : [];
