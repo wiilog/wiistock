@@ -255,6 +255,10 @@ a {
     width: min-content;
 }
 
+.w-max-content {
+    width: max-content;
+}
+
 .w-100 {
     + .select2-container {
         width: 100% !important;

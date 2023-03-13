@@ -81,6 +81,7 @@
                                     <option value="{{ chauffeur.id }}"
                                         {{ (keptFields[driverFieldCode] ?? null) == chauffeur.id ? 'selected' }}>
                                         {{ chauffeur.nom }}
+                                        {{ ctransporteurDisplayhauffeur.nom }}
                                     </option>
                                 {% endfor %}
                             </select>

@@ -2,29 +2,42 @@
     {% set required = required is defined and required %}
     {% set editAttachments = editAttachments is not defined or editAttachments %}
     {% set fieldNameClass = fieldNameClass is defined and fieldNameClass ? fieldNameClass : '' %}
+    {% set buttonOnly = buttonOnly is defined and buttonOnly %}
+    {% set noLabel = noLabel is defined and noLabel %}
     <input type="hidden" name="isAttachmentForm" value="1"/>
     <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
 
-    <label for="dropfile"  class="{{ override is not defined or not override ? 'wii-field-name'}} {{ fieldNameClass }}">{{ trans('Général', null, 'Modale', 'Pièces jointes') }}{{ required ? '*' }}</label>
+    {% if not noLabel %}
+        <label for="dropfile"  class="{{ override is not defined or not override ? 'wii-field-name'}} {{ fieldNameClass }}">{{ trans('Général', null, 'Modale', 'Pièces jointes') }}{{ required ? '*' }}</label>
+    {% endif %}
     {% if editAttachments %}
-        <div class="dropFrame justify-content-md-center {{ small ?? false ? 'small-frame' }}"
-             data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
-             data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
-             ondragenter="dragEnterDiv(event, $(this))"
-             ondragover="dragOverDiv(event, $(this))"
-             ondragleave="dragLeaveDiv(event, $(this))"
-             ondrop="saveDroppedFiles(event, $(this))">
-            {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
-            <div class="drop-file-hint d-flex flex-column justify-content-center">
-                <span class="mb-2">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;</span>
-                <button onclick="openFileExplorer($(this))" class="btn btn-primary" type="button">
-                    <i class="fa fa-folder-open mr-2"></i>
-                    {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}
-                </button>
-                <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
-                       onchange="saveInputFiles($(this))">
+        {%  if buttonOnly %}
+            <button onclick="openFileExplorer($(this))" class="btn btn-primary" type="button">
+                <i class="fa fa-folder-open mr-2"></i>
+                Importer
+            </button>
+            <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
+                   onchange="saveInputFiles($(this))">
+        {% else %}
+            <div class="dropFrame justify-content-md-center {{ small ?? false ? 'small-frame' }}"
+                 data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
+                 data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
+                 ondragenter="dragEnterDiv(event, $(this))"
+                 ondragover="dragOverDiv(event, $(this))"
+                 ondragleave="dragLeaveDiv(event, $(this))"
+                 ondrop="saveDroppedFiles(event, $(this))">
+                {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
+                <div class="drop-file-hint d-flex flex-column justify-content-center">
+                    <span class="mb-2">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;</span>
+                    <button onclick="openFileExplorer($(this))" class="btn btn-primary" type="button">
+                        <i class="fa fa-folder-open mr-2"></i>
+                        {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}
+                    </button>
+                    <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
+                           onchange="saveInputFiles($(this))">
+                </div>
             </div>
-        </div>
+        {% endif %}
     {% endif %}
     <div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
 

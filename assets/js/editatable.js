@@ -1,4 +1,5 @@
 import WysiwygManager from "./wysiwyg-manager";
+import {forEach} from "core-js/stable/dom-collections";
 
 export const MODE_NO_EDIT = 1;
 export const MODE_CLICK_EDIT = 2;
@@ -209,16 +210,23 @@ function initEditatable(datatable, onDatatableInit = null) {
     else {
         url = config.route;
     }
-
-    return initDataTable($element, {
-        serverSide: false,
-        ajax: {
+    let ajax = url
+        ? {
             type: `GET`,
             url,
             data: (data) => {
+                console.log(data);
                 data.edit = state !== STATE_VIEWING;
             },
-        },
+        }
+        : null;
+
+    console.log(generateDefaultData(ajax , config.columns));
+
+    return initDataTable($element, {
+        serverSide: false,
+        ajax,
+        data: generateDefaultData(ajax , config.columns),
         rowConfig: {
             needsRowClickAction: true,
         },
@@ -389,5 +397,18 @@ function onDeleteRowClicked(datatable, event, $button) {
             .then(result => result.success ? deleteRow() : null);
     } else {
         deleteRow();
+    }
+}
+
+function generateDefaultData(ajax, columns) {
+    if (! ajax) {
+        let row = {};
+        columns.forEach(column => {
+            row[column.data] = '';
+        });
+        row["actions"] = `<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>`;
+        return [row];
+    } else {
+        return null;
     }
 }
