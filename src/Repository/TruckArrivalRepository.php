@@ -3,8 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\TruckArrival;
+use App\Entity\Utilisateur;
+use App\Helper\QueryBuilderHelper;
+use App\Service\VisibleColumnService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @extends ServiceEntityRepository<TruckArrival>
@@ -38,6 +42,159 @@ class TruckArrivalRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array {
+        $qb = $this->createQueryBuilder('truckArrival');
+        $countTotal =  QueryBuilderHelper::count($qb, 'truckArrival');
+
+        if (!empty($params)) {
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
+                if (!empty($search)) {
+                    foreach ($user->getVisibleColumns()['truckArrival'] ?? [] as $column) {
+                        $qb->setParameter('search', '%' . $search . '%');
+                        switch ($column) {
+                            case 'driver':
+                                $qb
+                                    ->orWhere('driverJ.nom LIKE :search')
+                                    ->leftJoin('truckArrival.driver', 'driverJ');
+                                break;
+                            case 'unloadingLocation':
+                                $qb
+                                    ->orWhere('unloadingLocationJ.label LIKE :search')
+                                    ->leftJoin('truckArrival.unloadingLocation', 'unloadingLocationJ');
+                                break;
+                            case 'registrationNumber':
+                                $qb
+                                    ->orWhere('truckArrival.registrationNumber LIKE :search');
+                                break;
+                            case 'carrier':
+                                $qb
+                                    ->orWhere('carrierJ.label LIKE :search')
+                                    ->leftJoin('truckArrival.carrier', 'carrierJ');
+                                break;
+                            case 'operator':
+                                $qb
+                                    ->orWhere('operatorJ.username LIKE :search')
+                                    ->leftJoin('truckArrival.operator', 'operatorJ');
+                                break;
+                            case 'number':
+                                $qb
+                                    ->orWhere('truckArrival.number LIKE :search');
+                                break;
+                            case 'trackingLinesNumber':
+                                $qb
+                                    ->orWhere('trackingLinesJ.number LIKE :search')
+                                    ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ');
+                                break;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
+                if (!empty($order)) {
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
+                    switch ($column) {
+                        case 'driver':
+                            $qb
+                                ->orderBy('driverJ.nom', $order)
+                                ->leftJoin('truckArrival.driver', 'driverJ');
+                            break;
+                        case 'unloadingLocation':
+                            $qb
+                                ->orderBy('unloadingLocationJ.label', $order)
+                                ->leftJoin('truckArrival.unloadingLocation', 'unloadingLocationJ');
+                            break;
+                        case 'registrationNumber':
+                            $qb->orderBy('truckArrival.registrationNumber', $order);
+                            break;
+                        case 'carrier':
+                            $qb
+                                ->orderBy('carrierJ.label', $order)
+                                ->leftJoin('truckArrival.carrier', 'carrierJ');
+                            break;
+                        case 'operator':
+                            $qb
+                                ->orderBy('operatorJ.username', $order)
+                                ->leftJoin('truckArrival.operator', 'operatorJ');
+                            break;
+                        case 'number':
+                            $qb->orderBy('truckArrival.number', $order);
+                            break;
+                        case 'reserves':
+                            $qb
+                                ->orderBy('COUNT(reserveJ.id)', $order)
+                                ->leftJoin('truckArrival.reserves', 'reserveJ')
+                                ->groupBy('truckArrival.id');
+                            break;
+                        case 'creationDate':
+                            $qb->orderBy('truckArrival.creationDate', $order);
+                            break;
+                    }
+                }
+            }
+        }
+
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'dateMin':
+                    $qb
+                        ->andWhere('truckArrival.creationDate >= :dateMin')
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                    break;
+                case 'dateMax':
+                    $qb
+                        ->andWhere('truckArrival.creationDate <= :dateMax')
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                    break;
+                case 'registrationNumber':
+                    $qb
+                        ->andWhere('truckArrival.registrationNumber LIKE :registrationNumber')
+                        ->setParameter('registrationNumber', '%' . $filter['value'] . '%');
+                    break;
+                case 'truckArrivalNumber':
+                    $qb
+                        ->andWhere('truckArrival.number LIKE :truckArrivalNumber')
+                        ->setParameter('truckArrivalNumber', '%' . $filter['value'] . '%');
+                    break;
+                case 'carrierTrackingNumber':
+                    $qb
+                        ->andWhere('trackingLinesJ.number LIKE :carrierTrackingNumber')
+                        ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ')
+                        ->setParameter('carrierTrackingNumber', '%' . $filter['value'] . '%');
+                    break;
+                case 'carrier':
+                    $qb
+                        ->andWhere('truckArrival.carrier = :carrier')
+                        ->setParameter('carrier', $filter['value']);
+                    break;
+                case 'driver':
+                    $qb
+                        ->andWhere('truckArrival.driver = :driver')
+                        ->setParameter('driver', $filter['value']);
+                    break;
+                case 'carrierTrackingNumberNotAssigned':
+                    if ($filter['value'] == 'true') {
+                        $qb
+                            ->andWhere('trackingLinesJ.number IS NULL')
+                            ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ');
+                    }
+                    break;
+            }
+        }
+
+        $countFiltered = QueryBuilderHelper::count($qb, 'truckArrival');
+
+        $truckarrivals = $qb->getQuery()->getResult();
+        return [
+            'data' => $truckarrivals ,
+            'count' => $countFiltered,
+            'total' => $countTotal
+        ];
+    }
+
 
 //    /**
 //     * @return TruckArrival[] Returns an array of TruckArrival objects
