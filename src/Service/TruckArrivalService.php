@@ -62,10 +62,19 @@ class TruckArrivalService
                         'class' => 'action-on-click',
                     ],
                     [
+                        // TODO hasRight
                         'title' => 'Supprimer',
                         'icon' => 'fa fa-trash',
                         'class' => 'delete',
                     ],
+                    [
+                        // TODO hasRight
+                        'title' => 'Modifier',
+                        'icon' => 'fa fa-edit',
+                        'attributes' => [
+                            'onclick' => "editTruckArrival({$truckArrival->getId()})",
+                        ]
+                    ]
                 ],
             ]),
             'id' => $truckArrival->getId(),

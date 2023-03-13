@@ -1,11 +1,13 @@
 import AJAX, {GET, POST} from "@app/ajax";
 
+global.editTruckArrival = editTruckArrival;
+global.newTruckArrival = newTruckArrival;
+
 $(function () {
     Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
     initDateTimePicker('#dateMin, #dateMax');
 
     const filters = JSON.parse($(`#truck-arrival-filters`).val())
-    console.log(filters);
     displayFiltersSup(filters);
 
     initTruckArrivalTable();
@@ -13,7 +15,7 @@ $(function () {
 
 function initTruckArrivalTable() {
     AJAX
-        .route(GET,'truck_arrival_api_columns')
+        .route(GET, 'truck_arrival_api_columns')
         .json()
         .then((columns) => {
             let pathTruckArrivalList = Routing.generate('truck_arrival_api_list', true);
@@ -54,3 +56,14 @@ function initTruckArrivalTable() {
             initDataTable($table, tableTruckArrivalConfig);
         });
 }
+
+function newTruckArrival() {
+    const $modal = $('#newTruckArrivalModal');
+    $modal.modal('show');
+}
+
+function editTruckArrival(id) {
+    const $modal = $('#editTruckArrivalModal');
+    $modal.modal('show');
+}
+

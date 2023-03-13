@@ -1,0 +1,21 @@
+{% import 'form.html.twig' as form %}
+
+{% set displayAction = 'displayedCreate' %}
+{% set requiredAction = 'requiredCreate' %}
+
+<div class="row">
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+    {% if displayOnform %}
+        <div class="col-6">
+            {{ form.select('carrier', 'Transporteur', requiredOnform, {
+                type: 'carrier',
+            }) }}
+            <button class="btn btn-primary">
+                <i class="wii-icon wii-icon-plus"></i>
+                Créer
+            </button>
+        </div>
+    {% endif %}
+</div>

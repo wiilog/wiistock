@@ -18,10 +18,12 @@
                 {% include "utils/action-buttons.html.twig" with {
                     actions: [
                         {
-                            hasRight: true,
+                            hasRight: hasRight(constant('App\\Entity\\Menu::TRACA'),constant('App\\Entity\\Action::CREATE_TRUCK_ARRIVALS')),
                             title: 'Créer arrivage camion',
                             icon: "wii-icon wii-icon-plus",
-                            attributes: {},
+                            attributes:{
+                                onclick: "newTruckArrival()",
+                            },
                         },
                         {
                             hasRight: true,
@@ -54,6 +56,23 @@
         'route': 'save_column_visible_for_truck_arrival',
         'reload': true
     } %}
+
+    {% include "utils/modal/empty-modal.html.twig" with {
+        id: 'editTruckArrivalModal',
+        header: {
+            title: 'Modifier arrivage camion',
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                {classes: 'btn btn-success data', text: 'Enregister', type: 'submit'}
+            ],
+        },
+    } %}
+
+    {% include "truck_arrival/modal-new.html.twig" with {
+        fieldsParam
+    }  %}
 {% endblock %}
 
 {% block javascripts %}
