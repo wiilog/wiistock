@@ -1,0 +1,41 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+
+    {% include 'filters/filter_item/filterBasicString.html.twig' with {
+        name: 'truckArrivalNumber',
+        placeholder: 'Numéro d’arrivage camion',
+    } %}
+
+
+    {% include 'filters/filter_item/filterBasicString.html.twig' with {
+        name: 'carrierTrackingNumber',
+        placeholder: 'N° de tracking transporteur',
+    } %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterCarrier.html.twig' with {
+            carriers : carriersForFilter
+        } %}
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterDrivers.html.twig' %}
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterBasicString.html.twig' with {
+            name: 'registrationNumber',
+            placeholder: 'Immatriculation',
+        } %}
+    {% endif %}
+
+    {% include 'filters/filter_item/filterBasicCheckbox.html.twig' with {
+        label: 'N° de tracking transporteur non attribué(s) ?',
+        name: 'carrierTrackingNumberNotAssigned',
+    } %}
+{% endblock %}
