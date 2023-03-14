@@ -29,6 +29,7 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
@@ -1623,6 +1624,7 @@ class MobileController extends AbstractApiController
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -1763,6 +1765,12 @@ class MobileController extends AbstractApiController
 
         if ($rights['tracking']) {
             $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
+            $carriers = Stream::from($carrierRepository->findAll())
+                ->map(fn(Transporteur $transporteur) => [
+                    'id' => $transporteur->getId(),
+                    'label' => $transporteur->getLabel(),
+                ])
+                ->toArray();
 
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
@@ -1832,6 +1840,7 @@ class MobileController extends AbstractApiController
             'dispatchTypes' => $dispatchTypes ?? [],
             'users' => $users ?? [],
             'fieldsParam' => $fieldsParam ?? [],
+            'transporteurs' => $carriers ?? [],
         ];
     }
 
@@ -1850,6 +1859,41 @@ class MobileController extends AbstractApiController
         return $this->json([
             "success" => true,
             "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager),
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/get-carriers-data", name="api-get-carriers-data")
+     * @Wii\RestVersionChecked()
+     */
+    public function getCarriersData(EntityManagerInterface $entityManager,
+                                    KernelInterface        $kernel) {
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+
+        $carriers = Stream::from($carrierRepository->findAll())
+            ->map(function(Transporteur $transporteur) use ($kernel) {
+                $logo = $transporteur->getAttachments()[0];
+                if ($logo) {
+                    $projectDir = $kernel->getProjectDir();
+                    $imagePath = $projectDir . '/public/' . $logo->getFullPath();
+
+                    $type = pathinfo($imagePath, PATHINFO_EXTENSION);
+                    $type = ($type === 'svg' ? 'svg+xml' : $type);
+
+                    $data = file_get_contents($imagePath);
+                    $image = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                }
+
+                return [
+                    'id' => $transporteur->getId(),
+                    'label' => $transporteur->getLabel(),
+                    'logo' => $logo ? $image : null,
+                ];
+            });
+
+        return $this->json([
+            "success" => true,
+            "carriers" => $carriers,
         ]);
     }
 
@@ -2900,5 +2944,4 @@ class MobileController extends AbstractApiController
 
         return $this->json($data);
     }
-
 }
