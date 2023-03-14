@@ -272,7 +272,7 @@ class Import {
     private Collection $mouvements;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
-    private ?bool $eraseData;
+    private ?bool $eraseData = false;
 
     public function __construct() {
         $this->createdAt = new WiiDateTime();

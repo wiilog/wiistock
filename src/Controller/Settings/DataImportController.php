@@ -60,7 +60,7 @@ class DataImportController extends AbstractController
             ->setLabel($post->get('label'))
             ->setEntity($post->get('entity'))
             ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_DRAFT))
-            ->setEraseData($post->get('deleteDifData') ?? 0)
+            ->setEraseData($post->get('deleteDifData') ?? false)
             ->setUser($loggedUser);
 
         $entityManager->persist($import);
