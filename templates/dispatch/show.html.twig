@@ -189,8 +189,9 @@
 
             <div class="col-md-8 col-12">
                 <div class="wii-box">
-                    <div class="header wii-title row justify-content-between no-gutters py-2">
-                        <div class="col-auto d-flex align-items-center">Informations</div>
+                    {% set hasButtons = hasRightEdit and (dispatch.statut.draft or not dispatch.statut.treated and not setting_value('FORCE_GROUPED_SIGNATURE')) %}
+                    <div class="header wii-title justify-content-between align-items-center {{ not hasButtons ? 'd-flex' : 'row no-gutters py-2' }}">
+                        Informations
                         {% if hasRightEdit %}
                             <div class="col-auto">
                                 {% if dispatch.statut.draft %}
@@ -201,7 +202,7 @@
                                         <span class="wii-icon wii-icon-check-white mr-2"></span>
                                         {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Valider la demande', false) }}
                                     </button>
-                                {% elseif not dispatch.statut.treated %}
+                                {% elseif not dispatch.statut.treated and not setting_value('FORCE_GROUPED_SIGNATURE') %}
                                     <button type="button"
                                             data-id='{{ dispatch.id }}'
                                             onclick="openTreatDispatchModal()"
@@ -288,6 +289,7 @@
 {% block javascripts %}
     {{ parent() }}
 
+    {{ encore_entry_script_tags('reference-article-form') }}
     <script src="{{ asset('js/pages/dispatch-show.js') }}?v={{ web_version }}"></script>
 
 {% endblock %}

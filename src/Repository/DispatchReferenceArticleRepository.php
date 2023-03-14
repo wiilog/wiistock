@@ -3,23 +3,16 @@
 namespace App\Repository;
 
 use App\Entity\DispatchReferenceArticle;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
- * @extends ServiceEntityRepository<DispatchReferenceArticle>
- *
  * @method DispatchReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
  * @method DispatchReferenceArticle|null findOneBy(array $criteria, array $orderBy = null)
  * @method DispatchReferenceArticle[]    findAll()
  * @method DispatchReferenceArticle[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class DispatchReferenceArticleRepository extends ServiceEntityRepository
+class DispatchReferenceArticleRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, DispatchReferenceArticle::class);
-    }
 
     public function save(DispatchReferenceArticle $entity, bool $flush = false): void
     {
