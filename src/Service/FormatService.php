@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Chauffeur;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -384,5 +385,13 @@ class FormatService
                 ->map(fn(Zone $zone) => $this->zone($zone))
                 ->join(', ')
             : $else;
+    }
+
+    public function driver(?Chauffeur $driver, $else = ''): string {
+        return $driver ? $driver->getNom() . ' ' . $driver->getPrenom() : $else;
+    }
+
+    public function truckArrivalLines($truckArrivalLines, $separator = ', '): string {
+        return $this->entity($truckArrivalLines, 'number', $separator);
     }
 }

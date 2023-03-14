@@ -22,7 +22,7 @@ class TruckArrivalLine
     private ?string $number = null;
 
     #[ORM\ManyToMany(targetEntity: Arrivage::class, inversedBy: 'truckArrivalLines')]
-    private Collection $arrival;
+    private Collection $arrivals;
 
     #[ORM\OneToOne(mappedBy: 'line', cascade: ['persist', 'remove'])]
     private ?Reserve $reserve = null;
@@ -33,7 +33,7 @@ class TruckArrivalLine
 
     public function __construct()
     {
-        $this->arrival = new ArrayCollection();
+        $this->arrivals = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -56,15 +56,15 @@ class TruckArrivalLine
     /**
      * @return Collection<int, Arrivage>
      */
-    public function getArrival(): Collection
+    public function getArrivals(): Collection
     {
-        return $this->arrival;
+        return $this->arrivals;
     }
 
     public function addArrival(Arrivage $arrival): self
     {
-        if (!$this->arrival->contains($arrival)) {
-            $this->arrival->add($arrival);
+        if (!$this->arrivals->contains($arrival)) {
+            $this->arrivals->add($arrival);
         }
 
         return $this;
@@ -72,7 +72,7 @@ class TruckArrivalLine
 
     public function removeArrival(Arrivage $arrival): self
     {
-        $this->arrival->removeElement($arrival);
+        $this->arrivals->removeElement($arrival);
 
         return $this;
     }

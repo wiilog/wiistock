@@ -58,6 +58,10 @@ class FiltreSupController extends AbstractController
                 'contact' => FiltreSup::FIELD_CONTACT,
                 'projectNumber' => FiltreSup::FIELD_PROJECT_NUMBER,
                 'project' => FiltreSup::FIELD_PROJECT,
+                'registrationNumber' => FiltreSup::FIELD_REGISTRATION_NUMBER,
+                'carrierTrackingNumber' => FiltreSup::FIELD_CARRIER_TRACKING_NUMBER,
+                'truckArrivalNumber' => FiltreSup::FIELD_TRUCK_ARRIVAL_NUMBER,
+                'carrierTrackingNumberNotAssigned' => FiltreSup::FIELD_CARRIER_TRACKING_NUMBER_NOT_ASSIGNED,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {
@@ -116,6 +120,7 @@ class FiltreSupController extends AbstractController
                 'businessUnit' => FiltreSup::FIELD_BUSINESS_UNIT,
                 'article' => FiltreSup::FIELD_ARTICLE,
                 'deliverers' => FiltreSup::FIELD_DELIVERERS,
+                'drivers' => FiltreSup::FIELD_DRIVERS,
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {
