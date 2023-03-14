@@ -702,7 +702,8 @@ class PreparationController extends AbstractController
         if ($barcodeCounter > 0) {
             $fileName = $PDFGeneratorService->getBarcodeFileName(
                 $barcodeConfigs,
-                'preparation', $tag ? $tag->getPrefix() : 'ETQ'
+                'preparation',
+                $tag ? $tag->getPrefix() : 'ETQ'
             );
 
             return new PdfResponse(
