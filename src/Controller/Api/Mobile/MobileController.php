@@ -91,6 +91,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
+use Twig\Environment as Twig_Environment;
 
 
 class MobileController extends AbstractApiController
@@ -2555,7 +2556,10 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function finishMission(Request $request, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response
+    public function finishMission(Request                $request,
+                                  EntityManagerInterface $entityManager,
+                                  MailerService          $mailerService,
+                                  Twig_Environment       $templating): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $missionRepository = $entityManager->getRepository(InventoryMission::class);
@@ -2576,6 +2580,9 @@ class MobileController extends AbstractApiController
         $scannedArticles = [];
         $missingArticles = [];
 
+        $now = new DateTime('now');
+        $validator = $this->getUser();
+
         foreach ($articlesOnLocations as $article) {
             if (in_array($article->getRFIDtag(), $tags)) {
                 $scannedArticles[] = $article;
@@ -2591,16 +2598,16 @@ class MobileController extends AbstractApiController
                 $correctionMovement
                     ->setType(MouvementStock::TYPE_INVENTAIRE_ENTREE)
                     ->setArticle($presentArticle)
-                    ->setDate(new DateTime())
+                    ->setDate($now)
                     ->setQuantity($presentArticle->getQuantite())
                     ->setEmplacementFrom($presentArticle->getEmplacement())
                     ->setEmplacementTo($presentArticle->getEmplacement())
-                    ->setUser($this->getUser());
+                    ->setUser($validator);
                 $entityManager->persist($correctionMovement);
             }
             $presentArticle
                 ->setStatut($activeStatus)
-                ->setDateLastInventory(new DateTime());
+                ->setDateLastInventory($now);
         }
 
         $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
@@ -2610,20 +2617,34 @@ class MobileController extends AbstractApiController
                 $correctionMovement
                     ->setType(MouvementStock::TYPE_INVENTAIRE_SORTIE)
                     ->setArticle($missingArticle)
-                    ->setDate(new DateTime())
+                    ->setDate($now)
                     ->setQuantity($missingArticle->getQuantite())
                     ->setEmplacementFrom($missingArticle->getEmplacement())
                     ->setEmplacementTo($missingArticle->getEmplacement())
-                    ->setUser($this->getUser());
+                    ->setUser($validator);
                 $entityManager->persist($correctionMovement);
             }
             $missingArticle
                 ->setStatut($inactiveStatus)
-                ->setDateLastInventory(new DateTime());
+                ->setDateLastInventory($now);
         }
 
-        $mission->setDone(true);
+        $mission
+            ->setValidatedAt($now)
+            ->setValidator($validator)
+            ->setDone(true);
+
         $entityManager->flush();
+
+        if ($mission->getRequester()) {
+            $mailerService->sendMail(
+                "Follow GT // Validation d’une mission d’inventaire",
+                $templating->render('mails/contents/mailInventoryMissionValidation.html.twig', [
+                    'mission' => $mission,
+                ]),
+                $mission->getRequester()
+            );
+        }
         return $this->json([
             "success" => true,
             "data" => ""
