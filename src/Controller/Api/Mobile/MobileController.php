@@ -2764,9 +2764,9 @@ class MobileController extends AbstractApiController
                     'outFormatEquipment' => $data['outFormatEquipment'],
                     'manufacturerCode' => $data['manufacturerCode'],
                     'volume' =>  $data['volume'],
-                    'length' =>  $data['length'],
-                    'width' =>  $data['width'],
-                    'height' =>  $data['height'],
+                    'length' =>  $data['length'] ?: ($oldDescription['length'] ?? null),
+                    'width' =>  $data['width'] ?: ($oldDescription['width'] ?? null),
+                    'height' =>  $data['height'] ?: ($oldDescription['height'] ?? null),
                     'weight' => $data['weight'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
                 ]);
