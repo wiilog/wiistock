@@ -80,17 +80,25 @@ class ScheduleRuleService
             $day = $rule->getWeekDays()[0];
         } else {
             $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $now);
+            $isTimeEqual = $this->isTimeEqual($rule->getIntervalTime(), $now);
             $currentDay = $now->format("N");
 
             $day = Stream::from($rule->getWeekDays())
-                ->filter(fn($day) => $isTimeEqualOrBefore ? $day > $currentDay : $day >= $currentDay)
+                ->filter(function($day) use ($isTimeEqual, $isTimeEqualOrBefore, $currentDay, $instant) {
+                    if ($instant && $isTimeEqual && $day === $currentDay) {
+                        return true;
+                    } else if ($isTimeEqualOrBefore) {
+                        return $day > $currentDay;
+                    } else {
+                        return $day >= $currentDay;
+                    }
+                })
                 ->firstOr(function() use ($rule, &$goToNextWeek) {
                     $goToNextWeek = true;
                     return $rule->getWeekDays()[0];
                 });
         }
-
-        if ($goToNextWeek && !$instant) {
+        if ($goToNextWeek) {
             $nextOccurrence->modify("+{$rule->getPeriod()} week");
         }
 
