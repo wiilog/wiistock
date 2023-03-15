@@ -1,0 +1,48 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Traçabilité | Arrivage camion | Détails{% endblock %}
+{% block title_tooltip %}Traçabilité | Arrivage camion | Détails{% endblock %}
+
+
+{% block page_content %}
+    <div class="p-3">
+        <div class="row">
+            <div class="col-12">
+                <div class="wii-box details-header-container">
+                    <span class="m-5 p-5">HEADER ICI</span>
+                </div>
+
+            </div>
+        </div>
+        <div class="row justify-content-around">
+            <div class="col-6">
+                <div class="wii-box">
+                    <div class="header wii-title d-flex justify-content-between">
+                        <span>Liste des numéro de tracking</span>
+                        <span class="wii-field-text">Nombre de n° de tracking associé :</span>
+                    </div>
+                    <div class="content">
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-6">
+                <div class="wii-box">
+                    <div class="header wii-title">
+                        <span>Gestion des réserves</span>
+                    </div>
+                    <div class="content">
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('truck-arrival-show') }}
+{% endblock %}
