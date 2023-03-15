@@ -762,9 +762,9 @@ class ImportService
                 $articlesFournisseurs = $refArticle->getArticlesFournisseur() ?? [];
                 /** @var ArticleFournisseur $articlesFournisseur */
                 foreach ($articlesFournisseurs as $articleFournisseur) {
-                    $isNotUsed = empty($articleFournisseur->getReferenceArticle()) && empty($articleFournisseur->getArticles()) && empty($articleFournisseur->getReceptionReferenceArticles());
+                    $isNotUsed = (($articleFournisseur->getArticles()->isEmpty()) && ($articleFournisseur->getReceptionReferenceArticles()->isEmpty()));
                     if ($isNotUsed) {
-                        $refArticle->removeArticleFournisseur($articlesFournisseur);
+                        $refArticle->removeArticleFournisseur($articleFournisseur);
                         $this->entityManager->remove($articleFournisseur);
                     } else {
                         $label = $articleFournisseur->getLabel();
