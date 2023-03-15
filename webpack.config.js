@@ -41,6 +41,7 @@ Encore
     .addEntry('register', './assets/js/pages/register/register.js')
     .addEntry('kiosk', './assets/js/pages/kiosk.js')
     .addEntry('truck-arrival-index', './assets/js/pages/truck-arrival/index.js')
+    .addEntry('truck-arrival-show', './assets/js/pages/truck-arrival/show.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 
