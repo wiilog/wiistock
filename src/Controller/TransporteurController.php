@@ -99,7 +99,7 @@ class TransporteurController extends AbstractController
 		// unicité du code et du nom transporteur
 		$codeAlreadyUsed = intval($transporteurRepository->countByCode($code, $carrierId ? $transporteur : null));
 		$labelAlreadyUsed = intval($transporteurRepository->countByLabel($label, $carrierId ? $transporteur : null));
-        dump($code, $codeAlreadyUsed, $label, $labelAlreadyUsed);
+
 		if ($codeAlreadyUsed + $labelAlreadyUsed) {
             $msg = 'Ce ' . ($codeAlreadyUsed ? 'code ' : 'nom ') . 'de transporteur est déjà utilisé.';
             return new JsonResponse([
