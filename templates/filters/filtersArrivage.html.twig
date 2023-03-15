@@ -8,6 +8,9 @@
     {% include 'filters/filter_item/filterNumArrivage.html.twig' with {
         title: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage', false)
     } %}
+    {% include 'filters/filter_item/filterNumTruckArrival.html.twig' with {
+        title: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage camion', false)
+    } %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCustoms.html.twig' %}

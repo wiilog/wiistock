@@ -246,6 +246,12 @@ class ArrivageRepository extends EntityRepository
                         ->andWhere('arrival.numeroArrivage = :numeroArrivage')
                         ->setParameter('numeroArrivage', $filter['value']);
                     break;
+                case 'numTruckArrival':
+                    $qb
+                        ->leftJoin('arrival.truckArrivalLines', 'filter_truckArrival')
+                        ->andWhere('arrival.noTracking = :numTruckArrival OR filter_truckArrival.number = :numTruckArrival')
+                        ->setParameter('numTruckArrival' , $filter['value']);
+                    break;
             }
         }
 
@@ -274,6 +280,7 @@ class ArrivageRepository extends EntityRepository
                         "projectNumber" => "arrival.projectNumber LIKE :search_value",
                         "businessUnit" => "arrival.businessUnit LIKE :search_value",
                         "dropLocation" => "search_dropLocation.label LIKE :search_value",
+                        "truckArrivalNumber" => "search_truckArrival.number LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'arrival', $qb, $options['user'], $search);
@@ -287,7 +294,8 @@ class ArrivageRepository extends EntityRepository
                         ->leftJoin('arrival.utilisateur', 'search_user')
                         ->leftJoin('arrival.type', 'search_type')
                         ->leftJoin('arrival.statut', 'search_status')
-                        ->leftJoin('arrival.dropLocation', 'search_dropLocation');
+                        ->leftJoin('arrival.dropLocation', 'search_dropLocation')
+                        ->leftJoin('arrival.truckArrivalLines', 'search_truckArrival');
                 }
             }
 

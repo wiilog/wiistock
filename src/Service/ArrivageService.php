@@ -144,6 +144,11 @@ class ArrivageService {
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
+        $truckArrivalNumbers = [];
+        foreach ($arrival->getTruckArrivalLines() as $truckArrivalLine) {
+            $truckArrivalNumbers[] = $truckArrivalLine->getNumber();
+        }
+
         $row = [
             'id' => $arrivalId,
             'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='Colis acheminé(s)'></i></td>" : '',
@@ -168,6 +173,7 @@ class ArrivageService {
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => $this->formatService->location($arrival->getDropLocation()),
+            'truckArrivalNumber' => $arrival->getNoTracking() ?? (count($arrival->getTruckArrivalLines()) > 0 ? implode(', ', $truckArrivalNumbers) : ''),
             'url' => $url,
         ];
 
@@ -491,6 +497,12 @@ class ArrivageService {
                 'show' => ['fieldName' => 'frozen'],
                 'isRaw' => true
             ],
+            [
+                'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° d\'arrivage camion'),
+                'value' => $arrivage->getTruckArrivalLines(),
+                'show' => ['fieldName' => 'truckArrivalNumber'],
+                'isRaw' => true
+            ],
         ];
 
         $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_ARRIVAGE);
@@ -535,6 +547,7 @@ class ArrivageService {
             ['name' => 'packsInDispatch', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => $this->translation->translate('Général', null, 'Zone liste', 'Date de création'), 'name' => 'creationDate', 'type' => ($dispatchMode ? 'customDate' : '')],
             ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage'), 'name' => 'arrivalNumber'],
+            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° d\'arrivage camion'), 'name' => 'truckArrivalNumber'],
             ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Poids total (kg)'), 'name' => 'totalWeight'],
             ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur'), 'name' => 'carrier'],
             ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Chauffeur'), 'name' => 'driver'],

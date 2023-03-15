@@ -87,6 +87,7 @@ class FiltreSup {
     const PAGE_EXPORT = 'export';
     const FIELD_PICK_LOCATION = 'pickLocation';
     const FIELD_DROP_LOCATION = 'dropLocation';
+    const FIELD_NUM_TRUCK_ARRIVAL = 'numTruckArrival';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
