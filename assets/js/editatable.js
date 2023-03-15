@@ -215,13 +215,10 @@ function initEditatable(datatable, onDatatableInit = null) {
             type: `GET`,
             url,
             data: (data) => {
-                console.log(data);
                 data.edit = state !== STATE_VIEWING;
             },
         }
         : null;
-
-    console.log(generateDefaultData(ajax , config.columns));
 
     return initDataTable($element, {
         serverSide: false,
@@ -272,6 +269,7 @@ function initEditatable(datatable, onDatatableInit = null) {
                         .off(`click.${id}.addRow`)
                         .on(`click.${id}.addRow`, 'td', () => {
                             onAddRowClicked(datatable);
+                            config.onAddRow && config.onAddRow(datatable);
                         });
                 }
 
@@ -279,6 +277,7 @@ function initEditatable(datatable, onDatatableInit = null) {
                     .off(`click.${id}.deleteRow`)
                     .on(`click.${id}.deleteRow`, `.delete-row`, function(event) {
                         onDeleteRowClicked(datatable, event, $(this));
+                        config.onDeleteRow && config.onDeleteRow(datatable, event, $(this));
                     });
                 });
 
@@ -401,7 +400,7 @@ function onDeleteRowClicked(datatable, event, $button) {
 }
 
 function generateDefaultData(ajax, columns) {
-    if (! ajax) {
+    if (!ajax) {
         let row = {};
         columns.forEach(column => {
             row[column.data] = '';

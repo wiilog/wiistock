@@ -9,6 +9,7 @@ use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -24,6 +25,9 @@ class TruckArrivalService
 
     #[Required]
     public Environment $templating;
+
+    #[Required]
+    public RouterInterface $router;
 
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                         Request                $request,
@@ -56,6 +60,9 @@ class TruckArrivalService
                         'title' => 'Détails',
                         'icon' => 'fa fa-eye',
                         'class' => 'action-on-click',
+                        'attributes' => [
+                            'onclick' => "window.location.href = '{$this->router->generate('truck_arrival_show', ['id' => $truckArrival->getId()])}'",
+                        ]
                     ],
                     [
                         // TODO hasRight
@@ -63,14 +70,6 @@ class TruckArrivalService
                         'icon' => 'fa fa-trash',
                         'class' => 'truck-arrival-delete',
                     ],
-                    [
-                        // TODO hasRight
-                        'title' => 'Modifier',
-                        'icon' => 'fa fa-edit',
-                        'attributes' => [
-                            'onclick' => "editTruckArrival({$truckArrival->getId()})",
-                        ]
-                    ]
                 ],
             ]),
             'id' => $truckArrival->getId(),

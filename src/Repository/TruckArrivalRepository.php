@@ -188,6 +188,18 @@ class TruckArrivalRepository extends EntityRepository
         ];
     }
 
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('truckArrival')
+            ->select('truckArrival.number')
+            ->where('truckArrival.number LIKE :value')
+            ->orderBy('truckArrival.creationDate', 'DESC')
+            ->addOrderBy('truckArrival.number', 'DESC')
+            ->setParameter('value', '%' . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
+    }
+
 
 //    /**
 //     * @return TruckArrival[] Returns an array of TruckArrival objects

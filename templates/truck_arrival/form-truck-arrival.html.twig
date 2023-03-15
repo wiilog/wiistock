@@ -50,10 +50,10 @@
             <div class="col fly-form" style="height: 0">
                 <div class="row">
                     <div class="form-group col invisible" id="transporteurDisplay">
-                        {{ form.input('label', 'Nom', true, null, {
+                        {{ form.input('label', 'Nom*', false, null, {
                             inputClass: 'neededNew newFormulaire',
                         }) }}
-                        {{ form.input('code', 'Code', true, null, {
+                        {{ form.input('code', 'Code*', false, null, {
                             inputClass: 'neededNew newFormulaire',
                         }) }}
                     </div>
@@ -70,13 +70,13 @@
             <div class="col fly-form" style="height: 0">
                 <div class="row">
                     <div class="form-group col-10 invisible" id="chauffeurDisplay">
-                        {{ form.input('nom', 'Nom', true, null, {
+                        {{ form.input('nom', 'Nom*', false, null, {
                             inputClass: 'neededNew newFormulaire',
                         }) }}
-                        {{ form.input('prenom', 'Prénom', true, null, {
+                        {{ form.input('prenom', 'Prénom*', false, null, {
                             inputClass: 'neededNew newFormulaire',
                         }) }}
-                        {{ form.input('documentID', 'DocumentID', true, null, {
+                        {{ form.input('documentID', 'DocumentID*', false, null, {
                             inputClass: 'neededNew newFormulaire',
                         }) }}
                     </div>
@@ -113,8 +113,14 @@
         </div>
     {% endif %}
 </div>
-<div class="wii-section-title my-3 d-flex align-items-center">
-    Numéros de tracking transporteur
+<div class="wii-section-title my-3 d-flex align-items-center justify-content-between">
+    <span>
+        Numéros de tracking transporteur
+    </span>
+    <span>
+        Total : <span id="totalTrackingNumber">0</span>
+    </span>
+
 </div>
 <div class="w-100">
     <table class="w-100 table-truck-article-line"></table>
@@ -128,7 +134,7 @@
             inputClass: 'display-condition',
         }) }}
     </div>
-    <div class="col-8 disabled-on-checkbox">
+    <div class="col-8 displayed-on-checkbox">
         {{ form.input('generalReserveComment', 'Commentaire', false, null, ) }}
     </div>
 </div>
@@ -138,24 +144,30 @@
             inputClass: 'display-condition',
         }) }}
     </div>
-    <div class="col-8 disabled-on-checkbox">
+    <div class="col-8 displayed-on-checkbox">
         <div class="d-flex">
-            {{ form.input('reserveQuantity', 'Valeur', false, null) }}
+            {{ form.input('reserveQuantity', 'Valeur', false, null, {
+                type: 'number',
+                min: 0,
+            }) }}
             <div class="mx-2 mt-auto">
-                {{ form.switch('reserveType', '', false, [
-                    {label: 'En moins', value: '0', checked: false},
-                    {label: 'En plus', value: '1', checked: false},
-                ]) }}
+                {{ form.switch('reserveType', '', false, constant('App\\Entity\\Reserve::QUANTITY_TYPES')|map((type) => {
+                    label: type,
+                    value: type,
+                    checked: false,
+                } )) }}
             </div>
-            {{ form.input('QuantityReserveComment', 'Commentaire', false, null) }}
+            {{ form.input('quantityReserveComment', 'Commentaire', false, null) }}
         </div>
     </div>
 </div>
 
 <input type="hidden" id="truck-arrival-line-form" value="{{ {
-    'actions' : '<i class="wii-icon wii-icon-trash"></i>',
+    'actions' : '<i class="wii-icon wii-icon-trash delete-row "></i>',
     'trackingLinesNumber': form.input('trackingLinesNumber', '', false, null),
-    'isQualityReseve': form.checkbox('isQualityReseve', '', false, null),
-    'attachment': include('attachment/attachment.html.twig', { isNew: true , buttonOnly: false, noLabel: true}),
-    'comment': form.input('comment', '', false, null),
+    'hasQualityReserve': form.checkbox('hasQualityReseve', '', false, null, {
+        inputClass: 'display-condition',
+    }),
+    'attachment': include('attachment/attachment.html.twig', { isNew: true , buttonOnly: true, noLabel: true, disabled: true}),
+    'comment': form.input('comment', '', false, null, {disabled: true}),
 } | json_encode }}">

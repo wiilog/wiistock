@@ -1,0 +1,32 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{% endblock %}
+{% block title_tooltip %}{% endblock %}
+
+
+{% block page_content %}
+    oui {{ dump(truckArrival) }}
+    <button onclick="editTruckArrival({{ truckArrival.id }})">
+        Modifier
+    </button>
+
+
+    {% include "utils/modal/empty-modal.html.twig" with {
+        id: 'editTruckArrivalModal',
+        header: {
+            title: 'Modifier arrivage camion',
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                {classes: 'btn btn-success data', text: 'Enregister', type: 'submit'}
+            ],
+        },
+    } %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('truck-arrival-show') }}
+{% endblock %}

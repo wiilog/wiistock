@@ -57,22 +57,10 @@
         'reload': true
     } %}
 
-    {% include "utils/modal/empty-modal.html.twig" with {
-        id: 'editTruckArrivalModal',
-        header: {
-            title: 'Modifier arrivage camion',
-        },
-        footer: {
-            elements: [
-                {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                {classes: 'btn btn-success data', text: 'Enregister', type: 'submit'}
-            ],
-        },
-    } %}
-
     {% include "truck_arrival/modal-new.html.twig" with {
         fieldsParam
     }  %}
+
 {% endblock %}
 
 {% block javascripts %}
