@@ -51,10 +51,6 @@ class DataImportController extends AbstractController
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        if ($post->get('deleteDifData') && $post->get('entity') === Import::ENTITY_REF_LOCATION ) {
-            $entityManager->getRepository(StorageRule::class)->clearTable();
-        }
-
         $import = new Import();
         $import
             ->setLabel($post->get('label'))

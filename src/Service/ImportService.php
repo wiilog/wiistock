@@ -53,7 +53,6 @@ use Throwable;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
-use function PHPUnit\Framework\isEmpty;
 
 
 class ImportService
@@ -439,6 +438,8 @@ class ImportService
             $import->setStartDate(new DateTime());
             $this->entityManager->flush();
 
+            $this->eraseGlobalData();
+
             foreach ($firstRows as $row) {
                 $headersLog = $this->treatImportRow(
                     $row,
@@ -763,15 +764,15 @@ class ImportService
                 foreach ($articlesFournisseurs as $articleFournisseur) {
                     $isNotUsed = empty($articleFournisseur->getReferenceArticle()) && empty($articleFournisseur->getArticles()) && empty($articleFournisseur->getReceptionReferenceArticles());
                     if ($isNotUsed) {
-                        $refArticle->cleanArticleFournisseur();
+                        $refArticle->removeArticleFournisseur($articlesFournisseur);
                         $this->entityManager->remove($articleFournisseur);
-                        $this->entityManager->flush();
-                    }
-                    else {
+                    } else {
                         $label = $articleFournisseur->getLabel();
                         $this->throwError("L'article fournisseur : $label est utilisé il ne peut pas être supprimé.");
                     }
                 }
+                // essayer de le faire une seule fois à la fin de l'import donc supprmer celui ci
+                $this->entityManager->flush();
             }
         }
         $articleFournisseur->setReferenceArticle($refArticle);
@@ -2276,4 +2277,17 @@ class ImportService
             Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => $associatedDocumentTypes,
         ];
     }
+
+    private function eraseGlobalData(): void {
+        if ($this->currentImport->isEraseData()) {
+            switch ($this->currentImport->getEntity()) {
+                case Import::ENTITY_REF_LOCATION:
+                    $this->entityManager->getRepository(StorageRule::class)->clearTable();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
 }
