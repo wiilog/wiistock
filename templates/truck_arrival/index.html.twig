@@ -58,7 +58,8 @@
     } %}
 
     {% include "truck_arrival/modal-new.html.twig" with {
-        fieldsParam
+        fieldsParam,
+        truckArrival : newTruckArrival,
     }  %}
 
 {% endblock %}

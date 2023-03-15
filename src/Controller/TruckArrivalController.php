@@ -19,6 +19,7 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
+use App\Service\AttachmentService;
 use App\Service\FilterSupService;
 use App\Service\FormatService;
 use App\Service\TruckArrivalService;
@@ -48,7 +49,8 @@ class TruckArrivalController extends AbstractController
             'fields' => $truckArrivalService->getVisibleColumns($this->getUser()),
             'carriersForFilter' => $carrierRepository->findAll(),
             'initial_filters' => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_TRUCK_ARRIVAL)),
-            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL)
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL),
+            'newTruckArrival' => new TruckArrival(),
         ]);
     }
 
@@ -95,39 +97,68 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
-    #[Route('/creer', name: 'truck_arrival_new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/form/edit/{id}', name: 'truck_arrival_form_edit', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::CREATE_TRUCK_ARRIVALS])]
-    public function new(Request $request, EntityManagerInterface $entityManager, TruckArrivalService $truckArrivalService, UniqueNumberService $uniqueNumberService): Response {
+    public function formEdit(TruckArrival $truckArrival, EntityManagerInterface $entityManager): Response {
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+        return new JsonResponse([
+            'success'=> true,
+            'html' => $this->render('truck_arrival/form-truck-arrival.html.twig', [
+                'truckArrival' => $truckArrival,
+                'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL)
+            ])->getContent()
+        ]);
+    }
+
+    #[Route('/formulauire', name: 'truck_arrival_form_submit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::CREATE_TRUCK_ARRIVALS])]
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager,
+                        UniqueNumberService $uniqueNumberService,
+                        AttachmentService $attachmentService): Response {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $now = new \DateTime();
-
         $data = $request->request->all();
-        dump($data);
-        dump($request->files->all());
 
-        $carrier = isset($data['carrier']) ? $carrierRepository->find($data['carrier']) : null;
-        $driver = isset($data['driver'])  ? $driverRepository->find($data['driver'] ) : null;
-        $location = isset($data['unloadingLocation']) ? $locationRepository->find($data['unloadingLocation']) : null;
-        $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, $now, [$carrier->getCode()]);
+        $truckArrival = isset($data['truckArrivalId']) ? $truckArrivalRepository->find($data['truckArrivalId']) : null;
+        $driver = isset($data['driver']) ? $driverRepository->find($data['driver']) : null;
 
-        $truckArrival = new TruckArrival();
+        if (!$truckArrival) {
+            $carrier = isset($data['carrier']) ? $carrierRepository->find($data['carrier']) : null;
+            $location = isset($data['unloadingLocation']) ? $locationRepository->find($data['unloadingLocation']) : null;
+
+            $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, $now, [$carrier->getCode()]);
+            $truckArrival = new TruckArrival();
+            $truckArrival
+                ->setNumber($number)
+                ->setUnloadingLocation($location)
+                ->setCarrier($carrier);
+
+        } else {
+            $files = $request->files->all();
+            $truckArrival->clearAttachments();
+
+            $attachments = $attachmentService->createAttachements($files);
+            foreach ($attachments as $attachment) {
+                $entityManager->persist($attachment);
+                $truckArrival->addAttachment($attachment);
+            }
+        }
+
         $truckArrival
-            ->setCarrier($carrier)
             ->setDriver($driver)
-            ->setUnloadingLocation($location)
             ->setRegistrationNumber($data['registrationNumber'] ?? null)
-            ->setNumber($number)
             ->setCreationDate($now)
-            ->setOperator($this->getUser())
-        ;
+            ->setOperator($this->getUser());
 
         $entityManager->persist($truckArrival);
 
-        if($data['hasGeneralReserve'] ?? false){
-            $generalReserve= new Reserve();
-            //$truckArrival->addReserve($generalReserve);
+        if ($data['hasGeneralReserve'] ?? false) {
+            $generalReserve = new Reserve();
             $generalReserve
                 ->setComment($data['generalReserveComment'] ?? null)
                 ->setTruckArrival($truckArrival)
@@ -135,9 +166,8 @@ class TruckArrivalController extends AbstractController
             $entityManager->persist($generalReserve);
         }
 
-        if($data['hasQuantityReserve'] ?? false){
-            $quantityReserve= new Reserve();
-            //$truckArrival->addReserve($quantityReserve);
+        if ($data['hasQuantityReserve'] ?? false) {
+            $quantityReserve = new Reserve();
             $quantityReserve
                 ->setComment($data['quantityReserveComment'] ?? null)
                 ->setTruckArrival($truckArrival)
@@ -147,16 +177,16 @@ class TruckArrivalController extends AbstractController
             $entityManager->persist($quantityReserve);
         }
 
-        foreach (json_decode($data['arrivalLines']) as $lineData) {
+        foreach (json_decode($data['arrivalLines'] ?? '') ?? [] as $lineData) {
             $arrivalLine = new TruckArrivalLine();
             $arrivalLine
                 ->setTruckArrival($truckArrival)
                 ->setNumber($lineData->trackingLinesNumber ?? null);
             $entityManager->persist($arrivalLine);
-            if ($lineData->hasQuantityReserve ?? false) {
+            if ($lineData->hasQualityReseve ?? false) {
                 $reserve = new Reserve();
                 $reserve
-                    ->setComment($lineData->quantityReserveComment ?? null)
+                    ->setComment($lineData->qualityReserveComment ?? null)
                     ->setLine($arrivalLine)
                     ->setType(Reserve::TYPE_QUALITY)
                     // TODO attachment
@@ -167,12 +197,9 @@ class TruckArrivalController extends AbstractController
 
         $entityManager->flush();
 
-
         return new JsonResponse([
             'success' => true,
-            'msg' => 'oui',
+            'truckArrivalId' => $truckArrival->getId(),
         ]);
     }
-
-
 }

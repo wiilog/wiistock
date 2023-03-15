@@ -71,8 +71,7 @@ export default class EditableDatatable {
             if($row.find(`.add-row`).exists()) {
                 return;
             }
-
-            const result = Form.process($(this));
+            const result = Form.create($row).process();
             data.push(result instanceof FormData ? result.asObject() : result);
         });
 
@@ -279,7 +278,7 @@ function initEditatable(datatable, onDatatableInit = null) {
                         onDeleteRowClicked(datatable, event, $(this));
                         config.onDeleteRow && config.onDeleteRow(datatable, event, $(this));
                     });
-                });
+            });
 
             if(config.mode === MODE_CLICK_EDIT || config.mode === MODE_CLICK_EDIT_AND_ADD) {
                 $rows
@@ -295,7 +294,7 @@ function initEditatable(datatable, onDatatableInit = null) {
                             datatable.toggleEdit(STATE_EDIT, true, {rowIndex});
                         }
                     });
-                }
+            }
 
             if(config.save === SAVE_FOCUS_OUT) {
                 $rows

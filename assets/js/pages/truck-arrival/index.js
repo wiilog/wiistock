@@ -11,27 +11,14 @@ $(function () {
     displayFiltersSup(filters);
 
     initTruckArrivalTable();
-    newTruckArrival();
     const $modalNew = $('#newTruckArrivalModal');
 
     Form
         .create($modalNew)
         .addProcessor((data, errors, $form) => {
-            let arrivalLines = [];
-            $form.find('.table-truck-article-line tr').each(function () {
-                const $line = $(this);
-                if($line.find('td .wii-icon-trash').length > 0) {
-                    arrivalLines.push({
-                        trackingLinesNumber: $line.find('input[name="trackingLinesNumber"]').val(),
-                        hasQualityReserve: $line.find('input[name="hasQualityReserve"]').is(':checked'),
-                        attachments: $line.find('input[type="file"]').val(),
-                        comment: $line.find('input[name="comment"]').val(),
-                    });
-                }
-            });
-            data.append('arrivalLines', JSON.stringify(arrivalLines));
+            data.append('arrivalLines', JSON.stringify(editableDatatable.data()));
         })
-        .submitTo(POST, 'truck_arrival_new');
+        .submitTo(POST, 'truck_arrival_form_submit');
 
     $modalNew.on('change','.display-condition', function () {
         const checked = $(this).is(':checked');
@@ -41,7 +28,7 @@ $(function () {
     $modalNew.find('.display-condition').trigger('change');
 
     const $tableLines = $modalNew.find('.table-truck-article-line');
-    EditableDatatable.create($tableLines, {
+    const editableDatatable = EditableDatatable.create($tableLines, {
         mode: MODE_CLICK_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
         needsPagingHide: true,

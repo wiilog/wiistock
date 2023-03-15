@@ -152,6 +152,10 @@ export default class Form {
         return this;
     }
 
+    process(config = {}) {
+        return Form.process(this, config);
+    }
+
     /**
      * Launch loading on submit button of the form and wait for the given promise
      * @param {function} action Function returning a promise to wait

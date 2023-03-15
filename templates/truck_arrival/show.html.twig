@@ -5,7 +5,6 @@
 
 
 {% block page_content %}
-    oui {{ dump(truckArrival) }}
     <button onclick="editTruckArrival({{ truckArrival.id }})">
         Modifier
     </button>
@@ -13,6 +12,7 @@
 
     {% include "utils/modal/empty-modal.html.twig" with {
         id: 'editTruckArrivalModal',
+        size: 'modal-xl',
         header: {
             title: 'Modifier arrivage camion',
         },

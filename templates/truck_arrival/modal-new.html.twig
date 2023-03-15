@@ -6,14 +6,15 @@
             } %}
             <div class="modal-body container-fluid">
                 {% include 'truck_arrival/form-truck-arrival.html.twig' with {
-                    fieldsParam
+                    fieldsParam,
+                    truckArrival,
                 }%}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
                     {classes: 'btn btn-success data', text: 'Enregister', type: 'submit'},
-                    {classes: 'btn btn-success data', text: 'Aller vers Arrivage UL', type: 'submit'}
+                    {classes: 'btn btn-success data', text: 'Aller vers Arrivage UL'}
                 ],
             } %}
         </div>

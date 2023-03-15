@@ -1,0 +1,38 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section-title my-3 d-flex align-items-center">
+    Réserve sur l’arrivage camion
+</div>
+<div class="row mb-4">
+    <div class="col-4">
+        {{ form.checkbox('hasGeneralReserve', 'Réserve général', false, null, {
+            inputClass: 'display-condition',
+        }) }}
+    </div>
+    <div class="col-8 displayed-on-checkbox">
+        {{ form.input('generalReserveComment', 'Commentaire', false, null, ) }}
+    </div>
+</div>
+<div class="row">
+    <div class="col-4">
+        {{ form.checkbox('hasQuantityReserve', 'Réserve quantité +/-', false, null, {
+            inputClass: 'display-condition',
+        }) }}
+    </div>
+    <div class="col-8 displayed-on-checkbox">
+        <div class="d-flex">
+            {{ form.input('reserveQuantity', 'Valeur', false, null, {
+                type: 'number',
+                min: 0,
+            }) }}
+            <div class="mx-2 mt-auto">
+                {{ form.switch('reserveType', '', false, constant('App\\Entity\\Reserve::QUANTITY_TYPES')|map((type) => {
+                    label: type,
+                    value: type,
+                    checked: false,
+                } )) }}
+            </div>
+            {{ form.input('quantityReserveComment', 'Commentaire', false, null) }}
+        </div>
+    </div>
+</div>
