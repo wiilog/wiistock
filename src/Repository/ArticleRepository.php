@@ -973,7 +973,6 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('MAX(articleLocation.label) as location')
             ->addSelect('MAX(referenceArticle.reference) as reference')
             ->addSelect('MAX(referenceArticle.id) as referenceEntity')
-            ->join("supplierArticle.referenceArticle", "referenceArticle")
             ->addGroupBy('supplierArticle.referenceArticle')
             ->addGroupBy('article.emplacement');
 
