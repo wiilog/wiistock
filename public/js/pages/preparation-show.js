@@ -159,17 +159,6 @@ function addToScissionAll($checkbox) {
     validatePreparationArticlesSplitting();
 }
 
-function beginPrepa() {
-    if (!prepaHasBegun) {
-        let prepaId = $preparationId.val();
-        let path = Routing.generate('prepa_begin');
-
-        $.post(path, prepaId, () => {
-            prepaHasBegun = true;
-        });
-    }
-}
-
 function validatePreparationArticlesSplitting() {
     const $tableSplittingArticles = $(`#tableSplittingArticles`);
     const $inputs = $tableSplittingArticles.find('.input');

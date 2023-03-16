@@ -397,6 +397,15 @@ class PreparationController extends AbstractController
             if (!empty($data['articles'])) {
                 $preparation = $preparationRepository->find($data['preparation']);
 
+                if ($preparation) {
+                    $statusInProgress = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION,
+                        Preparation::STATUT_EN_COURS_DE_PREPARATION);
+                    $preparation
+                        ->setStatut($statusInProgress)
+                        ->setUtilisateur($this->getUser());
+                    $entityManager->flush();
+                }
+
                 $articles = [];
                 $pickedQuantities = 0;
                 foreach ($data['articles'] as $idArticle => $pickedQuantity) {
@@ -526,32 +535,6 @@ class PreparationController extends AbstractController
             );
 
             return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/commencer-preparation", name="prepa_begin", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     */
-    public function beginPrepa(EntityManagerInterface $entityManager,
-                               Request                $request): Response
-    {
-        if ($prepaId = json_decode($request->getContent(), true)) {
-
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $preparationRepository = $entityManager->getRepository(Preparation::class);
-
-            $preparation = $preparationRepository->find($prepaId);
-
-            if ($preparation) {
-                $statusInProgress = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
-                $preparation
-                    ->setStatut($statusInProgress)
-                    ->setUtilisateur($this->getUser());
-                $entityManager->flush();
-            }
-
-            return new JsonResponse();
         }
         throw new BadRequestHttpException();
     }

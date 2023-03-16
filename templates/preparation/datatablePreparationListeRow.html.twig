@@ -17,10 +17,10 @@
                 {% set action = '' %}
                 {% set attr = '' %}
                 {% if isRefByArt %}
-                    {% set action = ", startPicking($(this), '" ~ stockManagement ~ "')" %}
+                    {% set action = "startPicking($(this), '" ~ stockManagement ~ "')" %}
                     {% set attr = 'value='~id %}
                 {% else %}
-                    {% set action = ", editRow($(this), Routing.generate('prepa_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'))" %}
+                    {% set action = "editRow($(this), Routing.generate('prepa_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'))" %}
                     {% set attr = 'data-target=#modalEditLigneArticle data-toggle=modal' %}
                 {% endif %}
                 <div class="action-on-click d-none action-on-click-single d-flex align-items-center"
@@ -28,7 +28,7 @@
                      data-barcode='{{ barcode }}'
                      data-id='{{ id }}'
                      data-ref='{{ isRef ? 1 : 0 }}'
-                     onclick="beginPrepa(){{ action }}"
+                     onclick="{{ action }}"
                      id="startPicking">
                     <span class="wii-icon wii-icon-check-white mr-2"></span>Selectionner
                 </div>
