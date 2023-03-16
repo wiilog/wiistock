@@ -237,28 +237,30 @@ function onOpenModalAddLocationAndZone(tableLocations){
 
             const $select = $(this).parent().find('select');
 
-            const dataIdsToDisplay = $select.find('option:selected')
-                .map((_, option) => $(option).val())
-                .toArray();
+            const dataIdsToDisplay = $select.val();
 
             $select
                 .val(null)
                 .empty()
                 .trigger('change');
 
-            return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
-                buttonType,
-                mission,
-                dataIdsToDisplay,
-            })
-                .json()
-                .then((response) => {
-                    if(response.success){
-                        initModalAddTableLocations(response.data);
-                    }
-                });
+            if (dataIdsToDisplay && dataIdsToDisplay.length > 0) {
+                return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
+                    buttonType,
+                    mission,
+                    dataIdsToDisplay,
+                })
+                    .json()
+                    .then((response) => {
+                        if(response.success){
+                            initModalAddTableLocations(response.data);
+                        }
+                    });
             }
-        )
+            else {
+                return Promise.resolve();
+            }
+        });
     });
 
     $modalAddLocationAndZoneToMission.modal('show');
