@@ -49,9 +49,9 @@ export function initializeInventoryPlanificatorTable($container) {
             const $addInventoryLocationsModule = $form.find('.add-inventory-location-container');
             const $locationTable = $addInventoryLocationsModule.find('table');
             const locations = $locationTable.DataTable().column(0).data().toArray();
-            const $missionType = $modalFormInventoryPlanner.find('[name=missionType]:checked');
+            const $missionType = $modalFormInventoryPlanner.find('[name=missionType]:checked').val() || $modalFormInventoryPlanner.find('[name=missionType]').val();
 
-            if($missionType.val() === 'location'){
+            if($missionType === 'location'){
                 if (locations.length === 0) {
                     errors.push({
                         message: `Vous devez sélectionner au moins un emplacement`,
@@ -81,9 +81,6 @@ export function initializeInventoryPlanificatorTable($container) {
                         if (response.success) {
                             tableInventoryPanning.ajax.reload();
                             $modalFormInventoryPlanner.modal('hide');
-                        }
-                        else {
-                            Flash.add('danger', response.message);
                         }
                     });
             });
