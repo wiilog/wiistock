@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\Chauffeur;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -607,4 +608,14 @@ class SelectController extends AbstractController {
         ]);
     }
 
+    #[Route('/select/driver', name: 'ajax_select_driver', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    public function driver(Request $request, EntityManagerInterface $manager): Response {
+        $term = $request->query->get("term");
+
+        $drivers = $manager->getRepository(Chauffeur::class)->getForSelect($term);
+
+        return $this->json([
+            "results" => $drivers,
+        ]);
+    }
 }

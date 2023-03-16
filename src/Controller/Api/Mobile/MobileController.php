@@ -30,6 +30,7 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
@@ -1603,7 +1604,7 @@ class MobileController extends AbstractApiController
                                   UserService $userService,
                                   TrackingMovementService $trackingMovementService,
                                   Request $request,
-                                  EntityManagerInterface $entityManager): array
+                                  EntityManagerInterface $entityManager, KernelInterface $kernel): array
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -1625,6 +1626,7 @@ class MobileController extends AbstractApiController
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -1766,6 +1768,31 @@ class MobileController extends AbstractApiController
         if ($rights['tracking']) {
             $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
 
+
+            $carriers = Stream::from($carrierRepository->findAll())
+                ->map(function (Transporteur $transporteur) use ($kernel) {
+                    $attachment = $transporteur->getAttachments()->isEmpty() ? null : $transporteur->getAttachments()->first();
+                    $logo = null;
+                    if ($attachment && $transporteur->isRecurrent()) {
+                        $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                        $type = pathinfo($path, PATHINFO_EXTENSION);
+                        $type = ($type === 'svg' ? 'svg+xml' : $type);
+                        $data = file_get_contents($path);
+
+                        $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    }
+
+                    return [
+                        'id' => $transporteur->getId(),
+                        'label' => $transporteur->getLabel(),
+                        'minTrackingNumberLength' => $transporteur->getMinTrackingNumberLength() ?? null,
+                        'maxTrackingNumberLength' => $transporteur->getMaxTrackingNumberLength() ?? null,
+                        'logo' => $logo,
+                        'recurrent' => $transporteur->isRecurrent(),
+                    ];
+                })
+                ->toArray();
+
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
@@ -1835,6 +1862,7 @@ class MobileController extends AbstractApiController
             'users' => $users ?? [],
             'fieldsParam' => $fieldsParam ?? [],
             'drivers' => $driverRepository->getDriversArray()
+            'carriers' => $carriers ?? [],
         ];
     }
 
@@ -1846,13 +1874,14 @@ class MobileController extends AbstractApiController
     public function getData(Request $request,
                             UserService $userService,
                             TrackingMovementService $trackingMovementService,
+                            KernelInterface $kernel,
                             EntityManagerInterface $entityManager)
     {
         $nomadUser = $this->getUser();
 
         return $this->json([
             "success" => true,
-            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager),
+            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager, $kernel),
         ]);
     }
 
@@ -2587,6 +2616,7 @@ class MobileController extends AbstractApiController
                                 EntityManagerInterface $manager,
                                 UniqueNumberService $uniqueNumberService,
                                 DispatchService $dispatchService,
+                                MobileApiService $mobileApiService,
                                 StatusHistoryService $statusHistoryService): Response {
         $data = Stream::from($request->request->all())
             ->keymap(fn(?string $value, string $key) => [$key, !in_array($value, ['undefined', 'null']) ? $value : null])
@@ -2643,6 +2673,9 @@ class MobileController extends AbstractApiController
         }
 
         $serializedDispatch = $dispatchRepository->getMobileDispatches(null, $dispatch);
+        $serializedDispatch = Stream::from($serializedDispatch)
+            ->reduce(fn(array $accumulator, array $dispatch) => $mobileApiService->serializeDispatch($accumulator, $dispatch), []);
+        $serializedDispatch = $serializedDispatch[array_key_first($serializedDispatch)];
         return $this->json([
             'success' => true,
             'dispatch' => $serializedDispatch
@@ -2762,10 +2795,10 @@ class MobileController extends AbstractApiController
                 $refArticleDataService->updateDescriptionField($entityManager, $reference, [
                     'outFormatEquipment' => $data['outFormatEquipment'],
                     'manufacturerCode' => $data['manufacturerCode'],
-                    'volume' => $creation ? $data['volume'] : $oldDescription['volume'] ?? null,
-                    'length' => $creation ? $data['length'] : $oldDescription['length'] ?? null,
-                    'width' => $creation ? $data['width'] : $oldDescription['width'] ?? null,
-                    'height' => $creation ? $data['height'] : $oldDescription['height'] ?? null,
+                    'volume' =>  $data['volume'],
+                    'length' =>  $data['length'] ?: ($oldDescription['length'] ?? null),
+                    'width' =>  $data['width'] ?: ($oldDescription['width'] ?? null),
+                    'height' =>  $data['height'] ?: ($oldDescription['height'] ?? null),
                     'weight' => $data['weight'],
                     'associatedDocumentTypes' => $data['associatedDocumentTypes'],
                 ]);
@@ -2899,6 +2932,21 @@ class MobileController extends AbstractApiController
 
         return $this->json($data);
     }
+
+    /**
+     * @Rest\Post("/api/get-waybill-data/{dispatch}", name="api_get_waybill_data", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getWayBillData(EntityManagerInterface $manager, Dispatch $dispatch, DispatchService $dispatchService): Response
+    {
+        return $this->json([
+            'success' => true,
+            'data' => $dispatchService->getWayBillDataForUser($this->getUser(), $dispatch, $manager)
+        ]);
+    }
+
+
 
     /**
      * @Rest\Get("/api/get-truck-arrival-default-unloading-location", name="api_get_truck_arrival_default_unloading_location", methods="GET", condition="request.isXmlHttpRequest()")

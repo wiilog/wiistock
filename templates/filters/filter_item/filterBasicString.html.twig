@@ -1,5 +1,10 @@
+{% import 'form.html.twig' as form %}
+
 <div class="col-auto m-1 pr-0">
     <div class="input-group">
-        <input type="text" class="form-control data cursor-default filter-input" name="{{ name }}" placeholder="{{ placeholder }}">
+        {{ form.input(name, null, false, null, {
+            inputClass: 'filter-input',
+            placeholder: placeholder,
+        }) }}
     </div>
 </div>

@@ -1,0 +1,80 @@
+{% import 'form.html.twig' as form %}
+
+<div>
+    {% if carrier.id %}
+        <input type="hidden" name="carrierId" value="{{ carrier.id }}"/>
+    {% endif %}
+    <div class="form-group">
+        {{ form.input('label', 'Nom', true, carrier.label, {
+            labelClass: 'wii-field-name',
+            additionalAttributes: [{
+                name: "id",
+                value: "label",
+            }, {
+                name: "maxlength",
+                value: "64",
+            }],
+        }) }}
+    </div>
+
+    <div class="form-group">
+        {{ form.input('code', 'Code', true, carrier.code, {
+            labelClass: 'wii-field-name',
+            additionalAttributes: [{
+                name: "id",
+                value: "code",
+            }, {
+                name: "maxlength",
+                value: "64",
+            }],
+        }) }}
+    </div>
+
+    <div class="form-group">
+        {{ form.label('Nombre de caractères du n° de tracking', false, false, {}) }}
+        <div class="d-flex align-items-center">
+            De
+            {{ form.input('min-char-number', null, false, carrier.minTrackingNumberLength, {
+                type: 'number',
+                isLabelFree: true,
+                inputClass: 'form-control-sm mx-2 w-px-80 min-char-number-data',
+                additionalAttributes: [{
+                    'name': 'min',
+                    'value': '0'
+                }],
+                width: '',
+                labelWidth: '',
+            }) }}
+            à
+            {{ form.input('max-char-number', null, false, carrier.maxTrackingNumberLength, {
+                type: 'number',
+                isLabelFree: true,
+                inputClass: 'form-control-sm mx-2 w-px-80 max-char-number-data',
+                additionalAttributes: [{
+                    'name': 'min',
+                    'value': '0'
+                }],
+                width: '',
+                labelWidth: '',
+            }) }}
+        </div>
+    </div>
+
+    <div class="form-group">
+        {{ form.checkbox('is-recurrent', 'Transporteur récurrent (max. 10)', false, carrier.recurrent, {
+            tooltip: 'Les transporteurs récurrents s\'afficheront lors du choix du transporteur pour l\'arrivage camion sur le nomade via le logo',
+            inline: true,
+        }) }}
+    </div>
+
+    <div class="form-group logo-container">
+        {% set source = carrier.attachments.get(0) ? asset('uploads/attachements/' ~ carrier.attachments.get(0).fileName) : '' %}
+        {{ form.image('logo', 'Logo', false, source, {
+            inline: false,
+            previewClass: 'minw-100px minh-80px mr-2 border-radius-2',
+            imageClass: 'maxw-250px',
+            emptyImage: true,
+            defaultValue: '',
+        }) }}
+    </div>
+</div>

@@ -3,23 +3,16 @@
 namespace App\Repository;
 
 use App\Entity\TruckArrivalLine;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
- * @extends ServiceEntityRepository<TruckArrivalLine>
- *
  * @method TruckArrivalLine|null find($id, $lockMode = null, $lockVersion = null)
  * @method TruckArrivalLine|null findOneBy(array $criteria, array $orderBy = null)
  * @method TruckArrivalLine[]    findAll()
  * @method TruckArrivalLine[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TruckArrivalLineRepository extends ServiceEntityRepository
+class TruckArrivalLineRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, TruckArrivalLine::class);
-    }
 
     public function save(TruckArrivalLine $entity, bool $flush = false): void
     {
