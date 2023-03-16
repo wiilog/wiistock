@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\Reserve;
 use App\Entity\TruckArrival;
 use App\Exceptions\FormException;
@@ -16,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 class ReserveController extends AbstractController
 {
     #[Route('/form', name: 'form_submit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::EDIT_RESERVES])]
     public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
         $reserveRepository = $entityManager->getRepository(Reserve::class);

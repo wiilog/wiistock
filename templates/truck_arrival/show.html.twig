@@ -5,6 +5,9 @@
 
 
 {% block page_content %}
+
+    {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_RESERVES')) %}
+
     <div class="p-3">
         <div class="row">
             <div class="col-12">
@@ -52,12 +55,14 @@
                                 <div class="wii-body-text">{{ generalReserve and generalReserve.comment and generalReserve.comment !='' ? generalReserve.comment : '-' }}</div>
                             </div>
                         </div>
-                        <button
-                            class="btn btn-primary h-fit-content mr-2 nowrap"
-                            data-target='#editGeneralReserve'
-                            data-toggle='modal'>
-                            <i class="fa fa-pen mr-2"></i>Modifier
-                        </button>
+                        {% if hasRightEditReserve %}
+                            <button
+                                class="btn btn-primary h-fit-content mr-2 nowrap"
+                                data-target='#editGeneralReserve'
+                                data-toggle='modal'>
+                                <i class="fa fa-pen mr-2"></i>Modifier
+                            </button>
+                        {% endif %}
                     </div>
 
                     <div class="wii-section-title my-3 d-flex align-items-center">
@@ -84,24 +89,29 @@
                                 <div class="wii-body-text">{{ quantityReserve ? quantityReserve.comment : '-' }}</div>
                             </div>
                         </div>
-                        <button
-                            class="btn btn-primary h-fit-content mr-2 nowrap"
-                            data-target='#editQuantityReserve'
-                            data-toggle='modal'>
-                            <i class="fa fa-pen mr-2"></i>Modifier
-                        </button>
+                        {% if hasRightEditReserve %}
+                            <button
+                                class="btn btn-primary h-fit-content mr-2 nowrap"
+                                data-target='#editQuantityReserve'
+                                data-toggle='modal'>
+                                <i class="fa fa-pen mr-2"></i>Modifier
+                            </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {%  include 'truck_arrival/reserve/modalEditGeneralReserve.html.twig' with {
-        reserve : generalReserve,
-    } %}
-    {% include 'truck_arrival/reserve/modalEditQuantityReserve.html.twig' with {
-        reserve : quantityReserve,
-    }%}
+
+    {% if hasRightEditReserve %}
+        {%  include 'truck_arrival/reserve/modalEditGeneralReserve.html.twig' with {
+            reserve : generalReserve,
+        } %}
+        {% include 'truck_arrival/reserve/modalEditQuantityReserve.html.twig' with {
+            reserve : quantityReserve,
+        }%}
+    {% endif %}
 
 {% endblock %}
 
