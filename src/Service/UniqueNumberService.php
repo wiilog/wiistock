@@ -16,6 +16,8 @@ class UniqueNumberService
     const DATE_COUNTER_FORMAT_DEFAULT = 'YmdCCCC';
     const DATE_COUNTER_FORMAT_RECEPTION = 'ymdCCCC';
     const DATE_COUNTER_FORMAT_TRANSPORT = 'ymd-CC';
+    const DATE_COUNTER_FORMAT_TRUCK_ARRIVAL = 'YmdHis_\{\0\}_CC';
+
 
     const ENTITIES_NUMBER_WITHOUT_DASH = [
         Reception::class,
@@ -38,7 +40,8 @@ class UniqueNumberService
                            ?string                $prefix,
                            string                 $entity,
                            string                 $format,
-                           ?DateTime              $numberDate = null): string {
+                           ?DateTime              $numberDate = null,
+                           array $params = []): string {
 
 
         $date = $numberDate ?? new DateTime('now');
@@ -68,6 +71,10 @@ class UniqueNumberService
         $currentCounterStr = sprintf("%0{$counterLen}u", $lastCounter + 1);
         $dateStr = !empty($dateFormat) ? $date->format($dateFormat) : '';
         $smartPrefix = !empty($prefix) ? ($prefix . (!in_array($entity, self::ENTITIES_NUMBER_WITHOUT_DASH) ? '-' : '')) : '';
+
+        foreach ($params as $key => $data) {
+            $dateStr = str_replace("{" . $key . "}", $data, $dateStr);
+        }
 
         return ($smartPrefix . $dateStr . $currentCounterStr);
     }

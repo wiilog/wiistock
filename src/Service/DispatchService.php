@@ -31,6 +31,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -1445,5 +1446,44 @@ class DispatchService {
                 $selected = $type === $groupedSignatureType ? 'selected' : '';
                 return "<option value='{$type}' {$selected}>{$type}</option>";
             })->join('');
+    }
+
+    public function getWayBillDataForUser(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager) {
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $userSavedData = $user->getSavedDispatchWaybillData();
+        $dispatchSavedData = $dispatch->getWaybillData();
+
+        $now = new DateTime('now');
+
+        $isEmerson = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
+
+        $consignorUsername = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME);
+        $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
+            ? $consignorUsername
+            : ($isEmerson ? $user->getUsername() : null);
+
+        $consignorEmail = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
+        $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
+            ? $consignorEmail
+            : ($isEmerson ? $user->getEmail() : null);
+
+        $defaultData = [
+            'carrier' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CARRIER),
+            'dispatchDate' => $now->format('Y-m-d'),
+            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'receiver' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_RECEIVER),
+            'locationFrom' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_FROM),
+            'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
+            'consignorUsername' => $consignorUsername,
+            'consignorEmail' => $consignorEmail,
+            'receiverUsername' => $isEmerson ? $user->getUsername() : null,
+            'receiverEmail' => $isEmerson ? $user->getEmail() : null,
+            'packsCounter' => $dispatch->getDispatchPacks()->count()
+        ];
+        return Stream::from(Dispatch::WAYBILL_DATA)
+            ->keymap(fn(bool $data, string $key) => [$key, $dispatchSavedData[$key] ?? $userSavedData[$key] ?? $defaultData[$key] ?? null])
+            ->toArray();
     }
 }

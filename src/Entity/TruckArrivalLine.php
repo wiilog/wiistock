@@ -22,6 +22,7 @@ class TruckArrivalLine
     private ?string $number = null;
 
     #[ORM\ManyToMany(targetEntity: Arrivage::class, inversedBy: 'truckArrivalLines')]
+    #[ORM\JoinColumn(nullable: true)]
     private Collection $arrivals;
 
     #[ORM\OneToOne(mappedBy: 'line', cascade: ['persist', 'remove'])]
