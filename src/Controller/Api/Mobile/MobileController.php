@@ -1603,7 +1603,7 @@ class MobileController extends AbstractApiController
                                   UserService $userService,
                                   TrackingMovementService $trackingMovementService,
                                   Request $request,
-                                  EntityManagerInterface $entityManager): array
+                                  EntityManagerInterface $entityManager, KernelInterface $kernel): array
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -1765,13 +1765,30 @@ class MobileController extends AbstractApiController
 
         if ($rights['tracking']) {
             $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
+
+
             $carriers = Stream::from($carrierRepository->findAll())
-                ->map(fn(Transporteur $transporteur) => [
-                    'id' => $transporteur->getId(),
-                    'label' => $transporteur->getLabel(),
-                    'minTrackingNumberLength' => $transporteur->getMinTrackingNumberLength() ?? null,
-                    'maxTrackingNumberLength' => $transporteur->getMaxTrackingNumberLength() ?? null,
-                ])
+                ->map(function (Transporteur $transporteur) use ($kernel) {
+                    $attachment = $transporteur->getAttachments()->isEmpty() ? null : $transporteur->getAttachments()->first();
+                    $logo = null;
+                    if ($attachment && $transporteur->isRecurrent()) {
+                        $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                        $type = pathinfo($path, PATHINFO_EXTENSION);
+                        $type = ($type === 'svg' ? 'svg+xml' : $type);
+                        $data = file_get_contents($path);
+
+                        $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    }
+
+                    return [
+                        'id' => $transporteur->getId(),
+                        'label' => $transporteur->getLabel(),
+                        'minTrackingNumberLength' => $transporteur->getMinTrackingNumberLength() ?? null,
+                        'maxTrackingNumberLength' => $transporteur->getMaxTrackingNumberLength() ?? null,
+                        'logo' => $logo,
+                        'recurrent' => $transporteur->isRecurrent(),
+                    ];
+                })
                 ->toArray();
 
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
@@ -1842,7 +1859,7 @@ class MobileController extends AbstractApiController
             'dispatchTypes' => $dispatchTypes ?? [],
             'users' => $users ?? [],
             'fieldsParam' => $fieldsParam ?? [],
-            'transporteurs' => $carriers ?? [],
+            'carriers' => $carriers ?? [],
         ];
     }
 
@@ -1854,50 +1871,14 @@ class MobileController extends AbstractApiController
     public function getData(Request $request,
                             UserService $userService,
                             TrackingMovementService $trackingMovementService,
+                            KernelInterface $kernel,
                             EntityManagerInterface $entityManager)
     {
         $nomadUser = $this->getUser();
 
         return $this->json([
             "success" => true,
-            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager),
-        ]);
-    }
-
-    /**
-     * @Rest\Get("/api/get-carriers-data", name="api-get-carriers-data")
-     * @Wii\RestVersionChecked()
-     */
-    public function getCarriersData(EntityManagerInterface $entityManager,
-                                    KernelInterface        $kernel) {
-        $carrierRepository = $entityManager->getRepository(Transporteur::class);
-
-        $carriers = Stream::from($carrierRepository->findBy(["recurrent" => true]))
-            ->map(function(Transporteur $transporteur) use ($kernel) {
-                $logo = $transporteur->getAttachments()[0];
-                if ($logo) {
-                    $projectDir = $kernel->getProjectDir();
-                    $imagePath = $projectDir . '/public/' . $logo->getFullPath();
-
-                    $type = pathinfo($imagePath, PATHINFO_EXTENSION);
-                    $type = ($type === 'svg' ? 'svg+xml' : $type);
-
-                    $data = file_get_contents($imagePath);
-                    $image = 'data:image/' . $type . ';base64,' . base64_encode($data);
-                }
-
-                return [
-                    'id' => $transporteur->getId(),
-                    'label' => $transporteur->getLabel(),
-                    'minTrackingNumberLength' => $transporteur->getMinTrackingNumberLength() ?? null,
-                    'maxTrackingNumberLength' => $transporteur->getMaxTrackingNumberLength() ?? null,
-                    'logo' => $logo ? $image : null,
-                ];
-            });
-
-        return $this->json([
-            "success" => true,
-            "carriers" => $carriers,
+            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager, $kernel),
         ]);
     }
 
