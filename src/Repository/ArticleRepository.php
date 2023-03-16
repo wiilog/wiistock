@@ -970,12 +970,11 @@ class ArticleRepository extends EntityRepository {
 
         $this->availableArticlesToInventoryQB($query, $tagRFIDPrefix, $locations, $statusCodes)
             ->select('COUNT(article.id) as quantity')
-            ->addSelect('MAX(emplacement.label) as location')
+            ->addSelect('MAX(articleLocation.label) as location')
             ->addSelect('MAX(referenceArticle.reference) as reference')
             ->addSelect('MAX(referenceArticle.id) as referenceEntity')
-            ->join("article.articleFournisseur", "af")
-            ->join("af.referenceArticle", "referenceArticle")
-            ->addGroupBy('af.referenceArticle')
+            ->join("supplierArticle.referenceArticle", "referenceArticle")
+            ->addGroupBy('supplierArticle.referenceArticle')
             ->addGroupBy('article.emplacement');
 
         if (!empty($filteredArticles)) {
@@ -985,7 +984,7 @@ class ArticleRepository extends EntityRepository {
         }
 
         return $query
-            ->orderBy('emplacement.id')
+            ->orderBy('articleLocation.id')
             ->addOrderBy('referenceArticle.id')
             ->getQuery()
             ->getResult();
@@ -1006,10 +1005,17 @@ class ArticleRepository extends EntityRepository {
                                                    array        $locations,
                                                    array        $statusCodes): QueryBuilder {
         return $queryBuilder
-            ->join("article.emplacement", "emplacement")
+            ->join("article.emplacement", "articleLocation")
             ->join("article.statut", "articleStatut")
+
+            // All article to inventory match a storage rule of the referenceArticle
+            ->join("article.articleFournisseur", "supplierArticle")
+            ->join("supplierArticle.referenceArticle", "referenceArticle")
+            ->join("referenceArticle.storageRules", "storageRule")
+            ->andWhere("storageRule.location = articleLocation") // storageRule.location = location article
+
+            ->andWhere('articleLocation IN (:locations)') // location article is in locations to treat
             ->andWhere("articleStatut.code IN (:statuses)")
-            ->andWhere('article.emplacement IN (:locations)')
             ->andWhere('article.RFIDtag IS NOT NULL')
             ->andWhere('article.RFIDtag LIKE :tagRFIDPrefix')
             ->setParameter('tagRFIDPrefix', "$tagRFIDPrefix%")

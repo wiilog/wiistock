@@ -254,7 +254,7 @@
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <input type="{{ type }}"
                {{ fax ?? false ? 'data-fax' }}
-               class="form-control w-100 data {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }} {{ options.inputClass ?? '' }} {{ options.width ?? 'w-100' }}"
+               class="form-control data {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }} {{ options.inputClass ?? '' }} {{ options.width ?? 'w-100' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
                {% if options.autocompleteOff is defined and options.autocompleteOff %}

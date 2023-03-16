@@ -18,7 +18,7 @@ class StorageRule
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    private Emplacement $location;
+    private ?Emplacement $location = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: "storageRules")]
     private ?ReferenceArticle $referenceArticle = null;
