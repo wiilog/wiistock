@@ -234,15 +234,22 @@ function onOpenModalAddLocationAndZone(tableLocations){
     $modalAddLocationAndZoneToMission.find('.add-button').on('click', function(){
         wrapLoadingOnActionButton($(this), () => {
             const buttonType = $(this).data('type');
-            let ids = [];
-            $(this).closest('.row').find('select').find('option:selected').each(function() {
-                ids.push($(this).val());
-                $(this).parent().empty();
-            });
+
+            const $select = $(this).parent().find('select');
+
+            const dataIdsToDisplay = $select.find('option:selected')
+                .map((_, option) => $(option).val())
+                .toArray();
+
+            $select
+                .val(null)
+                .empty()
+                .trigger('change');
+
             return AJAX.route('POST', 'add_locations_or_zones_to_mission_datatable', {
                 buttonType,
                 mission,
-                dataIdsToDisplay: ids,
+                dataIdsToDisplay,
             })
                 .json()
                 .then((response) => {
