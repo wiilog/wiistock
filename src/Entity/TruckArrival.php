@@ -27,7 +27,7 @@ class TruckArrival
     private Collection $trackingLines;
 
     #[ORM\ManyToOne(targetEntity: Chauffeur::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Chauffeur $driver = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
@@ -54,6 +54,7 @@ class TruckArrival
     {
         $this->trackingLines = new ArrayCollection();
         $this->reserves = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int

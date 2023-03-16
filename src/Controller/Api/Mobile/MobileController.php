@@ -26,11 +26,14 @@ use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
+use App\Entity\Reserve;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrival;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
@@ -1861,7 +1864,7 @@ class MobileController extends AbstractApiController
             'dispatchTypes' => $dispatchTypes ?? [],
             'users' => $users ?? [],
             'fieldsParam' => $fieldsParam ?? [],
-            'drivers' => $driverRepository->getDriversArray()
+            'drivers' => $driverRepository->getDriversArray(),
             'carriers' => $carriers ?? [],
         ];
     }
@@ -2946,8 +2949,6 @@ class MobileController extends AbstractApiController
         ]);
     }
 
-
-
     /**
      * @Rest\Get("/api/get-truck-arrival-default-unloading-location", name="api_get_truck_arrival_default_unloading_location", methods="GET", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
@@ -2960,4 +2961,129 @@ class MobileController extends AbstractApiController
         return $this->json($truckArrivalDefaultUnloadingLocation);
     }
 
+    /**
+     * @Rest\Get("/api/get-truck-arrival-lines-number", name="api_get_truck_arrival_lines_number", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getTruckArrivalLinesNumber(EntityManagerInterface $manager): Response {
+        $truckArrivalLineRepository = $manager->getRepository(TruckArrivalLine::class);
+        $truckArrivalLinesNumber = $truckArrivalLineRepository->iterateAll();
+
+        return $this->json($truckArrivalLinesNumber);
+    }
+
+    /**
+     * @Rest\Post("/api/finish-truck-arrival", name="api_finish_truck_arrival", methods="POST", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function finishTruckArrival(Request                $request,
+                                     EntityManagerInterface $entityManager,
+                                     UniqueNumberService $uniqueNumberService,
+                                     KernelInterface $kernel): Response {
+        $data = $request->request;
+
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $driverRepository = $entityManager->getRepository(Chauffeur::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $registrationNumber = $data->get('registrationNumber');
+        $truckArrivalReserves = json_decode($data->get('truckArrivalReserves'), true);
+        $truckArrivalLines = json_decode($data->get('truckArrivalLines'), true);
+        $signatures = $data->get('signatures');
+
+
+        $carrier = $carrierRepository->find($data->get('carrierId'));
+        $driver = null;
+        if ($data->get('driverId')){
+            $driver = $driverRepository->find($data->get('driverId'));
+        }
+        $unloadingLocation = $locationRepository->find($data->get('truckArrivalUnloadingLocationId'));
+
+        try {
+            $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, new DateTime(), [$carrier->getCode()]);
+        } catch(Exception $e){
+            return $this->json([
+                'success' => false,
+                'msg' => $e->getMessage()
+            ]);
+        }
+
+        $truckArrival = (new TruckArrival())
+            ->setNumber($number)
+            ->setCarrier($carrier)
+            ->setOperator($this->getUser())
+            ->setDriver($driver)
+            ->setRegistrationNumber($registrationNumber)
+            ->setUnloadingLocation($unloadingLocation)
+            ->setCreationDate(new DateTime('now'));
+
+        foreach($truckArrivalReserves as $truckArrivalReserve){
+            $reserve = (new Reserve())
+                ->setType($truckArrivalReserve['type'])
+                ->setComment($truckArrivalReserve['comment'] ?? null)
+                ->setQuantity($truckArrivalReserve['quantity'] ?? null)
+                ->setQuantityType($truckArrivalReserve['quantityType'] ?? null);
+
+            $truckArrival->addReserve($reserve);
+            $entityManager->persist($reserve);
+        }
+
+        foreach($truckArrivalLines as $truckArrivalLine){
+            $line = (new TruckArrivalLine())
+                ->setNumber($truckArrivalLine['number']);
+
+            if(isset($truckArrivalLine['reserve'])){
+                $lineReserve = (new Reserve())
+                    ->setType($truckArrivalLine['reserve']['type'])
+                    ->setComment($truckArrivalLine['reserve']['type'] ?? null);
+
+                foreach($truckArrivalLine['reserve']['photos'] as $photo){
+                    $name = uniqid();
+                    $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+                    file_put_contents($path, file_get_contents($photo));
+                    $attachment = new Attachment();
+                    $attachment
+                        ->setOriginalName("$name.jpeg")
+                        ->setFileName("$name.jpeg")
+                        ->setFullPath("/uploads/attachements/$name.jpeg");
+
+                    $lineReserve->addAttachment($attachment);
+                    $entityManager->persist($attachment);
+                }
+
+                $line->setReserve($lineReserve);
+                $entityManager->persist($lineReserve);
+            }
+
+
+            $truckArrival->addTrackingLine($line);
+            $entityManager->persist($line);
+        }
+
+        if ($signatures) {
+            $name = uniqid();
+            $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+            file_put_contents($path, file_get_contents($signatures));
+            $attachment = new Attachment();
+            $attachment
+                ->setOriginalName($truckArrival->getNumber()."_signature.jpeg")
+                ->setFileName("$name.jpeg")
+                ->setFullPath("/uploads/attachements/$name.jpeg");
+
+            $truckArrival->addAttachment($attachment);
+            $entityManager->persist($attachment);
+        }
+
+
+        $entityManager->persist($truckArrival);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => "Enregistrement"
+        ]);
+    }
 }
+
