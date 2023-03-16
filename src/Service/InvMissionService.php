@@ -250,7 +250,8 @@ class InvMissionService {
         $mission->setCreatedAt($now);
         $mission->setStartPrevDate(new DateTime("tomorrow"));
         $mission->setEndPrevDate(new DateTime("tomorrow +{$rule->getDuration()} {$rule->getDurationUnit()}"));
-        $mission->setRequester($rule->getCreator());
+        $mission->setRequester($rule->getRequester());
+        $mission->setCreator($rule);
         $mission->setType($rule->getMissionType());
         $mission->setDone(false);
 

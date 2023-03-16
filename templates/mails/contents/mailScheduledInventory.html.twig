@@ -1,9 +1,9 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-
+    {% set type = edit is defined and edit ? 'modifiée' : 'créée' %}
     <p>Bonjour,</p>
-    <p>La mission de planification d’inventaire " {{ missionLabel }} " vient d'être créée avec les informations suivantes : </p>
+    <p>La mission de planification d’inventaire " {{ missionLabel }} " vient d'être {{ type }} avec les informations suivantes : </p>
     <ul>
         <li>Demandeur : {{ requester.username }}</li>
         <li>Créateur : {{ creator.username }}</li>
@@ -19,6 +19,7 @@
                  <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">Zone</th>
                  <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">Emplacement</th>
              </tr>
+             </thead>
              <tbody>
              {% for location in locations %}
                  <tr>
@@ -29,7 +30,6 @@
                  </tr>
              {% endfor %}
              </tbody>
-             </thead>
          </table>
     </ul>
 

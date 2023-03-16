@@ -66,13 +66,14 @@ class InventoryMissionRuleController extends AbstractController
 
         if (isset($data['ruleId'])) {
             $missionRule = $missionRuleRepository->find($data['ruleId']);
+            $edit = true;
             if (!isset($missionRule)) {
                 throw new FormException("La planification d'inventaire n'existe plus, veuillez actualiser la page.");
             }
         }
         else {
             $missionRule = new InventoryMissionRule();
-
+            $edit = false;
             if (isset($data['missionType']) && in_array($data['missionType'], [InventoryMission::ARTICLE_TYPE, InventoryMission::LOCATION_TYPE])) {
                 $missionRule->setMissionType($data['missionType']);
             } else {
@@ -92,12 +93,14 @@ class InventoryMissionRuleController extends AbstractController
             ->setPeriod($data['repeatPeriod'] ?? null)
             ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
             ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
-            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
+            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null)
+            ->setCreator($this->getUser());
 
-        if (isset($data['creator'])) {
+        if (isset($data['requester'])) {
             $userRepository = $entityManager->getRepository(Utilisateur::class);
-            $creator = $userRepository->find($data['creator']);
-            $missionRule->setCreator($creator);
+            $requester = $userRepository->find($data['requester']);
+            $missionRule->setRequester($requester);
+            $missionRule->setCreator($this->getUser());
         } else {
             return new JsonResponse([
                 'success' => false,
@@ -156,12 +159,19 @@ class InventoryMissionRuleController extends AbstractController
         }
 
         $entityManager->flush();
+        $recipients =  $requester->getEmail() != $this->getUser()->getEmail()
+            ? [$this->getUser(), $requester]
+            : $this->getUser();
+        $subject = $edit
+            ? 'FOLLOW GT // Modification planification mission d’inventaire'
+            : 'FOLLOW GT // Création planification mission d’inventaire';
 
         $mailerService->sendMail(
-            'FOLLOW GT // Création planification d’inventaire' ,
+            $subject,
             $this->renderView('mails/contents/mailScheduledInventory.html.twig', [
-                'requester' => $creator ?? $this->getUser(),
-                'creator' => $this->getUser(),
+                'edit' => $edit,
+                'requester' => $requester ?? $this->getUser(),
+                'creator' => $missionRule->getCreator(),
                 'missionType' => match ($missionRule->getMissionType()) {
                     InventoryMission::ARTICLE_TYPE => "Quantité article",
                     InventoryMission::LOCATION_TYPE => "Article sur emplacement",
@@ -178,9 +188,7 @@ class InventoryMissionRuleController extends AbstractController
                 },
                 'locations' => $missionRule->getLocations(),
             ]),
-            $creator->getEmail() != $this->getUser()->getEmail()
-                ? [$this->getUser(), $creator]
-                : $this->getUser(),
+            $recipients,
         );
 
         return $this->json([
