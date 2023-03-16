@@ -3723,4 +3723,18 @@ class MobileController extends AbstractApiController
             'success' => true
         ]);
     }
+
+    /**
+     * @Rest\Post("/api/get-waybill-data/{dispatch}", name="api_get_waybill_data", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getWayBillData(EntityManagerInterface $manager, Dispatch $dispatch, DispatchService $dispatchService): Response
+    {
+        return $this->json([
+            'success' => true,
+            'data' => $dispatchService->getWayBillDataForUser($this->getUser(), $dispatch, $manager)
+        ]);
+    }
+
 }
