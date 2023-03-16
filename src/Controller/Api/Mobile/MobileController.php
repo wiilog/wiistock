@@ -1769,6 +1769,8 @@ class MobileController extends AbstractApiController
                 ->map(fn(Transporteur $transporteur) => [
                     'id' => $transporteur->getId(),
                     'label' => $transporteur->getLabel(),
+                    'minTrackingNumberLength' => $transporteur->getMinTrackingNumberLength() ?? null,
+                    'maxTrackingNumberLength' => $transporteur->getMaxTrackingNumberLength() ?? null,
                 ])
                 ->toArray();
 
@@ -1870,7 +1872,7 @@ class MobileController extends AbstractApiController
                                     KernelInterface        $kernel) {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
 
-        $carriers = Stream::from($carrierRepository->findAll())
+        $carriers = Stream::from($carrierRepository->findBy(["recurrent" => true]))
             ->map(function(Transporteur $transporteur) use ($kernel) {
                 $logo = $transporteur->getAttachments()[0];
                 if ($logo) {
@@ -1887,6 +1889,8 @@ class MobileController extends AbstractApiController
                 return [
                     'id' => $transporteur->getId(),
                     'label' => $transporteur->getLabel(),
+                    'minTrackingNumberLength' => $transporteur->getMinTrackingNumberLength() ?? null,
+                    'maxTrackingNumberLength' => $transporteur->getMaxTrackingNumberLength() ?? null,
                     'logo' => $logo ? $image : null,
                 ];
             });
