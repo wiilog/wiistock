@@ -42,11 +42,11 @@ class TransporteurController extends AbstractController
                         : ""));
 
             $rows[] = [
-                'label' => $this->getFormatter()->carrier($transporteur->getLabel()),
+                'label' => $this->getFormatter()->carrier($transporteur),
                 'code' => $transporteur->getCode() ?: null,
                 'driversNumber' => $chauffeurRepository->countByTransporteur($transporteur),
                 'charNumbers' => $charNumbers,
-                'isRecurrent' => $this->getFormatter()->carrier($transporteur->isRecurrent()),
+                'isRecurrent' => $this->getFormatter()->bool($transporteur->isRecurrent()),
                 'logo' => $templating->render('datatable/image.html.twig', [
                     "image" => $transporteur->getAttachments()->get(0)
                 ]),
