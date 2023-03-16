@@ -8,8 +8,7 @@
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
                     <div class="btn-group">
-                        <a href="" data-toggle="modal" data-target="#modalNewTransporteur"
-                           class="btn btn-primary d-flex align-items-center" onclick="clearModal('#modalNewChauffeur')">
+                        <a class="btn btn-primary d-flex align-items-center" onclick="displayCarrierModal(), clearModal('#modalNewChauffeur')">
                             <span class="wii-icon wii-icon-plus mr-2"></span>Nouveau transporteur
                         </a>
                     </div>
@@ -23,13 +22,10 @@
         </div>
     </div>
 
-    {% include "transporteur/modalDeleteTransporteur.html.twig" %}
-    {% include "transporteur/modalEditTransporteur.html.twig" %}
-    {% include "transporteur/modalNewTransporteur.html.twig" %}
-
+    {% include "transporteur/modalTransporteur.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/transporteur.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('carrier-index') }}
 {% endblock %}
