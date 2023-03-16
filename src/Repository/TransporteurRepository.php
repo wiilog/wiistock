@@ -131,4 +131,32 @@ class TransporteurRepository extends EntityRepository
             ->getQuery()
             ->getArrayResult();
     }
+
+    public function isCarrierUsed(Transporteur $carrier): bool {
+
+        $queryBuilder = $this->createQueryBuilder('carrier');
+        $exprBuilder = $queryBuilder->expr();
+
+        $res = $this->createQueryBuilder('carrier')
+            ->select("COUNT(carrier)")
+            ->leftJoin('carrier.arrivages', 'arrival')
+            ->leftJoin('carrier.chauffeurs', 'driver')
+            ->leftJoin('carrier.dispatches', 'dispatch')
+            ->leftJoin('carrier.reception', 'reception')
+            ->leftJoin('carrier.emergencies', 'emergency')
+            ->andWhere($exprBuilder->orX(
+                'arrival IS NOT NULL',
+                'driver IS NOT NULL',
+                'dispatch IS NOT NULL',
+                'reception IS NOT NULL',
+                'emergency IS NOT NULL',
+            ))
+            ->andWhere('carrier = :carrier')
+            ->setMaxResults(1)
+            ->setParameter('carrier', $carrier)
+            ->getQuery()
+            ->getSingleResult();
+
+        return isset($res);
+    }
 }
