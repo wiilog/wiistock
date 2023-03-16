@@ -983,8 +983,6 @@ class ArticleRepository extends EntityRepository {
         }
 
         return $query
-            ->orderBy('articleLocation.id')
-            ->addOrderBy('referenceArticle.id')
             ->getQuery()
             ->getResult();
     }
