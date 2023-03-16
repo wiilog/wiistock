@@ -114,14 +114,10 @@ class TransporteurController extends AbstractController
 		$transporteur
 			->setLabel($label)
 			->setCode($code)
-            ->setRecurrent($isRecurrent);
+            ->setRecurrent($isRecurrent)
+            ->setMinTrackingNumberLength($minTrackingNumber)
+            ->setMaxTrackingNumberLength($maxTrackingNumber);
 
-        if ($minTrackingNumber) {
-            $transporteur->setMinTrackingNumberLength($minTrackingNumber);
-        }
-        if ($maxTrackingNumber) {
-            $transporteur->setMaxTrackingNumberLength($maxTrackingNumber);
-        }
         if ($logo) {
             if ($carrierId && !$transporteur->getAttachments()->isEmpty()) {
                 $attachmentToRemove = $transporteur->getAttachments()[0];
