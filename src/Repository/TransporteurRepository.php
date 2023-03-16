@@ -82,12 +82,7 @@ class TransporteurRepository extends EntityRepository
         return $query->getOneOrNullResult();
     }
 
-	/**
-	 * @param string $code
-     * @param Transporteur|null $current
-	 * @return int
-	 */
-    public function countByCode(string $code, Transporteur $current = null): int
+    public function countByCode(string $code, ?Transporteur $current = null): int
     {
         $qb = $this->createQueryBuilder('carrier')
             ->select("COUNT(carrier)")

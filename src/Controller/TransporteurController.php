@@ -42,11 +42,11 @@ class TransporteurController extends AbstractController
                         : ""));
 
             $rows[] = [
-                'label' => $transporteur->getLabel() ?: null,
+                'label' => $this->getFormatter()->carrier($transporteur->getLabel()),
                 'code' => $transporteur->getCode() ?: null,
                 'driversNumber' => $chauffeurRepository->countByTransporteur($transporteur),
                 'charNumbers' => $charNumbers,
-                'isRecurrent' => $transporteur->isRecurrent() ? 'Oui' : 'Non',
+                'isRecurrent' => $this->getFormatter()->carrier($transporteur->isRecurrent()),
                 'logo' => $templating->render('datatable/image.html.twig', [
                     "image" => $transporteur->getAttachments()->get(0)
                 ]),
@@ -193,27 +193,4 @@ class TransporteurController extends AbstractController
         ]);
     }
 
-    #[Route("/supprimer-logo", name: "transporteur_delete_logo", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function deleteLogo(EntityManagerInterface $entityManager,
-                               Request                $request): Response
-    {
-        $carrierId = $request->query->get('carrier');
-
-        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
-        $carrier = $transporteurRepository->find($carrierId);
-
-        if (!$carrier->getAttachments()->isEmpty()) {
-            foreach ($carrier->getAttachments() as $attachment) {
-                $carrier->removeAttachment($attachment);
-                $entityManager->remove($attachment);
-            }
-        }
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-        ]);
-    }
 }
