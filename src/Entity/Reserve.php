@@ -12,6 +12,21 @@ class Reserve
     const MINUS = 'moins';
     const PLUS = 'plus';
 
+    const QUANTITY_TYPES = [
+        self::MINUS,
+        self::PLUS,
+    ];
+
+    const TYPE_QUANTITY = 'quantity';
+    const TYPE_GENERAL = 'general';
+    const TYPE_QUALITY = 'quality';
+
+    const TYPES = [
+        self::TYPE_QUANTITY,
+        self::TYPE_GENERAL,
+        self::TYPE_QUALITY,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -34,7 +49,7 @@ class Reserve
 
     #[ORM\ManyToOne(inversedBy: 'reserves')]
     #[ORM\JoinColumn(nullable: false)]
-    private TruckArrival $truckArrival;
+    private ?TruckArrival $truckArrival = null;
 
     public function getId(): ?int
     {
