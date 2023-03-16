@@ -40,6 +40,7 @@ Encore
     .addEntry('handling-edit', './assets/js/pages/handling/edit.js')
     .addEntry('register', './assets/js/pages/register/register.js')
     .addEntry('kiosk', './assets/js/pages/kiosk.js')
+    .addEntry('carrier-index', './assets/js/pages/carrier/index.js')
     .addEntry('truck-arrival-index', './assets/js/pages/truck-arrival/index.js')
     .addEntry('carrier-index', './assets/js/pages/carrier/index.js')
     .addEntry('truck-arrival-show', './assets/js/pages/truck-arrival/show.js')

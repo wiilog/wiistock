@@ -69,7 +69,8 @@
 
     <div class="form-group logo-container">
         {% set source = carrier.attachments.get(0) ? asset('uploads/attachements/' ~ carrier.attachments.get(0).fileName) : '' %}
-        {{ form.image('logo', 'Logo', false, source, {
+        {% set logoLabel = 'Logo' ~ (carrier.recurrent ? '*') %} {# we don't use required option of macro because it's dynamic according to carrien.recurrent #}
+        {{ form.image('logo', logoLabel, false, source, {
             inline: false,
             previewClass: 'minw-100px minh-80px mr-2 border-radius-2',
             imageClass: 'maxw-250px',

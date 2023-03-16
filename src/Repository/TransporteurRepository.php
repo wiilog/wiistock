@@ -82,50 +82,45 @@ class TransporteurRepository extends EntityRepository
         return $query->getOneOrNullResult();
     }
 
-	/**
-	 * @param string $code
-	 * @return int
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-    public function countByCode($code, $id = null)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			"SELECT COUNT(t)
-          FROM App\Entity\Transporteur t
-          WHERE t.code = :code"
-		)->setParameter('code', $code);
+    public function countByCode(string $code, ?Transporteur $current = null): int
+    {
+        $qb = $this->createQueryBuilder('carrier')
+            ->select("COUNT(carrier)")
+            ->andWhere('carrier.code = :code')
+            ->setParameter('code', $code);
 
-        if ($id) {
-            $query->setParameter('id', $id);
-            $query->setDQL($query->getDQL() . " AND t.id != :id");
+        if ($current) {
+            $qb
+                ->andWhere('carrier != :current')
+                ->setParameter('current', $current);
         }
 
-		return $query->getSingleScalarResult();
-	}
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 
 	/**
 	 * @param string $label
+     * @param Transporteur|null $current
 	 * @return int
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
 	 */
-    public function countByLabel($label, $id)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			"SELECT COUNT(t)
-          FROM App\Entity\Transporteur t
-          WHERE t.label = :label"
-		)->setParameter('label', $label);
+    public function countByLabel(string $label, Transporteur $current = null): int
+    {
+        $qb = $this->createQueryBuilder('carrier')
+            ->select("COUNT(carrier)")
+            ->andWhere('carrier.label = :label')
+            ->setParameter('label', $label);
 
-        if ($id) {
-            $query->setParameter('id', $id);
-            $query->setDQL($query->getDQL() . " AND t.id != :id");
+        if ($current) {
+            $qb
+                ->andWhere('carrier != :current')
+                ->setParameter('current', $current);
         }
 
-		return $query->getSingleScalarResult();
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
 	}
 
     public function getForSelect(?string $term) {

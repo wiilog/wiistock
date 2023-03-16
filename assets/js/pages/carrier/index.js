@@ -17,32 +17,45 @@ $(document).ready(() => {
 
 function createForm() {
     Form.create($modalCarrier)
-        .addProcessor((data, errors, $form) => {
-            $modalCarrier.find('.error-msg').empty();
-            const logo = $modalCarrier.find('#preview-logo')[0].getAttribute('src');
-            const minCharNumber = $('input[name=min-char-number]');
-            const maxCharNumber = $('input[name=max-char-number]');
+        .on('change', '[name=is-recurrent]', () => {
+            let $recurrentSpan = $modalCarrier.find(".logo-container").find('label').find('.field-label');
+            let $recurrentCheckbox = $modalCarrier.find("[name=is-recurrent]");
+            const oldLabel = ($recurrentSpan.text() || '').trim();
 
-            if (logo === '' && $("input[name='is-recurrent']").is(':checked')) {
+            if ($recurrentCheckbox.is(':checked')) {
+                $recurrentSpan.text(`${oldLabel}*`);
+            } else {
+                $recurrentSpan.text(oldLabel.slice(0, -1));
+            }
+        })
+        .addProcessor((data, errors, $form) => {
+            const logo = data.get('logo');
+
+            if (!logo && $form.find('[name=is-recurrent]').is(':checked')) {
                 errors.push({
-                    elements: [$form.find('[id=preview-logo]')],
                     message: `Vous devez ajouter un logo.`,
+                    global: true,
                 });
             }
-            if (minCharNumber && maxCharNumber && minCharNumber.val() > maxCharNumber.val()) {
+        })
+        .addProcessor((data, errors, $form) => {
+            const minCharNumber = data.get('min-char-number');
+            const maxCharNumber = data.get('max-char-number');
+
+            if (minCharNumber && maxCharNumber && Number(minCharNumber) > Number(maxCharNumber)) {
                 errors.push({
                     elements: [$form.find('input[name=min-char-number], input[name=max-char-number]')],
+                    message: `Le nombre de caractères minimum ne peut pas être supérieur au nombre de caractères maximum.`,
+                    global: true,
                 });
-                $modalCarrier.find('.modal-body').append(`<p class='error-msg'>Le nombre de caractères minimum ne peut pas être supérieur au nombre de caractères maximum.</p>`);
             }
         })
         .onSubmit((data, form) => {
             form.loading(() => {
                 const carrierId = $modalCarrier.find('[name=carrierId]').val();
-                const route = 'transporteur_form';
                 const params = carrierId ? {carrier: carrierId} : {};
 
-                return AJAX.route(POST, route, params)
+                return AJAX.route(POST, 'transporteur_save', params)
                     .json(data)
                     .then(({success}) => {
                         if (success) {
@@ -52,7 +65,7 @@ function createForm() {
                     })
             });
         });
-    onChangeRecurrent();
+    //onChangeRecurrent();
 }
 
 function initTransporteurTable() {
@@ -104,7 +117,7 @@ function displayCarrierModal(carrierId) {
 
     $.get(Routing.generate('transporteur_template', params), function(resp){
         $modalCarrier.find('.modal-body').html(resp);
-        onChangeRecurrent();
+        //onChangeRecurrent();
     });
 
     $modalCarrier.modal('show');
@@ -133,21 +146,5 @@ function deleteCarrier(carrierId) {
 }
 
 function onChangeRecurrent() {
-    let $recurrentSpan = $(".logo-container").find('label').find('.field-label');
-    let $recurrentCheckbox = $("input[name='is-recurrent']");
-    const carrierId = $modalCarrier.find('[name=carrierId]').val();
 
-    $recurrentCheckbox.on('change', function () {
-        if ($recurrentCheckbox.is(':checked')) {
-            $recurrentSpan.text($recurrentSpan.text().concat('*'));
-        } else {
-            $recurrentSpan.text($recurrentSpan.text().slice(0, -1));
-            const logo = $modalCarrier.find('.preview-container').find('img')[0].getAttribute('src');
-
-            if (logo !== '') {
-                $.post(Routing.generate('transporteur_delete_logo', {carrier: carrierId}));
-                resetImage($modalCarrier.find('.btn-default-value'));
-            }
-        }
-    });
 }

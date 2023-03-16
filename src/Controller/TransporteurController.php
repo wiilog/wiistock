@@ -42,11 +42,11 @@ class TransporteurController extends AbstractController
                         : ""));
 
             $rows[] = [
-                'label' => $transporteur->getLabel() ?: null,
+                'label' => $this->getFormatter()->carrier($transporteur),
                 'code' => $transporteur->getCode() ?: null,
                 'driversNumber' => $chauffeurRepository->countByTransporteur($transporteur),
                 'charNumbers' => $charNumbers,
-                'isRecurrent' => $transporteur->isRecurrent() ? 'Oui' : 'Non',
+                'isRecurrent' => $this->getFormatter()->bool($transporteur->isRecurrent()),
                 'logo' => $templating->render('datatable/image.html.twig', [
                     "image" => $transporteur->getAttachments()->get(0)
                 ]),
@@ -69,9 +69,9 @@ class TransporteurController extends AbstractController
         ]);
     }
 
-    #[Route("/form-validation", name: "transporteur_form", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/save", name: "transporteur_save", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
-    public function formValidation(EntityManagerInterface $entityManager,
+    public function save(EntityManagerInterface $entityManager,
                         Request                $request,
                         AttachmentService      $attachmentService): Response
     {
@@ -97,8 +97,8 @@ class TransporteurController extends AbstractController
         }
 
 		// unicité du code et du nom transporteur
-		$codeAlreadyUsed = intval($transporteurRepository->countByCode($code, $carrierId));
-		$labelAlreadyUsed = intval($transporteurRepository->countByLabel($label, $carrierId));
+		$codeAlreadyUsed = intval($transporteurRepository->countByCode($code, $carrierId ? $transporteur : null));
+		$labelAlreadyUsed = intval($transporteurRepository->countByLabel($label, $carrierId ? $transporteur : null));
 
 		if ($codeAlreadyUsed + $labelAlreadyUsed) {
             $msg = 'Ce ' . ($codeAlreadyUsed ? 'code ' : 'nom ') . 'de transporteur est déjà utilisé.';
@@ -121,11 +121,15 @@ class TransporteurController extends AbstractController
         }
         if ($logo) {
             if ($carrierId && !$transporteur->getAttachments()->isEmpty()) {
-                $transporteur->removeAttachment($transporteur->getAttachments()[0]);
+                $attachmentToRemove = $transporteur->getAttachments()[0];
+                $transporteur->removeAttachment($attachmentToRemove);
+                $entityManager->remove($attachmentToRemove);
             }
             $transporteur->addAttachment($logo);
         } else if ($carrierId && !$transporteur->getAttachments()->isEmpty()) {
-            $transporteur->removeAttachment($transporteur->getAttachments()[0]);
+            $attachmentToRemove = $transporteur->getAttachments()[0];
+            $transporteur->removeAttachment($attachmentToRemove);
+            $entityManager->remove($attachmentToRemove);
         }
 
 		$entityManager->persist($transporteur);
@@ -175,6 +179,7 @@ class TransporteurController extends AbstractController
         if (!$carrier->getAttachments()->isEmpty()) {
             foreach ($carrier->getAttachments() as $attachment) {
                 $carrier->removeAttachment($attachment);
+                $entityManager->remove($attachment);
             }
         }
 
@@ -188,26 +193,4 @@ class TransporteurController extends AbstractController
         ]);
     }
 
-    #[Route("/supprimer-logo", name: "transporteur_delete_logo", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function deleteLogo(EntityManagerInterface $entityManager,
-                               Request                $request): Response
-    {
-        $carrierId = $request->query->get('carrier');
-
-        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
-        $carrier = $transporteurRepository->find($carrierId);
-
-        if (!$carrier->getAttachments()->isEmpty()) {
-            foreach ($carrier->getAttachments() as $attachment) {
-                $carrier->removeAttachment($attachment);
-            }
-        }
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-        ]);
-    }
 }
