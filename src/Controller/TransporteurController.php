@@ -8,13 +8,16 @@ use App\Entity\Attachment;
 use App\Entity\Chauffeur;
 use App\Entity\Transporteur;
 use App\Entity\Menu;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
+use App\Service\CarrierService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/transporteur")
@@ -162,6 +165,8 @@ class TransporteurController extends AbstractController
     #[Route("/supprimer", name: "transporteur_delete", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(EntityManagerInterface $entityManager,
+                           AttachmentService      $attachmentService,
+                           CarrierService         $carrierService,
                            Request                $request): Response
     {
         $carrierId = $request->query->get('carrier');
@@ -169,16 +174,19 @@ class TransporteurController extends AbstractController
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $carrier = $transporteurRepository->find($carrierId);
 
-        if(!$carrier->getEmergencies()->isEmpty()) {
-            return $this->json([
-                'success' => false,
-                'msg' => "Ce transporteur est lié à une ou plusieurs urgences, vous ne pouvez pas le supprimer"
-            ]);
+        $ownerships = $carrierService->getUserOwnership($entityManager, $carrier);
+        $ownershipLinkedLabels = Stream::from($ownerships)
+            ->filterMap(fn(int $counter, string $label) => $counter > 0 ? $label : null)
+            ->join(', ');
+
+        if(!empty($ownershipLinkedLabels)) {
+            throw new FormException("Vous ne pouvez pas supprimer ce transporteur. Il est lié à un ou plusieurs : $ownershipLinkedLabels");
         }
 
         if (!$carrier->getAttachments()->isEmpty()) {
             foreach ($carrier->getAttachments() as $attachment) {
                 $carrier->removeAttachment($attachment);
+                $attachmentService->deleteAttachment($attachment);
                 $entityManager->remove($attachment);
             }
         }
