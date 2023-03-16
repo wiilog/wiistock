@@ -47,6 +47,15 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
+    #[Route('/voir/{id}', name: 'truck_arrival_show', methods: 'GET')]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
+    public function show( TruckArrival $truckArrival, EntityManagerInterface $entityManager): Response {
+
+        return $this->render('truck_arrival/show.html.twig', [
+            'truckArrival' => $truckArrival,
+        ]);
+    }
+
     #[Route('/api-columns', name: 'truck_arrival_api_columns', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
     public function apiColumns(EntityManagerInterface $entityManager, TruckArrivalService $truckArrivalService): Response {
