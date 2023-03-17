@@ -132,6 +132,7 @@ class UserService
         $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
         $hasSignatoryLocation = $locationRepository->countLocationByUser($user);
         $hasInventoryMissionRules = $inventoryMissionRuleRepository->count(['creator' => $user]);
+        $hasInventoryMissionRulesRequest = $inventoryMissionRuleRepository->count(['requester' => $user]);
         $hasInventoryMissions = $inventoryMissionRepository->count(['requester' => $user]);
         $hasPurchaseRequestShcheduleRules = $purchaseRequestScheduleRuleRepository->count(['requester' => $user]);
 
@@ -147,7 +148,7 @@ class UserService
             'arrivage(s)' => $isUsedInArrivals,
             'mouvement(s) de traçabilité' => $hasTrackingMovement,
             'emplacement(s)' => $hasSignatoryLocation,
-            "planification(s) d'inventaire" => $hasInventoryMissionRules,
+            "planification(s) d'inventaire" => ($hasInventoryMissionRules || $hasInventoryMissionRulesRequest),
             "mission(s) d'inventaire" => $hasInventoryMissions,
             "planification(s) de demande d'achat" => $hasPurchaseRequestShcheduleRules,
         ];
