@@ -62,8 +62,7 @@ class TruckArrivalService
                         'class' => 'action-on-click',
                         'attributes' => [
                             'onclick' => "window.location.href = '{$this->router->generate('truck_arrival_show', ['id' => $truckArrival->getId()])}'",
-                        ],
-
+                        ]
                     ],
                     [
                         'title' => 'Supprimer',

@@ -1,16 +1,19 @@
 @import "variables";
 
 .dropFrame {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100px;
-    width: 100%;
-    border-radius: 4px;
-    background: $light-blue;
-    border: none;
-    padding: 5px 10px;
-    text-align: center;
+
+    &:not(&.button-only) {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px;
+        width: 100%;
+        border-radius: 4px;
+        background: $light-blue;
+        border: none;
+        padding: 5px 10px;
+        text-align: center;
+    }
 
     &.small-frame {
         height: initial !important;

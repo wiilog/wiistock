@@ -98,6 +98,30 @@ export default class Form {
         return this;
     }
 
+    submitTo(method, route, options) {
+        this.onSubmit((data, form) => {
+            form.loading(
+                () => AJAX.route(method,route)
+                    .json(data)
+                    .then(response => {
+                        if(response.success) {
+                            this.element.modal(`hide`);
+
+                            if(options.success) {
+                                options.success(response);
+                            }
+
+                            if(options.table) {
+                                options.table.ajax.reload();
+                            }
+                        }
+                    })
+            )
+        })
+
+        return this;
+    }
+
     clearOpenListeners() {
         this.openListeners = [];
         return this;
@@ -126,6 +150,10 @@ export default class Form {
     on(event, selector, callback) {
         this.element.on(event, selector, callback);
         return this;
+    }
+
+    process(config = {}) {
+        return Form.process(this, config);
     }
 
     /**

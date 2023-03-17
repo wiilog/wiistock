@@ -18,7 +18,6 @@ class UniqueNumberService
     const DATE_COUNTER_FORMAT_TRANSPORT = 'ymd-CC';
     const DATE_COUNTER_FORMAT_TRUCK_ARRIVAL = 'YmdHis_\{\0\}_CC';
 
-
     const ENTITIES_NUMBER_WITHOUT_DASH = [
         Reception::class,
         TransportRequest::class
