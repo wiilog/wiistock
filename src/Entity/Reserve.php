@@ -21,6 +21,11 @@ class Reserve
     const TYPE_GENERAL = 'general';
     const TYPE_QUALITY = 'quality';
 
+    const TYPES = [
+        self::TYPE_QUANTITY,
+        self::TYPE_GENERAL,
+        self::TYPE_QUALITY,
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

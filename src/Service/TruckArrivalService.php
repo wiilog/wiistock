@@ -65,7 +65,6 @@ class TruckArrivalService
                         ]
                     ],
                     [
-                        // TODO hasRight
                         'title' => 'Supprimer',
                         'icon' => 'fa fa-trash',
                         'class' => 'truck-arrival-delete',
