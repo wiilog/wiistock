@@ -54,15 +54,15 @@ function addRowInventoryLocations($table, dataToDisplay){
     const tableLocationsDatatable = $table.DataTable();
     const tableLocationsData = tableLocationsDatatable.column(0).data().toArray();
 
-    for (const lineToAdd of dataToDisplay){
-        if(Array.isArray(lineToAdd)){
-            for (const line of lineToAdd){
-                if(!tableLocationsData.includes(line.id)){
+    for (const lineToAdd of dataToDisplay) {
+        if(Array.isArray(lineToAdd)) {
+            for (const line of lineToAdd) {
+                if(!tableLocationsData.includes(line.id)) {
                     tableLocationsDatatable.row.add(line).draw(false);
                 }
             }
         } else {
-            if(!tableLocationsData.includes(lineToAdd.id)){
+            if(!tableLocationsData.includes(lineToAdd.id)) {
                 tableLocationsDatatable.row.add(lineToAdd).draw(false);
             }
         }

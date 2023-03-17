@@ -2577,56 +2577,47 @@ class MobileController extends AbstractApiController
 
         $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($rfidPrefix, $locations, [Article::STATUT_ACTIF, Article::STATUT_INACTIF]);
 
-        $scannedArticles = [];
-        $missingArticles = [];
-
         $now = new DateTime('now');
         $validator = $this->getUser();
+        $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
 
         foreach ($articlesOnLocations as $article) {
             if (in_array($article->getRFIDtag(), $tags)) {
-                $scannedArticles[] = $article;
+                $presentArticle = $article;
+                if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
+                    $correctionMovement = new MouvementStock();
+                    $correctionMovement
+                        ->setType(MouvementStock::TYPE_INVENTAIRE_ENTREE)
+                        ->setArticle($presentArticle)
+                        ->setDate($now)
+                        ->setQuantity($presentArticle->getQuantite())
+                        ->setEmplacementFrom($presentArticle->getEmplacement())
+                        ->setEmplacementTo($presentArticle->getEmplacement())
+                        ->setUser($validator);
+                    $entityManager->persist($correctionMovement);
+                }
+                $presentArticle
+                    ->setStatut($activeStatus)
+                    ->setDateLastInventory($now);
             } else {
-                $missingArticles[] = $article;
+                $missingArticle = $article;
+                if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
+                    $correctionMovement = new MouvementStock();
+                    $correctionMovement
+                        ->setType(MouvementStock::TYPE_INVENTAIRE_SORTIE)
+                        ->setArticle($missingArticle)
+                        ->setDate($now)
+                        ->setQuantity($missingArticle->getQuantite())
+                        ->setEmplacementFrom($missingArticle->getEmplacement())
+                        ->setEmplacementTo($missingArticle->getEmplacement())
+                        ->setUser($validator);
+                    $entityManager->persist($correctionMovement);
+                }
+                $missingArticle
+                    ->setStatut($inactiveStatus)
+                    ->setDateLastInventory($now);
             }
-        }
-
-        $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-        foreach ($scannedArticles as $presentArticle) {
-            if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
-                $correctionMovement = new MouvementStock();
-                $correctionMovement
-                    ->setType(MouvementStock::TYPE_INVENTAIRE_ENTREE)
-                    ->setArticle($presentArticle)
-                    ->setDate($now)
-                    ->setQuantity($presentArticle->getQuantite())
-                    ->setEmplacementFrom($presentArticle->getEmplacement())
-                    ->setEmplacementTo($presentArticle->getEmplacement())
-                    ->setUser($validator);
-                $entityManager->persist($correctionMovement);
-            }
-            $presentArticle
-                ->setStatut($activeStatus)
-                ->setDateLastInventory($now);
-        }
-
-        $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
-        foreach ($missingArticles as $missingArticle) {
-            if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
-                $correctionMovement = new MouvementStock();
-                $correctionMovement
-                    ->setType(MouvementStock::TYPE_INVENTAIRE_SORTIE)
-                    ->setArticle($missingArticle)
-                    ->setDate($now)
-                    ->setQuantity($missingArticle->getQuantite())
-                    ->setEmplacementFrom($missingArticle->getEmplacement())
-                    ->setEmplacementTo($missingArticle->getEmplacement())
-                    ->setUser($validator);
-                $entityManager->persist($correctionMovement);
-            }
-            $missingArticle
-                ->setStatut($inactiveStatus)
-                ->setDateLastInventory($now);
         }
 
         $mission
