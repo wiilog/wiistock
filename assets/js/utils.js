@@ -84,6 +84,10 @@ function resetImage($button) {
         .attr('src', defaultValue)
         .removeClass('d-none');
     $keepImage.val(0);
+
+    if (defaultValue === '') {
+        $image.addClass('d-none');
+    }
 }
 
 function onSettingsItemSelected($selected, $settingsItems, $settingsContents, options = {}) {

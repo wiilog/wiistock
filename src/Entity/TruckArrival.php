@@ -34,17 +34,17 @@ class TruckArrival
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?DateTime $creationDate = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $unloadingLocation = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $registrationNumber = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $operator = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Transporteur::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Transporteur $carrier = null;
 
@@ -55,6 +55,7 @@ class TruckArrival
     {
         $this->trackingLines = new ArrayCollection();
         $this->reserves = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int

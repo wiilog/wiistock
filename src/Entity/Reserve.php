@@ -2,13 +2,17 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
 use App\Repository\ReserveRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ReserveRepository::class)]
 class Reserve
 {
+    use AttachmentTrait;
+
     const MINUS = 'moins';
     const PLUS = 'plus';
 
@@ -50,6 +54,11 @@ class Reserve
     #[ORM\ManyToOne(inversedBy: 'reserves')]
     #[ORM\JoinColumn(nullable: false)]
     private ?TruckArrival $truckArrival = null;
+
+    public function __construct()
+    {
+        $this->attachments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {

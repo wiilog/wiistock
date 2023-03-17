@@ -253,7 +253,12 @@ export default class Form {
         // display errors under each field
         for(const error of errors) {
             if (error.elements && error.elements.length > 0) {
-                error.elements.forEach(($elem) => Form.showInvalid($elem, error.message));
+                if (error.global) {
+                    error.elements.forEach(($elem) => Form.showInvalid($elem));
+                    Flash.add(`danger`, error.message);
+                } else {
+                    error.elements.forEach(($elem) => Form.showInvalid($elem, error.message));
+                }
             }
             else {
                 Flash.add(`danger`, error.message);
@@ -316,7 +321,9 @@ export default class Form {
             const prefixMessage = label ? `${label} : ` : '';
             Flash.add(`danger`, `${prefixMessage}${message}`);
         } else {
-            $parent.append(`<span class="invalid-feedback">${message}</span>`);
+            if (message) {
+                $parent.append(`<span class="invalid-feedback">${message}</span>`);
+            }
         }
     }
 

@@ -743,7 +743,7 @@ function registerVolumeChanges() {
 function selectUlChanged($select){
     const $modal = $('#modalAddLogisticUnit');
     const ulData = $select.select2('data')[0];
-    console.log(ulData);
+
     if (ulData) {
         const defaultNatureId = ulData.nature_id || $modal.find('[name=defaultNatureId]').val();
         const defaultNatureLabel = ulData.nature_label || $modal.find('[name=defaultNatureLabel]').val();
