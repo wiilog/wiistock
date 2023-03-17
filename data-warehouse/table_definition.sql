@@ -508,4 +508,11 @@ CREATE TABLE dw_arrivage_camion
     reserve_quantite    varchar(255)
 );
 
-
+CREATE TABLE dw_numero_tracking
+(
+    no_tracking         varchar(255),
+    no_arrivage_camion  varchar(255),
+    reserve_qualite     varchar(255),
+    retard              varchar(255),
+    no_arrivage_UL      varchar(255)
+);
