@@ -40,7 +40,7 @@ class TruckArrivalController extends AbstractController
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
-        $defaultLocation = $locationRepository->find($defaultLocationId);
+        $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
 
         return $this->render('truck_arrival/index.html.twig', [
             'controller_name' => 'TruckArrivalController',

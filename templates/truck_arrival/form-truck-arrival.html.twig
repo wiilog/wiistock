@@ -116,7 +116,7 @@
         <div class="col-6">
             {{ form.select('unloadingLocation', 'Emplacement de déchargement', requiredOnform, {
                 type: 'location',
-                items: defaultLocation is defined
+                items: defaultLocation is defined and defaultLocation
                     ? {(defaultLocation.id) : (defaultLocation.label)}
                     : truckArrival.unloadingLocation
                         ? {(truckArrival.unloadingLocation.id) : (truckArrival.unloadingLocation.label)}
