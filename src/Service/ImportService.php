@@ -83,7 +83,7 @@ class ImportService
             "quantite",
             "referenceReference",
             "articleFournisseurReference",
-            "fournisseurReference"
+            "fournisseurReference",
         ],
         Import::ENTITY_REF => [
             "buyer",
@@ -115,7 +115,7 @@ class ImportService
             'nom',
             'codeReference',
             'possibleCustoms',
-            'urgent'
+            'urgent',
         ],
         Import::ENTITY_RECEPTION => [
             "anomalie",
@@ -135,7 +135,7 @@ class ImportService
             "label",
             "reference",
             "referenceReference",
-            "fournisseurReference"
+            "fournisseurReference",
         ],
         Import::ENTITY_USER => [
             "address",
@@ -153,7 +153,7 @@ class ImportService
             "deliveryTypes",
             "handlingTypes",
             "deliverer",
-            'signatoryCode'
+            'signatoryCode',
         ],
         Import::ENTITY_DELIVERY => [
             "articleCode",
@@ -165,7 +165,7 @@ class ImportService
             "articleReference",
             "status",
             "type",
-            "targetLocationPicking"
+            "targetLocationPicking",
         ],
         Import::ENTITY_LOCATION => [
             "isActive",
@@ -186,7 +186,7 @@ class ImportService
             "address",
             "phone",
             "email",
-            "fax"
+            "fax",
         ],
         Import::ENTITY_PROJECT => [
             "code",
@@ -324,7 +324,7 @@ class ImportService
                 'importId' => $importId,
                 'fournisseurId' => $importId,
                 'canCancel' => ($statusCode === Import::STATUS_PLANNED),
-                'logFile' => $import->getLogFile() ? $import->getLogFile()->getFileName() : null
+                'logFile' => $import->getLogFile() ? $import->getLogFile()->getFileName() : null,
             ]),
         ];
     }
@@ -343,7 +343,7 @@ class ImportService
             $res = [
                 'headers' => $headers,
                 'firstRow' => $firstRow,
-                'isUtf8' => mb_check_encoding($csvContent, 'UTF-8')
+                'isUtf8' => mb_check_encoding($csvContent, 'UTF-8'),
             ];
         } else {
             $res = null;
@@ -380,7 +380,7 @@ class ImportService
         $stats = [
             'news' => 0,
             'updates' => 0,
-            'errors' => 0
+            'errors' => 0,
         ];
 
         $rowCount = 0;
@@ -437,6 +437,8 @@ class ImportService
 
             $import->setStartDate(new DateTime());
             $this->entityManager->flush();
+
+            $this->eraseGlobalData();
 
             foreach ($firstRows as $row) {
                 $headersLog = $this->treatImportRow(
@@ -627,7 +629,7 @@ class ImportService
                 [
                     'needed' => $this->fieldIsNeeded($field, $entity),
                     'value' => $corresp[$field] ?? null,
-                ]
+                ],
             ])
             ->toArray();
     }
@@ -637,7 +639,7 @@ class ImportService
         $completeFileName = $this->attachmentService->getAttachmentDirectory() . '/' . $fileName;
         return [
             'fileName' => $fileName,
-            'resource' => fopen($completeFileName, 'w')
+            'resource' => fopen($completeFileName, 'w'),
         ];
     }
 
@@ -736,6 +738,7 @@ class ImportService
 
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
+        $eraseData = $this->currentImport->isEraseData();
 
         if (empty($articleFournisseur)) {
             $newEntity = true;
@@ -755,8 +758,25 @@ class ImportService
         if (empty($refArticle)) {
             $this->throwError("La valeur renseignée pour la référence de l'article de référence ne correspond à aucune référence connue.");
         } else {
-            $articleFournisseur->setReferenceArticle($refArticle);
+            if ($eraseData) {
+                $articlesFournisseurs = $refArticle->getArticlesFournisseur() ?? [];
+                /** @var ArticleFournisseur $articlesFournisseur */
+                foreach ($articlesFournisseurs as $articleFournisseur) {
+                    $isNotUsed = (($articleFournisseur->getArticles()->isEmpty()) && ($articleFournisseur->getReceptionReferenceArticles()->isEmpty()));
+                    if ($isNotUsed) {
+                        $refArticle->removeArticleFournisseur($articleFournisseur);
+                        $this->entityManager->remove($articleFournisseur);
+                    } else {
+                        $label = $articleFournisseur->getLabel();
+                        $this->throwError("L'article fournisseur : $label est utilisé il ne peut pas être supprimé.");
+                    }
+                }
+                // essayer de le faire une seule fois à la fin de l'import donc supprmer celui ci
+                $this->entityManager->flush();
+            }
         }
+        $articleFournisseur->setReferenceArticle($refArticle);
+
 
         if (!empty($data['fournisseurReference'])) {
             $fournisseur = $this->entityManager->getRepository(Fournisseur::class)->findOneBy(['codeReference' => $data['fournisseurReference']]);
@@ -807,7 +827,7 @@ class ImportService
             $receptions = $receptionRepository->findBy(
                 [
                     "orderNumber" => $uniqueReceptionConstraint['orderNumber'],
-                    "dateAttendue" => $expectedDate
+                    "dateAttendue" => $expectedDate,
                 ],
                 ['id' => Criteria::DESC]
             );
@@ -1334,7 +1354,7 @@ class ImportService
             $deliveryCategory = $this->entityManager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_LIVRAISON]);
             $deliveryTypes = $this->entityManager->getRepository(Type::class)->findBy([
                 'label' => $deliveryTypesRaw,
-                'category' => $deliveryCategory
+                'category' => $deliveryCategory,
             ]);
 
             $deliveryTypesLabel = Stream::from($deliveryTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
@@ -1358,7 +1378,7 @@ class ImportService
             $dispatchCategory = $this->entityManager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
             $dispatchTypes = $this->entityManager->getRepository(Type::class)->findBy([
                 'label' => $dispatchTypesRaw,
-                'category' => $dispatchCategory
+                'category' => $dispatchCategory,
             ]);
 
             $dispatchTypesLabel = Stream::from($dispatchTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
@@ -1382,7 +1402,7 @@ class ImportService
             $handlingCategory = $this->entityManager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_HANDLING]);
             $handlingTypes = $this->entityManager->getRepository(Type::class)->findBy([
                 'label' => $handlingTypesRaw,
-                'category' => $handlingCategory
+                'category' => $handlingCategory,
             ]);
 
             $handlingTypesLabel = Stream::from($handlingTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
@@ -1581,7 +1601,7 @@ class ImportService
                         if (!$existing) {
                             $line = $this->demandeLivraisonService->createArticleLine($article, $request, [
                                 'quantityToPick' => intval($quantityDelivery),
-                                'targetLocationPicking' => $targetLocationPicking
+                                'targetLocationPicking' => $targetLocationPicking,
                             ]);
                             $this->entityManager->persist($line);
 
@@ -2096,7 +2116,7 @@ class ImportService
                     'fournisseur' => $fournisseur,
                     'reference' => $articleFournisseurReference,
                     'article-reference' => $referenceArticle,
-                    'label' => ($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom())
+                    'label' => ($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom()),
                 ]);
             } else {
                 // on a réussi à trouver un article fournisseur
@@ -2135,7 +2155,7 @@ class ImportService
                     'label' => $referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom(),
                     'article-reference' => $referenceArticle,
                     'reference' => $referenceArticle->getReference() . ' / ' . $fournisseur->getCodeReference(),
-                    'fournisseur' => $fournisseur
+                    'fournisseur' => $fournisseur,
                 ]);
             }
         }
@@ -2214,7 +2234,7 @@ class ImportService
                 $key,
                 Import::FIELDS_ENTITY[$entityCode][$key]
                     ?? Import::FIELDS_ENTITY['default'][$key]
-                    ?? $key
+                    ?? $key,
             ])
             ->map(fn(string|array $field) => is_array($field) ? $this->translationService->translate(...$field) : $field)
             ->toArray();
@@ -2274,4 +2294,17 @@ class ImportService
             }
         }
     }
+
+    private function eraseGlobalData(): void {
+        if ($this->currentImport->isEraseData()) {
+            switch ($this->currentImport->getEntity()) {
+                case Import::ENTITY_REF_LOCATION:
+                    $this->entityManager->getRepository(StorageRule::class)->clearTable();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
 }

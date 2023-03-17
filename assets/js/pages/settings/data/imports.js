@@ -269,8 +269,10 @@ function importTemplateChanged($dataTypeImport = null) {
     };
 
     const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
+    const eraseData = valTypeImport !== `REF_LOCATION` && valTypeImport !== `ART_FOU`;
+
     $('.delete-differential-data')
-        .toggleClass(`d-none`, valTypeImport !== `REF_LOCATION`)
+        .toggleClass(`d-none`, eraseData)
         .html(`<input type="checkbox" name="deleteDifData" class="form-control data"/><p>Supprimer la donnée différentielle</p>`);
 
     if (configDownloadLink[valTypeImport]) {
