@@ -619,34 +619,6 @@ class SettingsService {
             }
         }
 
-        if (isset($tables["missionRulesTable"])) {
-            $missionRuleRepository = $this->manager->getRepository(InventoryMissionRule::class);
-            $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
-
-            $missions = Stream::from($tables["missionRulesTable"])
-                ->filter()
-                ->map(fn($data) => [isset($data["id"]) ? $missionRuleRepository->find($data["id"]) : new InventoryMissionRule(), $data])
-                ->toArray();
-
-            $existingLabels = [];
-            foreach ($missions as [$rule, $ruleData]) {
-                if(in_array($ruleData["label"], $existingLabels)) {
-                    throw new RuntimeException("Le libellé de mission \"{$ruleData["label"]}\" est en doublon");
-                } else {
-                    $existingLabels[] = $ruleData["label"];
-                }
-
-                $rule->setLabel($ruleData["label"])
-                    ->setCategories($categoryRepository->findBy(["id" => explode(",", $ruleData["categories"])]))
-                    ->setPeriodicity($ruleData["periodicity"])
-                    ->setPeriodicityUnit($ruleData["periodicityUnit"])
-                    ->setDuration($ruleData["duration"])
-                    ->setDurationUnit($ruleData["durationUnit"]);
-
-                $this->manager->persist($rule);
-            }
-        }
-
         if (isset($tables["freeFields"])) {
             $typeRepository = $this->manager->getRepository(Type::class);
             $categoryTypeRepository = $this->manager->getRepository(CategoryType::class);

@@ -2478,8 +2478,8 @@ class SettingsController extends AbstractController {
                     ->join(", "),
                 "periodicity" => ScheduleRule::FREQUENCIES_LABELS[$mission->getFrequency()] ?? null,
                 "duration" => $mission->getDuration().' '.InventoryMissionRule::DURATION_UNITS_LABELS[$mission->getDurationUnit()] ?? null,
-                "requester" => $mission->getRequester() ? $mission->getRequester()->getUsername() : "",
-                "creator" => $mission->getCreator() ? $mission->getCreator()->getUsername() : "",
+                "requester" => $this->getFormatter()->user($mission->getRequester()),
+                "creator" => $this->getFormatter()->user($mission->getCreator()),
                 "lastExecution" => $mission->getLastRun() ? $mission->getLastRun()->format('d/m/Y H:i:s') : "",
             ];
         }

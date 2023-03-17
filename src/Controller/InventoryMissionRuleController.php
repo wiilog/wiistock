@@ -80,6 +80,7 @@ class InventoryMissionRuleController extends AbstractController
                 throw new FormException('Une erreur est survenu, le champ type de mission est invalide');
             }
 
+            $missionRule->setCreator($this->getUser());
             $entityManager->persist($missionRule);
         }
 
@@ -93,14 +94,12 @@ class InventoryMissionRuleController extends AbstractController
             ->setPeriod($data['repeatPeriod'] ?? null)
             ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
             ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
-            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null)
-            ->setCreator($this->getUser());
+            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
 
         if (isset($data['requester'])) {
             $userRepository = $entityManager->getRepository(Utilisateur::class);
             $requester = $userRepository->find($data['requester']);
             $missionRule->setRequester($requester);
-            $missionRule->setCreator($this->getUser());
         } else {
             return new JsonResponse([
                 'success' => false,
@@ -159,9 +158,7 @@ class InventoryMissionRuleController extends AbstractController
         }
 
         $entityManager->flush();
-        $recipients =  $requester->getEmail() != $this->getUser()->getEmail()
-            ? [$this->getUser(), $requester]
-            : $this->getUser();
+
         $subject = $edit
             ? 'FOLLOW GT // Modification planification mission d’inventaire'
             : 'FOLLOW GT // Création planification mission d’inventaire';
@@ -170,7 +167,7 @@ class InventoryMissionRuleController extends AbstractController
             $subject,
             $this->renderView('mails/contents/mailScheduledInventory.html.twig', [
                 'edit' => $edit,
-                'requester' => $requester ?? $this->getUser(),
+                'requester' => $missionRule->getRequester(),
                 'creator' => $missionRule->getCreator(),
                 'missionType' => match ($missionRule->getMissionType()) {
                     InventoryMission::ARTICLE_TYPE => "Quantité article",
@@ -188,7 +185,7 @@ class InventoryMissionRuleController extends AbstractController
                 },
                 'locations' => $missionRule->getLocations(),
             ]),
-            $recipients,
+            [$missionRule->getCreator(), $missionRule->getRequester()],
         );
 
         return $this->json([
