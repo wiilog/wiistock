@@ -158,15 +158,19 @@ class TruckArrivalRepository extends EntityRepository
                         ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ')
                         ->setParameter('carrierTrackingNumber', '%' . $filter['value'] . '%');
                     break;
-                case 'carrier':
+                case 'carriers':
+                    $value = explode(',', $filter['value']);
                     $qb
-                        ->andWhere('truckArrival.carrier = :carrier')
-                        ->setParameter('carrier', $filter['value']);
+                        ->andWhere('carrier.id IN (:filteredCarriers)')
+                        ->leftJoin('truckArrival.carrier', 'carrier')
+                        ->setParameter('filteredCarriers', $value);
                     break;
-                case 'driver':
+                case 'drivers':
+                    $value = explode(',', $filter['value']);
                     $qb
-                        ->andWhere('truckArrival.driver = :driver')
-                        ->setParameter('driver', $filter['value']);
+                        ->andWhere('driver.id IN (:filteredDrivers)')
+                        ->leftJoin('truckArrival.driver', 'driver')
+                        ->setParameter('filteredDrivers', $value);
                     break;
                 case 'carrierTrackingNumberNotAssigned':
                     if ($filter['value'] == 'true') {
@@ -186,6 +190,18 @@ class TruckArrivalRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('truckArrival')
+            ->select('truckArrival.number')
+            ->where('truckArrival.number LIKE :value')
+            ->orderBy('truckArrival.creationDate', 'DESC')
+            ->addOrderBy('truckArrival.number', 'DESC')
+            ->setParameter('value', '%' . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
     }
 
 
