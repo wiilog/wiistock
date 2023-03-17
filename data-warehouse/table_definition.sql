@@ -267,7 +267,8 @@ CREATE TABLE dw_arrivage
     commentaire              text,
     utilisateur              varchar(255),
     numero_projet            varchar(255),
-    business_unit            varchar(255)
+    business_unit            varchar(255),
+    no_arrivage_camion       varchar(255)
 );
 
 CREATE TABLE dw_acheminement
@@ -506,3 +507,5 @@ CREATE TABLE dw_arrivage_camion
     reserve_general     varchar(255),
     reserve_quantite    varchar(255)
 );
+
+

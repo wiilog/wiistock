@@ -12,7 +12,9 @@ SELECT
     fournisseur.nom AS fournisseur,
     transporteur.label AS transporteur,
     chauffeur.nom AS chauffeur,
-    arrivage.no_tracking AS no_tracking_transporteur,
+    IF(truck_arrival.number IS NOT NULL,
+       GROUP_CONCAT(truck_arrival_line.number SEPARATOR ', '),
+        arrivage.no_tracking) AS no_tracking_transporteur,
     IF(JSON_LENGTH(arrivage.numero_commande_list) > 0, REPLACE(REPLACE(REPLACE(arrivage.numero_commande_list, '"', ''), '[', ''), ']', ''), NULL) AS no_commande_bl,
     type.label AS type,
     GROUP_CONCAT(acheteurs.username SEPARATOR ', ') AS acheteurs,
@@ -23,7 +25,8 @@ SELECT
     arrivage.cleaned_comment AS commentaire,
     utilisateur.username AS utilisateur,
     arrivage.project_number AS numero_projet,
-    arrivage.business_unit AS business_unit
+    arrivage.business_unit AS business_unit,
+    truck_arrival.number AS no_arrivage_camion
 
 FROM arrivage
          LEFT JOIN utilisateur AS destinataire ON arrivage.destinataire_id = destinataire.id
@@ -35,6 +38,9 @@ FROM arrivage
          LEFT JOIN statut ON arrivage.statut_id = statut.id
          LEFT JOIN arrivage_utilisateur ON arrivage.id = arrivage_utilisateur.arrivage_id
          LEFT JOIN utilisateur AS acheteurs ON arrivage_utilisateur.utilisateur_id = acheteurs.id
+         LEFT JOIN truck_arrival_line_arrivage ON arrivage.id = truck_arrival_line_arrivage.arrivage_id
+         LEFT JOIN truck_arrival_line ON truck_arrival_line_arrivage.truck_arrival_line_id = truck_arrival_line.id
+         LEFT JOIN truck_arrival ON truck_arrival_line.truck_arrival_id = truck_arrival.id
 
 GROUP BY
     id,
@@ -44,7 +50,6 @@ GROUP BY
     fournisseur,
     transporteur,
     chauffeur,
-    no_tracking_transporteur,
     no_commande_bl,
     type,
     urgence,
