@@ -99,6 +99,13 @@ class TransporteurController extends AbstractController
             $transporteur = new Transporteur();
         }
 
+        $countRecurrentCarrier = count($transporteurRepository->findBy(['recurrent' => true]));
+        if($countRecurrentCarrier === 10 && !$transporteur->isRecurrent()){
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Vous avez déjà renseigné 10 transporteurs récurrents',
+            ]);
+        }
 		// unicité du code et du nom transporteur
 		$codeAlreadyUsed = intval($transporteurRepository->countByCode($code, $carrierId ? $transporteur : null));
 		$labelAlreadyUsed = intval($transporteurRepository->countByLabel($label, $carrierId ? $transporteur : null));
@@ -114,14 +121,10 @@ class TransporteurController extends AbstractController
 		$transporteur
 			->setLabel($label)
 			->setCode($code)
-            ->setRecurrent($isRecurrent);
+            ->setRecurrent($isRecurrent)
+            ->setMinTrackingNumberLength($minTrackingNumber)
+            ->setMaxTrackingNumberLength($maxTrackingNumber);
 
-        if ($minTrackingNumber) {
-            $transporteur->setMinTrackingNumberLength($minTrackingNumber);
-        }
-        if ($maxTrackingNumber) {
-            $transporteur->setMaxTrackingNumberLength($maxTrackingNumber);
-        }
         if ($logo) {
             if ($carrierId && !$transporteur->getAttachments()->isEmpty()) {
                 $attachmentToRemove = $transporteur->getAttachments()[0];
