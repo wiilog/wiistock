@@ -737,18 +737,7 @@ class ImportService
         }
 
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
-        $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
         $eraseData = $this->currentImport->isEraseData();
-
-        if (empty($articleFournisseur)) {
-            $newEntity = true;
-            $articleFournisseur = new ArticleFournisseur();
-            $articleFournisseur->setReference($data['reference']);
-        }
-
-        if (isset($data['label'])) {
-            $articleFournisseur->setLabel($data['label']);
-        }
 
         if (!empty($data['referenceReference'])) {
             $refArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
@@ -757,26 +746,33 @@ class ImportService
 
         if (empty($refArticle)) {
             $this->throwError("La valeur renseignée pour la référence de l'article de référence ne correspond à aucune référence connue.");
-        } else {
-            if ($eraseData) {
-                $articlesFournisseurs = $refArticle->getArticlesFournisseur() ?? [];
-                /** @var ArticleFournisseur $articlesFournisseur */
-                foreach ($articlesFournisseurs as $articleFournisseur) {
-                    $isNotUsed = (($articleFournisseur->getArticles()->isEmpty()) && ($articleFournisseur->getReceptionReferenceArticles()->isEmpty()));
-                    if ($isNotUsed) {
-                        $refArticle->removeArticleFournisseur($articleFournisseur);
-                        $this->entityManager->remove($articleFournisseur);
-                    } else {
-                        $label = $articleFournisseur->getLabel();
-                        $this->throwError("L'article fournisseur : $label est utilisé il ne peut pas être supprimé.");
-                    }
+        }
+
+        if ($eraseData) {
+            $articlesFournisseurs = $refArticle->getArticlesFournisseur() ?? [];
+            /** @var ArticleFournisseur $articlesFournisseur */
+            foreach ($articlesFournisseurs as $supplierArticleToRemove) {
+                $isNotUsed = ($supplierArticleToRemove->getArticles()->isEmpty() && $supplierArticleToRemove->getReceptionReferenceArticles()->isEmpty());
+                if ($isNotUsed) {
+                    $refArticle->removeArticleFournisseur($supplierArticleToRemove);
+                    $this->entityManager->remove($supplierArticleToRemove);
+                } else {
+                    $label = $supplierArticleToRemove->getLabel();
+                    $this->throwError("L'article fournisseur : $label est utilisé il ne peut pas être supprimé.");
                 }
-                // essayer de le faire une seule fois à la fin de l'import donc supprmer celui ci
-                $this->entityManager->flush();
             }
         }
-        $articleFournisseur->setReferenceArticle($refArticle);
 
+        $supplierArticle = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
+        if (empty($supplierArticle)) {
+            $newEntity = true;
+            $supplierArticle = new ArticleFournisseur();
+            $supplierArticle->setReference($data['reference']);
+        }
+
+        if (isset($data['label'])) {
+            $supplierArticle->setLabel($data['label']);
+        }
 
         if (!empty($data['fournisseurReference'])) {
             $fournisseur = $this->entityManager->getRepository(Fournisseur::class)->findOneBy(['codeReference' => $data['fournisseurReference']]);
@@ -784,11 +780,14 @@ class ImportService
 
         if (empty($fournisseur)) {
             $this->throwError("La valeur renseignée pour le code du fournisseur ne correspond à aucun fournisseur connu.");
-        } else {
-            $articleFournisseur->setFournisseur($fournisseur);
         }
-        $articleFournisseur->setVisible(true);
-        $this->entityManager->persist($articleFournisseur);
+
+        $supplierArticle
+            ->setReferenceArticle($refArticle)
+            ->setFournisseur($fournisseur)
+            ->setVisible(true);
+
+        $this->entityManager->persist($supplierArticle);
         $this->updateStats($stats, $newEntity);
     }
 
