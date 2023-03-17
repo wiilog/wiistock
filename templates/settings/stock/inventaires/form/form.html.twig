@@ -58,10 +58,10 @@
         </label>
     </div>
     <div class="col-6 mt-3">
-        {{ form.select('creator', 'Demandeur', true, {
+        {{ form.select('requester', 'Demandeur', true, {
             type: 'user',
             items: {
-                (app.user.id): (app.user.username),
+                (missionRule.requester.id ?? app.user.id): (missionRule.requester.username ?? app.user.username),
             }
         }) }}
     </div>

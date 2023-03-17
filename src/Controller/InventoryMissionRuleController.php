@@ -18,6 +18,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
+use App\Service\MailerService;
+
 
 #[Route('/inventaires/missions/planifier')]
 class InventoryMissionRuleController extends AbstractController
@@ -52,8 +54,10 @@ class InventoryMissionRuleController extends AbstractController
     #[Route('/save', name: 'mission_rules_form', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function save(EntityManagerInterface $entityManager,
-                         Request                $request): JsonResponse
+                         Request                $request,
+                         MailerService          $mailerService): JsonResponse
     {
+
         $data = $request->request->all();
 
         $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
@@ -62,13 +66,14 @@ class InventoryMissionRuleController extends AbstractController
 
         if (isset($data['ruleId'])) {
             $missionRule = $missionRuleRepository->find($data['ruleId']);
+            $edit = true;
             if (!isset($missionRule)) {
                 throw new FormException("La planification d'inventaire n'existe plus, veuillez actualiser la page.");
             }
         }
         else {
             $missionRule = new InventoryMissionRule();
-
+            $edit = false;
             if (isset($data['missionType']) && in_array($data['missionType'], [InventoryMission::ARTICLE_TYPE, InventoryMission::LOCATION_TYPE])) {
                 $missionRule->setMissionType($data['missionType']);
             } else {
@@ -88,12 +93,14 @@ class InventoryMissionRuleController extends AbstractController
             ->setPeriod($data['repeatPeriod'] ?? null)
             ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
             ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
-            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
+            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null)
+            ->setCreator($this->getUser());
 
-        if (isset($data['creator'])) {
+        if (isset($data['requester'])) {
             $userRepository = $entityManager->getRepository(Utilisateur::class);
-            $creator = $userRepository->find($data['creator']);
-            $missionRule->setCreator($creator);
+            $requester = $userRepository->find($data['requester']);
+            $missionRule->setRequester($requester);
+            $missionRule->setCreator($this->getUser());
         } else {
             return new JsonResponse([
                 'success' => false,
@@ -152,6 +159,37 @@ class InventoryMissionRuleController extends AbstractController
         }
 
         $entityManager->flush();
+        $recipients =  $requester->getEmail() != $this->getUser()->getEmail()
+            ? [$this->getUser(), $requester]
+            : $this->getUser();
+        $subject = $edit
+            ? 'FOLLOW GT // Modification planification mission d’inventaire'
+            : 'FOLLOW GT // Création planification mission d’inventaire';
+
+        $mailerService->sendMail(
+            $subject,
+            $this->renderView('mails/contents/mailScheduledInventory.html.twig', [
+                'edit' => $edit,
+                'requester' => $requester ?? $this->getUser(),
+                'creator' => $missionRule->getCreator(),
+                'missionType' => match ($missionRule->getMissionType()) {
+                    InventoryMission::ARTICLE_TYPE => "Quantité article",
+                    InventoryMission::LOCATION_TYPE => "Article sur emplacement",
+                },
+                'missionLabel' => $missionRule->getLabel(),
+                'describe' => $missionRule->getDescription(),
+                "frequency" => match ($missionRule->getFrequency()) {
+                    ScheduleRule::ONCE => "une fois",
+                    ScheduleRule::HOURLY => "chaque heure",
+                    ScheduleRule::DAILY => "chaque jour",
+                    ScheduleRule::WEEKLY => "chaque semaine",
+                    ScheduleRule::MONTHLY => "chaque mois",
+                    default => null,
+                },
+                'locations' => $missionRule->getLocations(),
+            ]),
+            $recipients,
+        );
 
         return $this->json([
             'success' => true,

@@ -63,6 +63,9 @@ class InventoryMissionRule extends ScheduleRule
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $creator = null;
 
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $requester = null;
+
     public function __construct() {
         $this->categories = new ArrayCollection();
         $this->createdMissions = new ArrayCollection();
@@ -278,4 +281,24 @@ class InventoryMissionRule extends ScheduleRule
         return $this;
 
     }
+
+    /**
+     * @return Utilisateur|null
+     */
+    public function getRequester(): ?Utilisateur
+    {
+        return $this->requester;
+    }
+
+    /**
+     * @param Utilisateur|null $requester
+     */
+    public function setRequester(?Utilisateur $requester): self
+    {
+        $this->requester = $requester;
+
+        return $this;
+
+    }
+
 }

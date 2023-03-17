@@ -131,7 +131,10 @@ class UserService
         $isUsedInArrivals = $arrivageRepository->countByUser($user);
         $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
         $hasSignatoryLocation = $locationRepository->countLocationByUser($user);
-        $hasInventoryMissionRules = $inventoryMissionRuleRepository->count(['creator' => $user]);
+        $hasInventoryMissionRules = (
+            $inventoryMissionRuleRepository->count(['creator' => $user])
+            + $inventoryMissionRuleRepository->count(['requester' => $user])
+        );
         $hasInventoryMissions = (
             $inventoryMissionRepository->count(['requester' => $user])
             + $inventoryMissionRepository->count(['operator' => $user])
