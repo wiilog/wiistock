@@ -100,7 +100,7 @@ class TransporteurController extends AbstractController
         }
 
         $countRecurrentCarrier = count($transporteurRepository->findBy(['recurrent' => true]));
-        if($countRecurrentCarrier === 10 && !$transporteur->isRecurrent()){
+        if($countRecurrentCarrier === 10 && !$transporteur->isRecurrent() && $isRecurrent){
             return new JsonResponse([
                 'success' => false,
                 'msg' => 'Vous avez déjà renseigné 10 transporteurs récurrents',
