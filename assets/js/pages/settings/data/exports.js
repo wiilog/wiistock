@@ -33,8 +33,7 @@ $(document).ready(() => {
         displayFiltersSup(data);
     }, `json`);
 
-    let $modalNewExport = $("#modalExport");
-    createForm($modalNewExport);
+    createForm();
 
     tableExport = initDataTable(`tableExport`, {
         processing: true,

@@ -82,40 +82,45 @@ class TransporteurRepository extends EntityRepository
         return $query->getOneOrNullResult();
     }
 
-	/**
-	 * @param string $code
-	 * @return int
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-    public function countByCode($code)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			"SELECT COUNT(t)
-          FROM App\Entity\Transporteur t
-          WHERE t.code = :code"
-		)->setParameter('code', $code);
+    public function countByCode(string $code, ?Transporteur $current = null): int
+    {
+        $qb = $this->createQueryBuilder('carrier')
+            ->select("COUNT(carrier)")
+            ->andWhere('carrier.code = :code')
+            ->setParameter('code', $code);
 
-		return $query->getSingleScalarResult();
-	}
+        if ($current) {
+            $qb
+                ->andWhere('carrier != :current')
+                ->setParameter('current', $current);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 
 	/**
 	 * @param string $label
+     * @param Transporteur|null $current
 	 * @return int
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
 	 */
-    public function countByLabel($label)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			"SELECT COUNT(t)
-          FROM App\Entity\Transporteur t
-          WHERE t.label = :label"
-		)->setParameter('label', $label);
+    public function countByLabel(string $label, Transporteur $current = null): int
+    {
+        $qb = $this->createQueryBuilder('carrier')
+            ->select("COUNT(carrier)")
+            ->andWhere('carrier.label = :label')
+            ->setParameter('label', $label);
 
-		return $query->getSingleScalarResult();
+        if ($current) {
+            $qb
+                ->andWhere('carrier != :current')
+                ->setParameter('current', $current);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
 	}
 
     public function getForSelect(?string $term) {
@@ -125,5 +130,33 @@ class TransporteurRepository extends EntityRepository
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
+    }
+
+    public function isCarrierUsed(Transporteur $carrier): bool {
+
+        $queryBuilder = $this->createQueryBuilder('carrier');
+        $exprBuilder = $queryBuilder->expr();
+
+        $res = $this->createQueryBuilder('carrier')
+            ->select("COUNT(carrier)")
+            ->leftJoin('carrier.arrivages', 'arrival')
+            ->leftJoin('carrier.chauffeurs', 'driver')
+            ->leftJoin('carrier.dispatches', 'dispatch')
+            ->leftJoin('carrier.reception', 'reception')
+            ->leftJoin('carrier.emergencies', 'emergency')
+            ->andWhere($exprBuilder->orX(
+                'arrival IS NOT NULL',
+                'driver IS NOT NULL',
+                'dispatch IS NOT NULL',
+                'reception IS NOT NULL',
+                'emergency IS NOT NULL',
+            ))
+            ->andWhere('carrier = :carrier')
+            ->setMaxResults(1)
+            ->setParameter('carrier', $carrier)
+            ->getQuery()
+            ->getSingleResult();
+
+        return isset($res);
     }
 }

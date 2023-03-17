@@ -10,6 +10,7 @@ use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\Chauffeur;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
@@ -31,10 +32,14 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Project;
 use App\Entity\ReferenceArticle;
+use App\Entity\Reserve;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
+use App\Entity\Transporteur;
+use App\Entity\TruckArrival;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
@@ -2159,7 +2164,7 @@ class MobileController extends AbstractApiController
                                   UserService $userService,
                                   TrackingMovementService $trackingMovementService,
                                   Request $request,
-                                  EntityManagerInterface $entityManager): array
+                                  EntityManagerInterface $entityManager, KernelInterface $kernel): array
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -2184,6 +2189,8 @@ class MobileController extends AbstractApiController
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $projectRepository = $entityManager->getRepository(Project::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $driverRepository = $entityManager->getRepository(Chauffeur::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -2355,6 +2362,31 @@ class MobileController extends AbstractApiController
         if ($rights['tracking']) {
             $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
 
+
+            $carriers = Stream::from($carrierRepository->findAll())
+                ->map(function (Transporteur $transporteur) use ($kernel) {
+                    $attachment = $transporteur->getAttachments()->isEmpty() ? null : $transporteur->getAttachments()->first();
+                    $logo = null;
+                    if ($attachment && $transporteur->isRecurrent()) {
+                        $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                        $type = pathinfo($path, PATHINFO_EXTENSION);
+                        $type = ($type === 'svg' ? 'svg+xml' : $type);
+                        $data = file_get_contents($path);
+
+                        $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    }
+
+                    return [
+                        'id' => $transporteur->getId(),
+                        'label' => $transporteur->getLabel(),
+                        'minTrackingNumberLength' => $transporteur->getMinTrackingNumberLength() ?? null,
+                        'maxTrackingNumberLength' => $transporteur->getMaxTrackingNumberLength() ?? null,
+                        'logo' => $logo,
+                        'recurrent' => $transporteur->isRecurrent(),
+                    ];
+                })
+                ->toArray();
+
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
@@ -2428,7 +2460,9 @@ class MobileController extends AbstractApiController
             'projects' => $projects ?? [],
             'types' => $mobileTypes,
             'suppliers' => $suppliers ?? [],
-            'reference_articles' => $refs ?? []
+            'reference_articles' => $refs ?? [],
+            'drivers' => $driverRepository->getDriversArray(),
+            'carriers' => $carriers ?? [],
         ];
     }
 
@@ -2440,13 +2474,14 @@ class MobileController extends AbstractApiController
     public function getData(Request $request,
                             UserService $userService,
                             TrackingMovementService $trackingMovementService,
+                            KernelInterface $kernel,
                             EntityManagerInterface $entityManager)
     {
         $nomadUser = $this->getUser();
 
         return $this->json([
             "success" => true,
-            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager),
+            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager, $kernel),
         ]);
     }
 
@@ -3749,4 +3784,141 @@ class MobileController extends AbstractApiController
         ]);
     }
 
+    /**
+     * @Rest\Get("/api/get-truck-arrival-default-unloading-location", name="api_get_truck_arrival_default_unloading_location", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getTruckArrivalDefaultUnloadingLocation(EntityManagerInterface $manager): Response {
+        $settingRepository = $manager->getRepository(Setting::class);
+        $truckArrivalDefaultUnloadingLocation = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+
+        return $this->json($truckArrivalDefaultUnloadingLocation);
+    }
+
+    /**
+     * @Rest\Get("/api/get-truck-arrival-lines-number", name="api_get_truck_arrival_lines_number", methods="GET", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getTruckArrivalLinesNumber(EntityManagerInterface $manager): Response {
+        $truckArrivalLineRepository = $manager->getRepository(TruckArrivalLine::class);
+        $truckArrivalLinesNumber = $truckArrivalLineRepository->iterateAll();
+
+        return $this->json($truckArrivalLinesNumber);
+    }
+
+    /**
+     * @Rest\Post("/api/finish-truck-arrival", name="api_finish_truck_arrival", methods="POST", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function finishTruckArrival(Request                $request,
+                                     EntityManagerInterface $entityManager,
+                                     UniqueNumberService $uniqueNumberService,
+                                     KernelInterface $kernel): Response {
+        $data = $request->request;
+
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $driverRepository = $entityManager->getRepository(Chauffeur::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $registrationNumber = $data->get('registrationNumber');
+        $truckArrivalReserves = json_decode($data->get('truckArrivalReserves'), true);
+        $truckArrivalLines = json_decode($data->get('truckArrivalLines'), true);
+        $signatures = $data->get('signatures');
+
+
+        $carrier = $carrierRepository->find($data->get('carrierId'));
+        $driver = null;
+        if ($data->get('driverId')){
+            $driver = $driverRepository->find($data->get('driverId'));
+        }
+        $unloadingLocation = $locationRepository->find($data->get('truckArrivalUnloadingLocationId'));
+
+        try {
+            $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, new DateTime(), [$carrier->getCode()]);
+        } catch(Exception $e){
+            return $this->json([
+                'success' => false,
+                'msg' => $e->getMessage()
+            ]);
+        }
+
+        $truckArrival = (new TruckArrival())
+            ->setNumber($number)
+            ->setCarrier($carrier)
+            ->setOperator($this->getUser())
+            ->setDriver($driver)
+            ->setRegistrationNumber($registrationNumber)
+            ->setUnloadingLocation($unloadingLocation)
+            ->setCreationDate(new DateTime('now'));
+
+        foreach($truckArrivalReserves as $truckArrivalReserve){
+            $reserve = (new Reserve())
+                ->setType($truckArrivalReserve['type'])
+                ->setComment($truckArrivalReserve['comment'] ?? null)
+                ->setQuantity($truckArrivalReserve['quantity'] ?? null)
+                ->setQuantityType($truckArrivalReserve['quantityType'] ?? null);
+
+            $truckArrival->addReserve($reserve);
+            $entityManager->persist($reserve);
+        }
+
+        foreach($truckArrivalLines as $truckArrivalLine){
+            $line = (new TruckArrivalLine())
+                ->setNumber($truckArrivalLine['number']);
+
+            if(isset($truckArrivalLine['reserve'])){
+                $lineReserve = (new Reserve())
+                    ->setType($truckArrivalLine['reserve']['type'])
+                    ->setComment($truckArrivalLine['reserve']['type'] ?? null);
+
+                foreach($truckArrivalLine['reserve']['photos'] as $photo){
+                    $name = uniqid();
+                    $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+                    file_put_contents($path, file_get_contents($photo));
+                    $attachment = new Attachment();
+                    $attachment
+                        ->setOriginalName("$name.jpeg")
+                        ->setFileName("$name.jpeg")
+                        ->setFullPath("/uploads/attachements/$name.jpeg");
+
+                    $lineReserve->addAttachment($attachment);
+                    $entityManager->persist($attachment);
+                }
+
+                $line->setReserve($lineReserve);
+                $entityManager->persist($lineReserve);
+            }
+
+
+            $truckArrival->addTrackingLine($line);
+            $entityManager->persist($line);
+        }
+
+        if ($signatures) {
+            $name = uniqid();
+            $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+            file_put_contents($path, file_get_contents($signatures));
+            $attachment = new Attachment();
+            $attachment
+                ->setOriginalName($truckArrival->getNumber()."_signature.jpeg")
+                ->setFileName("$name.jpeg")
+                ->setFullPath("/uploads/attachements/$name.jpeg");
+
+            $truckArrival->addAttachment($attachment);
+            $entityManager->persist($attachment);
+        }
+
+
+        $entityManager->persist($truckArrival);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => "Enregistrement"
+        ]);
+    }
 }
+

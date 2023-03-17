@@ -59,22 +59,22 @@ class SettingsService {
 
     public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\-\/ ]{1,24}$';
 
-    /**  @Required */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /** @Required */
+    #[Required]
     public KernelInterface $kernel;
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /** @Required */
+    #[Required]
     public RequestTemplateService $requestTemplateService;
 
-    /** @Required */
+    #[Required]
     public AlertTemplateService $alertTemplateService;
 
-    /** @Required */
+    #[Required]
     public StatusService $statusService;
 
     #[Required]
