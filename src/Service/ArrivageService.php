@@ -400,6 +400,14 @@ class ArrivageService {
         $buyers = $arrivage->getAcheteurs();
         $comment = $arrivage->getCommentaire();
         $attachments = $arrivage->getAttachments();
+        $truckArrivalLines = $arrivage->getTruckArrivalLines();
+        $numeroTrackingOld = $arrivage->getNoTracking();
+        $numeroTrackingArray = [];
+        foreach($truckArrivalLines as $truckArrivalLine) {
+            $number = $truckArrivalLine->getNumber();
+            $numeroTrackingArray[] = $number;
+                    }
+        $numeroTrackingNew = implode(', ', $numeroTrackingArray);
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -444,8 +452,14 @@ class ArrivageService {
                 'isRaw' => true
             ],
             [
+                'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N°Arrivage camion'),
+                'value' => count($truckArrivalLines) > 0 ?
+                    '<a href="/arrivage-camion/voir/'. $truckArrivalLines->first()->getTruckArrival()->getId() . '" title="Détail Arrivage Camion">' . $truckArrivalLines->first()->getTruckArrival()->getNumber() . '</a>' : '',
+                'isRaw' => true
+            ],
+            [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur'),
-                'value' => $arrivage->getNoTracking(),
+                'value' => count($truckArrivalLines) > 0 ? $numeroTrackingNew : $numeroTrackingOld,
                 'show' => ['fieldName' => 'noTracking'],
                 'isRaw' => true
             ],
