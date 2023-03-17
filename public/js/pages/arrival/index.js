@@ -237,6 +237,41 @@ function createArrival(form = null) {
         fillDatePickers('.free-field-date');
         fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
 
+        const $carrierSelect = $modal.find("select[name='transporteur']");
+        const $noTrackingSelect = $modal.find("select[name='noTracking']");
+        const $noTruckArrivalSelect = $modal.find("input[name='noTruckArrival']");
+
+        $carrierSelect.on(`change`, function() {
+            $noTrackingSelect
+                .prop(`disabled`, !$(this).val())
+                .attr('data-other-params-carrier-id', $(this).val())
+                .attr('data-other-params-truck-arrival-id', null);
+            $noTrackingSelect.find(`option`).remove();
+            $noTrackingSelect.trigger('change');
+            $noTruckArrivalSelect.val(``);
+        }).trigger('change');
+
+        $noTrackingSelect.on(`change`, function() {
+            const data = $(this).select2('data')[0] || {};
+            $(this).attr('data-other-params-truck-arrival-id', data.truck_arrival_id || null);
+            $noTruckArrivalSelect.val(data.truck_arrival_number);
+
+            const $driverSelect = $modal.find("select[name='chauffeur']");
+            const $driverAddButton = $modal.find(`button.add-driver`);
+            const $flyFormDirver = $modal.find(`.fly-form.driver`);
+            if(data.driver_id !== undefined && data.driver_id != null) {
+                $driverSelect.find(`option`).remove();
+                $driverSelect
+                    .append(`<option value="${data.driver_id}" selected>${data.driver_first_name} ${data.driver_last_name}</option>`)
+                    .attr('disabled', true);
+                $driverAddButton.attr('disabled', true);
+                $flyFormDirver.css('height', '0px').addClass('invisible')
+            } else {
+                $driverSelect.attr('disabled', false);
+                $driverAddButton.attr('disabled', false);
+            }
+        });
+
         const $submit = $modal.find(`[type=submit]`);
         $submit
             .off('click.new-arrival')

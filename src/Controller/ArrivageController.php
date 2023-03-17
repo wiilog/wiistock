@@ -21,6 +21,7 @@ use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\DataExportService;
@@ -222,6 +223,7 @@ class ArrivageController extends AbstractController {
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
         $date = new DateTime('now');
@@ -287,7 +289,17 @@ class ArrivageController extends AbstractController {
         }
 
         if (!empty($data['noTracking'])) {
-            $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+            if ($settingRepository->getOneParamByLabel(Setting::USE_TRUCK_ARRIVALS)) {
+                $truckArrivalLineId = explode(',', $data['noTracking']);
+                foreach ($truckArrivalLineId as $lineId) {
+                    $line = $truckArrivalLineRepository
+                        ->find($lineId)
+                        ->addArrival($arrivage);
+                    $arrivage->addTruckArrivalLine($line);
+                }
+            } else {
+                $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+            }
         }
 
         $numeroCommandeList = explode(',', $data['numeroCommandeList'] ?? '');
