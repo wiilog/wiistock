@@ -1,5 +1,6 @@
 import AJAX, {GET, POST} from "@app/ajax";
 import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, SAVE_MANUALLY} from "@app/editatable";
+import {initTrackingNumberSelect} from "@app/pages/truck-arrival/common";
 
 global.newTruckArrival = newTruckArrival;
 
@@ -15,9 +16,6 @@ $(function () {
 
     Form
         .create($modalNew)
-        .addProcessor((data, errors, $form) => {
-            data.append('arrivalLines', JSON.stringify(editableDatatable.data()));
-        })
         .submitTo(POST, 'truck_arrival_form_submit');
 
     $modalNew.on('change','.display-condition', function () {
@@ -27,25 +25,22 @@ $(function () {
     })
     $modalNew.find('.display-condition').trigger('change');
 
-    const $tableLines = $modalNew.find('.table-truck-article-line');
-    const editableDatatable = EditableDatatable.create($tableLines, {
-        mode: MODE_CLICK_EDIT_AND_ADD,
-        save: SAVE_MANUALLY,
-        needsPagingHide: true,
-        columns: generateTruckArrivalLineTableColumns(),
-        form: JSON.parse($modalNew.find('input#truck-arrival-line-form').val()),
-        onDeleteRow: (datatable, event, row) => {
-            updateTotalTrackingNumber(datatable, $modalNew);
-        },
-        onAddRow: (datatable) => {
-            updateTotalTrackingNumber(datatable, $modalNew);
-        }
+    const $trackingNumberSelect = $modalNew.find('select[name="trackingNumbers"]');
+    let $warningMessage = $trackingNumberSelect.closest('.form-group').find('.warning-message');
+    $modalNew.find('select[name="carrier"]').on('change', function () {
+        let data = $(this).select2('data')[0] || {};
+        let minTrackingNumberLength = data.minTrackingNumberLength;
+        let maxTrackingNumberLength = data.maxTrackingNumberLength;
+        $warningMessage.find('.min-length').text(minTrackingNumberLength);
+        $warningMessage.find('.max-length').text(maxTrackingNumberLength);
+        initTrackingNumberSelect($trackingNumberSelect, $warningMessage ,minTrackingNumberLength ,maxTrackingNumberLength);
+        $trackingNumberSelect.trigger('change');
     });
+    $trackingNumberSelect.off('change').on('change', function () {
+        $modalNew.find('#totalTrackingNumbers').html($(this).find('option:selected').length);
+    })
 });
 
-function updateTotalTrackingNumber(datatable, $modal) {
-    $modal.find('#totalTrackingNumber').html(datatable.element.find('tr .wii-icon-trash').length);
-}
 function initTruckArrivalTable() {
     AJAX
         .route(GET, 'truck_arrival_api_columns')
@@ -90,13 +85,4 @@ function initTruckArrivalTable() {
 function newTruckArrival() {
     const $modal = $('#newTruckArrivalModal');
     $modal.modal('show');
-}
-function generateTruckArrivalLineTableColumns() {
-    return [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder actions', orderable: false},
-        {data: `trackingLinesNumber`, title: `N° tracking transporteur`},
-        {data: `hasQualityReserve`, title: `Réserve qualité`},
-        {data: `attachment`, title: `Pièce jointe` , className: 'enabled-on-checkbox'},
-        {data: `comment`, title: `Commentaire` , className: 'enabled-on-checkbox'},
-    ];
 }

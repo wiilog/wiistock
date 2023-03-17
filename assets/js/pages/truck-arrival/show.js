@@ -25,5 +25,4 @@ $(function () {
 
 function editTruckArrival(id) {
     Modal.load('truck_arrival_form_edit', {id}, $modalEdit);
-    $modal.modal('show');
 }

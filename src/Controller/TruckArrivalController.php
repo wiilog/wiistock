@@ -4,24 +4,18 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\Chauffeur;
-use App\Entity\Dashboard\Meter\Chart;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
 use App\Entity\Menu;
 use App\Entity\Reserve;
-use App\Entity\TransferOrder;
+use App\Entity\Setting;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
-use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
-use App\Service\FormatService;
 use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
@@ -31,7 +25,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use WiiCommon\Helper\Stream;
 
 #[Route('/arrivage-camion')]
 class TruckArrivalController extends AbstractController
@@ -43,6 +36,11 @@ class TruckArrivalController extends AbstractController
                           FilterSupService $filterSupService ): Response {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+        $defaultLocation = $locationRepository->find($defaultLocationId);
 
         return $this->render('truck_arrival/index.html.twig', [
             'controller_name' => 'TruckArrivalController',
@@ -51,15 +49,7 @@ class TruckArrivalController extends AbstractController
             'initial_filters' => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_TRUCK_ARRIVAL)),
             'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL),
             'newTruckArrival' => new TruckArrival(),
-        ]);
-    }
-
-    #[Route('/voir/{id}', name: 'truck_arrival_show', methods: 'GET')]
-    #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
-    public function show( TruckArrival $truckArrival, EntityManagerInterface $entityManager): Response {
-
-        return $this->render('truck_arrival/show.html.twig', [
-            'truckArrival' => $truckArrival,
+            'defaultLocation' => $defaultLocation,
         ]);
     }
 
@@ -120,7 +110,7 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
-    #[Route('/formulauire', name: 'truck_arrival_form_submit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/formulaire', name: 'truck_arrival_form_submit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::CREATE_TRUCK_ARRIVALS])]
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
@@ -186,22 +176,12 @@ class TruckArrivalController extends AbstractController
             $entityManager->persist($quantityReserve);
         }
 
-        foreach (json_decode($data['arrivalLines'] ?? '') ?? [] as $lineData) {
+        foreach (explode(',', $data['trackingNumbers'] ?? '') as $lineNumber) {
             $arrivalLine = new TruckArrivalLine();
             $arrivalLine
                 ->setTruckArrival($truckArrival)
-                ->setNumber($lineData->trackingLinesNumber ?? null);
+                ->setNumber($lineNumber ?? null);
             $entityManager->persist($arrivalLine);
-            if ($lineData->hasQualityReseve ?? false) {
-                $reserve = new Reserve();
-                $reserve
-                    ->setComment($lineData->qualityReserveComment ?? null)
-                    ->setLine($arrivalLine)
-                    ->setType(Reserve::TYPE_QUALITY)
-                    // TODO attachment
-                    ->setTruckArrival($truckArrival);
-                $entityManager->persist($reserve);
-            }
         }
 
         $entityManager->flush();

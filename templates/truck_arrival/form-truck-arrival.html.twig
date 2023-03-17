@@ -116,9 +116,11 @@
         <div class="col-6">
             {{ form.select('unloadingLocation', 'Emplacement de déchargement', requiredOnform, {
                 type: 'location',
-                items: truckArrival.unloadingLocation
-                    ? {(truckArrival.unloadingLocation.id) : (truckArrival.unloadingLocation.label)}
-                    : {},
+                items: defaultLocation is defined
+                    ? {(defaultLocation.id) : (defaultLocation.label)}
+                    : truckArrival.unloadingLocation
+                        ? {(truckArrival.unloadingLocation.id) : (truckArrival.unloadingLocation.label)}
+                        : {},
                 disabled: truckArrival.id,
             }) }}
         </div>
@@ -140,21 +142,30 @@
 {% else %}
     <div class="wii-section-title my-3 d-flex align-items-center justify-content-between">
         <span>Numéros de tracking transporteur</span>
-        <span>Total : <span id="totalTrackingNumber">0</span></span>
+        <span>Total : <span id="totalTrackingNumbers">0</span></span>
     </div>
-    <div class="w-100">
-        <table class="w-100 table-truck-article-line"></table>
+    <div class="row">
+        <div class="col-12 form-group">
+            {{ form.select('trackingNumbers', null, false, {
+                type: null,
+                multiple: true,
+                editable: true,
+            }) }}
+            <div class="warning-message wii-warning-text d-none mt-2">
+                Les numéros de tracking doivent faire entre <span class="min-length"></span> et <span class="max-length"></span> caractères.
+            </div>
+        </div>
     </div>
-    {% include 'truck_arrival/reserve-form.html.twig' with {
+
+
+    <div class="wii-section-title my-3 d-flex align-items-center">
+        Réserve sur l’arrivage camion
+    </div>
+
+    {% include 'truck_arrival/reserve/generalReserveForm.html.twig' with {
         truckArrival,
     } %}
-    <input type="hidden" id="truck-arrival-line-form" value="{{ {
-        'actions' : '<i class="wii-icon wii-icon-trash delete-row "></i>',
-        'trackingLinesNumber': form.input('trackingLinesNumber', '', false, null),
-        'hasQualityReserve': form.checkbox('hasQualityReseve', '', false, null, {
-            inputClass: 'display-condition',
-        }),
-        'attachment': include('attachment/attachment.html.twig', { isNew: true , buttonOnly: true, noLabel: true, disabled: true}),
-        'comment': form.input('qualityReserveComment', '', false, null, {disabled: true}),
-    } | json_encode }}">
+    {% include 'truck_arrival/reserve/quantityReserveForm.html.twig' with {
+        truckArrival,
+    } %}
 {% endif %}
