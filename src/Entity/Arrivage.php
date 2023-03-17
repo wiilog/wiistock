@@ -94,7 +94,7 @@ class Arrivage {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'arrivals')]
     private $dropLocation;
 
-    #[ORM\ManyToMany(targetEntity: TruckArrivalLine::class, mappedBy: 'arrival')]
+    #[ORM\ManyToMany(targetEntity: TruckArrivalLine::class, mappedBy: 'arrivals')]
     private Collection $truckArrivalLines;
 
     public function __construct() {
