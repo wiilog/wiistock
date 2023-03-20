@@ -16,7 +16,9 @@ $(function () {
 
     Form
         .create($modalNew)
-        .submitTo(POST, 'truck_arrival_form_submit');
+        .submitTo(POST, 'truck_arrival_form_submit', {
+            table: () => $('#truckArrivalsTable').DataTable()
+        });
 
     $modalNew.on('change','.display-condition', function () {
         const checked = $(this).is(':checked');

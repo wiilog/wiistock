@@ -1,3 +1,7 @@
+{% import 'form.html.twig' as form %}
+
+{% set useTruckArrival = setting_value('USE_TRUCK_ARRIVALS')  %}
+
 <div class="row">
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
@@ -24,13 +28,24 @@
         <div class="form-group col-4">
             <label class="wii-field-name"
                    for="transporteur">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
-            <select class="form-control data select2 w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" id="transporteur" name="transporteur">
+            <select
+                class="form-control data select2 w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}"
+                id="transporteur"
+                name="transporteur"
+                {{ useTruckArrival ? 'disabled' }}>
                 <option {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'disabled' }} selected></option>
                 {% for transporteur in transporteurs %}
                     {% set selected = (((arrivage.transporteur is not empty) and (transporteur.id == arrivage.transporteur.id)) ? 'selected' : '') %}
                     <option value="{{ transporteur.id }}" {{ selected }}>{{ transporteur.label }}</option>
                 {% endfor %}
             </select>
+        </div>
+    {% endif %}
+    {% if useTruckArrival %}
+        <div class="form-group col-4">
+            {{ form.input('noTruckArrival', 'N° arrivage camion', false , arrivage.truckArrivalLines|first ?(arrivage.truckArrivalLines|first).truckArrival.number : null, {
+                disabled: true,
+            }) }}
         </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE') %}
@@ -55,7 +70,10 @@
             <label class="wii-field-name"
                    for="noTracking">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <input type="text" id="noTracking" class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" name="noTracking" maxlength="64"
-                   value="{{ arrivage.noTracking }}">
+                   value="{{ useTruckArrival
+                   ? arrivage.truckArrivalLines|reduce((carry, item) => carry~item.number~', ')
+                   : arrivage.noTracking }}"
+                {{ useTruckArrival ? 'disabled' }}>
         </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}

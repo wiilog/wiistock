@@ -112,7 +112,11 @@ export default class Form {
                             }
 
                             if(options.table) {
-                                options.table.ajax.reload();
+                                if (options.table instanceof Function) {
+                                    options.table().ajax.reload();
+                                } else {
+                                    options.table.ajax.reload();
+                                }
                             }
                         }
                     })
