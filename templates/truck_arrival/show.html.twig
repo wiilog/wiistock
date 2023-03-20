@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Traçabilité | Arrivage camion | Détails{% endblock %}
 {% block title_tooltip %}Traçabilité | Arrivage camion | Détails{% endblock %}
@@ -8,6 +9,9 @@
 
     {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_RESERVES')) %}
 
+    {{ form.input('truckArrival', '', false, truckArrival.id, {
+        type: 'hidden'
+    }) }}
     <div class="p-3">
         <div class="row">
             <div class="col-12">
@@ -24,10 +28,10 @@
                 <div class="wii-box">
                     <div class="header wii-title d-flex justify-content-between">
                         <span>Liste des numéro de tracking</span>
-                        <span class="wii-field-text">Nombre de n° de tracking associé :</span>
+                        <span class="wii-field-text">Nombre de n° de tracking associé : {{ lineAssociated }}</span>
                     </div>
                     <div class="content">
-
+                        <table id="truckArrivalLinesTable" class="table w-100"></table>
                     </div>
                 </div>
             </div>

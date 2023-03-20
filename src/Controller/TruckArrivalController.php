@@ -16,6 +16,8 @@ use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
+use App\Service\FormatService;
+use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
@@ -24,6 +26,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/arrivage-camion')]
@@ -55,10 +58,16 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/voir/{id}', name: 'truck_arrival_show', methods: 'GET')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
-    public function show( TruckArrival $truckArrival, EntityManagerInterface $entityManager): Response {
+    public function show(TruckArrival $truckArrival, EntityManagerInterface $entityManager): Response {
+        $lineAssociated = $truckArrival->getTrackingLines()
+                ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
+                ->count()
+            . '/'
+            . $truckArrival->getTrackingLines()->count();
 
         return $this->render('truck_arrival/show.html.twig', [
             'truckArrival' => $truckArrival,
+            'lineAssociated' => $lineAssociated,
         ]);
     }
 
@@ -93,6 +102,46 @@ class TruckArrivalController extends AbstractController
         return $this->json([
             'success' => true,
             'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+        ]);
+    }
+
+    #[Route('/truck-arrival-lines-api', name: 'truck_arrival_lines_api', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS])]
+    public function truckArrivalLinesApi(TruckArrivalLineService $truckArrivalLineService,
+                                         EntityManagerInterface $entityManager,
+                                         Request $request): JsonResponse {
+        return new JsonResponse(
+            $truckArrivalLineService->getDataForDatatable($entityManager, $request),
+        );
+    }
+
+    #[Route('/supprimer-ligne', name: 'truck_arrival_lines_delete', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::DELETE_CARRIER_TRACKING_NUMBER], mode: HasPermission::IN_JSON)]
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response {
+        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
+        $truckArrivalLine = $truckArrivalLineRepository->find($request->query->get('truckArrivalLineId'));
+
+        if (!$truckArrivalLine->getArrivals()->isEmpty()) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Ce numéro de tracking transporteur est lié à un ou plusieurs arrivages UL et ne peut pas être supprimé"
+            ]);
+        }
+
+        if ($truckArrivalLine->getReserve()) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Ce numéro de tracking transporteur est lié à une réserve qualité et ne peut pas être supprimé"
+            ]);
+        }
+
+        $truckArrivalLine->getTruckArrival()->removeTrackingLine($truckArrivalLine);
+        $entityManager->remove($truckArrivalLine);
+        $entityManager->flush();
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le numéro de tracking transporteur ' . $truckArrivalLine->getNumber() . ' a bien été supprimé.'
         ]);
     }
 
