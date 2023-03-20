@@ -43,7 +43,6 @@
     {% endif %}
     {% if useTruckArrival %}
         <div class="form-group col-4">
-            {% dump(arrivage.truckArrivalLines|first) %}
             {{ form.input('noTruckArrival', 'N° arrivage camion', false , arrivage.truckArrivalLines|first ?(arrivage.truckArrivalLines|first).truckArrival.number : null, {
                 disabled: true,
             }) }}

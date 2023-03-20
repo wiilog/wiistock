@@ -120,6 +120,7 @@ class TruckArrivalController extends AbstractController
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
+        $lineNumberRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $now = new \DateTime();
         $data = $request->request->all();
 
@@ -177,11 +178,13 @@ class TruckArrivalController extends AbstractController
         }
 
         foreach (explode(',', $data['trackingNumbers'] ?? '') as $lineNumber) {
-            $arrivalLine = new TruckArrivalLine();
-            $arrivalLine
-                ->setTruckArrival($truckArrival)
-                ->setNumber($lineNumber ?? null);
-            $entityManager->persist($arrivalLine);
+            if ($lineNumber && empty($lineNumberRepository->findOneBy(['number' => $lineNumber]))) {
+                $arrivalLine = new TruckArrivalLine();
+                $arrivalLine
+                    ->setTruckArrival($truckArrival)
+                    ->setNumber($lineNumber);
+                $entityManager->persist($arrivalLine);
+            }
         }
 
         $entityManager->flush();

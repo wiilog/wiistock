@@ -8,7 +8,15 @@ SELECT truck_arrival.id,
        utilisateur.username as operateur,
        COUNT(truck_arrival_line.id) as nb_tracking_total,
        IF(COUNT(reserve.id) > 0 , 'Oui', 'Non') as reserve_general,
-       IF(reserve.type = 'quantity', IF(reserve.quantity_type = 'MINUS', CONCAT('-', reserve.quantity), CONCAT('+', reserve.quantity)) ,'Non') as reserve_quantite
+       IF(
+           reserve.type = 'quantity',
+           IF(
+               reserve.quantity_type = 'MINUS',
+               CONCAT('-', reserve.quantity),
+               CONCAT('+', reserve.quantity)
+            ),
+           'Non'
+        ) as reserve_quantite
 
 FROM truck_arrival
 

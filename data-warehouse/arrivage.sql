@@ -2,20 +2,26 @@ SELECT
     arrivage.id,
     arrivage.numero_arrivage AS no_arrivage,
     arrivage.date,
-    (SELECT COUNT(pack_count.id)
-     FROM arrivage AS sub_arrivage
-              LEFT JOIN pack
-         AS pack_count ON sub_arrivage.id = pack_count.arrivage_id
-     WHERE sub_arrivage.id = arrivage.id)
-        AS nb_colis,
+    (
+        SELECT COUNT(pack_count.id)
+        FROM arrivage AS sub_arrivage
+        LEFT JOIN pack AS pack_count ON sub_arrivage.id = pack_count.arrivage_id
+        WHERE sub_arrivage.id = arrivage.id
+    ) AS nb_colis,
     destinataire.username AS destinataire,
     fournisseur.nom AS fournisseur,
     transporteur.label AS transporteur,
     chauffeur.nom AS chauffeur,
-    IF(truck_arrival.number IS NOT NULL,
-       GROUP_CONCAT(truck_arrival_line.number SEPARATOR ', '),
-        arrivage.no_tracking) AS no_tracking_transporteur,
-    IF(JSON_LENGTH(arrivage.numero_commande_list) > 0, REPLACE(REPLACE(REPLACE(arrivage.numero_commande_list, '"', ''), '[', ''), ']', ''), NULL) AS no_commande_bl,
+    IF(
+        truck_arrival.number IS NOT NULL,
+        GROUP_CONCAT(truck_arrival_line.number SEPARATOR ', '),
+        arrivage.no_tracking
+    ) AS no_tracking_transporteur,
+    IF(
+        JSON_LENGTH(arrivage.numero_commande_list) > 0,
+        REPLACE(REPLACE(REPLACE(arrivage.numero_commande_list, '"', ''), '[', ''), ']', ''),
+        NULL
+    ) AS no_commande_bl,
     type.label AS type,
     GROUP_CONCAT(acheteurs.username SEPARATOR ', ') AS acheteurs,
     IF(arrivage.is_urgent = 1, 'oui', 'non') AS urgence,
