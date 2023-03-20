@@ -58,6 +58,7 @@ class FiltreSupController extends AbstractController
                 'category' => FiltreSup::FIELD_CATEGORY,
                 'contact' => FiltreSup::FIELD_CONTACT,
                 'numTruckArrival' => FiltreSup::FIELD_NUM_TRUCK_ARRIVAL,
+                'noTracking' => FiltreSup::FIELD_TRACKING_CARRIER_NUMBER,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {

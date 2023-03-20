@@ -252,6 +252,11 @@ class ArrivageRepository extends EntityRepository
                         ->andWhere('arrival.noTracking = :numTruckArrival OR filter_truckArrival.number = :numTruckArrival')
                         ->setParameter('numTruckArrival' , $filter['value']);
                     break;
+                case 'noTracking':
+                    $qb
+                        ->andWhere('arrival.noTracking = :noTracking')
+                        ->setParameter('noTracking', $filter['value']);
+                    break;
             }
         }
 
