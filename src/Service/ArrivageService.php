@@ -14,6 +14,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
@@ -402,12 +403,9 @@ class ArrivageService {
         $attachments = $arrivage->getAttachments();
         $truckArrivalLines = $arrivage->getTruckArrivalLines();
         $numeroTrackingOld = $arrivage->getNoTracking();
-        $numeroTrackingArray = [];
-        foreach($truckArrivalLines as $truckArrivalLine) {
-            $number = $truckArrivalLine->getNumber();
-            $numeroTrackingArray[] = $number;
-                    }
-        $numeroTrackingNew = implode(', ', $numeroTrackingArray);
+        $numeroTrackingArray = Stream::from($truckArrivalLines)
+            ->map(fn(TruckArrivalLine $line) => $line->getNumber())
+            ->join(', ');
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -459,7 +457,7 @@ class ArrivageService {
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur'),
-                'value' => count($truckArrivalLines) > 0 ? $numeroTrackingNew : $numeroTrackingOld,
+                'value' => $numeroTrackingArray ?: $numeroTrackingOld,
                 'show' => ['fieldName' => 'noTracking'],
                 'isRaw' => true
             ],
