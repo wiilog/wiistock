@@ -957,11 +957,12 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function findGroupedByReferenceArticleAndLocation(string $tagRFIDPrefix,
-                                                             array $locations,
-                                                             array $statusCodes,
-                                                             array $filteredArticles = null): array {
+    public function getQuantityGroupedByStorageRule(string $tagRFIDPrefix,
+                                                    array  $locations,
+                                                    array  $statusCodes,
+                                                    array  $filteredArticles = null): array {
         if (empty($statusCodes)
+            || empty($locations)
             || (empty($filteredArticles) && $filteredArticles !== null)) {
             return [];
         }
@@ -970,11 +971,8 @@ class ArticleRepository extends EntityRepository {
 
         $this->availableArticlesToInventoryQB($query, $tagRFIDPrefix, $locations, $statusCodes)
             ->select('COUNT(article.id) as quantity')
-            ->addSelect('MAX(articleLocation.label) as location')
-            ->addSelect('MAX(referenceArticle.reference) as reference')
-            ->addSelect('MAX(referenceArticle.id) as referenceEntity')
-            ->addGroupBy('supplierArticle.referenceArticle')
-            ->addGroupBy('article.emplacement');
+            ->addSelect('storageRule.id AS storageRuleId')
+            ->groupBy('storageRule.id');
 
         if (!empty($filteredArticles)) {
             $query
@@ -982,9 +980,11 @@ class ArticleRepository extends EntityRepository {
                 ->setParameter('articles', $filteredArticles);
         }
 
-        return $query
-            ->getQuery()
-            ->getResult();
+        $result = $query->getQuery()->getResult();
+
+        return Stream::from($result)
+            ->keymap(fn(array $row) => [$row['storageRuleId'], $row['quantity']])
+            ->toArray();
     }
 
     public function findAvailableArticlesToInventory(string $tagRFIDPrefix,

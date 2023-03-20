@@ -2573,15 +2573,31 @@ class MobileController extends AbstractApiController
     }
 
     /**
-     * @Rest\Post("/api/zone-rfid-summary", name="api_zone_rfid_summary", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/inventory-missions/{inventoryMission}/summary/{zone}", name="api_zone_rfid_summary", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function rfidSummary(Request $request, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response
+    public function rfidSummary(Request                $request,
+                                InventoryMission       $inventoryMission,
+                                Zone                   $zone,
+                                EntityManagerInterface $entityManager,
+                                InventoryService       $inventoryService): Response
     {
+
+
+
+        $rfidTagsStr = $request->request->get('rfidTags');
+        $rfidTags = json_decode($rfidTagsStr ?: '[]', true) ?: [];
+
         return $this->json([
             "success" => true,
-            "data" => $inventoryService->parseAndSummarizeInventory($request->request->all(), $entityManager, $this->getUser())
+            "data" => $inventoryService->parseAndSummarizeInventory(
+                $entityManager,
+                $inventoryMission,
+                $zone,
+                $rfidTags,
+                $this->getUser()
+            )
         ]);
     }
 
