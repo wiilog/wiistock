@@ -29,6 +29,12 @@ class TruckArrivalService
     #[Required]
     public RouterInterface $router;
 
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public FieldsParamService $fieldsParamService;
+
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                         Request                $request,
                                         Utilisateur            $user): array {
@@ -105,5 +111,59 @@ class TruckArrivalService
             ['title' => 'Transporteur', 'name' => 'carrier'],
         ];
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+    }
+
+    public function createHeaderDetailsConfig(TruckArrival $truckArrival): array {
+        $carrier = $truckArrival->getCarrier();
+        $driver = $truckArrival->getDriver();
+        $operator = $truckArrival->getOperator();
+        $creationDate = $truckArrival->getCreationDate();
+        $unloadingLocation = $truckArrival->getUnloadingLocation();
+        $attachments = $truckArrival->getAttachments();
+
+        return [
+            [
+                'label' => 'Transporteur',
+                'value' => $carrier ? $carrier->getLabel() : '',
+                'show' => ['fieldName' => 'transporteur'],
+                'isRaw' => true
+            ],
+            [
+                'label' => 'Chauffeur',
+                'value' => $driver ? $driver->getPrenomNom() : '',
+                'show' => ['fieldName' => 'chauffeur'],
+                'isRaw' => true
+            ],
+            [
+                'label' => 'Immatriculation',
+                'value' => $truckArrival->getRegistrationNumber() ?? '',
+                'show' => ['fieldName' => 'immatriculation'],
+                'isRaw' => true
+            ],
+            [
+                'label' => 'Opérateur',
+                'value' => $operator ? $operator->getUsername() : '',
+                'show' => ['fieldName' => 'operateur'],
+                'isRaw' => true
+            ],
+            [
+                'label' => 'Date de création',
+                'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : '',
+                'show' => ['fieldName' => 'dateCreation'],
+                'isRaw' => true
+            ],
+            [
+                'label' => 'Emplacement de déchargement',
+                'value' => $unloadingLocation ? $unloadingLocation->getLabel() : '',
+                'show' => ['fieldName' => 'emplacement'],
+                'isRaw' => true
+            ],
+            [
+                'label' => 'Pièces jointes',
+                'value' => $attachments ? $attachments->toArray() : '',
+                'isAttachments' => true,
+                'isNeededNotEmpty' => false,
+            ],
+        ];
     }
 }

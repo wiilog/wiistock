@@ -2,14 +2,19 @@
 
 {% block title %}Traçabilité | Arrivage camion | Détails{% endblock %}
 {% block title_tooltip %}Traçabilité | Arrivage camion | Détails{% endblock %}
-
+{% block titleLink path('truck_arrival_index') %}
 
 {% block page_content %}
+    <input type="hidden" id="truckArrivalId" value="{{ truckArrival.id }}"/>
+
     <div class="p-3">
         <div class="row">
             <div class="col-12">
-                <div class="wii-box details-header-container">
-                    <span class="m-5 p-5">HEADER ICI</span>
+                <div class="zone-entete">
+                    {% include "truck_arrival/truck-arrival-show-header.html.twig" with {
+                        truckArrival: truckArrival,
+                        showDetails: showDetails,
+                    }%}
                 </div>
 
             </div>
@@ -40,6 +45,8 @@
             </div>
         </div>
     </div>
+
+    {% include "truck_arrival/modalDeleteTruckArrival.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

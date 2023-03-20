@@ -24,6 +24,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -49,10 +50,14 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/voir/{id}', name: 'truck_arrival_show', methods: 'GET')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
-    public function show( TruckArrival $truckArrival, EntityManagerInterface $entityManager): Response {
+    public function show( TruckArrival $truckArrival,
+                          EntityManagerInterface $entityManager,
+                          TruckArrivalService $truckArrivalService): Response
+    {
 
         return $this->render('truck_arrival/show.html.twig', [
             'truckArrival' => $truckArrival,
+            'showDetails' => $truckArrivalService->createHeaderDetailsConfig($truckArrival),
         ]);
     }
 
@@ -88,5 +93,33 @@ class TruckArrivalController extends AbstractController
             'success' => true,
             'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
         ]);
+    }
+
+    #[Route('/supprimer', name: 'truck_arrival_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS])]
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response {
+
+        if ($data = $request->request->get('truck_arrival')) {
+            $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
+            $truckArrival = $truckArrivalRepository->find($data);
+
+            if (count($truckArrival->getTrackingLines()) === 0) {
+                $entityManager->remove($truckArrival);
+                $entityManager->flush();
+
+                return new JsonResponse([
+                    'success' => true,
+                    'redirect' => $this->generateUrl('truck_arrival_index'),
+                    'msg' => "L'arrivage camion a bien été supprimé."
+                ]);
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "L'arrivage camion est associé à au moins un arrivage UL, vous ne pouvez pas le supprimer."
+                ]);
+            }
+        }
+        throw new BadRequestHttpException();
     }
 }
