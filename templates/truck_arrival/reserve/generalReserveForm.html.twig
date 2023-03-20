@@ -1,0 +1,22 @@
+{% import 'form.html.twig' as form %}
+
+{% if reserve is defined  %}
+    {{ form.input('type', null, false , constant('App\\Entity\\Reserve::TYPE_GENERAL'), {
+        type: 'hidden',
+    }) }}
+    {% if reserve and reserve.id  %}
+        {{ form.input('reserveId', null, false , reserve.id, {
+            type: 'hidden',
+        }) }}
+    {% endif %}
+{% endif %}
+<div class="row mb-4">
+    <div class="col-4">
+        {{ form.checkbox('hasGeneralReserve', 'Réserve général', false, reserve is defined and reserve , {
+            inputClass: 'display-condition',
+        }) }}
+    </div>
+    <div class="col-8 displayed-on-checkbox">
+        {{ form.input('generalReserveComment', 'Commentaire', false, reserve is defined and reserve ? reserve.comment : null) }}
+    </div>
+</div>

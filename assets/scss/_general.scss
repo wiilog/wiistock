@@ -259,6 +259,10 @@ a {
     width: min-content;
 }
 
+.w-max-content {
+    width: max-content;
+}
+
 .w-100 {
     + .select2-container {
         width: 100% !important;
@@ -813,6 +817,10 @@ label.required:after {
 .wii-big-text {
     color: $dark-grey;
     font-size: 16px;
+}
+
+.wii-warning-text {
+    color: $orange;
 }
 
 /** End classes **/
