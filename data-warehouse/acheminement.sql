@@ -22,21 +22,21 @@ SELECT dispatch.id                                        AS id,
         FROM dispatch AS sub_dispatch
                  LEFT JOIN dispatch_pack AS dispatch_pack_count ON sub_dispatch.id = dispatch_pack_count.dispatch_id
         WHERE sub_dispatch.id = dispatch.id)
-                                                          AS nb_colis,
-       statut.nom                                         AS statut,
-       operateur.username                                 AS operateur,
-       treate_par.username                                AS traite_par,
-       dernier_emplacement_colis.label                    AS dernier_emplacement,
-       dernier_mouvement.datetime                         AS date_dernier_mouvement,
-       dispatch.emergency                                 AS urgence,
-       dispatch.project_number                            AS numero_projet,
-       dispatch.business_unit                             AS business_unit,
-       reference_article.reference                        AS reference,
-       reference_article.quantite_stock                   AS quantite_reference,
-       dispatch_reference_article.batch_number            AS numero_lot,
-       dispatch_reference_article.serial_number           AS numero_serie,
-       dispatch_reference_article.sealing_number          AS numero_plombage_scelle,
-       dispatch_reference_article.adr                     AS adr
+                                                             AS nb_colis,
+       statut.nom                                            AS statut,
+       operateur.username                                    AS operateur,
+       treate_par.username                                   AS traite_par,
+       dernier_emplacement_colis.label                       AS dernier_emplacement,
+       dernier_mouvement.datetime                            AS date_dernier_mouvement,
+       dispatch.emergency                                    AS urgence,
+       dispatch.project_number                               AS numero_projet,
+       dispatch.business_unit                                AS business_unit,
+       reference_article.reference                           AS reference,
+       reference_article.quantite_stock                      AS quantite_reference,
+       dispatch_reference_article.batch_number               AS numero_lot,
+       dispatch_reference_article.serial_number              AS numero_serie,
+       dispatch_reference_article.sealing_number             AS numero_plombage_scelle,
+       IF(dispatch_reference_article.adr = 1, 'Oui', 'Non')  AS adr
 
 FROM dispatch
 
