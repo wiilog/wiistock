@@ -194,7 +194,7 @@ class PurchaseRequestService
             $requester = $purchaseRequest->getRequester() ?? null;
             $buyer = $purchaseRequest->getBuyer() ?? null;
 
-            $mail = ($status->isNotTreated() && $buyerAbleToReceivedMail) ? $buyer : $requester;
+            $mail = ($status->isNotTreated() && $buyerAbleToReceivedMail && $buyer) ? $buyer : $requester;
 
             $subject = $status->isTreated()
                 ? 'Traitement d\'une demande d\'achat'
