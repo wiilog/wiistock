@@ -142,21 +142,15 @@ class TruckArrivalLineService
 
         } while (!$found);
 
+        // First possibility (created before 14:00, must be treated before 17:00 on the same day)
+        $wasCreatedBeforeTresholdAndIsValid = $dateWithOnlyTime <= $beforeStartWithDate
+            && ($nowWithoutTime > $dateWithoutTime || $nowWithOnlyTime > $beforeEndWithDate);
 
-        if (
-            $dateWithOnlyTime <= $beforeStartWithDate
-            && ($nowWithoutTime > $dateWithoutTime || $nowWithOnlyTime > $beforeEndWithDate)
-        ) {
-            return true;
-        }
+        // Second possibility (created after 14:00, must be treated before 12:00 on the next WORKED day)
+        $wasCreatedAfterTresholdAndIsValid = $dateWithOnlyTime >= $afterStartWithDate
+            && ($nowWithoutTime > $nextWorkedDay || ($nowWithoutTime === $nextWorkedDay && $nowWithOnlyTime > $afterEndWithDate));
 
-        if ($dateWithOnlyTime >= $afterStartWithDate
-            && ($nowWithoutTime > $nextWorkedDay || ($nowWithoutTime === $nextWorkedDay && $nowWithOnlyTime > $afterEndWithDate))
-        ) {
-            return true;
-        }
-
-        return false;
+        return $wasCreatedBeforeTresholdAndIsValid || $wasCreatedAfterTresholdAndIsValid;
     }
 
 
