@@ -17,6 +17,7 @@ use App\Entity\TruckArrivalLine;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
 use App\Service\FormatService;
+use App\Service\ReserveService;
 use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
@@ -115,6 +116,16 @@ class TruckArrivalController extends AbstractController
         );
     }
 
+    #[Route('/truck-arrival-lines-quality-reserves-api', name: 'truck_arrival_lines_quality_reserves_api', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
+    public function truckArrivalLinesQualityReservesApi(ReserveService $reserveService,
+                                                        EntityManagerInterface $entityManager,
+                                                        Request $request): JsonResponse {
+        return new JsonResponse(
+            $reserveService->getDataForDatatable($entityManager, $request),
+        );
+    }
+
     #[Route('/supprimer-ligne', name: 'truck_arrival_lines_delete', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DELETE_CARRIER_TRACKING_NUMBER], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
@@ -142,6 +153,22 @@ class TruckArrivalController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'msg' => 'Le numéro de tracking transporteur ' . $truckArrivalLine->getNumber() . ' a bien été supprimé.'
+        ]);
+    }
+
+    #[Route('/supprimer-ligne-reserve', name: 'truck_arrival_line_reserve_delete', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS], mode: HasPermission::IN_JSON)]
+    public function deleteReserve(Request $request,
+                           EntityManagerInterface $entityManager): Response {
+        $reserveRepository = $entityManager->getRepository(Reserve::class);
+        $reserve = $reserveRepository->find($request->query->get('reserveId'));
+
+
+        $entityManager->remove($reserve);
+        $entityManager->flush();
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'La réserve qualité du numéro de tracking transporteur ' . $reserve->getLine()->getNumber() . ' a bien été supprimé.'
         ]);
     }
 

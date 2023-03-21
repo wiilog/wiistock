@@ -149,4 +149,18 @@ class TruckArrivalLineRepository extends EntityRepository
 
         return $qb->getQuery()->getArrayResult();
     }
+
+    public function getForReserve(?int $truckArrivalId): array {
+        $qb = $this
+            ->createQueryBuilder('truck_arrival_line')
+            ->select("truck_arrival_line.id AS id")
+            ->addSelect("truck_arrival_line.number AS number")
+            ->andWhere("truck_arrival.id = :truckArrivalId")
+            ->andWhere("qualityReserve IS NULL")
+            ->leftJoin("truck_arrival_line.reserve", 'qualityReserve')
+            ->leftJoin('truck_arrival_line.truckArrival', 'truck_arrival')
+            ->setParameter('truckArrivalId', "$truckArrivalId");
+
+        return $qb->getQuery()->getArrayResult();
+    }
 }

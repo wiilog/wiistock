@@ -43,8 +43,14 @@
                     <div class="wii-section-title my-3 d-flex align-items-center">
                         Qualité
                     </div>
-                    <div class="row">
-
+                    <div class="content py-0">
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-sm btn-primary new-quality-reserve-button d-flex align-items-center">
+                                <span class="wii-icon wii-icon-plus mr-1"></span>
+                                Ajouter une réserve
+                            </button>
+                        </div>
+                        <table id="truckArrivalLinesQualityReservesTable" class="table w-100"></table>
                     </div>
                     <div class="wii-section-title my-3 d-flex align-items-center">
                         Général
@@ -117,6 +123,7 @@
         {% include 'truck_arrival/reserve/modalEditQuantityReserve.html.twig' with {
             reserve : quantityReserve,
         }%}
+        {% include 'truck_arrival/reserve/modalQualityReserve.html.twig' %}
     {% endif %}
 
     {% include "utils/modal/empty-modal.html.twig" with {

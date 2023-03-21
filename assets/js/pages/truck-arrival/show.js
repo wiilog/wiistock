@@ -3,11 +3,15 @@ import {POST} from "@app/ajax";
 
 global.editTruckArrival = editTruckArrival;
 global.deleteTruckArrivalLine = deleteTruckArrivalLine;
+global.deleteTruckArrivalLineReserve = deleteTruckArrivalLineReserve;
+global.openModalQualityReserveContent = openModalQualityReserveContent;
 
 const $modalEdit = $('#editTruckArrivalModal');
+const $modalReserveQuality = $('#modalReserveQuality');
 
 let truckArrival;
 let truckArrivalLinesTable;
+let truckArrivalLinesQualityReservesTable;
 
 $(function () {
     Form
@@ -28,8 +32,39 @@ $(function () {
 
     truckArrival = $('[name=truckArrival]').val();
     truckArrivalLinesTable = initTruckArrivalLinesTable();
+    truckArrivalLinesQualityReservesTable = initTruckArrivalLineQualityReservesTable();
+
+    $('.new-quality-reserve-button').on('click', function(){
+        openModalQualityReserveContent($modalReserveQuality);
+    });
 });
 
+function openModalQualityReserveContent($modalReserveQuality, reserveId = null){
+    $modalReserveQuality.find('.modal-body').empty();
+    Form.create($modalReserveQuality, true)
+        .onOpen(() => {
+            AJAX.route(AJAX.POST, 'reserve_modal_quality_content', {
+                reserveId,
+                truckArrival
+            })
+            .json()
+            .then((response) => {
+                if(response.success){
+                    $modalReserveQuality.find('.modal-body').append(response.content);
+                }
+
+            });
+        })
+        .submitTo(POST, 'reserve_form_submit', {
+            reserveType: 'quality',
+            reserveId,
+            success: () => {
+                truckArrivalLinesQualityReservesTable.ajax.reload();
+            }
+        });
+
+    $modalReserveQuality.modal('show');
+}
 
 function initTruckArrivalLinesTable() {
     return initDataTable(`truckArrivalLinesTable`, {
@@ -50,6 +85,39 @@ function initTruckArrivalLinesTable() {
         ],
         rowConfig: {
             needsRowClickAction: false,
+            needsColor: true,
+            color: 'danger',
+            dataToCheck: 'delay'
+        },
+        drawConfig: {
+            needsSearchOverride: true
+        }
+    });
+}
+
+function initTruckArrivalLineQualityReservesTable() {
+    return initDataTable(`truckArrivalLinesQualityReservesTable`, {
+        processing: true,
+        serverSide: true,
+        paging: false,
+        searching: false,
+        info: false,
+        order: [[`reserveLineNumber`, `desc`]],
+        ajax: {
+            url: Routing.generate(`truck_arrival_lines_quality_reserves_api`, {truckArrival}, true),
+            type: `GET`
+        },
+        columns: [
+            {data: `actions`, title: ``, className: `noVis`, orderable: false},
+            {data: `reserveLineNumber`, title: `N° tracking transporteur`},
+            {data: `attachment`, title: `Pièces jointes`, orderable: false},
+            {data: `comment`, title: `Commentaire`, orderable: false},
+        ],
+        rowConfig: {
+            needsRowClickAction: true,
+            callback: (row, data) => {
+                //openModalQualityReserveContent($modalReserveQuality, data.id);
+            }
         },
         drawConfig: {
             needsSearchOverride: true
@@ -64,6 +132,16 @@ function deleteTruckArrivalLine(deleteButton){
         .json()
         .then(() => {
             truckArrivalLinesTable.ajax.reload();
+        });
+}
+
+function deleteTruckArrivalLineReserve(deleteButton){
+    AJAX.route(AJAX.POST, 'truck_arrival_line_reserve_delete', {
+        reserveId: deleteButton.data('id'),
+    })
+        .json()
+        .then(() => {
+            truckArrivalLinesQualityReservesTable.ajax.reload();
         });
 }
 

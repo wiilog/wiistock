@@ -42,7 +42,7 @@ class Reserve
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\OneToOne(inversedBy: 'reserve', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'reserve')]
     private ?TruckArrivalLine $line = null;
 
     #[ORM\Column(nullable: true)]
