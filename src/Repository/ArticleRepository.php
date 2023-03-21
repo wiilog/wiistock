@@ -21,6 +21,7 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
@@ -32,6 +33,9 @@ use WiiCommon\Helper\StringHelper;
  * @method Article[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class ArticleRepository extends EntityRepository {
+
+    public const INVENTORY_MODE_FINISH = "allAvailableAndMatchingTags"; // available articles on locations + unavailable articles matching tags
+    public const INVENTORY_MODE_SUMMARY = "onlyAvailable"; // available articles on locations + unavailable articles matching tags
 
     private const FIELD_ENTITY_NAME = [
         "location" => "emplacement",
@@ -957,53 +961,18 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function findGroupedByReferenceArticleAndLocation(string $tagRFIDPrefix,
-                                                             array $locations,
-                                                             array $statusCodes,
-                                                             array $filteredArticles = null): array {
-        if (empty($statusCodes)
-            || (empty($filteredArticles) && $filteredArticles !== null)) {
-            return [];
-        }
+    public function findAvailableArticlesToInventory(array $rfidTags,
+                                                     array $locations,
+                                                     array $options = []): array {
+        $mode = $options["mode"] ?? null;
+        $groupByStorageRule = $options["groupByStorageRule"] ?? false;
 
-        $query = $this->createQueryBuilder("article");
+        $queryBuilder = $this->createQueryBuilder("article");
+        $exprBuilder = $queryBuilder->expr();
 
-        $this->availableArticlesToInventoryQB($query, $tagRFIDPrefix, $locations, $statusCodes)
-            ->select('COUNT(article.id) as quantity')
-            ->addSelect('MAX(articleLocation.label) as location')
-            ->addSelect('MAX(referenceArticle.reference) as reference')
-            ->addSelect('MAX(referenceArticle.id) as referenceEntity')
-            ->addGroupBy('supplierArticle.referenceArticle')
-            ->addGroupBy('article.emplacement');
-
-        if (!empty($filteredArticles)) {
-            $query
-                ->andWhere('article.id IN (:articles)')
-                ->setParameter('articles', $filteredArticles);
-        }
-
-        return $query
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findAvailableArticlesToInventory(string $tagRFIDPrefix,
-                                                     array  $locations,
-                                                     array  $statusCodes): array {
-        $query = $this->createQueryBuilder("article");
-
-        return $this->availableArticlesToInventoryQB($query, $tagRFIDPrefix, $locations, $statusCodes)
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function availableArticlesToInventoryQB(QueryBuilder $queryBuilder,
-                                                   string       $tagRFIDPrefix,
-                                                   array        $locations,
-                                                   array        $statusCodes): QueryBuilder {
-        return $queryBuilder
+        $queryBuilder
             ->join("article.emplacement", "articleLocation")
-            ->join("article.statut", "articleStatut")
+            ->join("article.statut", "articleStatus")
 
             // All article to inventory match a storage rule of the referenceArticle
             ->join("article.articleFournisseur", "supplierArticle")
@@ -1011,13 +980,47 @@ class ArticleRepository extends EntityRepository {
             ->join("referenceArticle.storageRules", "storageRule")
             ->andWhere("storageRule.location = articleLocation") // storageRule.location = location article
 
-            ->andWhere('articleLocation IN (:locations)') // location article is in locations to treat
-            ->andWhere("articleStatut.code IN (:statuses)")
-            ->andWhere('article.RFIDtag IS NOT NULL')
-            ->andWhere('article.RFIDtag LIKE :tagRFIDPrefix')
-            ->setParameter('tagRFIDPrefix', "$tagRFIDPrefix%")
+            ->andWhere("articleLocation IN (:locations)") // location article is in locations to treat
+            ->andWhere("articleStatus.code IN (:statuses)")
+            ->andWhere("article.RFIDtag IS NOT NULL")
+            ->setParameter("rfidTags", $rfidTags)
+            ->setParameter("availableStatus", Article::STATUT_ACTIF)
             ->setParameter("locations", $locations)
-            ->setParameter("statuses", $statusCodes);
+            ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_INACTIF]);
+
+        switch ($mode) {
+            case self::INVENTORY_MODE_FINISH:
+                $queryBuilder
+                    ->andWhere($exprBuilder->orX(
+                        "article.RFIDtag IN (:rfidTags)",
+                        "articleStatus.code = :availableStatus"
+                    ))
+                    ->setParameter("rfidTags", $rfidTags);
+                break;
+            case self::INVENTORY_MODE_SUMMARY:
+                $queryBuilder
+                    ->andWhere("article.RFIDtag IN (:rfidTags)")
+                    ->andWhere("articleStatus.code = :availableStatus");
+                break;
+            default:
+                throw new RuntimeException('Invalid mode');
+        }
+
+        if ($groupByStorageRule) {
+            $result = $queryBuilder
+                ->addSelect("storageRule.id AS storageRuleId")
+                ->getQuery()
+                ->getResult();
+
+            return Stream::from($result)
+                ->keymap(fn(array $row) => [$row["storageRuleId"], $row[0]], true)
+                ->toArray();
+        }
+        else {
+            return $queryBuilder
+                ->getQuery()
+                ->getResult();
+        }
     }
 
     public function getArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {

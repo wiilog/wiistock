@@ -43,7 +43,7 @@ class PurchaseRequestRuleService
         $purchaseRequestLineRepository = $this->em->getRepository(PurchaseRequestLine::class);
 
         // getting storage rules by the purchase rule, quantity rule applied here
-        $storageRules = $storageRuleRepository->getByPuchaseRequestRuleWithStockQuantity($rule);
+        $storageRules = $storageRuleRepository->getByPurchaseRequestRuleWithStockQuantity($rule);
 
         $rulesWithSeveralSuppliers = [];
         $refAdded = [];

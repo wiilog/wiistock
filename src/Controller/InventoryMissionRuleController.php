@@ -204,7 +204,7 @@ class InventoryMissionRuleController extends AbstractController
 
         if ($missionRule) {
             if(!$missionRule->getCreatedMissions()->isEmpty()) {
-                throw new FormException("Vous ne pouvez pas supprimer cette planification d'inventaire car des missions d'inventaires ont déjà été crée à partir de celle-ci");
+                throw new FormException("Vous ne pouvez pas supprimer cette planification d'inventaire car des missions d'inventaires ont déjà été créées à partir de celle-ci");
             } else {
                 $entityManager->remove($missionRule);
                 $entityManager->flush();

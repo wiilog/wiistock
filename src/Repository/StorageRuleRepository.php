@@ -76,7 +76,7 @@ class StorageRuleRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getByPuchaseRequestRuleWithStockQuantity(PurchaseRequestScheduleRule $rule) {
+    public function getByPurchaseRequestRuleWithStockQuantity(PurchaseRequestScheduleRule $rule) {
         $zones = Stream::from($rule->getZones()->toArray())->map(fn(Zone $zone) => $zone->getId())->toArray();
         $suppliers = Stream::from($rule->getSuppliers()->toArray())->map(fn(Fournisseur $supplier) => $supplier->getId())->toArray();
 

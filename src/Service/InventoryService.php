@@ -5,24 +5,23 @@ namespace App\Service;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
-use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryLocationMissionReferenceArticle;
 use App\Entity\Inventory\InventoryMission;
-use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
+use App\Repository\ArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\AdMob\Date;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
@@ -192,77 +191,152 @@ class InventoryService {
         return $nbMissions > 0;
     }
 
-    public function parseAndSummarizeInventory(array $data, EntityManagerInterface $entityManager, Utilisateur $user) {
+    public function parseAndSummarizeInventory(EntityManagerInterface $entityManager,
+                                               InventoryMission       $mission,
+                                               Zone                   $zone,
+                                               array                  $rfidTags,
+                                               Utilisateur            $user): array {
         $articleRepository = $entityManager->getRepository(Article::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-
-        $zone = $entityManager->getRepository(Zone::class)->find($data["zone"]);
-        $mission = $entityManager->getRepository(InventoryMission::class)->find($data["mission"]);
+        $storageRuleRepository = $entityManager->getRepository(StorageRule::class);
 
         $tagRFIDPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX) ?: '';
-        $scannedArticles = Stream::from($articleRepository->findBy(['RFIDtag' => json_decode($data['rfidTags'])]))
-            ->map(fn (Article $article) => $article->getId())
+
+        $rfidTags = Stream::from($rfidTags)
+            ->filter(fn(string $tag) => str_starts_with($tag, $tagRFIDPrefix))
             ->toArray();
 
         $locations = $locationRepository->findByMissionAndZone([$zone], $mission);
-        $locationIDS = Stream::from($locations)
-            ->map(fn (Emplacement $location) => $location->getId())
-            ->toArray();
 
-        $expected = $articleRepository->findGroupedByReferenceArticleAndLocation($tagRFIDPrefix, $locationIDS, [Article::STATUT_ACTIF]);
-        $actual = $articleRepository->findGroupedByReferenceArticleAndLocation($tagRFIDPrefix, $locationIDS, [Article::STATUT_ACTIF], $scannedArticles);
+        $scannedArticlesByStorageRule = $articleRepository->findAvailableArticlesToInventory($rfidTags, $locations, [
+            "groupByStorageRule" => true,
+            "mode" => ArticleRepository::INVENTORY_MODE_SUMMARY
+        ]);
 
-        $references = Stream::from($expected)
-            ->keymap(fn(array $expectedState) => [$expectedState['referenceEntity'], $entityManager->find(ReferenceArticle::class, $expectedState['referenceEntity'])])
-            ->toArray();
-        $formattedActual = Stream::from($actual)
-            ->keymap(fn(array $actualQuantity) => [$actualQuantity['location'] . '---' . $actualQuantity['reference'], $actualQuantity['quantity']])
-            ->toArray();
+        $storageRules = $storageRuleRepository->findBy(['location' => $locations]);
 
-        $result = [];
-        foreach($mission->getInventoryLocationMissions() as $locationMission) {
-            foreach ($locationMission->getInventoryLocationMissionReferenceArticles() as $line) {
-                $entityManager->remove($line);
-            }
-        }
-        $entityManager->flush();
+        $now = new DateTime('now');
 
         $min = intval($settingRepository->getOneParamByLabel(Setting::RFID_KPI_MIN));
         $max = intval($settingRepository->getOneParamByLabel(Setting::RFID_KPI_MAX));
-        $result['lines'][] = [];
-        foreach ($expected as $expectedResult) {
-            $quantity = $expectedResult['quantity'];
-            $reference = $expectedResult['reference'];
-            $location = $expectedResult['location'];
-            $linkedLine = $mission
-                ->getInventoryLocationMissions()
-                ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()->getLabel() === $location)
-                ->first();
 
-            $actualQuantity = $formattedActual[$location . '---' . $reference] ?? -1;
-            $percentage = $actualQuantity === -1 ? 0 : floor((intval($actualQuantity) / intval($quantity)) * 100);
-            $line = new InventoryLocationMissionReferenceArticle();
-            $line
-                ->setInventoryLocationMission($linkedLine)
-                ->setOperator($user)
-                ->setPercentage($percentage)
-                ->setScannedAt(new DateTime("now"))
-                ->setReferenceArticle($references[$expectedResult['referenceEntity']]);
-            $entityManager->persist($line);
-            $entityManager->flush();
-            if ((!isset($min) || $percentage >= $min)
-                && (!isset($max) || $percentage <= $max)) {
-                $result['lines'][] = [
-                    'reference' => $reference,
-                    'location' => $location,
-                    'ratio' => $percentage,
+        $this->clearInventoryZone($entityManager, $mission, $zone);
+
+        $zoneInventoryIndicator = $zone->getInventoryIndicator() ?: 1;
+
+        $lines = [];
+        $numScannedObjects = 0;
+
+        foreach ($storageRules as $storageRule) {
+            $key = null;
+            $storageRuleId = $storageRule->getId();
+            $location = $storageRule->getLocation();
+            $locationId = $location?->getId();
+            $locationLabel = $location?->getLabel();
+            $referenceArticle = $storageRule->getReferenceArticle();
+            $reference = $referenceArticle?->getReference();
+
+            $scannedArticles = $scannedArticlesByStorageRule[$storageRuleId] ?? [];
+            $articleCounter = count($scannedArticles);
+            $numScannedObjects += $articleCounter;
+
+            if ($articleCounter > 0) {
+                $key = "location" . $locationId;
+                $rowResult = $lines[$key] ?? [
+                    "location" => $locationLabel,
+                    "articleCounter" => 0,
+                    "storageRuleCounter" => 0,
                 ];
+
+                $rowResult["articleCounter"] += $articleCounter;
+                $rowResult["storageRuleCounter"] += 1;
+            }
+            else {
+                $rowResult = [
+                    "location" => $locationLabel,
+                    "reference" => $reference,
+                    "missing" => true,
+                ];
+            }
+
+            /*$linkedLine = $rowResult["linkedLine"] ?? null;
+            if (!isset($linkedLine)) {
+                $linkedLine = $mission
+                    ->getInventoryLocationMissions()
+                    ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()?->getId() === $locationId)
+                    ->first() ?: null;
+                $rowResult["linkedLine"] = $linkedLine;
+            }
+
+            if ($linkedLine) {
+                // TODO WIIS-9373 remove ??
+                $percentage = empty($expectedQuantity) ? 0 : floor($actualQuantity / $expectedQuantity) * 100;
+                $inventoryLine = new InventoryLocationMissionReferenceArticle();
+                $inventoryLine
+                    ->setInventoryLocationMission($linkedLine)
+                    ->setOperator($user)
+                    ->setPercentage($percentage)
+                    ->setScannedAt($now)
+                    ->setReferenceArticle($referenceArticle);
+                $entityManager->persist($inventoryLine);
+            }
+            */
+
+            if (isset($key)) {
+                $lines[$key] = $rowResult;
+            }
+            else {
+                $lines[] = $rowResult;
             }
         }
 
-        $result['numScannedObjects'] = count($actual);
-        return $result;
+        $lines = Stream::from($lines)
+            ->map(fn(array $line) => (
+                ($line['missing'] ?? false)
+                    ? [
+                        "location" => $line["location"],
+                        "reference" => $line["reference"],
+                        "missing" => true,
+                    ]
+                    : [
+                        "location" => $line['location'],
+                        "ratio" => $zoneInventoryIndicator
+                            ? floor(($line['articleCounter'] / ($line['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
+                            : 0
+                    ]
+            ))
+            ->filter(fn(array $line) => (
+                !isset($line["ratio"])
+                || (
+                    (!isset($min) || $line["ratio"] >= $min)
+                    && (!isset($max) || $line["ratio"] <= $max)
+                )
+            ))
+            ->values();
+
+        $entityManager->flush();
+
+        return [
+            "numScannedObjects" => $numScannedObjects,
+            "lines" => $lines
+        ];
+    }
+
+
+    public function clearInventoryZone(EntityManagerInterface $entityManager,
+                                       InventoryMission       $mission,
+                                       Zone                   $zone): void {
+        $inventoryLocationMissionArray = $mission->getInventoryLocationMissions();
+        foreach ($inventoryLocationMissionArray as $inventoryLocationMission) {
+            if ($inventoryLocationMission->getLocation()?->getZone()?->getId() === $zone->getId()) {
+                foreach ($inventoryLocationMission->getInventoryLocationMissionReferenceArticles() as $line) {
+                    $inventoryLocationMission->removeInventoryLocationMissionReferenceArticle($line);
+                    $entityManager->remove($line);
+                }
+                $inventoryLocationMission->setInventoryLocationMissionReferenceArticles([]);
+            }
+        }
     }
 
 }

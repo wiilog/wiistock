@@ -231,7 +231,7 @@ class InventoryMissionController extends AbstractController
      */
     public function show(InventoryMission $mission): Response {
         $startPrevDate = $mission->getStartPrevDate();
-        $isInventoryStarted =  new DateTime('now') < $startPrevDate;
+        $isInventoryStarted =  new DateTime('now') >= $startPrevDate;
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
             'typeLocation' => $mission->getType() === InventoryMission::LOCATION_TYPE,

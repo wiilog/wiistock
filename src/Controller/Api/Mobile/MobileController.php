@@ -2573,15 +2573,31 @@ class MobileController extends AbstractApiController
     }
 
     /**
-     * @Rest\Post("/api/zone-rfid-summary", name="api_zone_rfid_summary", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/inventory-missions/{inventoryMission}/summary/{zone}", name="api_zone_rfid_summary", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function rfidSummary(Request $request, EntityManagerInterface $entityManager, InventoryService $inventoryService): Response
+    public function rfidSummary(Request                $request,
+                                InventoryMission       $inventoryMission,
+                                Zone                   $zone,
+                                EntityManagerInterface $entityManager,
+                                InventoryService       $inventoryService): Response
     {
+
+
+
+        $rfidTagsStr = $request->request->get('rfidTags');
+        $rfidTags = json_decode($rfidTagsStr ?: '[]', true) ?: [];
+
         return $this->json([
             "success" => true,
-            "data" => $inventoryService->parseAndSummarizeInventory($request->request->all(), $entityManager, $this->getUser())
+            "data" => $inventoryService->parseAndSummarizeInventory(
+                $entityManager,
+                $inventoryMission,
+                $zone,
+                $rfidTags,
+                $this->getUser()
+            )
         ]);
     }
 
@@ -2608,9 +2624,12 @@ class MobileController extends AbstractApiController
         $mission = $missionRepository->find($request->request->get('mission'));
         $zones = $zoneRepository->findBy(["id" => json_decode($request->request->get('zones'))]);
         $locations = $locationRepository->findByMissionAndZone($zones, $mission);
-        $tags = json_decode($request->request->get('tags'));
 
-        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($rfidPrefix, $locations, [Article::STATUT_ACTIF, Article::STATUT_INACTIF]);
+        $tags = Stream::from(json_decode($request->request->get('tags')))
+            ->filter(fn(string $tag) => str_starts_with($tag, $rfidPrefix))
+            ->toArray();
+
+        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
 
         $now = new DateTime('now');
         $validator = $this->getUser();
