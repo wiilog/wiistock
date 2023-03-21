@@ -2624,9 +2624,12 @@ class MobileController extends AbstractApiController
         $mission = $missionRepository->find($request->request->get('mission'));
         $zones = $zoneRepository->findBy(["id" => json_decode($request->request->get('zones'))]);
         $locations = $locationRepository->findByMissionAndZone($zones, $mission);
-        $tags = json_decode($request->request->get('tags'));
 
-        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($rfidPrefix, $locations, [Article::STATUT_ACTIF, Article::STATUT_INACTIF]);
+        $tags = Stream::from(json_decode($request->request->get('tags')))
+            ->filter(fn(string $tag) => str_starts_with($tag, $rfidPrefix))
+            ->toArray();
+
+        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
 
         $now = new DateTime('now');
         $validator = $this->getUser();

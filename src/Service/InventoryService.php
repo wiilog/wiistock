@@ -19,6 +19,7 @@ use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
+use App\Repository\ArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -201,12 +202,19 @@ class InventoryService {
         $storageRuleRepository = $entityManager->getRepository(StorageRule::class);
 
         $tagRFIDPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX) ?: '';
-        $scannedArticles = $articleRepository->findBy(['RFIDtag' => $rfidTags]);
+
+        $rfidTags = Stream::from($rfidTags)
+            ->filter(fn(string $tag) => str_starts_with($tag, $tagRFIDPrefix))
+            ->toArray();
+
         $locations = $locationRepository->findByMissionAndZone([$zone], $mission);
 
+        $scannedArticlesByStorageRule = $articleRepository->findAvailableArticlesToInventory($rfidTags, $locations, [
+            "groupByStorageRule" => true,
+            "mode" => ArticleRepository::INVENTORY_MODE_SUMMARY
+        ]);
+
         $storageRules = $storageRuleRepository->findBy(['location' => $locations]);
-        $expected = $articleRepository->getQuantityGroupedByStorageRule($tagRFIDPrefix, $locations, [Article::STATUT_ACTIF]);
-        $actual = $articleRepository->getQuantityGroupedByStorageRule($tagRFIDPrefix, $locations, [Article::STATUT_ACTIF], $scannedArticles);
 
         $now = new DateTime('now');
 
@@ -215,7 +223,10 @@ class InventoryService {
 
         $this->clearInventoryZone($entityManager, $mission, $zone);
 
+        $zoneInventoryIndicator = $zone->getInventoryIndicator() ?: 1;
+
         $lines = [];
+        $numScannedObjects = 0;
 
         foreach ($storageRules as $storageRule) {
             $key = null;
@@ -226,20 +237,20 @@ class InventoryService {
             $referenceArticle = $storageRule->getReferenceArticle();
             $reference = $referenceArticle?->getReference();
 
-            $expectedQuantity = $expected[$storageRuleId] ?? 0;
-            $actualQuantity = $actual[$storageRuleId] ?? 0;
+            $scannedArticles = $scannedArticlesByStorageRule[$storageRuleId] ?? [];
+            $articleCounter = count($scannedArticles);
+            $numScannedObjects += $articleCounter;
 
-
-            if ($expectedQuantity > 0) {
+            if ($articleCounter > 0) {
                 $key = "location" . $locationId;
                 $rowResult = $lines[$key] ?? [
                     "location" => $locationLabel,
-                    "expected" => $expectedQuantity,
-                    "actual" => $actualQuantity,
+                    "articleCounter" => 0,
+                    "storageRuleCounter" => 0,
                 ];
 
-                $rowResult["expected"] += $expectedQuantity;
-                $rowResult["actual"] += $actualQuantity;
+                $rowResult["articleCounter"] += $articleCounter;
+                $rowResult["storageRuleCounter"] += 1;
             }
             else {
                 $rowResult = [
@@ -249,7 +260,7 @@ class InventoryService {
                 ];
             }
 
-            $linkedLine = $rowResult["linkedLine"] ?? null;
+            /*$linkedLine = $rowResult["linkedLine"] ?? null;
             if (!isset($linkedLine)) {
                 $linkedLine = $mission
                     ->getInventoryLocationMissions()
@@ -259,6 +270,7 @@ class InventoryService {
             }
 
             if ($linkedLine) {
+                // TODO WIIS-9373 remove ??
                 $percentage = empty($expectedQuantity) ? 0 : floor($actualQuantity / $expectedQuantity) * 100;
                 $inventoryLine = new InventoryLocationMissionReferenceArticle();
                 $inventoryLine
@@ -269,6 +281,7 @@ class InventoryService {
                     ->setReferenceArticle($referenceArticle);
                 $entityManager->persist($inventoryLine);
             }
+            */
 
             if (isset($key)) {
                 $lines[$key] = $rowResult;
@@ -288,7 +301,9 @@ class InventoryService {
                     ]
                     : [
                         "location" => $line['location'],
-                        "ratio" => floor((intval($line['actual']) / intval($line['expected'])) * 100),
+                        "ratio" => $zoneInventoryIndicator
+                            ? floor(($line['articleCounter'] / ($line['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
+                            : 0
                     ]
             ))
             ->filter(fn(array $line) => (
@@ -303,7 +318,7 @@ class InventoryService {
         $entityManager->flush();
 
         return [
-            "numScannedObjects" => count($actual),
+            "numScannedObjects" => $numScannedObjects,
             "lines" => $lines
         ];
     }
