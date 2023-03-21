@@ -106,6 +106,13 @@ class SettingsService {
         return $settings[$key] ?? null;
     }
 
+    private function isTime1BeforeTime2($time1, $time2) {
+        $timestamp1 = strtotime($time1);
+        $timestamp2 = strtotime($time2);
+
+        return $timestamp1 < $timestamp2;
+    }
+
     public function save(Request $request): array {
         $settingRepository = $this->manager->getRepository(Setting::class);
 
@@ -113,6 +120,29 @@ class SettingsService {
             array_keys($request->request->all()),
             array_keys($request->files->all()),
         );
+
+        $getOneTruckArrivalProcessingField = ($request->request->has("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_START")
+            || $request->request->has("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END")
+            || $request->request->has("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START")
+            || $request->request->has("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END"));
+
+        $getAllTruckArrivalProcessingFields = ($request->request->has("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_START")
+            && $request->request->has("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END")
+            && $request->request->has("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START")
+            && $request->request->has("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END"));
+
+        if ($getOneTruckArrivalProcessingField && !$getAllTruckArrivalProcessingFields) {
+            throw new RuntimeException("Tous les champs horaires doivent être renseignés.");
+        } else {
+            $data = $request->request->all();
+            $int1 = $this->isTime1BeforeTime2($data["TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_START"],
+                $data["TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END"]);
+            $int2 = $this->isTime1BeforeTime2($data["TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START"],
+                $data["TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END"]);
+            if (!$int1 || !$int2) {
+                throw new RuntimeException('Il est nécessaire que les heures de début soient antérieures aux heures de fin.');
+            }
+        }
 
         $allFormSettingNames = json_decode($request->request->get('__form_fieldNames', '[]'), true);
 
