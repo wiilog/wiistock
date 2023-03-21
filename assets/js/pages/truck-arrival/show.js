@@ -82,12 +82,13 @@ function initTruckArrivalLinesTable() {
             {data: `associatedToUL`, title: `Associé à un arrivage UL`},
             {data: `arrivalLinks`, title: `Lien(s) arrivage UL`},
             {data: `operator`, title: `Opérateur`},
+            {data: 'late', name: 'late', title: 'late', 'visible': false, 'searchable': false},
         ],
         rowConfig: {
             needsRowClickAction: false,
             needsColor: true,
             color: 'danger',
-            dataToCheck: 'delay'
+            dataToCheck: 'late'
         },
         drawConfig: {
             needsSearchOverride: true

@@ -21,6 +21,9 @@ class TruckArrivalService
     public VisibleColumnService $visibleColumnService;
 
     #[Required]
+    public TruckArrivalLineService $truckArrivalLineService;
+
+    #[Required]
     public FormatService $formatService;
 
     #[Required]
@@ -38,8 +41,8 @@ class TruckArrivalService
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRUCK_ARRIVAL, $user);
         $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->query, $filters, $user, $this->visibleColumnService);
         $truckArrivals = Stream::from($queryResult['data'])
-            ->map(function (TruckArrival $truckArrival) {
-                return $this->dataRowTruckArrival($truckArrival);
+            ->map(function (TruckArrival $truckArrival) use ($entityManager) {
+                return $this->dataRowTruckArrival($truckArrival, $entityManager);
             })
             ->toArray();
 
@@ -50,7 +53,7 @@ class TruckArrivalService
         ];
     }
 
-    public function dataRowTruckArrival(TruckArrival $truckArrival): array {
+    public function dataRowTruckArrival(TruckArrival $truckArrival, EntityManagerInterface $entityManager): array {
         $formatService = $this->formatService;
         return [
             'actions' => $this->templating->render('utils/action-buttons.html.twig', [
@@ -86,6 +89,8 @@ class TruckArrivalService
             'operator' => $formatService->user($truckArrival->getOperator()),
             'reserves' => $truckArrival->getReserves()->isEmpty() ? 'non' : 'oui',
             'carrier' => $formatService->carrier($truckArrival->getCarrier()),
+            'late' => Stream::from($truckArrival->getTrackingLines())
+                ->some(fn (TruckArrivalLine $line) => $this->truckArrivalLineService->lineIsLate($line, $entityManager))
         ];
     }
 

@@ -59,7 +59,7 @@ function initTruckArrivalTable() {
                     needsRowClickAction: true,
                     needsColor: true,
                     color: 'danger',
-                    dataToCheck: 'delay'
+                    dataToCheck: 'late'
                 },
                 drawConfig: {
                     needsSearchOverride: true,
