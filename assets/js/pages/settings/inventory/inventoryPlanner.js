@@ -24,6 +24,7 @@ export function initializeInventoryPlanificatorTable($container) {
             {data: `duration`, title: `Durée`},
             {data: `requester`, title: `Demandeur`},
             {data: `lastExecution`, title: `Dernière exécution`},
+            {data: `isActive`, title: `Actif`},
         ],
         rowConfig: {
             needsRowClickAction: true,
@@ -32,14 +33,24 @@ export function initializeInventoryPlanificatorTable($container) {
     tableInventoryPanning = initDataTable($missionRulesTable, tableInventoryPannerConfig);
 
     $missionRulesTable.on('click', 'button.delete-row', function () {
-        AJAX
-            .route(AJAX.DELETE, 'mission_rules_delete', {id: $(this).data('id')})
-            .json()
-            .then((data) => {
-                if (data.success) {
-                    tableInventoryPanning.ajax.reload();
+        Modal.confirm({
+            title: 'Annuler planification',
+            message: "Confirmez-vous l'annulation cette planification de missions d'inventaire ?",
+            validateButton: {
+                color: 'success',
+                label: 'Continuer',
+                click: () => {
+                    AJAX
+                        .route(AJAX.POST, 'mission_rules_desactive', {id: $(this).data('id')})
+                        .json()
+                        .then((data) => {
+                            if (data.success) {
+                                tableInventoryPanning.ajax.reload();
+                            }
+                        })
                 }
-            })
+            },
+        });
     });
 
     const $modalFormInventoryPlanner = $('#modalFormInventoryPlanner');

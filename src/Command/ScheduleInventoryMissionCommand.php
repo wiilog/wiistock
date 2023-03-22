@@ -38,7 +38,7 @@ class ScheduleInventoryMissionCommand extends Command
     {
         $invMissionRuleRepository = $this->getEntityManager()->getRepository(InventoryMissionRule::class);
 
-        $rules = $invMissionRuleRepository->findAll();
+        $rules = $invMissionRuleRepository->findActiveMissionRules();
 
         foreach ($rules as $rule) {
             $now = new DateTime();
