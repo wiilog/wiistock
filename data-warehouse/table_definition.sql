@@ -310,7 +310,6 @@ CREATE TABLE dw_acheminement
     business_unit                varchar(255),
     delais_traitement_attendu    float,
     delais_traitement_validation float,
-    UL                           varchar(255),
     reference					 varchar(255),
     quantite_reference			 integer,
     numero_lot					 varchar(255),
@@ -488,11 +487,6 @@ CREATE TABLE dw_litige_statut
     statut      varchar(255),
     date_statut timestamp(0),
     utilisateur varchar(255)
-);
-
-CREATE TABLE dw_informations
-(
-    version varchar(255)
 );
 
 CREATE TABLE dw_article_champs_libres
