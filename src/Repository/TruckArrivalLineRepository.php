@@ -129,9 +129,11 @@ class TruckArrivalLineRepository extends EntityRepository
             ->addSelect("driver.id AS driver_id")
             ->addSelect("driver.prenom AS driver_first_name")
             ->addSelect("driver.nom AS driver_last_name")
+            ->addSelect("arrivals.id AS arrivals_id")
             ->andWhere("truck_arrival_line.number LIKE :term")
             ->join('truck_arrival_line.truckArrival', 'truck_arrival')
-            ->join('truck_arrival.driver', 'driver')
+            ->leftJoin('truck_arrival.driver', 'driver')
+            ->leftJoin('truck_arrival_line.arrivals', 'arrivals')
             ->setParameter('term', "%$term%");
 
 

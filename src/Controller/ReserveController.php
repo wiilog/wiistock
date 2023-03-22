@@ -35,9 +35,11 @@ class ReserveController extends AbstractController
 
         if(isset($data['type']) && $data['type'] === Reserve::TYPE_QUALITY){
             $truckArrivalLine = $truckArrivalLineRepository->find($data['truckArrivalLineNumber']);
-            $reserve->setType(Reserve::TYPE_QUALITY)
-                    ->setLine($truckArrivalLine)
-                    ->setComment($data['comment'] ?? '');
+            $reserve
+                ->setType(Reserve::TYPE_QUALITY)
+                ->setLine($truckArrivalLine)
+                ->setTruckArrival($truckArrivalLine->getTruckArrival())
+                ->setComment($data['comment'] ?? '');
 
             $this->persistAttachmentsForEntity($reserve, $attachmentService, $request, $entityManager);
         } else {

@@ -254,6 +254,23 @@ class ArrivageService {
         }
     }
 
+    public function createArrivalReserveModalConfig(Arrivage $arrivage, string $lines) {
+        return [
+            'autoHide' => false,
+            'title' => 'Réserve qualité',
+            'message' => "Une réserve qualité a été indiquée sur le(s) numéro(s) de tracking transporteur $lines.
+            Souhaitez vous confirmer la réserve ? Vous pourrez alors créer un litige.",
+            'iconType' => 'warning',
+            'modalKey' => 'reserve',
+            'modalType' => 'yes-no-question',
+            'autoPrint' => false,
+            'emergencyAlert' => false,
+            'numeroCommande' => null,
+            'postNb' => null,
+            'arrivalId' => $arrivage->getId() ?: $arrivage->getNumeroArrivage()
+        ];
+    }
+
     public function createArrivalAlertConfig(Arrivage $arrivage,
                                              bool $askQuestion,
                                              array $urgences = []): array
@@ -306,6 +323,7 @@ class ArrivageService {
                     : ($msgSedUrgent ?? ''))
                 : 'Arrivage enregistré avec succès.'),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
+            'modalKey' => 'emergency',
             'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
             'autoPrint' => !$settingRepository->getOneParamByLabel(Setting::REDIRECT_AFTER_NEW_ARRIVAL),
             'emergencyAlert' => $isArrivalUrgent,

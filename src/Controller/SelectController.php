@@ -626,10 +626,9 @@ class SelectController extends AbstractController {
         $carrierId = $request->query->get("carrier-id");
         $truckArrivalId = $request->query->get("truck-arrival-id");
 
-        $drivers = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
-
+        $lines = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
         return $this->json([
-            "results" => $drivers,
+            "results" => $lines,
         ]);
     }
 }
