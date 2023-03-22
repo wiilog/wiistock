@@ -124,7 +124,7 @@ class UserService
         $isUsedInDispatches = $dispatchRepository->countByUser($user);
         $isUsedInArrivals = $arrivageRepository->countByUser($user);
         $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
-        $hasSignatoryLocation = $locationRepository->count(['signatories' => $user]);
+        $hasSignatoryLocation = $locationRepository->countSignatories($user);
 
         return [
             'demande(s) de livraison' => $isUsedInRequests,

@@ -241,6 +241,18 @@ class EmplacementRepository extends EntityRepository
             ->getResult();
     }
 
+    public function countSignatories($user) {
+        $qb = $this->createQueryBuilder('location');
+        $qb->select('count(location.id)')
+            ->leftJoin('location.signatories', 'signatory')
+            ->where('signatory = :user')
+            ->setParameter("user", "%$user%");
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function findWithActivePairing(){
         $qb = $this->createQueryBuilder('location');
         $qb
