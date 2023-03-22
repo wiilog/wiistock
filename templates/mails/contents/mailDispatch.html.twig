@@ -37,8 +37,15 @@
         <li>{{ translateIn(language, "Demande", "Général", "Demandeur") }} : <strong>{{ dispatch.requester.username }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Destinataire(s)") }} : <strong>{{ receivers }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Type") }} : <strong>{{ dispatch.type.labelIn(language, getDefaultLanguage()) }}</strong></li>
+        {% if not reportTable %}
+            <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Dates d\'échéance') }} : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
+        {% endif %}
         <li>{{ translateIn(language, "Demande", "Général", "Statut") }} : <strong>{{ dispatch.statut.labelIn(language, getDefaultLanguage()) }}</strong></li>
         <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Transporteur') }} : <strong>{{ dispatch.carrier.label ?? '' }}</strong></li>
+        {% if not reportTable %}
+            <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° projet') }} : <strong>{{ dispatch.projectNumber ?? '' }}</strong></li>
+            <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'Business unit') }} : <strong>{{ dispatch.businessUnit ?? '' }}</strong></li>
+        {% endif %}
         <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° tracking transporteur') }} : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Urgence") }} : <strong>{{ emergency }}</strong></li>
         <li>{{ translateIn(language, "Général", null, "Modale", "Commentaire") }} : {{ comment|striptags }}</li>

@@ -177,6 +177,10 @@ a {
     min-height: 60px;
 }
 
+.minh-80px {
+    min-height: 70px !important;
+}
+
 //// WIDTH ////
 .minw-105px {
     min-width: 105px !important;
@@ -255,6 +259,10 @@ a {
     width: min-content;
 }
 
+.w-max-content {
+    width: max-content;
+}
+
 .w-100 {
     + .select2-container {
         width: 100% !important;
@@ -280,6 +288,10 @@ a {
 
 .border-radius-0 {
     border-radius: 0 !important;
+}
+
+.border-radius-2 {
+    border-radius: 2px !important;
 }
 
 //  reprise du form-control.is-invalid de bootstrap
@@ -805,6 +817,10 @@ label.required:after {
 .wii-big-text {
     color: $dark-grey;
     font-size: 16px;
+}
+
+.wii-warning-text {
+    color: $orange;
 }
 
 /** End classes **/

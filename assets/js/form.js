@@ -98,6 +98,34 @@ export default class Form {
         return this;
     }
 
+    submitTo(method, route, options) {
+        this.onSubmit((data, form) => {
+            form.loading(
+                () => AJAX.route(method,route)
+                    .json(data)
+                    .then(response => {
+                        if(response.success) {
+                            this.element.modal(`hide`);
+
+                            if(options.success) {
+                                options.success(response);
+                            }
+
+                            if(options.table) {
+                                if (options.table instanceof Function) {
+                                    options.table().ajax.reload();
+                                } else {
+                                    options.table.ajax.reload();
+                                }
+                            }
+                        }
+                    })
+            )
+        })
+
+        return this;
+    }
+
     clearOpenListeners() {
         this.openListeners = [];
         return this;
@@ -126,6 +154,10 @@ export default class Form {
     on(event, selector, callback) {
         this.element.on(event, selector, callback);
         return this;
+    }
+
+    process(config = {}) {
+        return Form.process(this, config);
     }
 
     /**
@@ -225,7 +257,12 @@ export default class Form {
         // display errors under each field
         for(const error of errors) {
             if (error.elements && error.elements.length > 0) {
-                error.elements.forEach(($elem) => Form.showInvalid($elem, error.message));
+                if (error.global) {
+                    error.elements.forEach(($elem) => Form.showInvalid($elem));
+                    Flash.add(`danger`, error.message);
+                } else {
+                    error.elements.forEach(($elem) => Form.showInvalid($elem, error.message));
+                }
             }
             else {
                 Flash.add(`danger`, error.message);
@@ -288,7 +325,9 @@ export default class Form {
             const prefixMessage = label ? `${label} : ` : '';
             Flash.add(`danger`, `${prefixMessage}${message}`);
         } else {
-            $parent.append(`<span class="invalid-feedback">${message}</span>`);
+            if (message) {
+                $parent.append(`<span class="invalid-feedback">${message}</span>`);
+            }
         }
     }
 

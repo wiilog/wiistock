@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 {% set isClientSafranED =
     isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
     or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
@@ -87,10 +89,11 @@
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                             <div class="form-group col-auto toggle-button-container">
-                                <span class="btn btn-primary d-flex align-items-center p-2"
-                                      onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
+                                <button
+                                    class="btn btn-primary d-flex align-items-center p-2 add-driver"
+                                    onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
                                     <span class="wii-icon wii-icon-plus"></span>
-                                </span>
+                                </button>
                             </div>
                         {% endif %}
                     {% endif %}
@@ -143,7 +146,7 @@
                         {% endif %}
 
                         {% if fieldsParam|isFieldRequired(driverFieldCode, 'displayedCreate') %}
-                            <div class="col fly-form">
+                            <div class="col fly-form driver">
                                 <div class="row">
                                     <div class="form-group col-10 invisible" id="chauffeurDisplay">
                                         <label class="wii-field-name" for="newChauffeurName">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Nom') }}*</label>
@@ -175,14 +178,31 @@
                     {% if fieldsParam|isFieldRequired(trackingNumberFieldCode, 'displayedCreate') %}
                         {% set trackingNumberRequired = fieldsParam|isFieldRequired(trackingNumberFieldCode, 'requiredCreate') %}
                         <div class="form-group col-4">
-                            <label class="wii-field-name" for="noTracking">
-                                {{  trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur') }}{{ trackingNumberRequired ? '*' }}
-                            </label>
-                            <input type="text"
-                                   class="form-control input-sm data {{ trackingNumberRequired ? 'needed' }}"
-                                   value="{{ keptFields[trackingNumberFieldCode] ?? null }}"
-                                   name="noTracking"
-                                   maxlength="64">
+                            {% set useTruckArrival = setting_value('USE_TRUCK_ARRIVALS')  %}
+                            {% if useTruckArrival %}
+                                    {{ form.select('noTracking', trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur'), trackingNumberRequired, {
+                                        type: 'truckArrivalLine',
+                                        disabled: true,
+                                        additionalAttributes : [{
+                                            name: 'data-other-params',
+                                        }],
+                                        multiple: true,
+                                    }) }}
+                                </div>
+                                <div class="form-group col-4">
+                                    {{ form.input('noTruckArrival', 'N° arrivage camion', false , null, {
+                                        disabled: true,
+                                    }) }}
+                            {% else %}
+                                <label class="wii-field-name" for="noTracking">
+                                    {{  trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur') }}{{ trackingNumberRequired ? '*' }}
+                                </label>
+                                <input type="text"
+                                       class="form-control input-sm data {{ trackingNumberRequired ? 'needed' }}"
+                                       value="{{ keptFields[trackingNumberFieldCode] ?? null }}"
+                                       name="noTracking"
+                                       maxlength="64">
+                            {% endif %}
                         </div>
                     {% endif %}
                     {% set orderNumberFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}

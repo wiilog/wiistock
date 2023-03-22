@@ -272,6 +272,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('status.groupedSignatureColor AS groupedSignatureStatusColor')
             ->addSelect('IF(status.state = 0, 1, 0) AS draft')
             ->addSelect("reference_article.reference as packReferences")
+            ->addSelect("dispatch_reference_articles.quantity as lineQuantity")
             ->addSelect("pack.code as packs")
             ->join('dispatch.requester', 'dispatch_requester')
             ->leftJoin('dispatch.dispatchPacks', 'dispatch_packs')

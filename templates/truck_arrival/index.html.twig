@@ -1,0 +1,70 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Traçabilité | Arrivages camion{% endblock %}
+{% block title_tooltip %}Traçabilité | Arrivages camion{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersTruckArrival.html.twig' with {
+        page: 'PAGE_TRUCK_ARRIVAL',
+        tableSelector: '#truckArrivalsTable'
+    } %}
+{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card overflow-x-hidden">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                {# TODO hasRight #}
+                {% include "utils/action-buttons.html.twig" with {
+                    actions: [
+                        {
+                            hasRight: hasRight(constant('App\\Entity\\Menu::TRACA'),constant('App\\Entity\\Action::CREATE_TRUCK_ARRIVALS')),
+                            title: 'Créer arrivage camion',
+                            icon: "wii-icon wii-icon-plus",
+                            attributes:{
+                                onclick: "newTruckArrival()",
+                            },
+                        },
+                        {
+                            hasRight: true,
+                            title: 'Gestion des colonnes',
+                            icon: "fa fa-cog mr-2",
+                            attributes: {
+                                'data-toggle': 'modal',
+                                'data-target': '#modalColumnVisible',
+                        },
+                        },
+                    ]
+                } %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <table id="truckArrivalsTable"
+                       class="table w-100">
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <input id="truck-arrival-filters" value="{{ initial_filters }}" hidden>
+
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': "truckArrivalsTable",
+        'route': 'save_column_visible_for_truck_arrival',
+        'reload': true
+    } %}
+
+    {% include "truck_arrival/modal-new.html.twig" with {
+        fieldsParam,
+        truckArrival : newTruckArrival,
+    }  %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('truck-arrival-index') }}
+{% endblock %}

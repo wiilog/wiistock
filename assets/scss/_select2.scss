@@ -42,6 +42,10 @@ $select-height: 36px;
                 display: flex;
                 align-items: center;
                 margin-top: 0.34rem;
+
+                &.warning {
+                    border: $orange solid 2px;
+                }
             }
 
             .select2-search.select2-search--inline {

@@ -682,12 +682,17 @@ function refArticleChanged($select) {
         $modalAddReference.find("[name=manufacturerCode]").val(description["manufacturerCode"]);
         $modalAddReference.find("input[name=height]").val(description["height"]);
         $modalAddReference.find("[name=weight]").val(description["weight"]);
+        $modalAddReference.find("[name=height]").val(description["height"]);
+        $modalAddReference.find("[name=width]").val(description["width"]);
+        $modalAddReference.find("[name=length]").val(description["length"]);
         $modalAddReference.find("[name=volume]").val(description["volume"]).prop("disabled", true);
         const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
         const $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
         $associatedDocumentTypesSelect
             .val(associatedDocumentTypes)
             .trigger('change');
+
+        registerVolumeChanges();
     }
 }
 
@@ -721,10 +726,24 @@ function openAddLogisticUnitModal() {
         });
 }
 
+function registerVolumeChanges() {
+    let $inputs = $(`input[name=length], input[name=width], input[name=height]`);
+    $inputs.off('input');
+    $inputs.on(`input`, () => {
+        computeDescriptionFormValues({
+            $length: $(`input[name=length]`),
+            $width: $(`input[name=width]`),
+            $height: $(`input[name=height]`),
+            $volume: $(`input[name=volume]`),
+            $size: $(`input[name=size]`),
+        });
+    });
+}
+
 function selectUlChanged($select){
     const $modal = $('#modalAddLogisticUnit');
     const ulData = $select.select2('data')[0];
-    console.log(ulData);
+
     if (ulData) {
         const defaultNatureId = ulData.nature_id || $modal.find('[name=defaultNatureId]').val();
         const defaultNatureLabel = ulData.nature_label || $modal.find('[name=defaultNatureLabel]').val();

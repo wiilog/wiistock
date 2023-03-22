@@ -1,3 +1,4 @@
+global.computeDescriptionFormValues = computeDescriptionFormValues
 
 export function computeDescriptionValues({length, width, height}) {
     const volumeCentimeters = length * width * height;

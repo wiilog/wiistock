@@ -1,17 +1,44 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
 
 {% block content %}
-<div class="row">
-    <div class="form-group col-12">
-        <label class="wii-field-name">Transporteurs</label>
-        <select class="ajax-autocomplete-carrier data form-control w-100"
-                name="carriers"
-                multiple
-                title="Transporteurs">
-            {% for carrier in values.carriers %}
-                <option value="{{ carrier.id }}" selected>{{ carrier.label }}</option>
-            {% endfor %}
-        </select>
+    <div class="row">
+        <div class="form-group col-12">
+            <label class="wii-field-name">Transporteurs</label>
+            <select class="ajax-autocomplete-carrier data form-control w-100"
+                    name="carriers"
+                    multiple
+                    title="Transporteurs">
+                {% for carrier in values.carriers %}
+                    <option value="{{ carrier.id }}" selected>{{ carrier.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
-</div>
+    <div class="row form-group align-items-center no-gutters">
+        <div class="col-auto">
+            <input class="checkbox filter-checkbox" type="checkbox" name="displayUnassociatedLines" {{ values.displayUnassociatedLines ?? false ? 'checked' }}>
+        </div>
+        <div class="col">
+            <span class="wii-field-text">Afficher le nombre de n° de tracking transporteur non associés
+            </span>
+        </div>
+    </div>
+    <div class="row form-group align-items-center no-gutters">
+        <div class="col-auto">
+            <input class="checkbox filter-checkbox" type="checkbox" name="displayLateLines" {{ values.displayLateLines ?? false ? 'checked' }}>
+        </div>
+        <div class="col">
+            <span class="wii-field-text">Afficher le nombre de retard
+            </span>
+        </div>
+    </div>
+    <div class="row form-group align-items-center no-gutters">
+        <div class="col-auto">
+            <input class="checkbox filter-checkbox" type="checkbox" name="redirect" {{ values.redirect ?? false ? 'checked' }}>
+        </div>
+        <div class="col">
+            <span class="wii-field-text">Rediriger vers la page arrivage camion au clic
+            </span>
+        </div>
+    </div>
 {% endblock %}

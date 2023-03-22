@@ -2,15 +2,34 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
 use App\Repository\ReserveRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ReserveRepository::class)]
 class Reserve
 {
+    use AttachmentTrait;
+
     const MINUS = 'moins';
     const PLUS = 'plus';
+
+    const QUANTITY_TYPES = [
+        self::MINUS,
+        self::PLUS,
+    ];
+
+    const TYPE_QUANTITY = 'quantity';
+    const TYPE_GENERAL = 'general';
+    const TYPE_QUALITY = 'quality';
+
+    const TYPES = [
+        self::TYPE_QUANTITY,
+        self::TYPE_GENERAL,
+        self::TYPE_QUALITY,
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,7 +42,7 @@ class Reserve
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\OneToOne(inversedBy: 'reserve', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'reserve')]
     private ?TruckArrivalLine $line = null;
 
     #[ORM\Column(nullable: true)]
@@ -34,7 +53,12 @@ class Reserve
 
     #[ORM\ManyToOne(inversedBy: 'reserves')]
     #[ORM\JoinColumn(nullable: false)]
-    private TruckArrival $truckArrival;
+    private ?TruckArrival $truckArrival = null;
+
+    public function __construct()
+    {
+        $this->attachments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {

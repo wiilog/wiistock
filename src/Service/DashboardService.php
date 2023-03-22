@@ -28,6 +28,8 @@ use App\Entity\ReferenceArticle;
 use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
+use App\Entity\Transporteur;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
@@ -57,6 +59,9 @@ class DashboardService {
 
     #[Required]
     public EnCoursService $enCoursService;
+
+    #[Required]
+    public TruckArrivalLineService $truckArrivalLineService;
 
     #[Required]
     public EntityManagerInterface $entityManager;
@@ -373,6 +378,32 @@ class DashboardService {
             ->setSubCounts([$secondCount, $thirdCount]);
     }
 
+    public function persistCarriers(EntityManagerInterface $entityManager, Dashboard\Component $component) {
+        $config = $component->getConfig();
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $lineRepository = $entityManager->getRepository(TruckArrivalLine::class);
+        $carriers = $carrierRepository->getDailyArrivalCarriersLabel($config['carriers'] ?? []);
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+        $meter->setSubtitle(FormatHelper::carriers($carriers) ?: '-');
+        $meter->setCount(0);
+        if (isset($config['displayUnassociatedLines']) && $config['displayUnassociatedLines']) {
+            $unassociatedLines = $lineRepository->getUnassociatedLines();
+            $meter->setCount(count($unassociatedLines));
+
+            if (isset($config['displayLateLines']) && $config['displayLateLines']) {
+                $lateLines = Stream::from($unassociatedLines)
+                    ->filter((fn(TruckArrivalLine $line) => $this->truckArrivalLineService->lineIsLate($line, $entityManager)))
+                    ->count();
+                $meter
+                    ->setSubCounts([
+                        '<span>Numéros de tracking transporteur non associés</span>',
+                        '<span class="text-wii-black">Dont</span> <span class="font-">' . $lateLines . '</span> <span class="text-wii-black">en retard</span>'
+                    ]);
+            }
+        }
+    }
+
     /**
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\Component $component
@@ -668,7 +699,9 @@ class DashboardService {
                                 ($countDownHours < 0 && $beginSpan === -1) // count colis en retard
                                 || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
                             )) {
-
+                            if (empty($countByNature[$pack['natureLabel']])) {
+                                $countByNature[$pack['natureLabel']] = 0;
+                            }
                             $countByNature[$pack['natureLabel']]++;
 
                             $currentLocationLabel = $pack['currentLocationLabel'];
