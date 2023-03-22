@@ -331,4 +331,20 @@ class ArticleFournisseurRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function deleteSupplierArticles(array $ignoredSupplierArticles, array $linkedReferenceArticles): void {
+        $this->createQueryBuilder('supplierArticles')
+            ->delete()
+            ->join("supplierArticles.referenceArticle", "referenceArticle")
+            ->leftJoin("supplierArticles.articles", "linkedArticle")
+            ->leftJoin("supplierArticles.receptionReferenceArticles", "linkedReceptionReferenceArticles")
+            ->andWhere("supplierArticles.reference NOT IN (:ignoredSupplierArticles)")
+            ->andWhere("referenceArticle.id IN (:linkedReferenceArticles)")
+            ->andWhere("linkedArticle IS NULL")
+            ->andWhere("linkedReceptionReferenceArticles IS NULL")
+            ->setParameter("ignoredSupplierArticles", $ignoredSupplierArticles)
+            ->setParameter("linkedReferenceArticles", $linkedReferenceArticles)
+            ->getQuery()
+            ->execute();
+    }
 }

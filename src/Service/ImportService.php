@@ -748,21 +748,6 @@ class ImportService
             $this->throwError("La valeur renseignée pour la référence de l'article de référence ne correspond à aucune référence connue.");
         }
 
-        if ($eraseData) {
-            $articlesFournisseurs = $refArticle->getArticlesFournisseur() ?? [];
-            /** @var ArticleFournisseur $articlesFournisseur */
-            foreach ($articlesFournisseurs as $supplierArticleToRemove) {
-                $isNotUsed = ($supplierArticleToRemove->getArticles()->isEmpty() && $supplierArticleToRemove->getReceptionReferenceArticles()->isEmpty());
-                if ($isNotUsed) {
-                    $refArticle->removeArticleFournisseur($supplierArticleToRemove);
-                    $this->entityManager->remove($supplierArticleToRemove);
-                } else {
-                    $label = $supplierArticleToRemove->getLabel();
-                    $this->throwError("L'article fournisseur : $label est utilisé il ne peut pas être supprimé.");
-                }
-            }
-        }
-
         $supplierArticle = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
         if (empty($supplierArticle)) {
             $newEntity = true;
@@ -788,6 +773,17 @@ class ImportService
             ->setVisible(true);
 
         $this->entityManager->persist($supplierArticle);
+
+        if ($eraseData) {
+            $this->cache["resetSupplierArticles"] = $this->cache["resetSupplierArticles"] ?? [
+                "supplierArticles" => [],
+                "referenceArticles" => [],
+            ];
+
+            $this->cache["resetSupplierArticles"]["supplierArticles"][] = $supplierArticle->getReference();
+            $this->cache["resetSupplierArticles"]["referenceArticles"][] = $refArticle->getId();
+        }
+
         $this->updateStats($stats, $newEntity);
     }
 
@@ -2265,6 +2261,7 @@ class ImportService
                 ->toArray()
             : [];
 
+        $this->cache = [];
         $this->importCache = [
             Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => $associatedDocumentTypes,
         ];
@@ -2298,7 +2295,20 @@ class ImportService
         if ($this->currentImport->isEraseData()) {
             switch ($this->currentImport->getEntity()) {
                 case Import::ENTITY_REF_LOCATION:
-                    $this->entityManager->getRepository(StorageRule::class)->clearTable();
+                    $storageRuleRepository = $this->entityManager->getRepository(StorageRule::class);
+                    $storageRuleRepository->clearTable();
+                    break;
+                case Import::ENTITY_ART_FOU:
+                    if (!empty($this->cache["resetSupplierArticles"]['supplierArticles'])
+                        && !empty($this->cache["resetSupplierArticles"]['referenceArticles'])) {
+                        $supplierArticleRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
+                        try {
+                            $supplierArticleRepository->deleteSupplierArticles(
+                                $this->cache["resetSupplierArticles"]['supplierArticles'],
+                                $this->cache["resetSupplierArticles"]['referenceArticles']
+                            );
+                        } catch(Throwable $ignored) {}
+                    }
                     break;
                 default:
                     break;
