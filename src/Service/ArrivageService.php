@@ -145,11 +145,6 @@ class ArrivageService {
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
-        $truckArrivalNumbers = [];
-        foreach ($arrival->getTruckArrivalLines() as $truckArrivalLine) {
-            $truckArrivalNumbers[] = $truckArrivalLine->getNumber();
-        }
-
         $row = [
             'id' => $arrivalId,
             'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='Colis acheminé(s)'></i></td>" : '',
@@ -157,7 +152,7 @@ class ArrivageService {
             'carrier' => $arrival->getTransporteur() ? $arrival->getTransporteur()->getLabel() : '',
             'totalWeight' => $options['totalWeight'] ?? '',
             'driver' => $arrival->getChauffeur() ? $arrival->getChauffeur()->getPrenomNom() : '',
-            'trackingCarrierNumber' => $arrival->getNoTracking() ?? '',
+            'trackingCarrierNumber' => $arrival->getNoTracking() ? $arrival->getNoTracking() : $this->formatService->truckArrivalLines($arrival->getTruckArrivalLines()),
             'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
             'type' => $this->formatService->type($arrival->getType()),
             'nbUm' => $options['packsCount'] ?? '',
@@ -174,7 +169,7 @@ class ArrivageService {
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => $this->formatService->location($arrival->getDropLocation()),
-            'truckArrivalNumber' => $arrival->getNoTracking() ?? (count($arrival->getTruckArrivalLines()) > 0 ? implode(', ', $truckArrivalNumbers) : ''),
+            'truckArrivalNumber' => !$arrival->getTruckArrivalLines()->isEmpty() ? $arrival->getTruckArrivalLines()->first()->getTruckArrival()->getNumber() : $arrival->getNoTracking(),
             'url' => $url,
         ];
 
