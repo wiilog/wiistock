@@ -333,18 +333,27 @@ class ArticleFournisseurRepository extends EntityRepository
     }
 
     public function deleteSupplierArticles(array $ignoredSupplierArticles, array $linkedReferenceArticles): void {
-        $this->createQueryBuilder('supplierArticles')
-            ->delete()
-            ->join("supplierArticles.referenceArticle", "referenceArticle")
-            ->leftJoin("supplierArticles.articles", "linkedArticle")
-            ->leftJoin("supplierArticles.receptionReferenceArticles", "linkedReceptionReferenceArticles")
-            ->andWhere("supplierArticles.reference NOT IN (:ignoredSupplierArticles)")
-            ->andWhere("referenceArticle.id IN (:linkedReferenceArticles)")
-            ->andWhere("linkedArticle IS NULL")
-            ->andWhere("linkedReceptionReferenceArticles IS NULL")
+        $supplierArticleIdToDelete = $this->createQueryBuilder('supplierArticle')
+            ->select('supplierArticle.id')
+            ->join("supplierArticle.referenceArticle", "join_referenceArticle")
+            ->leftJoin("supplierArticle.articles", "join_linkedArticle")
+            ->leftJoin("supplierArticle.receptionReferenceArticles", "join_linkedReceptionReferenceArticles")
+            ->andWhere("supplierArticle.reference NOT IN (:ignoredSupplierArticles)")
+            ->andWhere("join_referenceArticle.id IN (:linkedReferenceArticles)")
+            ->andWhere("join_linkedArticle.id IS NULL")
+            ->andWhere("join_linkedReceptionReferenceArticles.id IS NULL")
             ->setParameter("ignoredSupplierArticles", $ignoredSupplierArticles)
             ->setParameter("linkedReferenceArticles", $linkedReferenceArticles)
             ->getQuery()
-            ->execute();
+            ->getSingleColumnResult();
+
+        if (!empty($supplierArticleIdToDelete)) {
+            $this->createQueryBuilder('supplierArticle2')
+                ->delete()
+                ->andWhere("supplierArticle2.id IN (:supplierArticleIdToDelete)")
+                ->setParameter("supplierArticleIdToDelete", $supplierArticleIdToDelete)
+                ->getQuery()
+                ->execute();
+        }
     }
 }

@@ -77,7 +77,7 @@ function displayFirstModal(importId = null) {
             $inputImportId.val(importId);
         }
 
-        importTemplateChanged();
+        importTemplateChanged($modalNewImport.find("[name=entity]"));
 
         $modalNewImport.modal({
             backdrop: 'static',
@@ -269,11 +269,7 @@ function importTemplateChanged($dataTypeImport = null) {
     };
 
     const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
-    const eraseData = valTypeImport !== `REF_LOCATION` && valTypeImport !== `ART_FOU`;
-
-    $('.delete-differential-data')
-        .toggleClass(`d-none`, eraseData)
-        .html(`<input type="checkbox" name="deleteDifData" class="form-control data"/><p>Supprimer la donnée différentielle</p>`);
+    differentialDataToggle($dataTypeImport);
 
     if (configDownloadLink[valTypeImport]) {
         const {url, label} = configDownloadLink[valTypeImport];
@@ -293,4 +289,13 @@ function importTemplateChanged($dataTypeImport = null) {
     else {
         $linkToTemplate.append('<div class="col-12">Aucun modèle d\'import n\'est disponible pour ce type de données.</div>');
     }
+}
+
+function differentialDataToggle($dataTypeImport) {
+    const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
+    const eraseData = valTypeImport !== `REF_LOCATION` && valTypeImport !== `ART_FOU`;
+    const $modal = $dataTypeImport.closest('.modal');
+    $modal.find('.delete-differential-data')
+        .toggleClass(`d-none`, eraseData)
+        .html(`<input type="checkbox" name="deleteDifData" class="form-control data"/><p>Supprimer la donnée différentielle</p>`);
 }

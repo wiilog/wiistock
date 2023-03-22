@@ -438,7 +438,7 @@ class ImportService
             $import->setStartDate(new DateTime());
             $this->entityManager->flush();
 
-            $this->eraseGlobalData();
+            $this->eraseGlobalDataBefore();
 
             foreach ($firstRows as $row) {
                 $headersLog = $this->treatImportRow(
@@ -472,6 +472,9 @@ class ImportService
                     $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
                 }
             }
+
+            $this->eraseGlobalDataAfter();
+            $this->entityManager->flush();
 
             fclose($logFile);
 
@@ -2291,23 +2294,30 @@ class ImportService
         }
     }
 
-    private function eraseGlobalData(): void {
+    private function eraseGlobalDataBefore(): void {
         if ($this->currentImport->isEraseData()) {
             switch ($this->currentImport->getEntity()) {
                 case Import::ENTITY_REF_LOCATION:
                     $storageRuleRepository = $this->entityManager->getRepository(StorageRule::class);
                     $storageRuleRepository->clearTable();
                     break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private function eraseGlobalDataAfter(): void {
+        if ($this->currentImport->isEraseData()) {
+            switch ($this->currentImport->getEntity()) {
                 case Import::ENTITY_ART_FOU:
                     if (!empty($this->cache["resetSupplierArticles"]['supplierArticles'])
                         && !empty($this->cache["resetSupplierArticles"]['referenceArticles'])) {
                         $supplierArticleRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
-                        try {
-                            $supplierArticleRepository->deleteSupplierArticles(
-                                $this->cache["resetSupplierArticles"]['supplierArticles'],
-                                $this->cache["resetSupplierArticles"]['referenceArticles']
-                            );
-                        } catch(Throwable $ignored) {}
+                        $supplierArticleRepository->deleteSupplierArticles(
+                            $this->cache["resetSupplierArticles"]['supplierArticles'],
+                            $this->cache["resetSupplierArticles"]['referenceArticles']
+                        );
                     }
                     break;
                 default:
