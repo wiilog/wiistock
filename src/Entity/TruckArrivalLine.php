@@ -18,7 +18,7 @@ class TruckArrivalLine
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'string', unique: true)]
     private ?string $number = null;
 
     #[ORM\ManyToMany(targetEntity: Arrivage::class, inversedBy: 'truckArrivalLines')]

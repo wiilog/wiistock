@@ -114,7 +114,11 @@ export default class Form {
                             }
 
                             if(options.table) {
-                                options.table.ajax.reload();
+                                if (options.table instanceof Function) {
+                                    options.table().ajax.reload();
+                                } else {
+                                    options.table.ajax.reload();
+                                }
                             }
                         }
                     })
@@ -152,6 +156,10 @@ export default class Form {
     on(event, selector, callback) {
         this.element.on(event, selector, callback);
         return this;
+    }
+
+    process(config = {}) {
+        return Form.process(this, config);
     }
 
     /**

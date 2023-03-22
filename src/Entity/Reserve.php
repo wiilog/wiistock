@@ -16,6 +16,21 @@ class Reserve
     const MINUS = 'moins';
     const PLUS = 'plus';
 
+    const QUANTITY_TYPES = [
+        self::MINUS,
+        self::PLUS,
+    ];
+
+    const TYPE_QUANTITY = 'quantity';
+    const TYPE_GENERAL = 'general';
+    const TYPE_QUALITY = 'quality';
+
+    const TYPES = [
+        self::TYPE_QUANTITY,
+        self::TYPE_GENERAL,
+        self::TYPE_QUALITY,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -27,7 +42,7 @@ class Reserve
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\OneToOne(inversedBy: 'reserve', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'reserve')]
     private ?TruckArrivalLine $line = null;
 
     #[ORM\Column(nullable: true)]
@@ -37,7 +52,7 @@ class Reserve
     private ?string $quantityType = null;
 
     #[ORM\ManyToOne(inversedBy: 'reserves')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?TruckArrival $truckArrival = null;
 
     public function __construct()

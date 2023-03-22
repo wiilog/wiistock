@@ -29,7 +29,7 @@ $(function () {
     const $dispatchModeContainer = $(`.dispatch-mode-container`);
     const $arrivalModeContainer = $(`.arrival-mode-container`);
     const $filtersInputs = $(`.filters-container`).find(`select, input, button, .checkbox-filter`);
-    $(`.dispatch-mode-button`).on(`click`, function() {
+    $(`.dispatch-mode-button`).on(`click`, function () {
         $(this).pushLoader(`black`);
         arrivalsTable.clear().destroy();
         initTableArrival(true).then((returnedArrivalsTable) => {
@@ -42,10 +42,10 @@ $(function () {
         });
     });
 
-    $dispatchModeContainer.find(`.validate`).on(`click`, function() {
+    $dispatchModeContainer.find(`.validate`).on(`click`, function () {
         const $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
         const arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
-        if(arrivalsToDispatch.length > 0) {
+        if (arrivalsToDispatch.length > 0) {
             $(this).pushLoader(`white`);
             $.post(Routing.generate(`create_from_arrival_template`, {arrivals: arrivalsToDispatch}, true))
                 .then(({content}) => {
@@ -64,7 +64,7 @@ $(function () {
         }
     });
 
-    $dispatchModeContainer.find(`.cancel`).on(`click`, function() {
+    $dispatchModeContainer.find(`.cancel`).on(`click`, function () {
         $dispatchModeContainer.find(`.validate`).prop(`disabled`, true);
         $(this).pushLoader(`primary`);
         arrivalsTable.clear().destroy();
@@ -78,13 +78,13 @@ $(function () {
     });
 
     $(document).arrive(`.check-all`, function () {
-        $(this).on(`click`, function() {
+        $(this).on(`click`, function () {
             $arrivalsTable.find(`.dispatch-checkbox`).not(`:disabled`).prop(`checked`, $(this).is(`:checked`));
             toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
         });
     });
 
-    $(document).on(`change`, `.dispatch-checkbox:not(:disabled)`, function() {
+    $(document).on(`change`, `.dispatch-checkbox:not(:disabled)`, function () {
         toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
     });
 });
@@ -92,7 +92,7 @@ $(function () {
 function initTableArrival(dispatchMode = false) {
     let pathArrivage = Routing.generate('arrivage_api', {dispatchMode}, true);
     let initialVisible = $(`#arrivalsTable`).data(`initial-visible`);
-    if(dispatchMode || !initialVisible) {
+    if (dispatchMode || !initialVisible) {
         return $
             .post(Routing.generate('arrival_api_columns', {dispatchMode}))
             .then(columns => proceed(columns));
@@ -149,7 +149,7 @@ function initTableArrival(dispatchMode = false) {
                 updateArrivalPageLength();
                 $('.dispatch-mode-button').removeClass('d-none');
                 $('button[name=new-arrival]').attr('disabled', false);
-                if(dispatchMode) {
+                if (dispatchMode) {
                     $(`.dispatch-mode-container`).find(`.cancel`).prop(`disabled`, false);
                 }
             },
@@ -198,7 +198,7 @@ function createArrival(form = null) {
     const data = form || JSON.parse($(`#arrivalForm`).val());
     const $existingModal = $(`#modalNewArrivage`);
     let $modal;
-    if($existingModal.exists()) {
+    if ($existingModal.exists()) {
         const style = $existingModal.attr(`style`);
         $existingModal.find('.modal-body').html($(data.html).find('.modal-body').html());
 
@@ -211,6 +211,13 @@ function createArrival(form = null) {
         $(`body`).append(data.html);
 
         $modal = $(`#modalNewArrivage`);
+    }
+
+    const $element = $modal.find("select[name='noTracking']");
+    if ($element.is(`.select2-hidden-accessible`)) {
+        $element.val(null).html(``);
+        $element.select2(`data`, null);
+        $element.select2(`destroy`);
     }
 
     setTimeout(() => {
@@ -237,11 +244,99 @@ function createArrival(form = null) {
         fillDatePickers('.free-field-date');
         fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
 
+        const $carrierSelect = $modal.find("select[name='transporteur']");
+        const $noTrackingSelect = $modal.find("select[name='noTracking']");
+        const $noTruckArrivalSelect = $modal.find("input[name='noTruckArrival']");
+
+        $carrierSelect.on(`change`, function () {
+            $noTrackingSelect
+                .prop(`disabled`, !$(this).val())
+                .attr('data-other-params-carrier-id', $(this).val())
+                .attr('data-other-params-truck-arrival-id', null);
+            $noTrackingSelect.find(`option`).remove();
+            $noTrackingSelect.trigger('change');
+            $noTruckArrivalSelect.val(``);
+        }).trigger('change');
+
+        const trackingNumberSuccess = function(data, remove) {
+            const $driverSelect = $modal.find("select[name='chauffeur']");
+            const $driverAddButton = $modal.find(`button.add-driver`);
+            const $flyFormDirver = $modal.find(`.fly-form.driver`);
+            if (remove) {
+                $noTruckArrivalSelect.val(null);
+                $driverSelect.find(`option`).remove();
+                $flyFormDirver.css('height', '0px').addClass('invisible')
+            } else {
+                $(this).attr('data-other-params-truck-arrival-id', data.truck_arrival_id || null);
+                $noTruckArrivalSelect.val(data.truck_arrival_number);
+
+                if (data.driver_id !== undefined && data.driver_id != null) {
+                    $driverSelect.find(`option`).remove();
+                    $driverSelect
+                        .append(`<option value="${data.driver_id}" selected>${data.driver_first_name} ${data.driver_last_name}</option>`)
+                        .attr('disabled', true);
+                    $driverAddButton.attr('disabled', true);
+                    $flyFormDirver.css('height', '0px').addClass('invisible')
+                } else {
+                    $driverSelect.attr('disabled', false);
+                    $driverAddButton.attr('disabled', false);
+                }
+            }
+        }
+
+        $noTrackingSelect.on(`change`, function () {
+            const data = $(this).select2('data')[0] || {};
+            if (data.arrivals_id) {
+                displayAlertModal(
+                    'N° de tracking transporteur : ' + data.text,
+                    $('<div/>', {
+                        class: 'text-center',
+                        html: 'Ce numéro de tracking transporteur à déjà été associé une fois à un arrivage. ' +
+                            'Voulez vous l\'associer à nouveau ?'
+                    }),
+                    [
+                        {
+                            class: 'btn btn-outline-secondary m-0',
+                            text: 'Non',
+                            action: ($alert) => {
+                                const selectedOptions = [];
+                                $noTrackingSelect.find('option').each(function() {
+                                    if ($(this).text() !== data.text) {
+                                        selectedOptions.push({
+                                            value: $(this).val(),
+                                            text: $(this).text(),
+                                        })
+                                    }
+                                });
+                                $noTrackingSelect.val(null).trigger('change');
+                                trackingNumberSuccess(data, true);
+                                selectedOptions.forEach((option) => {
+                                    $noTrackingSelect.append(new Option(option.text, option.value, true, true));
+                                })
+                                $noTrackingSelect.trigger('change');
+                                $alert.modal('hide');
+                            }
+                        },
+                        {
+                            class: 'btn btn-success m-0 btn-action-on-hide',
+                            text: 'Oui',
+                            action: ($alert) => {
+                                trackingNumberSuccess(data);
+                                $alert.modal('hide');
+                            }
+                        },
+                    ],
+                    'warning',
+                    false
+                );
+            }
+        });
+
         const $submit = $modal.find(`[type=submit]`);
         $submit
             .off('click.new-arrival')
-            .on('click.new-arrival', function() {
-                if($submit.hasClass(LOADING_CLASS)) {
+            .on('click.new-arrival', function () {
+                if ($submit.hasClass(LOADING_CLASS)) {
                     Flash.add(`info`, Translation.of('Général', '', 'Modale', 'L\'opération est en cours de traitement'));
                     return;
                 }
@@ -271,8 +366,9 @@ function createArrival(form = null) {
                             arrivalsTable
                         );
                     },
-                }).catch(() => {});
-        })
+                }).catch(() => {
+                });
+            })
     }, 1);
 
     return $modal;

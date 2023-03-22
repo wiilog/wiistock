@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Traits\AttachmentTrait;
+use App\Repository\ReserveRepository;
 use App\Repository\TruckArrivalRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -215,6 +216,13 @@ class TruckArrival
         }
 
         return $this;
+    }
+
+    public function getReserveByType(string $type): ?Reserve {
+        return $this
+            ->getReserves()
+            ->filter(fn(Reserve $reserve) => $reserve->getType() === $type)
+            ->first() ?: null;
     }
 
     public function setReserves(?iterable $reserves): self {

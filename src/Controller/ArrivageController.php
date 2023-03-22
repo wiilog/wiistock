@@ -24,6 +24,7 @@ use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -162,7 +163,9 @@ class ArrivageController extends AbstractController {
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
+        $useTruckArrivals = $settingRepository->getOneParamByLabel(Setting::USE_TRUCK_ARRIVALS);
 
         $date = new DateTime('now');
         $counter = $arrivageRepository->countByDate($date) + 1;
@@ -228,7 +231,17 @@ class ArrivageController extends AbstractController {
         }
 
         if (!empty($data['noTracking'])) {
-            $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+            if ($settingRepository->getOneParamByLabel(Setting::USE_TRUCK_ARRIVALS)) {
+                $truckArrivalLineId = explode(',', $data['noTracking']);
+                foreach ($truckArrivalLineId as $lineId) {
+                    $line = $truckArrivalLineRepository
+                        ->find($lineId)
+                        ->addArrival($arrivage);
+                    $arrivage->addTruckArrivalLine($line);
+                }
+            } else {
+                $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+            }
         }
 
         $numeroCommandeList = explode(',', $data['numeroCommandeList'] ?? '');
@@ -280,6 +293,18 @@ class ArrivageController extends AbstractController {
             ]
             : $arrivalService->processEmergenciesOnArrival($entityManager, $arrivage);
 
+        if ($useTruckArrivals) {
+            $linesNeedingConfirmation = Stream::from($arrivage->getTruckArrivalLines())
+                ->filterMap(fn(TruckArrivalLine $line) => $line->getReserve() && $line->getArrivals()->count() === 1
+                    ? $line->getNumber()
+                    : null
+                )
+                ->join(',');
+            $lastElement = array_pop($alertConfigs);
+            $alertConfigs[] = $arrivageDataService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
+            $alertConfigs[] = $lastElement;
+        }
+
         if ($isArrivalUrgent) {
             $arrivage->setIsUrgent(true);
         }
@@ -312,7 +337,6 @@ class ArrivageController extends AbstractController {
 
         $entityManager->flush();
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
-
         return new JsonResponse([
             'success' => true,
             "redirectAfterAlert" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)

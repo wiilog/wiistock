@@ -22,6 +22,7 @@ use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
@@ -277,6 +278,23 @@ class ArrivageService {
         }
     }
 
+    public function createArrivalReserveModalConfig(Arrivage $arrivage, string $lines) {
+        return [
+            'autoHide' => false,
+            'title' => 'Réserve qualité',
+            'message' => "Une réserve qualité a été indiquée sur le(s) numéro(s) de tracking transporteur $lines.
+            Souhaitez vous confirmer la réserve ? Vous pourrez alors créer un litige.",
+            'iconType' => 'warning',
+            'modalKey' => 'reserve',
+            'modalType' => 'yes-no-question',
+            'autoPrint' => false,
+            'emergencyAlert' => false,
+            'numeroCommande' => null,
+            'postNb' => null,
+            'arrivalId' => $arrivage->getId() ?: $arrivage->getNumeroArrivage()
+        ];
+    }
+
     public function createArrivalAlertConfig(Arrivage $arrivage,
                                              bool $askQuestion,
                                              array $urgences = []): array
@@ -329,6 +347,7 @@ class ArrivageService {
                     : ($msgSedUrgent ?? ''))
                 : 'Arrivage enregistré avec succès.'),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
+            'modalKey' => 'emergency',
             'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
             'autoPrint' => !$settingRepository->getOneParamByLabel(Setting::REDIRECT_AFTER_NEW_ARRIVAL),
             'emergencyAlert' => $isArrivalUrgent,
@@ -424,6 +443,11 @@ class ArrivageService {
         $buyers = $arrivage->getAcheteurs();
         $comment = $arrivage->getCommentaire();
         $attachments = $arrivage->getAttachments();
+        $truckArrivalLines = $arrivage->getTruckArrivalLines();
+        $numeroTrackingOld = $arrivage->getNoTracking();
+        $numeroTrackingArray = Stream::from($truckArrivalLines)
+            ->map(fn(TruckArrivalLine $line) => $line->getNumber())
+            ->join(', ');
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -468,8 +492,14 @@ class ArrivageService {
                 'isRaw' => true
             ],
             [
+                'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N°Arrivage camion'),
+                'value' => count($truckArrivalLines) > 0 ?
+                    '<a href="/arrivage-camion/voir/'. $truckArrivalLines->first()->getTruckArrival()->getId() . '" title="Détail Arrivage Camion">' . $truckArrivalLines->first()->getTruckArrival()->getNumber() . '</a>' : '',
+                'isRaw' => true
+            ],
+            [
                 'label' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur'),
-                'value' => $arrivage->getNoTracking(),
+                'value' => $numeroTrackingArray ?: $numeroTrackingOld,
                 'show' => ['fieldName' => 'noTracking'],
                 'isRaw' => true
             ],

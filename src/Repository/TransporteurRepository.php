@@ -126,6 +126,8 @@ class TransporteurRepository extends EntityRepository
     public function getForSelect(?string $term) {
         return $this->createQueryBuilder("carrier")
             ->select("carrier.id AS id, carrier.label AS text")
+            ->addSelect("carrier.minTrackingNumberLength AS minTrackingNumberLength" )
+            ->addSelect("carrier.maxTrackingNumberLength AS maxTrackingNumberLength" )
             ->where("carrier.label LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
