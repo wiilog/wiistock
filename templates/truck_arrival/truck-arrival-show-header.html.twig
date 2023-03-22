@@ -13,7 +13,7 @@
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_TRUCK_ARRIVALS')) %}
             <button type="button"
                     data-id='{{ truckArrival.id }}'
-                    onclick=""
+                    onclick="editTruckArrival({{ truckArrival.id }})"
                     class="btn btn-primary ml-auto split-button">
                 <img class="mr-2" src="{{ asset('svg/pencil-white.svg') }}" alt="" width="15px" height="15px">
                 {{ trans('Général', null, 'Modale', 'Modifier') }}

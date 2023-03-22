@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 #[Route('/arrivage-camion')]
 class TruckArrivalController extends AbstractController
@@ -283,7 +284,12 @@ class TruckArrivalController extends AbstractController
             $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
             $truckArrival = $truckArrivalRepository->find($data);
 
-            if (count($truckArrival->getTrackingLines()) === 0) {
+            $hasLinesAssociatedToArrival =
+                Stream::from($truckArrival->getTrackingLines())
+                    ->filter(fn(TruckArrivalLine $line) => !$line->getArrivals()->isEmpty())
+                    ->count();
+
+            if ($hasLinesAssociatedToArrival === 0) {
                 $entityManager->remove($truckArrival);
                 $entityManager->flush();
 
@@ -295,7 +301,7 @@ class TruckArrivalController extends AbstractController
             } else {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => "L'arrivage camion est associé à au moins un arrivage UL, vous ne pouvez pas le supprimer."
+                    'msg' => "Cette arrivage camion contient au moins un numéro de tracking transporteur lié à au moins un arrivage UL, vous ne pouvez pas le supprimer."
                 ]);
             }
         }
