@@ -1032,27 +1032,31 @@ class ImportService
 
         if ($isNewEntity) {
             $statusRepository = $this->entityManager->getRepository(Statut::class);
+            $typeRepository = $this->entityManager->getRepository(Type::class);
+            $categoryTypeRepository = $this->entityManager->getRepository(CategoryType::class);
+
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, ReferenceArticle::STATUT_ACTIF);
+
+            $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['type'] ?? Type::LABEL_STANDARD);
+            if (empty($type)) {
+                $categoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::ARTICLE]);
+
+                $type = new Type();
+                $type
+                    ->setLabel($data['type'])
+                    ->setCategory($categoryType);
+                $this->entityManager->persist($type);
+            }
+
             $refArt
                 ->setStatut($status)
                 ->setIsUrgent(false)
-                ->setBarCode($this->refArticleDataService->generateBarCode());
+                ->setBarCode($this->refArticleDataService->generateBarCode())
+                ->setType($type);
         }
-
-        // liaison type
-        $typeRepository = $this->entityManager->getRepository(Type::class);
-
-        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['type'] ?? Type::LABEL_STANDARD);
-        if (empty($type)) {
-            $categoryType = $this->entityManager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
-
-            $type = new Type();
-            $type
-                ->setLabel($data['type'])
-                ->setCategory($categoryType);
-            $this->entityManager->persist($type);
+        else if (isset($data['type']) && $refArt->getType()?->getLabel() !== $data['type']) {
+            $this->throwError("La modification du type d'une référence n'est pas autorisée");
         }
-        $refArt->setType($type);
 
         // liaison emplacement
         if ($refArt->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
