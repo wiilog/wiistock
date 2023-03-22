@@ -163,4 +163,12 @@ class TruckArrivalLineRepository extends EntityRepository
 
         return $qb->getQuery()->getArrayResult();
     }
+
+    public function getUnassociatedLines() {
+        return $this->createQueryBuilder('line')
+            ->andWhere('arrivals.id IS NULL')
+            ->leftJoin('line.arrivals', 'arrivals')
+            ->getQuery()
+            ->getResult();
+    }
 }

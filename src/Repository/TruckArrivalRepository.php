@@ -40,6 +40,12 @@ class TruckArrivalRepository extends EntityRepository
         $qb = $this->createQueryBuilder('truckArrival');
         $countTotal =  QueryBuilderHelper::count($qb, 'truckArrival');
 
+        if ($params->get('unassociated')) {
+            $qb
+                ->andWhere('trackingLinesRedirect.number IS NULL')
+                ->leftJoin('truckArrival.trackingLines', 'trackingLinesRedirect');
+        }
+
         if (!empty($params)) {
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];

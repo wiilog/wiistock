@@ -66,6 +66,12 @@ function initTruckArrivalTable() {
                 },
                 ajax: {
                     "url": pathTruckArrivalList,
+                    "data": function(params) {
+                        const queryParams = GetRequestQuery();
+                        if (queryParams.unassociated) {
+                            params.unassociated = queryParams.unassociated;
+                        }
+                    },
                     "type": GET,
                 },
                 hideColumnConfig: {
@@ -81,6 +87,7 @@ function initTruckArrivalTable() {
                 ],
             };
             initDataTable($table, tableTruckArrivalConfig);
+            SetRequestQuery({});
         });
 }
 
