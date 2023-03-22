@@ -253,13 +253,6 @@ class TruckArrivalController extends AbstractController
             $entityManager->persist($quantityReserve);
         }
 
-        if (empty($data['trackingNumbers'])) {
-            return $this->json([
-                'success' => false,
-                'msg' => 'Veuillez renseigner des numéros de tracking.'
-            ]);
-        }
-
         foreach (explode(',', $data['trackingNumbers'] ?? '') as $lineNumber) {
             if ($lineNumber && empty($lineNumberRepository->findOneBy(['number' => $lineNumber]))) {
                 $arrivalLine = new TruckArrivalLine();
