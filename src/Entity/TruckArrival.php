@@ -24,7 +24,7 @@ class TruckArrival
     #[ORM\Column(length: 255)]
     private string $number;
 
-    #[ORM\OneToMany(mappedBy: 'truckArrival', targetEntity: TruckArrivalLine::class)]
+    #[ORM\OneToMany(mappedBy: 'truckArrival', targetEntity: TruckArrivalLine::class, cascade: ['remove'])]
     private Collection $trackingLines;
 
     #[ORM\ManyToOne(targetEntity: Chauffeur::class)]
@@ -48,7 +48,7 @@ class TruckArrival
     #[ORM\JoinColumn(nullable: false)]
     private ?Transporteur $carrier = null;
 
-    #[ORM\OneToMany(mappedBy: 'truckArrival', targetEntity: Reserve::class)]
+    #[ORM\OneToMany(mappedBy: 'truckArrival', targetEntity: Reserve::class, cascade: ['remove'])]
     private Collection $reserves;
 
     public function __construct()

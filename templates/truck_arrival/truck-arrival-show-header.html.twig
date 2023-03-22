@@ -1,0 +1,43 @@
+{% extends 'utils/show-header.html.twig' %}
+
+
+{% block showHiddenInputs %}
+    <input hidden value="{{ truckArrival.id }}" id="truckArrivalId">
+{% endblock %}
+
+{% block showTitle (trans('Traçabilité', 'Arrivage camion', 'Détails', 'Arrivage camion')) %}
+{% block showSubtitle (truckArrival.number) %}
+
+{% block showActions %}
+    <div class="btn-group">
+        {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_TRUCK_ARRIVALS')) %}
+            <button type="button"
+                    data-id='{{ truckArrival.id }}'
+                    onclick="editTruckArrival({{ truckArrival.id }})"
+                    class="btn btn-primary ml-auto split-button">
+                <img class="mr-2" src="{{ asset('svg/pencil-white.svg') }}" alt="" width="15px" height="15px">
+                {{ trans('Général', null, 'Modale', 'Modifier') }}
+            </button>
+        {% endif %}
+        <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false">
+            <span class="fa fa-angle-down"></span>
+        </button>
+        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_TRUCK_ARRIVALS')) %}
+                <a href="" data-id='{{ truckArrival.id }}' data-target='#modalDeleteTruckArrival' data-toggle='modal'
+                   class="dropdown-item d-flex align-items-center"
+                   onclick="deleteRow($(this), $('#modalDeleteTruckArrival'), $('#submitDeleteTruckArrival'))">
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>
+                    {{ trans('Général', null, 'Modale', 'Supprimer') }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('truck-arrival-show') }}
+{% endblock %}

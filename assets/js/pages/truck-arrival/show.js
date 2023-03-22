@@ -1,5 +1,6 @@
 import {initReserveForm} from "@app/pages/truck-arrival/reserve";
 import {POST} from "@app/ajax";
+import AJAX from "@app/ajax";
 
 global.editTruckArrival = editTruckArrival;
 global.deleteTruckArrivalLine = deleteTruckArrivalLine;
@@ -12,6 +13,8 @@ const $modalReserveQuality = $('#modalReserveQuality');
 let truckArrival;
 let truckArrivalLinesTable;
 let truckArrivalLinesQualityReservesTable;
+
+
 
 $(function () {
     Form
@@ -33,6 +36,20 @@ $(function () {
     truckArrival = $('[name=truckArrival]').val();
     truckArrivalLinesTable = initTruckArrivalLinesTable();
     truckArrivalLinesQualityReservesTable = initTruckArrivalLineQualityReservesTable();
+
+    let modalDeleteTruckArrival = $('#modalDeleteTruckArrival');
+    Form.create(modalDeleteTruckArrival).onSubmit((data, form) => {
+        form.loading(() => {
+            return AJAX
+                .route(AJAX.POST, `truck_arrival_delete`, {truckArrival: $('#truckArrivalId').val()})
+                .json(data)
+                .then((response) => {
+                    if (response.success ) {
+                        window.location.href = response.redirect;
+                    }
+                })
+        });
+    });
 
     $('.new-quality-reserve-button').on('click', function(){
         openModalQualityReserveContent($modalReserveQuality);
