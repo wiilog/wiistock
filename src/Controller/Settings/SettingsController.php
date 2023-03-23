@@ -2437,7 +2437,7 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function missionRulesForce(EntityManagerInterface $manager, InvMissionService $invMissionService): Response {
-        $rules = $manager->getRepository(InventoryMissionRule::class)->findActiveMissionRules();
+        $rules = $manager->getRepository(InventoryMissionRule::class)->findBy(['active' => true]);
 
         foreach($rules as $rule) {
             $invMissionService->generateMission($rule);
