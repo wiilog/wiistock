@@ -3,7 +3,9 @@
 namespace App\Service;
 
 
+use App\Entity\Action;
 use App\Entity\FiltreSup;
+use App\Entity\Menu;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
@@ -25,6 +27,9 @@ class TruckArrivalService
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public UserService $userService;
 
     #[Required]
     public Environment $templating;
@@ -79,6 +84,7 @@ class TruckArrivalService
                         ]
                     ],
                     [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS),
                         'title' => 'Supprimer',
                         'icon' => 'fa fa-trash',
                         'class' => 'truck-arrival-delete',

@@ -122,6 +122,11 @@
                         ? {(truckArrival.unloadingLocation.id) : (truckArrival.unloadingLocation.label)}
                         : {},
                 disabled: truckArrival.id,
+                additionalAttributes : [{
+                    name: 'data-init',
+                    value: defaultLocation.id
+                }],
+                inputClass: 'needs-default w-100'
             }) }}
         </div>
     {% endif %}

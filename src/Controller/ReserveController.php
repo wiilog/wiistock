@@ -38,7 +38,6 @@ class ReserveController extends AbstractController
             $reserve
                 ->setType(Reserve::TYPE_QUALITY)
                 ->setLine($truckArrivalLine)
-                ->setTruckArrival($truckArrivalLine->getTruckArrival())
                 ->setComment($data['comment'] ?? '');
 
             $this->persistAttachmentsForEntity($reserve, $attachmentService, $request, $entityManager);

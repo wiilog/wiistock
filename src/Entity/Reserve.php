@@ -36,14 +36,11 @@ class Reserve
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private string $type;
+    #[ORM\Column(length: 255, nullable: false)]
+    private ?string $type = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
-
-    #[ORM\OneToOne(inversedBy: 'reserve')]
-    private ?TruckArrivalLine $line = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $quantity = null;
@@ -51,8 +48,10 @@ class Reserve
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $quantityType = null;
 
-    #[ORM\ManyToOne(inversedBy: 'reserves')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\OneToOne(inversedBy: 'reserve', targetEntity: TruckArrivalLine::class)]
+    private ?TruckArrivalLine $line = null;
+
+    #[ORM\ManyToOne(targetEntity: TruckArrival::class, inversedBy: 'reserves')]
     private ?TruckArrival $truckArrival = null;
 
     public function __construct()
