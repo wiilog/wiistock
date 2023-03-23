@@ -93,5 +93,7 @@ function initTruckArrivalTable() {
 
 function newTruckArrival() {
     const $modal = $('#newTruckArrivalModal');
+    clearModal($modal);
+    $modal.find('.display-condition').trigger('change');
     $modal.modal('show');
 }
