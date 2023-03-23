@@ -2453,18 +2453,17 @@ class SettingsController extends AbstractController {
      * @Route("/mission-rules-api", name="settings_mission_rules_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
-    public function missionRulesApi(Twig_Environment       $templating,
-                                    EntityManagerInterface $manager): Response {
+    public function missionRulesApi(EntityManagerInterface $manager): Response {
         $data = [];
         $missionRuleRepository = $manager->getRepository(InventoryMissionRule::class);
 
         /** @var InventoryMissionRule $mission */
         foreach ($missionRuleRepository->findAll() as $mission) {
             $data[] = [
-                "actions" => $templating->render("utils/action-buttons/dropdown.html.twig", [
+                "actions" => $this->renderView("utils/action-buttons/dropdown.html.twig", [
                     "actions" => [
                         [
-                            "title" => "Annuler la planification",
+                            "title" => "Modifier",
                             "actionOnClick" => true,
                             "attributes" => [
                                 "data-id" => $mission->getId(),
@@ -2488,7 +2487,7 @@ class SettingsController extends AbstractController {
                                 "class" => "pointer",
                                 "onclick" => "deleteInventoryMission($(this))",
                             ]
-                        ]
+                        ],
                     ]
                 ]),
                 "missionType" => $mission->getMissionType() ? InventoryMission::TYPES_LABEL[$mission->getMissionType()] ?? '' : '',
