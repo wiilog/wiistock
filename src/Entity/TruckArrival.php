@@ -24,6 +24,12 @@ class TruckArrival
     #[ORM\Column(length: 255)]
     private string $number;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $registrationNumber = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?DateTime $creationDate = null;
+
     #[ORM\OneToMany(mappedBy: 'truckArrival', targetEntity: TruckArrivalLine::class, cascade: ['remove'])]
     private Collection $trackingLines;
 
@@ -31,14 +37,8 @@ class TruckArrival
     #[ORM\JoinColumn(nullable: true)]
     private ?Chauffeur $driver = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?DateTime $creationDate = null;
-
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $unloadingLocation = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $registrationNumber = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: false)]

@@ -1636,7 +1636,7 @@ class MobileController extends AbstractApiController
 
         $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
 
-        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH])
+        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL])
             ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
             ->toArray();
 
