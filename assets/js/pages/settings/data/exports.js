@@ -189,7 +189,7 @@ function createForm() {
                         const dateMin = $modal.find(`[name=articleDateMin]`).val();
                         const dateMax = $modal.find(`[name=articleDateMax]`).val();
 
-                        if (dateMin !== '' && dateMax !== '' && moment(dateMin).isAfter(moment(dateMax))) {
+                        if (dateMin !== '' && dateMax !== '' && moment(dateMin, 'DD/MM/YYYY').isAfter(moment(dateMax, 'DD/MM/YYYY'))) {
                             Flash.add(`danger`, `Les bornes de dates d'entrée de stock sont invalides`);
                             return Promise.resolve();
                         }
