@@ -7,7 +7,6 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Emplacement;
-use App\Entity\FiltreSup;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
@@ -15,10 +14,6 @@ use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
-use App\Repository\Inventory\InventoryMissionRepository;
-use App\Repository\TypeRepository;
-use App\Entity\Type;
-use App\Entity\CategoryType;
 use App\Exceptions\FormException;
 use WiiCommon\Helper\Stream;
 use App\Service\CSVExportService;
@@ -244,37 +239,56 @@ class InventoryMissionController extends AbstractController
                                              InventoryMission        $mission,
                                              Request                 $request,
                                              InvMissionService       $invMissionService): JsonResponse {
-        $result = $invMissionService->getDataForOneLocationMissionDatatable($entityManager, $mission,  $request->request);
+        $result = $invMissionService->findDataForOneLocationMissionDatatable($entityManager, $mission,  $request->request);
         $rows = [];
+        /** @var InventoryLocationMission $inventoryLocation */
         foreach ($result['data'] as $inventoryLocation) {
             $rows[] = [
-                'id' => $inventoryLocation['id'],
-                'missionId' => $inventoryLocation['missionId'],
-                'zone' => $inventoryLocation['zone'],
-                'location' => $inventoryLocation['location'],
-                'date' => $inventoryLocation['date'],
-                'operator' => $inventoryLocation['operator'],
-                'percentage' => $inventoryLocation['percentage'],
-                'actions' => $this->renderView('inventaire/datatableLocationMissionRow.html.twig', [
-                    'id' => $inventoryLocation['id'],
-                ]),
+                'zone' => $this->getFormatter()->zone($inventoryLocation->getLocation()?->getZone()),
+                'location' => $this->getFormatter()->location($inventoryLocation->getLocation()),
+                'date' => $mission->isDone() ? $this->getFormatter()->date($inventoryLocation->getScannedAt()) : null,
+                'operator' => $mission->isDone() ? $this->getFormatter()->user($inventoryLocation->getOperator()) : null,
+                'percentage' => $mission->isDone() ? (($inventoryLocation->getPercentage() ?: 0) . '%') : null,
+                'actions' => $mission->isDone()
+                    ? $this->renderView("utils/action-buttons/dropdown.html.twig", [
+                        "actions" => [
+                            [
+                                "title" => "Annuler la planification",
+                                "actionOnClick" => true,
+                                "attributes" => [
+                                    "data-id" => $inventoryLocation->getId(),
+                                    "onclick" => "openShowScannedArticlesModal($(this))",
+                                ],
+                            ],
+                            [
+                                "title" => "Voir les articles",
+                                "icon" => "bg-black fas fa-eye",
+                                "attributes" => [
+                                    "class" => "pointer",
+                                    "data-id" => $inventoryLocation->getId(),
+                                    "onclick" => "openShowScannedArticlesModal($(this))",
+                                ],
+                            ],
+                        ],
+                    ])
+                    : null,
             ];
         }
         $data['data'] = $rows;
         $data['recordsTotal'] = $result['recordsTotal'];
         $data['recordsFiltered'] = $result['recordsFiltered'];
 
-        return new JsonResponse($data);
+        return $this->json($data);
     }
 
-    #[Route("/{mission}/mission-location-art-api", name: "mission_location_art_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/{locationLine}/mission-location-art-api", name: "mission_location_art_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
-    public function getMissionLocationArticlesApi(EntityManagerInterface  $entityManager,
-                                                  InventoryLocationMission        $mission,
-                                                  Request                 $request,
-                                                  InvMissionService       $invMissionService): JsonResponse
+    public function getMissionLocationArticlesApi(EntityManagerInterface   $entityManager,
+                                                  InventoryLocationMission $locationLine,
+                                                  Request                  $request,
+                                                  InvMissionService        $invMissionService): JsonResponse
     {
-        $result = $invMissionService->getDataForArticlesDatatable($entityManager, $mission, $request->request);
+        $result = $invMissionService->getDataForArticlesDatatable($entityManager, $locationLine, $request->request);
         return new JsonResponse($result);
     }
 

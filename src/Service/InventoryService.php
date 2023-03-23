@@ -7,7 +7,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
-use App\Entity\Inventory\InventoryLocationMissionReferenceArticle;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;

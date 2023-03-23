@@ -5,13 +5,13 @@ namespace App\Entity\Inventory;
 use App\Entity\Emplacement;
 use App\Entity\Utilisateur;
 use App\Entity\Article;
-use App\Repository\Inventory\InventoryMissionRepository;
+use App\Repository\Inventory\InventoryLocationMissionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: InventoryMissionRepository::class)]
+#[ORM\Entity(repositoryClass: InventoryLocationMissionRepository::class)]
 class InventoryLocationMission {
 
     #[ORM\Id]
@@ -43,7 +43,7 @@ class InventoryLocationMission {
     private Collection $articles;
 
     public function __construct() {
-
+        $this->articles = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -92,7 +92,7 @@ class InventoryLocationMission {
         return $this->operator;
     }
 
-    public function setOperator(Utilisateur $operator): self {
+    public function setOperator(?Utilisateur $operator): self {
         $this->operator = $operator;
 
         return $this;
@@ -102,7 +102,7 @@ class InventoryLocationMission {
         return $this->scannedAt;
     }
 
-    public function setScannedAt(DateTime $scannedAt): self {
+    public function setScannedAt(?DateTime $scannedAt): self {
         $this->scannedAt = $scannedAt;
 
         return $this;
@@ -112,7 +112,7 @@ class InventoryLocationMission {
         return $this->percentage;
     }
 
-    public function setPercentage(int $percentage): self {
+    public function setPercentage(?int $percentage): self {
         $this->percentage = $percentage;
 
         return $this;

@@ -138,9 +138,9 @@ class InvMissionService {
         ];
     }
 
-    public function getDataForOneLocationMissionDatatable(EntityManagerInterface  $entityManager,
-                                                          InventoryMission        $mission,
-                                                          ParameterBag            $params = null) {
+    public function findDataForOneLocationMissionDatatable(EntityManagerInterface $entityManager,
+                                                           InventoryMission       $mission,
+                                                           ParameterBag           $params = null) {
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
 
@@ -149,9 +149,9 @@ class InvMissionService {
         return $inventoryLocationMissionRepository->getDataByMission($mission, $params, $filters);
     }
 
-    public function getDataForArticlesDatatable(EntityManagerInterface          $entityManager,
-                                                InventoryLocationMission        $mission,
-                                                ParameterBag                    $params = null) {
+    public function getDataForArticlesDatatable(EntityManagerInterface   $entityManager,
+                                                InventoryLocationMission $mission,
+                                                ParameterBag             $params = null) {
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
 
         return $inventoryLocationMissionRepository->getArticlesByInventoryLocationMission($mission, $params);
