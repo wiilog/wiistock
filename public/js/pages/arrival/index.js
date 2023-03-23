@@ -285,16 +285,16 @@ function createArrival(form = null) {
             const data = element.params.data || {};
             if (data.arrivals_id) {
                 displayAlertModal(
-                    'N° de tracking transporteur : ' + data.text,
+                    undefined,
                     $('<div/>', {
                         class: 'text-center',
-                        html: 'Ce numéro de tracking transporteur à déjà été associé une fois à un arrivage. ' +
-                            'Voulez vous l\'associer à nouveau ?'
+                        html: `<span class="bold">N° de tracking transporteur : ${data.text}</span><br><br>Ce numéro de tracking transporteur à déjà été associé une fois à un arrivage. ` +
+                            `Voulez vous l\'associer à nouveau ?`
                     }),
                     [
                         {
                             class: 'btn btn-outline-secondary m-0',
-                            text: 'Non',
+                            text: 'Annuler',
                             action: ($alert) => {
                                 const selectedOptions = [];
                                 $noTrackingSelect.find('option').each(function() {
@@ -316,7 +316,7 @@ function createArrival(form = null) {
                         },
                         {
                             class: 'btn btn-success m-0 btn-action-on-hide',
-                            text: 'Oui',
+                            text: 'Confirmer',
                             action: ($alert) => {
                                 trackingNumberSuccess(data);
                                 $alert.modal('hide');

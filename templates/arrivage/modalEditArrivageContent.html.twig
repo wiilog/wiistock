@@ -71,7 +71,7 @@
                    for="noTracking">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
             <input type="text" id="noTracking" class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" name="noTracking" maxlength="64"
                    value="{{ useTruckArrival
-                   ? arrivage.truckArrivalLines|reduce((carry, item) => carry~item.number~', ')
+                   ? arrivage.truckArrivalLines|map((item) => item.number)|join(',')
                    : arrivage.noTracking }}"
                 {{ useTruckArrival ? 'disabled' }}>
         </div>

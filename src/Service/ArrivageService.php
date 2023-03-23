@@ -258,9 +258,8 @@ class ArrivageService {
     public function createArrivalReserveModalConfig(Arrivage $arrivage, string $lines) {
         return [
             'autoHide' => false,
-            'title' => 'Réserve qualité',
-            'message' => "Une réserve qualité a été indiquée sur le(s) numéro(s) de tracking transporteur $lines.
-            Souhaitez vous confirmer la réserve ? Vous pourrez alors créer un litige.",
+            'message' => '<span class="bold">Réserve qualité</span><br><br>'
+                . "Une réserve qualité a été indiquée sur le(s) numéro(s) de tracking transporteur $lines. Souhaitez vous confirmer la réserve ? Vous pourrez alors créer un litige.",
             'iconType' => 'warning',
             'modalKey' => 'reserve',
             'modalType' => 'yes-no-question',

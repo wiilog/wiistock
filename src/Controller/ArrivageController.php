@@ -377,9 +377,11 @@ class ArrivageController extends AbstractController {
                     : null
                 )
                 ->join(',');
-            $lastElement = array_pop($alertConfigs);
-            $alertConfigs[] = $arrivageDataService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
-            $alertConfigs[] = $lastElement;
+            if ($linesNeedingConfirmation) {
+                $lastElement = array_pop($alertConfigs);
+                $alertConfigs[] = $arrivageDataService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
+                $alertConfigs[] = $lastElement;
+            }
         }
 
         if ($isArrivalUrgent) {
