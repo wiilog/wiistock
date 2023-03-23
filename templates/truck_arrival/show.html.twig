@@ -14,6 +14,12 @@
     }) }}
     <input type="hidden" id="truckArrivalId" value="{{ truckArrival.id }}"/>
 
+    {{ form.input('minTrackingNumber', '', false, minTrackingNumber, {
+        type: 'hidden'
+    }) }}
+    {{ form.input('maxTrackingNumber', '', false, maxTrackingNumber, {
+        type: 'hidden'
+    }) }}
     <div class="p-3">
         <div class="row">
             <div class="col-12">
@@ -33,6 +39,20 @@
                         <span class="wii-field-text">Nombre de n° de tracking associé : {{ lineAssociated }}</span>
                     </div>
                     <div class="content">
+                        <div style="text-align: right">
+                            {% include "utils/action-buttons.html.twig" with {
+                                actions: [
+                                    {
+                                        hasRight: true,
+                                        title: 'Ajouter un n°tracking transporteur',
+                                        icon: "wii-icon wii-icon-plus",
+                                        attributes: {
+                                            onclick: "newTrackingNumber()",
+                                    },
+                                    },
+                                ]
+                            } %}
+                        </div>
                         <table id="truckArrivalLinesTable" class="table w-100"></table>
                     </div>
                 </div>
@@ -145,6 +165,7 @@
             ],
         },
     } %}
+    {% include "truck_arrival/modalNewTrackingNumber.html.twig" %}
 
 {% endblock %}
 

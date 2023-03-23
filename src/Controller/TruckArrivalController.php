@@ -68,10 +68,15 @@ class TruckArrivalController extends AbstractController
                 ->count()
             . '/'
             . $truckArrival->getTrackingLines()->count();
+        $carrier = $truckArrival->getCarrier();
+        $minTrackingNumber = $carrier->getMinTrackingNumberLength();
+        $maxTrackingNumber = $carrier->getMaxTrackingNumberLength();
 
         return $this->render('truck_arrival/show.html.twig', [
             'truckArrival' => $truckArrival,
             'lineAssociated' => $lineAssociated,
+            'minTrackingNumber' => $minTrackingNumber,
+            'maxTrackingNumber' => $maxTrackingNumber,
             'showDetails' => $truckArrivalService->createHeaderDetailsConfig($truckArrival),
         ]);
     }
@@ -98,7 +103,7 @@ class TruckArrivalController extends AbstractController
     public function saveColumns(VisibleColumnService $visibleColumnService, Request $request, EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
-        $user  = $this->getUser();
+        $user = $this->getUser();
 
         $visibleColumnService->setVisibleColumns('truckArrival', $fields, $user);
 
@@ -308,4 +313,44 @@ class TruckArrivalController extends AbstractController
         }
         throw new BadRequestHttpException();
     }
+
+    // Reçois info POST du show.js
+    // Si le nouveau nombre existe déjà -> erreur
+    // Sinon -> enregistre en BDD le nombre et message succès
+    #[Route('/add-tracking-number', name: 'add_tracking_number', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    public function addTrackingNumber(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $data = $request->request->all();
+        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
+        $truckArrival = $truckArrivalRepository->find($request->request->get('truckArrival'));
+
+        $trackingNumbers = explode(',', $data['trackingNumbers']);
+
+        foreach ($trackingNumbers as $trackingNumber) {
+            $truckArrivalLine = $truckArrivalLineRepository->findOneBy(['number' => $trackingNumber]);
+            if ($trackingNumber && !$truckArrivalLine) {
+
+                $line = (new TruckArrivalLine())
+                ->setNumber($trackingNumber);
+                $truckArrival->addTrackingLine($line);
+                $entityManager->persist($line);
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'trackingNumber' => $trackingNumber,
+                    'msg' => "Le numéro de tracking transporteur " . $truckArrivalLine->getNumber() . " existe déjà. Impossible de l'ajouter à cet arrivage camion. Veuillez en sélectionner un autre."
+                ]);
+            }
+        }
+
+        $entityManager->flush();
+
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le numéro de tracking transporteur a bien été ajouté.'
+        ]);
+    }
+
 }

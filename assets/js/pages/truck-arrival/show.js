@@ -1,7 +1,9 @@
 import {initReserveForm} from "@app/pages/truck-arrival/reserve";
 import {POST} from "@app/ajax";
 import AJAX from "@app/ajax";
+import {initTrackingNumberSelect} from "@app/pages/truck-arrival/common";
 
+global.newTrackingNumber = newTrackingNumber;
 global.editTruckArrival = editTruckArrival;
 global.deleteTruckArrivalLine = deleteTruckArrivalLine;
 global.deleteTruckArrivalLineReserve = deleteTruckArrivalLineReserve;
@@ -169,4 +171,28 @@ function deleteTruckArrivalLineReserve(deleteButton){
 
 function editTruckArrival(id) {
     Modal.load('truck_arrival_form_edit', {id}, $modalEdit);
+}
+
+function newTrackingNumber() {
+    const $modal = $('#newTrackingNumberModal');
+    Form
+        .create($modal)
+        .onOpen(()=> {
+            $modal.find('select[name="trackingNumbers"]').empty();
+        })
+        .submitTo( POST, 'add_tracking_number', {
+            success: () => {
+                truckArrivalLinesTable.ajax.reload();
+            }
+        });
+    let minTrackingNumberLength = $('input[name=minTrackingNumber]').val();
+    let maxTrackingNumberLength = $('input[name=maxTrackingNumber]').val();
+
+    const $trackingNumberSelect = $modal.find('select[name="trackingNumbers"]');
+    let $warningMessage = $trackingNumberSelect.closest('.form-group').find('.warning-message');
+    $warningMessage.find('.min-length').text(minTrackingNumberLength);
+    $warningMessage.find('.max-length').text(maxTrackingNumberLength);
+    initTrackingNumberSelect($trackingNumberSelect, $warningMessage ,minTrackingNumberLength ,maxTrackingNumberLength);
+
+    $modal.modal('show');
 }

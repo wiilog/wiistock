@@ -1,0 +1,38 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" data-modal-type="new" id="newTrackingNumberModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Ajouter un n°tracking transporteur"
+            } %}
+            {{ form.input('truckArrival', '', false, truckArrival.id, {
+                type: 'hidden'
+            }) }}
+            <div class="modal-body container-fluid">
+                <div class="wii-section-title my-3 d-flex align-items-center justify-content-between">
+                    <span>Numéros de tracking transporteur</span>
+                    <span>Total : <span id="totalTrackingNumbers">0</span></span>
+                </div>
+                <div class="row">
+                    <div class="col-12 form-group">
+                        {{ form.select('trackingNumbers', null, false, {
+                            type: null,
+                            multiple: true,
+                            editable: true,
+                        }) }}
+                        <div class="warning-message wii-warning-text d-none mt-2">
+                            Les numéros de tracking doivent faire entre <span class="min-length"></span> et <span class="max-length"></span> caractères.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregister', type: 'submit'},
+                ],
+            } %}
+        </div>
+    </div>
+</div>
