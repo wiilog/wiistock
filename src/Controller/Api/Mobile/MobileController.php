@@ -2531,23 +2531,25 @@ class MobileController extends AbstractApiController
         $user = $this->getUser();
 
         foreach ($emptyRounds as $emptyRound) {
-            $date = DateTime::createFromFormat("d/m/Y H:i:s", $emptyRound['date']);
+            if (isset($emptyRound['date']) && isset($emptyRound['location'])) {
+                $date = DateTime::createFromFormat("d/m/Y H:i:s", $emptyRound['date']);
 
-            $emptyRoundPack = $packRepository->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
-            $location = $locationRepository->findOneBy(['label' => $emptyRound['location']]);
+                $emptyRoundPack = $packRepository->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
+                $location = $locationRepository->findOneBy(['label' => $emptyRound['location']]);
 
-            $trackingMovement = $trackingMovementService->createTrackingMovement(
-                $emptyRoundPack,
-                $location,
-                $user,
-                $date,
-                true,
-                true,
-                TrackingMovement::TYPE_EMPTY_ROUND,
-                ['commentaire' => $emptyRound['comment']]
-            );
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $emptyRoundPack,
+                    $location,
+                    $user,
+                    $date,
+                    true,
+                    true,
+                    TrackingMovement::TYPE_EMPTY_ROUND,
+                    ['commentaire' => $emptyRound['comment'] ?? null]
+                );
 
-            $manager->persist($trackingMovement);
+                $manager->persist($trackingMovement);
+            }
         }
         $manager->flush();
 
@@ -2621,9 +2623,6 @@ class MobileController extends AbstractApiController
                                 DispatchService $dispatchService,
                                 MobileApiService $mobileApiService,
                                 StatusHistoryService $statusHistoryService): Response {
-        $data = Stream::from($request->request->all())
-            ->keymap(fn(?string $value, string $key) => [$key, !in_array($value, ['undefined', 'null']) ? $value : null])
-            ->toArray();
 
         $typeRepository = $manager->getRepository(Type::class);
         $statusRepository = $manager->getRepository(Statut::class);
@@ -2632,12 +2631,12 @@ class MobileController extends AbstractApiController
         $dispatchRepository = $manager->getRepository(Dispatch::class);
 
         $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
-        $type = $typeRepository->find($data['type']);
+        $type = $typeRepository->find($request->request->get('type'));
         $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
-        $pickLocation = isset($data['dropLocation']) ? $locationRepository->find($data['pickLocation']) : null;
-        $dropLocation = isset($data['dropLocation']) ? $locationRepository->find($data['dropLocation']) : null;
-        $receiver = isset($data['receiver']) ? $userRepository->find($data['receiver']) : null;
-        $emails = isset($data['emails']) ? explode(",", $data['emails']) : null;
+        $pickLocation = $request->request->get('pickLocation') ? $locationRepository->find($request->request->get('pickLocation')) : null;
+        $dropLocation = $request->request->get('dropLocation') ? $locationRepository->find($request->request->get('dropLocation')) : null;
+        $receiver = $request->request->get('receiver') ? $userRepository->find($request->request->get('receiver')) : null;
+        $emails = $request->request->get('emails') ? explode(",", $request->request->get('emails')) : null;
 
         if(empty($draftStatuses)) {
             return $this->json([
@@ -2654,9 +2653,9 @@ class MobileController extends AbstractApiController
             ->setStatus($draftStatuses[0])
             ->setLocationFrom($pickLocation)
             ->setLocationTo($dropLocation)
-            ->setCarrierTrackingNumber($data['carrierTrackingNumber'] ?? '')
-            ->setCommentaire($data['comment'])
-            ->setEmergency($data['emergency'] ?? false)
+            ->setCarrierTrackingNumber($request->request->get('carrierTrackingNumber'))
+            ->setCommentaire($request->request->get('comment'))
+            ->setEmergency($request->request->getBoolean('emergency'))
             ->setEmails($emails);
 
         if($receiver) {
@@ -2671,7 +2670,7 @@ class MobileController extends AbstractApiController
 
         $manager->flush();
 
-        if($data['emergency'] && $receiver) {
+        if($request->request->get('emergency') && $receiver) {
             $dispatchService->sendEmailsAccordingToStatus($dispatch, false, false, $receiver, true);
         }
 
