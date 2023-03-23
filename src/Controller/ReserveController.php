@@ -96,9 +96,9 @@ class ReserveController extends AbstractController
             ->toArray();
 
         if(count($availableTrackingNumber) === 0 && $reserve instanceof Reserve){
-            $availableTrackingNumber = [
+            $availableTrackingNumber[] = [
                 "label" => $reserve->getLine()->getNumber(),
-                "value" => $reserve->getId(),
+                "value" => $reserve->getLine()->getId(),
                 "selected" => true
             ];
         }
