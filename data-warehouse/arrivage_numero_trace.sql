@@ -13,7 +13,7 @@ SELECT truck_arrival_line.number as no_tracking,
        IF(reserve.type = 'qualite', 'Oui', 'Non') as reserve_qualite,
        IF(
            (
-               COUNT(arrivage.id) = 0
+               (SELECT COUNT(*) FROM truck_arrival_line_arrivage WHERE truck_arrival_line_arrivage.truck_arrival_line_id = truck_arrival_line.id) = 0
                AND TIME(truck_arrival.creation_date) <= (SELECT setting.value FROM setting WHERE setting.label = 'TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_START')
                AND (
                     DATE(NOW()) > DATE(truck_arrival.creation_date)
@@ -21,7 +21,7 @@ SELECT truck_arrival_line.number as no_tracking,
                )
            )
            OR (
-               COUNT(arrivage.id) = 0
+               (SELECT COUNT(*) FROM truck_arrival_line_arrivage WHERE truck_arrival_line_arrivage.truck_arrival_line_id = truck_arrival_line.id) = 0
                AND TIME(truck_arrival.creation_date) >= (SELECT setting.value FROM setting WHERE setting.label = 'TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START')
                AND (
                     DATE(NOW()) > (
@@ -58,5 +58,3 @@ FROM truck_arrival_line
          LEFT JOIN reserve on truck_arrival_line.id = reserve.line_id
          LEFT JOIN truck_arrival_line_arrivage on truck_arrival_line.id = truck_arrival_line_arrivage.truck_arrival_line_id
          LEFT JOIN arrivage on truck_arrival_line_arrivage.arrivage_id = arrivage.id
-
-GROUP BY no_arrivage_UL
