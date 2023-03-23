@@ -3043,18 +3043,20 @@ class MobileController extends AbstractApiController
                     ->setType($truckArrivalLine['reserve']['type'])
                     ->setComment($truckArrivalLine['reserve']['type'] ?? null);
 
-                foreach($truckArrivalLine['reserve']['photos'] as $photo){
-                    $name = uniqid();
-                    $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-                    file_put_contents($path, file_get_contents($photo));
-                    $attachment = new Attachment();
-                    $attachment
-                        ->setOriginalName("$name.jpeg")
-                        ->setFileName("$name.jpeg")
-                        ->setFullPath("/uploads/attachements/$name.jpeg");
+                if($truckArrivalLine['reserve']['photos']){
+                    foreach($truckArrivalLine['reserve']['photos'] as $photo){
+                        $name = uniqid();
+                        $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+                        file_put_contents($path, file_get_contents($photo));
+                        $attachment = new Attachment();
+                        $attachment
+                            ->setOriginalName("$name.jpeg")
+                            ->setFileName("$name.jpeg")
+                            ->setFullPath("/uploads/attachements/$name.jpeg");
 
-                    $lineReserve->addAttachment($attachment);
-                    $entityManager->persist($attachment);
+                        $lineReserve->addAttachment($attachment);
+                        $entityManager->persist($attachment);
+                    }
                 }
 
                 $line->setReserve($lineReserve);
