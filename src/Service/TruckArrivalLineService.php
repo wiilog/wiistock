@@ -148,8 +148,7 @@ class TruckArrivalLineService
 
         // Second possibility (created after 14:00, must be treated before 12:00 on the next WORKED day)
         $wasCreatedAfterTresholdAndIsValid = $dateWithOnlyTime >= $afterStartWithDate
-            && ($nowWithoutTime > $nextWorkedDay || ($nowWithoutTime === $nextWorkedDay && $nowWithOnlyTime > $afterEndWithDate));
-
+            && ($nowWithoutTime > $nextWorkedDay || ($nowWithoutTime->format('d/m/Y') === $nextWorkedDay->format('d/m/Y') && $nowWithOnlyTime > $afterEndWithDate));
         return $wasCreatedBeforeTresholdAndIsValid || $wasCreatedAfterTresholdAndIsValid;
     }
 
