@@ -1628,6 +1628,8 @@ class DispatchController extends AbstractController {
             $statusData,
             $commentData,
             $dispatchesToSignIds,
+            false,
+            $this->getUser()
         );
 
         $entityManager->flush();
