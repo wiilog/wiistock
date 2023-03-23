@@ -2591,7 +2591,7 @@ class MobileController extends AbstractApiController
 
         return $this->json([
             "success" => true,
-            "data" => $inventoryService->parseAndSummarizeInventory(
+            "data" => $inventoryService->summarizeLocationInventory(
                 $entityManager,
                 $inventoryMission,
                 $zone,

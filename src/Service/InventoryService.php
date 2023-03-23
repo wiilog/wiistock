@@ -190,7 +190,7 @@ class InventoryService {
         return $nbMissions > 0;
     }
 
-    public function parseAndSummarizeInventory(EntityManagerInterface $entityManager,
+    public function summarizeLocationInventory(EntityManagerInterface $entityManager,
                                                InventoryMission       $mission,
                                                Zone                   $zone,
                                                array                  $rfidTags,
@@ -210,7 +210,7 @@ class InventoryService {
 
         $scannedArticlesByStorageRule = $articleRepository->findAvailableArticlesToInventory($rfidTags, $locations, [
             "groupByStorageRule" => true,
-            "mode" => ArticleRepository::INVENTORY_MODE_SUMMARY
+            "mode" => ArticleRepository::INVENTORY_MODE_SUMMARY,
         ]);
 
         $storageRules = $storageRuleRepository->findBy(['location' => $locations]);
@@ -222,15 +222,17 @@ class InventoryService {
         $min = $minStr ? intval($minStr) : null;
         $max = $maxStr ? intval($maxStr) : null;
 
-        $this->clearInventoryZone($entityManager, $mission, $zone);
+        $this->clearInventoryZone($mission, $zone);
 
         $zoneInventoryIndicator = $zone->getInventoryIndicator() ?: 1;
 
-        $lines = [];
+        $locationsData = [];
+        $result = [];
         $numScannedObjects = 0;
 
         foreach ($storageRules as $storageRule) {
-            $key = null;
+            $rowMissingReferenceResult = null;
+
             $storageRuleId = $storageRule->getId();
             $location = $storageRule->getLocation();
             $locationId = $location?->getId();
@@ -242,71 +244,62 @@ class InventoryService {
             $articleCounter = count($scannedArticles);
             $numScannedObjects += $articleCounter;
 
-            if ($articleCounter > 0) {
-                $key = "location" . $locationId;
-                $rowResult = $lines[$key] ?? [
-                    "location" => $locationLabel,
-                    "articleCounter" => 0,
-                    "storageRuleCounter" => 0,
-                ];
+            $key = "location" . $locationId;
+            $rowLocationResult = $locationsData[$key] ?? [
+                "location" => $locationLabel,
+                "locationId" => $locationId,
+                "articleCounter" => 0,
+                "storageRuleCounter" => 0,
+            ];
 
-                $rowResult["articleCounter"] += $articleCounter;
-                $rowResult["storageRuleCounter"] += 1;
-            }
-            else {
-                $rowResult = [
+            $rowLocationResult["articleCounter"] += $articleCounter;
+            $rowLocationResult["storageRuleCounter"] += 1;
+
+            $rowLocationResult["articles"] = array_merge(
+                $rowLocationResult["articles"] ?? [],
+                $scannedArticles
+            );
+
+            $locationsData[$key] = $rowLocationResult;
+
+            if ($articleCounter === 0) {
+                $rowMissingReferenceResult = [
                     "location" => $locationLabel,
                     "reference" => $reference,
                     "missing" => true,
                 ];
-            }
-
-            /*$linkedLine = $rowResult["linkedLine"] ?? null;
-            if (!isset($linkedLine)) {
-                $linkedLine = $mission
-                    ->getInventoryLocationMissions()
-                    ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()?->getId() === $locationId)
-                    ->first() ?: null;
-                $rowResult["linkedLine"] = $linkedLine;
-            }
-
-            if ($linkedLine) {
-                // TODO WIIS-9373 remove ??
-                $percentage = empty($expectedQuantity) ? 0 : floor($actualQuantity / $expectedQuantity) * 100;
-                $inventoryLine = new InventoryLocationMissionReferenceArticle();
-                $inventoryLine
-                    ->setInventoryLocationMission($linkedLine)
-                    ->setOperator($user)
-                    ->setPercentage($percentage)
-                    ->setScannedAt($now)
-                    ->setReferenceArticle($referenceArticle);
-                $entityManager->persist($inventoryLine);
-            }
-            */
-
-            if (isset($key)) {
-                $lines[$key] = $rowResult;
-            }
-            else {
-                $lines[] = $rowResult;
+                $result[] = $rowMissingReferenceResult;
             }
         }
+        dump($result, $locationsData);
 
-        $lines = Stream::from($lines)
-            ->map(fn(array $line) => (
-                ($line['missing'] ?? false)
-                    ? [
-                        "location" => $line["location"],
-                        "reference" => $line["reference"],
-                        "missing" => true,
-                    ]
-                    : [
-                        "location" => $line['location'],
-                        "ratio" => $zoneInventoryIndicator
-                            ? floor(($line['articleCounter'] / ($line['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
-                            : 0
-                    ]
-            ))
+        // calculate percentage and save in inventory stats and scanned articles
+        foreach($locationsData as $locationRow) {
+            /** @var InventoryLocationMission $linkedLine */
+            $linkedLine = $mission
+                ->getInventoryLocationMissions()
+                ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()?->getId() === $locationRow["locationId"])
+                ->first() ?: null;
+
+            if ($linkedLine) {
+                $ratio = $zoneInventoryIndicator
+                    ? floor(($locationRow['articleCounter'] / ($locationRow['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
+                    : 0;
+
+                $linkedLine
+                    ->setOperator($user)
+                    ->setScannedAt($now)
+                    ->setPercentage($ratio)
+                    ->setArticles($locationRow["articles"] ?? []);
+            }
+
+            $result[] = [
+                "location" => $locationRow['location'],
+                "ratio" => $ratio ?? 0,
+            ];
+        }
+
+        $locationsData = Stream::from($result)
             ->filter(fn(array $line) => (
                 !isset($line["ratio"])
                 || (
@@ -320,22 +313,21 @@ class InventoryService {
 
         return [
             "numScannedObjects" => $numScannedObjects,
-            "lines" => $lines
+            "lines" => $locationsData,
         ];
     }
 
 
-    public function clearInventoryZone(EntityManagerInterface $entityManager,
-                                       InventoryMission       $mission,
-                                       Zone                   $zone): void {
+    public function clearInventoryZone(InventoryMission $mission,
+                                       Zone             $zone): void {
         $inventoryLocationMissionArray = $mission->getInventoryLocationMissions();
         foreach ($inventoryLocationMissionArray as $inventoryLocationMission) {
             if ($inventoryLocationMission->getLocation()?->getZone()?->getId() === $zone->getId()) {
-                foreach ($inventoryLocationMission->getInventoryLocationMissionReferenceArticles() as $line) {
-                    $inventoryLocationMission->removeInventoryLocationMissionReferenceArticle($line);
-                    $entityManager->remove($line);
-                }
-                $inventoryLocationMission->setInventoryLocationMissionReferenceArticles([]);
+                $inventoryLocationMission
+                    ->setOperator(null)
+                    ->setScannedAt(null)
+                    ->setPercentage(null)
+                    ->setArticles([]);
             }
         }
     }
