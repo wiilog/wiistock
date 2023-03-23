@@ -284,10 +284,11 @@ class TruckArrivalController extends AbstractController
             $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
             $truckArrival = $truckArrivalRepository->find($data);
 
-            $hasLinesAssociatedToArrival =
-                Stream::from($truckArrival->getTrackingLines())
-                    ->filter(fn(TruckArrivalLine $line) => !$line->getArrivals()->isEmpty())
-                    ->count();
+            $hasLinesAssociatedToArrival = $truckArrival->getTrackingLines()->count() > 0
+                ? Stream::from($truckArrival->getTrackingLines())
+                     ->filter(fn(TruckArrivalLine $line) => !$line->getArrivals()->isEmpty())
+                     ->count()
+                : 0;
 
             if ($hasLinesAssociatedToArrival === 0) {
                 $entityManager->remove($truckArrival);

@@ -46,12 +46,14 @@
                         Qualité
                     </div>
                     <div class="content py-0">
-                        <div class="d-flex justify-content-end">
-                            <button class="btn btn-sm btn-primary new-quality-reserve-button d-flex align-items-center">
-                                <span class="wii-icon wii-icon-plus mr-1"></span>
-                                Ajouter une réserve
-                            </button>
-                        </div>
+                        {% if hasRightEditReserve %}
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-sm btn-primary new-quality-reserve-button d-flex align-items-center">
+                                    <span class="wii-icon wii-icon-plus mr-1"></span>
+                                    Ajouter une réserve
+                                </button>
+                            </div>
+                        {% endif %}
                         <table id="truckArrivalLinesQualityReservesTable" class="table w-100"></table>
                     </div>
                     <div class="wii-section-title my-3 d-flex align-items-center">

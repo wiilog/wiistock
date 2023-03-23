@@ -14,11 +14,12 @@
     <div class="m-4 wii-page-card overflow-x-hidden">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {# TODO hasRight #}
+                {% set hasRightToCreateTruckArrival = hasRight(constant('App\\Entity\\Menu::TRACA'),constant('App\\Entity\\Action::CREATE_TRUCK_ARRIVALS')) %}
                 {% include "utils/action-buttons.html.twig" with {
+                    noButton: not hasRightToCreateTruckArrival,
                     actions: [
                         {
-                            hasRight: hasRight(constant('App\\Entity\\Menu::TRACA'),constant('App\\Entity\\Action::CREATE_TRUCK_ARRIVALS')),
+                            hasRight: hasRightToCreateTruckArrival,
                             title: 'Créer arrivage camion',
                             icon: "wii-icon wii-icon-plus",
                             attributes:{
@@ -61,6 +62,8 @@
         fieldsParam,
         truckArrival : newTruckArrival,
     }  %}
+
+    {% include "truck_arrival/modalDeleteTruckArrival.html.twig" %}
 
 {% endblock %}
 

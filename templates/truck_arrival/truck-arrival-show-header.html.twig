@@ -19,22 +19,24 @@
                 {{ trans('Général', null, 'Modale', 'Modifier') }}
             </button>
         {% endif %}
-        <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false">
-            <span class="fa fa-angle-down"></span>
-        </button>
-        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_TRUCK_ARRIVALS')) %}
-                <a href="" data-id='{{ truckArrival.id }}' data-target='#modalDeleteTruckArrival' data-toggle='modal'
-                   class="dropdown-item d-flex align-items-center"
-                   onclick="deleteRow($(this), $('#modalDeleteTruckArrival'), $('#submitDeleteTruckArrival'))">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>
-                    {{ trans('Général', null, 'Modale', 'Supprimer') }}
-                </a>
-            {% endif %}
-        </div>
+        {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_TRUCK_ARRIVALS')) %}
+            <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                <span class="fa fa-angle-down"></span>
+            </button>
+            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+
+                    <a href="" data-id='{{ truckArrival.id }}' data-target='#modalDeleteTruckArrival' data-toggle='modal'
+                       class="dropdown-item d-flex align-items-center"
+                       onclick="deleteRow($(this), $('#modalDeleteTruckArrival'), $('#submitDeleteTruckArrival'))">
+                        <span class="wii-icon wii-icon-trash-black mr-2"></span>
+                        {{ trans('Général', null, 'Modale', 'Supprimer') }}
+                    </a>
+
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
 {% block javascripts %}
