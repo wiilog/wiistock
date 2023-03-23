@@ -124,7 +124,7 @@
                 disabled: truckArrival.id,
                 additionalAttributes : [{
                     name: 'data-init',
-                    value: defaultLocation.id
+                    value: defaultLocation is defined and defaultLocation ? defaultLocation.id : ''
                 }],
                 inputClass: 'needs-default w-100'
             }) }}
