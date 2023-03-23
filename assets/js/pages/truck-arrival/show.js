@@ -19,7 +19,11 @@ let truckArrivalLinesQualityReservesTable;
 $(function () {
     Form
         .create($modalEdit)
-        .submitTo(POST, 'truck_arrival_form_submit');
+        .submitTo(POST, 'truck_arrival_form_submit', {
+            success: () => {
+                window.location.reload();
+            }
+        });
 
     const $reserveModals = $('.reserveModal');
     initReserveForm($reserveModals)
