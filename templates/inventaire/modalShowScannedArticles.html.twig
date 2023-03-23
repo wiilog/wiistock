@@ -1,0 +1,17 @@
+{% import 'form.html.twig' as form %}
+<div class="modal fade" id="modalShowScannedArticles" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Liste des articles scannés"
+            } %}
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="col-12 mt-3">
+                        <table id="tableScannedArticles" class="table w-100"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

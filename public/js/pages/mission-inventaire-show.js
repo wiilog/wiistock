@@ -192,9 +192,9 @@ function initLocationMissionsDataTable() {
             type: "POST",
         },
         columns: [
+            {data: `actions`, title: ``, className: `noVis`, orderable: false},
             {data: 'zone', name: 'zone', title: 'Zone'},
             {data: 'location', name: 'location', title: 'Emplacement'},
-            {data: 'reference', name: 'reference', title: 'Référence'},
             {data: 'date', name: 'date', title: 'Date de scan'},
             {data: 'operator', name: 'operator', title: 'Opérateur'},
             {data: 'percentage', name: 'percentage', title: 'Pourcentage'},
@@ -237,4 +237,36 @@ function onOpenModalAddLocationAndZone(tableLocations){
 function initModalAddTableLocations(){
     initFormAddInventoryLocations($('.add-inventory-location-container'));
 
+}
+
+function openShowScannedArticlesModal($button) {
+    let inventoryLocationMission = $button.data('id');
+    let $modalShowScannedArticles = $('#modalShowScannedArticles');
+    Form.create($modalShowScannedArticles);
+    $modalShowScannedArticles.modal('show');
+    initializeScannedArticlesDataTable(inventoryLocationMission)
+}
+
+function initializeScannedArticlesDataTable(id) {
+    let pathLocationMissionArticles = Routing.generate('mission_location_art_api', {mission: id}, true);
+    let tableScannedArticlesConfig = {
+        destroy: true,
+        lengthMenu: [5, 10, 25],
+        processing: true,
+        serverSide: true,
+        paging: true,
+        ajax: {
+            url: pathLocationMissionArticles,
+            type: "POST",
+        },
+        columns: [
+            {data: 'reference', name: 'reference', title: 'Référence'},
+            {data: 'label', name: 'label', title: 'Article'},
+            {data: 'RFIDtag', name: 'RFIDtag', title: 'Tag RFID'},
+        ],
+        order: [
+            ['reference', 'asc'],
+        ],
+    };
+    initDataTable('tableScannedArticles', tableScannedArticlesConfig);
 }
