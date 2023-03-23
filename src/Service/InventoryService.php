@@ -218,8 +218,10 @@ class InventoryService {
 
         $now = new DateTime('now');
 
-        $min = intval($settingRepository->getOneParamByLabel(Setting::RFID_KPI_MIN));
-        $max = intval($settingRepository->getOneParamByLabel(Setting::RFID_KPI_MAX));
+        $minStr = $settingRepository->getOneParamByLabel(Setting::RFID_KPI_MIN);
+        $maxStr = $settingRepository->getOneParamByLabel(Setting::RFID_KPI_MAX);
+        $min = $minStr ? intval($minStr) : null;
+        $max = $maxStr ? intval($maxStr) : null;
 
         $this->clearInventoryZone($entityManager, $mission, $zone);
 
