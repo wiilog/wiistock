@@ -76,7 +76,7 @@ class PurchaseRequestRuleService
                 $this->em->persist($purchaseRequestLine);
                 $this->em->persist($purchaseRequest);
                 $this->em->flush();
-                $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
+                $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, ["customSubject" => $rule->getEmailSubject()]);
             }
         }
 
@@ -90,7 +90,7 @@ class PurchaseRequestRuleService
                 $this->em->persist($purchaseRequestLine);
                 $this->em->persist($purchaseRequest);
 
-                $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
+                $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, ["customSubject" => $rule->getEmailSubject()]);
             }
         }
 
