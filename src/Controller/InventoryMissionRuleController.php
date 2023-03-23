@@ -198,7 +198,6 @@ class InventoryMissionRuleController extends AbstractController
     public function delete(EntityManagerInterface $entityManager,
                            Request                $request): JsonResponse {
         $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
-        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $missionRuleId = $request->query->get('id') ?? null;
         $missionRule = $missionRuleId ? $missionRuleRepository->find($missionRuleId) : null;
 
@@ -216,5 +215,21 @@ class InventoryMissionRuleController extends AbstractController
         } else {
             throw new FormException("Une erreur est survenue lors de la suppression de la planification d'inventaire");
         }
+    }
+
+    #[Route('/desactivate', name: 'mission_rules_cancel', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
+    public function desactivate(EntityManagerInterface $entityManager,
+                           Request                $request): JsonResponse {
+        $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
+        $missionRuleId = $request->query->get('id');
+        $missionRule = $missionRuleRepository->find($missionRuleId);
+        $missionRule->setActive(false);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+        ]);
+
     }
 }

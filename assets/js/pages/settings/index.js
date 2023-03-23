@@ -947,6 +947,7 @@ function initializePurchasePlanificationTable() {
             {data: `duration`, title: `Durée`, required: true},
             {data: `creator`, title: `Créateur`, required: true},
             {data: `lastExecution`, title: `Dernière exécution`, required: true},
+            {data: `isActive`, title: `Actif`},
         ],
     });
 }
