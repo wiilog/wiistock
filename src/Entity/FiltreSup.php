@@ -96,6 +96,8 @@ class FiltreSup {
     const PAGE_TRUCK_ARRIVAL = 'truckArrival';
     const FIELD_PICK_LOCATION = 'pickLocation';
     const FIELD_DROP_LOCATION = 'dropLocation';
+    const FIELD_NUM_TRUCK_ARRIVAL = 'numTruckArrival';
+    const FIELD_TRACKING_CARRIER_NUMBER = 'noTracking';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

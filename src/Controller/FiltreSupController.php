@@ -56,6 +56,8 @@ class FiltreSupController extends AbstractController
                 'requestNumber' => FiltreSup::FIELD_REQUEST_NUMBER,
                 'category' => FiltreSup::FIELD_CATEGORY,
                 'contact' => FiltreSup::FIELD_CONTACT,
+                'numTruckArrival' => FiltreSup::FIELD_NUM_TRUCK_ARRIVAL,
+                'noTracking' => FiltreSup::FIELD_TRACKING_CARRIER_NUMBER,
                 'projectNumber' => FiltreSup::FIELD_PROJECT_NUMBER,
                 'project' => FiltreSup::FIELD_PROJECT,
                 'registrationNumber' => FiltreSup::FIELD_REGISTRATION_NUMBER,

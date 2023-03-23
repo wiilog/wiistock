@@ -503,7 +503,7 @@ CREATE TABLE dw_projet_article
     date_assignation    timestamp(0)
 );
 
-CREATE TABLE dw_article
+CREATE TABLE dw_arrivage_camion
 (
     id                   		integer,
     reference 			 		varchar(255),
@@ -539,3 +539,9 @@ CREATE TABLE dw_unite_logistique
     nb_articles_contenus    integer,
     code_barre_article      varchar(255)
 );
+
+CREATE TABLE dw_informations
+(
+    version varchar(255)
+);
+

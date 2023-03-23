@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 #[Route('/arrivage-camion')]
 class TruckArrivalController extends AbstractController
@@ -59,7 +60,9 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/voir/{id}', name: 'truck_arrival_show', methods: 'GET')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
-    public function show(TruckArrival $truckArrival, EntityManagerInterface $entityManager): Response {
+    public function show(TruckArrival $truckArrival,
+                         EntityManagerInterface $entityManager,
+                         TruckArrivalService $truckArrivalService): Response {
         $lineAssociated = $truckArrival->getTrackingLines()
                 ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
                 ->count()
@@ -69,6 +72,7 @@ class TruckArrivalController extends AbstractController
         return $this->render('truck_arrival/show.html.twig', [
             'truckArrival' => $truckArrival,
             'lineAssociated' => $lineAssociated,
+            'showDetails' => $truckArrivalService->createHeaderDetailsConfig($truckArrival),
         ]);
     }
 
@@ -128,7 +132,7 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/supprimer-ligne', name: 'truck_arrival_lines_delete', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DELETE_CARRIER_TRACKING_NUMBER], mode: HasPermission::IN_JSON)]
-    public function delete(Request $request,
+    public function deleteLine(Request $request,
                            EntityManagerInterface $entityManager): Response {
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $truckArrivalLine = $truckArrivalLineRepository->find($request->query->get('truckArrivalLineId'));
@@ -253,13 +257,6 @@ class TruckArrivalController extends AbstractController
             $entityManager->persist($quantityReserve);
         }
 
-        if (empty($data['trackingNumbers'])) {
-            return $this->json([
-                'success' => false,
-                'msg' => 'Veuillez renseigner des numéros de tracking.'
-            ]);
-        }
-
         foreach (explode(',', $data['trackingNumbers'] ?? '') as $lineNumber) {
             if ($lineNumber && empty($lineNumberRepository->findOneBy(['number' => $lineNumber]))) {
                 $arrivalLine = new TruckArrivalLine();
@@ -276,5 +273,38 @@ class TruckArrivalController extends AbstractController
             'success' => true,
             'truckArrivalId' => $truckArrival->getId(),
         ]);
+    }
+
+    #[Route('/supprimer', name: 'truck_arrival_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS])]
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response {
+
+        if ($data = $request->request->get('truck_arrival')) {
+            $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
+            $truckArrival = $truckArrivalRepository->find($data);
+
+            $hasLinesAssociatedToArrival =
+                Stream::from($truckArrival->getTrackingLines())
+                    ->filter(fn(TruckArrivalLine $line) => !$line->getArrivals()->isEmpty())
+                    ->count();
+
+            if ($hasLinesAssociatedToArrival === 0) {
+                $entityManager->remove($truckArrival);
+                $entityManager->flush();
+
+                return new JsonResponse([
+                    'success' => true,
+                    'redirect' => $this->generateUrl('truck_arrival_index'),
+                    'msg' => "L'arrivage camion a bien été supprimé."
+                ]);
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Cette arrivage camion contient au moins un numéro de tracking transporteur lié à au moins un arrivage UL, vous ne pouvez pas le supprimer."
+                ]);
+            }
+        }
+        throw new BadRequestHttpException();
     }
 }

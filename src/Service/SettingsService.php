@@ -109,8 +109,30 @@ class SettingsService {
         return $settings[$key] ?? null;
     }
 
+    private function isTimeBeforeOrEqual($time1, $time2): bool
+    {
+        $timestamp1 = strtotime($time1);
+        $timestamp2 = strtotime($time2);
+
+        return $timestamp1 < $timestamp2;
+    }
+
     public function save(Request $request): array {
         $settingRepository = $this->manager->getRepository(Setting::class);
+
+        $beforeStart = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_START");
+        $beforeEnd = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END");
+        $afterStart = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START");
+        $afterEnd = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END");
+
+        if ((!$beforeStart || !$beforeEnd || !$afterStart || !$afterEnd) && ($beforeStart || $beforeEnd || $afterStart || $afterEnd)) {
+            throw new RuntimeException("Tous les champs horaires doivent être renseignés.");
+        } else if($beforeStart && $beforeEnd && $afterStart && $afterEnd) {
+            $isValid = $this->isTimeBeforeOrEqual($beforeStart, $beforeEnd);
+            if (!$isValid) {
+                throw new RuntimeException('Il est nécessaire que les heures de début soient antérieures aux heures de fin.');
+            }
+        }
 
         $settingNames = array_merge(
             array_keys($request->request->all()),
