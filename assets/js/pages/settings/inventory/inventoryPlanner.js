@@ -41,7 +41,7 @@ export function initializeInventoryPlanificatorTable($container) {
                 label: 'Continuer',
                 click: () => {
                     AJAX
-                        .route(AJAX.POST, 'mission_rules_desactive', {id: $(this).data('id')})
+                        .route(AJAX.POST, 'mission_rules_cancel', {id: $(this).data('id')})
                         .json()
                         .then((data) => {
                             if (data.success) {

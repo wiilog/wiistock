@@ -217,7 +217,7 @@ class InventoryMissionRuleController extends AbstractController
         }
     }
 
-    #[Route('/desactivate', name: 'mission_rules_desactive', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route('/desactivate', name: 'mission_rules_cancel', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function desactivate(EntityManagerInterface $entityManager,
                            Request                $request): JsonResponse {
@@ -227,9 +227,9 @@ class InventoryMissionRuleController extends AbstractController
         $missionRule->setActive(false);
         $entityManager->flush();
 
-                return $this->json([
-                    'success' => true,
-                ]);
+        return $this->json([
+            'success' => true,
+        ]);
 
     }
 }
