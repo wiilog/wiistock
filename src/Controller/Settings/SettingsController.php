@@ -73,6 +73,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Environment;
+use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -2452,36 +2453,55 @@ class SettingsController extends AbstractController {
      * @Route("/mission-rules-api", name="settings_mission_rules_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
-    public function missionRulesApi(Request $request, EntityManagerInterface $manager): Response {
+    public function missionRulesApi(Twig_Environment       $templating,
+                                    EntityManagerInterface $manager): Response {
         $data = [];
         $missionRuleRepository = $manager->getRepository(InventoryMissionRule::class);
 
         /** @var InventoryMissionRule $mission */
         foreach ($missionRuleRepository->findAll() as $mission) {
             $data[] = [
-                "actions" => "
-                    <div>
-                        <button class='btn btn-silent delete-row' data-id='{$mission->getId()}'>
-                            <i class='wii-icon wii-icon-trash text-primary'></i>
-                        </button>
-                        <button
-                            class='btn btn-silent action-on-click'
-                            data-id='{$mission->getId()}'
-                            onclick='editMissionRule($(this))'>
-                        </button>
-                    </div>
-                ",
+                "actions" => $templating->render("utils/action-buttons/dropdown.html.twig", [
+                    "actions" => [
+                        [
+                            "title" => "Annuler la planification",
+                            "actionOnClick" => true,
+                            "attributes" => [
+                                "data-id" => $mission->getId(),
+                                "onclick" => "editMissionRule($(this))",
+                            ]
+                        ],
+                        [
+                            "title" => "Annuler la planification",
+                            "icon" => "bg-black wii-icon wii-icon-cancel-black wii-icon-17px",
+                            "attributes" => [
+                                "data-id" => $mission->getId(),
+                                "class" => "pointer",
+                                "onclick" => "cancelInventoryMission($(this))",
+                            ]
+                        ],
+                        [
+                            "title" => "Supprimer la planification",
+                            "icon" => "bg-black wii-icon wii-icon-trash-black wii-icon-17px",
+                            "attributes" => [
+                                "data-id" => $mission->getId(),
+                                "class" => "pointer",
+                                "onclick" => "deleteInventoryMission($(this))",
+                            ]
+                        ]
+                    ]
+                ]),
                 "missionType" => $mission->getMissionType() ? InventoryMission::TYPES_LABEL[$mission->getMissionType()] ?? '' : '',
                 "label" => $mission->getLabel(),
                 "categories" => Stream::from($mission->getCategories())
                     ->map(fn(InventoryCategory $category) => $category->getLabel())
                     ->join(", "),
                 "periodicity" => ScheduleRule::FREQUENCIES_LABELS[$mission->getFrequency()] ?? null,
-                "duration" => $mission->getDuration().' '.InventoryMissionRule::DURATION_UNITS_LABELS[$mission->getDurationUnit()] ?? null,
+                "duration" => $mission->getDuration() . ' ' . (InventoryMissionRule::DURATION_UNITS_LABELS[$mission->getDurationUnit()] ?? null),
                 "requester" => $this->getFormatter()->user($mission->getRequester()),
                 "creator" => $this->getFormatter()->user($mission->getCreator()),
                 "lastExecution" => $mission->getLastRun() ? $mission->getLastRun()->format('d/m/Y H:i:s') : "",
-                "isActive" => $mission->isActive() ? 'Oui' : 'Non',
+                "active" => $this->getFormatter()->bool($mission->isActive()),
             ];
         }
 

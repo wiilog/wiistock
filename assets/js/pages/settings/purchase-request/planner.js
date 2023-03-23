@@ -20,7 +20,6 @@ export function initializePurchaseRequestPlanner($container) {
             {data: `createdAt`, title: `Date de création`},
             {data: `frequency`, title: `Fréquence`},
             {data: `lastExecution`, title: `Dernière exécution`},
-            {data: `isActive`, title: `isActive`},
         ],
         rowConfig: {
             needsRowClickAction: true,

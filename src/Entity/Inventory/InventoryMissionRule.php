@@ -67,13 +67,12 @@ class InventoryMissionRule extends ScheduleRule
     private ?Utilisateur $requester = null;
 
     #[ORM\Column(type: "boolean", nullable: false, options: ["default" => true])]
-    private ?bool $active;
+    private ?bool $active = true;
 
     public function __construct() {
         $this->categories = new ArrayCollection();
         $this->createdMissions = new ArrayCollection();
         $this->locations =  new ArrayCollection();
-        $this->active = true;
     }
 
     public function __toString(): string {
