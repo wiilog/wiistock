@@ -465,22 +465,17 @@ class InventoryMissionRepository extends EntityRepository {
 
         if ($mission->isDone()) {
             $queryBuilder
-                ->addSelect('join_referenceArticle.reference AS reference')
-                ->addSelect('join_inventoryLocationMissionReferenceArticles.scannedAt AS date')
+                ->addSelect('inventory_location_mission.scannedAt AS date')
                 ->addSelect('join_user.username AS operator')
-                ->addSelect('join_inventoryLocationMissionReferenceArticles.percentage AS percentage')
-                ->leftJoin('inventory_location_mission.inventoryLocationMissionReferenceArticles', 'join_inventoryLocationMissionReferenceArticles')
-                ->leftJoin('join_inventoryLocationMissionReferenceArticles.referenceArticle', 'join_referenceArticle')
-                ->leftJoin('join_inventoryLocationMissionReferenceArticles.operator', 'join_user');
+                ->addSelect('inventory_location_mission.percentage AS percentage')
+                ->leftJoin('inventory_location_mission.operator', 'join_user');
         }
 
         $queryBuilder
             ->andWhere('join_inventoryMission.id = :mission')
             ->addOrderBy('missionId')
             ->setParameter('mission', $mission->getId());
-        $total = $mission->isDone()
-            ? QueryBuilderHelper::count($queryBuilder, "join_inventoryLocationMissionReferenceArticles")
-            : QueryBuilderHelper::count($queryBuilder, "join_location");
+        $total = QueryBuilderHelper::count($queryBuilder, "join_location");
 
         // search
         if (!empty($search) && !empty($search['value'])) {
@@ -490,7 +485,6 @@ class InventoryMissionRepository extends EntityRepository {
                     ->andWhere($exprBuilder->orX(
                         'join_zone.name LIKE :search',
                         'join_location.label LIKE :search',
-                        'join_referenceArticle.reference LIKE :search',
                         'join_user.username LIKE :search',
                     ))
                     ->setParameter('search', "%$value%");
@@ -509,20 +503,18 @@ class InventoryMissionRepository extends EntityRepository {
             switch ($filter['field']) {
                 case 'dateMin':
                     $queryBuilder
-                        ->andWhere('join_inventoryLocationMissionReferenceArticles.scannedAt >= :dateMin')
+                        ->andWhere('inventory_location_mission.scannedAt >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
                     $queryBuilder
-                        ->andWhere('join_inventoryLocationMissionReferenceArticles.scannedAt <= :dateMax')
+                        ->andWhere('inventory_location_mission.scannedAt <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
             }
         }
 
-        $countQuery = $mission->isDone()
-            ? QueryBuilderHelper::count($queryBuilder, "join_inventoryLocationMissionReferenceArticles")
-            : QueryBuilderHelper::count($queryBuilder, "join_location");
+        $countQuery = QueryBuilderHelper::count($queryBuilder, "join_location");
 
         if (!empty($params->all('order'))) {
             $order = $params->all('order')[0]['dir'];
@@ -532,7 +524,7 @@ class InventoryMissionRepository extends EntityRepository {
                     case 'percentage':
                         if ($mission->isDone()) {
                             $queryBuilder
-                                ->addOrderBy('join_inventoryLocationMissionReferenceArticles.percentage', $order);
+                                ->addOrderBy('inventory_location_mission.percentage', $order);
                         }
                         break;
                     case 'zone':
@@ -548,7 +540,7 @@ class InventoryMissionRepository extends EntityRepository {
                     case 'date':
                         if ($mission->isDone()) {
                             $queryBuilder
-                                ->addOrderBy('join_inventoryLocationMissionReferenceArticles.scannedAt', $order);
+                                ->addOrderBy('inventory_location_mission.scannedAt', $order);
                         }
                         break;
                     case 'operator':
@@ -574,10 +566,63 @@ class InventoryMissionRepository extends EntityRepository {
                 "missionId" => $line["missionId"],
                 "zone" => $line["zone"] ?? null,
                 "location" => $line["location"] ?? null,
-                "reference" => $line["reference"] ?? null,
                 "date" => isset($line["date"]) ? $line["date"]->format("d/m/Y") : null,
                 "operator" => $line["operator"] ?? null,
                 "percentage" => isset($line["percentage"]) ? $line["percentage"] . "%" : null,
+            ]);
+
+        return [
+            "data" => $result->toArray(),
+            'recordsFiltered' => $countQuery,
+            'recordsTotal' => $total
+        ];
+    }
+
+    public function getArticlesByInventoryLocationMission(InventoryLocationMission $inventoryLocationMission, InputBag $params  = null): array {
+        $start = $params->get('start') ?? 0;
+        $length = $params->get('length') ?? 5;
+        $search = $params->all('search')?? null;
+
+        $queryBuilder = $this->createQueryBuilder('inventoryLocationMission');
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
+            ->select('join_articles.id AS id')
+            ->addselect('join_articles.label AS label')
+            ->addSelect('join_articles.RFIDtag AS RFIDtag')
+            ->addSelect('join_articleFournisseur.reference AS reference')
+            ->leftJoin('inventoryLocationMission.articles', 'join_articles')
+            ->leftJoin('join_articles.articleFournisseur', 'join_articleFournisseur')
+            ->where('inventoryLocationMission.id = :inventoryLocationMission')
+            ->addOrderBy('inventoryLocationMission.id')
+            ->setParameter('inventoryLocationMission', $inventoryLocationMission->getId())
+            ->getQuery()
+            ->getArrayResult();
+
+        $queryBuilder->setFirstResult($start);
+        $queryBuilder->setMaxResults($length);
+
+        // search
+        if (!empty($search) && !empty($search['value'])) {
+            $value = $search['value'];
+            $queryBuilder
+                ->andWhere($exprBuilder->orX(
+                    'join_articles.label LIKE :search',
+                    'join_articles.RFIDtag LIKE :search',
+                    'join_articleFournisseur.reference LIKE :search',
+                ))
+                ->setParameter('search', "%$value%");
+        }
+
+        $countQuery = QueryBuilderHelper::count($queryBuilder, "join_articles");
+        $total = QueryBuilderHelper::count($queryBuilder, "join_articles");
+
+        $queryResult = $queryBuilder->getQuery()->getResult();
+        $result = Stream::from($queryResult)
+            ->map(fn(array $line) => [
+                "reference" => $line["reference"],
+                "label" => $line["label"],
+                "RFIDtag" => $line["RFIDtag"],
             ]);
 
         return [

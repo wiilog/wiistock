@@ -149,6 +149,14 @@ class InvMissionService {
         return $inventoryLocationMissionRepository->getDataByMission($mission, $params, $filters);
     }
 
+    public function getDataForArticlesDatatable(EntityManagerInterface          $entityManager,
+                                                InventoryLocationMission        $mission,
+                                                ParameterBag                    $params = null) {
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+
+        return $inventoryLocationMissionRepository->getArticlesByInventoryLocationMission($mission, $params);
+    }
+
     public function dataRowRefMission(ReferenceArticle $ref, InventoryMission $mission): array {
         $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
 

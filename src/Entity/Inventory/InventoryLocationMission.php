@@ -3,9 +3,12 @@
 namespace App\Entity\Inventory;
 
 use App\Entity\Emplacement;
+use App\Entity\Utilisateur;
+use App\Entity\Article;
 use App\Repository\Inventory\InventoryMissionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InventoryMissionRepository::class)]
@@ -24,15 +27,23 @@ class InventoryLocationMission {
     #[ORM\JoinColumn(nullable: false)]
     private ?Emplacement $location = null;
 
-    #[ORM\OneToMany(mappedBy: 'inventoryLocationMission', targetEntity: InventoryLocationMissionReferenceArticle::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private Collection $inventoryLocationMissionReferenceArticles;
-
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $done = null;
 
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $operator = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $scannedAt = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $percentage = null;
+
+    #[ORM\ManyToMany(targetEntity: Article::class)]
+    private Collection $articles;
+
     public function __construct() {
-        $this->inventoryLocationMissionReferenceArticles = new ArrayCollection();
+
     }
 
     public function getId(): ?int {
@@ -67,48 +78,77 @@ class InventoryLocationMission {
         return $this;
     }
 
-    public function getInventoryLocationMissionReferenceArticles(): Collection {
-        return $this->inventoryLocationMissionReferenceArticles;
-    }
-
-    public function addInventoryLocationMissionReferenceArticle(InventoryLocationMissionReferenceArticle $inventoryLocationMissionReferenceArticle): self {
-        if (!$this->inventoryLocationMissionReferenceArticles->contains($inventoryLocationMissionReferenceArticle)) {
-            $this->inventoryLocationMissionReferenceArticles[] = $inventoryLocationMissionReferenceArticle;
-            $inventoryLocationMissionReferenceArticle->setInventoryLocationMission($this);
-        }
-
-        return $this;
-    }
-
-    public function removeInventoryLocationMissionReferenceArticle(InventoryLocationMissionReferenceArticle $inventoryLocationMissionReferenceArticle): self {
-        if ($this->inventoryLocationMissionReferenceArticles->removeElement($inventoryLocationMissionReferenceArticle)) {
-            if ($inventoryLocationMissionReferenceArticle->getInventoryLocationMission() === $this) {
-                $inventoryLocationMissionReferenceArticle->setInventoryLocationMission(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setInventoryLocationMissionReferenceArticles(?iterable $inventoryLocationMissionReferenceArticles): self {
-        foreach($this->getInventoryLocationMissionReferenceArticles()->toArray() as $inventoryLocationMissionReferenceArticle) {
-            $this->removeInventoryLocationMissionReferenceArticle($inventoryLocationMissionReferenceArticle);
-        }
-
-        $this->inventoryLocationMissionReferenceArticles = new ArrayCollection();
-        foreach($inventoryLocationMissionReferenceArticles ?? [] as $inventoryLocationMissionReferenceArticle) {
-            $this->addInventoryLocationMissionReferenceArticle($inventoryLocationMissionReferenceArticle);
-        }
-
-        return $this;
-    }
-
     public function isDone(): ?bool {
         return $this->done;
     }
 
     public function setDone(bool $isDone): self {
         $this->done = $isDone;
+
+        return $this;
+    }
+
+    public function getOperator(): ?Utilisateur {
+        return $this->operator;
+    }
+
+    public function setOperator(Utilisateur $operator): self {
+        $this->operator = $operator;
+
+        return $this;
+    }
+
+    public function getScannedAt(): ?DateTime {
+        return $this->scannedAt;
+    }
+
+    public function setScannedAt(DateTime $scannedAt): self {
+        $this->scannedAt = $scannedAt;
+
+        return $this;
+    }
+
+    public function getPercentage(): ?int {
+        return $this->percentage;
+    }
+
+    public function setPercentage(int $percentage): self {
+        $this->percentage = $percentage;
+
+        return $this;
+    }
+
+    public function getArticles(): Collection {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self {
+
+        if (!$this->articles->contains($article)) {
+            $this->articles->add($article);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self {
+        $this->articles->removeElement($article);
+
+        return $this;
+    }
+
+    /**
+     * @param Article[] $articles
+     */
+    public function setArticles(array $articles): self {
+        foreach($this->getArticles()->toArray() as $article) {
+            $this->removeArticle($article);
+        }
+
+        $this->articles = new ArrayCollection();
+        foreach ($articles as $article) {
+            $this->addArticle($article);
+        }
 
         return $this;
     }
