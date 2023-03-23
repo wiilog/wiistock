@@ -61,6 +61,11 @@ class TruckArrivalService
 
     public function dataRowTruckArrival(TruckArrival $truckArrival, EntityManagerInterface $entityManager): array {
         $formatService = $this->formatService;
+
+        $lineHasReserve = !$truckArrival->getTrackingLines()->isEmpty() &&
+            Stream::from($truckArrival->getTrackingLines())
+                ->every(fn(TruckArrivalLine $line) => $line->getReserve());
+
         return [
             'actions' => $this->templating->render('utils/action-buttons.html.twig', [
                 'noButton' => true,
@@ -93,7 +98,7 @@ class TruckArrivalService
                 . '/'
                 . $truckArrival->getTrackingLines()->count(),
             'operator' => $formatService->user($truckArrival->getOperator()),
-            'reserves' => $truckArrival->getReserves()->isEmpty() ? 'non' : 'oui',
+            'reserves' => $truckArrival->getReserves()->isEmpty() && !$lineHasReserve ? 'non' : 'oui',
             'carrier' => $formatService->carrier($truckArrival->getCarrier()),
             'late' => Stream::from($truckArrival->getTrackingLines())
                 ->some(fn (TruckArrivalLine $line) => $this->truckArrivalLineService->lineIsLate($line, $entityManager))
