@@ -324,8 +324,9 @@ class TruckArrivalController extends AbstractController
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $truckArrival = $truckArrivalRepository->find($request->request->get('truckArrival'));
 
+        $trackingNumbers = explode(',', $data['trackingNumbers']);
 
-        foreach (explode(',', $data['trackingNumbers'] ?? '') as $trackingNumber) {
+        foreach ($trackingNumbers as $trackingNumber) {
             $truckArrivalLine = $truckArrivalLineRepository->findOneBy(['number' => $trackingNumber]);
             if ($trackingNumber && !$truckArrivalLine) {
 
@@ -347,7 +348,6 @@ class TruckArrivalController extends AbstractController
 
         return new JsonResponse([
             'success' => true,
-            'trackingNumber' => $trackingNumber,
             'msg' => 'Le numéro de tracking transporteur a bien été ajouté.'
         ]);
     }

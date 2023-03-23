@@ -171,7 +171,6 @@ function editTruckArrival(id) {
 
 function newTrackingNumber() {
     const $modal = $('#newTrackingNumberModal');
-    let truckArrivalId = $modal.find('input[name=truckArrival]').val();
     Form
         .create($modal)
         .onOpen(()=> {
