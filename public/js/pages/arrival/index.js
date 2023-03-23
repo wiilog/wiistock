@@ -263,7 +263,7 @@ function createArrival(form = null) {
             const $driverAddButton = $modal.find(`button.add-driver`);
             const $flyFormDirver = $modal.find(`.fly-form.driver`);
 
-            $(this).attr('data-other-params-truck-arrival-id', data.truck_arrival_id || null);
+            $noTrackingSelect.attr('data-other-params-truck-arrival-id', data.truck_arrival_id || null);
             $noTruckArrivalSelect.val(data.truck_arrival_number);
 
             if (data.driver_id !== undefined && data.driver_id != null) {
