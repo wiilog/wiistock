@@ -3894,7 +3894,7 @@ class MobileController extends AbstractApiController
             if(isset($truckArrivalLine['reserve'])){
                 $lineReserve = (new Reserve())
                     ->setType($truckArrivalLine['reserve']['type'])
-                    ->setComment($truckArrivalLine['reserve']['type'] ?? null);
+                    ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
 
                 if($truckArrivalLine['reserve']['photos']){
                     foreach($truckArrivalLine['reserve']['photos'] as $photo){

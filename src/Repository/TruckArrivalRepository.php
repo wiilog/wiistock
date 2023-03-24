@@ -179,10 +179,11 @@ class TruckArrivalRepository extends EntityRepository
                         ->setParameter('filteredDrivers', $value);
                     break;
                 case 'carrierTrackingNumberNotAssigned':
-                    if ($filter['value'] == 'true') {
+                    if ($filter['value'] == '1') {
                         $qb
-                            ->andWhere('trackingLinesJ.number IS NULL')
-                            ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ');
+                            ->andWhere('trackingLinesArrival IS NULL')
+                            ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ')
+                            ->leftJoin('trackingLinesJ.arrivals', 'trackingLinesArrival');
                     }
                     break;
             }
