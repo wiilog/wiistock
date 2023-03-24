@@ -36,7 +36,7 @@
                 <div class="wii-box">
                     <div class="header wii-title d-flex justify-content-between">
                         <span>Liste des numéro de tracking</span>
-                        <span class="wii-field-text">Nombre de n° de tracking associé : {{ lineAssociated }}</span>
+                        <span class="wii-field-text"><span class="bold">Nombre de n° de tracking associé :</span> {{ lineAssociated }}</span>
                     </div>
                     <div class="content">
                         {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_CARRIER_TRACKING_NUMBER')) %}
@@ -71,10 +71,15 @@
                     <div class="content py-0">
                         {% if hasRightEditReserve %}
                             <div class="d-flex justify-content-end">
-                                <button class="btn btn-sm btn-primary new-quality-reserve-button d-flex align-items-center">
-                                    <span class="wii-icon wii-icon-plus mr-1"></span>
-                                    Ajouter une réserve
-                                </button>
+                                {% include "utils/action-buttons.html.twig" with {
+                                    actions: [
+                                        {
+                                            title: 'Ajouter une réserve',
+                                            icon: "wii-icon wii-icon-plus",
+                                            class: 'new-quality-reserve-button',
+                                        },
+                                    ]
+                                } %}
                             </div>
                         {% endif %}
                         <table id="truckArrivalLinesQualityReservesTable" class="table w-100"></table>
@@ -105,7 +110,7 @@
                     </div>
 
                     <div class="wii-section-title my-3 d-flex align-items-center">
-                        Quantité =/-
+                        Quantité +/-
                     </div>
                     <div class="p-2 d-flex w-100">
                         <div class="d-flex w-100">

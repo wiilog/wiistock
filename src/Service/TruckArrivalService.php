@@ -173,12 +173,12 @@ class TruckArrivalService
                 'show' => ['fieldName' => 'emplacement'],
                 'isRaw' => true
             ],
-            [
+            ...(!$attachments->isEmpty() ? [
                 'label' => 'Pièces jointes',
                 'value' => $attachments ? $attachments->toArray() : '',
                 'isAttachments' => true,
                 'isNeededNotEmpty' => false,
-            ],
+            ] : []),
         ];
     }
 }
