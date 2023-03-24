@@ -1969,6 +1969,8 @@ class MobileController extends AbstractApiController
         $supplierArticleRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
         $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
+        $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::ARTICLE_LOCATION);
+        $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
 
         $now = new DateTime('now');
 
@@ -1995,17 +1997,19 @@ class MobileController extends AbstractApiController
         $fromMatrix = $request->request->getBoolean('fromMatrix');
         $destination = !empty($destinationStr)
             ? ($fromMatrix
-                ? $locationRepository->findOneBy(['label' => $destinationStr])
+                ? ($locationRepository->findOneBy(['label' => $destinationStr]) ?: $defaultLocation)
                 : $locationRepository->find($destinationStr))
             : null;
+
+        if (!$destination) {
+            throw new FormException("L'emplacement de destination de l'article est inconnu.");
+        }
+
         $countryFrom = !empty($countryStr)
             ? $nativeCountryRepository->findOneBy(['code' => $countryStr])
             : null;
         if (!$countryFrom && $countryStr) {
             throw new FormException("Le code pays est inconnu");
-        }
-        if (!$destination) {
-            throw new FormException("L'emplacement de destination de l'article est inconnu.");
         }
 
         if ($fromMatrix) {
