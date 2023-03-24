@@ -1,15 +1,5 @@
 {% import 'form.html.twig' as form %}
 
-{% if reserve is defined  %}
-    {{ form.input('type', null, false , constant('App\\Entity\\Reserve::TYPE_QUANTITY'), {
-        type: 'hidden',
-    }) }}
-    {% if reserve and reserve.id  %}
-        {{ form.input('reserveId', null, false , reserve.id, {
-            type: 'hidden',
-        }) }}
-    {% endif %}
-{% endif %}
 <div class="row">
     <div class="col-4">
         {{ form.checkbox('hasQuantityReserve', 'Réserve quantité +/-', false, reserve is defined and reserve , {
@@ -32,4 +22,14 @@
             {{ form.input('quantityReserveComment', 'Commentaire', false, reserve is defined and reserve ? reserve.comment : null) }}
         </div>
     </div>
+    {% if reserve is defined  %}
+        {{ form.input('type', null, false , constant('App\\Entity\\Reserve::TYPE_QUANTITY'), {
+            type: 'hidden',
+        }) }}
+        {% if reserve and reserve.id  %}
+            {{ form.input('reserveId', null, false , reserve.id, {
+                type: 'hidden',
+            }) }}
+        {% endif %}
+    {% endif %}
 </div>
