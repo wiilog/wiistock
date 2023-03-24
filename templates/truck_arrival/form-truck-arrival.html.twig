@@ -66,7 +66,7 @@
                     </div>
                     <div class="form-group col-auto invisible submit-button-container" id="addTransporteur">
                         <span class="btn btn-primary"
-                              onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('[name=transporteur]'))">
+                              onclick="onFlyFormSubmit(Routing.generate('transporteur_save', true), $(this), 'transporteurDisplay', 'addTransporteur', $('[name=transporteur]'))">
                             <i class="fas fa-check-circle"></i>
                         </span>
                     </div>
@@ -105,7 +105,7 @@
     {% if displayOnform %}
         {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
         <div class="col-6">
-            {{ form.input('registrationNumber', 'Immatirculation', requiredOnform, truckArrival.registrationNumber) }}
+            {{ form.input('registrationNumber', 'Immatriculation', requiredOnform, truckArrival.registrationNumber) }}
         </div>
     {% endif %}
 

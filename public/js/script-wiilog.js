@@ -710,7 +710,7 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
         params[$(this).attr('name')] = $(this).val();
     });
     if (formIsValid) {
-        $.post(path, JSON.stringify(params), function (response) {
+        $.post(path, params, function (response) {
             if (response && response.success) {
                 if ($select) {
                     let option = new Option(response.text, response.id, true, true);

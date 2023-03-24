@@ -57,14 +57,18 @@ $(function () {
         });
     });
 
-    $('.new-quality-reserve-button').on('click', function(){
+    $('.new-quality-reserve-button').off('click').on('click', function(){
+        console.log('gfdgd');
         openModalQualityReserveContent($modalReserveQuality);
     });
 });
 
 function openModalQualityReserveContent($modalReserveQuality, reserveId = null){
     $modalReserveQuality.find('.modal-body').empty();
+    $modalReserveQuality.find('.modal-title').text(reserveId ? 'Modifier réserve qualité' : 'Ajouter réserve qualité');
+    $modalReserveQuality.find('.modal-title').attr('title', reserveId ? 'Modifier réserve qualité' : 'Ajouter réserve qualité');
     Form.create($modalReserveQuality, true)
+        .clearOpenListeners()
         .onOpen(() => {
             AJAX.route(AJAX.POST, 'reserve_modal_quality_content', {
                 reserveId,
@@ -73,7 +77,7 @@ function openModalQualityReserveContent($modalReserveQuality, reserveId = null){
             .json()
             .then((response) => {
                 if(response.success){
-                    $modalReserveQuality.find('.modal-body').append(response.content);
+                    $modalReserveQuality.find('.modal-body').html(response.content);
                 }
 
             });
@@ -177,6 +181,7 @@ function newTrackingNumber() {
     const $modal = $('#newTrackingNumberModal');
     Form
         .create($modal)
+        .clearOpenListeners()
         .onOpen(()=> {
             $modal.find('select[name="trackingNumbers"]').empty();
         })
@@ -194,5 +199,8 @@ function newTrackingNumber() {
     $warningMessage.find('.max-length').text(maxTrackingNumberLength);
     initTrackingNumberSelect($trackingNumberSelect, $warningMessage ,minTrackingNumberLength ,maxTrackingNumberLength);
 
+    $trackingNumberSelect.on('change', function () {
+        $modal.find('#totalTrackingNumbers').html($(this).find('option:selected').length);
+    })
     $modal.modal('show');
 }

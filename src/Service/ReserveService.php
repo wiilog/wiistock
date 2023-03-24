@@ -56,13 +56,12 @@ class ReserveService
 
     public function dataRowQualityReserve(Reserve $reserve): array {
         return [
-            'actions' => $this->templating->render('utils/action-buttons.html.twig', [
-                'noButton' => true,
+            'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                 'actions' => [
                     [
                         'title' => 'Modifier',
                         'icon' => 'fa fa-eye',
-                        'class' => 'action-on-click',
+                        "actionOnClick" => true,
                         'attributes' => [
                             'onclick' => "openModalQualityReserveContent($('#modalReserveQuality'), ".$reserve->getId().")",
                         ]
