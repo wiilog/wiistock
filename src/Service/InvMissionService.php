@@ -138,15 +138,53 @@ class InvMissionService {
         ];
     }
 
-    public function findDataForOneLocationMissionDatatable(EntityManagerInterface $entityManager,
-                                                           InventoryMission       $mission,
-                                                           ParameterBag           $params = null) {
+    public function getDataForOneLocationMissionDatatable(EntityManagerInterface $entityManager,
+                                                          InventoryMission       $mission,
+                                                          ParameterBag           $params = null) {
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_SHOW_MISSION, $this->security->getUser());
 
-        return $inventoryLocationMissionRepository->getDataByMission($mission, $params, $filters);
+        $result = $inventoryLocationMissionRepository->findDataByMission($mission, $params, $filters);
+
+        return [
+            "data" => Stream::from($result['data'])
+                ->map(fn(InventoryLocationMission $inventoryLocation) => [
+                    'zone' => $this->formatService->zone($inventoryLocation->getLocation()?->getZone()),
+                    'location' => $this->formatService->location($inventoryLocation->getLocation()),
+                    'date' => $mission->isDone() ? $this->formatService->date($inventoryLocation->getScannedAt()) : null,
+                    'operator' => $mission->isDone() ? $this->formatService->user($inventoryLocation->getOperator()) : null,
+                    'percentage' => $mission->isDone() ? (($inventoryLocation->getPercentage() ?: 0) . '%') : null,
+                    'actions' => $mission->isDone()
+                        ? $this->templating->render("utils/action-buttons/dropdown.html.twig", [
+                            "actions" => [
+                                [
+                                    "title" => "Annuler la planification",
+                                    "actionOnClick" => true,
+                                    "attributes" => [
+                                        "data-id" => $inventoryLocation->getId(),
+                                        "onclick" => "openShowScannedArticlesModal($(this))",
+                                    ],
+                                ],
+                                [
+                                    "title" => "Voir les articles",
+                                    "icon" => "bg-black fas fa-eye",
+                                    "attributes" => [
+                                        "class" => "pointer",
+                                        "data-id" => $inventoryLocation->getId(),
+                                        "onclick" => "openShowScannedArticlesModal($(this))",
+                                    ],
+                                ],
+                            ],
+                        ])
+                        : null,
+                ])
+                ->toArray(),
+            'recordsFiltered' => $result['recordsFiltered'],
+            'recordsTotal' => $result['recordsTotal']
+        ];
+
     }
 
     public function getDataForArticlesDatatable(EntityManagerInterface   $entityManager,

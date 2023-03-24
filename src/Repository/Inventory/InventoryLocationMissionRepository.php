@@ -43,7 +43,7 @@ class InventoryLocationMissionRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function getDataByMission(InventoryMission $mission, InputBag $params  = null, array $filters = []) : array {
+    public function findDataByMission(InventoryMission $mission, InputBag $params  = null, array $filters = []) : array {
         $start = $params->get('start') ?? 0;
         $length = $params->get('length') ?? 5;
         $search = $params->all('search') ?? null;

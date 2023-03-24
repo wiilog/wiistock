@@ -239,46 +239,9 @@ class InventoryMissionController extends AbstractController
                                              InventoryMission        $mission,
                                              Request                 $request,
                                              InvMissionService       $invMissionService): JsonResponse {
-        $result = $invMissionService->findDataForOneLocationMissionDatatable($entityManager, $mission,  $request->request);
-        $rows = [];
-        /** @var InventoryLocationMission $inventoryLocation */
-        foreach ($result['data'] as $inventoryLocation) {
-            $rows[] = [
-                'zone' => $this->getFormatter()->zone($inventoryLocation->getLocation()?->getZone()),
-                'location' => $this->getFormatter()->location($inventoryLocation->getLocation()),
-                'date' => $mission->isDone() ? $this->getFormatter()->date($inventoryLocation->getScannedAt()) : null,
-                'operator' => $mission->isDone() ? $this->getFormatter()->user($inventoryLocation->getOperator()) : null,
-                'percentage' => $mission->isDone() ? (($inventoryLocation->getPercentage() ?: 0) . '%') : null,
-                'actions' => $mission->isDone()
-                    ? $this->renderView("utils/action-buttons/dropdown.html.twig", [
-                        "actions" => [
-                            [
-                                "title" => "Annuler la planification",
-                                "actionOnClick" => true,
-                                "attributes" => [
-                                    "data-id" => $inventoryLocation->getId(),
-                                    "onclick" => "openShowScannedArticlesModal($(this))",
-                                ],
-                            ],
-                            [
-                                "title" => "Voir les articles",
-                                "icon" => "bg-black fas fa-eye",
-                                "attributes" => [
-                                    "class" => "pointer",
-                                    "data-id" => $inventoryLocation->getId(),
-                                    "onclick" => "openShowScannedArticlesModal($(this))",
-                                ],
-                            ],
-                        ],
-                    ])
-                    : null,
-            ];
-        }
-        $data['data'] = $rows;
-        $data['recordsTotal'] = $result['recordsTotal'];
-        $data['recordsFiltered'] = $result['recordsFiltered'];
+        $result = $invMissionService->getDataForOneLocationMissionDatatable($entityManager, $mission,  $request->request);
 
-        return $this->json($data);
+        return $this->json($result);
     }
 
     #[Route("/{locationLine}/mission-location-art-api", name: "mission_location_art_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]

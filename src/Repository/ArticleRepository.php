@@ -7,6 +7,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
@@ -20,6 +21,7 @@ use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -1338,15 +1340,13 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function findByEmplacementAndRefAndStatus(string $location, string $reference, string $status): int
-    {
-        $query = $this->createQueryBuilder('article')
-            ->join('article.articleFournisseur', 'join_articleFournisseur')
-            ->join('join_articleFournisseur.referenceArticle', 'join_referenceArticle')
-            ->join('article.statut', 'join_statut')
-            ->join('article.emplacement', 'join_emplacement')
-            ->setParameters(['join_emplacement.label' => $location, 'join_referenceArticle.reference' => $reference, 'join_statut.code' => $status]);
-
-        return $query->getQuery()->getResult();
+    public function countInventoryLocationMission(Article $article): int {
+        return $this->createQueryBuilder('article')
+            ->select("COUNT(article.id)")
+            ->join(InventoryLocationMission::class, 'inventoryLocationMission', Join::WITH, "article MEMBER OF inventoryLocationMission.articles")
+            ->andWhere("article = :article")
+            ->setParameter("article", $article)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
