@@ -86,7 +86,7 @@ class TransporteurController extends AbstractController
 		$label = $data['label'];
         $minTrackingNumber = $data['min-char-number'] ?? null;
         $maxTrackingNumber = $data['max-char-number'] ?? null;
-        $isRecurrent = $data['is-recurrent'];
+        $isRecurrent = $data['is-recurrent'] ?? false;
         /** @var Attachment $logo */
         $logo = $request->files->get('logo')
             ? $attachmentService->createAttachements([$request->files->get('logo')])[0]
