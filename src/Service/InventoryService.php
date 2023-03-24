@@ -271,7 +271,6 @@ class InventoryService {
                 $result[] = $rowMissingReferenceResult;
             }
         }
-        dump($result, $locationsData);
 
         // calculate percentage and save in inventory stats and scanned articles
         foreach($locationsData as $locationRow) {
