@@ -39,20 +39,23 @@
                         <span class="wii-field-text">Nombre de n° de tracking associé : {{ lineAssociated }}</span>
                     </div>
                     <div class="content">
-                        <div style="text-align: right">
-                            {% include "utils/action-buttons.html.twig" with {
-                                actions: [
-                                    {
-                                        hasRight: true,
-                                        title: 'Ajouter un n°tracking transporteur',
-                                        icon: "wii-icon wii-icon-plus",
-                                        attributes: {
-                                            onclick: "newTrackingNumber()",
-                                    },
-                                    },
-                                ]
-                            } %}
-                        </div>
+                        {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_CARRIER_TRACKING_NUMBER')) %}
+                        {% if hasRightEditReserve %}
+                            <div style="text-align: right">
+                                {% include "utils/action-buttons.html.twig" with {
+                                    actions: [
+                                        {
+                                            hasRight: true,
+                                            title: 'Ajouter un n°tracking transporteur',
+                                            icon: "wii-icon wii-icon-plus",
+                                            attributes: {
+                                                onclick: "newTrackingNumber()",
+                                        },
+                                        },
+                                    ]
+                                } %}
+                            </div>
+                        {% endif %}
                         <table id="truckArrivalLinesTable" class="table w-100"></table>
                     </div>
                 </div>
