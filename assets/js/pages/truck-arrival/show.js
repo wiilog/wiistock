@@ -194,5 +194,8 @@ function newTrackingNumber() {
     $warningMessage.find('.max-length').text(maxTrackingNumberLength);
     initTrackingNumberSelect($trackingNumberSelect, $warningMessage ,minTrackingNumberLength ,maxTrackingNumberLength);
 
+    $trackingNumberSelect.on('change', function () {
+        $modal.find('#totalTrackingNumbers').html($(this).find('option:selected').length);
+    })
     $modal.modal('show');
 }
