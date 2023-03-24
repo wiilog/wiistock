@@ -127,7 +127,7 @@ function initModalContent($modal) {
 function cancelInventoryMission($button) {
     const mission = $button.data('id');
     Modal.confirm({
-        title: 'Annuler planification',
+        title: 'Annuler la planification',
         message: "Confirmez-vous l'annulation cette planification de missions d'inventaire ?",
         table: tableInventoryPanning,
         ajax: {
@@ -144,7 +144,7 @@ function cancelInventoryMission($button) {
 function deleteInventoryMission($button) {
     const mission = $button.data('id');
     Modal.confirm({
-        title: 'Supprimer planification',
+        title: 'Supprimer la planification',
         message: "Confirmez-vous la suppression cette planification de missions d'inventaire ?",
         table: tableInventoryPanning,
         ajax: {
