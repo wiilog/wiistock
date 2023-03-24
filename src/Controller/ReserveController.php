@@ -32,7 +32,6 @@ class ReserveController extends AbstractController
         $data = $request->request->all();
 
         $reserve = $data['reserveId'] ?? null ? $reserveRepository->find($data['reserveId']) : new Reserve();
-
         if(isset($data['type']) && $data['type'] === Reserve::TYPE_QUALITY){
             $truckArrivalLine = $truckArrivalLineRepository->find($data['truckArrivalLineNumber']);
             $reserve
@@ -42,7 +41,7 @@ class ReserveController extends AbstractController
 
             $this->persistAttachmentsForEntity($reserve, $attachmentService, $request, $entityManager);
         } else {
-            if (isset($data['hasGeneralReserve']) || isset($data['hasQuantityReserve'])) {
+            if (!empty($data['hasGeneralReserve']) || !empty($data['hasQuantityReserve'])) {
                 $type = $data['type'] ?? null;
                 if (!in_array($type, Reserve::TYPES)) {
                     throw new FormException('Une erreur est survenue lors de la validation du formulaire');
