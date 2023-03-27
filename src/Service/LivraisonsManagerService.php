@@ -16,6 +16,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -160,6 +161,7 @@ class LivraisonsManagerService
                 ->unique()
                 ->toArray();
 
+            $treatedArticles = [];
             foreach ($packs as $pack) {
                 $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
@@ -172,45 +174,14 @@ class LivraisonsManagerService
                     false,
                     ['delivery' => $livraison]
                 );
-            }
 
-            foreach ($articleLines as $articleLine) {
-                $article = $articleLine->getArticle();
-                $tracking = $this->trackingMovementService->persistTrackingMovement(
-                    $this->entityManager,
-                    $article->getTrackingPack() ?? $article->getBarCode(),
-                    $article->getEmplacement(),
-                    $user,
-                    $dateEnd,
-                    true,
-                    TrackingMovement::TYPE_PRISE,
-                    false,
-                    ['delivery' => $livraison]
-                );
+                Stream::from($articleLines)
+                    ->filter(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getArticle()->getCurrentLogisticUnit()->getId() === $pack->getId())
+                    ->each(function (PreparationOrderArticleLine $articleLine) use ($nextLocation, $livraison, $dateEnd, $user, &$treatedArticles) {
+                        $treatedArticles[] = $articleLine->getId();
+                        $this->generatePickAndDropMovement($articleLine, $nextLocation, $livraison, $dateEnd, $user);
+                    });
 
-                $pickingMovement = $tracking["movement"];
-
-                $tracking = $this->trackingMovementService->persistTrackingMovement(
-                    $this->entityManager,
-                    $pickingMovement->getPack(), // same pack of picking
-                    $nextLocation,
-                    $user,
-                    $dateEnd,
-                    true,
-                    TrackingMovement::TYPE_DEPOSE,
-                    false,
-                    ['delivery' => $livraison]
-                );
-
-                $dropMovement = $tracking["movement"];
-
-                if ($articleLine->getPack()) {
-                    $pickingMovement->setLogisticUnitParent($articleLine->getPack());
-                    $dropMovement->setLogisticUnitParent($articleLine->getPack());
-                }
-            }
-
-            foreach ($packs as $pack) {
                 $dropMovement = $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
                     $pack,
@@ -226,6 +197,12 @@ class LivraisonsManagerService
                     ->setLastDrop($dropMovement['movement'])
                     ->setLastTracking($dropMovement['movement']);
             }
+
+            Stream::from($articleLines)
+                ->filter(fn(PreparationOrderArticleLine $articleLine) => !in_array($articleLine->getId(), $treatedArticles))
+                ->each(function (PreparationOrderArticleLine $articleLine) use ($nextLocation, $livraison, $dateEnd, $user) {
+                     $this->generatePickAndDropMovement($articleLine, $nextLocation, $livraison, $dateEnd, $user);
+                });
 
             /** @var PreparationOrderArticleLine $articleLine */
             foreach ($articleLines as $articleLine) {
@@ -424,4 +401,46 @@ class LivraisonsManagerService
         return ($livraisonNumber . '-' . $currentCounterStr);
     }
 
+    public function generatePickAndDropMovement(PreparationOrderArticleLine $articleLine, Emplacement $nextLocation, Livraison $livraison, DateTime $dateEnd, Utilisateur $user)
+    {
+        $article = $articleLine->getArticle();
+        $tracking = $this->trackingMovementService->persistTrackingMovement(
+            $this->entityManager,
+            $article->getTrackingPack() ?? $article->getBarCode(),
+            $article->getEmplacement(),
+            $user,
+            $dateEnd,
+            true,
+            TrackingMovement::TYPE_PRISE,
+            false,
+            ['delivery' => $livraison]
+        );
+
+        if (!$tracking["success"]) {
+            throw new FormException($tracking["msg"]);
+        }
+        $pickingMovement = $tracking["movement"];
+
+        $tracking = $this->trackingMovementService->persistTrackingMovement(
+            $this->entityManager,
+            $pickingMovement->getPack(), // same pack of picking
+            $nextLocation,
+            $user,
+            $dateEnd,
+            true,
+            TrackingMovement::TYPE_DEPOSE,
+            false,
+            ['delivery' => $livraison]
+        );
+
+        if (!$tracking["success"]) {
+            throw new FormException($tracking["msg"]);
+        }
+        $dropMovement = $tracking["movement"];
+
+        if ($articleLine->getPack()) {
+            $pickingMovement->setLogisticUnitParent($articleLine->getPack());
+            $dropMovement->setLogisticUnitParent($articleLine->getPack());
+        }
+    }
 }

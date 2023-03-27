@@ -75,7 +75,7 @@ function endLivraison($button) {
             $.post({
                 url: Routing.generate('livraison_finish', {id: getDeliveryId()})
             })
-                .then(async ({success, redirect, message, tableArticlesNotRequestedDataBylu}) => {
+                .then(async ({success, redirect, message, tableArticlesNotRequestedDataBylu, msg}) => {
                     if (success) {
                         window.location.href = redirect;
                     } else {
@@ -129,8 +129,8 @@ function endLivraison($button) {
                                 }
                             });
                             modalArticlesNotRequested.modal(`show`);
-                        } else if (message) {
-                            showBSAlert(message, 'danger');
+                        } else if (message || msg) {
+                            showBSAlert(message || msg, 'danger');
                         }
                     }
                     return success;
