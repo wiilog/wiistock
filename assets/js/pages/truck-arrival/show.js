@@ -58,7 +58,6 @@ $(function () {
     });
 
     $('.new-quality-reserve-button').off('click').on('click', function(){
-        console.log('gfdgd');
         openModalQualityReserveContent($modalReserveQuality);
     });
 });

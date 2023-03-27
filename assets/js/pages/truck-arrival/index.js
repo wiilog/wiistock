@@ -17,6 +17,11 @@ $(function () {
     Form
         .create($modalNew)
         .submitTo(POST, 'truck_arrival_form_submit', {
+            success: (response) => {
+                if(response.redirect){
+                    window.location.href = response.redirect;
+                }
+            },
             table: () => $('#truckArrivalsTable').DataTable()
         });
 
@@ -40,7 +45,11 @@ $(function () {
     });
     $trackingNumberSelect.off('change').on('change', function () {
         $modalNew.find('#totalTrackingNumbers').html($(this).find('option:selected').length);
-    })
+    });
+
+    $modalNew.find('.go-to-arrival').on('click', function() {
+        $(this).val(true);
+    });
 });
 
 function initTruckArrivalTable() {

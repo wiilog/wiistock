@@ -53,7 +53,7 @@
                                 <option selected disabled>&nbsp;</option>
                                 {% for carrier in carriers %}
                                     <option value="{{ carrier.id }}"
-                                        {{ (keptFields[carrierFieldCode] ?? null) == carrier.id ? 'selected' }}>
+                                        {{ ((keptFields[carrierFieldCode] ?? null) == carrier.id) or ((fromTruckArrivalOptions['carrier'] ?? null) == carrier.id) ? 'selected' }}>
                                         {{ carrier.label }}
                                     </option>
                                 {% endfor %}
@@ -81,7 +81,7 @@
                                 <option selected disabled>&nbsp;</option>
                                 {% for chauffeur in chauffeurs %}
                                     <option value="{{ chauffeur.id }}"
-                                        {{ (keptFields[driverFieldCode] ?? null) == chauffeur.id ? 'selected' }}>
+                                        {{ ((keptFields[driverFieldCode] ?? null) == chauffeur.id) or ((fromTruckArrivalOptions['driver'] ?? null) == carrier.id) ? 'selected' }}>
                                         {{ chauffeur.nom }}
                                     </option>
                                 {% endfor %}

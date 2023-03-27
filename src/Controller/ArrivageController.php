@@ -21,6 +21,7 @@ use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -89,7 +90,16 @@ class ArrivageController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
 
+        $fromTruckArrivalOptions = [];
+        if($request->query->has('truckArrivalId')){
+            $truckArrival = $truckArrivalRepository->find($request->query->get('truckArrivalId'));
+            $fromTruckArrivalOptions = [
+                'carrier' => $truckArrival->getCarrier()->getId(),
+                'driver' => $truckArrival->getDriver()->getId(),
+            ];
+        }
         $user = $this->getUser();
 
         $fields = $arrivageService->getColumnVisibleConfig($entityManager, $user);
@@ -112,9 +122,10 @@ class ArrivageController extends AbstractController {
             'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
             "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
-            "initial_form" => $this->createApi($entityManager, $keptFieldService)->getContent(),
+            "initial_form" => $this->createApi($entityManager, $keptFieldService, $fromTruckArrivalOptions)->getContent(),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_ARRIVAGE)),
+            "openNewModal" => count($fromTruckArrivalOptions) > 0,
         ]);
     }
 
@@ -136,7 +147,7 @@ class ArrivageController extends AbstractController {
      * @Route("/api-creer", name="arrivage_new_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function createApi(EntityManagerInterface $entityManager, KeptFieldService $keptFieldService): Response
+    public function createApi(EntityManagerInterface $entityManager, KeptFieldService $keptFieldService, array $fromTruckArrivalOptions = []): Response
     {
         if ($this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
             $settingRepository = $entityManager->getRepository(Setting::class);
@@ -191,6 +202,7 @@ class ArrivageController extends AbstractController {
                 "defaultLocation" => $defaultLocation,
                 "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
                 "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_COLIS),
+                "fromTruckArrivalOptions" => $fromTruckArrivalOptions
             ]);
         }
 
