@@ -184,7 +184,8 @@ class TruckArrivalRepository extends EntityRepository
         }
 
         $countFiltered = QueryBuilderHelper::count($qb, 'truckArrival');
-
+        $qb
+            ->groupBy('truckArrival.id');
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
