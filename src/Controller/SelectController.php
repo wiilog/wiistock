@@ -29,6 +29,7 @@ use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -788,6 +789,18 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $drivers,
+        ]);
+    }
+
+    #[Route('/select/truck-arrival-line-number', name: 'ajax_select_truck_arrival_line', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    public function truckArrivalLineNumber(Request $request, EntityManagerInterface $manager): Response {
+        $term = $request->query->get("term");
+        $carrierId = $request->query->get("carrier-id");
+        $truckArrivalId = $request->query->get("truck-arrival-id");
+
+        $lines = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
+        return $this->json([
+            "results" => $lines,
         ]);
     }
 }

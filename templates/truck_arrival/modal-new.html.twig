@@ -1,0 +1,21 @@
+<div class="modal fade" id="newTruckArrivalModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: 'Nouvel arrivage camion',
+            } %}
+            <div class="modal-body container-fluid">
+                {% include 'truck_arrival/form-truck-arrival.html.twig' with {
+                    fieldsParam,
+                    truckArrival,
+                }%}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregister', type: 'submit'},
+                ],
+            } %}
+        </div>
+    </div>
+</div>

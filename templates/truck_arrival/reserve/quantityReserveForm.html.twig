@@ -1,0 +1,35 @@
+{% import 'form.html.twig' as form %}
+
+<div class="row">
+    <div class="col-4">
+        {{ form.checkbox('hasQuantityReserve', 'Réserve quantité +/-', false, reserve is defined and reserve , {
+            inputClass: 'display-condition',
+        }) }}
+    </div>
+    <div class="col-8 displayed-on-checkbox">
+        <div class="d-flex">
+            {{ form.input('reserveQuantity', 'Valeur', false, reserve is defined and reserve ? reserve.quantity : null, {
+                type: 'number',
+                min: 0,
+            }) }}
+            <div class="mx-2 mt-auto">
+                {{ form.switch('reserveType', '', false, constant('App\\Entity\\Reserve::QUANTITY_TYPES')|map((type) => {
+                    label: type,
+                    value: type,
+                    checked: reserve is defined and reserve ? reserve.quantityType == type : false,
+                } )) }}
+            </div>
+            {{ form.input('quantityReserveComment', 'Commentaire', false, reserve is defined and reserve ? reserve.comment : null) }}
+        </div>
+    </div>
+    {% if reserve is defined  %}
+        {{ form.input('type', null, false , constant('App\\Entity\\Reserve::TYPE_QUANTITY'), {
+            type: 'hidden',
+        }) }}
+        {% if reserve and reserve.id  %}
+            {{ form.input('reserveId', null, false , reserve.id, {
+                type: 'hidden',
+            }) }}
+        {% endif %}
+    {% endif %}
+</div>

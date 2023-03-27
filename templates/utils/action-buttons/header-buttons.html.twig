@@ -17,7 +17,7 @@ How to use :
 {% import 'utils/action-buttons/common.html.twig' as common %}
 
 {#keep only action where user have the right#}
-{% set actionsFiltered = actions|filter(action => action.hasRight is not defined or action.hasRight) %}
+{% set actionsFiltered = actions|filter(action => action.hasRight is not defined or action.hasRight)|merge([]) %}
 {% set forceActionButton = forceActionButton ?? false %}
 
 {% if actionsFiltered|length > 0 %}

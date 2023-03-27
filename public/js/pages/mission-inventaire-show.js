@@ -180,33 +180,28 @@ function clearMissionListSearching() {
 
 
 function initLocationMissionsDataTable() {
-    let pathLocationMission = Routing.generate('mission_location_ref_api', {mission: mission}, true);
-
     let tableLocationMissionsConfig = {
         lengthMenu: [5, 10, 25],
         processing: true,
         serverSide: true,
         paging: true,
         ajax: {
-            url: pathLocationMission,
+            url: Routing.generate('mission_location_ref_api', {mission}, true),
             type: "POST",
         },
         columns: [
-            {data: 'zone', name: 'zone', title: 'Zone'},
-            {data: 'location', name: 'location', title: 'Emplacement'},
-            {data: 'reference', name: 'reference', title: 'Référence'},
-            {data: 'date', name: 'date', title: 'Date de scan'},
-            {data: 'operator', name: 'operator', title: 'Opérateur'},
-            {data: 'percentage', name: 'percentage', title: 'Pourcentage'},
+            {data: `actions`, title: ``, className: `noVis`, orderable: false},
+            {data: 'zone', title: 'Zone'},
+            {data: 'location', title: 'Emplacement'},
+            {data: 'date', title: 'Date de scan'},
+            {data: 'operator', title: 'Opérateur'},
+            {data: 'percentage', title: 'Pourcentage'},
         ],
         order: [
             ['percentage', 'asc'],
         ],
         rowConfig: {
             needsRowClickAction: true,
-            needsColor: true,
-            dataToCheck: 'urgence',
-            color: 'danger',
         },
     };
     tableLocationMission = initDataTable('tableLocationMissions', tableLocationMissionsConfig);
@@ -237,4 +232,29 @@ function onOpenModalAddLocationAndZone(tableLocations){
 function initModalAddTableLocations(){
     initFormAddInventoryLocations($('.add-inventory-location-container'));
 
+}
+
+function openShowScannedArticlesModal($button) {
+    let locationLine = $button.data('id');
+    let $modalShowScannedArticles = $('#modalShowScannedArticles');
+    $modalShowScannedArticles.modal('show');
+    let tableScannedArticlesConfig = {
+        lengthMenu: [5, 10, 25],
+        processing: true,
+        serverSide: true,
+        paging: true,
+        ajax: {
+            url: Routing.generate('mission_location_art_api', {locationLine}, true),
+            type: "POST",
+        },
+        columns: [
+            {data: 'reference', title: 'Référence', orderable: false},
+            {data: 'barcode', title: 'Article', orderable: false},
+            {data: 'RFIDtag', title: 'Tag RFID', orderable: false},
+        ],
+        order: [
+            ['reference', 'asc'],
+        ],
+    };
+    initDataTable($modalShowScannedArticles.find('.table'), tableScannedArticlesConfig);
 }

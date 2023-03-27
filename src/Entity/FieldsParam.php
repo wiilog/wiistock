@@ -181,6 +181,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_BUSINESS_UNIT,
         FieldsParam::FIELD_CODE_PROJECT_NUMBER,
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
+        FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
 
         // Acheminements
         FieldsParam::FIELD_CODE_EMERGENCY,

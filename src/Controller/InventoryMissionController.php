@@ -7,7 +7,6 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Emplacement;
-use App\Entity\FiltreSup;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
@@ -15,10 +14,6 @@ use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
-use App\Repository\Inventory\InventoryMissionRepository;
-use App\Repository\TypeRepository;
-use App\Entity\Type;
-use App\Entity\CategoryType;
 use App\Exceptions\FormException;
 use WiiCommon\Helper\Stream;
 use App\Service\CSVExportService;
@@ -211,9 +206,6 @@ class InventoryMissionController extends AbstractController
         $missionLocations = $mission->getInventoryLocationMissions();
 
         foreach ($missionLocations as $missionLocation) {
-            foreach ($missionLocation->getInventoryLocationMissionReferenceArticles() as $missionLocationRef) {
-                $entityManager->remove($missionLocationRef);
-            }
             $entityManager->remove($missionLocation);
         }
         $entityManager->remove($mission);
@@ -231,7 +223,7 @@ class InventoryMissionController extends AbstractController
      */
     public function show(InventoryMission $mission): Response {
         $startPrevDate = $mission->getStartPrevDate();
-        $isInventoryStarted =  new DateTime('now') < $startPrevDate;
+        $isInventoryStarted =  new DateTime('now') >= $startPrevDate;
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId(),
             'typeLocation' => $mission->getType() === InventoryMission::LOCATION_TYPE,
@@ -248,6 +240,18 @@ class InventoryMissionController extends AbstractController
                                              Request                 $request,
                                              InvMissionService       $invMissionService): JsonResponse {
         $result = $invMissionService->getDataForOneLocationMissionDatatable($entityManager, $mission,  $request->request);
+
+        return $this->json($result);
+    }
+
+    #[Route("/{locationLine}/mission-location-art-api", name: "mission_location_art_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
+    public function getMissionLocationArticlesApi(EntityManagerInterface   $entityManager,
+                                                  InventoryLocationMission $locationLine,
+                                                  Request                  $request,
+                                                  InvMissionService        $invMissionService): JsonResponse
+    {
+        $result = $invMissionService->getDataForArticlesDatatable($entityManager, $locationLine, $request->request);
         return new JsonResponse($result);
     }
 

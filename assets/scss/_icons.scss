@@ -122,6 +122,7 @@ $icons: (
     'add-reference': "../../public/svg/add-reference.svg",
     'reference-article-location': "../../public/svg/reference_article/location-blue.svg",
     'signature': "../../public/svg/signature.svg",
+    'cancel-black': "../../public/svg/cancel-black.svg",
 );
 
 @each $iconName, $iconPath in $icons {

@@ -14,23 +14,24 @@
     <div class="m-4 wii-page-card overflow-x-hidden">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {# TODO hasRight #}
-                {% include "utils/action-buttons.html.twig" with {
+                {% set hasRightToCreateTruckArrival = hasRight(constant('App\\Entity\\Menu::TRACA'),constant('App\\Entity\\Action::CREATE_TRUCK_ARRIVALS')) %}
+                {% include "utils/action-buttons/header-buttons.html.twig" with {
                     actions: [
                         {
-                            hasRight: true,
+                            hasRight: hasRightToCreateTruckArrival,
                             title: 'Créer arrivage camion',
                             icon: "wii-icon wii-icon-plus",
-                            attributes: {},
+                            attributes:{
+                                onclick: "newTruckArrival()",
+                            },
                         },
                         {
-                            hasRight: true,
                             title: 'Gestion des colonnes',
                             icon: "fa fa-cog mr-2",
                             attributes: {
                                 'data-toggle': 'modal',
                                 'data-target': '#modalColumnVisible',
-                        },
+                            },
                         },
                     ]
                 } %}
@@ -54,6 +55,14 @@
         'route': 'save_column_visible_for_truck_arrival',
         'reload': true
     } %}
+
+    {% include "truck_arrival/modal-new.html.twig" with {
+        fieldsParam,
+        truckArrival : newTruckArrival,
+    }  %}
+
+    {% include "truck_arrival/modalDeleteTruckArrival.html.twig" %}
+
 {% endblock %}
 
 {% block javascripts %}

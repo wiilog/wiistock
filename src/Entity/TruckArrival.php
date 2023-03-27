@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Traits\AttachmentTrait;
+use App\Repository\ReserveRepository;
 use App\Repository\TruckArrivalRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -23,21 +24,21 @@ class TruckArrival
     #[ORM\Column(length: 255)]
     private string $number;
 
-    #[ORM\OneToMany(mappedBy: 'truckArrival', targetEntity: TruckArrivalLine::class)]
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $registrationNumber = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?DateTime $creationDate = null;
+
+    #[ORM\OneToMany(mappedBy: 'truckArrival', targetEntity: TruckArrivalLine::class, cascade: ['remove'])]
     private Collection $trackingLines;
 
     #[ORM\ManyToOne(targetEntity: Chauffeur::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Chauffeur $driver = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?DateTime $creationDate = null;
-
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $unloadingLocation = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $registrationNumber = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -47,7 +48,7 @@ class TruckArrival
     #[ORM\JoinColumn(nullable: false)]
     private ?Transporteur $carrier = null;
 
-    #[ORM\OneToMany(mappedBy: 'truckArrival', targetEntity: Reserve::class)]
+    #[ORM\OneToMany(mappedBy: 'truckArrival', targetEntity: Reserve::class, cascade: ['remove'])]
     private Collection $reserves;
 
     public function __construct()
@@ -215,6 +216,13 @@ class TruckArrival
         }
 
         return $this;
+    }
+
+    public function getReserveByType(string $type): ?Reserve {
+        return $this
+            ->getReserves()
+            ->filter(fn(Reserve $reserve) => $reserve->getType() === $type)
+            ->first() ?: null;
     }
 
     public function setReserves(?iterable $reserves): self {

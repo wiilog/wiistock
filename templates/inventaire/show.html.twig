@@ -17,7 +17,7 @@
     {% if typeLocation %}
         <div class="mx-4 mt-3 mb-2 wii-page-card">
             <div class="row wii-page-card-header">
-                {% if isInventoryStarted %}
+                {% if not isInventoryStarted %}
                     <div class="col-auto ml-auto">
                         <div class="btn-group">
                             <button type="button"
@@ -114,6 +114,7 @@
     {% include 'inventaire/modalAddLocationToMission.html.twig' %}
     {% include 'inventaire/modalAddLocationAndZoneToMission.html.twig' %}
     {% include 'inventaire/modalRemoveRef.html.twig' %}
+    {% include 'inventaire/modalShowScannedArticles.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

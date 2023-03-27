@@ -1494,6 +1494,49 @@ class DispatchService {
                 ->setTreatedBy($user)
                 ->setCommentaire($newCommentDispatch . $commentData);
 
+            $dispatchPacks = $dispatch->getDispatchPacks();
+            $takingLocation = $dispatch->getLocationFrom();
+            $dropLocation = $dispatch->getLocationTo();
+            $date = new DateTime('now');
+
+            foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
+                $pack = $dispatchPack->getPack();
+                $trackingTaking = $this->trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $takingLocation,
+                    $user,
+                    $date,
+                    $fromNomade,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    [
+                        'quantity' => $dispatchPack->getQuantity(),
+                        'from' => $dispatch,
+                        'removeFromGroup' => true,
+                        'attachments' => $dispatch->getAttachments(),
+                    ]
+                );
+                $trackingDrop = $this->trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $dropLocation,
+                    $user,
+                    $date,
+                    $fromNomade,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $dispatchPack->getQuantity(),
+                        'from' => $dispatch,
+                        'attachments' => $dispatch->getAttachments(),
+                    ]
+                );
+
+                $entityManager->persist($trackingTaking);
+                $entityManager->persist($trackingDrop);
+
+                $dispatchPack->setTreated(true);
+            }
+
             $entityManager->flush();
 
             if($groupedSignatureStatus->getSendReport()){

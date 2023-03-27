@@ -438,7 +438,7 @@ class ImportService
             $import->setStartDate(new DateTime());
             $this->entityManager->flush();
 
-            $this->eraseGlobalData();
+            $this->eraseGlobalDataBefore();
 
             foreach ($firstRows as $row) {
                 $headersLog = $this->treatImportRow(
@@ -472,6 +472,9 @@ class ImportService
                     $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
                 }
             }
+
+            $this->eraseGlobalDataAfter();
+            $this->entityManager->flush();
 
             fclose($logFile);
 
@@ -748,21 +751,6 @@ class ImportService
             $this->throwError("La valeur renseignée pour la référence de l'article de référence ne correspond à aucune référence connue.");
         }
 
-        if ($eraseData) {
-            $articlesFournisseurs = $refArticle->getArticlesFournisseur() ?? [];
-            /** @var ArticleFournisseur $articlesFournisseur */
-            foreach ($articlesFournisseurs as $supplierArticleToRemove) {
-                $isNotUsed = ($supplierArticleToRemove->getArticles()->isEmpty() && $supplierArticleToRemove->getReceptionReferenceArticles()->isEmpty());
-                if ($isNotUsed) {
-                    $refArticle->removeArticleFournisseur($supplierArticleToRemove);
-                    $this->entityManager->remove($supplierArticleToRemove);
-                } else {
-                    $label = $supplierArticleToRemove->getLabel();
-                    $this->throwError("L'article fournisseur : $label est utilisé il ne peut pas être supprimé.");
-                }
-            }
-        }
-
         $supplierArticle = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
         if (empty($supplierArticle)) {
             $newEntity = true;
@@ -788,6 +776,17 @@ class ImportService
             ->setVisible(true);
 
         $this->entityManager->persist($supplierArticle);
+
+        if ($eraseData) {
+            $this->cache["resetSupplierArticles"] = $this->cache["resetSupplierArticles"] ?? [
+                "supplierArticles" => [],
+                "referenceArticles" => [],
+            ];
+
+            $this->cache["resetSupplierArticles"]["supplierArticles"][] = $supplierArticle->getReference();
+            $this->cache["resetSupplierArticles"]["referenceArticles"][] = $refArticle->getId();
+        }
+
         $this->updateStats($stats, $newEntity);
     }
 
@@ -1033,27 +1032,31 @@ class ImportService
 
         if ($isNewEntity) {
             $statusRepository = $this->entityManager->getRepository(Statut::class);
+            $typeRepository = $this->entityManager->getRepository(Type::class);
+            $categoryTypeRepository = $this->entityManager->getRepository(CategoryType::class);
+
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, ReferenceArticle::STATUT_ACTIF);
+
+            $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['type'] ?? Type::LABEL_STANDARD);
+            if (empty($type)) {
+                $categoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::ARTICLE]);
+
+                $type = new Type();
+                $type
+                    ->setLabel($data['type'])
+                    ->setCategory($categoryType);
+                $this->entityManager->persist($type);
+            }
+
             $refArt
                 ->setStatut($status)
                 ->setIsUrgent(false)
-                ->setBarCode($this->refArticleDataService->generateBarCode());
+                ->setBarCode($this->refArticleDataService->generateBarCode())
+                ->setType($type);
         }
-
-        // liaison type
-        $typeRepository = $this->entityManager->getRepository(Type::class);
-
-        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['type'] ?? Type::LABEL_STANDARD);
-        if (empty($type)) {
-            $categoryType = $this->entityManager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
-
-            $type = new Type();
-            $type
-                ->setLabel($data['type'])
-                ->setCategory($categoryType);
-            $this->entityManager->persist($type);
+        else if (isset($data['type']) && $refArt->getType()?->getLabel() !== $data['type']) {
+            $this->throwError("La modification du type d'une référence n'est pas autorisée");
         }
-        $refArt->setType($type);
 
         // liaison emplacement
         if ($refArt->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
@@ -2265,6 +2268,7 @@ class ImportService
                 ->toArray()
             : [];
 
+        $this->cache = [];
         $this->importCache = [
             Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => $associatedDocumentTypes,
         ];
@@ -2294,11 +2298,31 @@ class ImportService
         }
     }
 
-    private function eraseGlobalData(): void {
+    private function eraseGlobalDataBefore(): void {
         if ($this->currentImport->isEraseData()) {
             switch ($this->currentImport->getEntity()) {
                 case Import::ENTITY_REF_LOCATION:
-                    $this->entityManager->getRepository(StorageRule::class)->clearTable();
+                    $storageRuleRepository = $this->entityManager->getRepository(StorageRule::class);
+                    $storageRuleRepository->clearTable();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private function eraseGlobalDataAfter(): void {
+        if ($this->currentImport->isEraseData()) {
+            switch ($this->currentImport->getEntity()) {
+                case Import::ENTITY_ART_FOU:
+                    if (!empty($this->cache["resetSupplierArticles"]['supplierArticles'])
+                        && !empty($this->cache["resetSupplierArticles"]['referenceArticles'])) {
+                        $supplierArticleRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
+                        $supplierArticleRepository->deleteSupplierArticles(
+                            $this->cache["resetSupplierArticles"]['supplierArticles'],
+                            $this->cache["resetSupplierArticles"]['referenceArticles']
+                        );
+                    }
                     break;
                 default:
                     break;

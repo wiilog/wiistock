@@ -193,28 +193,33 @@ class InventoryMissionRuleController extends AbstractController
         ]);
     }
 
-    #[Route('/delete', name: 'mission_rules_delete', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
+    #[Route('/{mission}/delete', name: 'mission_rules_delete', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function delete(EntityManagerInterface $entityManager,
-                           Request                $request): JsonResponse {
-        $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
-        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
-        $missionRuleId = $request->query->get('id') ?? null;
-        $missionRule = $missionRuleId ? $missionRuleRepository->find($missionRuleId) : null;
-
-        if ($missionRule) {
-            if(!$missionRule->getCreatedMissions()->isEmpty()) {
-                throw new FormException("Vous ne pouvez pas supprimer cette planification d'inventaire car des missions d'inventaires ont déjà été crée à partir de celle-ci");
-            } else {
-                $entityManager->remove($missionRule);
-                $entityManager->flush();
-                return $this->json([
-                    'success' => true,
-                    'msg' => "La planification de mission d'inventaire a été supprimée avec succès"
-                ]);
-            }
+                           InventoryMissionRule   $mission): JsonResponse {
+        if(!$mission->getCreatedMissions()->isEmpty()) {
+            throw new FormException("Vous ne pouvez pas supprimer cette planification d'inventaire car des missions d'inventaires ont déjà été créées à partir de celle-ci");
         } else {
-            throw new FormException("Une erreur est survenue lors de la suppression de la planification d'inventaire");
+            $entityManager->remove($mission);
+            $entityManager->flush();
+            return $this->json([
+                'success' => true,
+                'msg' => "La planification de mission d'inventaire a été supprimée avec succès"
+            ]);
         }
+    }
+
+    #[Route('/{mission}/cancel', name: 'mission_rules_cancel', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
+    public function cancel(EntityManagerInterface $entityManager,
+                           InventoryMissionRule   $mission): JsonResponse {
+        $mission->setActive(false);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => "La planification de mission d'inventaire a été annulée avec succès"
+        ]);
+
     }
 }

@@ -8,6 +8,7 @@ use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Livraison;
@@ -119,6 +120,7 @@ class UserService
         $inventoryMissionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $purchaseRequestScheduleRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -137,7 +139,8 @@ class UserService
         );
         $hasInventoryMissions = (
             $inventoryMissionRepository->count(['requester' => $user])
-            + $inventoryMissionRepository->count(['operator' => $user])
+            + $inventoryMissionRepository->count(['validator' => $user])
+            + $inventoryLocationMissionRepository->count(['operator' => $user])
         );
         $hasPurchaseRequestShcheduleRules = $purchaseRequestScheduleRuleRepository->count(['requester' => $user]);
 
