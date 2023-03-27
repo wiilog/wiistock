@@ -97,7 +97,7 @@ class ArrivageController extends AbstractController {
             $truckArrival = $truckArrivalRepository->find($request->query->get('truckArrivalId'));
             $fromTruckArrivalOptions = [
                 'carrier' => $truckArrival->getCarrier()->getId(),
-                'driver' => $truckArrival->getDriver()->getId(),
+                'driver' => $truckArrival?->getDriver()?->getId(),
             ];
         }
         $user = $this->getUser();
