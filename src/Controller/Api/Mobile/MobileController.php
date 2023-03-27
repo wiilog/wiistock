@@ -2703,6 +2703,8 @@ class MobileController extends AbstractApiController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $defaultNature = $natureRepository->findOneBy(['defaultForDispatch' => true]);
 
         $references = json_decode($request->request->get('references'), true);
         $user = $this->getUser();
@@ -2773,6 +2775,8 @@ class MobileController extends AbstractApiController
 
                 if ($data['logisticUnit']) {
                     $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']]) ?? $packService->createPackWithCode($data['logisticUnit']);
+
+                    $logisticUnit->setNature($defaultNature);
 
                     $entityManager->persist($logisticUnit);
 
