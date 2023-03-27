@@ -83,6 +83,9 @@ export default class Modal {
                 validateClick();
             }
             if (ajax) {
+
+
+
                 const {method, route, params} = ajax;
                 wrapLoadingOnActionButton($validateButton, () => {
                     return AJAX.route(method, route, params)
