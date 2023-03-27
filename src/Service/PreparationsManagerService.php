@@ -137,28 +137,21 @@ class PreparationsManagerService
                     'movement' => $mouvement,
                 ]);
         }
-        foreach ($articles as $article) {
-            $articleEntity = $article['article'];
-            $quantity = $article['quantity'];
-            $movement = $article['movement'] ?? null;
-            $refArticle = $articleEntity->getReferenceArticle();
 
-            if ( !$movement || $movement->getType() === MouvementStock::TYPE_TRANSFER) {
-                $this->createMovementLivraison(
-                    $entityManager,
-                    $quantity,
-                    $user,
-                    $livraison,
-                    boolval($refArticle),
-                    $refArticle ?: $articleEntity,
-                    $preparation,
-                    false,
-                    $locationEndPrepa
-                );
-
-                $trackingMovementPick= $this->trackingMovementService->createTrackingMovement(
-                    $articleEntity->getBarCode(),
-                    $articleEntity->getEmplacement(),
+        $packs = [];
+        $articlesByPacks = Stream::from($articles)
+            ->reduce(function ($articlesByPacks , $article) use (&$packs) {
+                $pack = $article['article']->getCurrentLogisticUnit();
+                $articlesByPacks[$pack->getId()][] = $article;
+                $packs[$pack->getId()] = $pack;
+                return $articlesByPacks;
+            }, []);
+        Stream::from($articlesByPacks)
+            ->each(function ($articles, $packId) use ( $entityManager, $livraison, $locationEndPrepa, $preparation, $now, $user, $packs) {
+                $pack = $packs[$packId];
+                $movement = $this->trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $pack->getLastDrop()->getEmplacement(),
                     $user,
                     $now,
                     false,
@@ -166,62 +159,84 @@ class PreparationsManagerService
                     TrackingMovement::TYPE_PRISE,
                     [
                         'preparation' => $preparation,
-                        'mouvementStock' => $movement
-                    ],
+                    ]
                 );
-                $this->entityManager->persist($trackingMovementPick);
+                $entityManager->persist($movement);
+                Stream::from($articles)
+                    ->each(function ($article) use ($pack, $now, $locationEndPrepa, $preparation, $livraison, $user, $entityManager) {
+                        $articleEntity = $article['article'];
+                        $quantity = $article['quantity'];
+                        $movement = $article['movement'] ?? null;
+                        $refArticle = $articleEntity->getReferenceArticle();
 
-                $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
-                    $articleEntity->getBarCode(),
+                        if (!$movement || $movement->getType() === MouvementStock::TYPE_TRANSFER) {
+                            $this->createMovementLivraison(
+                                $entityManager,
+                                $quantity,
+                                $user,
+                                $livraison,
+                                boolval($refArticle),
+                                $refArticle ?: $articleEntity,
+                                $preparation,
+                                false,
+                                $locationEndPrepa
+                            );
+                            $trackingMovementPick = $this->trackingMovementService->createTrackingMovement(
+                                $articleEntity->getBarCode(),
+                                $articleEntity->getEmplacement(),
+                                $user,
+                                $now,
+                                false,
+                                true,
+                                TrackingMovement::TYPE_PRISE,
+                                [
+                                    'preparation' => $preparation,
+                                    'mouvementStock' => $movement
+                                ],
+                            );
+                            $trackingMovementPick->setLogisticUnitParent($pack);
+                            $this->entityManager->persist($trackingMovementPick);
+                        }
+                    });
+            })
+            ->each(function ($articles, $packId) use ($entityManager, $livraison, $locationEndPrepa, $preparation, $now, $user, $packs) {
+                $pack = $packs[$packId];
+                $movement = $this->trackingMovementService->createTrackingMovement(
+                    $pack,
                     $locationEndPrepa,
                     $user,
                     $now,
                     false,
                     true,
                     TrackingMovement::TYPE_DEPOSE,
-                    [
-                        'preparation' => $preparation,
-                        'mouvementStock' => $movement
-                    ],
+                    ['preparation' => $preparation]
                 );
-                $this->entityManager->persist($trackingMovementDrop);
-                $ulToMove[] = $articleEntity?->getCurrentLogisticUnit();
+                $entityManager->persist($movement);
+                $pack->setLastDrop($movement)->setLastTracking($movement);
 
-                $this->entityManager->flush();
-            }
-        }
-
-        if (isset($ulToMove)){
-            foreach (array_unique($ulToMove) as $lu) {
-                if ($lu != null){
-                    $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
-                        $lu,
-                        $lu->getLastDrop()->getEmplacement(),
-                        $user,
-                        $now,
-                        false,
-                        true,
-                        TrackingMovement::TYPE_PRISE,
-                        ['preparation' => $preparation]
-
-                    );
-                    $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
-                        $lu,
-                        $locationEndPrepa,
-                        $user,
-                        $now,
-                        false,
-                        true,
-                        TrackingMovement::TYPE_DEPOSE,
-                        ['preparation' => $preparation]
-                    );
-                    $this->entityManager->persist($pickTrackingMovement);
-                    $this->entityManager->persist($DropTrackingMovement);
-
-                    $lu->setLastDrop($DropTrackingMovement)->setLastTracking($DropTrackingMovement);
-                }
-            }
-        }
+                Stream::from($articles)
+                    ->each(function ($article) use ($pack, $now, $locationEndPrepa, $preparation, $livraison, $user, $entityManager) {
+                        $articleEntity = $article['article'];
+                        $movement = $article['movement'] ?? null;
+                        if (!$movement || $movement->getType() === MouvementStock::TYPE_TRANSFER) {
+                            $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
+                                $articleEntity->getBarCode(),
+                                $locationEndPrepa,
+                                $user,
+                                $now,
+                                false,
+                                true,
+                                TrackingMovement::TYPE_DEPOSE,
+                                [
+                                    'preparation' => $preparation,
+                                    'mouvementStock' => $movement
+                                ],
+                            );
+                            $trackingMovementDrop->setLogisticUnitParent($pack);
+                            $this->entityManager->persist($trackingMovementDrop);
+                        }
+                    });
+            });
     }
 
     public function treatPreparation(Preparation $preparation,
