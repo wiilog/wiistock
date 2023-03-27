@@ -26,6 +26,7 @@ FROM article
          LEFT JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
          LEFT JOIN fournisseur ON article_fournisseur.fournisseur_id = fournisseur.id
          LEFT JOIN reference_article ON article_fournisseur.reference = reference_article.reference
-         LEFT JOIN pack ON article.id = pack.article_id
+         LEFT JOIN pack ON article.current_logistic_unit_id = pack.id
          LEFT JOIN project ON pack.project_id = project.id
          LEFT JOIN project_history_record ON pack.id = project_history_record.pack_id
+
