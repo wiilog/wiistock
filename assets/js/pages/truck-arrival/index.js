@@ -1,6 +1,6 @@
 import AJAX, {GET, POST} from "@app/ajax";
 import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, SAVE_MANUALLY} from "@app/editatable";
-import {initTrackingNumberSelect} from "@app/pages/truck-arrival/common";
+import {initTrackingNumberSelect, setTrackingNumberWarningMessage} from "@app/pages/truck-arrival/common";
 
 global.newTruckArrival = newTruckArrival;
 
@@ -38,8 +38,7 @@ $(function () {
         let data = $(this).select2('data')[0] || {};
         let minTrackingNumberLength = data.minTrackingNumberLength;
         let maxTrackingNumberLength = data.maxTrackingNumberLength;
-        $warningMessage.find('.min-length').text(minTrackingNumberLength);
-        $warningMessage.find('.max-length').text(maxTrackingNumberLength);
+        setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength);
         initTrackingNumberSelect($trackingNumberSelect, $warningMessage ,minTrackingNumberLength ,maxTrackingNumberLength);
         $trackingNumberSelect.trigger('change');
     });
