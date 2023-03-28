@@ -69,7 +69,7 @@ class TruckArrivalService
 
         $lineHasReserve = !$truckArrival->getTrackingLines()->isEmpty() &&
             Stream::from($truckArrival->getTrackingLines())
-                ->every(fn(TruckArrivalLine $line) => $line->getReserve());
+                ->some(fn(TruckArrivalLine $line) => $line->getReserve());
 
         return [
             'actions' => $this->templating->render('utils/action-buttons.html.twig', [
