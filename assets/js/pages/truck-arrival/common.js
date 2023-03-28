@@ -1,3 +1,8 @@
+import AJAX, {POST} from "@app/ajax";
+import Modal from "@app/modal";
+
+global.deleteTruckArrival = deleteTruckArrival;
+
 export function initTrackingNumberSelect($trackingNumberSelect, $warningMessage ,minTrackingNumberLength ,maxTrackingNumberLength) {
     $trackingNumberSelect.off('change.lengthCheck').on('change.lengthCheck', function () {
         let $options = $(this).find('option:selected')
@@ -36,4 +41,26 @@ export function setTrackingNumberWarningMessage($warningMessage, minTrackingNumb
     if (maxTrackingNumberLength) {
         $warningMessage.text('Les numéros de tracking doivent faire maximum ' + maxTrackingNumberLength + ' caractères.');
     }
+}
+
+export function deleteTruckArrival($deleteButton) {
+    const truckArrivalId = $deleteButton.data('id');
+    Modal.confirm({
+        ajax: {
+            method: POST,
+            route: `truck_arrival_delete`,
+            params: {
+                truckArrival: truckArrivalId
+            },
+        },
+        message: `Voulez-vous réellement supprimer cet arrivage camion ?`,
+        title: `Supprimer l'arrivage camion`,
+        validateButton: {
+            color: `danger`,
+            label: `Supprimer`,
+        },
+        cancelButton: {
+            label: `Annuler`,
+        },
+    });
 }

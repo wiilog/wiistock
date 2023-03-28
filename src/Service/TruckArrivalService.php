@@ -88,6 +88,10 @@ class TruckArrivalService
                         'title' => 'Supprimer',
                         'icon' => 'fa fa-trash',
                         'class' => 'truck-arrival-delete',
+                        'attributes' => [
+                            "data-id" => $truckArrival->getId(),
+                            "onclick" => "deleteTruckArrival($(this))"
+                        ]
                     ],
                 ],
             ]),
