@@ -1,3 +1,4 @@
+{% import 'form.html.twig' as form %}
 {% set receptionLine = receptionReferenceArticle.receptionLine %}
 <div class="row">
     <div class="form-group {{ reception.hasPacks ? 'col-xl-6' }} col-12  w-100 mb-3">
@@ -12,18 +13,30 @@
     </div>
     {% if reception.hasPacks %}
         <div class="form-group col-xl-6 col-12">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
             {% if not receptionReferenceArticle.receptionBegun %}
-                <select class="ajax-autocomplete w-100 data form-control wii-field-text"
-                        name="pack"
-                        data-s2="receptionLogisticUnits"
-                        data-other-params
-                        data-other-params-all="1"
-                        data-other-params-reception="{{ reception.id }}">
-                </select>
+                {{ form.select('pack', trans('Traçabilité', 'Général', 'Unité logistique'), false, {
+                    type: 'receptionLogisticUnits',
+                    additionalAttributes : [
+                        {
+                            name: 'data-other-params',
+                            value: '1'
+                        }, {
+                            name: 'data-other-params-reception',
+                            value: reception.id
+                        }
+                    ],
+                    items: receptionLine.pack ? {
+                        (receptionLine.pack.id): receptionLine.pack.code
+                    } : null,
+                }) }}
             {% else %}
                 {% set pack = receptionLine.pack %}
-                <input class="form-control" disabled type="text" name="logisticUnit" value="{{ pack ? pack.code }}">
+                {{ form.input('packCode', trans('Traçabilité', 'Général', 'Unité logistique'), false, pack ? pack.code, {
+                    disabled: true
+                }) }}
+                {{ form.input('pack', null, false, pack ? pack.id, {
+                    type: 'hidden'
+                }) }}
             {% endif %}
         </div>
     {% endif %}
