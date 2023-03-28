@@ -718,8 +718,7 @@ class ReceptionController extends AbstractController {
             $referenceArticle = !empty($data['referenceArticle']) ? $referenceArticleRepository->find($data['referenceArticle']) : null;
 
             if ($receptionReferenceArticle->isReceptionBegun()
-                && ($pack?->getId() !== $receptionLine->getPack()?->getId()
-                    || $orderNumber !== $receptionReferenceArticle->getCommande()
+                && ($orderNumber !== $receptionReferenceArticle->getCommande()
                     || $referenceArticle?->getId() !== $receptionReferenceArticle->getReferenceArticle()?->getId())) {
                 throw new FormException("Des articles ont déjà été réceptionnés, vous ne pouvez pas modifier l'unité logistique, la référence ou le numéro de commande d'achat de cette ligne de réception.");
             }
