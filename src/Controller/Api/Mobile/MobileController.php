@@ -2994,7 +2994,7 @@ class MobileController extends AbstractApiController
         $registrationNumber = $data->get('registrationNumber');
         $truckArrivalReserves = json_decode($data->get('truckArrivalReserves'), true);
         $truckArrivalLines = json_decode($data->get('truckArrivalLines'), true);
-        $signatures = $data->get('signatures');
+        $signatures = json_decode($data->get('signatures'), true) ?: [];
 
 
         $carrier = $carrierRepository->find($data->get('carrierId'));
@@ -3067,13 +3067,13 @@ class MobileController extends AbstractApiController
             $entityManager->persist($line);
         }
 
-        if ($signatures) {
+        foreach($signatures as $signature){
             $name = uniqid();
             $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-            file_put_contents($path, file_get_contents($signatures));
+            file_put_contents($path, file_get_contents($signature));
             $attachment = new Attachment();
             $attachment
-                ->setOriginalName($truckArrival->getNumber()."_signature.jpeg")
+                ->setOriginalName($truckArrival->getNumber()."_signature_". array_search($signature, $signatures) .".jpeg")
                 ->setFileName("$name.jpeg")
                 ->setFullPath("/uploads/attachements/$name.jpeg");
 
