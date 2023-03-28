@@ -30,8 +30,8 @@ function createForm() {
         })
         .addProcessor((data, errors, $form) => {
             const logo = data.get('logo');
-
-            if (!logo && $form.find('[name=is-recurrent]').is(':checked')) {
+            const onEdit = $modalCarrier.find('[name=carrierId]').val();
+            if (!logo && $form.find('[name=is-recurrent]').is(':checked') && (!onEdit || ($form.find('[name=keep-logo]').val() === '0' && onEdit))) {
                 errors.push({
                     message: `Vous devez ajouter un logo.`,
                     global: true,
@@ -65,7 +65,6 @@ function createForm() {
                     })
             });
         });
-    //onChangeRecurrent();
 }
 
 function initTransporteurTable() {
@@ -117,7 +116,6 @@ function displayCarrierModal(carrierId) {
 
     $.get(Routing.generate('transporteur_template', params), function(resp){
         $modalCarrier.find('.modal-body').html(resp);
-        //onChangeRecurrent();
     });
 
     $modalCarrier.modal('show');
@@ -143,8 +141,4 @@ function deleteCarrier(carrierId) {
         },
         table: tableTransporteur,
     });
-}
-
-function onChangeRecurrent() {
-
 }
