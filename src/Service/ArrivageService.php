@@ -169,7 +169,7 @@ class ArrivageService {
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => $this->formatService->location($arrival->getDropLocation()),
-            'truckArrivalNumber' => !$arrival->getTruckArrivalLines()->isEmpty() ? $arrival->getTruckArrivalLines()->first()->getTruckArrival()->getNumber() : $arrival->getNoTracking(),
+            'truckArrivalNumber' => !$arrival->getTruckArrivalLines()->isEmpty() ? $arrival->getTruckArrivalLines()->first()->getTruckArrival()->getNumber() : '',
             'url' => $url,
         ];
 
