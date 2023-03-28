@@ -2994,7 +2994,7 @@ class MobileController extends AbstractApiController
         $registrationNumber = $data->get('registrationNumber');
         $truckArrivalReserves = json_decode($data->get('truckArrivalReserves'), true);
         $truckArrivalLines = json_decode($data->get('truckArrivalLines'), true);
-        $signatures = json_decode($data->get('signatures'), true);
+        $signatures = json_decode($data->get('signatures'), true) ?: [];
 
 
         $carrier = $carrierRepository->find($data->get('carrierId'));
