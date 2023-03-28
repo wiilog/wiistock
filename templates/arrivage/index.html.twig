@@ -102,6 +102,7 @@
     <input id="arrivalFilters" value="{{ initial_filters }}" hidden>
     <input id="arrivalForm" value="{{ initial_form|json_encode }}" hidden>
     <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
+    <input id="openNewModal" value="{{ openNewModal }}" hidden>
 
     {% include "arrivage/modalListPacks.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {

@@ -1,7 +1,7 @@
 import {initReserveForm} from "@app/pages/truck-arrival/reserve";
 import {POST} from "@app/ajax";
 import AJAX from "@app/ajax";
-import {initTrackingNumberSelect} from "@app/pages/truck-arrival/common";
+import {initTrackingNumberSelect, setTrackingNumberWarningMessage} from "@app/pages/truck-arrival/common";
 
 global.newTrackingNumber = newTrackingNumber;
 global.editTruckArrival = editTruckArrival;
@@ -58,7 +58,6 @@ $(function () {
     });
 
     $('.new-quality-reserve-button').off('click').on('click', function(){
-        console.log('gfdgd');
         openModalQualityReserveContent($modalReserveQuality);
     });
 });
@@ -195,9 +194,8 @@ function newTrackingNumber() {
 
     const $trackingNumberSelect = $modal.find('select[name="trackingNumbers"]');
     let $warningMessage = $trackingNumberSelect.closest('.form-group').find('.warning-message');
-    $warningMessage.find('.min-length').text(minTrackingNumberLength);
-    $warningMessage.find('.max-length').text(maxTrackingNumberLength);
-    initTrackingNumberSelect($trackingNumberSelect, $warningMessage ,minTrackingNumberLength ,maxTrackingNumberLength);
+    setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength);
+    initTrackingNumberSelect($trackingNumberSelect, $warningMessage, minTrackingNumberLength, maxTrackingNumberLength);
 
     $trackingNumberSelect.on('change', function () {
         $modal.find('#totalTrackingNumbers').html($(this).find('option:selected').length);

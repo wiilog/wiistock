@@ -6,6 +6,11 @@ let pageLength;
 let arrivalsTable;
 
 $(function () {
+    const openNewModal = Boolean($('#openNewModal').val());
+    if(openNewModal){
+        openArrivalCreationModal();
+    }
+
     const $filtersContainer = $('.filters-container');
     const $userFormat = $('#userDateFormat');
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';

@@ -184,10 +184,15 @@ class TruckArrivalRepository extends EntityRepository
         }
 
         $countFiltered = QueryBuilderHelper::count($qb, 'truckArrival');
+        $qb
+            ->groupBy('truckArrival.id');
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
-        $truckarrivals = $qb->getQuery()->getResult();
+        $truckArrivals = $qb->getQuery()->getResult();
+
         return [
-            'data' => $truckarrivals ,
+            'data' => $truckArrivals ,
             'count' => $countFiltered,
             'total' => $countTotal
         ];
@@ -204,30 +209,4 @@ class TruckArrivalRepository extends EntityRepository
             ->execute();
         return $result ? $result[0]['number'] : null;
     }
-
-
-//    /**
-//     * @return TruckArrival[] Returns an array of TruckArrival objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('t.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?TruckArrival
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }

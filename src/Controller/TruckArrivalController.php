@@ -208,7 +208,6 @@ class TruckArrivalController extends AbstractController
         $lineNumberRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $now = new \DateTime();
         $data = $request->request->all();
-
         $truckArrival = isset($data['truckArrivalId']) ? $truckArrivalRepository->find($data['truckArrivalId']) : null;
         $driver = isset($data['driver']) ? $driverRepository->find($data['driver']) : null;
 
@@ -268,8 +267,16 @@ class TruckArrivalController extends AbstractController
                 $arrivalLine
                     ->setTruckArrival($truckArrival)
                     ->setNumber($lineNumber);
+                $truckArrival->addTrackingLine($arrivalLine);
                 $entityManager->persist($arrivalLine);
             }
+        }
+
+        if($truckArrival->getTrackingLines()->isEmpty()){
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Impossible d'enregistrer votre action. Veuillez renseigner au moins un n° de tracking transporteur valide."
+            ]);
         }
 
         $entityManager->flush();
@@ -277,6 +284,11 @@ class TruckArrivalController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'truckArrivalId' => $truckArrival->getId(),
+            'redirect' => isset($data['goToArrivalButton']) && boolval($data['goToArrivalButton'])
+                            ? $this->generateUrl('arrivage_index', [
+                                'truckArrivalId' => $truckArrival->getId()
+                            ])
+                            : '',
         ]);
     }
 
