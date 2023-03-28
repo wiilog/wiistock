@@ -13,6 +13,7 @@
     </div>
     {% if reception.hasPacks %}
         <div class="form-group col-xl-6 col-12">
+            {% set pack = receptionLine.pack %}
             {% if not receptionReferenceArticle.receptionBegun %}
                 {{ form.select('pack', trans('Traçabilité', 'Général', 'Unité logistique'), false, {
                     type: 'receptionLogisticUnits',
@@ -25,12 +26,13 @@
                             value: reception.id
                         }
                     ],
-                    items: receptionLine.pack ? {
-                        (receptionLine.pack.id): receptionLine.pack.code
-                    } : null,
+                    items: pack ? [{
+                        value: pack.id,
+                        label: pack.code,
+                        selected: true
+                    }] : null,
                 }) }}
             {% else %}
-                {% set pack = receptionLine.pack %}
                 {{ form.input('packCode', trans('Traçabilité', 'Général', 'Unité logistique'), false, pack ? pack.code, {
                     disabled: true
                 }) }}
