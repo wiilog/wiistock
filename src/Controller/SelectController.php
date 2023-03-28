@@ -795,7 +795,7 @@ class SelectController extends AbstractController {
     #[Route('/select/truck-arrival-line-number', name: 'ajax_select_truck_arrival_line', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     public function truckArrivalLineNumber(Request $request, EntityManagerInterface $manager): Response {
         $term = $request->query->get("term");
-        $carrierId = $request->query->get("carrier-id");
+        $carrierId = $request->query->get("carrier-id") ?? $request->query->get("transporteur");
         $truckArrivalId = $request->query->get("truck-arrival-id");
 
         $lines = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);

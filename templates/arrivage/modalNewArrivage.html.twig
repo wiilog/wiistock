@@ -53,7 +53,7 @@
                                 <option selected disabled>&nbsp;</option>
                                 {% for carrier in carriers %}
                                     <option value="{{ carrier.id }}"
-                                        {{ (keptFields[carrierFieldCode] ?? null) == carrier.id ? 'selected' }}>
+                                        {{ ((keptFields[carrierFieldCode] ?? null) == carrier.id) or ((fromTruckArrivalOptions['carrier'] ?? null) == carrier.id) ? 'selected' }}>
                                         {{ carrier.label }}
                                     </option>
                                 {% endfor %}
@@ -82,7 +82,7 @@
                                 <option selected disabled>&nbsp;</option>
                                 {% for chauffeur in chauffeurs %}
                                     <option value="{{ chauffeur.id }}"
-                                        {{ (keptFields[driverFieldCode] ?? null) == chauffeur.id ? 'selected' }}>
+                                        {{ ((keptFields[driverFieldCode] ?? null) == chauffeur.id) or ((fromTruckArrivalOptions['driver'] ?? null) == chauffeur.id) ? 'selected' }}>
                                         {{ chauffeur.nom }}
                                     </option>
                                 {% endfor %}
@@ -184,12 +184,15 @@
                             {% set useTruckArrival = setting_value('USE_TRUCK_ARRIVALS')  %}
                             {% if useTruckArrival %}
                                     {{ form.select('noTracking', trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur'), trackingNumberRequired, {
-                                        type: 'truckArrivalLine',
                                         disabled: true,
                                         additionalAttributes : [{
-                                            name: 'data-other-params',
+                                            name: 'data-no-empty-option',
                                         }],
                                         multiple: true,
+                                        inputClass: 'form-control input-sm data',
+                                        includeParams: '[name=transporteur]',
+                                        type: 'truckArrivalLine',
+                                        minLength: 0
                                     }) }}
                                 </div>
                                 <div class="form-group col-4">

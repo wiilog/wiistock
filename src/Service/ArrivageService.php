@@ -181,7 +181,7 @@ class ArrivageService {
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => $this->formatService->location($arrival->getDropLocation()),
-            'truckArrivalNumber' => !$arrival->getTruckArrivalLines()->isEmpty() ? $arrival->getTruckArrivalLines()->first()->getTruckArrival()->getNumber() : $arrival->getNoTracking(),
+            'truckArrivalNumber' => !$arrival->getTruckArrivalLines()->isEmpty() ? $arrival->getTruckArrivalLines()->first()->getTruckArrival()->getNumber() : '',
             'url' => $url,
         ];
 
@@ -828,7 +828,7 @@ class ArrivageService {
     }
 
 
-    public function generateNewForm(EntityManagerInterface $entityManager): array
+    public function generateNewForm(EntityManagerInterface $entityManager, array $fromTruckArrivalOptions = []): array
     {
         if ($this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
             $settingRepository = $entityManager->getRepository(Setting::class);
@@ -883,6 +883,7 @@ class ArrivageService {
                 "defaultLocation" => $defaultLocation,
                 "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
                 "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_LU),
+                "fromTruckArrivalOptions" => $fromTruckArrivalOptions,
             ]);
         }
 

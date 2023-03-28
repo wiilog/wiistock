@@ -149,6 +149,11 @@ class TruckArrivalLineRepository extends EntityRepository
                 ->setParameter('carrier_id', $option['carrierId']);
         }
 
+        if (strlen($term) == 0) {
+            $qb->addSelect('COUNT(arrivals.id) AS arrivalsCounter')
+                ->having('arrivalsCounter = 0');
+        }
+
         return $qb->getQuery()->getArrayResult();
     }
 

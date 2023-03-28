@@ -1,6 +1,6 @@
 import AJAX, {GET, POST} from "@app/ajax";
 import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, SAVE_MANUALLY} from "@app/editatable";
-import {initTrackingNumberSelect} from "@app/pages/truck-arrival/common";
+import {initTrackingNumberSelect, setTrackingNumberWarningMessage} from "@app/pages/truck-arrival/common";
 
 global.newTruckArrival = newTruckArrival;
 
@@ -17,6 +17,11 @@ $(function () {
     Form
         .create($modalNew)
         .submitTo(POST, 'truck_arrival_form_submit', {
+            success: (response) => {
+                if(response.redirect){
+                    window.location.href = response.redirect;
+                }
+            },
             table: () => $('#truckArrivalsTable').DataTable()
         });
 
@@ -33,14 +38,17 @@ $(function () {
         let data = $(this).select2('data')[0] || {};
         let minTrackingNumberLength = data.minTrackingNumberLength;
         let maxTrackingNumberLength = data.maxTrackingNumberLength;
-        $warningMessage.find('.min-length').text(minTrackingNumberLength);
-        $warningMessage.find('.max-length').text(maxTrackingNumberLength);
+        setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength);
         initTrackingNumberSelect($trackingNumberSelect, $warningMessage ,minTrackingNumberLength ,maxTrackingNumberLength);
         $trackingNumberSelect.trigger('change');
     });
     $trackingNumberSelect.off('change').on('change', function () {
         $modalNew.find('#totalTrackingNumbers').html($(this).find('option:selected').length);
-    })
+    });
+
+    $modalNew.find('.go-to-arrival').on('click', function() {
+        $(this).val(true);
+    });
 });
 
 function initTruckArrivalTable() {

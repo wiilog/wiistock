@@ -8,7 +8,7 @@ export function initTrackingNumberSelect($trackingNumberSelect, $warningMessage 
             $options.each(function () {
                 let $option = $(this);
                 let value = $option.val();
-                if ((value.length < minTrackingNumberLength || value.length > maxTrackingNumberLength) && maxTrackingNumberLength && minTrackingNumberLength) {
+                if ((value.length < minTrackingNumberLength || value.length > maxTrackingNumberLength) && (maxTrackingNumberLength || minTrackingNumberLength)) {
                     $options.closest('label').find('.select2-container ul.select2-selection__rendered li.select2-selection__choice[title="' + value + '"]').addClass('warning');
                     isInvalidLength = true;
                 } else {
@@ -22,4 +22,18 @@ export function initTrackingNumberSelect($trackingNumberSelect, $warningMessage 
             }
         }, 10);
     })
+}
+
+export function setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength) {
+    if (minTrackingNumberLength) {
+        if (maxTrackingNumberLength) {
+            $warningMessage.find('.min-length').text(minTrackingNumberLength);
+            $warningMessage.find('.max-length').text(maxTrackingNumberLength);
+        } else {
+            $warningMessage.text('Les numéros de tracking doivent faire minimum ' + minTrackingNumberLength + ' caractères.');
+        }
+    }
+    if (maxTrackingNumberLength) {
+        $warningMessage.text('Les numéros de tracking doivent faire maximum ' + maxTrackingNumberLength + ' caractères.');
+    }
 }

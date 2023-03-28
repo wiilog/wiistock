@@ -24,6 +24,7 @@ use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -95,7 +96,16 @@ class ArrivageController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
 
+        $fromTruckArrivalOptions = [];
+        if($request->query->has('truckArrivalId')){
+            $truckArrival = $truckArrivalRepository->find($request->query->get('truckArrivalId'));
+            $fromTruckArrivalOptions = [
+                'carrier' => $truckArrival?->getCarrier()?->getId(),
+                'driver' => $truckArrival?->getDriver()?->getId(),
+            ];
+        }
         $user = $this->getUser();
 
         $fields = $arrivageService->getColumnVisibleConfig($entityManager, $user);
@@ -119,10 +129,11 @@ class ArrivageController extends AbstractController {
             'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
             "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
-            "initial_form" => $arrivageService->generateNewForm($entityManager),
+            "initial_form" => $arrivageService->generateNewForm($entityManager, $fromTruckArrivalOptions),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_ARRIVAGE)),
+            "openNewModal" => count($fromTruckArrivalOptions) > 0,
         ]);
     }
 
