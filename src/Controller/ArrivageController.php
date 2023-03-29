@@ -124,7 +124,7 @@ class ArrivageController extends AbstractController {
             "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
             "initial_form" => $this->createApi($entityManager, $keptFieldService, $fromTruckArrivalOptions)->getContent(),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
-            "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_ARRIVAGE)),
+            "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_LU_ARRIVAL)),
             "openNewModal" => count($fromTruckArrivalOptions) > 0,
         ]);
     }
@@ -284,7 +284,7 @@ class ArrivageController extends AbstractController {
             return new JsonResponse([
                 'success' => false,
                 'msg' => $translation->translate("Général", null, "Modale", "Veuillez renseigner le champ {1}", [
-                    '1' =>  $translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut', false),
+                    '1' =>  $translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Statut', false),
                 ]),
             ]);
         }
@@ -347,7 +347,7 @@ class ArrivageController extends AbstractController {
         catch (UniqueConstraintViolationException) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Un autre arrivage est en cours de création, veuillez réessayer')
+                'msg' => $translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Un autre arrivage UL est en cours de création, veuillez réessayer')
             ]);
         }
 
