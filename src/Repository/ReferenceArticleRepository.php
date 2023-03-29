@@ -520,7 +520,6 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
-
                         case "supplierCode":
                             $subqb = $this->createQueryBuilder('referenceArticle');
                             $subqb
@@ -536,7 +535,6 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
-
                         case "referenceSupplierArticle":
                             $subqb = $this->createQueryBuilder('referenceArticle');
                             $subqb
@@ -551,7 +549,6 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
-
                         case "managers":
                             $subqb = $this->createQueryBuilder('referenceArticle');
                             $subqb
@@ -564,7 +561,6 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
-
                         case "buyer":
                             $subqb = $this->createQueryBuilder('referenceArticle');
                             $subqb
@@ -577,7 +573,6 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
-
                         default:
                             $field = self::DtToDbLabels[$searchField] ?? $searchField;
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
@@ -607,7 +602,6 @@ class ReferenceArticleRepository extends EntityRepository {
                                 }
                             }
                             break;
-
                     }
                 }
 
