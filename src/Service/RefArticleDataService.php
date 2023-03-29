@@ -71,7 +71,7 @@ class RefArticleDataService {
         ["title" => "Référence article fournisseur", "name" => "referenceSupplierArticle", "type" => "text", "searchable" => true, "hiddenColumn" => true],
         ["title" => "Dernier inventaire", "name" => "lastInventory", "searchable" => true, "type" => "date"],
         ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text", "searchable" => true],
-        ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
+        ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text", "searchable" => true],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
         ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
         ["title" => "Créée le", "name" => "createdAt", "type" => "date"],
