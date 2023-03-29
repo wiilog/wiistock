@@ -2196,7 +2196,7 @@ class ImportService
                     $cleanedHeader = empty($headerMatches)
                         ? $header
                         : trim($headerMatches[1]);
-                    $distance = StringHelper::levenshtein($cleanedHeader, $cleanedField);
+                    $distance = StringHelper::levenshtein($cleanedHeader, $cleanedField ?? '');
                     if ($distance < 5 && $distance < $closestDistance) {
                         $closestIndex = $fieldIndex;
                         $closestDistance = $distance;
