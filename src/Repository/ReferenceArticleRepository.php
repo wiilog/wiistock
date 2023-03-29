@@ -47,6 +47,7 @@ class ReferenceArticleRepository extends EntityRepository {
         'mobileSync' => 'needsMobileSync',
         'lastInventory' => 'dateLastInventory',
         'comment' => 'commentaire',
+        'managers' => 'managers',
     ];
 
     private const FIELDS_TYPE_DATE = [
@@ -507,10 +508,10 @@ class ReferenceArticleRepository extends EntityRepository {
                     $searchField = self::DtToDbLabels[$searchField] ?? $searchField;
                     switch ($searchField) {
                         case "supplierLabel":
-                            $subqb = $em->createQueryBuilder()
-                                ->select('ra.id')
-                                ->from('App\Entity\ReferenceArticle', 'ra')
-                                ->leftJoin('ra.articlesFournisseur', 'afra')
+                            $subqb = $this->createQueryBuilder('referenceArticle');
+                            $subqb
+                                ->select('referenceArticle.id')
+                                ->leftJoin('referenceArticle.articlesFournisseur', 'afra')
                                 ->leftJoin('afra.fournisseur', 'fra')
                                 ->andWhere('fra.nom LIKE :valueSearch')
                                 ->setParameter('valueSearch', $search);
@@ -519,11 +520,10 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
-
                         case "supplierCode":
-                            $subqb = $em->createQueryBuilder()
+                            $subqb = $this->createQueryBuilder('referenceArticle');
+                            $subqb
                                 ->select('referenceArticle.id')
-                                ->from('App\Entity\ReferenceArticle', 'referenceArticle')
                                 ->innerJoin('referenceArticle.articlesFournisseur', 'articleFournisseur')
                                 ->innerJoin('articleFournisseur.fournisseur', 'fournisseur')
                                 ->andWhere('fournisseur.codeReference LIKE :valueSearch')
@@ -535,11 +535,10 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
-
                         case "referenceSupplierArticle":
-                            $subqb = $em->createQueryBuilder()
+                            $subqb = $this->createQueryBuilder('referenceArticle');
+                            $subqb
                                 ->select('referenceArticle.id')
-                                ->from(ReferenceArticle::class, 'referenceArticle')
                                 ->innerJoin('referenceArticle.articlesFournisseur', 'articleFournisseur')
                                 ->andWhere('articleFournisseur.reference LIKE :valueSearch')
                                 ->setParameter('valueSearch', $search);
@@ -554,9 +553,9 @@ class ReferenceArticleRepository extends EntityRepository {
                             $subqb = $this->createQueryBuilder('referenceArticle');
                             $subqb
                                 ->select('referenceArticle.id')
-                                ->leftJoin('referenceArticle.managers', 'managers')
-                                ->andWhere('managers.username LIKE :username')
-                                ->setParameter('username', $search);
+                                ->join('referenceArticle.managers', 'managers')
+                                ->andWhere('managers.username LIKE :valueSearch')
+                                ->setParameter('valueSearch', $search);
 
                             foreach ($subqb->getQuery()->execute() as $idArray) {
                                 $ids[] = $idArray['id'];
