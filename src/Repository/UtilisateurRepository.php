@@ -92,8 +92,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     public function findByParams(InputBag $params): array
     {
         $qb = $this->createQueryBuilder('user')
-            ->groupBy('user')
-            ->where("user.kioskUser = 0");
+            ->andWhere("user.kioskUser = 0");
 
         if (!empty($params->all('order'))) {
             $order = $params->all('order')[0]['dir'];
@@ -152,6 +151,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+
+        $qb->groupBy('user');
 
         return [
             'data' => $qb->getQuery()->getResult(),
