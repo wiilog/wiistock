@@ -4,23 +4,18 @@ namespace App\Repository;
 
 use App\Entity\PurchaseRequestScheduleRule;
 use App\Entity\Zone;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
- * @extends ServiceEntityRepository<PurchaseRequestScheduleRule>
+ * @extends EntityRepository<PurchaseRequestScheduleRule>
  *
  * @method PurchaseRequestScheduleRule|null find($id, $lockMode = null, $lockVersion = null)
  * @method PurchaseRequestScheduleRule|null findOneBy(array $criteria, array $orderBy = null)
  * @method PurchaseRequestScheduleRule[]    findAll()
  * @method PurchaseRequestScheduleRule[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PurchaseRequestScheduleRuleRepository extends ServiceEntityRepository
+class PurchaseRequestScheduleRuleRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, PurchaseRequestScheduleRule::class);
-    }
 
     public function save(PurchaseRequestScheduleRule $entity, bool $flush = false): void
     {
