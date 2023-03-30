@@ -36,6 +36,16 @@ $(function() {
     let urlAddLine = Routing.generate('purchase_request_add_line', {purchaseRequest: id});
     InitModal($modalAddLine, $submitAddLine, urlAddLine, {tables: [tablePurchaseRequestLines]});
 
+
+    $modalAddLine.find('[name="location"]').on('change', function() {
+        const quantity = $(this).find('option:selected').data('quantity');
+        if (quantity !== undefined) {
+            $modalAddLine.find('[name="stockQuantity"]').val(quantity);
+        } else {
+            $modalAddLine.find('[name="stockQuantity"]').val($modalAddLine.find('[name="stockQuantity"]').data('init'));
+        }
+    })
+
     let modalDeleteRequest = $("#modalDeleteRequest");
     let submitDeleteRequest = $("#submitDeleteRequest");
     let urlDeleteRequest = Routing.generate('purchase_request_delete', true)
@@ -110,7 +120,6 @@ function onReferenceChange($select) {
                 $location.attr('disabled', true);
             } else {
                 const locationsOption = JSON.parse(data.locations);
-                console.log(locationsOption);
 
                 const $option = $(new Option('', '',false, false));
                 $location.append($option);
@@ -121,15 +130,6 @@ function onReferenceChange($select) {
                         .attr('data-quantity', option.quantity);
                     $location.append($option);
                 });
-
-                $location.on('change', function() {
-                    const quantity = $(this).find('option:selected').data('quantity');
-                    if (quantity !== undefined) {
-                        $quantity.val(data.quantity);
-                    } else {
-                        $quantity.val($quantity.data('init'));
-                    }
-                })
             }
         })
         .catch(() => {

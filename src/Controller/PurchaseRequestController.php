@@ -244,7 +244,7 @@ class PurchaseRequestController extends AbstractController
                 'supplier' => $this->formatService->supplier($requestLine->getSupplier()),
                 'location' => $requestLine->getLocation()
                     ? ($requestLine->getLocation()->getZone()
-                        ? $this->formatService->location($requestLine->getLocation()) . " (" . $requestLine->getLocation()->getZone()->getName() . ")"
+                        ? $this->formatService->location($requestLine->getLocation()) . " (" . $this->formatService->zone($requestLine->getLocation()->getZone()) . ")"
                         : $this->formatService->location($requestLine->getLocation())
                     )
                     : '',
@@ -277,7 +277,10 @@ class PurchaseRequestController extends AbstractController
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $reference = $referenceArticleRepository->find($data['reference']);
         $requestedQuantity = $data['requestedQuantity'];
-
+        $location = null;
+        if (!empty($data['location'])) {
+            $location = $locationRepository->find($data['location']);
+        }
 
         if($reference == null){
             $errorMessage = "La référence n'existe pas";
@@ -286,11 +289,12 @@ class PurchaseRequestController extends AbstractController
             $errorMessage = "La quantité ajoutée n'est pas valide";
         }
         else {
+
             $linesWithSameRef = $purchaseRequest->getPurchaseRequestLines()
-                ->filter(fn (PurchaseRequestLine $line) => $line->getReference() === $reference)
+                ->filter(fn (PurchaseRequestLine $line) => $line->getReference() === $reference && ($location?->getId() === $line->getLocation()?->getId()))
                 ->toArray();
             if (!empty($linesWithSameRef)) {
-                $errorMessage = "La référence a déjà été ajoutée à la demande d'achat";
+                $errorMessage = "Le couple référence emplacement a déjà été ajoutée à la demande d'achat";
             }
             else if (!$reference->getBuyer()) {
                 $errorMessage = "La référence doit avoir un acheteur";
@@ -308,9 +312,9 @@ class PurchaseRequestController extends AbstractController
         }
 
         $purchaseRequestLine = $purchaseRequestService->createPurchaseRequestLine($reference, $requestedQuantity, ["purchaseRequest" => $purchaseRequest]);
-        if (!empty($data['location'])) {
+        if ($location) {
             $purchaseRequestLine
-                ->setLocation($locationRepository->find($data['location']));
+                ->setLocation($location);
         }
         $purchaseRequest->setBuyer($reference->getBuyer());
 

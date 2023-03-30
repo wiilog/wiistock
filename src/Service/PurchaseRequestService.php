@@ -221,7 +221,7 @@ class PurchaseRequestService
             );
             $refsAndQuantities = Stream::from($purchaseRequest->getPurchaseRequestLines())
                 ->keymap(function(PurchaseRequestLine $line) use ($articleRepository) {
-                    $key = $line->getReference()->getId();
+                    $key = $line->getId();
                     $value = $line->getReference()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $line->getLocation()
                         ? $articleRepository->countForRefOnLocation($line->getReference(), $line->getLocation())
                         : $line->getReference()->getQuantiteStock();

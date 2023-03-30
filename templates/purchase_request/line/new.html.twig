@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" id="modalAddPurchaseRequestLine" role="dialog" aria-hidden="true" >
     <div class="modal-dialog  modal-xl" role="document">
         <div class="modal-content">
@@ -26,8 +28,10 @@
                             <input type="text" disabled class="w-100 form-control" name="label" title="Libellé">
                         </div>
                         <div class="form-group col-6">
-                            <label class="wii-field-name">Emplacement</label>
-                            <select class="ajax-autocomplete data w-100 form-control" name="location" data-s2 data-parent="body"></select>
+                            {{ form.select('location', 'Emplacement', false, {
+                                type: '',
+                                inputClass: 'w-100'
+                            }) }}
                         </div>
                         <div class="form-group col-12 col-md-6">
                             <label class="wii-field-name">Quantité en stock</label>
