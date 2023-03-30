@@ -30,11 +30,10 @@ class Zone
     #[ORM\OneToMany(mappedBy: 'zone', targetEntity: Emplacement::class)]
     private Collection $locations;
 
-    #[ORM\Column(type: "boolean")]
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
     private ?bool $active = true;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->locations = new ArrayCollection();
     }
 
@@ -79,13 +78,11 @@ class Zone
         return $this;
     }
 
-    public function isActive(): ?bool
-    {
+    public function isActive(): ?bool {
         return $this->active;
     }
 
-    public function setActive(bool $active): self
-    {
+    public function setActive(?bool $active): self {
         $this->active = $active;
 
         return $this;

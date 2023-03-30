@@ -58,8 +58,6 @@ class EmplacementRepository extends EntityRepository
         return $query->select("CONCAT('$idPrefix', location.id) AS id, location.label AS text")
             ->andWhere("location.label LIKE :term")
             ->andWhere("location.isActive = true")
-            ->leftJoin("location.zone", "location_zone")
-            ->andWhere("location_zone.active = true")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
@@ -513,18 +511,6 @@ class EmplacementRepository extends EntityRepository
             ->leftJoin('location.signatories', 'signatory')
             ->andWhere('signatory.id = :user')
             ->setParameter('user', $user->getId())
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
-    public function countByUser(Utilisateur $user) {
-        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
-        return $queryBuilder
-            ->from(Emplacement::class, 'location')
-            ->select('COUNT(location)')
-            ->andWhere('user = :user')
-            ->join('location.signatories', 'user')
-            ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
     }

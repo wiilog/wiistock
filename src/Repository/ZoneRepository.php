@@ -49,14 +49,11 @@ class ZoneRepository extends EntityRepository
                         $queryBuilder->orderBy('zone.name', $order);
                     } else if ($column === 'description') {
                         $queryBuilder->orderBy('zone.description', $order);
-                    } else {
+                    } else if(property_exists(Zone::class, $column)) {
                         $queryBuilder
                             ->orderBy('zone.' . $column, $order);
                     }
-                    $orderId = ($column === 'datetime')
-                        ? $order
-                        : 'DESC';
-                    $queryBuilder->addOrderBy('zone.id', $orderId);
+                    $queryBuilder->addOrderBy('zone.id', $order);
                 }
             }
         }
@@ -79,7 +76,7 @@ class ZoneRepository extends EntityRepository
             ->addSelect("zone.name AS text")
             ->addSelect("zone.description AS description")
             ->andWhere("zone.name LIKE :term")
-            ->andWhere("zone.active = 1")
+            ->andWhere("zone.active = true")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();

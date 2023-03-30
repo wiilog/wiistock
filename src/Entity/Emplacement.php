@@ -1071,12 +1071,12 @@ class Emplacement implements PairedEntity {
         return $this->zone;
     }
 
-    public function setZone($zone): self {
+    public function setZone(?Zone $zone): self {
         if($this->zone && $this->zone !== $zone) {
             $this->zone->removeLocation($this);
         }
         $this->zone = $zone;
-        $zone->addLocation($this);
+        $zone?->addLocation($this);
 
         return $this;
     }

@@ -18,8 +18,8 @@
 </div>
 
 <div class="form-group">
-    {{ form.switch('active', 'Satut', true, [
-        {label: 'Actif', value: '1', checked: zone.active ? true : zone.active == 0 ? false : true },
-        {label: 'Inactif', value: '0', checked: zone.active == 0 ? true : false },
+    {{ form.switch('active', 'Statut', true, [
+        {label: 'Actif', value: '1', checked: zone.active },
+        {label: 'Inactif', value: '0', checked: not zone.active },
     ]) }}
 </div>

@@ -84,6 +84,7 @@ const zonesTableConfig = {
         {data: 'actions', title: '', className: 'noVis', orderable: false},
         {data: 'name', title: 'Nom'},
         {data: 'description', title: 'Description'},
+        {data: 'active', title: 'Actif'},
     ]
 };
 
@@ -248,36 +249,25 @@ function switchZones() {
     $(`#zonesTable_filter`).parent().show();
 }
 
-function deleteZone(zoneId){
-    let $modalDeleteZone = $("#modalDeleteZone");
-    $modalDeleteZone.find("[name=id]").val(zoneId);
-
-    $.post(Routing.generate('zone_delete_api', true), JSON.stringify({id: zoneId}), function (resp) {
-        $modalDeleteZone.find('.modal-body').html(resp.html);
-        if (resp.delete == false) {
-            $('#dismissDeleteZone').text('Fermer');
-            $('#submitDeleteZone').hide();
-        } else {
-            $('#dismissDeleteZone').text('Annuler');
-            $('#submitDeleteZone').show();
-        }
-    }, 'json');
-
-    Form.create($modalDeleteZone)
-        .clearSubmitListeners()
-        .onSubmit((data, form) => {
-            form.loading(() => (
-                AJAX.route(AJAX.POST, 'zone_delete')
-                    .json(data)
-                    .then(({success}) => {
-                        if(success){
-                            $modalDeleteZone.modal(`hide`);
-                            zonesTable.ajax.reload();
-                        }
-                    })
-            ), false)
-        });
-    $modalDeleteZone.modal(`show`);
+function deleteZone($button){
+    const zone = $button.data('id');
+    Modal.confirm({
+        ajax: {
+            method: AJAX.DELETE,
+            route: 'zone_delete',
+            params: {zone},
+        },
+        message: 'Voulez-vous réellement supprimer cette zone ?',
+        title: 'Supprimer la zone',
+        validateButton: {
+            color: 'danger',
+            label: 'Supprimer',
+        },
+        cancelButton: {
+            label: 'Annuler',
+        },
+        table: zonesTable,
+    });
 }
 
 function editZone(zoneId){
