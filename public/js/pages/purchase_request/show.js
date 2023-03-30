@@ -123,8 +123,8 @@ function onReferenceChange($select) {
                 });
 
                 $location.on('change', function() {
-                    const data = $(this).find('option:selected').data();
-                    if (data.quantity) {
+                    const quantity = $(this).find('option:selected').data('quantity');
+                    if (quantity !== undefined) {
                         $quantity.val(data.quantity);
                     } else {
                         $quantity.val($quantity.data('init'));
