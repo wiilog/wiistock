@@ -722,7 +722,7 @@ class SettingsService {
                         ->toArray();
                 }
 
-                if ($item["label"] === "") {
+                if (empty($item["label"]) && $item["label"] !== "0") {
                     throw new RuntimeException("Le libellé du champ libre ne peut pas être vide");
                 }
 
