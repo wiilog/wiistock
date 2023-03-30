@@ -31,6 +31,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -419,7 +420,6 @@ class DispatchService {
             }
 
             if($sendReport){
-                $receiverEmailUses = [];
                 $receiverEmailUses[] = $dispatch->getLocationFrom()->getEmail();
                 $receiverEmailUses[] = $dispatch->getLocationTo()->getEmail();
                 $receiverEmailUses[] = $signatory?->getEmail();
@@ -972,17 +972,51 @@ class DispatchService {
         $waybillData = $dispatch->getWaybillData();
 
         $totalWeight = Stream::from($dispatch->getDispatchPacks())
-            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
-            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getWeight())
+            ->filter(fn(DispatchPack $dispatchPack) => (
+                !$waybillTypeToUse
+                || $waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD
+                || $dispatchPack->getPack()?->getArrivage())
+            )
+            ->map(function(DispatchPack $dispatchPack) {
+                if ($dispatchPack->getPack()->getWeight()) {
+                    return $dispatchPack->getPack()->getWeight();
+                } else {
+                    $references = $dispatchPack->getDispatchReferenceArticles();
+                    $weight = Stream::from($references)
+                        ->reduce(function(int $carry, DispatchReferenceArticle $line) {
+                            return $carry + floatval($line->getReferenceArticle()->getDescription()['weight'] ?? 0);
+                        });
+                    return $weight ?: null;
+                }
+            })
             ->filter()
             ->sum();
         $totalVolume = Stream::from($dispatch->getDispatchPacks())
-            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
-            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getVolume())
+            ->filter(fn(DispatchPack $dispatchPack) => (
+                !$waybillTypeToUse
+                || $waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD
+                || $dispatchPack->getPack()?->getArrivage())
+            )
+            ->map(function(DispatchPack $dispatchPack) {
+                if ($dispatchPack->getPack()->getVolume()) {
+                    return $dispatchPack->getPack()->getVolume();
+                } else {
+                    $references = $dispatchPack->getDispatchReferenceArticles();
+                    $volume = Stream::from($references)
+                        ->reduce(function(int $carry, DispatchReferenceArticle $line) {
+                            return $carry + floatval($line->getReferenceArticle()->getDescription()['volume'] ?? 0);
+                        });
+                    return $volume ?: null;
+                }
+            })
             ->filter()
-            ->sum();
+            ->sum(6);
+
         $totalQuantities = Stream::from($dispatch->getDispatchPacks())
-            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse || $dispatchPack->getPack()?->getArrivage()))
+            ->filter(fn(DispatchPack $dispatchPack) => (!$waybillTypeToUse
+                || $waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD
+                || $dispatchPack->getPack()?->getArrivage())
+            )
             ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getQuantity())
             ->filter()
             ->sum();
@@ -1013,25 +1047,48 @@ class DispatchService {
             "lieudechargement" => $waybillData['locationTo'] ?? '',
             "note" => $waybillData['notes'] ?? '',
             "totalpoids" => $this->formatService->decimal($totalWeight, [], '-'),
-            "totalvolume" => $this->formatService->decimal($totalVolume, [], '-'),
+            "totalvolume" => $this->formatService->decimal($totalVolume, ["decimals" => 6], '-'),
             "totalquantite" => $totalQuantities,
         ];
 
         if ($waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD) {
             $variables['UL'] = $dispatch->getDispatchPacks()
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
-                ->map(fn(DispatchPack $dispatchPack) => [
-                    "UL" => $dispatchPack->getPack()->getCode(),
-                    "nature" => $this->formatService->nature($dispatchPack->getPack()->getNature()),
-                    "quantite" => $dispatchPack->getQuantity(),
-                    "poids" => $this->formatService->decimal($dispatchPack->getPack()->getWeight(), [], '-'),
-                    "volume" => $this->formatService->decimal($dispatchPack->getPack()->getVolume(), [], '-'),
-                    "commentaire" => strip_tags($dispatchPack->getPack()->getComment()) ?: '-',
-                    "numarrivage" => $dispatchPack->getPack()->getArrivage()?->getNumeroArrivage() ?: '-',
-                    "numcommandearrivage" => $dispatchPack->getPack()->getArrivage()
-                        ? Stream::from($dispatchPack->getPack()->getArrivage()->getNumeroCommandeList())->join("\n")
-                        : "-",
-                ])
+                ->map(function (DispatchPack $dispatchPack) {
+                    if ($dispatchPack->getPack()->getVolume()) {
+                        $volume = $dispatchPack->getPack()->getVolume();
+                    } else {
+                        $references = $dispatchPack->getDispatchReferenceArticles();
+                        $volume = Stream::from($references)
+                            ->reduce(function(int $carry, DispatchReferenceArticle $line) {
+                                return $carry + floatval($line->getReferenceArticle()->getDescription()['volume'] ?? 0);
+                            });
+                        $volume = $volume ?: null;
+                    }
+
+                    if ($dispatchPack->getPack()->getWeight()) {
+                        $weight = $dispatchPack->getPack()->getWeight();
+                    } else {
+                        $references = $dispatchPack->getDispatchReferenceArticles();
+                        $weight = Stream::from($references)
+                            ->reduce(function(int $carry, DispatchReferenceArticle $line) {
+                                return $carry + floatval($line->getReferenceArticle()->getDescription()['weight'] ?? 0);
+                            });
+                        $weight = $weight ?: null;
+                    }
+                    return [
+                        "UL" => $dispatchPack->getPack()->getCode(),
+                        "nature" => $this->formatService->nature($dispatchPack->getPack()->getNature()),
+                        "quantite" => $dispatchPack->getQuantity(),
+                        "poids" => $this->formatService->decimal($weight, [], '-'),
+                        "volume" => $this->formatService->decimal($volume, ["decimals" => 6], '-'),
+                        "commentaire" => strip_tags($dispatchPack->getPack()->getComment()) ?: '-',
+                        "numarrivage" => $dispatchPack->getPack()->getArrivage()?->getNumeroArrivage() ?: '-',
+                        "numcommandearrivage" => $dispatchPack->getPack()->getArrivage()
+                            ? Stream::from($dispatchPack->getPack()->getArrivage()->getNumeroCommandeList())->join("\n")
+                            : "-",
+                    ];
+                })
                 ->toArray();
         }
         else { // $waybillTypeToUse === Setting::DISPATCH_WAYBILL_TYPE_TO_USE_RUPTURE
@@ -1277,6 +1334,9 @@ class DispatchService {
             'outFormatEquipment' => $data['outFormatEquipment'] ?? null,
             'manufacturerCode' => $data['manufacturerCode'] ?? null,
             'volume' => $data['volume'] ?? null,
+            'width' => $data['width'] ?? null,
+            'height' => $data['height'] ?? null,
+            'length' => $data['length'] ?? null,
             'weight' => $data['weight'] ?? null,
             'associatedDocumentTypes' => $data['associatedDocumentTypes'] ?? null,
         ];
@@ -1434,6 +1494,49 @@ class DispatchService {
                 ->setTreatedBy($user)
                 ->setCommentaire($newCommentDispatch . $commentData);
 
+            $dispatchPacks = $dispatch->getDispatchPacks();
+            $takingLocation = $dispatch->getLocationFrom();
+            $dropLocation = $dispatch->getLocationTo();
+            $date = new DateTime('now');
+
+            foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
+                $pack = $dispatchPack->getPack();
+                $trackingTaking = $this->trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $takingLocation,
+                    $user,
+                    $date,
+                    $fromNomade,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    [
+                        'quantity' => $dispatchPack->getQuantity(),
+                        'from' => $dispatch,
+                        'removeFromGroup' => true,
+                        'attachments' => $dispatch->getAttachments(),
+                    ]
+                );
+                $trackingDrop = $this->trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $dropLocation,
+                    $user,
+                    $date,
+                    $fromNomade,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $dispatchPack->getQuantity(),
+                        'from' => $dispatch,
+                        'attachments' => $dispatch->getAttachments(),
+                    ]
+                );
+
+                $entityManager->persist($trackingTaking);
+                $entityManager->persist($trackingDrop);
+
+                $dispatchPack->setTreated(true);
+            }
+
             $entityManager->flush();
 
             if($groupedSignatureStatus->getSendReport()){
@@ -1455,5 +1558,44 @@ class DispatchService {
                 $selected = $type === $groupedSignatureType ? 'selected' : '';
                 return "<option value='{$type}' {$selected}>{$type}</option>";
             })->join('');
+    }
+
+    public function getWayBillDataForUser(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager) {
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $userSavedData = $user->getSavedDispatchWaybillData();
+        $dispatchSavedData = $dispatch->getWaybillData();
+
+        $now = new DateTime('now');
+
+        $isEmerson = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
+
+        $consignorUsername = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME);
+        $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
+            ? $consignorUsername
+            : ($isEmerson ? $user->getUsername() : null);
+
+        $consignorEmail = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
+        $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
+            ? $consignorEmail
+            : ($isEmerson ? $user->getEmail() : null);
+
+        $defaultData = [
+            'carrier' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CARRIER),
+            'dispatchDate' => $now->format('Y-m-d'),
+            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'receiver' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_RECEIVER),
+            'locationFrom' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_FROM),
+            'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
+            'consignorUsername' => $consignorUsername,
+            'consignorEmail' => $consignorEmail,
+            'receiverUsername' => $isEmerson ? $user->getUsername() : null,
+            'receiverEmail' => $isEmerson ? $user->getEmail() : null,
+            'packsCounter' => $dispatch->getDispatchPacks()->count()
+        ];
+        return Stream::from(Dispatch::WAYBILL_DATA)
+            ->keymap(fn(bool $data, string $key) => [$key, $dispatchSavedData[$key] ?? $userSavedData[$key] ?? $defaultData[$key] ?? null])
+            ->toArray();
     }
 }

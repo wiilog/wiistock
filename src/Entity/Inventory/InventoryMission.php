@@ -64,8 +64,11 @@ class InventoryMission {
     #[OneToMany(mappedBy: "inventoryMission", targetEntity: InventoryLocationMission::class, cascade: ['remove'])]
     private Collection $inventoryLocationMissions;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $requester = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $validator = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $createdAt = null;
@@ -304,6 +307,15 @@ class InventoryMission {
     {
         $this->validatedAt = $validatedAt;
 
+        return $this;
+    }
+
+    public function getValidator(): ?Utilisateur {
+        return $this->validator;
+    }
+
+    public function setValidator(?Utilisateur $validator): self {
+        $this->validator = $validator;
         return $this;
     }
 }

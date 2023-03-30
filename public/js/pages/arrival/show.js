@@ -3,6 +3,7 @@ let tableHistoLitige;
 let tablePacks;
 
 $(function () {
+    const query = GetRequestQuery();
     let addPacks = $('#addPacks').val();
     if (addPacks) {
         $('#btnModalAddPacks').click();
@@ -17,9 +18,9 @@ $(function () {
             printPacks: printPacks,
             printArrivage: printArrivage
         };
-        SetRequestQuery({});
         printArrival(params);
     }
+    SetRequestQuery({});
 
     $(`.dispatch-button`).on(`click`, function () {
         $(this).pushLoader(`black`);
@@ -164,6 +165,10 @@ $(function () {
     $(`.new-dispute-modal`).on(`click`, function () {
         getNewDisputeModalContent($(this));
     });
+
+    if (query.reserve) {
+        $('.new-dispute-modal').click();
+    }
 });
 
 function openTableHisto() {

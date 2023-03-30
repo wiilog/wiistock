@@ -6,9 +6,12 @@ use App\Repository\TransporteurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Traits\AttachmentTrait;
 
 #[ORM\Entity(repositoryClass: TransporteurRepository::class)]
 class Transporteur {
+
+    use AttachmentTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -36,11 +39,21 @@ class Transporteur {
     #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'carrier')]
     private Collection $emergencies;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $recurrent = false;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $minTrackingNumberLength = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $maxTrackingNumberLength = null;
+
     public function __construct() {
         $this->chauffeurs = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
         $this->reception = new ArrayCollection();
         $this->emergencies = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -211,6 +224,42 @@ class Transporteur {
         foreach($emergencies as $emergency) {
             $this->addEmergency($emergency);
         }
+
+        return $this;
+    }
+
+    public function isRecurrent(): ?bool
+    {
+        return $this->recurrent;
+    }
+
+    public function setRecurrent(bool $recurrent): self
+    {
+        $this->recurrent = $recurrent;
+
+        return $this;
+    }
+
+    public function getMinTrackingNumberLength(): ?int
+    {
+        return $this->minTrackingNumberLength;
+    }
+
+    public function setMinTrackingNumberLength(?int $minTrackingNumberLength): self
+    {
+        $this->minTrackingNumberLength = $minTrackingNumberLength;
+
+        return $this;
+    }
+
+    public function getMaxTrackingNumberLength(): ?int
+    {
+        return $this->maxTrackingNumberLength;
+    }
+
+    public function setMaxTrackingNumberLength(?int $maxTrackingNumberLength): self
+    {
+        $this->maxTrackingNumberLength = $maxTrackingNumberLength;
 
         return $this;
     }

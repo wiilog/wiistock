@@ -15,6 +15,7 @@ Encore
     .addEntry('dashboard', './assets/js/dashboard.js')
     .addEntry('reference-article-form', './assets/js/pages/reference-article/form.js')
     .addEntry('article-form', './assets/js/pages/article/form.js')
+    .addEntry('reference-article-form-common', './assets/js/pages/reference-article/common.js')
     .addEntry('reference-article-index', './assets/js/pages/reference-article/index.js')
     .addEntry('cart', './assets/js/pages/cart.js')
     .addEntry('settings-index', './assets/js/pages/settings/index.js')
@@ -42,9 +43,11 @@ Encore
     .addEntry('register', './assets/js/pages/register/register.js')
     .addEntry('customer-index', './assets/js/pages/customer/index.js')
     .addEntry('kiosk', './assets/js/pages/kiosk.js')
+    .addEntry('carrier-index', './assets/js/pages/carrier/index.js')
     .addEntry('settings-inventory-planner', './assets/js/pages/settings/inventory/inventoryPlanner.js')
     .addEntry('form-add-inventory-locations', './assets/js/pages/inventory-mission/form-add-inventory-locations.js')
-
+    .addEntry('truck-arrival-index', './assets/js/pages/truck-arrival/index.js')
+    .addEntry('truck-arrival-show', './assets/js/pages/truck-arrival/show.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

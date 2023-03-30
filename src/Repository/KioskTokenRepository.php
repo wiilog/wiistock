@@ -3,24 +3,16 @@
 namespace App\Repository;
 
 use App\Entity\KioskToken;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
- * @extends ServiceEntityRepository<KioskToken>
- *
  * @method KioskToken|null find($id, $lockMode = null, $lockVersion = null)
  * @method KioskToken|null findOneBy(array $criteria, array $orderBy = null)
  * @method KioskToken[]    findAll()
  * @method KioskToken[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class KioskTokenRepository extends ServiceEntityRepository
+class KioskTokenRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, KioskToken::class);
-    }
-
     public function save(KioskToken $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);

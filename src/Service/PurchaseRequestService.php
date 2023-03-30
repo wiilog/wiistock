@@ -182,8 +182,10 @@ class PurchaseRequestService
         return $purchaseLine;
     }
 
-    public function sendMailsAccordingToStatus(PurchaseRequest $purchaseRequest)
-    {
+    public function sendMailsAccordingToStatus(PurchaseRequest $purchaseRequest, array $options = []) {
+        $customSubject = $options['customSubject'] ?? null;
+
+
         /** @var Statut $status */
         $status = $purchaseRequest->getStatus();
         $buyerAbleToReceivedMail = $status->getSendNotifToBuyer();
@@ -194,22 +196,26 @@ class PurchaseRequestService
             $requester = $purchaseRequest->getRequester() ?? null;
             $buyer = $purchaseRequest->getBuyer() ?? null;
 
-            $mail = ($status->isNotTreated() && $buyerAbleToReceivedMail) ? $buyer : $requester;
+            $mail = ($status->isNotTreated() && $buyerAbleToReceivedMail && $buyer) ? $buyer : $requester;
 
-            $subject = $status->isTreated()
-                ? 'Traitement d\'une demande d\'achat'
-                : ($status->isNotTreated()
-                    ? 'Création d\'une demande d\'achat'
-                    : 'Changement de statut d\'une demande d\'achat');
+            $subject = $customSubject ?: (
+                $status->isTreated()
+                    ? 'Traitement d\'une demande d\'achat'
+                    : ($status->isNotTreated()
+                        ? 'Création d\'une demande d\'achat'
+                        : 'Changement de statut d\'une demande d\'achat')
+            );
 
             $statusName = $this->formatService->status($status);
             $number = $purchaseRequest->getNumber();
-            $processingDate = FormatHelper::datetime($purchaseRequest->getProcessingDate(), "", true);
-            $title = $status->isTreated()
+            $processingDate = $this->formatService->datetime($purchaseRequest->getProcessingDate(), "", true);
+            $title = $customSubject ?: (
+                $status->isTreated()
                 ? "Demande d'achat ${number} traitée le ${processingDate} avec le statut ${statusName}"
                 : ($status->isNotTreated()
                     ? 'Une demande d\'achat vous concerne'
-                    : 'Changement de statut d\'une demande d\'achat vous concernant');
+                    : 'Changement de statut d\'une demande d\'achat vous concernant')
+            );
 
             if (isset($requester)) {
                 $this->mailerService->sendMail(

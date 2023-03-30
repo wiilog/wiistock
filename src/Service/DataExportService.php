@@ -82,7 +82,7 @@ class DataExportService
             'reference',
             'libelle',
             'fournisseur',
-            'référence fournisseur',
+            'référence article fournisseur',
             'tag RFID',
             'quantité',
             'type',
@@ -317,9 +317,10 @@ class DataExportService
         }
 
         if ($entity === Export::ENTITY_ARTICLE) {
-            $export->setReferenceTypes(explode(",", $data["referenceTypes"]))
-                ->setStatuses(explode(",", $data["statuses"]))
-                ->setSuppliers(explode(",", $data["suppliers"]));
+            $export
+                ->setReferenceTypes($data["referenceTypes"] ? explode(",", $data["referenceTypes"]) : [])
+                ->setStatuses($data["statuses"] ? explode(",", $data["statuses"]) : [])
+                ->setSuppliers($data["suppliers"] ? explode(",", $data["suppliers"]) : []);
 
             if (isset($data["scheduled-date-radio"]) && $data["scheduled-date-radio"] === "fixed-date") {
                 if (isset($data["scheduledDateMin"]) && isset($data["scheduledDateMax"])) {

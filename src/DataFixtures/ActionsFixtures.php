@@ -49,7 +49,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_STOCK_MOVEMENTS = 'mouvements de stock';
     const SUB_MENU_ALERTS = 'alertes';
     const SUB_MENU_INVENTORY = 'inventaire';
-    const SUB_MENU_ARRIVALS = 'arrivages';
+    const SUB_MENU_ARRIVALS = 'arrivages UL';
+    const SUB_MENU_TRUCK_ARRIVALS = 'arrivages camion';
     const SUB_MENU_MOVEMENTS = 'mouvements';
     const SUB_MENU_PACKS = 'unités logistiques';
     const SUB_MENU_ASSOCIATION_BR = 'association BR';
@@ -73,6 +74,15 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::ADD_PACK,
                 Action::EDIT_PACK,
                 Action::DELETE_PACK,
+            ],
+            self::SUB_MENU_TRUCK_ARRIVALS => [
+                Action::DISPLAY_TRUCK_ARRIVALS,
+                Action::CREATE_TRUCK_ARRIVALS,
+                Action::EDIT_TRUCK_ARRIVALS,
+                Action::DELETE_TRUCK_ARRIVALS,
+                Action::ADD_CARRIER_TRACKING_NUMBER,
+                Action::DELETE_CARRIER_TRACKING_NUMBER,
+                Action::EDIT_RESERVES,
             ],
             self::SUB_MENU_MOVEMENTS => [
                 Action::DISPLAY_MOUV,
@@ -286,6 +296,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_TRACING => [
                 Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
                 Action::SETTINGS_DISPLAY_ARRI,
+                Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS,
                 Action::SETTINGS_DISPLAY_MOVEMENT,
                 Action::SETTINGS_DISPLAY_TRACING_HAND
             ],
@@ -338,6 +349,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DEMO_MODE,
             ],
             self::SUB_MENU_TRACING => [
+                Action::MODULE_ACCESS_TRUCK_ARRIVALS,
                 Action::MODULE_ACCESS_GROUP,
                 Action::MODULE_ACCESS_UNGROUP,
             ],

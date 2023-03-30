@@ -627,7 +627,7 @@ class ArticleDataService
             $article['reference'],
             $article['label'],
             $article['nomFournisseur'],
-            $article['codeRefFournisseur'],
+            $article['RefArtFournisseur'],
             $article['RFIDtag'],
             $article['quantite'],
             $article['typeLabel'],

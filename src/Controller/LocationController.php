@@ -11,6 +11,7 @@ use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 
@@ -100,7 +101,7 @@ class LocationController extends AbstractController {
                 ? $data['signatories']
                 : Stream::explode(',', $data['signatories'])
                     ->filter()
-                    ->map('trim')
+                    ->map(fn(string $id) => trim($id))
                     ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
@@ -122,7 +123,7 @@ class LocationController extends AbstractController {
                 ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatories($signatories)
+                ->setSignatories($signatories ?? [])
                 ->setEmail($email)
                 ->setZone($zone);
 
@@ -245,11 +246,11 @@ class LocationController extends AbstractController {
                 ? $data['signatories']
                 : Stream::explode(',', $data['signatories'])
                     ->filter()
-                    ->map('trim')
+                    ->map(fn(string $id) => trim($id))
                     ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
-                : null;
+                : [];
             $email = $data['email'] ?? null;
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
@@ -267,7 +268,7 @@ class LocationController extends AbstractController {
                 ->setIsActive($data['isActive'])
                 ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatories($signatories)
+                ->setSignatories($signatories ?? [])
                 ->setEmail($email)
                 ->setZone($zone);
 
@@ -334,6 +335,9 @@ class LocationController extends AbstractController {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+
+        $location = $locationRepository->find($emplacementId);
 
         $usedBy = [];
 
@@ -367,6 +371,9 @@ class LocationController extends AbstractController {
 
         $round = $locationRepository->countRound($emplacementId);
         if ($round > 0) $usedBy[] = 'tournées';
+
+        $inventoryLocationMissions = $inventoryLocationMissionRepository->count(['location' => $location]);
+        if ($inventoryLocationMissions > 0) $usedBy[] = "missions d'inventaire";
 
         return $usedBy;
     }

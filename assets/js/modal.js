@@ -116,7 +116,9 @@ export default class Modal {
                 .json()
                 .then(({html}) => {
                     container.html(html);
-                    options.onOpen && options.onOpen();
+                    if (options.onOpen) {
+                        options.onOpen();
+                    }
                     $modal.modal('show');
                 })
         ));

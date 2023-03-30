@@ -54,8 +54,11 @@ class ScheduledPurchaseRequestCommand extends Command
 
             if (isset($nextExecutionDate) && $now >= $nextExecutionDate) {
                 $this->purchaseRequestRuleService->treatRequestRule($rule);
+
+                $rule->setLastRun($nextExecutionDate);
             }
         }
+        $this->em->flush();
 
         return 0;
     }

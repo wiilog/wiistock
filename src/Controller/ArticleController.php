@@ -12,7 +12,6 @@ use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
@@ -353,9 +352,6 @@ class ArticleController extends AbstractController
      */
     public function delete(Request $request,
                            MouvementStockService $mouvementStockService,
-                           PreparationsManagerService $preparationsManagerService,
-                           DemandeLivraisonService $demandeLivraisonService,
-                           RefArticleDataService $refArticleDataService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -365,6 +361,8 @@ class ArticleController extends AbstractController
             $article = $articleRepository->find($data['article']);
             $articleBarCode = $article->getBarCode();
 
+            $locationMissionCounter = $articleRepository->countInventoryLocationMission($article);
+
             $trackingPack = $article->getTrackingPack();
 
             if ($article->getCollectes()->isEmpty()
@@ -372,7 +370,8 @@ class ArticleController extends AbstractController
                 && $article->getOrdreCollecte()->isEmpty()
                 && $article->getTransferRequests()->isEmpty()
                 && $article->getInventoryMissions()->isEmpty()
-                && $article->getInventoryEntries()->isEmpty()) {
+                && $article->getInventoryEntries()->isEmpty()
+                && $locationMissionCounter === 0) {
 
                 if ($trackingPack) {
                     $trackingPack->setArticle(null);
@@ -457,6 +456,13 @@ class ArticleController extends AbstractController
 
             $articleAssociations = $article->getUsedAssociation();
 
+            if (!$articleAssociations) {
+                $locationMissionCounter = $articleRepository->countInventoryLocationMission($article);
+                if ($locationMissionCounter > 0) {
+                    $articleAssociations = Article::USED_ASSOC_INVENTORY_ENTRY;
+                }
+            }
+
             if ($articleAssociations !== null) {
                 return new JsonResponse([
                     'delete' => false,
@@ -494,11 +500,11 @@ class ArticleController extends AbstractController
                     return new JsonResponse([
                         'delete' => ($isFromReception || $isNotUsedInAssoc),
                         'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
-                            'prepa' => $lastPreparationOrderLine ? $lastPreparationOrderLine->getPreparation()->getNumero() : null,
-                            'request' => $lastDeliveryRequestLine ? $lastDeliveryRequestLine->getRequest()->getNumero() : null,
-                            'mvtStockIsEmpty' => $articlesMvtStockIsEmpty,
-                            'mvtTracaIsEmpty' => $articlesMvtTracaIsEmpty,
-                            'askQuestion' => $isFromReception
+                            "prepa" => $lastPreparationOrderLine ? $lastPreparationOrderLine->getPreparation()->getNumero() : null,
+                            "request" => $lastDeliveryRequestLine ? $lastDeliveryRequestLine->getRequest()->getNumero() : null,
+                            "mvtStockIsEmpty" => $articlesMvtStockIsEmpty,
+                            "mvtTracaIsEmpty" => $articlesMvtTracaIsEmpty,
+                            "askQuestion" => $isFromReception,
                         ])
                     ]);
                 } else {

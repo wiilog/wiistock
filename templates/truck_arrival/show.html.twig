@@ -1,0 +1,183 @@
+{% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %}Traçabilité | Arrivage camion | Détails{% endblock %}
+{% block title_tooltip %}Traçabilité | Arrivage camion | Détails{% endblock %}
+{% block titleLink path('truck_arrival_index') %}
+
+{% block page_content %}
+
+    {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_RESERVES')) %}
+
+    {{ form.input('truckArrival', '', false, truckArrival.id, {
+        type: 'hidden'
+    }) }}
+    <input type="hidden" id="truckArrivalId" value="{{ truckArrival.id }}"/>
+
+    {{ form.input('minTrackingNumber', '', false, minTrackingNumber, {
+        type: 'hidden'
+    }) }}
+    {{ form.input('maxTrackingNumber', '', false, maxTrackingNumber, {
+        type: 'hidden'
+    }) }}
+    <div class="p-3">
+        <div class="row">
+            <div class="col-12">
+                <div class="zone-entete">
+                    {% include "truck_arrival/truck-arrival-show-header.html.twig" with {
+                        truckArrival: truckArrival,
+                        showDetails: showDetails,
+                    }%}
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-around">
+            <div class="col-6">
+                <div class="wii-box">
+                    <div class="header wii-title d-flex justify-content-between">
+                        <span>Liste des numéro de tracking</span>
+                        <span class="wii-field-text"><span class="bold">Nombre de n° de tracking associé :</span> {{ lineAssociated }}</span>
+                    </div>
+                    <div class="content">
+                        {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_CARRIER_TRACKING_NUMBER')) %}
+                        {% if hasRightEditReserve %}
+                            <div style="text-align: right">
+                                {% include "utils/action-buttons/header-buttons.html.twig" with {
+                                    actions: [
+                                        {
+                                            hasRight: true,
+                                            title: 'Ajouter un n°tracking transporteur',
+                                            icon: "wii-icon wii-icon-plus",
+                                            attributes: {
+                                                onclick: "newTrackingNumber()",
+                                        },
+                                        },
+                                    ]
+                                } %}
+                            </div>
+                        {% endif %}
+                        <table id="truckArrivalLinesTable" class="table w-100"></table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="wii-box">
+                    <div class="header wii-title">
+                        <span>Gestion des réserves</span>
+                    </div>
+                    <div class="wii-section-title my-3 d-flex align-items-center">
+                        Qualité
+                    </div>
+                    <div class="content py-0">
+                        {% if hasRightEditReserve %}
+                            <div class="d-flex justify-content-end">
+                                {% include "utils/action-buttons/header-buttons.html.twig" with {
+                                    actions: [
+                                        {
+                                            title: 'Ajouter une réserve',
+                                            icon: "wii-icon wii-icon-plus",
+                                            class: 'new-quality-reserve-button',
+                                        },
+                                    ]
+                                } %}
+                            </div>
+                        {% endif %}
+                        <table id="truckArrivalLinesQualityReservesTable" class="table w-100"></table>
+                    </div>
+                    <div class="wii-section-title my-3 d-flex align-items-center">
+                        Général
+                    </div>
+                    <div class="p-2 d-flex w-100">
+                        <div class="d-flex w-100">
+                            <div class="col-4">
+                                {% set generalReserve = truckArrival.reserveByType(constant('App\\Entity\\Reserve::TYPE_GENERAL')) %}
+                                <div class="wii-field-name">Réserve général</div>
+                                <div class="wii-body-text">{{ generalReserve ? 'oui' : 'non' }} </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="wii-field-name">Commentaire</div>
+                                <div class="wii-body-text">{{ generalReserve and generalReserve.comment and generalReserve.comment !='' ? generalReserve.comment : '-' }}</div>
+                            </div>
+                        </div>
+                        {% if hasRightEditReserve %}
+                            <button
+                                class="btn btn-primary h-fit-content mr-2 nowrap"
+                                data-target='#editGeneralReserve'
+                                data-toggle='modal'>
+                                <i class="fa fa-pen mr-2"></i>Modifier
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    <div class="wii-section-title my-3 d-flex align-items-center">
+                        Quantité +/-
+                    </div>
+                    <div class="p-2 d-flex w-100">
+                        <div class="d-flex w-100">
+                            <div class="col-4">
+                                {% set quantityReserve = truckArrival.reserveByType(constant('App\\Entity\\Reserve::TYPE_QUANTITY')) %}
+                                <div class="wii-field-name">Réserve quantité</div>
+                                <div class="wii-body-text">{{ quantityReserve ? 'oui' : 'non' }} </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="wii-field-name">&Eacute;cart quantité</div>
+                                <div class="wii-body-text">
+                                    {% set quantity = quantityReserve ? quantityReserve.quantity %}
+                                    {% set quantityType = quantityReserve ? quantityReserve.quantityType %}
+                                    {{ quantity and quantity != '' ? quantity : '-' }}
+                                    {{ quantityType ? 'en '~ quantityType }}
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="wii-field-name">Commentaire</div>
+                                <div class="wii-body-text">{{ quantityReserve ? quantityReserve.comment : '-' }}</div>
+                            </div>
+                        </div>
+                        {% if hasRightEditReserve %}
+                            <button
+                                class="btn btn-primary h-fit-content mr-2 nowrap"
+                                data-target='#editQuantityReserve'
+                                data-toggle='modal'>
+                                <i class="fa fa-pen mr-2"></i>Modifier
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "truck_arrival/modalDeleteTruckArrival.html.twig" %}
+
+
+    {% if hasRightEditReserve %}
+        {%  include 'truck_arrival/reserve/modalEditGeneralReserve.html.twig' with {
+            reserve : generalReserve,
+        } %}
+        {% include 'truck_arrival/reserve/modalEditQuantityReserve.html.twig' with {
+            reserve : quantityReserve,
+        }%}
+        {% include 'truck_arrival/reserve/modalQualityReserve.html.twig' %}
+    {% endif %}
+
+    {% include "utils/modal/empty-modal.html.twig" with {
+        id: 'editTruckArrivalModal',
+        size: 'modal-xl',
+        header: {
+            title: 'Modifier arrivage camion',
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                {classes: 'btn btn-success data', text: 'Enregister', type: 'submit'}
+            ],
+        },
+    } %}
+    {% include "truck_arrival/modalNewTrackingNumber.html.twig" %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('truck-arrival-show') }}
+{% endblock %}

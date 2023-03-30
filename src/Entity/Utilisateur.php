@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
-use App\Entity\Inventory\InventoryLocationMissionReferenceArticle;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -39,6 +38,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS = ["actions", "pairing", "createdAt", "validatedAt", "requester", "number", "status", "type"];
     const DEFAULT_HANDLING_VISIBLE_COLUMNS = ["actions", "desiredDate", "creationDate", "requester", "validationDate", "number", "status", "type", "subject", "treatedBy", "emergency"];
     const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
+    const DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "unloadingLocation", "number", "trackingLinesNumber", "countTrackingLines", "operator" ,"reserves", "carrier"];
     const DEFAULT_VISIBLE_COLUMNS = [
         'reference' => self::DEFAULT_REFERENCE_VISIBLE_COLUMNS,
         'article' => self::DEFAULT_ARTICLE_VISIBLE_COLUMNS,
@@ -49,6 +49,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'reception' => self::DEFAULT_RECEPTION_VISIBLE_COLUMNS,
         'deliveryRequest' => self::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS,
         'handling' => self::DEFAULT_HANDLING_VISIBLE_COLUMNS,
+        'truckArrival' => self::DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS,
         'arrivalPack' => self::DEFAULT_PACK_VISIBLE_COLUMNS,
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
@@ -300,8 +301,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
     private ?KioskToken $kioskToken = null;
 
-    #[ORM\OneToMany(mappedBy: 'operator', targetEntity: InventoryLocationMissionReferenceArticle::class)]
-    private Collection $inventoryLocationMissionReferenceArticles;
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -342,7 +341,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->transportRequests = new ArrayCollection();
         $this->transportRounds = new ArrayCollection();
         $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
-        $this->inventoryLocationMissionReferenceArticles = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
@@ -1987,39 +1985,4 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getInventoryLocationMissionReferenceArticles(): Collection {
-        return $this->inventoryLocationMissionReferenceArticles;
-    }
-
-    public function addInventoryLocationMissionReferenceArticle(InventoryLocationMissionReferenceArticle $inventoryLocationMissionReferenceArticle): self {
-        if (!$this->inventoryLocationMissionReferenceArticles->contains($inventoryLocationMissionReferenceArticle)) {
-            $this->inventoryLocationMissionReferenceArticles[] = $inventoryLocationMissionReferenceArticle;
-            $inventoryLocationMissionReferenceArticle->setOperator($this);
-        }
-
-        return $this;
-    }
-
-    public function removeInventoryLocationMissionReferenceArticle(InventoryLocationMissionReferenceArticle $inventoryLocationMissionReferenceArticle): self {
-        if ($this->inventoryLocationMissionReferenceArticles->removeElement($inventoryLocationMissionReferenceArticle)) {
-            if ($inventoryLocationMissionReferenceArticle->getOperator() === $this) {
-                $inventoryLocationMissionReferenceArticle->setOperator(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setInventoryLocationMissionReferenceArticles(?iterable $inventoryLocationMissionReferenceArticles): self {
-        foreach($this->getInventoryLocationMissionReferenceArticles()->toArray() as $inventoryLocationMissionReferenceArticle) {
-            $this->removeInventoryLocationMissionReferenceArticle($inventoryLocationMissionReferenceArticle);
-        }
-
-        $this->inventoryLocationMissionReferenceArticles = new ArrayCollection();
-        foreach($inventoryLocationMissionReferenceArticles ?? [] as $inventoryLocationMissionReferenceArticle) {
-            $this->addInventoryLocationMissionReferenceArticle($inventoryLocationMissionReferenceArticle);
-        }
-
-        return $this;
-    }
 }

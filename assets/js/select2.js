@@ -48,6 +48,8 @@ const ROUTES = {
     provider: 'ajax_select_provider',
     nativeCountries: 'ajax_select_native_countries',
     supplierArticles: 'ajax_select_supplier_articles',
+    driver: 'ajax_select_driver',
+    truckArrivalLine: 'ajax_select_truck_arrival_line',
 }
 
 const INSTANT_SELECT_TYPES = {

@@ -43,8 +43,7 @@ class PurchaseRequestRuleService
         $purchaseRequestLineRepository = $this->em->getRepository(PurchaseRequestLine::class);
 
         // getting storage rules by the purchase rule, quantity rule applied here
-        $storageRules = $storageRuleRepository->getByPuchaseRequestRuleWithStockQuantity($rule);
-
+        $storageRules = $storageRuleRepository->findByPurchaseRequestRuleWithStockQuantity($rule);
         $rulesWithSeveralSuppliers = [];
         $refAdded = [];
         $purchaseRequests = [];
@@ -76,8 +75,7 @@ class PurchaseRequestRuleService
 
                 $this->em->persist($purchaseRequestLine);
                 $this->em->persist($purchaseRequest);
-
-                $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
+                $this->em->flush();
             }
         }
 
@@ -86,16 +84,18 @@ class PurchaseRequestRuleService
             foreach ($rulesWithSeveralSuppliers as $severalSuppliersRule) {
                 $purchaseRequestLine = $this->purchaseRequestService->createPurchaseRequestLine($severalSuppliersRule->getReferenceArticle(), $severalSuppliersRule->getConditioningQuantity());
                 $purchaseRequest = $this->purchaseRequestService->createPurchaseRequest($rule->getStatus(), $rule->getRequester());
+                $purchaseRequests[] = $purchaseRequest;
                 $purchaseRequest->addPurchaseRequestLine($purchaseRequestLine);
 
                 $this->em->persist($purchaseRequestLine);
                 $this->em->persist($purchaseRequest);
-
-                $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
+                $this->em->flush();
             }
         }
 
-        $this->em->flush();
+        foreach ($purchaseRequests as $purchaseRequest) {
+            $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, ["customSubject" => $rule->getEmailSubject()]);
+        }
     }
 }
 

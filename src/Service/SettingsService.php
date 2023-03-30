@@ -59,22 +59,22 @@ class SettingsService {
 
     public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\-\/ ]{1,24}$';
 
-    /**  @Required */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /** @Required */
+    #[Required]
     public KernelInterface $kernel;
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /** @Required */
+    #[Required]
     public RequestTemplateService $requestTemplateService;
 
-    /** @Required */
+    #[Required]
     public AlertTemplateService $alertTemplateService;
 
-    /** @Required */
+    #[Required]
     public StatusService $statusService;
 
     #[Required]
@@ -109,8 +109,30 @@ class SettingsService {
         return $settings[$key] ?? null;
     }
 
+    private function isTimeBeforeOrEqual($time1, $time2): bool
+    {
+        $timestamp1 = strtotime($time1);
+        $timestamp2 = strtotime($time2);
+
+        return $timestamp1 < $timestamp2;
+    }
+
     public function save(Request $request): array {
         $settingRepository = $this->manager->getRepository(Setting::class);
+
+        $beforeStart = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_START");
+        $beforeEnd = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END");
+        $afterStart = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START");
+        $afterEnd = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END");
+
+        if ((!$beforeStart || !$beforeEnd || !$afterStart || !$afterEnd) && ($beforeStart || $beforeEnd || $afterStart || $afterEnd)) {
+            throw new RuntimeException("Tous les champs horaires doivent être renseignés.");
+        } else if($beforeStart && $beforeEnd && $afterStart && $afterEnd) {
+            $isValid = $this->isTimeBeforeOrEqual($beforeStart, $beforeEnd);
+            if (!$isValid) {
+                throw new RuntimeException('Il est nécessaire que les heures de début soient antérieures aux heures de fin.');
+            }
+        }
 
         $settingNames = array_merge(
             array_keys($request->request->all()),
@@ -616,34 +638,6 @@ class SettingsService {
                     } );
 
                 $this->manager->persist($tagTemplate);
-            }
-        }
-
-        if (isset($tables["missionRulesTable"])) {
-            $missionRuleRepository = $this->manager->getRepository(InventoryMissionRule::class);
-            $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
-
-            $missions = Stream::from($tables["missionRulesTable"])
-                ->filter()
-                ->map(fn($data) => [isset($data["id"]) ? $missionRuleRepository->find($data["id"]) : new InventoryMissionRule(), $data])
-                ->toArray();
-
-            $existingLabels = [];
-            foreach ($missions as [$rule, $ruleData]) {
-                if(in_array($ruleData["label"], $existingLabels)) {
-                    throw new RuntimeException("Le libellé de mission \"{$ruleData["label"]}\" est en doublon");
-                } else {
-                    $existingLabels[] = $ruleData["label"];
-                }
-
-                $rule->setLabel($ruleData["label"])
-                    ->setCategories($categoryRepository->findBy(["id" => explode(",", $ruleData["categories"])]))
-                    ->setPeriodicity($ruleData["periodicity"])
-                    ->setPeriodicityUnit($ruleData["periodicityUnit"])
-                    ->setDuration($ruleData["duration"])
-                    ->setDurationUnit($ruleData["durationUnit"]);
-
-                $this->manager->persist($rule);
             }
         }
 

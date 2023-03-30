@@ -84,4 +84,5 @@ class ZoneRepository extends EntityRepository
             ->getQuery()
             ->getArrayResult();
     }
+
 }

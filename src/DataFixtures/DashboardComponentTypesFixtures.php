@@ -169,19 +169,39 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Suivi des transporteurs' => [
             'hint' => 'Transporteurs ayant effectué un arrivage dans la journée',
             'exampleValues' => [
-                'carriers' => [
-                    'TRANS1',
-                    'TRANS2',
-                    'TRANS3',
-                ],
+                'subtitle' => 'TRANS1, TRANS2, TRANS3',
+                'count' => 4,
+
                 'textColor-1' => "#000000",
                 'textBold-1' => false,
                 'textItalic-1' => false,
                 'textUnderline-1' => false,
+
                 'textColor-2' => "#000000",
                 'textBold-2' => false,
                 'textItalic-2' => false,
                 'textUnderline-2' => false,
+
+
+                'textColor-3' => "#3353D7",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
+
+                'textColor-9' => "#000",
+                'textBold-9' => false,
+                'textItalic-9' => false,
+                'textUnderline-9' => false,
+
+                'textColor-10' => "#D73353",
+                'textBold-10' => false,
+                'textItalic-10' => false,
+                'textUnderline-10' => false,
+
+                'subCounts' => [
+                    '<span>Numéros de tracking transporteur non associés</span>',
+                    '<span class="text-wii-black">Dont</span> <span class="font-">3</span> <span class="text-wii-black">en retard</span>'
+                ]
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::CARRIER_TRACKING,

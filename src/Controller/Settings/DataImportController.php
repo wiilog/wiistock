@@ -51,15 +51,12 @@ class DataImportController extends AbstractController
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        if ($post->get('deleteDifData')) {
-            $entityManager->getRepository(StorageRule::class)->clearTable();
-        }
-
         $import = new Import();
         $import
             ->setLabel($post->get('label'))
             ->setEntity($post->get('entity'))
             ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_DRAFT))
+            ->setEraseData($post->get('deleteDifData') ?? false)
             ->setUser($loggedUser);
 
         $entityManager->persist($import);

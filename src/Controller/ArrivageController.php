@@ -24,6 +24,8 @@ use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrival;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -94,7 +96,16 @@ class ArrivageController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
 
+        $fromTruckArrivalOptions = [];
+        if($request->query->has('truckArrivalId')){
+            $truckArrival = $truckArrivalRepository->find($request->query->get('truckArrivalId'));
+            $fromTruckArrivalOptions = [
+                'carrier' => $truckArrival?->getCarrier()?->getId(),
+                'driver' => $truckArrival?->getDriver()?->getId(),
+            ];
+        }
         $user = $this->getUser();
 
         $fields = $arrivageService->getColumnVisibleConfig($entityManager, $user);
@@ -118,10 +129,11 @@ class ArrivageController extends AbstractController {
             'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
             "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
-            "initial_form" => $arrivageService->generateNewForm($entityManager),
+            "initial_form" => $arrivageService->generateNewForm($entityManager, $fromTruckArrivalOptions),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_ARRIVAGE)),
+            "openNewModal" => count($fromTruckArrivalOptions) > 0,
         ]);
     }
 
@@ -162,7 +174,9 @@ class ArrivageController extends AbstractController {
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
+        $useTruckArrivals = $settingRepository->getOneParamByLabel(Setting::USE_TRUCK_ARRIVALS);
 
         $date = new DateTime('now');
         $counter = $arrivageRepository->countByDate($date) + 1;
@@ -228,7 +242,17 @@ class ArrivageController extends AbstractController {
         }
 
         if (!empty($data['noTracking'])) {
-            $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+            if ($settingRepository->getOneParamByLabel(Setting::USE_TRUCK_ARRIVALS)) {
+                $truckArrivalLineId = explode(',', $data['noTracking']);
+                foreach ($truckArrivalLineId as $lineId) {
+                    $line = $truckArrivalLineRepository
+                        ->find($lineId)
+                        ->addArrival($arrivage);
+                    $arrivage->addTruckArrivalLine($line);
+                }
+            } else {
+                $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+            }
         }
 
         $numeroCommandeList = explode(',', $data['numeroCommandeList'] ?? '');
@@ -280,6 +304,20 @@ class ArrivageController extends AbstractController {
             ]
             : $arrivalService->processEmergenciesOnArrival($entityManager, $arrivage);
 
+        if ($useTruckArrivals) {
+            $linesNeedingConfirmation = Stream::from($arrivage->getTruckArrivalLines())
+                ->filterMap(fn(TruckArrivalLine $line) => $line->getReserve() && $line->getArrivals()->count() === 1
+                    ? $line->getNumber()
+                    : null
+                )
+                ->join(',');
+            if ($linesNeedingConfirmation) {
+                $lastElement = array_pop($alertConfigs);
+                $alertConfigs[] = $arrivalService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
+                $alertConfigs[] = $lastElement;
+            }
+        }
+
         if ($isArrivalUrgent) {
             $arrivage->setIsUrgent(true);
         }
@@ -312,7 +350,6 @@ class ArrivageController extends AbstractController {
 
         $entityManager->flush();
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
-
         return new JsonResponse([
             'success' => true,
             "redirectAfterAlert" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)

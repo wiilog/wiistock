@@ -5,6 +5,7 @@ import Form from '@app/form';
 import Flash from '@app/flash';
 import {onSelectAll, toggleFrequencyInput} from '@app/pages/settings/utils';
 import AJAX, {POST} from "@app/ajax";
+import moment from "moment";
 
 const EXPORT_UNIQUE = `unique`;
 const EXPORT_SCHEDULED = `scheduled`;
@@ -32,8 +33,7 @@ $(document).ready(() => {
         displayFiltersSup(data);
     }, `json`);
 
-    let $modalNewExport = $("#modalExport");
-    createForm($modalNewExport);
+    createForm();
 
     tableExport = initDataTable(`tableExport`, {
         processing: true,
@@ -189,7 +189,7 @@ function createForm() {
                         const dateMin = $modal.find(`[name=articleDateMin]`).val();
                         const dateMax = $modal.find(`[name=articleDateMax]`).val();
 
-                        if (dateMin !== '' && dateMax !== '' && dateMin > dateMax) {
+                        if (dateMin !== '' && dateMax !== '' && moment(dateMin, 'DD/MM/YYYY').isAfter(moment(dateMax, 'DD/MM/YYYY'))) {
                             Flash.add(`danger`, `Les bornes de dates d'entrée de stock sont invalides`);
                             return Promise.resolve();
                         }

@@ -31,6 +31,7 @@ const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
 const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
+const PAGE_TRUCK_ARRIVAL = 'truckArrival';
 const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
@@ -498,7 +499,7 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
         'filter-input': ($input) => ($input.val() || '').trim(),
         'filter-select2': ($input) => ($input.select2('data') || [])
                 .filter(({id, text}) => (id.trim() && text.trim()))
-                .map(({id, text}) => ({id, text})),
+                .map(({id, text}) => ({id, text: text.replace(/(\r\n|\n|\r)/gm, "").trim()})),
         'filter-checkbox': ($input) => $input.is(':checked'),
         'filter-switch': ($input) => $input.closest(`.wii-expanded-switch, .wii-switch`).find(':checked').val(),
     };
@@ -709,7 +710,7 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
         params[$(this).attr('name')] = $(this).val();
     });
     if (formIsValid) {
-        $.post(path, JSON.stringify(params), function (response) {
+        $.post(path, params, function (response) {
             if (response && response.success) {
                 if ($select) {
                     let option = new Option(response.text, response.id, true, true);
@@ -846,6 +847,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'article':
                 case 'managers':
                 case 'deliverers':
+                case 'drivers':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);
@@ -884,6 +886,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'emergency':
                 case 'customs':
                 case 'frozen':
+                case 'carrierTrackingNumberNotAssigned':
                     if (element.value === '1') {
                         $('#' + element.field + '-filter').attr('checked', 'checked');
                     }
@@ -1003,8 +1006,9 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     if (buttonConfig && buttonConfig.length > 0) {
         $modalFooter.removeClass('d-none');
         const $wrapper = $('<div/>', {class: 'row justify-content-center'}).prepend(
-            ...buttonConfig.map(({action, ...config}) => {
-                return $('<div/>', {class: 'col-auto'}).append($('<button/>', {
+            ...buttonConfig.map(({action, ...config}, index) => {
+                const classes = 'col-auto ' + (index === 0 ? 'pr-0' : 'pl-2');
+                return $('<div/>', {class: classes}).append($('<button/>', {
                     ...config,
                     ...(action
                         ? {
