@@ -227,7 +227,15 @@ class InventoryMissionRepository extends EntityRepository {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value OR a.barCode LIKE :value')
+                        ->andWhere('
+                            a.label LIKE :value
+                            OR a.reference LIKE :value
+                            OR a.barCode LIKE :value
+                            OR join_emplacement.label LIKE :value
+                            OR join_logisticUnit.code LIKE :value
+                        ')
+                        ->leftJoin('a.emplacement', 'join_emplacement')
+                        ->leftJoin('a.currentLogisticUnit', 'join_logisticUnit')
                         ->setParameter('value', '%' . $search . '%');
                 }
                 $countQuery = QueryBuilderHelper::count($qb, 'a');
