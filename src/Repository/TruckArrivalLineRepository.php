@@ -150,8 +150,7 @@ class TruckArrivalLineRepository extends EntityRepository
         }
 
         if (strlen($term) == 0) {
-            $qb->addSelect('COUNT(arrivals.id) AS arrivalsCounter')
-                ->having('arrivalsCounter = 0');
+            $qb->andWhere('arrivals.id IS NULL');
         }
 
         return $qb->getQuery()->getArrayResult();
