@@ -45,11 +45,7 @@ class ZoneRepository extends EntityRepository
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']] ?? 'id';
-                    if ($column === 'name') {
-                        $queryBuilder->orderBy('zone.name', $order);
-                    } else if ($column === 'description') {
-                        $queryBuilder->orderBy('zone.description', $order);
-                    } else if(property_exists(Zone::class, $column)) {
+                    if(property_exists(Zone::class, $column)) {
                         $queryBuilder
                             ->orderBy('zone.' . $column, $order);
                     }
