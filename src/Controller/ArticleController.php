@@ -259,7 +259,26 @@ class ArticleController extends AbstractController
                     'msg' => "Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix)."
                 ]);
             }
+
             $article = $this->articleDataService->newArticle($data, $entityManager);
+            $refArticle = $article->getReference();
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $referenceArticleId = $article->getArticleFournisseur()->getReferenceArticle()->getId();
+            $referenceArticle = $referenceArticleRepository->find($referenceArticleId);
+            $referenceArticleRef = $referenceArticle->getReference();
+
+            dump($article,$refArticle, $referenceArticleId, $referenceArticle, $referenceArticleRef);
+
+            if (str_contains($refArticle, $referenceArticleRef) === false) {
+
+                $refArticleClean = substr($refArticle, 0, -9);
+
+                return $this->json([
+                    'success' => false,
+                    'msg' => "la référence article fournisseur '{$referenceArticleRef}' ne correspond pas à la référence article '{$refArticleClean}'."
+                ]);
+            }
+
             $entityManager->flush();
 
             $quantity = $article->getQuantite();
