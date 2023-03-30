@@ -1044,6 +1044,7 @@ class ImportService
                 $type = new Type();
                 $type
                     ->setLabel($data['type'])
+                    ->setColor('#3353D7')
                     ->setCategory($categoryType);
                 $this->entityManager->persist($type);
             }
