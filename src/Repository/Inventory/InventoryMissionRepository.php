@@ -30,7 +30,8 @@ class InventoryMissionRepository extends EntityRepository {
         'start' => 'startPrevDate',
         'end' => 'endPrevDate',
         'name' => 'name',
-        'requester' => 'requester'
+        'requester' => 'requester',
+        'type' => 'type',
     ];
 
     public function getCurrentMissionRefNotTreated(): mixed {
