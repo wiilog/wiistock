@@ -313,7 +313,7 @@ class ArrivageController extends AbstractController {
                 ->join(',');
             if ($linesNeedingConfirmation) {
                 $lastElement = array_pop($alertConfigs);
-                $alertConfigs[] = $arrivageDataService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
+                $alertConfigs[] = $arrivalService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
                 $alertConfigs[] = $lastElement;
             }
         }

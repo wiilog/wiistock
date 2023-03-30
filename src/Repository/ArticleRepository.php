@@ -50,6 +50,8 @@ class ArticleRepository extends EntityRepository {
 
     private const FIELDS_TYPE_DATE = [
         "dateLastInventory",
+        "firstUnavailableDate",
+        "lastAvailableDate",
         "expiryDate",
         "stockEntryDate",
         "manifacturingDate",
@@ -151,6 +153,8 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('emplacement.label as empLabel')
             ->addSelect('article.barCode')
             ->addSelect('article.dateLastInventory')
+            ->addSelect('article.lastAvailableDate')
+            ->addSelect('article.firstUnavailableDate')
             ->addSelect('article.freeFields')
             ->addSelect('article.batch')
             ->addSelect('article.stockEntryDate')

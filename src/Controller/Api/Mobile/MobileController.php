@@ -2640,6 +2640,7 @@ class MobileController extends AbstractApiController
         $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
         $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
 
+        /** @var Article $article */
         foreach ($articlesOnLocations as $article) {
             if (in_array($article->getRFIDtag(), $tags)) {
                 $presentArticle = $article;
@@ -2656,6 +2657,8 @@ class MobileController extends AbstractApiController
                     $entityManager->persist($correctionMovement);
                 }
                 $presentArticle
+                    ->setFirstUnavailableDate(null)
+                    ->setLastAvailableDate($now)
                     ->setStatut($activeStatus)
                     ->setDateLastInventory($now);
             } else {
@@ -2671,6 +2674,8 @@ class MobileController extends AbstractApiController
                         ->setEmplacementTo($missingArticle->getEmplacement())
                         ->setUser($validator);
                     $entityManager->persist($correctionMovement);
+                    $missingArticle
+                        ->setFirstUnavailableDate($now);
                 }
                 $missingArticle
                     ->setStatut($inactiveStatus)

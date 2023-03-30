@@ -76,7 +76,6 @@ class PurchaseRequestRuleService
                 $this->em->persist($purchaseRequestLine);
                 $this->em->persist($purchaseRequest);
                 $this->em->flush();
-                $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, ["customSubject" => $rule->getEmailSubject()]);
             }
         }
 
@@ -85,16 +84,18 @@ class PurchaseRequestRuleService
             foreach ($rulesWithSeveralSuppliers as $severalSuppliersRule) {
                 $purchaseRequestLine = $this->purchaseRequestService->createPurchaseRequestLine($severalSuppliersRule->getReferenceArticle(), $severalSuppliersRule->getConditioningQuantity());
                 $purchaseRequest = $this->purchaseRequestService->createPurchaseRequest($rule->getStatus(), $rule->getRequester());
+                $purchaseRequests[] = $purchaseRequest;
                 $purchaseRequest->addPurchaseRequestLine($purchaseRequestLine);
 
                 $this->em->persist($purchaseRequestLine);
                 $this->em->persist($purchaseRequest);
-
-                $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, ["customSubject" => $rule->getEmailSubject()]);
+                $this->em->flush();
             }
         }
 
-        $this->em->flush();
+        foreach ($purchaseRequests as $purchaseRequest) {
+            $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, ["customSubject" => $rule->getEmailSubject()]);
+        }
     }
 }
 
