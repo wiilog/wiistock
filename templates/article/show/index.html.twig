@@ -278,7 +278,7 @@
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Date de dernier inventaire</span>
-                                    <span class="wii-body-text">{{ article.dateLastInventory ? article.dateLastInventory|format_helper('longDate') : '-' }}</span>
+                                    <span class="wii-body-text">{{ article.dateLastInventory|format_helper('longDate') }}</span>
                                 </label>
                             </div>
                         </div>
@@ -287,14 +287,14 @@
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Date disponible constatée</span>
-                                    <span class="wii-body-text">{{ article.lastAvailableDate ? article.lastAvailableDate|format_helper('longDate') : '-' }}</span>
+                                    <span class="wii-body-text">{{ article.lastAvailableDate|format_helper('longDate') }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 d-flex">
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Date d'épuisement constatée</span>
-                                    <span class="wii-body-text">{{ article.firstUnavailableDate ? article.firstUnavailableDate|format_helper('longDate') : '-' }}</span>
+                                    <span class="wii-body-text">{{ article.firstUnavailableDate|format_helper('longDate') }}</span>
                                 </label>
                             </div>
                         </div>

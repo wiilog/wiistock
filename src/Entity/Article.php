@@ -459,31 +459,31 @@ class Article implements PairedEntity {
         return $this;
     }
 
-    public function getDateLastInventory(): ?\DateTimeInterface {
+    public function getDateLastInventory(): ?\DateTime {
         return $this->dateLastInventory;
     }
 
-    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self {
+    public function setDateLastInventory(?\DateTime $dateLastInventory): self {
         $this->dateLastInventory = $dateLastInventory;
 
         return $this;
     }
 
-    public function getLastAvailableDate(): ?\DateTimeInterface {
+    public function getLastAvailableDate(): ?\DateTime {
         return $this->lastAvailableDate;
     }
 
-    public function setLastAvailableDate(?\DateTimeInterface $lastAvailableDate): self {
+    public function setLastAvailableDate(?\DateTime $lastAvailableDate): self {
         $this->lastAvailableDate = $lastAvailableDate;
 
         return $this;
     }
 
-    public function getFirstUnavailableDate(): ?\DateTimeInterface {
+    public function getFirstUnavailableDate(): ?\DateTime {
         return $this->firstUnavailableDate;
     }
 
-    public function setFirstUnavailableDate(?\DateTimeInterface $firstUnavailableDate): self {
+    public function setFirstUnavailableDate(?\DateTime $firstUnavailableDate): self {
         $this->firstUnavailableDate = $firstUnavailableDate;
 
         return $this;
