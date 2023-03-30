@@ -21,7 +21,8 @@ $(function() {
             {"data": 'stockQuantity', 'title': 'Quantité en stock'},
             {"data": 'orderedQuantity', 'title': 'Quantité commandée'},
             {"data": 'orderNumber', 'title': 'N° commande'},
-            {"data": 'supplier', 'title': 'Fournisseur'}
+            {"data": 'supplier', 'title': 'Fournisseur'},
+            {"data": 'location', 'title': 'Emplacement (Zone)'}
         ],
     });
 
@@ -84,10 +85,14 @@ function onReferenceChange($select) {
     $.get(route)
         .then((data) => {
             const $modal = $select.closest(".modal");
-
+            const $location = $modal.find('[name="location"]');
+            const $quantity = $modal.find('[name="stockQuantity"]');
+            $location.attr('disabled', false);
+            $location.empty();
             $modal.find('[name="label"]').val(data.label);
             $modal.find('[name="buyer"]').val(data.buyer);
-            $modal.find('[name="stockQuantity"]').val(data.stockQuantity);
+            $quantity.val(data.stockQuantity);
+            $quantity.data('init', data.stockQuantity);
 
             const $requestedQuantity = $modal.find('[name="requestedQuantity"]');
             $requestedQuantity.val(null);
@@ -97,6 +102,35 @@ function onReferenceChange($select) {
 
             const $submitButton = $modal.find(".submit-button");
             $submitButton.removeAttr('disabled');
+
+
+            const quantityType = data.quantityType;
+
+            if (quantityType === 'reference') {
+                $location.attr('disabled', true);
+            } else {
+                const locationsOption = JSON.parse(data.locations);
+                console.log(locationsOption);
+
+                const $option = $(new Option('', '',false, false));
+                $location.append($option);
+                locationsOption.forEach((option) => {
+                    const $option = $(new Option(option.location.label, option.location.id,false, false));
+                    $option
+                        .data('quantity',  option.quantity)
+                        .attr('data-quantity', option.quantity);
+                    $location.append($option);
+                });
+
+                $location.on('change', function() {
+                    const data = $(this).find('option:selected').data();
+                    if (data.quantity) {
+                        $quantity.val(data.quantity);
+                    } else {
+                        $quantity.val($quantity.data('init'));
+                    }
+                })
+            }
         })
         .catch(() => {
             clearLineAddModal();

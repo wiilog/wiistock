@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
@@ -221,7 +223,8 @@ class PurchaseRequestController extends AbstractController
      * @Route("/{purchaseRequest}/line/api", name="purchase_request_lines_api", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS}, mode=HasPermission::IN_JSON)
      */
-    public function purchaseRequestLinesApi(PurchaseRequest $purchaseRequest): Response {
+    public function purchaseRequestLinesApi(PurchaseRequest $purchaseRequest, EntityManagerInterface $entityManager): Response {
+        $articleRepository = $entityManager->getRepository(Article::class);
         $requestLines = $purchaseRequest->getPurchaseRequestLines();
         $rowsRC = [];
         foreach($requestLines as $requestLine) {
@@ -230,10 +233,21 @@ class PurchaseRequestController extends AbstractController
                 'reference' => isset($reference) ? $reference->getReference() : "",
                 'label'=> isset($reference) ? $reference->getLibelle() : "",
                 'requestedQuantity' => $requestLine->getRequestedQuantity(),
-                'stockQuantity' => isset($reference) ? $reference->getQuantiteStock() : "",
+                'stockQuantity' => isset($reference)
+                    ? ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $requestLine->getLocation()
+                        ? $articleRepository->countForRefOnLocation($reference, $requestLine->getLocation())
+                        : $reference->getQuantiteStock()
+                    )
+                    : "",
                 'orderedQuantity' => $requestLine->getOrderedQuantity(),
                 'orderNumber' => $requestLine->getOrderNumber(),
                 'supplier' => $this->formatService->supplier($requestLine->getSupplier()),
+                'location' => $requestLine->getLocation()
+                    ? ($requestLine->getLocation()->getZone()
+                        ? $this->formatService->location($requestLine->getLocation()) . " (" . $requestLine->getLocation()->getZone()->getName() . ")"
+                        : $this->formatService->location($requestLine->getLocation())
+                    )
+                    : '',
                 'actions' => $this->renderView('purchase_request/line/actions.html.twig', [
                     'lineId' => $requestLine->getId(),
                     'requestStatus' => $purchaseRequest->getStatus()
@@ -260,6 +274,7 @@ class PurchaseRequestController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
         $reference = $referenceArticleRepository->find($data['reference']);
         $requestedQuantity = $data['requestedQuantity'];
 
@@ -293,7 +308,10 @@ class PurchaseRequestController extends AbstractController
         }
 
         $purchaseRequestLine = $purchaseRequestService->createPurchaseRequestLine($reference, $requestedQuantity, ["purchaseRequest" => $purchaseRequest]);
-
+        if (!empty($data['location'])) {
+            $purchaseRequestLine
+                ->setLocation($locationRepository->find($data['location']));
+        }
         $purchaseRequest->setBuyer($reference->getBuyer());
 
         $entityManager->persist($purchaseRequestLine);
@@ -549,7 +567,7 @@ class PurchaseRequestController extends AbstractController
             ->setConsiderationDate(new DateTime('now'));
 
         $entityManager->flush();
-        $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
+        $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, [], $entityManager);
 
         return $this->json([
             'success' => true,
@@ -639,7 +657,7 @@ class PurchaseRequestController extends AbstractController
             ->setStatus($treatedStatus)
             ->setProcessingDate(new DateTime('now'));
         $entityManager->flush();
-        $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
+        $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, [], $entityManager);
 
         return $this->json([
             'success' => true,
@@ -681,7 +699,7 @@ class PurchaseRequestController extends AbstractController
                 ->setValidationDate($validationDate);
 
             $entityManager->flush();
-            $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
+            $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, [], $entityManager);
 
             $number = $purchaseRequest->getNumber();
 
