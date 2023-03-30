@@ -3,7 +3,7 @@ import Modal from "@app/modal";
 
 global.deleteTruckArrival = deleteTruckArrival;
 
-export function initTrackingNumberSelect($trackingNumberSelect, $warningMessage ,minTrackingNumberLength ,maxTrackingNumberLength) {
+export function initTrackingNumberSelect($trackingNumberSelect, $warningMessage, minTrackingNumberLength, maxTrackingNumberLength) {
     $trackingNumberSelect.off('change.lengthCheck').on('change.lengthCheck', function () {
         let $options = $(this).find('option:selected')
         let isInvalidLength = false;
@@ -13,9 +13,12 @@ export function initTrackingNumberSelect($trackingNumberSelect, $warningMessage 
             $options.each(function () {
                 let $option = $(this);
                 let value = $option.val();
-                if ((value.length < minTrackingNumberLength || value.length > maxTrackingNumberLength) && (maxTrackingNumberLength || minTrackingNumberLength)) {
+
+                if ((Boolean(minTrackingNumberLength) && value.length < minTrackingNumberLength)
+                    || (Boolean(maxTrackingNumberLength) && value.length > maxTrackingNumberLength)) {
                     $options.closest('label').find('.select2-container ul.select2-selection__rendered li.select2-selection__choice[title="' + value + '"]').addClass('warning');
                     isInvalidLength = true;
+                    setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength);
                 } else {
                     $option.removeClass('invalid');
                 }
@@ -30,16 +33,13 @@ export function initTrackingNumberSelect($trackingNumberSelect, $warningMessage 
 }
 
 export function setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength) {
-    if (minTrackingNumberLength) {
-        if (maxTrackingNumberLength) {
-            $warningMessage.find('.min-length').text(minTrackingNumberLength);
-            $warningMessage.find('.max-length').text(maxTrackingNumberLength);
-        } else {
-            $warningMessage.text('Les numéros de tracking doivent faire minimum ' + minTrackingNumberLength + ' caractères.');
-        }
-    }
-    if (maxTrackingNumberLength) {
+    if (minTrackingNumberLength && maxTrackingNumberLength) {
+        $warningMessage.find('.min-length').text(minTrackingNumberLength);
+        $warningMessage.find('.max-length').text(maxTrackingNumberLength);
+    } else if (maxTrackingNumberLength) {
         $warningMessage.text('Les numéros de tracking doivent faire maximum ' + maxTrackingNumberLength + ' caractères.');
+    } else if (minTrackingNumberLength) {
+        $warningMessage.text('Les numéros de tracking doivent faire minimum ' + minTrackingNumberLength + ' caractères.');
     }
 }
 
