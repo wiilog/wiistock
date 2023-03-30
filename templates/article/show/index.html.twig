@@ -282,6 +282,22 @@
                                 </label>
                             </div>
                         </div>
+                        <div class="row mt-3">
+                            <div class="col-12 col-md-6 d-flex">
+                                <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Date disponible constatée</span>
+                                    <span class="wii-body-text">{{ article.lastAvailableDate ? article.lastAvailableDate|format_helper('longDate') : '-' }}</span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 d-flex">
+                                <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Date d'épuisement constatée</span>
+                                    <span class="wii-body-text">{{ article.firstUnavailableDate ? article.firstUnavailableDate|format_helper('longDate') : '-' }}</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="wii-box mt-3">

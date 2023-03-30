@@ -110,6 +110,12 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $dateLastInventory = null;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $lastAvailableDate = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $firstUnavailableDate = null;
+
     #[ORM\ManyToMany(targetEntity: OrdreCollecte::class, inversedBy: 'articles')]
     private Collection $ordreCollecte;
 
@@ -459,6 +465,26 @@ class Article implements PairedEntity {
 
     public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self {
         $this->dateLastInventory = $dateLastInventory;
+
+        return $this;
+    }
+
+    public function getLastAvailableDate(): ?\DateTimeInterface {
+        return $this->lastAvailableDate;
+    }
+
+    public function setLastAvailableDate(?\DateTimeInterface $lastAvailableDate): self {
+        $this->lastAvailableDate = $lastAvailableDate;
+
+        return $this;
+    }
+
+    public function getFirstUnavailableDate(): ?\DateTimeInterface {
+        return $this->firstUnavailableDate;
+    }
+
+    public function setFirstUnavailableDate(?\DateTimeInterface $firstUnavailableDate): self {
+        $this->firstUnavailableDate = $firstUnavailableDate;
 
         return $this;
     }
