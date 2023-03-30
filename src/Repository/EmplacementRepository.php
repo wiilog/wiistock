@@ -245,8 +245,8 @@ class EmplacementRepository extends EntityRepository
         $qb = $this->createQueryBuilder('location');
         $qb->select('count(location.id)')
             ->leftJoin('location.signatories', 'signatory')
-            ->where('signatory = :user')
-            ->setParameter("user", "%$user%");
+            ->where('signatory.id = :user')
+            ->setParameter("user", $user->getId());
 
         return $qb
             ->getQuery()
