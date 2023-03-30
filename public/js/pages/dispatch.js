@@ -114,9 +114,11 @@ $(function() {
                                         to: dropLocationFilterValue
                                     })
                                         .json(data)
-                                        .then(({success}) => {
+                                        .then(({success, msg}) => {
                                             if(success){
                                                 window.location.reload();
+                                            } else {
+                                                Flash.add(msg, 'danger');
                                             }
                                         })
                                 ), false)

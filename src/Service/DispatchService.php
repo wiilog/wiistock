@@ -422,9 +422,8 @@ class DispatchService {
             if($sendReport){
                 $receiverEmailUses[] = $dispatch->getLocationFrom()->getEmail();
                 $receiverEmailUses[] = $dispatch->getLocationTo()->getEmail();
-                $receiverEmailUses[] = $signatory?->getEmail();
+                $receiverEmailUses[] = $signatory;
                 $receiverEmailUses = Stream::from($receiverEmailUses)->filter()->unique()->toArray();
-                // TODO WIIS-8832 ajouter les emails du nouveau champ sur les ache nomade
             }
 
             $partialDispatch = !(
