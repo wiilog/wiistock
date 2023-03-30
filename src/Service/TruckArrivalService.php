@@ -69,7 +69,7 @@ class TruckArrivalService
 
         $lineHasReserve = !$truckArrival->getTrackingLines()->isEmpty() &&
             Stream::from($truckArrival->getTrackingLines())
-                ->every(fn(TruckArrivalLine $line) => $line->getReserve());
+                ->some(fn(TruckArrivalLine $line) => $line->getReserve());
 
         return [
             'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
@@ -87,6 +87,10 @@ class TruckArrivalService
                         'title' => 'Supprimer',
                         'icon' => 'fa fa-trash',
                         'class' => 'truck-arrival-delete',
+                        'attributes' => [
+                            "data-id" => $truckArrival->getId(),
+                            "onclick" => "deleteTruckArrival($(this))"
+                        ]
                     ],
                 ],
             ]),

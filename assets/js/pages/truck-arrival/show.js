@@ -43,20 +43,6 @@ $(function () {
     truckArrivalLinesTable = initTruckArrivalLinesTable();
     truckArrivalLinesQualityReservesTable = initTruckArrivalLineQualityReservesTable();
 
-    let modalDeleteTruckArrival = $('#modalDeleteTruckArrival');
-    Form.create(modalDeleteTruckArrival).onSubmit((data, form) => {
-        form.loading(() => {
-            return AJAX
-                .route(AJAX.POST, `truck_arrival_delete`, {truckArrival: $('#truckArrivalId').val()})
-                .json(data)
-                .then((response) => {
-                    if (response.success ) {
-                        window.location.href = response.redirect;
-                    }
-                })
-        });
-    });
-
     $('.new-quality-reserve-button').off('click').on('click', function(){
         openModalQualityReserveContent($modalReserveQuality);
     });
@@ -194,7 +180,6 @@ function newTrackingNumber() {
 
     const $trackingNumberSelect = $modal.find('select[name="trackingNumbers"]');
     let $warningMessage = $trackingNumberSelect.closest('.form-group').find('.warning-message');
-    setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength);
     initTrackingNumberSelect($trackingNumberSelect, $warningMessage, minTrackingNumberLength, maxTrackingNumberLength);
 
     $trackingNumberSelect.on('change', function () {
