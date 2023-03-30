@@ -137,7 +137,7 @@ function onReferenceChange($select) {
         });
 }
 
-function clearLineAddModal(clearReferenceInput = false){
+function clearLineAddModal(clearReferenceInput = false) {
     const $modal = $('#modalAddPurchaseRequestLine');
 
     if (clearReferenceInput) {
