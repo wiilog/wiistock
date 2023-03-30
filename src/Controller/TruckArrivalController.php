@@ -292,38 +292,33 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
-    #[Route('/supprimer', name: 'truck_arrival_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/{truckArrival}/delete', name: 'truck_arrival_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS])]
     public function delete(Request $request,
+                           TruckArrival $truckArrival,
                            EntityManagerInterface $entityManager): Response {
 
-        if ($data = $request->request->get('truck_arrival')) {
-            $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
-            $truckArrival = $truckArrivalRepository->find($data);
+        $hasLinesAssociatedToArrival = $truckArrival->getTrackingLines()->count() > 0
+            ? Stream::from($truckArrival->getTrackingLines())
+                 ->filter(fn(TruckArrivalLine $line) => !$line->getArrivals()->isEmpty())
+                 ->count()
+            : 0;
 
-            $hasLinesAssociatedToArrival = $truckArrival->getTrackingLines()->count() > 0
-                ? Stream::from($truckArrival->getTrackingLines())
-                     ->filter(fn(TruckArrivalLine $line) => !$line->getArrivals()->isEmpty())
-                     ->count()
-                : 0;
+        if ($hasLinesAssociatedToArrival === 0) {
+            $entityManager->remove($truckArrival);
+            $entityManager->flush();
 
-            if ($hasLinesAssociatedToArrival === 0) {
-                $entityManager->remove($truckArrival);
-                $entityManager->flush();
-
-                return new JsonResponse([
-                    'success' => true,
-                    'redirect' => $this->generateUrl('truck_arrival_index'),
-                    'msg' => "L'arrivage camion a bien été supprimé."
-                ]);
-            } else {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => "Cette arrivage camion contient au moins un numéro de tracking transporteur lié à au moins un arrivage UL, vous ne pouvez pas le supprimer."
-                ]);
-            }
+            return new JsonResponse([
+                'success' => true,
+                'redirect' => $this->generateUrl('truck_arrival_index'),
+                'msg' => "L'arrivage camion a bien été supprimé."
+            ]);
+        } else {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Cette arrivage camion contient au moins un numéro de tracking transporteur lié à au moins un arrivage UL, vous ne pouvez pas le supprimer."
+            ]);
         }
-        throw new BadRequestHttpException();
     }
 
     // Reçois info POST du show.js
