@@ -191,7 +191,7 @@ export default class Form {
 
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
-            if (value !== null) {
+            if (value !== null && value !== "") {
                 if($input.is('[data-intl-tel-input]')){
                     $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
                 }
