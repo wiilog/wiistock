@@ -58,7 +58,8 @@ class UrgencesController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        $data = $this->urgenceService->getDataForDatatable($request->request);
+        $unassociated = $request->query->get('unassociated');
+        $data = $this->urgenceService->getDataForDatatable($request->request, $unassociated ? [['field' => 'unassociated', 'value' => true]] : []);
         return new JsonResponse($data);
     }
 

@@ -523,7 +523,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Urgences à recevoir' => [
             'hint' => 'Nombre d\'urgences sur arrivage encore non réceptionnées',
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
-            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
+            'template' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
             'meterKey' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
             'exampleValues' => [
                 'count' => 7,
