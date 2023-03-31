@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\FieldsParam;
 use App\Entity\TruckArrival;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -44,44 +45,25 @@ class TruckArrivalRepository extends EntityRepository
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
-                    foreach ($user->getVisibleColumns()['truckArrival'] ?? [] as $column) {
-                        $qb->setParameter('search', '%' . $search . '%');
-                        switch ($column) {
-                            case 'driver':
-                                $qb
-                                    ->orWhere('driverJ.nom LIKE :search')
-                                    ->leftJoin('truckArrival.driver', 'driverJ');
-                                break;
-                            case 'unloadingLocation':
-                                $qb
-                                    ->orWhere('unloadingLocationJ.label LIKE :search')
-                                    ->leftJoin('truckArrival.unloadingLocation', 'unloadingLocationJ');
-                                break;
-                            case 'registrationNumber':
-                                $qb
-                                    ->orWhere('truckArrival.registrationNumber LIKE :search');
-                                break;
-                            case 'carrier':
-                                $qb
-                                    ->orWhere('carrierJ.label LIKE :search')
-                                    ->leftJoin('truckArrival.carrier', 'carrierJ');
-                                break;
-                            case 'operator':
-                                $qb
-                                    ->orWhere('operatorJ.username LIKE :search')
-                                    ->leftJoin('truckArrival.operator', 'operatorJ');
-                                break;
-                            case 'number':
-                                $qb
-                                    ->orWhere('truckArrival.number LIKE :search');
-                                break;
-                            case 'trackingLinesNumber':
-                                $qb
-                                    ->orWhere('trackingLinesJ.number LIKE :search')
-                                    ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ');
-                                break;
-                        }
-                    }
+                    $conditions = [
+                        "driver" => "search_driver.nom LIKE :search",
+                        "unloadingLocation" => "search_unloadingLocation.label LIKE :search",
+                        "registrationNumber" => "truckArrival.registrationNumber LIKE :search",
+                        "creationDate" => "DATE_FORMAT(truckArrival.creationDate, '%d/%m/%Y') LIKE :search",
+                        "carrier" => "search_carrier.label LIKE :search",
+                        "operator" => "search_operator.username LIKE :search",
+                        "number" => "truckArrival.number LIKE :search",
+                        "trackingLinesNumber" => "order_trackingLines.number LIKE :search",
+                    ];
+
+                    $visibleColumnService->bindSearchableColumns($conditions, 'truckArrival', $qb, $user, $search);
+
+                    $qb
+                        ->leftJoin('truckArrival.driver', 'search_driver')
+                        ->leftJoin('truckArrival.unloadingLocation', 'search_unloadingLocation')
+                        ->leftJoin('truckArrival.carrier', 'search_carrier')
+                        ->leftJoin('truckArrival.operator', 'search_operator')
+                        ->leftJoin('truckArrival.trackingLines', 'order_trackingLines');
                 }
             }
 
@@ -92,34 +74,34 @@ class TruckArrivalRepository extends EntityRepository
                     switch ($column) {
                         case 'driver':
                             $qb
-                                ->orderBy('driverJ.nom', $order)
-                                ->leftJoin('truckArrival.driver', 'driverJ');
+                                ->orderBy('order_driver.nom', $order)
+                                ->leftJoin('truckArrival.driver', 'order_driver');
                             break;
                         case 'unloadingLocation':
                             $qb
-                                ->orderBy('unloadingLocationJ.label', $order)
-                                ->leftJoin('truckArrival.unloadingLocation', 'unloadingLocationJ');
+                                ->orderBy('order_unloadingLocation.label', $order)
+                                ->leftJoin('truckArrival.unloadingLocation', 'order_unloadingLocation');
                             break;
                         case 'registrationNumber':
                             $qb->orderBy('truckArrival.registrationNumber', $order);
                             break;
                         case 'carrier':
                             $qb
-                                ->orderBy('carrierJ.label', $order)
-                                ->leftJoin('truckArrival.carrier', 'carrierJ');
+                                ->orderBy('order_carrier.label', $order)
+                                ->leftJoin('truckArrival.carrier', 'order_carrier');
                             break;
                         case 'operator':
                             $qb
-                                ->orderBy('operatorJ.username', $order)
-                                ->leftJoin('truckArrival.operator', 'operatorJ');
+                                ->orderBy('order_operator.username', $order)
+                                ->leftJoin('truckArrival.operator', 'order_operator');
                             break;
                         case 'number':
                             $qb->orderBy('truckArrival.number', $order);
                             break;
                         case 'reserves':
                             $qb
-                                ->orderBy('COUNT(reserveJ.id)', $order)
-                                ->leftJoin('truckArrival.reserves', 'reserveJ')
+                                ->orderBy('COUNT(order_reserve.id)', $order)
+                                ->leftJoin('truckArrival.reserves', 'order_reserve')
                                 ->groupBy('truckArrival.id');
                             break;
                         case 'creationDate':
@@ -134,50 +116,50 @@ class TruckArrivalRepository extends EntityRepository
             switch ($filter['field']) {
                 case 'dateMin':
                     $qb
-                        ->andWhere('truckArrival.creationDate >= :dateMin')
-                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                        ->andWhere('truckArrival.creationDate >= :filter_value_dateMin')
+                        ->setParameter('filter_value_dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
                     $qb
-                        ->andWhere('truckArrival.creationDate <= :dateMax')
-                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                        ->andWhere('truckArrival.creationDate <= :filter_value_dateMax')
+                        ->setParameter('filter_value_dateMax', $filter['value'] . " 23:59:59");
                     break;
                 case 'registrationNumber':
                     $qb
-                        ->andWhere('truckArrival.registrationNumber LIKE :registrationNumber')
-                        ->setParameter('registrationNumber', '%' . $filter['value'] . '%');
+                        ->andWhere('truckArrival.registrationNumber LIKE :filter_value_registrationNumber')
+                        ->setParameter('filter_value_registrationNumber', '%' . $filter['value'] . '%');
                     break;
                 case 'truckArrivalNumber':
                     $qb
-                        ->andWhere('truckArrival.number LIKE :truckArrivalNumber')
-                        ->setParameter('truckArrivalNumber', '%' . $filter['value'] . '%');
+                        ->andWhere('truckArrival.number LIKE :filter_value_truckArrivalNumber')
+                        ->setParameter('filter_value_truckArrivalNumber', '%' . $filter['value'] . '%');
                     break;
                 case 'carrierTrackingNumber':
                     $qb
-                        ->andWhere('trackingLinesJ.number LIKE :carrierTrackingNumber')
-                        ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ')
-                        ->setParameter('carrierTrackingNumber', '%' . $filter['value'] . '%');
+                        ->andWhere('filter_trackingLines.number LIKE :filter_value_carrierTrackingNumber')
+                        ->leftJoin('truckArrival.trackingLines', 'filter_trackingLines')
+                        ->setParameter('filter_value_carrierTrackingNumber', '%' . $filter['value'] . '%');
                     break;
                 case 'carriers':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->andWhere('carrier.id IN (:filteredCarriers)')
-                        ->leftJoin('truckArrival.carrier', 'carrier')
-                        ->setParameter('filteredCarriers', $value);
+                        ->andWhere('filter_carrier.id IN (:filter_value_filteredCarriers)')
+                        ->leftJoin('truckArrival.carrier', 'filter_carrier')
+                        ->setParameter('filter_value_filteredCarriers', $value);
                     break;
                 case 'drivers':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->andWhere('driver.id IN (:filteredDrivers)')
-                        ->leftJoin('truckArrival.driver', 'driver')
-                        ->setParameter('filteredDrivers', $value);
+                        ->andWhere('filter_driver.id IN (:filter_value_filteredDrivers)')
+                        ->leftJoin('truckArrival.driver', 'filter_driver')
+                        ->setParameter('filter_value_filteredDrivers', $value);
                     break;
                 case 'carrierTrackingNumberNotAssigned':
                     if ($filter['value'] == '1') {
                         $qb
-                            ->andWhere('trackingLinesArrival IS NULL')
-                            ->leftJoin('truckArrival.trackingLines', 'trackingLinesJ')
-                            ->leftJoin('trackingLinesJ.arrivals', 'trackingLinesArrival');
+                            ->andWhere('filter_arrival_notAssigned IS NULL')
+                            ->leftJoin('truckArrival.trackingLines', 'filter_trackingLines_notAssigned')
+                            ->leftJoin('filter_trackingLines_notAssigned.arrivals', 'filter_arrival_notAssigned');
                     }
                     break;
             }
