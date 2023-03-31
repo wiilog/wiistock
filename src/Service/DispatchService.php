@@ -1288,7 +1288,7 @@ class DispatchService {
                                            $commentData,
                                            $dispatchesToSignIds,
                                            $fromNomade = false,
-                                           $user = null): void {
+                                           $user = null): array {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
@@ -1426,6 +1426,11 @@ class DispatchService {
                 $this->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
             }
         }
+
+        return [
+            'success' => true,
+            'msg' => 'Signature groupée effectuée avec succès',
+        ];
     }
 
     public function getGroupedSignatureTypes(?string $groupedSignatureType = ''): string
