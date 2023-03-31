@@ -2464,7 +2464,7 @@ class MobileController extends AbstractApiController
         $commentData = $request->request->get("comment");
         $dispatchesToSignIds = explode(',', $request->request->get('dispatchesToSign'));
 
-        $response = $dispatchService->finishGroupedSignature(
+        $dispatchService->finishGroupedSignature(
             $manager,
             $locationData,
             $signatoryTrigramData,
@@ -2478,7 +2478,10 @@ class MobileController extends AbstractApiController
 
         $manager->flush();
 
-        return $this->json($response);
+        return $this->json([
+            'success' => true,
+            'msg' => 'Signature groupée effectuée avec succès',
+        ]);
     }
 
     /**
