@@ -151,6 +151,7 @@ class Action {
     const SETTINGS_DISPLAY_TRACK_REQUESTS = 'afficher demandes track';
     const SETTINGS_DISPLAY_ROUND = 'afficher tournées';
     const SETTINGS_DISPLAY_TEMPERATURES = 'afficher températures';
+    const SETTINGS_DISPLAY_EMERMENCIES = 'afficher urgences';
 
 
     const SETTINGS_DISPLAY_MOBILE_DISPATCH = 'afficher acheminements mobile';

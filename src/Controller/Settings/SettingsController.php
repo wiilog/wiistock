@@ -354,6 +354,21 @@ class SettingsController extends AbstractController {
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                     ],
                 ],
+                self::MENU_EMERGENCIES => [
+                    "label" => "Urgences",
+                    "right" => Action::SETTINGS_DISPLAY_EMERMENCIES,
+                    "menus" => [
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                        ],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                    ],
+                ],
             ],
         ],
         self::CATEGORY_TRACKING => [
@@ -590,6 +605,7 @@ class SettingsController extends AbstractController {
     public const MENU_HANDLINGS = "services";
     public const MENU_REQUEST_TEMPLATES = "modeles_demande";
     public const MENU_TRUCK_ARRIVALS = "arrivages_camion";
+    public const MENU_EMERGENCIES = "urgences";
 
     public const MENU_TRANSPORT_REQUESTS = "demande_transport";
     public const MENU_ROUNDS = "tournees";
