@@ -212,13 +212,12 @@ class PurchaseRequestService
             $statusName = $this->formatService->status($status);
             $number = $purchaseRequest->getNumber();
             $processingDate = $this->formatService->datetime($purchaseRequest->getProcessingDate(), "", true);
-            $title = $customSubject ?: (
-                $status->isTreated()
+            $title = $status->isTreated()
                 ? "Demande d'achat ${number} traitée le ${processingDate} avec le statut ${statusName}"
                 : ($status->isNotTreated()
                     ? 'Une demande d\'achat vous concerne'
-                    : 'Changement de statut d\'une demande d\'achat vous concernant')
-            );
+                    : 'Changement de statut d\'une demande d\'achat vous concernant');
+
             $refsAndQuantities = Stream::from($purchaseRequest->getPurchaseRequestLines())
                 ->keymap(function(PurchaseRequestLine $line) use ($articleRepository) {
                     $key = $line->getId();
@@ -228,6 +227,7 @@ class PurchaseRequestService
                     return [$key, $value];
                 })
                 ->toArray();
+
             if (isset($requester)) {
                 $this->mailerService->sendMail(
                     'FOLLOW GT // ' . $subject,

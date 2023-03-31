@@ -4,9 +4,7 @@ namespace App\Repository;
 
 use App\Entity\TruckArrivalLine;
 use App\Helper\QueryBuilderHelper;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -150,8 +148,7 @@ class TruckArrivalLineRepository extends EntityRepository
         }
 
         if (strlen($term) == 0) {
-            $qb->addSelect('COUNT(arrivals.id) AS arrivalsCounter')
-                ->having('arrivalsCounter = 0');
+            $qb->andWhere('arrivals.id IS NULL');
         }
 
         return $qb->getQuery()->getArrayResult();

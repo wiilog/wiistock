@@ -38,7 +38,6 @@ $(function () {
         let data = $(this).select2('data')[0] || {};
         let minTrackingNumberLength = data.minTrackingNumberLength;
         let maxTrackingNumberLength = data.maxTrackingNumberLength;
-        setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength);
         initTrackingNumberSelect($trackingNumberSelect, $warningMessage ,minTrackingNumberLength ,maxTrackingNumberLength);
         $trackingNumberSelect.trigger('change');
     });

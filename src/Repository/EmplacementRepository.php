@@ -515,15 +515,26 @@ class EmplacementRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function countByUser(Utilisateur $user) {
-        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
-        return $queryBuilder
-            ->from(Emplacement::class, 'location')
+    public function isLocationInZoneInventoryMissionRule(Zone $zone): bool {
+        return $this->createQueryBuilder('location')
             ->select('COUNT(location)')
-            ->andWhere('user = :user')
-            ->join('location.signatories', 'user')
-            ->setParameter('user', $user)
+            ->andWhere('location.zone = :zone')
+            ->andWhere('location.inventoryMissionRules IS NOT EMPTY')
+            ->setParameter('zone', $zone)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult() > 0;
+    }
+
+    public function isLocationInNotDoneInventoryMission(Zone $zone): bool {
+        return $this->createQueryBuilder('location')
+            ->select('COUNT(location)')
+            ->andWhere('location.zone = :zone')
+            ->andWhere('location.inventoryLocationMissions IS NOT EMPTY')
+            ->andWhere('inventoryMission.done = false OR inventoryMission.done IS NULL')
+            ->innerJoin('location.inventoryLocationMissions', 'inventoryLocationMission')
+            ->innerJoin('inventoryLocationMission.inventoryMission', 'inventoryMission')
+            ->setParameter('zone', $zone)
+            ->getQuery()
+            ->getSingleScalarResult() > 0;
     }
 }
