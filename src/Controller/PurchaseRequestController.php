@@ -571,7 +571,7 @@ class PurchaseRequestController extends AbstractController
             ->setConsiderationDate(new DateTime('now'));
 
         $entityManager->flush();
-        $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, [], $entityManager);
+        $purchaseRequestService->sendMailsAccordingToStatus($entityManager, $purchaseRequest);
 
         return $this->json([
             'success' => true,
@@ -661,7 +661,7 @@ class PurchaseRequestController extends AbstractController
             ->setStatus($treatedStatus)
             ->setProcessingDate(new DateTime('now'));
         $entityManager->flush();
-        $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, [], $entityManager);
+        $purchaseRequestService->sendMailsAccordingToStatus($entityManager, $purchaseRequest);
 
         return $this->json([
             'success' => true,
@@ -703,7 +703,7 @@ class PurchaseRequestController extends AbstractController
                 ->setValidationDate($validationDate);
 
             $entityManager->flush();
-            $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, [], $entityManager);
+            $purchaseRequestService->sendMailsAccordingToStatus($entityManager, $purchaseRequest);
 
             $number = $purchaseRequest->getNumber();
 

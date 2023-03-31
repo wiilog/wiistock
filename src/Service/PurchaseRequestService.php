@@ -187,7 +187,9 @@ class PurchaseRequestService
         return $purchaseLine;
     }
 
-    public function sendMailsAccordingToStatus(PurchaseRequest $purchaseRequest, array $options = [], EntityManagerInterface $entityManager) {
+    public function sendMailsAccordingToStatus(EntityManagerInterface $entityManager,
+                                               PurchaseRequest        $purchaseRequest,
+                                               array                  $options = []): void {
         $customSubject = $options['customSubject'] ?? null;
 
         $articleRepository = $entityManager->getRepository(Article::class);
