@@ -11,12 +11,17 @@
                 <form>
                     <div class="row">
                         <div class="form-group col-12">
-                            <label class="wii-field-name" for="add-article-reference" title="référence">
-                                {{ trans('Stock', 'Références', 'référence', false) }}*
+                            <label class="wii-field-name"
+                                   for="add-article-reference"
+                                   title="référence"
+                                   style="margin-bottom: 5px;">
+                                {{ trans('Stock', 'Références', 'référence') }}*
                             </label>
                             <div class="w-100">
-                                <select class="ajax-autocomplete form-control data needed" name="reference"
-                                    onchange="onReferenceChange($(this))" id="add-article-reference">
+                                <select class="ajax-autocomplete form-control data needed"
+                                        name="reference"
+                                        onchange="onReferenceChange($(this))"
+                                        id="add-article-reference">
                                 </select>
                             </div>
                         </div>
@@ -24,8 +29,10 @@
                     </div>
                     <div class="row line-form-following-container d-none">
                         <div class="form-group col-6">
-                            <label class="wii-field-name">Libelle</label>
-                            <input type="text" disabled class="w-100 form-control" name="label" title="Libellé">
+                            {{ form.input('label', 'Libellé', false, null, {
+                                disabled: true,
+                                data: false,
+                            }) }}
                         </div>
                         <div class="form-group col-6">
                             {{ form.select('location', 'Emplacement', false, {
@@ -34,16 +41,22 @@
                             }) }}
                         </div>
                         <div class="form-group col-12 col-md-6">
-                            <label class="wii-field-name">Quantité en stock</label>
-                            <input type="text" disabled class="w-100 form-control" name="stockQuantity" title="Quantité en stock">
+                            {{ form.input('stockQuantity', 'Quantité en stock', false, null, {
+                                disabled: true,
+                                data: false,
+                            }) }}
                         </div>
                         <div class="form-group col-12 col-md-6">
-                            <label class="wii-field-name">Acheteur</label>
-                            <input type="text" disabled class="w-100 form-control" name="buyer" title="Acheteur">
+                            {{ form.input('buyer', 'Acheteur', false, null, {
+                                disabled: true,
+                                data: false,
+                            }) }}
                         </div>
                         <div class="form-group col-12">
-                            <label class="wii-field-name">Quantité demandée*</label>
-                            <input type="number" class="w-100 form-control data needed" min="1" name="requestedQuantity" title="Quantité demandée">
+                            {{ form.input('requestedQuantity', 'Quantité demandée', true, null, {
+                                type: 'number',
+                                min: 1
+                            }) }}
                         </div>
                     </div>
                 </form>

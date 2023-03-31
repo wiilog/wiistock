@@ -170,15 +170,18 @@ class PurchaseRequestService
 
     public function createPurchaseRequestLine(?ReferenceArticle $reference,
                                               ?int              $requestedQuantity,
-                                                                $options = []): PurchaseRequestLine
+                                              array             $options = []): PurchaseRequestLine
     {
         $supplier = $options["supplier"] ?? null;
         $purchaseRequest = $options["purchaseRequest"] ?? null;
+        $location = $options["location"] ?? null;
+
         $purchaseLine = new PurchaseRequestLine();
         $purchaseLine
             ->setReference($reference)
             ->setRequestedQuantity($requestedQuantity)
             ->setSupplier($supplier)
+            ->setLocation($location)
             ->setPurchaseRequest($purchaseRequest);
 
         return $purchaseLine;

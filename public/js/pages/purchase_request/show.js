@@ -39,10 +39,11 @@ $(function() {
 
     $modalAddLine.find('[name="location"]').on('change', function() {
         const quantity = $(this).find('option:selected').data('quantity');
+        const $stockQuantity = $modalAddLine.find('[name="stockQuantity"]');
         if (quantity !== undefined) {
-            $modalAddLine.find('[name="stockQuantity"]').val(quantity);
+            $stockQuantity.val(quantity);
         } else {
-            $modalAddLine.find('[name="stockQuantity"]').val($modalAddLine.find('[name="stockQuantity"]').data('init'));
+            $stockQuantity.val($stockQuantity.data('init'));
         }
     })
 

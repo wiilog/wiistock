@@ -266,10 +266,10 @@ class PurchaseRequestController extends AbstractController
      * @Route("/{purchaseRequest}/ajouter-ligne", name="purchase_request_add_line", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function addPurchaseRequestLine(Request                    $request,
-                                           PurchaseRequestService     $purchaseRequestService,
-                                           EntityManagerInterface     $entityManager,
-                                           PurchaseRequest            $purchaseRequest): Response {
+    public function addPurchaseRequestLine(Request                $request,
+                                           PurchaseRequestService $purchaseRequestService,
+                                           EntityManagerInterface $entityManager,
+                                           PurchaseRequest        $purchaseRequest): Response {
 
         $data = json_decode($request->getContent(), true);
 
@@ -311,11 +311,11 @@ class PurchaseRequestController extends AbstractController
             ]);
         }
 
-        $purchaseRequestLine = $purchaseRequestService->createPurchaseRequestLine($reference, $requestedQuantity, ["purchaseRequest" => $purchaseRequest]);
-        if ($location) {
-            $purchaseRequestLine
-                ->setLocation($location);
-        }
+        $purchaseRequestLine = $purchaseRequestService->createPurchaseRequestLine($reference, $requestedQuantity, [
+            "purchaseRequest" => $purchaseRequest,
+            "location"        => $location
+        ]);
+
         $purchaseRequest->setBuyer($reference->getBuyer());
 
         $entityManager->persist($purchaseRequestLine);
