@@ -5,13 +5,9 @@ namespace App\Service;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\PurchaseRequestScheduleRule;
-use App\Entity\Setting;
 use App\Entity\StorageRule;
-use App\Entity\Zone;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 
 class PurchaseRequestRuleService
 {
@@ -50,6 +46,12 @@ class PurchaseRequestRuleService
             if ($refArticle->getArticlesFournisseur()->count() > 1) {
                 $rulesWithSeveralSuppliers[] = $storageRule;
             } else {
+                /** @var ArticleFournisseur $supplierArticle */
+                $supplierArticle = $refArticle->getArticlesFournisseur()->first() ?: null;
+
+                $supplier = $supplierArticle?->getFournisseur();
+                $supplierId = $supplier?->getId() ?: 0;
+
                 // one purchase request per supplier
                 if (isset($purchaseRequests[$supplierId])) {
                     $purchaseRequest = $purchaseRequests[$supplierId];
@@ -86,7 +88,7 @@ class PurchaseRequestRuleService
         }
 
         foreach ($purchaseRequests as $purchaseRequest) {
-            $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest, ["customSubject" => $rule->getEmailSubject()]);
+            $this->purchaseRequestService->sendMailsAccordingToStatus($this->em, $purchaseRequest, ["customSubject" => $rule->getEmailSubject()]);
         }
     }
 }
