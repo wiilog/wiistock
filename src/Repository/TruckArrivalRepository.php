@@ -46,14 +46,14 @@ class TruckArrivalRepository extends EntityRepository
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
-                        "driver" => "search_driver.nom LIKE :search",
-                        "unloadingLocation" => "search_unloadingLocation.label LIKE :search",
-                        "registrationNumber" => "truckArrival.registrationNumber LIKE :search",
-                        "creationDate" => "DATE_FORMAT(truckArrival.creationDate, '%d/%m/%Y') LIKE :search",
-                        "carrier" => "search_carrier.label LIKE :search",
-                        "operator" => "search_operator.username LIKE :search",
-                        "number" => "truckArrival.number LIKE :search",
-                        "trackingLinesNumber" => "order_trackingLines.number LIKE :search",
+                        "driver" => "search_driver.nom LIKE :search_value",
+                        "unloadingLocation" => "search_unloadingLocation.label LIKE :search_value",
+                        "registrationNumber" => "truckArrival.registrationNumber LIKE :search_value",
+                        "creationDate" => "DATE_FORMAT(truckArrival.creationDate, '%d/%m/%Y') LIKE :search_value",
+                        "carrier" => "search_carrier.label LIKE :search_value",
+                        "operator" => "search_operator.username LIKE :search_value",
+                        "number" => "truckArrival.number LIKE :search_value",
+                        "trackingLinesNumber" => "order_trackingLines.number LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'truckArrival', $qb, $user, $search);
