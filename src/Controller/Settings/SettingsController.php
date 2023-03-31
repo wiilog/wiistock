@@ -356,7 +356,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_EMERGENCIES => [
                     "label" => "Urgences",
-                    "right" => Action::SETTINGS_DISPLAY_EMERMENCIES,
+                    "right" => Action::SETTINGS_DISPLAY_EMERGENCIES,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
