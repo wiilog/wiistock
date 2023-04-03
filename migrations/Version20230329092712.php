@@ -27,7 +27,7 @@ final class Version20230329092712 extends AbstractMigration
         $this->addSql("UPDATE translation_category SET label = 'Email arrivage UL' WHERE label = 'Email arrivage'");
 
         $this->addSql("UPDATE translation SET translation = 'Arrivages unités logistiques' WHERE translation = 'Flux - arrivages'");
-        $this->addSql("UPDATE translation SET translation = 'Logistics units arrivals' WHERE translation = 'Arrivals'");
+        $this->addSql("UPDATE translation SET translation = 'Logistic units arrivals' WHERE translation = 'Arrivals'");
 
         $this->addSql("UPDATE translation SET translation = 'N° d\'arrivage UL' WHERE translation = 'N° d\'arrivage'");
         $this->addSql("UPDATE translation SET translation = 'LU Arrival number' WHERE translation = 'Arrival number'");

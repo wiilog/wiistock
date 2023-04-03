@@ -259,17 +259,6 @@ class EmplacementRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findWithActivePairing(){
-        $qb = $this->createQueryBuilder('location');
-        $qb
-            ->leftJoin('location.pairings', 'pairings')
-            ->where('pairings.active = 1');
-
-        return $qb
-            ->getQuery()
-            ->getResult();
-    }
-
     private function createSensorPairingDataQueryUnion(Emplacement $location): string {
         $createQueryBuilder = function () {
             return $this->createQueryBuilder('location')

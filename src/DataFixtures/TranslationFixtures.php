@@ -569,7 +569,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "content" => [
                         [
                             "fr" => "Arrivages unités logistiques",
-                            "en" => "Logistics units arrivals",
+                            "en" => "Logistic units arrivals",
                             "tooltip" => "Page Arrivages UL :\nMenu\nFil d'ariane",
                         ],
                         [

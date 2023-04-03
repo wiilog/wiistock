@@ -874,7 +874,7 @@ class ArrivageController extends AbstractController {
         catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->translate('Flux - Arrivages', 'Divers', 'Un autre litige d\'arrivage est en cours de création, veuillez réessayer').'.'
+                'msg' => $translation->translate('Arrivages UL', 'Divers', 'Un autre litige d\'arrivage est en cours de création, veuillez réessayer').'.'
             ]);
         }
 

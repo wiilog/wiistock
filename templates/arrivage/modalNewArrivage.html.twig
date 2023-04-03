@@ -36,7 +36,7 @@
                                 <span class="btn btn-primary d-flex align-items-center p-2" style="height:36px"
                                       onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
                                     <span class="wii-icon wii-icon-plus mr-2"></span>
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Créer') }}
                                 </span>
                             </div>
                         {% endif %}
@@ -64,7 +64,7 @@
                                 <span class="btn btn-primary d-flex align-items-center p-2" style="height:36px"
                                       onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
                                     <span class="wii-icon wii-icon-plus mr-2"></span>
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Créer') }}
                                 </span>
                             </div>
                         {% endif %}
@@ -93,7 +93,7 @@
                                 <span class="btn btn-primary d-flex align-items-center p-2 add-driver" style="height:36px"
                                       onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
                                     <span class="wii-icon wii-icon-plus mr-2"></span>
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Créer') }}
                                 </span>
                             </div>
                         {% endif %}
@@ -353,7 +353,7 @@
                         {% set projectNumberRequired = fieldsParam|isFieldRequired(projectNumberFieldCode, 'requiredCreate') %}
                         <div class="form-group col-4">
                             <label class="wii-field-name" for="noProject">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet') }}{{ projectNumberRequired ? '*' }}
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Numéro de projet') }}{{ projectNumberRequired ? '*' }}
                             </label>
                             <input type="text"
                                    class="form-control input-sm data {{ projectNumberRequired ? 'needed' }}"
@@ -368,7 +368,7 @@
                         {% set businessUnitRequired = fieldsParam|isFieldRequired(businessUnitFieldCode, 'requiredCreate') %}
                         <div class="form-group col-4">
                             <label class="wii-field-name">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit') }}{{ businessUnitRequired ? '*' }}
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Business unit') }}{{ businessUnitRequired ? '*' }}
                             </label>
                             <select class="needs-default form-control input-sm data {{ businessUnitRequired ? 'needed' }}"
                                     name="businessUnit">
@@ -389,7 +389,7 @@
                                        name="customs"
                                     {{ keptFields[customsFieldCode] ?? false ? 'checked' }}>
                                 <label class="text-break text-wrap">
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane') }}
                                 </label>
                             </label>
                         </div>
@@ -403,7 +403,7 @@
                                        name="frozen"
                                     {{ keptFields[frozenFieldCode] ?? false ? 'checked' }}>
                                 <label class="text-break text-wrap">
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Congelé') }}
                                 </label>
                             </label>
                         </div>
@@ -442,7 +442,7 @@
                 </div>
 
                 <div class="wii-section-title my-3 d-flex align-items-center">
-                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nombre d\'unités logistiques à ajouter :') }}
+                    {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Nombre d\'unités logistiques à ajouter :') }}
                 </div>
                 <div class="row">
                     {% if natures != null %}
