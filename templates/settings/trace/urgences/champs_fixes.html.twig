@@ -1,5 +1,13 @@
 {% import 'form.html.twig' as form %}
 
+
+{% include 'settings/fixed_field_elements.html.twig' with {
+    modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_TYPE'),
+    field: emergencyType.field,
+    modalType: emergencyType.modalType,
+    elements: emergencyType.elements,
+} %}
+
 <div class="wii-section">
     <div class="row">
         <div class="col-12 mb-3 wii-small-text">

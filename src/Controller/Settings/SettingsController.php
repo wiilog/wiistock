@@ -1323,6 +1323,24 @@ class SettingsController extends AbstractController {
                         "type" => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
                     ],
                 ],
+                self::MENU_EMERGENCIES => [
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
+                        $emergencyTypeField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_EMERGENCY, FieldsParam::FIELD_CODE_EMERGENCY_TYPE);
+                        return [
+                            "emergencyType" => [
+                                "field" => $emergencyTypeField->getId(),
+                                "modalType" => $emergencyTypeField->getModalType(),
+                                "elements" => Stream::from($emergencyTypeField->getElements() ?? [])
+                                    ->map(fn(string $element) => [
+                                        "label" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                        ];
+                    },
+                ]
             ],
             self::CATEGORY_TRACKING => [
                 self::MENU_ROUNDS => fn() => [
