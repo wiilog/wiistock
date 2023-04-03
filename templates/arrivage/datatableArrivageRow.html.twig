@@ -10,7 +10,7 @@
                data-target='#modalListPacks'
                data-toggle='modal'
                onclick="listPacks($(this))">
-                <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Impression') }}
+                <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Impression') }}
             </a>
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) and arrivage.reception is null %}
                 <a href='{{ path('reception_index', {'open-modal': 'new', 'clear-modal': 0, arrivage: arrivage.id}) }}'
