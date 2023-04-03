@@ -25,6 +25,7 @@
                     'reception/datatableLigneRefArticleRow.html.twig',
                     {
                         ligneId: reference.id,
+                        referenceBarcode: reference.barCode,
                         ligneArticleQuantity: reference.receivedQuantity,
                         receptionId: reception.id,
                         isReferenceTypeLinked: reference.quantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE'),
