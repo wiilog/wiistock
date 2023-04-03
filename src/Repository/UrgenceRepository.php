@@ -195,7 +195,8 @@ class UrgenceRepository extends EntityRepository {
                                 'b_search.username LIKE :value',
                                 'p_search.nom LIKE :value',
                                 'c_search.label LIKE :value',
-                                'a_search.numeroArrivage LIKE :value'
+                                'a_search.numeroArrivage LIKE :value',
+                                'u.type LIKE :value',
                             ) . ')')
                         ->setParameter('value', '%' . $search . '%');
                 }

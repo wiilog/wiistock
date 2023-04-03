@@ -107,7 +107,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
             FieldsParam::ENTITY_CODE_EMERGENCY => [
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_BUYER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_BUYER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FieldsParam::FIELD_CODE_EMERGENCY_SUPPLIER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_SUPPLIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
+                ['code' => FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_PROVIDER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_COMMAND_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_POST_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],

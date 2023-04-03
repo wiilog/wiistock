@@ -38,7 +38,7 @@ parameters:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_ENCO
                 -   label: [ 'Traçabilité', 'Urgences', 'Urgences' ]
-                    path: 'urgence_index'
+                    path: 'emergency_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_URGE

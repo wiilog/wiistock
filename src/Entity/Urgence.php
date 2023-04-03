@@ -50,7 +50,7 @@ class Urgence {
     #[ORM\ManyToOne(targetEntity: Arrivage::class, inversedBy: 'urgences')]
     private ?Arrivage $lastArrival = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $type = null;
 
     public function __construct() {

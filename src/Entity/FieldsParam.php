@@ -162,7 +162,7 @@ class FieldsParam {
 
     const ENTITY_CODE_EMERGENCY = "urgence";
     const FIELD_CODE_EMERGENCY_BUYER = "buyer";
-    const FIELD_CODE_EMERGENCY_SUPPLIER = "supplier";
+    const FIELD_CODE_EMERGENCY_PROVIDER = "provider";
     const FIELD_CODE_EMERGENCY_COMMAND_NUMBER = "commandNumber";
     const FIELD_CODE_EMERGENCY_POST_NUMBER= "postNumber";
     const FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER = "trackingNumber";
@@ -170,7 +170,7 @@ class FieldsParam {
     const FIELD_CODE_EMERGENCY_TYPE = "type";
 
     const FIELD_LABEL_EMERGENCY_BUYER = "acheteur";
-    const FIELD_LABEL_EMERGENCY_SUPPLIER = "fournisseur";
+    const FIELD_LABEL_EMERGENCY_PROVIDER = "fournisseur";
     const FIELD_LABEL_EMERGENCY_COMMAND_NUMBER = "numéro de commande";
     const FIELD_LABEL_EMERGENCY_POST_NUMBER= "numéro de poste";
     const FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER = "numéro de tracking transporteur";

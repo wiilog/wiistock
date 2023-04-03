@@ -17,13 +17,13 @@ $(function() {
 });
 
 function initPage() {
-    let pathUrgences = Routing.generate('urgence_api', true);
+    let pathUrgences = Routing.generate('emergency_api', true);
     let tableUrgenceConfig = {
         processing: true,
         serverSide: true,
         ajax:{
             "url": pathUrgences,
-            "type": "POST"
+            "type": "GET"
         },
         order: [['start', "desc"]],
         columns:[
@@ -39,6 +39,7 @@ function initPage() {
             { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : Translation.of('Traçabilité', 'Urgences', 'Date arrivage', false) },
             {"data": 'arrivalNb', 'name' : 'arrivalNb', 'title' : Translation.of('Traçabilité', 'Urgences', 'Numéro d\'arrivage', false)},
             {"data": 'createdAt', 'name': 'createdAt', 'title': Translation.of('Général', null, 'Zone liste', 'Date de création', false)},
+            {"data": 'type', 'name': 'type', 'title': 'Type d\'urgence'},
         ],
         drawConfig: {
             needsSearchOverride: true,
@@ -53,28 +54,30 @@ function initPage() {
             }
         ],
     };
-    let tableUrgence = initDataTable('tableUrgences', tableUrgenceConfig);
+    let tableEmergencies = initDataTable('tableEmergencies', tableUrgenceConfig);
 
-    let modalNewUrgence = $('#modalNewUrgence');
-    let submitNewUrgence = $('#submitNewUrgence');
-    let urlNewUrgence = Routing.generate('urgence_new');
-    InitModal(modalNewUrgence, submitNewUrgence, urlNewUrgence, {
-        tables: [tableUrgence],
-        success : (data) => callbackUrgenceAction(data, modalNewUrgence, true)
-    });
+    let $modalNewUrgence = $('#modalNewEmergency');
+    Form
+        .create($modalNewUrgence)
+        .submitTo(AJAX.POST, 'emergency_new', {
+            success: (data) => callbackUrgenceAction(data, $modalNewUrgence, true),
+            table: tableEmergencies
+        })
+
 
     let modalDeleteUrgence = $('#modalDeleteUrgence');
     let submitDeleteUrgence = $('#submitDeleteUrgence');
-    let urlDeleteUrgence = Routing.generate('urgence_delete', true);
-    InitModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, {tables: [tableUrgence]});
+    let urlDeleteUrgence = Routing.generate('emergency_delete', true);
+    InitModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, {tables: [tableEmergencies]});
 
-    let modalModifyUrgence = $('#modalEditUrgence');
-    let submitModifyUrgence = $('#submitEditUrgence');
-    let urlModifyUrgence = Routing.generate('urgence_edit', true);
-    InitModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, {
-        tables: [tableUrgence],
-        success : (data) => callbackUrgenceAction(data, modalModifyUrgence, true)
-    });
+    let $modalModifyUrgence = $('#modalEditEmergency');
+    Form
+        .create($modalModifyUrgence)
+        .submitTo(AJAX.POST, 'emergency_edit', {
+            success: (data) => callbackUrgenceAction(data, $modalModifyUrgence, true),
+            table: tableEmergencies
+        })
+
     const $userFormat = $('#userDateFormat');
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
     initDateTimePicker('.datetime-field', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
