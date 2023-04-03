@@ -36,6 +36,7 @@ global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
+global.changeSettingsAssoBR = changeSettingsAssoBR;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -1217,4 +1218,14 @@ function initializeArticleNativeCountriesTable() {
             active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
         },
     });
+}
+
+function changeSettingsAssoBR($checkbox) {
+    const check = $checkbox.is(':checked');
+    if (!check) {
+        $checkbox.parent('.wii-checkbox').next().addClass('d-none');
+        $checkbox.parent('.wii-checkbox').next().find('select').val(null).change();
+    } else {
+        $checkbox.parent('.wii-checkbox').next().removeClass('d-none');
+    }
 }

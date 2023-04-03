@@ -134,6 +134,19 @@ class SettingsService {
             }
         }
 
+        $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
+        $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
+
+        if ($request->request->get('createMvt')) {
+            if ($defaultLocationUL === null) {
+                throw new RuntimeException("Vous devez sélectionner un emplacement de dépose UL par défaut.");
+            }
+            if ($defaultLocationReception === null) {
+                throw new RuntimeException("Vous devez sélectionner un emplacement de dépose Réception par défaut.");
+            }
+        }
+
+
         $settingNames = array_merge(
             array_keys($request->request->all()),
             array_keys($request->files->all()),
@@ -339,6 +352,29 @@ class SettingsService {
             }
 
             $updated[] = "temperatureRanges";
+        }
+
+        if ($request->request->has('createMvt')) {
+            $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
+            $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
+            $check = $request->request->get('createMvt');
+
+            if (!$check) {
+                if ($defaultLocationReception !== null) {
+                    $defaultLocationReception = null;
+                }
+                if ($defaultLocationUL !== null) {
+                    $defaultLocationUL = null;
+                }
+            }
+            $settingUL = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL]);
+            $settingUL->setValue($defaultLocationUL);
+
+            $settingReception = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM]);
+            $settingReception->setValue($defaultLocationReception);
+
+            $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL";
+            $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
         }
     }
 
