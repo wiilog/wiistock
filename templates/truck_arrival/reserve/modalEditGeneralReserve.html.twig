@@ -1,0 +1,21 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade reserveModal" id="editGeneralReserve" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: 'Modifier réserve général',
+            } %}
+            <div class="modal-body container-fluid">
+                {{ form.input('truckArrivalId', null, false , truckArrival.id, { type: 'hidden' }) }}
+                {% include 'truck_arrival/reserve/generalReserveForm.html.twig' %}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregister', type: 'submit'},
+                ],
+            } %}
+        </div>
+    </div>
+</div>

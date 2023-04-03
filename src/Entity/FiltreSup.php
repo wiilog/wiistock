@@ -50,6 +50,11 @@ class FiltreSup {
     const FIELD_ROUND_NUMBER = 'roundNumber';
     const FIELD_REQUEST_NUMBER = 'requestNumber';
     const FIELD_DELIVERERS = 'deliverers';
+    const FIELD_DRIVERS = 'drivers';
+    const FIELD_REGISTRATION_NUMBER = 'registrationNumber';
+    const FIELD_CARRIER_TRACKING_NUMBER = 'carrierTrackingNumber';
+    const FIELD_TRUCK_ARRIVAL_NUMBER = 'truckArrivalNumber';
+    const FIELD_CARRIER_TRACKING_NUMBER_NOT_ASSIGNED = 'carrierTrackingNumberNotAssigned';
 	const PAGE_PURCHASE_REQUEST = 'rpurchase';
 	const PAGE_TRANSFER_REQUEST = 'rtransfer';
 	const PAGE_TRANSFER_ORDER = 'otransfer';
@@ -85,8 +90,11 @@ class FiltreSup {
     const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
     const PAGE_IMPORT = 'import';
     const PAGE_EXPORT = 'export';
+    const PAGE_TRUCK_ARRIVAL = 'truckArrival';
     const FIELD_PICK_LOCATION = 'pickLocation';
     const FIELD_DROP_LOCATION = 'dropLocation';
+    const FIELD_NUM_TRUCK_ARRIVAL = 'numTruckArrival';
+    const FIELD_TRACKING_CARRIER_NUMBER = 'noTracking';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

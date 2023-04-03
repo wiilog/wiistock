@@ -1,4 +1,5 @@
 import WysiwygManager from "./wysiwyg-manager";
+import {forEach} from "core-js/stable/dom-collections";
 
 export const MODE_NO_EDIT = 1;
 export const MODE_CLICK_EDIT = 2;
@@ -70,8 +71,7 @@ export default class EditableDatatable {
             if($row.find(`.add-row`).exists()) {
                 return;
             }
-
-            const result = Form.process($(this));
+            const result = Form.create($row).process();
             data.push(result instanceof FormData ? result.asObject() : result);
         });
 
@@ -209,16 +209,20 @@ function initEditatable(datatable, onDatatableInit = null) {
     else {
         url = config.route;
     }
-
-    return initDataTable($element, {
-        serverSide: false,
-        ajax: {
+    let ajax = url
+        ? {
             type: `GET`,
             url,
             data: (data) => {
                 data.edit = state !== STATE_VIEWING;
             },
-        },
+        }
+        : null;
+
+    return initDataTable($element, {
+        serverSide: false,
+        ajax,
+        data: generateDefaultData(ajax , config.columns),
         rowConfig: {
             needsRowClickAction: true,
         },
@@ -264,6 +268,7 @@ function initEditatable(datatable, onDatatableInit = null) {
                         .off(`click.${id}.addRow`)
                         .on(`click.${id}.addRow`, 'td', () => {
                             onAddRowClicked(datatable);
+                            config.onAddRow && config.onAddRow(datatable);
                         });
                 }
 
@@ -271,8 +276,9 @@ function initEditatable(datatable, onDatatableInit = null) {
                     .off(`click.${id}.deleteRow`)
                     .on(`click.${id}.deleteRow`, `.delete-row`, function(event) {
                         onDeleteRowClicked(datatable, event, $(this));
+                        config.onDeleteRow && config.onDeleteRow(datatable, event, $(this));
                     });
-                });
+            });
 
             if(config.mode === MODE_CLICK_EDIT || config.mode === MODE_CLICK_EDIT_AND_ADD) {
                 $rows
@@ -288,7 +294,7 @@ function initEditatable(datatable, onDatatableInit = null) {
                             datatable.toggleEdit(STATE_EDIT, true, {rowIndex});
                         }
                     });
-                }
+            }
 
             if(config.save === SAVE_FOCUS_OUT) {
                 $rows
@@ -389,5 +395,18 @@ function onDeleteRowClicked(datatable, event, $button) {
             .then(result => result.success ? deleteRow() : null);
     } else {
         deleteRow();
+    }
+}
+
+function generateDefaultData(ajax, columns) {
+    if (!ajax) {
+        let row = {};
+        columns.forEach(column => {
+            row[column.data] = '';
+        });
+        row["actions"] = `<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>`;
+        return [row];
+    } else {
+        return null;
     }
 }

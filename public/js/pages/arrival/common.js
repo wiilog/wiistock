@@ -13,10 +13,9 @@ $(function () {
 function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, arrivalsDatatable = null) {
     if (alertConfigs.length > 0) {
         const alertConfig = alertConfigs[0];
-        const {autoHide, message, modalType, arrivalId, iconType, autoPrint} = alertConfig;
+        const {autoHide, message, modalType, arrivalId, iconType, autoPrint, title, modalKey} = alertConfig;
         const nextAlertConfigs = alertConfigs.slice(1, alertConfigs.length);
         const isLastModal = (modalType !== 'yes-no-question' && nextAlertConfigs.length === 0);
-
         const buttonConfigs = createButtonConfigs({
             modalType,
             arrivalId,
@@ -26,7 +25,8 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
             isCreation,
             arrivalsDatatable,
             success,
-            autoPrint
+            autoPrint,
+            modalKey
         });
 
         const displayCurrentModal = () => {
@@ -78,6 +78,13 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
             displayCurrentModal();
         }
     }
+}
+
+function redirectWithReserve(newArrivalId) {
+    window.location.href = Routing.generate('arrivage_show', {
+        id: newArrivalId,
+        reserve: true
+    }, true)
 }
 
 function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseCreation, isCreation, arrivalsDatatable) {
@@ -154,14 +161,25 @@ function printArrival({arrivageId, printColis, printArrivage}) {
     }
 }
 
-function createButtonConfigs({modalType, arrivalId, alertConfig, nextAlertConfigs, response, isCreation, arrivalsDatatable, success, autoPrint}) {
+function createButtonConfigs({modalType,
+                                 arrivalId,
+                                 alertConfig,
+                                 nextAlertConfigs,
+                                 response,
+                                 isCreation,
+                                 arrivalsDatatable,
+                                 success,
+                                 autoPrint,
+                                 modalKey}) {
 
     const buttonConfigs = [
         {
             class: 'btn btn-success m-0 btn-action-on-hide',
-            text: (modalType === 'yes-no-question' ? 'Oui' : 'Continuer'),
+            text: (modalType === 'yes-no-question' ? (modalKey === 'reserve' ? 'Confirmer' : 'Oui') : 'Continuer'),
             action: ($modal) => {
-                if (modalType === 'yes-no-question') {
+                if (modalKey === 'reserve') {
+                    redirectWithReserve(arrivalId);
+                } else if (modalType === 'yes-no-question') {
                     if (!arrivageUrgentLoading) {
                         arrivageUrgentLoading = true;
                         $modal.find('.modal-footer-wrapper').addClass('d-none');
@@ -195,7 +213,7 @@ function createButtonConfigs({modalType, arrivalId, alertConfig, nextAlertConfig
     if (modalType === 'yes-no-question') {
         buttonConfigs.unshift({
             class: 'btn btn-outline-secondary m-0',
-            text: 'Non',
+            text: (modalKey === 'reserve' ? 'Passer' : 'Non'),
             action: () => {
                 arrivalCallback(
                     isCreation,

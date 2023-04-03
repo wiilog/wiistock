@@ -2,6 +2,7 @@ $('.select2').select2();
 let tableHistoLitige;
 
 $(function () {
+    const query = GetRequestQuery();
     let addColis = $('#addColis').val();
     if (addColis) {
         $('#btnModalAddColis').click();
@@ -9,7 +10,6 @@ $(function () {
 
     let printColis = Number(Boolean(Number($('#printColis').val())));
     let printArrivage = Number(Boolean(Number($('#printArrivage').val())));
-
     if (printColis || printArrivage) {
         let params = {
             arrivage: Number($('#arrivageId').val()),
@@ -18,6 +18,8 @@ $(function () {
         };
         SetRequestQuery({});
         Wiistock.download(Routing.generate('print_arrivage_bar_codes', params, true));
+    } else {
+        SetRequestQuery({});
     }
 
     $(`.dispatch-button`).on(`click`, function () {
@@ -164,6 +166,10 @@ $(function () {
     $(`.new-dispute-modal`).on(`click`, function () {
         getNewDisputeModalContent($(this));
     });
+
+    if (query.reserve) {
+        $('.new-dispute-modal').click();
+    }
 });
 
 function openTableHisto() {

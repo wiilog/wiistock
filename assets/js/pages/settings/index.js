@@ -94,7 +94,8 @@ const initializers = {
     track_tournees: initializeTransportRound,
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
-    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate
+    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
+    trace_arrivages_camion_champs_fixes : initializeTruckArrivalFixedFields,
 };
 
 const saveCallbacks = {
@@ -1130,4 +1131,29 @@ function deleteTemplate($elem) {
     $parent.find(`.custom-template-preview`).html(`<span class="wii-small-text my-2">Aucun modèle personnalisé.</span>`);
     $parent.find(`.custom-template-file, .custom-template-file-name`).val(null);
     $(`input[name=${name}]`).val('1');
+}
+
+function initializeTruckArrivalFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-truck-arrival-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `truckArrivals`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+    initializeType();
 }

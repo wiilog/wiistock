@@ -255,7 +255,7 @@ class SettingsController extends AbstractController {
                     ],
                 ],
                 self::MENU_ARRIVALS => [
-                    "label" => "Arrivages",
+                    "label" => "Arrivages UL",
                     "right" => Action::SETTINGS_DISPLAY_ARRI,
                     "menus" => [
                         self::MENU_CONFIGURATIONS => [
@@ -279,6 +279,21 @@ class SettingsController extends AbstractController {
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                         self::MENU_DISPUTE_TYPES => ["label" => "Litiges - Types"],
+                    ],
+                ],
+                self::MENU_TRUCK_ARRIVALS => [
+                    "label" => "Arrivages camion",
+                    "right" => Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS,
+                    "menus" => [
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                        ],
                     ],
                 ],
                 self::MENU_MOVEMENTS => [
@@ -539,6 +554,7 @@ class SettingsController extends AbstractController {
     public const MENU_FREE_FIELDS = "champs_libres";
     public const MENU_HANDLINGS = "services";
     public const MENU_REQUEST_TEMPLATES = "modeles_demande";
+    public const MENU_TRUCK_ARRIVALS = "arrivages_camion";
 
     public const MENU_TRANSPORT_REQUESTS = "demande_transport";
     public const MENU_ROUNDS = "tournees";
@@ -2108,7 +2124,6 @@ class SettingsController extends AbstractController {
 
         $rows = [];
         foreach ($arrayFields as $field) {
-            $requireDisabled = in_array($field->getFieldCode(), FieldsParam::ALWAYS_REQUIRED_FIELDS) ? "disabled" : "";
             $label = ucfirst($field->getFieldLabel());
             $displayedCreate = $field->isDisplayedCreate() ? "checked" : "";
             $requiredCreate = $field->isRequiredCreate() ? "checked" : "";
@@ -2119,6 +2134,9 @@ class SettingsController extends AbstractController {
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
 
+            $filterOnly = in_array($field->getFieldCode(), FieldsParam::FILTER_ONLY_FIELDS) ? "disabled" : "";
+            $requireDisabled = $filterOnly || in_array($field->getFieldCode(), FieldsParam::ALWAYS_REQUIRED_FIELDS) ? "disabled" : "";
+
             if ($edit) {
                 $labelAttributes = "class='font-weight-bold'";
                 if ($field->getElements() !== null) {
@@ -2128,8 +2146,8 @@ class SettingsController extends AbstractController {
 
                 $row = [
                     "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
-                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
-                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit/>",
+                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate $filterOnly/>",
+                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit $filterOnly/>",
                     "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate $requireDisabled/>",
                     "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit $requireDisabled/>",
                     "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",

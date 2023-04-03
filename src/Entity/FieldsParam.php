@@ -83,6 +83,16 @@ class FieldsParam {
     const FIELD_LABEL_ARRIVAL_DATE = 'Date'; // not in settings table
     const FIELD_LABEL_ARRIVAL_CREATOR = 'Utilisateur'; // not in settings table
 
+    const ENTITY_CODE_TRUCK_ARRIVAL = 'truckArrivals';
+    const FIELD_CODE_TRUCK_ARRIVAL_CARRIER = 'carrier';
+    const FIELD_CODE_TRUCK_ARRIVAL_DRIVER = 'driver';
+    const FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER = 'registrationNumber';
+    const FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION = 'unloadingLocation';
+    const FIELD_LABEL_TRUCK_ARRIVAL_CARRIER = 'transporteur';
+    const FIELD_LABEL_TRUCK_ARRIVAL_DRIVER = 'chauffeur';
+    const FIELD_LABEL_TRUCK_ARRIVAL_REGISTRATION_NUMBER = 'immatriculation';
+    const FIELD_LABEL_TRUCK_ARRIVAL_UNLOADING_LOCATION = 'emplacement de déchargement';
+
     const ENTITY_CODE_DISPATCH = 'acheminements';
     const FIELD_CODE_REQUESTER_DISPATCH = 'requester';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
@@ -130,8 +140,12 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_PJ_ARRIVAGE,
     ];
 
+    public const FILTER_ONLY_FIELDS = [
+        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+    ];
+
     public const FILTERED_FIELDS = [
-        // Arrivages
+        // Arrivages UL
         FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE,
         FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE,
         FieldsParam::FIELD_CODE_FOURNISSEUR,
@@ -140,6 +154,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
         FieldsParam::FIELD_CODE_BUSINESS_UNIT,
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
+        FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
 
         // Acheminements
         FieldsParam::FIELD_CODE_EMERGENCY,
@@ -152,6 +167,12 @@ class FieldsParam {
 
         // Services
         FieldsParam::FIELD_CODE_RECEIVERS_HANDLING,
+
+        // Arrivages camion
+        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
+        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
+        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
     ];
 
     public const ALWAYS_REQUIRED_FIELDS = [

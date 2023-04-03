@@ -1187,34 +1187,24 @@ class RefArticleDataService {
                 "persisted" => true,
                 "required" => $isFromDispatch,
             ],
-        ];
-
-        if (!$isFromDispatch) {
-            $config = array_merge(
-                $config,
-                [
-                    "Longueur (cm)" => [
-                        "name" => "length",
-                        "type" => "number",
-                        "step" => "0.01",
-                        "persisted" => true,
-                    ],
-                    "Largeur (cm)" => [
-                        "name" => "width",
-                        "type" => "number",
-                        "step" => "0.01",
-                        "persisted" => true,
-                    ],
-                    "Hauteur (cm)" => [
-                        "name" => "height",
-                        "type" => "number",
-                        "step" => "0.01",
-                        "persisted" => true,
-                    ],
-                ]
-            );
-        }
-        $config = array_merge($config, [
+            "Longueur (cm)" => [
+                "name" => "length",
+                "type" => "number",
+                "step" => "0.01",
+                "persisted" => true,
+            ],
+            "Largeur (cm)" => [
+                "name" => "width",
+                "type" => "number",
+                "step" => "0.01",
+                "persisted" => true,
+            ],
+            "Hauteur (cm)" => [
+                "name" => "height",
+                "type" => "number",
+                "step" => "0.01",
+                "persisted" => true,
+            ],
             "Volume (m3)" => [
                 "name" => "volume",
                 "type" => "number",
@@ -1222,8 +1212,8 @@ class RefArticleDataService {
                 "persisted" => true,
                 "disabled" => true,
                 "required" => $isFromDispatch,
-            ]
-        ]);
+            ],
+        ];
         return $config;
     }
 

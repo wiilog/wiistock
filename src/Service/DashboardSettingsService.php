@@ -15,6 +15,7 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -42,6 +43,9 @@ class DashboardSettingsService {
 
     #[Required]
     public DashboardService $dashboardService;
+
+    #[Required]
+    public TruckArrivalLineService $truckArrivalLineService;
 
     #[Required]
     public DateService $dateService;
@@ -209,7 +213,7 @@ class DashboardSettingsService {
                 $values += $this->serializeDailyHandlingIndicator($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::CARRIER_TRACKING:
-                $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
+                $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
                 $values += $this->serializeEntriesToHandle($entityManager, $componentType, $config, $example, $meter);
@@ -329,7 +333,6 @@ class DashboardSettingsService {
                                             ->map(fn($trad) => $this->translationService->translate('Dashboard', $trad, false))
                                             ->toArray();
         }
-
         return $values;
     }
 
@@ -652,23 +655,36 @@ class DashboardSettingsService {
     private function serializeCarrierIndicator(EntityManagerInterface $manager,
                                                Dashboard\ComponentType $componentType,
                                                array $config,
-                                               bool $example = false): array {
-        $values = [];
-        $carrierRepository = $manager->getRepository(Transporteur::class);
-        if (!empty($config["carriers"])) {
-
-            if ($example) {
-                $carriers = $carrierRepository->findBy(['id' => $config['carriers']]);
+                                               bool $example = false,
+                                               DashboardMeter\Indicator $meter = null): array {
+        if (!$example) {
+            if ($meter) {
+                $values = [
+                    'subCounts' => $meter->getSubCounts(),
+                    'subtitle' => $meter->getSubtitle(),
+                    'count' => $meter->getCount(),
+                ];
             } else {
-                $carriers = $carrierRepository->getDailyArrivalCarriersLabel($config['carriers']);
+                $values = [
+                    'subtitle' => '-',
+                    'subCounts' => [
+                        '<span>Numéros de tracking transporteur non associés</span>',
+                        '<span class="text-wii-black">Dont</span> <span class="font-">-</span> <span class="text-wii-black">en retard</span>'
+                    ],
+                    'count' => '-',
+                ];
             }
-
-            $values["carriers"] = FormatHelper::carriers($carriers);
-        } else if ($example) {
-            $values = $componentType->getExampleValues();
         } else {
-            $carriers = $carrierRepository->getDailyArrivalCarriersLabel();
-            $values["carriers"] = FormatHelper::carriers($carriers);
+            $values = $componentType->getExampleValues();
+        }
+
+        if (!isset($config['displayUnassociatedLines']) || !$config['displayUnassociatedLines']) {
+            unset($values['count']);
+            unset($values['subCounts']);
+        }
+
+        if (!isset($config['displayLateLines']) || !$config['displayLateLines']) {
+            unset($values['subCounts']);
         }
 
         return $values;
@@ -1196,6 +1212,10 @@ class DashboardSettingsService {
                 $link = !empty($locations) && $redirect
                     ? $this->router->generate('en_cours', ['locations' => implode(',', $locations), 'fromDashboard' => true ])
                     : null;
+                break;
+            case Dashboard\ComponentType::CARRIER_TRACKING:
+                $redirect = isset($config['redirect']) && $config['redirect'];
+                $link = $redirect ? $this->router->generate('truck_arrival_index', ['unassociated' => true]) : null;
                 break;
             default:
                 $link = null;
