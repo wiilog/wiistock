@@ -360,13 +360,14 @@ class SettingsService {
             $check = $request->request->get('createMvt');
 
             if (!$check) {
-                if ($defaultLocationReception !== null) {
-                    $defaultLocationReception = null;
-                }
                 if ($defaultLocationUL !== null) {
                     $defaultLocationUL = null;
                 }
+                if ($defaultLocationReception !== null) {
+                    $defaultLocationReception = null;
+                }
             }
+
             $settingUL = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL]);
             $settingUL->setValue($defaultLocationUL);
 
