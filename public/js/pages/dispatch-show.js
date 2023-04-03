@@ -590,7 +590,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
     wrapLoadingOnActionButton(
         $logisticUnitsContainer,
         () => (
-            AJAX.route('GET', 'dispatch_packs_api', params)
+            AJAX.route('GET', 'dispatch_pack_api', params)
                 .json()
                 .then(data => {
                     $logisticUnitsContainer.html(data.html);
