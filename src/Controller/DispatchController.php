@@ -1620,7 +1620,7 @@ class DispatchController extends AbstractController {
         $commentData = $request->request->get("comment");
         $dispatchesToSignIds = $request->query->all('dispatchesToSign');
 
-        $dispatchService->finishGroupedSignature(
+        $response = $dispatchService->finishGroupedSignature(
             $entityManager,
             $locationData,
             $signatoryTrigramData,
@@ -1633,11 +1633,7 @@ class DispatchController extends AbstractController {
         );
 
         $entityManager->flush();
-        return $this->json([
-            'success' => true,
-            'redirect' => $this->generateUrl('dispatch_index'),
-            'msg' => 'Signature groupée effectuée avec succès',
-        ]);
+        return $this->json($response);
     }
 
     #[Route("/{dispatch}/dispatch-packs-api", name: "dispatch_packs_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
