@@ -284,61 +284,22 @@ function switchMvtCreationType($input) {
             $modal.find(`select[name=pack]`).select2({
                 tags: true,
                 tokenSeparators: [" "],
-                tokenizer: function(input, selection, callback) {
+                tokenizer: function (input, selection, callback) {
                     let term = input.term;
-                    if (term.indexOf(' ') < 0) return;
+                    if (term.indexOf(' ') < 0)
+                        return input;
 
-                    let parts = term.split(" ");
-                    for (let i = 0 ; i < parts.length ; i++) {
+                    let parts = term.split(/ /);
+                    for (let i = 0; i < parts.length; i++) {
                         let part = parts[i].trim();
-
                         callback({
                             id: part,
                             text: part
                         });
                     }
-                }
+                    return { term: parts.join(' ') }; // Rejoin unmatched tokens
+                },
             });
-
-            /*.on('paste', function(event) {
-                console.log('yoo');
-                let delemiter = ' ';
-                let clipboardData = event.clipboardData || window.clipboardData || event.originalEvent.clipboardData;
-                let newTags = clipboardData.getData('text/plain');
-                if (!newTags.endsWith(delemiter)) {
-                    newTags += delemiter;
-                }
-                console.log(event.target.value);
-                event.preventDefault();
-                event.target.value = newTags;
-                console.log(newTags);
-                console.log(event.target.value);
-                return true;
-            });
-/*
-            console.log($modal.find(`select[name=pack]`).data('select2').dataAdapter.$search);
-            $modal.find(`select[name=pack]`).data('select2').$container.on('paste', function(event) {
-                console.log('coucou');
-/*
-                //$modal.find(`select[name=pack]`).data('select2').dataAdapter.$search.val().trigger('change');
-                let data = e.originalEvent.clipboardData.getData('Text');
-                console.log(data);
-                $(this).val($(this).val() + ' ' + data + ' ');
-                $modal.find(`select[name=pack]`).data('select2').dataAdapter.input(data);
-
-                console.log($modal.find(`select[name=pack]`).data('select2').dataAdapter.input(data));
-                return false;*/
-/*
-                let delemiter = ' ';
-                let clipboardData = event.clipboardData || window.clipboardData || event.originalEvent.clipboardData;
-                let newTags = clipboardData.getData('text/plain');
-                if (!newTags.endsWith(delemiter)) {
-                    newTags += delemiter;
-                }
-                event.preventDefault();
-                event.target.value = newTags;
-                return false;
-            })*/
         }
     });
 }
