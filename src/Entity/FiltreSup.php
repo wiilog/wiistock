@@ -68,7 +68,7 @@ class FiltreSup {
     const PAGE_ORDRE_LIVRAISON = 'olivraison';
     const PAGE_PREPA = 'prépa';
     const PAGE_PACK = 'pack';
-    const PAGE_ARRIVAGE = 'arrivage';
+    const PAGE_LU_ARRIVAL = 'LUArrival';
     const PAGE_MVT_STOCK = 'mvt_stock';
     const PAGE_MVT_TRACA = 'mvt_traca';
     const PAGE_DISPATCH = 'acheminement';

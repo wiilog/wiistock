@@ -8,7 +8,7 @@
     <input hidden value="{{ printArrivage is defined ? printArrivage : false }}" id="printArrivage">
 {% endblock %}
 
-{% block showTitle (trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages')) %}
+{% block showTitle (trans('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques')) %}
 {% block showSubtitle (arrivage.numeroArrivage) %}
 
 {% block showActions %}
@@ -35,12 +35,12 @@
                id="printArrivageBtn"
                href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
                 <span class="wii-icon wii-icon-printer-black mr-2"></span>
-                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer arrivage') }}
+                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Imprimer arrivage UL') }}
             </a>
             {% if not allPacksAlreadyInDispatch and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
                 <button class="dropdown-item dispatch-button" data-id="{{ arrivage.id }}">
                     <i class="fas fa-exchange-alt mr-2"></i>
-                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Entête', 'Acheminer') }}
+                    {{ trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Entête', 'Acheminer') }}
                 </button>
             {% endif %}
             {% if canBeDeleted %}
@@ -60,6 +60,6 @@
 {% block showUrgence %}
     {% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
-        {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Entête', 'Cet arrivage est à traiter en URGENCE') }}
+        {{ trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Entête', 'Cet arrivage UL est à traiter en URGENCE') }}
     {% endif %}
 {% endblock %}

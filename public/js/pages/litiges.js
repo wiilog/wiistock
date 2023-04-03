@@ -52,7 +52,7 @@ function initDatatableLitiges() {
             {data: 'actions', title: '', orderable: false, className: 'noVis'},
             {data: 'type', title: Translation.of(`Qualité`, `Litiges`, 'Type')},
             {data: 'disputeNumber', title: Translation.of(`Qualité`, `Litiges`, `Numéro de litige`)},
-            {data: "arrivalNumber", title: Translation.of(`Traçabilité`, `Flux - Arrivages`, `Divers`, `N° d'arrivage`)},
+            {data: "arrivalNumber", title: Translation.of(`Traçabilité`, `Arrivages unités logistiques`, `Divers`, `N° d'arrivage UL`)},
             {data: 'receptionNumber', title: Translation.of(`Traçabilité`, `Association BR`, `N° de réception`)},
             {data: 'buyers', title: Translation.of(`Qualité`, `Litiges`, `Acheteur`), orderable: false},
             {data: 'reporter', title: Translation.of(`Qualité`, `Litiges`, `Déclarant`)},
