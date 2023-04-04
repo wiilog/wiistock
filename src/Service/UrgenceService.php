@@ -38,13 +38,13 @@ class UrgenceService
         $this->security = $security;
     }
 
-    public function getDataForDatatable($params = null)
+    public function getDataForDatatable($params = null, $filters = [])
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
-		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_URGENCES, $this->security->getUser());
+		$filters = array_merge($filters, $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_URGENCES, $this->security->getUser()));
 
-		$queryResult = $urgenceRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $urgenceRepository->findByParamsAndFilters($params, $filters);
 
         $urgenceArray = $queryResult['data'];
 

@@ -17,7 +17,8 @@ $(function() {
 });
 
 function initPage() {
-    let pathUrgences = Routing.generate('emergency_api', true);
+    const unassociated = new URLSearchParams(window.location.search).get('unassociated');
+    let pathUrgences = Routing.generate('emergency_api',{unassociated}, true);
     let tableUrgenceConfig = {
         processing: true,
         serverSide: true,

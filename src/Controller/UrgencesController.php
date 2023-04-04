@@ -44,7 +44,8 @@ class UrgencesController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE], mode: HasPermission::IN_JSON)]
     public function api(Request $request, UrgenceService $emergencyService): Response
     {
-        $data = $emergencyService->getDataForDatatable($request->request);
+        $unassociated = $request->query->get('unassociated');
+        $data = $emergencyService->getDataForDatatable($request->request, $unassociated ? [['field' => 'unassociated', 'value' => true]] : []);
         return new JsonResponse($data);
     }
 
