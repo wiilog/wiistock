@@ -29,7 +29,7 @@ class Urgence {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdAt;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $commande = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'emergencies')]

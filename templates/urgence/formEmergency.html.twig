@@ -101,18 +101,17 @@
 
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_TYPE') %}
+    {% set fieldLabel = constant('App\\Entity\\FieldsParam::FIELD_LABEL_EMERGENCY_TYPE') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.select(fieldCode, trans('Traçabilité', 'Urgences', 'N° tracking transporteur', false), requiredOnform, {
+            {{ form.select(fieldCode, fieldLabel|capitalize , requiredOnform, {
                 type: '',
                 items: types| map((type) => {
-
                     label: type,
                     value: type,
                     selected: emergency.type is same as (type),
-
                 }),
             }) }}
         </div>

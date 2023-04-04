@@ -1303,7 +1303,7 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $redirect = isset($config['redirect']) && $config['redirect'];
-                $link = $redirect ? $this->router->generate('urgence_index', ['unassociated' => true]) : null;
+                $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true]) : null;
                 break;
             default:
                 $link = null;
