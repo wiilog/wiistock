@@ -17,7 +17,7 @@ $(function () {
 
     initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
     Select2Old.location($('#emplacement'), {}, Translation.of('Traçabilité', 'Mouvements', 'Emplacement de dépose', false));
-    Select2Old.init($filtersContainer.find('[name="carriers"]'), Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Transporteurs', false));
+    Select2Old.init($filtersContainer.find('[name="carriers"]'), Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Transporteurs', false));
     initOnTheFlyCopies($('.copyOnTheFly'));
 
     initTableArrival(false).then((returnedArrivalsTable) => {
@@ -28,7 +28,7 @@ $(function () {
     displayFiltersSup(filters, true);
 
     pageLength = Number($('#pageLengthForArrivage').val());
-    Select2Old.provider($('.ajax-autocomplete-fournisseur'), Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Fournisseurs', false));
+    Select2Old.provider($('.ajax-autocomplete-fournisseur'), Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Fournisseurs', false));
 
     const $arrivalsTable = $(`#arrivalsTable`);
     const $dispatchModeContainer = $(`.dispatch-mode-container`);

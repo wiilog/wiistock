@@ -130,7 +130,7 @@ class TrackingMovementService extends AbstractController
                 $data ['from'] = $movement->getDispatch()->getNumber();
             } else if ($movement->getArrivage()) {
                 $data ['entityPath'] = 'arrivage_show';
-                $data ['fromLabel'] = $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Arrivage', false);
+                $data ['fromLabel'] = $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivage UL', false);
                 $data ['entityId'] = $movement->getArrivage()->getId();
                 $data ['from'] = $movement->getArrivage()->getNumeroArrivage();
             } else if ($movement->getReception()) {
@@ -626,7 +626,7 @@ class TrackingMovementService extends AbstractController
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Groupe', false),  'name' => 'group'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Quantité', false), 'name' => 'quantity'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Emplacement', false), 'name' => 'location'],
-            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false), 'name' => 'type'],
+            ['title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false), 'name' => 'type'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur', false), 'name' => 'operator'],
         ];
 
@@ -664,7 +664,7 @@ class TrackingMovementService extends AbstractController
         $attachementName = $attachement[$movement['id']] ?? ' ' ;
 
         if(!empty($movement['numeroArrivage'])) {
-           $origine =  $this->translation->translate("Traçabilité", "Flux - Arrivages", "Divers", "Arrivage", false) . '-' . $movement['numeroArrivage'];
+           $origine =  $this->translation->translate("Traçabilité", "Arrivages UL", "Divers", "Arrivage UL", false) . '-' . $movement['numeroArrivage'];
         }
         if(!empty($movement['receptionNumber'])) {
             $origine = $this->translation->translate("Ordre", "Réceptions", "Reception", false) . '-' . $movement['receptionNumber'];

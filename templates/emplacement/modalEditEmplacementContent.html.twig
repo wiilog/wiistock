@@ -19,7 +19,13 @@
 <div class="form-group">
     {{ form.select('zone', 'Zone', true, {
         type: 'zones',
-        items: locationZone,
+        items: location.zone
+            ? [{
+                label: location.zone.name,
+                value: location.zone.id,
+                selected: true,
+            }]
+            : null,
         emptyOption: (
             selectZone
             ? {

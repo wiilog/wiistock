@@ -206,11 +206,6 @@ class LocationController extends AbstractController {
                 "deliveryTypes" => $deliveryTypes,
                 "collectTypes" => $collectTypes,
                 "temperatures" => $temperatures,
-                "locationZone" =>  $emplacement->getZone() ? [
-                        "label" => $emplacement->getZone()->getName(),
-                        "value" => $emplacement->getZone()->getId(),
-                        "selected" => true
-                    ] : [],
                 "selectZone" => count($zones) === 1 ? $zones[0] : null
             ]));
         }

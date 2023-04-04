@@ -1,13 +1,13 @@
 {% import 'form.html.twig' as form %}
 
-<div class="wii-section-title">Création d'un arrivage</div>
+<div class="wii-section-title">Création d'un arrivage UL</div>
 <div class="wii-section">
     <div class="row">
         <div class="col-md-6 col-12 my-1">
-            {{ form.checkbox(setting('REDIRECT_AFTER_NEW_ARRIVAL'), "Redirection vers l'arrivage créé", false, setting_value('REDIRECT_AFTER_NEW_ARRIVAL')) }}
+            {{ form.checkbox(setting('REDIRECT_AFTER_NEW_ARRIVAL'), "Redirection vers l'arrivage UL créé", false, setting_value('REDIRECT_AFTER_NEW_ARRIVAL')) }}
         </div>
         <div class="col-md-6 col-12 my-1">
-            {{ form.checkbox(setting('SEND_MAIL_AFTER_NEW_ARRIVAL'), "Envoyer un email après nouvel arrivage", false, setting_value('SEND_MAIL_AFTER_NEW_ARRIVAL')) }}
+            {{ form.checkbox(setting('SEND_MAIL_AFTER_NEW_ARRIVAL'), "Envoyer un email après nouvel arrivage UL", false, setting_value('SEND_MAIL_AFTER_NEW_ARRIVAL')) }}
         </div>
         <div class="col-md-6 col-12 my-1">
             {{ form.checkbox(setting('AUTO_PRINT_LU'), "Impressions cochées par défaut", false, setting_value('AUTO_PRINT_LU')) }}
@@ -23,7 +23,7 @@
         <div class="col-md-6 col-12 my-1">
             {% set location = setting_value('MVT_DEPOSE_DESTINATION', 'App\\Entity\\Emplacement') %}
 
-            {{ form.select(setting('MVT_DEPOSE_DESTINATION'), "Emplacement de destination des arrivages", false, {
+            {{ form.select(setting('MVT_DEPOSE_DESTINATION'), "Emplacement de destination des arrivages UL", false, {
                 value: location ? location.id,
                 items: location ? [{value: location.id, label: location.label}],
                 type: 'location'
@@ -33,7 +33,7 @@
         <div class="col-md-6 col-12 my-1">
             {% set location = setting_value('DROP_OFF_LOCATION_IF_CUSTOMS', 'App\\Entity\\Emplacement') %}
 
-            {{ form.select(setting('DROP_OFF_LOCATION_IF_CUSTOMS'), 'Emplacement de dépose des arrivages si champ "douane" coché', false, {
+            {{ form.select(setting('DROP_OFF_LOCATION_IF_CUSTOMS'), 'Emplacement de dépose des arrivages UL si champ "douane" coché', false, {
                 value: location ? location.id,
                 items: location ? [{value: location.id, label: location.label}],
                 type: 'location'
@@ -43,7 +43,7 @@
         <div class="col-md-6 col-12 my-1">
             {% set location = setting_value('DROP_OFF_LOCATION_IF_EMERGENCY', 'App\\Entity\\Emplacement') %}
 
-            {{ form.select(setting('DROP_OFF_LOCATION_IF_EMERGENCY'), 'Emplacement de dépose des arrivages si urgence détectée', false, {
+            {{ form.select(setting('DROP_OFF_LOCATION_IF_EMERGENCY'), 'Emplacement de dépose des arrivages UL si urgence détectée', false, {
                 value: location ? location.id,
                 items: location ? [{value: location.id, label: location.label}],
                 type: 'location'

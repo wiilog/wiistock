@@ -620,12 +620,32 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/{reference}/data", name="get_reference_data", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
-    public function getReferenceData(ReferenceArticle $reference)
+    public function getReferenceData(ReferenceArticle $reference, EntityManagerInterface $entityManager)
     {
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $locations = [];
+        if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+            $locations = Stream::from($reference->getStorageRules())
+                ->map(function (StorageRule $rule) use ($articleRepository, $reference) {
+                    $location = $rule->getLocation();
+                    $quantity = $articleRepository->countForRefOnLocation($reference, $location);
+
+                    return [
+                        'location' => [
+                            'id' => $location->getId(),
+                            'label' => $location->getLabel(),
+                        ],
+                        'quantity' => intval($quantity),
+                    ];
+                })
+                ->toArray();
+        }
         return $this->json([
             'label' => $reference->getLibelle(),
             'buyer' => FormatHelper::user($reference->getBuyer()),
-            'stockQuantity' => $reference->getQuantiteStock()
+            'stockQuantity' => $reference->getQuantiteStock(),
+            'quantityType' => $reference->getTypeQuantite(),
+            'locations' => json_encode($locations),
         ]);
     }
 
