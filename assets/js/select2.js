@@ -89,7 +89,6 @@ export default class Select2 {
                         data: params => Select2.includeParams($element, params),
                         processResults: (data) => {
                             const $search = $element.parent().find(`.select2-search__field`);
-
                             if (data.error) {
                                 $search.addClass(`is-invalid`);
 
@@ -107,6 +106,13 @@ export default class Select2 {
                                     $element.attr("data-length", data.availableResults);
                                 }
 
+                                if (data.results.length === 1 && $element.is(`[data-auto-select]`)) {
+                                    setTimeout(() => {
+                                        if (data.results[0].text === $search.val()) {
+                                            $element.parent().find('.select2-results__option').mouseup();
+                                        }
+                                    }, 10);
+                                }
                                 return data;
                             }
                         }
