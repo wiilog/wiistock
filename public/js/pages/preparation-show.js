@@ -91,6 +91,14 @@ function startPicking($button, managementType) {
                 ];
             }
             tableArticleSplitting = initDataTable('tableSplittingArticles', tableSplittingArticlesConfig);
+            InitModal(modalEditLigneArticle, submitEditLigneArticle, urlEditLigneArticle, {
+                tables: [tableArticle],
+                success: (response) =>{
+                    if(response.needReload){
+                        window.location.reload();
+                    }
+                }
+            });
             $('#modalSplitting').modal('show');
         });
     }
@@ -99,7 +107,14 @@ function startPicking($button, managementType) {
 let urlEditLigneArticle = Routing.generate('prepa_edit_ligne_article', true);
 let modalEditLigneArticle = $("#modalEditLigneArticle");
 let submitEditLigneArticle = $("#submitEditLigneArticle");
-InitModal(modalEditLigneArticle, submitEditLigneArticle, urlEditLigneArticle, {tables: [tableArticle]});
+InitModal(modalEditLigneArticle, submitEditLigneArticle, urlEditLigneArticle, {
+    tables: [tableArticle],
+    success: (response) =>{
+        if(response.needReload){
+            window.location.reload();
+        }
+    }
+});
 
 function submitSplitting($submit) {
     if (!$submit.hasClass('loading')) {

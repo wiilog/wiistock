@@ -149,7 +149,7 @@ class PreparationController extends AbstractController
         $preparationStatut = $preparation->getStatut()?->getCode();
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
-            || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
+            || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() === $this->getUser());
 
         if (isset($demande)) {
             $rows = [];
@@ -472,9 +472,10 @@ class PreparationController extends AbstractController
     public function editLigneArticle(Request                $request,
                                      EntityManagerInterface $entityManager): Response
     {
+        $needReload = false;
         $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
         $preparationOrderReferenceLineRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
-
+        $statutRepository = $entityManager->getRepository(Statut::class);
         if ($data = json_decode($request->getContent(), true)) {
 
             /** @var PreparationOrderArticleLine|PreparationOrderReferenceLine $line */
@@ -497,9 +498,19 @@ class PreparationController extends AbstractController
             if (isset($data['quantite'])) {
                 $line->setPickedQuantity(max($data['quantite'], 0));
             }
+            $preparation = $line->getPreparation();
+            $onGoingStatut = $statutRepository->findOneBy(['nom' => Preparation::STATUT_EN_COURS_DE_PREPARATION]);
+            if ($preparation->getStatut() != $onGoingStatut) {
+                $preparation->setStatut($onGoingStatut);
+                $preparation->setUtilisateur($this->getUser());
+                $needReload = true;
+            }
             $entityManager->flush();
 
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'needReload' => $needReload,
+            ]);
         }
         throw new BadRequestHttpException();
     }
