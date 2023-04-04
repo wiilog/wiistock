@@ -5,9 +5,12 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Service\CSVExportService;
+use App\Service\FieldsParamService;
+use App\Service\FormatService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\UrgenceService;
@@ -21,63 +24,46 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 
-/**
- * @Route("/urgences")
- */
+#[Route('/urgences')]
 class UrgencesController extends AbstractController
 {
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
-     * @var UrgenceService
-     */
-    private $urgenceService;
-
-    public function __construct(UserService $userService,
-                                UrgenceService $urgenceService)
+    #[Route('/', name: 'emergency_index')]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE])]
+    public function index(EntityManagerInterface $entityManager)
     {
-        $this->userService = $userService;
-        $this->urgenceService = $urgenceService;
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+        return $this->render('urgence/index.html.twig', [
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_EMERGENCY),
+            'newEmergency' => new Urgence(),
+            'types' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_EMERGENCY, FieldsParam::FIELD_CODE_EMERGENCY_TYPE)
+        ]);
     }
 
-    /**
-     * @Route("/", name="urgence_index")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_URGE})
-     */
-    public function index()
+    #[Route('/api', name: 'emergency_api', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE], mode: HasPermission::IN_JSON)]
+    public function api(Request $request, UrgenceService $emergencyService): Response
     {
-        return $this->render('urgence/index.html.twig');
-    }
-
-    /**
-     * @Route("/api", name="urgence_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_URGE}, mode=HasPermission::IN_JSON)
-     */
-    public function api(Request $request): Response
-    {
-        $data = $this->urgenceService->getDataForDatatable($request->request);
+        $unassociated = $request->query->get('unassociated');
+        $data = $emergencyService->getDataForDatatable($request->request, $unassociated ? [['field' => 'unassociated', 'value' => true]] : []);
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/creer", name="urgence_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/creer', name: 'emergency_new', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
                         SpecificService $specificService,
-                        UrgenceService $urgenceService): Response
-    {
-        $data = json_decode($request->getContent(), true);
+                        UrgenceService $urgenceService,
+                        FieldsParamService $fieldsParamService,
+                        FormatService $formatService): Response {
+        $data = $fieldsParamService->checkForErrors($entityManager, $request->request , FieldsParam::ENTITY_CODE_EMERGENCY, true)->all();
 
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
 
         $urgence = new Urgence();
 
-        $urgenceService->updateUrgence($urgence, $data);
+        $urgenceService->updateUrgence($urgence, $data, $formatService);
 
         $response = [];
 
@@ -105,10 +91,8 @@ class UrgencesController extends AbstractController
         return new JsonResponse($response);
     }
 
-    /**
-     * @Route("/supprimer", name="urgence_delete", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer', name: 'emergency_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
@@ -127,37 +111,36 @@ class UrgencesController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api-modifier", name="urgence_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-modifier', name: 'emergency_edit_api', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
         if ($data = json_decode($request->getContent(), true)) {
             $urgenceRepository = $entityManager->getRepository(Urgence::class);
             $urgence = $urgenceRepository->find($data['id']);
-            $json = $this->renderView('urgence/modalEditUrgenceContent.html.twig', [
-                'urgence' => $urgence,
+            $json = $this->renderView('urgence/formEmergency.html.twig', [
+                'emergency' => $urgence,
+                'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_EMERGENCY),
+                'types' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_EMERGENCY, FieldsParam::FIELD_CODE_EMERGENCY_TYPE)
             ]);
 
             return new JsonResponse($json);
         }
         throw new BadRequestHttpException();
     }
-
-    /**
-     * @Route("/modifier", name="urgence_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[route('/modifier', name: 'emergency_edit', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request,
                          SpecificService $specificService,
                          EntityManagerInterface $entityManager,
-                         UrgenceService $urgenceService): Response
+                         UrgenceService $urgenceService,
+                         FieldsParamService $fieldsParamService,
+                         FormatService $formatService): Response
     {
-
-        $data = json_decode($request->getContent(), true);
-
+        $data = $fieldsParamService->checkForErrors($entityManager, $request->request , FieldsParam::ENTITY_CODE_EMERGENCY, false)->all();
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
         $urgence = $urgenceRepository->find($data['id']);
         $response = [];
@@ -166,7 +149,7 @@ class UrgencesController extends AbstractController
             $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
                 || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
-            $urgenceService->updateUrgence($urgence, $data);
+            $urgenceService->updateUrgence($urgence, $data, $formatService);
             $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
                 $urgence->getDateStart(),
                 $urgence->getDateEnd(),
@@ -194,9 +177,7 @@ class UrgencesController extends AbstractController
         return new JsonResponse($response);
     }
 
-    /**
-     * @Route("/verification", name="urgence_check_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/verification', name: 'emergency_check_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
 	public function checkUrgenceCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response
 	{
 		$urgenceId = json_decode($request->getContent(), true);
@@ -219,6 +200,7 @@ class UrgencesController extends AbstractController
 	}
 
     #[Route("/csv", name: "get_emergencies_csv", options: ["expose" => true], methods: ["GET"])]
+    #[HasPermission([Menu::TRACA, Action::EXPORT], mode: HasPermission::IN_JSON)]
     public function getEmergenciesCSV(EntityManagerInterface $entityManager,
                                       Request                $request,
                                       UrgenceService         $emergencyService,

@@ -174,6 +174,8 @@ class UrgenceRepository extends EntityRepository {
                     $qb->andWhere('u.dateStart <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
+                case 'unassociated':
+                    $qb->andWhere('u.lastArrival IS NULL');
             }
         }
 
@@ -195,7 +197,8 @@ class UrgenceRepository extends EntityRepository {
                                 'b_search.username LIKE :value',
                                 'p_search.nom LIKE :value',
                                 'c_search.label LIKE :value',
-                                'a_search.numeroArrivage LIKE :value'
+                                'a_search.numeroArrivage LIKE :value',
+                                'u.type LIKE :value',
                             ) . ')')
                         ->setParameter('value', '%' . $search . '%');
                 }

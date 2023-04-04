@@ -354,6 +354,21 @@ class SettingsController extends AbstractController {
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                     ],
                 ],
+                self::MENU_EMERGENCIES => [
+                    "label" => "Urgences",
+                    "right" => Action::SETTINGS_DISPLAY_EMERGENCIES,
+                    "menus" => [
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                        ],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                    ],
+                ],
             ],
         ],
         self::CATEGORY_TRACKING => [
@@ -590,6 +605,7 @@ class SettingsController extends AbstractController {
     public const MENU_HANDLINGS = "services";
     public const MENU_REQUEST_TEMPLATES = "modeles_demande";
     public const MENU_TRUCK_ARRIVALS = "arrivages_camion";
+    public const MENU_EMERGENCIES = "urgences";
 
     public const MENU_TRANSPORT_REQUESTS = "demande_transport";
     public const MENU_ROUNDS = "tournees";
@@ -1307,6 +1323,24 @@ class SettingsController extends AbstractController {
                         "type" => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
                     ],
                 ],
+                self::MENU_EMERGENCIES => [
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
+                        $emergencyTypeField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_EMERGENCY, FieldsParam::FIELD_CODE_EMERGENCY_TYPE);
+                        return [
+                            "emergencyType" => [
+                                "field" => $emergencyTypeField->getId(),
+                                "modalType" => $emergencyTypeField->getModalType(),
+                                "elements" => Stream::from($emergencyTypeField->getElements() ?? [])
+                                    ->map(fn(string $element) => [
+                                        "label" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                        ];
+                    },
+                ]
             ],
             self::CATEGORY_TRACKING => [
                 self::MENU_ROUNDS => fn() => [

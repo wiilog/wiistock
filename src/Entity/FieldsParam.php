@@ -160,6 +160,24 @@ class FieldsParam {
     const FIELD_CODE_EXPECTED_AT = 'expectedAt';
     const FIELD_LABEL_EXPECTED_AT = 'date attendue';
 
+    const ENTITY_CODE_EMERGENCY = "urgence";
+    const FIELD_CODE_EMERGENCY_BUYER = "buyer";
+    const FIELD_CODE_EMERGENCY_PROVIDER = "provider";
+    const FIELD_CODE_EMERGENCY_COMMAND_NUMBER = "commandNumber";
+    const FIELD_CODE_EMERGENCY_POST_NUMBER= "postNumber";
+    const FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER = "trackingNumber";
+    const FIELD_CODE_EMERGENCY_CARRIER = "emergencyCarrier";
+    const FIELD_CODE_EMERGENCY_TYPE = "type";
+
+    const FIELD_LABEL_EMERGENCY_BUYER = "acheteur";
+    const FIELD_LABEL_EMERGENCY_PROVIDER = "fournisseur";
+    const FIELD_LABEL_EMERGENCY_COMMAND_NUMBER = "numéro de commande";
+    const FIELD_LABEL_EMERGENCY_POST_NUMBER= "numéro de poste";
+    const FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER = "numéro de tracking transporteur";
+    const FIELD_LABEL_EMERGENCY_CARRIER = "transporteur";
+    const FIELD_LABEL_EMERGENCY_TYPE = "type d'urgence";
+
+
     public const MEMORY_UNKEEPABLE_FIELDS = [
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
         FieldsParam::FIELD_CODE_PJ_ARRIVAGE,

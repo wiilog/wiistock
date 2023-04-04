@@ -101,6 +101,7 @@ const initializers = {
     modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
     trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
+    trace_urgences_champs_fixes: initializeEmergenciesFixedFields,
 };
 
 const saveCallbacks = {
@@ -1216,5 +1217,29 @@ function initializeArticleNativeCountriesTable() {
             label: `<input type='text' name='label' class='form-control data needed' data-global-error="Libellé"/>`,
             active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
         },
+    });
+}
+
+function initializeEmergenciesFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-emergencies-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `urgence`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
     });
 }

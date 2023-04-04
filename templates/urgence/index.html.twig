@@ -6,7 +6,7 @@
 {% block page_filter %}
     {% include 'filters/filtersUrgence.html.twig' with {
         page: 'PAGE_URGENCES',
-        tableSelector: '#tableUrgences',
+        tableSelector: '#tableEmergencies',
         callback: 'null',
         needsDateFormatting: true
     } %}
@@ -20,54 +20,58 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                <div class="btn-group">
-                    {% if hasRightToCreate %}
-                        <button data-toggle="modal"
-                                data-target="#modalNewUrgence"
-                                class="btn btn-primary split-button d-flex align-items-center">
-                            <span class="wii-icon wii-icon-plus mr-2"></span>
-                            {{ trans('Traçabilité', 'Urgences', 'Nouvelle urgence') }}
-                        </button>
-                    {% elseif hasRightToExport %}
-                        <button type="button"
-                                class="btn btn-primary"
-                                onclick="saveExportFile('get_emergencies_csv', true, {}, false, Translation.of('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.'), true)">
-                            <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
-                            {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
-                        </button>
-                    {% endif %}
-
-                    {% if hasRightToCreate and hasRightToExport %}
-                        <button type="button"
-                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                            <div class="dropdown-item pointer"
-                                 title="exportCsvUrgence"
-                                 onclick="saveExportFile('get_emergencies_csv', true, {}, false, Translation.of('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.'), true)">
-                                <i class="fa fa-file-csv"></i>
-                                {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
+                {% include('utils/action-buttons/header-buttons.html.twig') with {
+                    actions: [
+                        {
+                            hasRight: hasRightToCreate,
+                            title: trans('Traçabilité', 'Urgences', 'Nouvelle urgence'),
+                            icon: "wii-icon wii-icon-plus",
+                            attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalNewEmergency",
+                            },
+                        },
+                        {
+                            hasRight: hasRightToExport,
+                            title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
+                            icon: "fa fa-file-csv",
+                            attributes: {
+                                "onclick": "saveExportFile('get_emergencies_csv', true, {}, false, Translation.of('Général', null, 'Modale',  'Veuillez saisir des dates dans le filtre en haut de page.'), true)",
+                            },
+                        }
+                    ],
+                } %}
             </div>
         </div>
         <div class="row">
             <div class="col-12">
-                <table id="tableUrgences" class="table w-100">
+                <table id="tableEmergencies" class="table w-100">
                 </table>
             </div>
         </div>
     </div>
 
-    {% include 'urgence/modalNewUrgence.html.twig' %}
+    {% include 'urgence/modalNewEmergency.html.twig' with {
+        'emergency': newEmergency,
+        'fieldsParam': fieldsParam,
+    } %}
+
     {% include 'urgence/modalDeleteUrgence.html.twig' %}
-    {% include 'urgence/modalEditUrgence.html.twig' %}
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalEditEmergency',
+        size: 'modal-lg',
+        header: {
+            title: trans('Traçabilité', 'Urgences', 'Modifier une urgence')
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'}
+            ],
+        }
+    } %}
+
 {% endblock %}
 
 {% block javascripts %}

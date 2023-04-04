@@ -1,0 +1,20 @@
+<div class="modal fade" id="modalNewEmergency" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: '<span title="nouvelle urgence">' ~ trans('Traçabilité', 'Urgences', 'Nouvelle urgence', false) ~ '</span>'
+            } %}
+            <div class="modal-body modal-input container-fluid">
+               {% include 'urgence/formEmergency.html.twig' with {
+                   emergency, fieldsParam
+               } %}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'}
+                ],
+            } %}
+        </div>
+    </div>
+</div>
