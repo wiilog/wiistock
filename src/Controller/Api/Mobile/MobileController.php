@@ -2657,10 +2657,15 @@ class MobileController extends AbstractApiController
                     $entityManager->persist($correctionMovement);
                 }
                 $presentArticle
-                    ->setFirstUnavailableDate(null)
-                    ->setLastAvailableDate($now)
                     ->setStatut($activeStatus)
                     ->setDateLastInventory($now);
+                if ($presentArticle->getQuantite() <= 0) {
+                    $presentArticle
+                        ->setFirstUnavailableDate($now);
+                } else {
+                    $presentArticle
+                        ->setLastAvailableDate($now);
+                }
             } else {
                 $missingArticle = $article;
                 if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
