@@ -26,3 +26,5 @@ FROM truck_arrival
          INNER JOIN utilisateur on utilisateur.id = truck_arrival.operator_id
          INNER JOIN truck_arrival_line on truck_arrival.id = truck_arrival_line.truck_arrival_id
          LEFT JOIN reserve on truck_arrival.id = reserve.truck_arrival_id
+
+GROUP BY truck_arrival.id
