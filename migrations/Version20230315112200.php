@@ -27,6 +27,10 @@ final class Version20230315112200 extends AbstractMigration
             }
             $this->addSql('UPDATE inventory_mission_rule SET requester_id = creator_id WHERE requester_id IS NULL');
         }
+        else {
+            $this->addSql('UPDATE inventory_mission SET creator_id = NULL WHERE 1;');
+            $this->addSql('DELETE FROM inventory_mission_rule WHERE 1;');
+        }
     }
 
 
