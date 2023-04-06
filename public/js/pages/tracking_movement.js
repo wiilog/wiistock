@@ -134,9 +134,9 @@ $.fn.dataTable.ext.search.push(
 
         let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
-        return ((dateMin == "" && dateMax == "")
-            || (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            || (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+        return ((dateMin === "" && dateMax === "")
+            || (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
+            || (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
             || (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax)));
     }
 );
@@ -284,20 +284,8 @@ function switchMvtCreationType($input) {
             $modal.find(`select[name=pack]`).select2({
                 tags: true,
                 tokenSeparators: [" "],
-                tokenizer: function (input, selection, callback) {
-                    let term = input.term;
-                    if (term.indexOf(' ') < 0)
-                        return input;
-
-                    let parts = term.split(/ /);
-                    for (let i = 0; i < parts.length; i++) {
-                        let part = parts[i].trim();
-                        callback({
-                            id: part,
-                            text: part
-                        });
-                    }
-                    return { term: parts.join(' ') }; // Rejoin unmatched tokens
+                tokenizer: (input, selection, callback) => {
+                    return Wiistock.Select2.tokenizer(input, selection, callback, ' ');
                 },
             });
         }
