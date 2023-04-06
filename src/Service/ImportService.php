@@ -83,7 +83,8 @@ class ImportService
             "quantite",
             "referenceReference",
             "articleFournisseurReference",
-            "fournisseurReference"
+            "fournisseurReference",
+            "rfidTag"
         ],
         Import::ENTITY_REF => [
             "buyer",
@@ -1171,6 +1172,10 @@ class ImportService
                 $this->throwError('Le prix unitaire doit être un nombre.');
             }
             $article->setPrixUnitaire($data['prixUnitaire']);
+        }
+
+        if (isset($data['rfidTag'])) {
+            $article->setRFIDtag($data['rfidTag']);
         }
 
         if (isset($data['batch'])) {
