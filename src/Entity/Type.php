@@ -127,7 +127,7 @@ class Type {
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $logo = null;
 
-    #[ORM\OneToOne(mappedBy: "type", targetEntity: TranslationSource::class)]
+    #[ORM\OneToOne(mappedBy: "type", targetEntity: TranslationSource::class, cascade: ["remove"])]
     private ?TranslationSource $labelTranslation = null;
 
     #[ORM\ManyToMany(targetEntity: TagTemplate::class, mappedBy: 'types')]

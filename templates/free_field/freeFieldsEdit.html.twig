@@ -80,7 +80,7 @@
                                     }]
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_TEXT') %}
-                                {{ form.input(freeField.id, label, needed, entityValue, {
+                                {{ form.input(freeField.id, displayedLabel, needed, entityValue, {
                                     additionalAttributes: [{
                                         name: 'data-init',
                                         value: entityValue
