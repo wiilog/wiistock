@@ -1069,7 +1069,7 @@ class ReferenceArticleController extends AbstractController
                 $data['freeField'][0] => $data['freeField'][1]
             ], $entityManager);
         }
-
+        $barcodesToPrint = [];
         try {
             $number = 'C-' . (new DateTime('now'))->format('YmdHis');
             $collecte = new Collecte();
@@ -1121,10 +1121,11 @@ class ReferenceArticleController extends AbstractController
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
                 $article->setQuantite(1)->setCreatedOnKioskAt($date);
             }
-            $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
-            $options['barcode'] = $article->getBarCode();
-            $kioskService->printLabel($options, $entityManager);
 
+            $barcodesToPrint[] = [
+                'text' => $kioskService->getTextForLabel($article, $entityManager),
+                'barcode' => $article->getBarCode()
+            ];
             $ordreCollecte->addArticle($article);
             $entityManager->persist($ordreCollecte);
         } catch(Exception $exception) {
@@ -1152,7 +1153,9 @@ class ReferenceArticleController extends AbstractController
             $message = strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage));
         }
         $refArticleDataService->sendMailEntryStock($reference, $to, $message);
-
+        foreach ($barcodesToPrint as $barcode) {
+            $kioskService->printLabel($barcode, $entityManager);
+        }
         return new JsonResponse([
                 'success' => true,
                 'msg' => "Validation d'entrée de stock",
