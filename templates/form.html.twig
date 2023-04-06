@@ -248,7 +248,7 @@
         {% set fax = true %}
     {% endif %}
 
-    {% if options.isLabelFree is defined and options.isLabelFree is not same as(true) %}
+    {% if (options.isLabelFree is defined and options.isLabelFree is not same as(true)) or inline %}
     <label class="{{ options.labelWidth ?? 'w-100' }} {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
     {% endif %}
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
