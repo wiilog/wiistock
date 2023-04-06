@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade {{ setting_value('KEEP_HANDLING_MODAL_OPEN') ? 'keep-handling-modal-open' }}" data-modal-type="new" id="modalNewHandling" role="dialog">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
@@ -76,18 +78,19 @@
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% set isFieldRequired = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                         <div class="form-group col-md-6 col-12">
-                            <label class="wii-field-name">{{ trans( 'Demande', 'Général', 'Urgences') }}</label>
-                            <div class="w-100">
-                                <select
-                                    class="form-control input-sm data"
-                                    name="emergency">
-                                    <option value="">{{ trans( 'Demande', 'Général', 'Non urgent') }}</option>
-                                    {% for emergency in emergencies %}
-                                        <option value="{{ emergency }}">{{ emergency }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                            {{ form.select('emergency', trans('Demande', 'Général', 'Urgences', false) ~ (isFieldRequired ? '*'), false, {
+                                items:emergencies|map((item) => {
+                                    value: item,
+                                    label: item
+                                }),
+                                emptyOption: {
+                                    selected: true,
+                                    text: trans( 'Demande', 'Général', 'Non urgent', false),
+                                    value : '',
+                                },
+                            } ) }}
                         </div>
                     {% endif %}
 

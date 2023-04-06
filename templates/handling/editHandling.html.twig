@@ -77,8 +77,9 @@
                         </div>
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.select('emergency', trans( 'Demande', 'Général', 'Urgence'), true, {
+                                {{ form.select('emergency', trans( 'Demande', 'Général', 'Urgence')~(required ? '*'), false, {
                                     items: emergencies,
                                     required: false,
                                     emptyOption : { value : null , text : trans( 'Demande', 'Général', 'Non urgent', false), selected : emergency ? false : true},
@@ -191,6 +192,7 @@
                             editAttachments : true,
                             fieldNameClass : 'wii-subtitle',
                             override: true,
+                            bigger: 'w-100'
                         } %}
                     </div>
                 </div>
@@ -202,7 +204,7 @@
                     </div>
                 </div>
             </div>
-            <div class="wii-box ">
+            <div class="wii-box">
                 <div class="header wii-title">{{ trans('Général', null, 'Modale', 'Champs libres') }}</div>
                 <div class="content">
                     {% include 'free_field/freeFieldsEdit.html.twig' with {
@@ -265,7 +267,7 @@
                     </div>
                     <div class="col-6 d-flex flex-column">
                         <div class="box-item my-2">
-                            <span class="wii-field-name">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation') }}</span>
+                            <span class="wii-field-name font-weight-bolder">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation') }}</span>
                             <span class="wii-field-text">
                                 {{ app.user.dateFormat == 'd/m/Y'
                                     ? (handling.validationDate
