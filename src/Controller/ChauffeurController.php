@@ -82,7 +82,7 @@ class ChauffeurController extends AbstractController
     public function new(Request $request,
                         EntityManagerInterface $entityManager): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
+        if ($data = $request->request->all()) {
             $chauffeur = new Chauffeur();
 
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
