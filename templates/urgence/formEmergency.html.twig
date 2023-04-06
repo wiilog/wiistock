@@ -8,7 +8,6 @@
 }) }}
 <div class="row">
     <div class="col-6 mb-2">
-        {% dump emergency %}
         {{ form.input('dateStart', trans('Traçabilité', 'Urgences', 'Date de début', false), true, emergency.id ? emergency.dateStart|date('Y-m-d\\TH:i') : "now"|date("Y-m-d\\T00:00"), {
             type: 'datetime-local',
         } ) }}
