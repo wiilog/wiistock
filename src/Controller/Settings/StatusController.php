@@ -6,12 +6,14 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Service\DispatchService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
@@ -187,6 +189,7 @@ class StatusController extends AbstractController
                 "msg" => "Impossible de supprimer le statut car il est un statut par défaut",
             ]);
         } else {
+            $statusHistoryRepository = $manager->getRepository(StatusHistory::class);
             $constraints = [
                 "un litige" => $entity->getDisputes(),
                 "une demande d'achat" => $entity->getPurchaseRequests(),
@@ -202,6 +205,7 @@ class StatusController extends AbstractController
                 "une demande d'acheminement" => $entity->getDispatches(),
                 "une demande de transfert" => $entity->getTransferRequests(),
                 "un ordre de transfert" => $entity->getTransferOrders(),
+                "un historique de statut" => new ArrayCollection($statusHistoryRepository->findBy(["status" => $entity])),
             ];
 
             $constraints = Stream::from($constraints)
@@ -211,8 +215,10 @@ class StatusController extends AbstractController
                 ->join(", ");
 
             if (!$constraints) {
-                $manager->remove($entity->getLabelTranslation());
-                $manager->flush();
+                if ($entity->getLabelTranslation()) {
+                    $manager->remove($entity->getLabelTranslation());
+                    $manager->flush();
+                }
 
                 $manager->remove($entity);
                 $manager->flush();
