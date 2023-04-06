@@ -283,10 +283,14 @@ function createArrival(form = null) {
                 $driverAddButton.attr('disabled', false);
             }
         }
-        $noTrackingSelect.on('select2:unselect', function(element) {
+
+        $modal.find('.noTrackingSection').arrive('.select2-results__option--highlighted', function () {
+            $(this).removeClass('select2-results__option--highlighted');
+        });
+        $noTrackingSelect.off('select2:unselect').on('select2:unselect', function(element) {
             $noTrackingSelect.find(`option[value=${element.params.data.id}]`).remove();
         })
-        $noTrackingSelect.on(`select2:select`, function (element) {
+        $noTrackingSelect.off('select2:select').on(`select2:select`, function (element) {
             const data = element.params.data || {};
             if (data.arrivals_id) {
                 displayAlertModal(
