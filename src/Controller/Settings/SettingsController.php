@@ -1789,7 +1789,7 @@ class SettingsController extends AbstractController {
 
             $label = $type?->getLabel();
             $description = $type?->getDescription();
-            $color = $type?->getColor() ?: "#000000";
+            $color = $type?->getColor() ?: "#3353D7";
             $label = htmlspecialchars($label);
             $description = htmlspecialchars($description);
 
