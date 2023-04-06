@@ -76,10 +76,7 @@ class StorageRuleRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getByPuchaseRequestRuleWithStockQuantity(PurchaseRequestScheduleRule $rule) {
-        $zones = Stream::from($rule->getZones()->toArray())->map(fn(Zone $zone) => $zone->getId())->toArray();
-        $suppliers = Stream::from($rule->getSuppliers()->toArray())->map(fn(Fournisseur $supplier) => $supplier->getId())->toArray();
-
+    public function findByPurchaseRequestRuleWithStockQuantity(PurchaseRequestScheduleRule $rule) {
         return $this->createQueryBuilder('storage_rule')
             ->join('storage_rule.referenceArticle', 'join_referenceArticleRule')
             ->join('join_referenceArticleRule.articlesFournisseur', 'join_articlesFournisseurRef')
@@ -91,11 +88,11 @@ class StorageRuleRepository extends EntityRepository
             ->andWhere('join_zone.id in (:zones)')
             ->andWhere('join_fournisseur.id in (:suppliers)')
             ->andHaving('(SUM(IF(join_statut.code = :available, join_article.quantite, 0)) - MAX(IF(join_statut.code = :available, join_article.quantite, 0))) < storage_rule.securityQuantity')
-            ->setParameters(array(
-                'zones' => $zones,
-                'suppliers' => $suppliers,
+            ->setParameters([
+                'zones' => $rule->getZones(),
+                'suppliers' => $rule->getSuppliers(),
                 'available' => Article::STATUT_ACTIF
-            ))
+            ])
             ->groupBy('storage_rule')
             ->getQuery()
             ->getResult();

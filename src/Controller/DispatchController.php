@@ -1344,64 +1344,13 @@ class DispatchController extends AbstractController {
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    public function apiWaybill(Request $request,
-                               EntityManagerInterface $entityManager,
-                               SpecificService $specificService,
+    public function apiWaybill(EntityManagerInterface $entityManager,
+                               DispatchService $dispatchService,
                                Dispatch $dispatch): JsonResponse {
 
-        /** @var Utilisateur $loggedUser */
-        $loggedUser = $this->getUser();
+        $dispatchData = $dispatchService->getWayBillDataForUser($this->getUser(), $dispatch, $entityManager);
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
-
-        $userSavedData = $loggedUser->getSavedDispatchWaybillData();
-        $dispatchSavedData = $dispatch->getWaybillData();
-
-        $now = new DateTime('now');
-
-        $isEmerson = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
-
-        $consignorUsername = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME);
-        $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
-            ? $consignorUsername
-            : ($isEmerson ? $loggedUser->getUsername() : null);
-
-        $consignorEmail = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
-        $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
-            ? $consignorEmail
-            : ($isEmerson ? $loggedUser->getEmail() : null);
-
-        $defaultData = [
-            'carrier' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CARRIER),
-            'dispatchDate' => $now->format('Y-m-d'),
-            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
-            'receiver' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_RECEIVER),
-            'locationFrom' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_FROM),
-            'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
-            'consignorUsername' => $consignorUsername,
-            'consignorEmail' => $consignorEmail,
-            'receiverUsername' => $isEmerson ? $loggedUser->getUsername() : null,
-            'receiverEmail' => $isEmerson ? $loggedUser->getEmail() : null
-        ];
-
-        $wayBillData = array_reduce(
-            array_keys(Dispatch::WAYBILL_DATA),
-            function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
-                $carry[$dataKey] = (
-                    $dispatchSavedData[$dataKey]
-                    ?? ($userSavedData[$dataKey]
-                        ?? ($defaultData[$dataKey]
-                            ?? null))
-                );
-
-                return $carry;
-            },
-            []
-        );
-
-        $html = $this->renderView('dispatch/modalPrintWayBillContent.html.twig', array_merge($wayBillData, [
-            'packsCounter' => $dispatch->getDispatchPacks()->count()
-        ]));
+        $html = $this->renderView('dispatch/modalPrintWayBillContent.html.twig', $dispatchData);
 
         return $this->json([
             "success" => true,
@@ -1665,7 +1614,7 @@ class DispatchController extends AbstractController {
         $commentData = $request->request->get("comment");
         $dispatchesToSignIds = $request->query->all('dispatchesToSign');
 
-        $dispatchService->finishGroupedSignature(
+        $response = $dispatchService->finishGroupedSignature(
             $entityManager,
             $locationData,
             $signatoryTrigramData,
@@ -1673,28 +1622,25 @@ class DispatchController extends AbstractController {
             $statusData,
             $commentData,
             $dispatchesToSignIds,
+            false,
+            $this->getUser()
         );
 
         $entityManager->flush();
-        return $this->json([
-            'success' => true,
-            'redirect' => $this->generateUrl('dispatch_index'),
-            'msg' => 'Signature groupée effectuée avec succès',
-        ]);
+        return $this->json($response);
     }
 
     #[Route("/{dispatch}/dispatch-packs-api", name: "dispatch_packs_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
     public function getDispatchPacksApi(EntityManagerInterface  $entityManager,
                                          Dispatch               $dispatch,
                                          Request                $request): JsonResponse {
 
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
-        $start = $request->query->get('start') ?: 0;
-        $search = $request->query->get('search') ?: 0;
+        $start = 0;
+        $search = $request->query->get('search') ?: null;
 
-        $listLength = 5;
+        $listLength = $dispatch->getDispatchPacks()->count();
 
         $result = $dispatchPackRepository->getByDispatch($dispatch, [
             "start" => $start,
@@ -1709,9 +1655,9 @@ class DispatchController extends AbstractController {
                 "dispatchPacks" => $result["data"],
                 "total" => $result["total"],
                 "current" => $start,
-                "currentPage" => floor($start / $listLength),
+                "currentPage" => $listLength === 0 ? 1 : floor($start / $listLength),
                 "pageLength" => $listLength,
-                "pagesCount" => ceil($result["total"] / $listLength),
+                "pagesCount" => $listLength === 0 ? 1 : ceil($result["total"] / $listLength),
             ]),
         ]);
     }

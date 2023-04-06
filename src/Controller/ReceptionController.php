@@ -1675,14 +1675,6 @@ class ReceptionController extends AbstractController {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $packRepository = $entityManager->getRepository(Pack::class);
-
-        $location = isset($data['pack']) ? $packRepository->find($data['pack'])?->getLastDrop()?->getEmplacement() : null;
-        if (isset($location) && !$location->ableToBeDropOff(new Pack())) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => "Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement " . $location->getLabel(),
-            ]);
-        }
         $createDirectDelivery = $settingRepository->getOneParamByLabel(Setting::DIRECT_DELIVERY);
         $paramCreatePrepa = $settingRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
 
@@ -1706,6 +1698,7 @@ class ReceptionController extends AbstractController {
 
             $articleArray['receptionReferenceArticle'] = $receptionReferenceArticle;
             $articleArray['refArticle'] = $receptionReferenceArticle->getReferenceArticle();
+            $articleArray['conform'] = $receptionReferenceArticle->getAnomalie();
 
             if(!isset($totalQuantities[$receptionReferenceArticle->getId()])) {
                 $totalQuantities[$receptionReferenceArticle->getId()] = [
@@ -1864,6 +1857,11 @@ class ReceptionController extends AbstractController {
             $pack = $receptionReferenceArticle->getReceptionLine()->getPack();
             /** @var ReferenceArticle $referenceArticle */
             $referenceArticle = $articleArray['refArticle'];
+
+            $location = isset($data['pack']) ? $pack?->getLastDrop()?->getEmplacement() : null;
+            if (isset($location) && !$location->ableToBeDropOff($pack)) {
+                throw new FormException("Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement " . $location->getLabel());
+            }
 
             if(isset($receptionLocationId)) {
                 $articleArray['emplacement'] = $receptionLocationId;

@@ -17,35 +17,35 @@
     <p>{{ translateIn(language, 'Général', null, 'Emails', 'Bonjour,', false) }}</p>
     <p>
         {{ isUrgentArrival
-            ? translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'Votre commande urgente est arrivée :', false)
-            : translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'Votre commande est arrivée :', false)
+            ? translateIn(language, 'Traçabilité', 'Arrivages UL', 'Email arrivage UL', 'Votre commande urgente est arrivée :', false)
+            : translateIn(language, 'Traçabilité', 'Arrivages UL', 'Email arrivage UL', 'Votre commande est arrivée :', false)
         }}
     </p>
     <ul>
-        <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage', false) }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
+        <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Divers', 'N° d\'arrivage UL', false) }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
 
         {% if numeroCommandeList|length > 0 %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false) }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false) }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
         {% endif %}
 
         {% if arrival.fournisseur %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur', false) }} : <strong>{{ arrival.fournisseur.nom }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur', false) }} : <strong>{{ arrival.fournisseur.nom }}</strong></li>
         {% endif %}
 
         {% if arrival.transporteur %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur', false) }} : <strong>{{ arrival.transporteur.label }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur', false) }} : <strong>{{ arrival.transporteur.label }}</strong></li>
         {% endif %}
 
         {% if arrival.noTracking %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur', false) }} : <strong>{{ arrival.noTracking }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur', false) }} : <strong>{{ arrival.noTracking }}</strong></li>
         {% endif %}
 
         {% if arrival.projectNumber %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet', false) }} : <strong>{{ arrival.projectNumber }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'Numéro de projet', false) }} : <strong>{{ arrival.projectNumber }}</strong></li>
         {% endif %}
 
         {% if arrival.businessUnit %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit', false) }} : <strong>{{ arrival.businessUnit }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'Business unit', false) }} : <strong>{{ arrival.businessUnit }}</strong></li>
         {% endif %}
 
         <li>

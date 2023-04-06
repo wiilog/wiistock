@@ -7,7 +7,7 @@ const PAGE_HAND = 'handling';
 const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
-const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_LU_ARRIVAL = 'LUArrival';
 const PAGE_IMPORT = 'import';
 const PAGE_EXPORT = 'export';
 const PAGE_ALERTE = 'alerte';
@@ -31,6 +31,7 @@ const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
 const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
+const PAGE_TRUCK_ARRIVAL = 'truckArrival';
 const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
@@ -709,7 +710,7 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
         params[$(this).attr('name')] = $(this).val();
     });
     if (formIsValid) {
-        $.post(path, JSON.stringify(params), function (response) {
+        $.post(path, params, function (response) {
             if (response && response.success) {
                 if ($select) {
                     let option = new Option(response.text, response.id, true, true);
@@ -846,6 +847,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'article':
                 case 'managers':
                 case 'deliverers':
+                case 'drivers':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);
@@ -884,6 +886,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'emergency':
                 case 'customs':
                 case 'frozen':
+                case 'carrierTrackingNumberNotAssigned':
                     if (element.value === '1') {
                         $('#' + element.field + '-filter').attr('checked', 'checked');
                     }
@@ -1003,8 +1006,9 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     if (buttonConfig && buttonConfig.length > 0) {
         $modalFooter.removeClass('d-none');
         const $wrapper = $('<div/>', {class: 'row justify-content-center'}).prepend(
-            ...buttonConfig.map(({action, ...config}) => {
-                return $('<div/>', {class: 'col-auto'}).append($('<button/>', {
+            ...buttonConfig.map(({action, ...config}, index) => {
+                const classes = 'col-auto ' + (index === 0 ? 'pr-0' : 'pl-2');
+                return $('<div/>', {class: classes}).append($('<button/>', {
                     ...config,
                     ...(action
                         ? {

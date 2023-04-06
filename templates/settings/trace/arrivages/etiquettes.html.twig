@@ -40,7 +40,7 @@
         <div class="col-12 col-md-6">
             <div class="row align-items-center">
                 <div class="col-12 my-1">
-                    {{ form.checkbox(setting('INCLUDE_EMERGENCY_IN_LABEL'), 'Afficher "Urgence" si une urgence est détectée dans un arrivage', false, setting_value('INCLUDE_EMERGENCY_IN_LABEL')) }}
+                    {{ form.checkbox(setting('INCLUDE_EMERGENCY_IN_LABEL'), 'Afficher "Urgence" si une urgence est détectée dans un arrivage UL', false, setting_value('INCLUDE_EMERGENCY_IN_LABEL')) }}
                 </div>
                 <div class="col-sm-7 col-12 my-1">
                     {{ form.input(setting('EMERGENCY_TEXT_LABEL'), "Intitulé urgence sur étiquette", false, setting_value('EMERGENCY_TEXT_LABEL')) }}
@@ -53,7 +53,7 @@
             </div>
             <div class="row align-items-center">
                 <div class="col-12 my-1">
-                    {{ form.checkbox(setting('INCLUDE_CUSTOMS_IN_LABEL'), 'Afficher "Douane" si la douane est cochée dans un arrivage', false, setting_value('INCLUDE_CUSTOMS_IN_LABEL')) }}
+                    {{ form.checkbox(setting('INCLUDE_CUSTOMS_IN_LABEL'), 'Afficher "Douane" si la douane est cochée dans un arrivage UL', false, setting_value('INCLUDE_CUSTOMS_IN_LABEL')) }}
                 </div>
                 <div class="col-sm-7 col-12 my-1">
                     {{ form.input(setting('CUSTOM_TEXT_LABEL'), "Intitulé douane sur étiquette", false, setting_value('CUSTOM_TEXT_LABEL')) }}

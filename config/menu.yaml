@@ -7,11 +7,16 @@ parameters:
         -   label: [ 'Traçabilité', 'Général', 'Traçabilité' ]
             icon: 'traca'
             sub:
-                -   label: [ 'Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages' ]
+                -   label: [ 'Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques' ]
                     path: 'arrivage_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_ARRI
+                -   label: 'Arrivages camion'
+                    path: 'truck_arrival_index'
+                    rights:
+                        menu: App\Entity\Menu::TRACA
+                        action: App\Entity\Action::DISPLAY_TRUCK_ARRIVALS
                 -   label: [ 'Traçabilité', 'Mouvements', 'Mouvements' ]
                     path: 'mvt_traca_index'
                     rights:
@@ -33,7 +38,7 @@ parameters:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_ENCO
                 -   label: [ 'Traçabilité', 'Urgences', 'Urgences' ]
-                    path: 'urgence_index'
+                    path: 'emergency_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_URGE

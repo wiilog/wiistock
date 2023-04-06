@@ -4,27 +4,30 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Attachment;
 use App\Entity\Chauffeur;
 use App\Entity\Transporteur;
 use App\Entity\Menu;
+use App\Exceptions\FormException;
+use App\Service\AttachmentService;
+use App\Service\CarrierService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/transporteur")
  */
 class TransporteurController extends AbstractController
 {
-
-    /**
-     * @Route("/api", name="transporteur_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_TRAN}, mode=HasPermission::IN_JSON)
-     */
-    public function api(EntityManagerInterface $entityManager): Response
+    #[Route("/api", name: "transporteur_api", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_TRAN], mode: HasPermission::IN_JSON)]
+    public function api(EntityManagerInterface $entityManager,
+                        Twig_Environment       $templating): Response
     {
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
@@ -33,12 +36,24 @@ class TransporteurController extends AbstractController
 
         $rows = [];
         foreach ($transporteurs as $transporteur) {
+            $charNumbers = $transporteur->getMinTrackingNumberLength() && $transporteur->getMaxTrackingNumberLength()
+                ? "De " . $transporteur->getMinTrackingNumberLength() . " à " . $transporteur->getMaxTrackingNumberLength()
+                : ($transporteur->getMinTrackingNumberLength()
+                    ? "A partir de " . $transporteur->getMinTrackingNumberLength()
+                    : ($transporteur->getMaxTrackingNumberLength()
+                        ? "Jusqu'à " . $transporteur->getMaxTrackingNumberLength()
+                        : ""));
 
             $rows[] = [
-                'Label' => $transporteur->getLabel() ?: null,
-                'Code' => $transporteur->getCode() ?: null,
-                'Nombre_chauffeurs' => $chauffeurRepository->countByTransporteur($transporteur) ,
-                'Actions' => $this->renderView('transporteur/datatableTransporteurRow.html.twig', [
+                'label' => $this->getFormatter()->carrier($transporteur),
+                'code' => $transporteur->getCode() ?: null,
+                'driversNumber' => $chauffeurRepository->countByTransporteur($transporteur),
+                'charNumbers' => $charNumbers,
+                'isRecurrent' => $this->getFormatter()->bool($transporteur->isRecurrent()),
+                'logo' => $templating->render('datatable/image.html.twig', [
+                    "image" => $transporteur->getAttachments()->get(0)
+                ]),
+                'actions' => $this->renderView('transporteur/datatableTransporteurRow.html.twig', [
                     'transporteur' => $transporteur
                 ]),
             ];
@@ -48,9 +63,7 @@ class TransporteurController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/", name="transporteur_index", methods={"GET"})
-     */
+    #[Route("/", name: "transporteur_index", methods: "GET")]
     public function index(EntityManagerInterface $entityManager): Response
     {
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
@@ -59,36 +72,77 @@ class TransporteurController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/creer", name="transporteur_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
-    public function new(EntityManagerInterface $entityManager,
-                        Request $request): Response
+    #[Route("/save", name: "transporteur_save", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
+    public function save(EntityManagerInterface $entityManager,
+                        Request                $request,
+                        AttachmentService      $attachmentService): Response
     {
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request->all();
 
 		$code = $data['code'];
 		$label = $data['label'];
+        $minTrackingNumber = $data['min-char-number'] ?? null;
+        $maxTrackingNumber = $data['max-char-number'] ?? null;
+        $isRecurrent = $data['is-recurrent'] ?? false;
+        /** @var Attachment $logo */
+        $logo = $request->files->get('logo')
+            ? $attachmentService->createAttachements([$request->files->get('logo')])[0]
+            : null;
 
+        $carrierId = $request->query->get('carrier');
+        if ($carrierId) {
+            $transporteur = $transporteurRepository->find($carrierId);
+        } else {
+            $transporteur = new Transporteur();
+        }
+
+        $countRecurrentCarrier = count($transporteurRepository->findBy(['recurrent' => true]));
+        if($countRecurrentCarrier === 10 && !$transporteur->isRecurrent() && $isRecurrent){
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Vous avez déjà renseigné 10 transporteurs récurrents',
+            ]);
+        }
 		// unicité du code et du nom transporteur
-		$codeAlreadyUsed = intval($transporteurRepository->countByCode($code));
-		$labelAlreadyUsed = intval($transporteurRepository->countByLabel($label));
+		$codeAlreadyUsed = intval($transporteurRepository->countByCode($code, $carrierId ? $transporteur : null));
+		$labelAlreadyUsed = intval($transporteurRepository->countByLabel($label, $carrierId ? $transporteur : null));
 
 		if ($codeAlreadyUsed + $labelAlreadyUsed) {
-			$msg = 'Ce ' . ($codeAlreadyUsed ? 'code ' : 'nom ') . 'de transporteur est déjà utilisé.';
-			return new JsonResponse([
-				'success' => false,
-				'msg' => $msg,
-			]);
+            $msg = 'Ce ' . ($codeAlreadyUsed ? 'code ' : 'nom ') . 'de transporteur est déjà utilisé.';
+            return new JsonResponse([
+                'success' => false,
+                'msg' => $msg,
+            ]);
 		}
 
-		$transporteur = new Transporteur();
 		$transporteur
 			->setLabel($label)
-			->setCode($code);
+			->setCode($code)
+            ->setRecurrent($isRecurrent)
+            ->setMinTrackingNumberLength($minTrackingNumber)
+            ->setMaxTrackingNumberLength($maxTrackingNumber);
+
+        if ($logo) {
+            if ($carrierId && !$transporteur->getAttachments()->isEmpty()) {
+                $attachmentToRemove = $transporteur->getAttachments()[0];
+                $transporteur->removeAttachment($attachmentToRemove);
+                $entityManager->remove($attachmentToRemove);
+            }
+            $transporteur->addAttachment($logo);
+        } else if ($carrierId && !$transporteur->getAttachments()->isEmpty() && !$data['keep-logo']) {
+            $attachmentToRemove = $transporteur->getAttachments()[0];
+            $transporteur->removeAttachment($attachmentToRemove);
+            $entityManager->remove($attachmentToRemove);
+        } else if($isRecurrent && !$logo && $transporteur->getAttachments()->isEmpty()){
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Veuillez renseigner un logo',
+            ]);
+        }
+
 		$entityManager->persist($transporteur);
 		$entityManager->flush();
 
@@ -99,75 +153,60 @@ class TransporteurController extends AbstractController
 		]);
     }
 
-    /**
-     * @Route("/api-modifier", name="transporteur_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(EntityManagerInterface $entityManager,
-                            Request $request): Response
+    #[Route("/api-template", name: "transporteur_template", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function templateForm(EntityManagerInterface $entityManager,
+                                 Request                $request): JsonResponse
     {
-        if ($data = json_decode($request->getContent(), true)) {
-            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
-            $transporteur = $transporteurRepository->find($data['id']);
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
-            $json = $this->renderView('transporteur/modalEditTransporteurContent.html.twig', [
-                'transporteur' => $transporteur,
-            ]);
+        $carrierId = $request->query->get('carrier');
+        $carrier = $carrierId
+            ? $transporteurRepository->find($carrierId)
+            : new Transporteur();
 
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($this->renderView('transporteur/modalTransporteurForm.html.twig', [
+            'carrier' => $carrier,
+        ]));
     }
 
-    /**
-     * @Route("/modifier", name="transporteur_edit", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function edit(EntityManagerInterface $entityManager,
-                         Request $request): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
-            $transporteur = $transporteurRepository->find($data['id']);
-
-            $transporteur
-                ->setLabel($data['label'])
-                ->setCode($data['code']);
-            $entityManager->flush();
-
-            return new JsonResponse();
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/supprimer", name="transporteur_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/supprimer", name: "transporteur_delete", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(EntityManagerInterface $entityManager,
-                           Request $request): Response
+                           AttachmentService      $attachmentService,
+                           CarrierService         $carrierService,
+                           Request                $request): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
-            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
-            $transporteur = $transporteurRepository->find($data['transporteur']);
+        $carrierId = $request->query->get('carrier');
 
-            if(!$transporteur->getEmergencies()->isEmpty()) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Ce transporteur est lié à une ou plusieurs urgences, vous ne pouvez pas le supprimer"
-                ]);
-            }
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+        $carrier = $transporteurRepository->find($carrierId);
 
-            $entityManager->remove($transporteur);
-            $entityManager->flush();
+        $ownerships = $carrierService->getUserOwnership($entityManager, $carrier);
+        $ownershipLinkedLabels = Stream::from($ownerships)
+            ->filterMap(fn(int $counter, string $label) => $counter > 0 ? $label : null)
+            ->join(', ');
 
-            $name = $transporteur->getLabel();
-            return $this->json([
-                'success' => true,
-                'msg' => "Le transporteur $name a bien été créé"
-            ]);
+        if(!empty($ownershipLinkedLabels)) {
+            throw new FormException("Vous ne pouvez pas supprimer ce transporteur. Il est lié à un ou plusieurs : $ownershipLinkedLabels");
         }
 
-        throw new BadRequestHttpException();
+        if (!$carrier->getAttachments()->isEmpty()) {
+            foreach ($carrier->getAttachments() as $attachment) {
+                $carrier->removeAttachment($attachment);
+                $attachmentService->deleteAttachment($attachment);
+                $entityManager->remove($attachment);
+            }
+        }
+
+        $entityManager->remove($carrier);
+        $entityManager->flush();
+
+        $name = $carrier->getLabel();
+        return $this->json([
+            'success' => true,
+            'msg' => "Le transporteur $name a bien été créé"
+        ]);
     }
+
 }

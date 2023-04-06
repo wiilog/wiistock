@@ -9,6 +9,7 @@
 <div class="row">
     {% if missionRule.id %}
         <input type="hidden" class="data" value="{{ missionRule.id }}" name="ruleId"/>
+        <input type="hidden" class="data" value="{{ missionRule.missionType }}" name="missionType"/>
         <div class="col-12">
             <div class="wii-field-name">Type de mission</div>
             <div class="wii-body-text">
@@ -57,10 +58,10 @@
         </label>
     </div>
     <div class="col-6 mt-3">
-        {{ form.select('creator', 'Demandeur', true, {
+        {{ form.select('requester', 'Demandeur', true, {
             type: 'user',
             items: {
-                (app.user.id): (app.user.username),
+                (missionRule.requester.id ?? app.user.id): (missionRule.requester.username ?? app.user.username),
             }
         }) }}
     </div>

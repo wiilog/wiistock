@@ -6,7 +6,6 @@ use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
-use App\Entity\Inventory\InventoryLocationMissionReferenceArticle;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
@@ -201,9 +200,6 @@ class ReferenceArticle
     #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: StorageRule::class, orphanRemoval: true)]
     private Collection $storageRules;
 
-    #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: InventoryLocationMissionReferenceArticle::class)]
-    private Collection $inventoryLocationMissionReferenceArticles;
-
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -223,7 +219,6 @@ class ReferenceArticle
         $this->purchaseRequestLines = new ArrayCollection();
         $this->requestTemplateLines = new ArrayCollection();
         $this->storageRules = new ArrayCollection();
-        $this->inventoryLocationMissionReferenceArticles = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
@@ -1102,42 +1097,6 @@ class ReferenceArticle
 
     public function isHandledByReference(): bool {
         return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE;
-    }
-
-    public function getInventoryLocationMissionReferenceArticles(): Collection {
-        return $this->inventoryLocationMissionReferenceArticles;
-    }
-
-    public function addInventoryLocationMissionReferenceArticle(InventoryLocationMissionReferenceArticle $inventoryLocationMissionReferenceArticle): self {
-        if (!$this->inventoryLocationMissionReferenceArticles->contains($inventoryLocationMissionReferenceArticle)) {
-            $this->inventoryLocationMissionReferenceArticles[] = $inventoryLocationMissionReferenceArticle;
-            $inventoryLocationMissionReferenceArticle->setReferenceArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeInventoryLocationMissionReferenceArticle(InventoryLocationMissionReferenceArticle $inventoryLocationMissionReferenceArticle): self {
-        if ($this->inventoryLocationMissionReferenceArticles->removeElement($inventoryLocationMissionReferenceArticle)) {
-            if ($inventoryLocationMissionReferenceArticle->getReferenceArticle() === $this) {
-                $inventoryLocationMissionReferenceArticle->setReferenceArticle(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setInventoryLocationMissionReferenceArticles(?iterable $inventoryLocationMissionReferenceArticles): self {
-        foreach($this->getInventoryLocationMissionReferenceArticles()->toArray() as $inventoryLocationMissionReferenceArticle) {
-            $this->removeInventoryLocationMissionReferenceArticle($inventoryLocationMissionReferenceArticle);
-        }
-
-        $this->inventoryLocationMissionReferenceArticles = new ArrayCollection();
-        foreach($inventoryLocationMissionReferenceArticles ?? [] as $inventoryLocationMissionReferenceArticle) {
-            $this->addInventoryLocationMissionReferenceArticle($inventoryLocationMissionReferenceArticle);
-        }
-
-        return $this;
     }
 
     public function getStorageRules(): Collection {

@@ -31,6 +31,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -421,9 +422,8 @@ class DispatchService {
             if($sendReport){
                 $receiverEmailUses[] = $dispatch->getLocationFrom()->getEmail();
                 $receiverEmailUses[] = $dispatch->getLocationTo()->getEmail();
-                $receiverEmailUses[] = $signatory?->getEmail();
+                $receiverEmailUses[] = $signatory;
                 $receiverEmailUses = Stream::from($receiverEmailUses)->filter()->unique()->toArray();
-                // TODO WIIS-8832 ajouter les emails du nouveau champ sur les ache nomade
             }
 
             $partialDispatch = !(
@@ -1357,7 +1357,7 @@ class DispatchService {
                                            $commentData,
                                            $dispatchesToSignIds,
                                            $fromNomade = false,
-                                           $user = null) {
+                                           $user = null): array {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
@@ -1372,19 +1372,13 @@ class DispatchService {
             if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::TAKING){
                 $locationId = $locationData['from'];
             } else {
-                return [
-                    'success' => false,
-                    'msg' => "Le statut sélectionné ne correspond pas à un processus d'enlèvement."
-                ];
+                throw new FormException("Le statut sélectionné ne correspond pas à un processus d'enlèvement.");
             }
         } else if($locationData['to']) {
             if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::DROP){
                 $locationId = $locationData['to'];
             } else {
-                return [
-                    'success' => false,
-                    'msg' => "Le statut sélectionné ne correspond pas à un processus de livraison."
-                ];
+                throw new FormException("Le statut sélectionné ne correspond pas à un processus de livraison.");
             }
         }
         $location = $locationRepository->find($locationId);
@@ -1395,43 +1389,22 @@ class DispatchService {
                 ? $userRepository->findOneBy(['username' => $signatoryTrigramData])
                 :  null);
         if(!$signatoryPasswordData || !$signatoryTrigramData){
-            return [
-                'success' => false,
-                'msg' => 'Le trigramme et le code signataire doivent être rempli.'
-            ];
+            throw new FormException('Le trigramme et le code signataire doivent être rempli.');
         }
 
         if(!$signatory || !password_verify($signatoryPasswordData, $signatory->getSignatoryPassword())){
-            if($fromNomade){
-                return [
-                    'success' => false,
-                    'msg' => 'Le trigramme signataire ou le code est incorrect.'
-                ];
-            }
-            throw new FormException("Code signataire invalide");
+            throw new FormException('Le trigramme signataire ou le code est incorrect.');
         }
 
         $locationSignatories = Stream::from($location?->getSignatories() ?: []);
 
         if($locationSignatories->isEmpty()){
             $locationLabel = $location?->getLabel() ?: "invalide";
-            if($fromNomade){
-                return [
-                    'success' => false,
-                    'msg' => "L'emplacement filtré {$locationLabel} n'a pas de signataire renseigné"
-                ];
-            }
             throw new FormException("L'emplacement filtré {$locationLabel} n'a pas de signataire renseigné");
         }
 
         $availableSignatory = $locationSignatories->some(fn(Utilisateur $locationSignatory) => $locationSignatory->getId() === $signatory->getId());
         if(!$availableSignatory) {
-            if($fromNomade){
-                return [
-                    'success' => false,
-                    'msg' => "Le signataire renseigné n'est pas correct"
-                ];
-            }
             throw new FormException("Le signataire renseigné n'est pas correct");
         }
 
@@ -1441,12 +1414,6 @@ class DispatchService {
             : [];
 
         if($groupedSignatureStatus->getCommentNeeded() && empty($commentData)) {
-            if($fromNomade){
-                return [
-                    'success' => false,
-                    'msg' => "Vous devez remplir le champ commentaire pour valider"
-                ];
-            }
             throw new FormException("Vous devez remplir le champ commentaire pour valider");
         }
 
@@ -1456,12 +1423,6 @@ class DispatchService {
             ->reindex();
 
         if ($dispatchTypes->count() !== 1) {
-            if($fromNomade){
-                return [
-                    'success' => false,
-                    'msg' => "Vous ne pouvez sélectionner qu'un seul type d'acheminement pour réaliser une signature groupée"
-                ];
-            }
             throw new FormException("Vous ne pouvez sélectionner qu'un seul type d'acheminement pour réaliser une signature groupée");
         }
 
@@ -1473,12 +1434,6 @@ class DispatchService {
                 ->isEmpty());
 
             if (!$containsReferences) {
-                if($fromNomade){
-                    return [
-                        'success' => false,
-                        'msg' => "L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée"
-                    ];
-                }
                 throw new FormException("L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée");
             }
 
@@ -1493,6 +1448,47 @@ class DispatchService {
                 ->setTreatedBy($user)
                 ->setCommentaire($newCommentDispatch . $commentData);
 
+            $takingLocation = $dispatch->getLocationFrom();
+            $dropLocation = $dispatch->getLocationTo();
+
+            foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
+                $pack = $dispatchPack->getPack();
+                $trackingTaking = $this->trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $takingLocation,
+                    $user,
+                    $now,
+                    $fromNomade,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    [
+                        'quantity' => $dispatchPack->getQuantity(),
+                        'from' => $dispatch,
+                        'removeFromGroup' => true,
+                        'attachments' => $dispatch->getAttachments(),
+                    ]
+                );
+                $trackingDrop = $this->trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $dropLocation,
+                    $user,
+                    $now,
+                    $fromNomade,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $dispatchPack->getQuantity(),
+                        'from' => $dispatch,
+                        'attachments' => $dispatch->getAttachments(),
+                    ]
+                );
+
+                $entityManager->persist($trackingTaking);
+                $entityManager->persist($trackingDrop);
+
+                $dispatchPack->setTreated(true);
+            }
+
             $entityManager->flush();
 
             if($groupedSignatureStatus->getSendReport()){
@@ -1502,17 +1498,58 @@ class DispatchService {
 
         return [
             'success' => true,
-            'msg' => "Signature groupée effectuée avec succès."
+            'msg' => 'Signature groupée effectuée avec succès',
         ];
     }
 
     public function getGroupedSignatureTypes(?string $groupedSignatureType = ''): string
     {
         $emptyOption = "<option value=''></option>";
-        return $emptyOption .= Stream::from(Dispatch::GROUPED_SIGNATURE_TYPES)
+        $options = Stream::from(Dispatch::GROUPED_SIGNATURE_TYPES)
             ->map(function(string $type) use ($groupedSignatureType) {
                 $selected = $type === $groupedSignatureType ? 'selected' : '';
                 return "<option value='{$type}' {$selected}>{$type}</option>";
-            })->join('');
+            })
+            ->join('');
+        return $emptyOption . $options;
+    }
+
+    public function getWayBillDataForUser(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager) {
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $userSavedData = $user->getSavedDispatchWaybillData();
+        $dispatchSavedData = $dispatch->getWaybillData();
+
+        $now = new DateTime('now');
+
+        $isEmerson = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
+
+        $consignorUsername = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME);
+        $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
+            ? $consignorUsername
+            : ($isEmerson ? $user->getUsername() : null);
+
+        $consignorEmail = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
+        $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
+            ? $consignorEmail
+            : ($isEmerson ? $user->getEmail() : null);
+
+        $defaultData = [
+            'carrier' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CARRIER),
+            'dispatchDate' => $now->format('Y-m-d'),
+            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'receiver' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_RECEIVER),
+            'locationFrom' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_FROM),
+            'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
+            'consignorUsername' => $consignorUsername,
+            'consignorEmail' => $consignorEmail,
+            'receiverUsername' => $isEmerson ? $user->getUsername() : null,
+            'receiverEmail' => $isEmerson ? $user->getEmail() : null,
+            'packsCounter' => $dispatch->getDispatchPacks()->count()
+        ];
+        return Stream::from(Dispatch::WAYBILL_DATA)
+            ->keymap(fn(bool $data, string $key) => [$key, $dispatchSavedData[$key] ?? $userSavedData[$key] ?? $defaultData[$key] ?? null])
+            ->toArray();
     }
 }

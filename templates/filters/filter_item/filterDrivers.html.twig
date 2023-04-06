@@ -1,0 +1,12 @@
+{% import 'form.html.twig' as form %}
+
+<div class="col-auto m-1 select-filter pr-0">
+    <div class="input-group">
+        {{ form.select('drivers', null, false, {
+            type: 'driver',
+            multiple: true,
+            placeholder: 'Chauffeur',
+            inputClass: ' filter-select2 w-100'
+        }) }}
+    </div>
+</div>

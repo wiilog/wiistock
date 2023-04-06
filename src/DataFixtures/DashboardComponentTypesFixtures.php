@@ -61,8 +61,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::ONGOING_PACKS,
             'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
-        'Nombre d\'arrivages quotidiens' => [
-            'hint' => 'Nombre d\'arrivages créés par jour',
+        'Nombre d\'arrivages UL quotidiens' => [
+            'hint' => 'Nombre d\'arrivages UL créés par jour',
             'exampleValues' => [
                 'chartColors' => [
                     Dashboard\ComponentType::DEFAULT_CHART_COLOR
@@ -115,8 +115,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::LATE_PACKS,
         ],
-        'Nombre d\'arrivages et d\'UL quotidiens' => [
-            'hint' => 'Nombre d\'arrivages et d\'UL créés par jour',
+        'Nombre d\'arrivages UL et d\'UL quotidiens' => [
+            'hint' => 'Nombre d\'arrivages UL et d\'UL créés par jour',
             'exampleValues' => [
                 'stack' => true,
                 'label' => 'Arrivages',
@@ -167,27 +167,47 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
         'Suivi des transporteurs' => [
-            'hint' => 'Transporteurs ayant effectué un arrivage dans la journée',
+            'hint' => 'Transporteurs ayant effectué un arrivage UL dans la journée',
             'exampleValues' => [
-                'carriers' => [
-                    'TRANS1',
-                    'TRANS2',
-                    'TRANS3',
-                ],
+                'subtitle' => 'TRANS1, TRANS2, TRANS3',
+                'count' => 4,
+
                 'textColor-1' => "#000000",
                 'textBold-1' => false,
                 'textItalic-1' => false,
                 'textUnderline-1' => false,
+
                 'textColor-2' => "#000000",
                 'textBold-2' => false,
                 'textItalic-2' => false,
                 'textUnderline-2' => false,
+
+
+                'textColor-3' => "#3353D7",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
+
+                'textColor-9' => "#000",
+                'textBold-9' => false,
+                'textItalic-9' => false,
+                'textUnderline-9' => false,
+
+                'textColor-10' => "#D73353",
+                'textBold-10' => false,
+                'textItalic-10' => false,
+                'textUnderline-10' => false,
+
+                'subCounts' => [
+                    '<span>Numéros de tracking transporteur non associés</span>',
+                    '<span class="text-wii-black">Dont</span> <span class="font-">3</span> <span class="text-wii-black">en retard</span>'
+                ]
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::CARRIER_TRACKING,
             'meterKey' => Dashboard\ComponentType::CARRIER_TRACKING,
         ],
-        'Nombre d\'associations Arrivages - Réceptions' => [
+        'Nombre d\'associations Arrivages UL - Réceptions' => [
             'hint' => 'Nombre de réceptions de traçabilité par jour',
             'exampleValues' => [
                 'chartColors' => [
@@ -214,8 +234,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::RECEIPT_ASSOCIATION,
         ],
-        'Nombre d\'arrivages et d\'UL hebdomadaires' => [
-            'hint' => 'Nombre d\'arrivage et d\'UL créés par semaine',
+        'Nombre d\'arrivages UL et d\'UL hebdomadaires' => [
+            'hint' => 'Nombre d\'arrivage UL et d\'UL créés par semaine',
             'exampleValues' => [
                 'stack' => true,
                 'label' => 'Arrivages',
@@ -501,9 +521,9 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
         ],
         'Urgences à recevoir' => [
-            'hint' => 'Nombre d\'urgences sur arrivage encore non réceptionnées',
+            'hint' => 'Nombre d\'urgences sur arrivage UL encore non réceptionnées',
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
-            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
+            'template' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
             'meterKey' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
             'exampleValues' => [
                 'count' => 7,
@@ -518,7 +538,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             ],
         ],
         'Urgences du jour' => [
-            'hint' => 'Nombre d\'urgences sur arrivage devant être réceptionnées dans la journée',
+            'hint' => 'Nombre d\'urgences sur arrivage UL devant être réceptionnées dans la journée',
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES,

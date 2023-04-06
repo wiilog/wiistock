@@ -1,0 +1,16 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+
+        <div class="col-md-6 col-12 my-1">
+            {{ form.select(setting('ARRIVAL_EMERGENCY_TRIGGERING_FIELDS'), "Champs déclenchant une urgence", true, {
+                value: setting_value('ARRIVAL_EMERGENCY_TRIGGERING_FIELDS')|split(','),
+                items: constant('App\\Entity\\Urgence::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS'),
+                multiple: true,
+                type: null,
+                noEmptyOption: true,
+            }) }}
+        </div>
+    </div>
+</div>

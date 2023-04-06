@@ -1,11 +1,11 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages') }}{% endblock %}
-{% block title_tooltip %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages') }}{% endblock %}
+{% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques') }}{% endblock %}
+{% block title_tooltip %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques') }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersArrivage.html.twig' with {
-        'page': 'PAGE_ARRIVAGE',
+        'page': 'PAGE_LU_ARRIVAL',
         'tableSelector': '#arrivalsTable',
         'needsDateFormatting': true,
         'callback': '() => {clicked = true;
@@ -34,7 +34,7 @@
                                 disabled
                                 onclick="openArrivalCreationModal()">
                             <span class="wii-icon wii-icon-plus mr-2"></span>
-                            {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nouvel arrivage') }}
+                            {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Nouvel arrivage UL') }}
                         </button>
                     {% elseif hasRightToExport %}
                         <button type="button"
@@ -67,7 +67,7 @@
                         </a>
                         <a class="dropdown-item pointer dispatch-mode-button d-none">
                             <i class="fas fa-exchange-alt mr-2"></i>
-                            {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Entête', 'Acheminer') }}
+                            {{ trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Entête', 'Acheminer') }}
                         </a>
                     </div>
                 </div>
@@ -76,12 +76,12 @@
                 <div class="dispatch-mode-container d-none">
                     <button type="button"
                             class="btn btn-outline-primary cancel" disabled>
-                        {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Annuler acheminer') }}
+                        {{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Annuler acheminer') }}
                     </button>
                     <button type="button"
                             class="btn btn-primary validate" disabled>
                         <span class="wii-icon wii-icon-check-white mr-2 align-self-center"></span>
-                        {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Valider arrivages à acheminer') }}
+                        {{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Valider arrivages UL à acheminer') }}
                     </button>
                 </div>
             </div>
@@ -102,6 +102,7 @@
     <input id="arrivalFilters" value="{{ initial_filters }}" hidden>
     <input id="arrivalForm" value="{{ initial_form|json_encode }}" hidden>
     <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
+    <input id="openNewModal" value="{{ openNewModal }}" hidden>
 
     {% include "arrivage/modalListPacks.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {

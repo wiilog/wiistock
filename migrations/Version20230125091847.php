@@ -34,6 +34,5 @@ final class Version20230125091847 extends AbstractMigration
         $this->addSql('UPDATE emplacement SET zone_id = LAST_INSERT_ID() WHERE zone_id IS NULL;');
     }
 
-    public function down(Schema $schema): void
-    {}
+    public function down(Schema $schema): void {}
 }

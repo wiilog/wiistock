@@ -48,6 +48,8 @@ const ROUTES = {
     provider: 'ajax_select_provider',
     nativeCountries: 'ajax_select_native_countries',
     supplierArticles: 'ajax_select_supplier_articles',
+    driver: 'ajax_select_driver',
+    truckArrivalLine: 'ajax_select_truck_arrival_line',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -102,7 +104,6 @@ export default class Select2 {
                         data: params => Select2.includeParams($element, params),
                         processResults: (data) => {
                             const $search = $element.parent().find(`.select2-search__field`);
-
                             if (data.error) {
                                 $search.addClass(`is-invalid`);
 
@@ -120,6 +121,13 @@ export default class Select2 {
                                     $element.attr("data-length", data.availableResults);
                                 }
 
+                                if (data.results.length === 1 && $element.is(`[data-auto-select]`)) {
+                                    setTimeout(() => {
+                                        if (data.results[0].text === $search.val()) {
+                                            $element.parent().find('.select2-results__option').mouseup();
+                                        }
+                                    }, 10);
+                                }
                                 return data;
                             }
                         }

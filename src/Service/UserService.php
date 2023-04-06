@@ -8,6 +8,7 @@ use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Livraison;
@@ -119,6 +120,7 @@ class UserService
         $inventoryMissionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $purchaseRequestScheduleRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -131,8 +133,15 @@ class UserService
         $isUsedInArrivals = $arrivageRepository->countByUser($user);
         $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
         $hasSignatoryLocation = $locationRepository->countLocationByUser($user);
-        $hasInventoryMissionRules = $inventoryMissionRuleRepository->count(['creator' => $user]);
-        $hasInventoryMissions = $inventoryMissionRepository->count(['requester' => $user]);
+        $hasInventoryMissionRules = (
+            $inventoryMissionRuleRepository->count(['creator' => $user])
+            + $inventoryMissionRuleRepository->count(['requester' => $user])
+        );
+        $hasInventoryMissions = (
+            $inventoryMissionRepository->count(['requester' => $user])
+            + $inventoryMissionRepository->count(['validator' => $user])
+            + $inventoryLocationMissionRepository->count(['operator' => $user])
+        );
         $hasPurchaseRequestShcheduleRules = $purchaseRequestScheduleRuleRepository->count(['requester' => $user]);
 
         return [
@@ -198,6 +207,7 @@ class UserService
             'track' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_TRACK, $user),
             'group' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_GROUP, $user),
             'ungroup' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_UNGROUP, $user),
+            'truckArrival' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRUCK_ARRIVALS, $user),
             'demande' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
             'inventoryManager' => $this->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),
             'groupedSignature' => $this->hasRightFunction(Menu::DEM, Action::GROUPED_SIGNATURE, $user),

@@ -100,7 +100,8 @@ const initializers = {
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
-    stock_articles_creation_nomade_rfid: initializeMobileRFIDCreation
+    trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
+    trace_urgences_champs_fixes: initializeEmergenciesFixedFields,
 };
 
 const saveCallbacks = {
@@ -873,84 +874,6 @@ function initializeInventoryCategoriesTable(){
     });
 }
 
-function initializeInventoryMissionsTable($container){
-    $container.on(`click`, `.force-missions`, function() {
-        AJAX.route(`POST`, `settings_mission_rules_force`)
-            .json()
-            .then(() => Flash.add(`success`, `Les missions d'inventaire ont été générées`));
-    });
-
-    const table = EditableDatatable.create(`#missionRulesTable`, {
-        route: Routing.generate('settings_mission_rules_api', true),
-        deleteRoute: `settings_delete_mission_rule`,
-        mode: MODE_CLICK_EDIT_AND_ADD,
-        save: SAVE_MANUALLY,
-        search: false,
-        paginate: false,
-        scrollY: false,
-        scrollX: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`, required: true},
-            {data: `categories`, title: `Catégorie(s)`, required: true},
-            {data: `periodicity`, title: `Périodicité`, required: true},
-            {data: `duration`, title: `Durée`, required: true},
-        ],
-        form: {
-            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-            label: `<input type='text' name='label' class='form-control data needed' data-global-error='Libellé'/>`,
-            categories: `<select name='categories' class='form-control data needed' data-s2='inventoryCategories' multiple data-parent='body' data-global-error='Catégorie(s)'></select>`,
-            periodicity: `
-                <div class='d-flex'>
-                    <input type='text' name='periodicity' class='form-control data needed mr-1 w-50px' data-global-error='Périodicité'/>
-                    <select name='periodicityUnit' class='form-control data needed maxw-150px' data-global-error='Unité de periodicité'>
-                        <option value='weeks'>semaine(s)</option>
-                        <option value='months'>mois(s)</option>
-                    </select>
-                </div>
-            `,
-            duration: `
-                <div class='d-flex'>
-                    <input type='text' name='duration' class='form-control data needed mr-1 w-50px' data-global-error='Durée'/>
-                    <select name='durationUnit' class='form-control data needed maxw-150px' data-global-error='Unité de durée'>
-                        <option value='weeks'>semaine(s)</option>
-                        <option value='months'>mois(s)</option>
-                    </select>
-                </div>
-            `,
-        },
-    });
-}
-
-function initializePurchasePlanificationTable() {
-    const table = EditableDatatable.create(`#purchasesTable`, {
-        route: Routing.generate('', true),
-        deleteRoute: ``,
-        mode: MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        search: true,
-        paginate: false,
-        scrollY: false,
-        scrollX: false,
-        columns: [
-            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `missionType`, title: `Type de mission`, required: true},
-            {data: `label`, title: `Libellé`, required: true},
-            {data: `periodicity`, title: `Périodicité`, required: true},
-            {data: `categories`, title: `Catégorie(s)`, required: true},
-            {data: `duration`, title: `Durée`, required: true},
-            {data: `creator`, title: `Créateur`, required: true},
-            {data: `lastExecution`, title: `Dernière exécution`, required: true},
-        ],
-    });
-}
-
 function initializeReceptionTypesLitige(){
     $saveButton.addClass('d-none');
     $discardButton.addClass('d-none');
@@ -1241,6 +1164,31 @@ function deleteTemplate($elem) {
     $(`input[name=${name}]`).val('1');
 }
 
+function initializeTruckArrivalFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-truck-arrival-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `truckArrivals`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+    initializeType();
+}
+
 function initializeArticleNativeCountriesTable() {
     const table = EditableDatatable.create(`#nativeCountriesTable`, {
         route: Routing.generate('settings_native_countries_api', true),
@@ -1272,5 +1220,26 @@ function initializeArticleNativeCountriesTable() {
     });
 }
 
-function initializeMobileRFIDCreation($container){
+function initializeEmergenciesFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-emergencies-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `urgence`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
 }

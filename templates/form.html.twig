@@ -190,6 +190,7 @@
                                 {% if options.editable ?? false %}data-editable{% endif %}
                                 {% if options.label ?? false %}data-label="{{ options.label }}"{% endif %}
                                 {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
+                                {% if options.autoSelect ?? false %}data-auto-select{% endif %}
                                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
                                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
                                 {% if options.minLength is defined %}data-min-length="{{ options.minLength }}"{% endif %}
@@ -241,19 +242,21 @@
 
 {% macro input(name, label, required, value = '', options = {}) %}
     {% set inline = options.inline ?? false %}
+    {% set dataInput = options.data ?? true %}
     {% set type = options.type ?? 'text' %}
     {% if type == 'fax' %}
         {% set type = 'tel' %}
         {% set fax = true %}
     {% endif %}
 
-    {% if options.isLabelFree is defined and options.isLabelFree is not same as(true) %}
-    <label class="w-100 {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
+    {% if (options.isLabelFree is defined and options.isLabelFree is not same as(true)) or inline %}
+    <label class="{{ options.labelWidth ?? 'w-100' }} {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
     {% endif %}
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
-        <input type="{{ type ?? 'text' }}" {{ fax ?? false ? 'data-fax' }}
-               class="form-control {{ options.width ?? 'w-100' }}  data {{ options.inputClass ?? '' }} {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }}"
+        <input type="{{ type }}"
+               {{ fax ?? false ? 'data-fax' }}
+               class="form-control {{ dataInput ? 'data' }} {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }} {{ options.inputClass ?? '' }} {{ options.width ?? 'w-100' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
                {% if options.autocompleteOff is defined and options.autocompleteOff %}
@@ -359,23 +362,23 @@
         {{ _self.label(label, required, inline, labelOptions) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <div class="form-group d-flex m-0">
-            <div class="preview-container stripped-background d-flex">
+            <div class="preview-container stripped-background d-flex {{ options.previewClass ?? '' }}">
                 <img src="{{ image ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ image) : '' }}"
                      id="preview-{{ name }}"
                      alt="image"
                      height="50px"
-                     class="image m-1 {{ not image ? 'd-none' }}"/>
+                     class="image m-1 {{ not image ? 'd-none' }} {{ options.imageClass ?? '' }}"/>
             </div>
             <button class="btn btn-primary d-flex p-1 align-items-center justify-content-center"
                     onclick="$('#upload-{{ name }}').click();">
                 <i class='wii-icon wii-icon-pencil w-px-20 h-px-20 bg-white'></i>
             </button>
 
-            {% if options.defaultValue is defined and options.defaultValue %}
+            {% if options.defaultValue is defined and (options.defaultValue or options.defaultValue == '') %}
                 <input type="hidden"
                        class="default-value"
                        value="{{ options.defaultValue }}"/>
-                <button class="btn btn-primary ml-1 bg-white p-1 d-flex align-items-center justify-content-center"
+                <button class="btn btn-primary btn-default-value ml-1 bg-white p-1 d-flex align-items-center justify-content-center"
                         onclick="resetImage($(this))">
                     <i class="wii-icon wii-icon-refresh bg-primary w-px-20 h-px-20"></i>
                 </button>

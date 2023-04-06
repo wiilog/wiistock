@@ -58,6 +58,7 @@ class ScheduledPurchaseRequestCommand extends Command
                 $rule->setLastRun($nextExecutionDate);
             }
         }
+        $this->em->flush();
 
         return 0;
     }

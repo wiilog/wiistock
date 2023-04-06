@@ -262,7 +262,7 @@ CREATE TABLE dw_arrivage
     fournisseur              varchar(255),
     transporteur             varchar(255),
     chauffeur                varchar(255),
-    no_tracking_transporteur varchar(255),
+    no_tracking_transporteur text,
     no_commande_bl           text,
     type                     varchar(255),
     acheteurs                text,
@@ -310,7 +310,6 @@ CREATE TABLE dw_acheminement
     business_unit                varchar(255),
     delais_traitement_attendu    float,
     delais_traitement_validation float,
-    UL                           varchar(255),
     reference					 varchar(255),
     quantite_reference			 integer,
     numero_lot					 varchar(255),
@@ -490,11 +489,6 @@ CREATE TABLE dw_litige_statut
     utilisateur varchar(255)
 );
 
-CREATE TABLE dw_informations
-(
-    version varchar(255)
-);
-
 CREATE TABLE dw_article_champs_libres
 (
     article_id 		   integer,
@@ -509,7 +503,7 @@ CREATE TABLE dw_projet_article
     date_assignation    timestamp(0)
 );
 
-CREATE TABLE dw_article
+CREATE TABLE dw_arrivage_camion
 (
     id                   		integer,
     reference 			 		varchar(255),
@@ -545,3 +539,9 @@ CREATE TABLE dw_unite_logistique
     nb_articles_contenus    integer,
     code_barre_article      varchar(255)
 );
+
+CREATE TABLE dw_informations
+(
+    version varchar(255)
+);
+

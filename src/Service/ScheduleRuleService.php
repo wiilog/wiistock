@@ -77,7 +77,12 @@ class ScheduleRuleService
 
         $goToNextWeek = false;
         if ($now->format("W") != $nextOccurrence->format("W")) {
+            $nextOccurrence = max($now, $nextOccurrence);
             $day = $rule->getWeekDays()[0];
+            if (intval($day) < intval($nextOccurrence->format('N'))
+                || (intval($day) === intval($nextOccurrence->format('N')) && $this->isTimeBefore($rule->getIntervalTime(), $nextOccurrence))) {
+                $nextOccurrence->modify('+1 week');
+            }
         } else {
             $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $now);
             $isTimeEqual = $this->isTimeEqual($rule->getIntervalTime(), $now);
@@ -112,6 +117,7 @@ class ScheduleRuleService
     public function calculateFromMonthlyRule(ScheduleRule $rule, DateTime $now, bool $instant): ?DateTime {
         $start = ($now > $rule->getBegin()) ? $now : $rule->getBegin();
         $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $start);
+        $isTimeEqual = $this->isTimeEqual($rule->getIntervalTime(), $start);
 
         $year = $start->format("Y");
         $currentMonth = $start->format("n");
@@ -121,26 +127,25 @@ class ScheduleRuleService
             ->format("j");
 
         $day = Stream::from($rule->getMonthDays())
-            ->filter(function ($day) use ($isTimeEqualOrBefore, $currentDay, $instant) {
-                $day = $day === ScheduleRule::LAST_DAY_OF_WEEK ? 32 : $day;
-                return $isTimeEqualOrBefore && !$instant
-                    ? $day > $currentDay
-                    : $day >= $currentDay;
+            ->filter(function ($day) use ($isTimeEqualOrBefore, $currentDay, $instant, $isTimeEqual, $currentLastDayMonth) {
+                $day = intval($day === ScheduleRule::LAST_DAY_OF_WEEK ? 32 : $day);
+                if ($instant && $isTimeEqual && ($day === $currentDay || ($day === 32 && $currentDay === $currentLastDayMonth))) {
+                    return true;
+                } else if ($isTimeEqualOrBefore) {
+                    return $day > $currentDay;
+                } else {
+                    return $day >= $currentDay;
+                }
             })
             ->firstOr(fn() => $rule->getMonthDays()[0]);
-
         $day = $day !== ScheduleRule::LAST_DAY_OF_WEEK ? $day : $currentLastDayMonth;
         $isDayEqual = $day == $currentDay;
         $isDayBefore = $day < $currentDay;
-
-        $ignoreCurrentMonth = ($isDayBefore || ($isDayEqual && $isTimeEqualOrBefore)) && !$instant;
+        $ignoreCurrentMonth = !($instant && $isDayEqual && $isTimeEqual) && ($isDayBefore || ($isDayEqual && $isTimeEqualOrBefore));
 
         $month = Stream::from($rule->getMonths())
             ->filter(fn($month) => $ignoreCurrentMonth ? $month > $currentMonth : $month >= $currentMonth)
-            ->firstOr(function() use ($rule, &$year, $instant) {
-                if (!$instant) {
-                    $year += 1;
-                }
+            ->firstOr(function() use ($rule, &$year) {
                 return $rule->getMonths()[0];
             });
 
@@ -211,6 +216,11 @@ class ScheduleRuleService
     private function isTimeEqualOrBefore(string $time, DateTime $date) {
         [$hour, $minute] = explode(":", $time);
         return $date->format('H') > $hour || ($date->format('H') == $hour && $date->format('i') >= $minute);
+    }
+
+    private function isTimeBefore(string $time, DateTime $date) {
+        [$hour, $minute] = explode(":", $time);
+        return $date->format('H') > $hour || ($date->format('H') == $hour && $date->format('i') > $minute);
     }
 
     private function isTimeEqual(string $time, DateTime $date) {

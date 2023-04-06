@@ -64,7 +64,7 @@ const creators = {
         callback: createIndicatorElement
     },
     [CARRIER_TRACKING]: {
-        callback: createCarrierTrackingElement
+        callback: createIndicatorElement
     },
     [DAILY_ARRIVALS]: {
         callback: createChart,
@@ -569,7 +569,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     delete remainingConfig.meterKey;
     delete remainingConfig.customContainerClass;
 
-    if(!data || data.count === undefined) {
+    if(!data) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
     }

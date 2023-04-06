@@ -3,6 +3,7 @@ let tableHistoLitige;
 let tablePacks;
 
 $(function () {
+    const query = GetRequestQuery();
     let addPacks = $('#addPacks').val();
     if (addPacks) {
         $('#btnModalAddPacks').click();
@@ -17,9 +18,9 @@ $(function () {
             printPacks: printPacks,
             printArrivage: printArrivage
         };
-        SetRequestQuery({});
         printArrival(params);
     }
+    SetRequestQuery({});
 
     $(`.dispatch-button`).on(`click`, function () {
         $(this).pushLoader(`black`);
@@ -114,8 +115,8 @@ $(function () {
             {data: 'firstDate', name: 'firstDate', title: Translation.of('Général', null, 'Zone liste', 'Date de création')},
             {data: 'status', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
             {data: 'type', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
-            {data: 'updateDate', name: 'updateDate', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Date de modification')},
-            {data: 'urgence', name: 'urgence', title: Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence'), visible: false},
+            {data: 'updateDate', name: 'updateDate', title: Translation.of('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Liste des litiges', 'Date de modification')},
+            {data: 'urgence', name: 'urgence', title: Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Urgence'), visible: false},
         ],
         rowConfig: {
             needsColor: true,
@@ -164,6 +165,10 @@ $(function () {
     $(`.new-dispute-modal`).on(`click`, function () {
         getNewDisputeModalContent($(this));
     });
+
+    if (query.reserve) {
+        $('.new-dispute-modal').click();
+    }
 });
 
 function openTableHisto() {

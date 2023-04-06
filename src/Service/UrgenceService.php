@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\Arrivage;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Setting;
@@ -37,13 +38,13 @@ class UrgenceService
         $this->security = $security;
     }
 
-    public function getDataForDatatable($params = null)
+    public function getDataForDatatable($params = null, $filters = [])
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
-		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_URGENCES, $this->security->getUser());
+		$filters = array_merge($filters, $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_URGENCES, $this->security->getUser()));
 
-		$queryResult = $urgenceRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $urgenceRepository->findByParamsAndFilters($params, $filters);
 
         $urgenceArray = $queryResult['data'];
 
@@ -77,43 +78,49 @@ class UrgenceService
             'postNb' => $urgence->getPostNb() ?? '',
             'actions' => $this->templating->render('urgence/datatableUrgenceRow.html.twig', [
                 'urgence' => $urgence
-            ])
+            ]),
+            'type' => $urgence->getType(),
         ];
     }
 
-    public function updateUrgence(Urgence $urgence, $data): Urgence {
+    public function updateUrgence(Urgence $emergency, $data, FormatService $formatService): Urgence {
         $user = $this->security->getUser();
-        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'Y-m-d\TH:i';
-        $dateStart = DateTime::createFromFormat($format, $data['dateStart']);
-        $dateEnd = DateTime::createFromFormat($format, $data['dateEnd']);
-
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
         $transporteurRepository = $this->entityManager->getRepository(Transporteur::class);
 
-        $buyer = isset($data['acheteur'])
-            ? $utilisateurRepository->find($data['acheteur'])
-            : null;
-
-        $provider = isset($data['provider'])
-            ? $fournisseurRepository->find($data['provider'])
-            : null;
-
-        $carrier = isset($data['carrier'])
-            ? $transporteurRepository->find($data['carrier'])
-            : null;
-
-        $urgence
-            ->setPostNb($data['postNb'])
-            ->setBuyer($buyer)
-            ->setProvider($provider)
-            ->setCarrier($carrier)
-            ->setTrackingNb($data['trackingNb'])
-            ->setCommande($data['commande'])
+        $dateStart = $formatService->parseDatetime($data['dateStart']);
+        $dateEnd = $formatService->parseDatetime($data['dateEnd']);
+        $emergency
             ->setDateStart($dateStart)
             ->setDateEnd($dateEnd);
 
-        return $urgence;
+        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_BUYER])) {
+            $buyer = $utilisateurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_BUYER]);
+            $emergency->setBuyer($buyer);
+        }
+        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER])) {
+            $provider = $fournisseurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER]);
+            $emergency->setProvider($provider);
+        }
+        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER])) {
+            $carrier = $transporteurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER]);
+            $emergency->setCarrier($carrier);
+        }
+        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER])) {
+            $emergency->setCommande($data[FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER]);
+        }
+        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER])) {
+            $emergency->setPostNb($data[FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER]);
+        }
+        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER])) {
+            $emergency->setTrackingNb($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER]);
+        }
+        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_TYPE])) {
+            $emergency->setType($data[FieldsParam::FIELD_CODE_EMERGENCY_TYPE]);
+        }
+
+        return $emergency;
     }
 
     /**

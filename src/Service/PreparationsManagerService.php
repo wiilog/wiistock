@@ -149,8 +149,8 @@ class PreparationsManagerService
                     $quantity,
                     $user,
                     $livraison,
-                    boolval($refArticle),
-                    $refArticle ?: $articleEntity,
+                    false,
+                    $articleEntity,
                     $preparation,
                     false,
                     $locationEndPrepa
