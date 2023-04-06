@@ -117,8 +117,6 @@ $(function() {
                                         .then(({success, msg}) => {
                                             if(success){
                                                 window.location.reload();
-                                            } else if (msg) {
-                                                Flash.add(msg, 'danger');
                                             }
                                         })
                                 ), false)
