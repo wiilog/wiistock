@@ -256,7 +256,7 @@ CREATE TABLE dw_arrivage
     fournisseur              varchar(255),
     transporteur             varchar(255),
     chauffeur                varchar(255),
-    no_tracking_transporteur varchar(255),
+    no_tracking_transporteur text,
     no_commande_bl           text,
     type                     varchar(255),
     acheteurs                text,
