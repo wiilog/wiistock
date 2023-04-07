@@ -137,23 +137,23 @@
                     {% endif %}
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;"
-                        rowspan="{{ rowspan }}">
+                        rowspan="{{ rowSpan }}">
                         {{ purchaseRequestLine.requestedQuantity }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;"
-                        rowspan="{{ rowspan }}">
+                        rowspan="{{ rowSpan }}">
                         {{ refsAndQuantities[purchaseRequestLine.id] ?? 0 }}
                     </td>
                     {% if treatedStatus %}
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;"
-                            rowspan="{{ rowspan }}">
+                            rowspan="{{ rowSpan }}">
                             {{ purchaseRequestLine.orderedQuantity ?? '-' }}
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;"
-                            rowspan="{{ rowspan }}">
+                            rowspan="{{ rowSpan }}">
                             {{ purchaseRequestLine.orderNumber ?? '-' }}
                         </td>
                     {% endif %}
