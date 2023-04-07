@@ -95,28 +95,28 @@ class UrgenceService
             ->setDateStart($dateStart)
             ->setDateEnd($dateEnd);
 
-        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_BUYER])) {
-            $buyer = $utilisateurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_BUYER]);
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_BUYER, $data)) {
+            $buyer = $data[FieldsParam::FIELD_CODE_EMERGENCY_BUYER] ? $utilisateurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_BUYER]) : null;
             $emergency->setBuyer($buyer);
         }
-        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER])) {
-            $provider = $fournisseurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER]);
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER, $data)) {
+            $provider = $data[FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER] ? $fournisseurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER]) : null;
             $emergency->setProvider($provider);
         }
-        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER])) {
-            $carrier = $transporteurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER]);
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_CARRIER, $data)) {
+            $carrier =$data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER] ?  $transporteurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER]) : null;
             $emergency->setCarrier($carrier);
         }
-        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER])) {
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER, $data)) {
             $emergency->setCommande($data[FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER]);
         }
-        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER])) {
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER, $data)) {
             $emergency->setPostNb($data[FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER]);
         }
-        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER])) {
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, $data)) {
             $emergency->setTrackingNb($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER]);
         }
-        if (isset($data[FieldsParam::FIELD_CODE_EMERGENCY_TYPE])) {
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_TYPE, $data)) {
             $emergency->setType($data[FieldsParam::FIELD_CODE_EMERGENCY_TYPE]);
         }
 

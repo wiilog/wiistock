@@ -52,6 +52,8 @@ class FieldsParamService
                 } else {
                     if ($params[$requiredAction] && !$inputBag->has($fieldName)) {
                         throw new FormException("Une erreur est presente dans le formulaire");
+                    } elseif (!$inputBag->has($fieldName) && $params[$displayAction]) {
+                        $inputBag->set($fieldName, null);
                     }
                 }
             });

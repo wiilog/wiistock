@@ -85,7 +85,7 @@ class Urgence {
         return $this->commande;
     }
 
-    public function setCommande(string $commande): self {
+    public function setCommande(?string $commande): self {
         $this->commande = $commande;
 
         return $this;
@@ -104,7 +104,7 @@ class Urgence {
         return $this->trackingNb;
     }
 
-    public function setTrackingNb(string $trackingNb): self {
+    public function setTrackingNb(?string $trackingNb): self {
         $this->trackingNb = $trackingNb;
 
         return $this;
@@ -114,7 +114,7 @@ class Urgence {
         return $this->postNb;
     }
 
-    public function setPostNb(string $postNb): self {
+    public function setPostNb(?string $postNb): self {
         $this->postNb = $postNb;
 
         return $this;
