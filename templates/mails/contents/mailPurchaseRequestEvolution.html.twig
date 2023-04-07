@@ -4,6 +4,7 @@
 
     {% set treatedStatus = purchaseRequest.status.treated %}
     {% set notTreatedStatus = purchaseRequest.status.notTreated %}
+    {% set displaySupplierArticles = notTreatedStatus %}
 
     <p>Bonjour, </p>
     {% if notTreatedStatus %}
@@ -61,7 +62,7 @@
                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
                 Emplacement (Zone)
             </th>
-            {% if notTreatedStatus %}
+            {% if displaySupplierArticles %}
                 <th class="th"
                     style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
                     Fournisseur
@@ -91,83 +92,79 @@
             {% endif %}
         </tr>
         </thead>
-        {% for purchaseRequestLine in purchaseRequest.purchaseRequestLines %}
-            <tbody>
+        <tbody>
+            {% for purchaseRequestLine in purchaseRequest.purchaseRequestLines %}
+                {% set referenceArticle = purchaseRequestLine.reference %}
+                {% set rowSpan = displaySupplierArticles
+                    ? purchaseRequestLine.reference.articlesFournisseur|length
+                    : 1 %}
                 <tr>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;"
-                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
-                        {{ purchaseRequestLine.reference.reference }}
+                        rowspan="{{ rowSpan }}">
+                        {{ referenceArticle.reference }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;"
-                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
-                        {{ purchaseRequestLine.reference.libelle }}
+                        rowspan="{{ rowSpan }}">
+                        {{ referenceArticle.libelle }}
                     </td>
                     <td class="td"
-                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}"
+                        rowspan="{{ rowSpan }}"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {% set location = purchaseRequestLine.location %}
                         {{
-                            purchaseRequestLine.location and purchaseRequestLine.location.zone
-                                ? purchaseRequestLine.location.label ~ " (" ~ purchaseRequestLine.location.zone.name ~ ")"
-                                : (purchaseRequestLine.location
-                                    ? purchaseRequestLine.location.label
+                            location and location.zone
+                                ? location.label ~ " (" ~ location.zone.name ~ ")"
+                                : (location
+                                    ? location.label
                                     : ''
                                 )
                         }}
                     </td>
-                    {% if notTreatedStatus %}
-                        {% if purchaseRequestLine.reference.articlesFournisseur is not empty %}
-                            {% set supplierArticle = purchaseRequestLine.reference.articlesFournisseur|first %}
-                            <td class="td"
-                                style="border: 1px solid black; border-bottom: none !important; padding: 10px; text-align: center;">
-                                {{ supplierArticle.fournisseur }}
-                            </td>
-                            <td class="td"
-                                style="border: 1px solid black; border-bottom: none !important; padding: 10px; text-align: center;">
-                                {{ supplierArticle.reference }}
-                            </td>
-                        {% else %}
-                            <td class="td"
-                                style="border: 1px solid black; padding: 10px; text-align: center;">
-                                -
-                            </td>
-                            <td class="td"
-                                style="border: 1px solid black; padding: 10px; text-align: center;">
-                                -
-                            </td>
-                        {% endif %}
+                    {% if displaySupplierArticles %}
+                        {% set supplierArticle = referenceArticle.articlesFournisseur is not empty
+                            ? (referenceArticle.articlesFournisseur|first)
+                            : null %}
+                        <td class="td"
+                            style="border: 1px solid black; border-bottom: none !important; padding: 10px; text-align: center;">
+                            {{ supplierArticle ? supplierArticle.fournisseur.codeReference : '-' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; border-bottom: none !important; padding: 10px; text-align: center;">
+                            {{ supplierArticle ? supplierArticle.reference : '-' }}
+                        </td>
                     {% endif %}
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;"
-                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
+                        rowspan="{{ rowspan }}">
                         {{ purchaseRequestLine.requestedQuantity }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;"
-                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
-                        {{ refsAndQuantities[purchaseRequestLine.id] }}
+                        rowspan="{{ rowspan }}">
+                        {{ refsAndQuantities[purchaseRequestLine.id] ?? 0 }}
                     </td>
                     {% if treatedStatus %}
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;"
-                            rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
+                            rowspan="{{ rowspan }}">
                             {{ purchaseRequestLine.orderedQuantity ?? '-' }}
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;"
-                            rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
+                            rowspan="{{ rowspan }}">
                             {{ purchaseRequestLine.orderNumber ?? '-' }}
                         </td>
                     {% endif %}
                 </tr>
 
-                {% if purchaseRequest.status.notTreated and purchaseRequestLine.reference.articlesFournisseur|length > 1 %}
-                    {% for supplierArticle in purchaseRequestLine.reference.articlesFournisseur[1:] %}
+                {% if displaySupplierArticles and referenceArticle.articlesFournisseur|length > 1 %}
+                    {% for supplierArticle in referenceArticle.articlesFournisseur[1:] %}
                         <tr>
                             <td class="td"
                                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                                {{ supplierArticle.fournisseur }}
+                                {{ supplierArticle.fournisseur.codeReference }}
                             </td>
                             <td class="td"
                                 style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -176,9 +173,8 @@
                         </tr>
                     {% endfor %}
                 {% endif %}
-
-            </tbody>
-        {% endfor %}
+            {% endfor %}
+        </tbody>
     </table>
 
     <br>
