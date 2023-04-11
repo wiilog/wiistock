@@ -1102,14 +1102,29 @@ class SettingsController extends AbstractController {
                     ],
                 ],
                 self::MENU_REQUESTS => [
-                    self::MENU_DELIVERIES => fn() => [
-                        "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
-                        "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
-                        "deliveryRequestBehavior" => $settingRepository->findOneBy([
-                            'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
-                            'value' => 1,
-                        ])?->getLabel(),
-                    ],
+                    self::MENU_DELIVERIES => function() use ($settingRepository, $typeRepository, $fixedFieldRepository) {
+                        $receiver = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+                        dump($receiver);
+                        return [
+                            "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
+                            "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
+                            "deliveryRequestBehavior" => $settingRepository->findOneBy([
+                                'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
+                                'value' => 1,
+                            ])?->getLabel(),
+                            "receiver" => [
+                                "field" => $receiver->getId(),
+                                "modalType" => $receiver->getModalType(),
+                                "elements" => Stream::from($receiver->getElements())
+                                    ->map(fn(Utilisateur $user) => [
+                                        "label" => $user->getUsername(),
+                                        "value" => $user->getId(),
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                        ];
+                    },
                     self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_DELIVERY);
                     },
@@ -1197,7 +1212,7 @@ class SettingsController extends AbstractController {
                             ],
                             "businessUnit" => [
                                 "field" => $businessField->getId(),
-                                "modalType" => $emergencyField->getModalType(),
+                                "modalType" => $businessField->getModalType(),
                                 "elements" => Stream::from($businessField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1561,6 +1576,8 @@ class SettingsController extends AbstractController {
                 $elements[$line['handlingType']] = $line['user'];
             }
             $field->setElements($elements);
+        } elseif ($field->getModalType() == FieldsParam::MODAL_RECEIVER) {
+            dump($request->request->get("elements"));
         }
         $manager->flush();
 

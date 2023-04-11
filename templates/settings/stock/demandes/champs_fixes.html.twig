@@ -1,5 +1,12 @@
 {% import 'form.html.twig' as form %}
 
+{% include 'settings/fixed_field_elements.html.twig' with {
+    modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DEMANDE'),
+    field: receiver.field,
+    modalType: receiver.modalType,
+    elements: receiver.elements,
+} %}
+
 <div class="wii-section">
     <div class="row">
         <div class="col-12 mb-3 wii-describe">

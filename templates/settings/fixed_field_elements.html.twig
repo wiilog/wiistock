@@ -49,6 +49,8 @@
                         {% include 'settings/fixed_field_elements_row.html.twig' %}
                     </template>
                 </div>
+            {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_RECEIVER') %}
+                ALLLLOOOOOOOO
             {% endif %}
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
