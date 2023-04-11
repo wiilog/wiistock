@@ -605,7 +605,6 @@ class ImportService
                 $trace = $throwable->getTraceAsString();
                 $importId = $this->currentImport->getId();
                 $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file($line) | $trace");
-                throw $throwable;
             }
 
             $stats['errors']++;
@@ -1233,11 +1232,20 @@ class ImportService
                 ->setConform(true);
         }
 
-        $articleFournisseur = $this->checkAndCreateArticleFournisseur(
-            $data['articleFournisseurReference'] ?? null,
-            $data['fournisseurReference'] ?? null,
-            $refArticle
-        );
+        try {
+            $articleFournisseur = $this->checkAndCreateArticleFournisseur(
+                $data['articleFournisseurReference'] ?? null,
+                $data['fournisseurReference'] ?? null,
+                $refArticle
+            );
+        } catch(Exception $exception){
+            if($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS){
+                $this->throwError('La référence article fournisseur existe déjà');
+            } else {
+                throw $exception;
+            }
+        }
+
 
         $article->setArticleFournisseur($articleFournisseur);
         if ($isNewEntity) {
