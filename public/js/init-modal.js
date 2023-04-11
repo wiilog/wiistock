@@ -20,7 +20,8 @@ let droppedFiles = [];
  *      clearOnClose: undefined|boolean,
  *      validator: undefined|function,
  *      waitDatatable: undefined|boolean,
- *      keepLoading: undefined|boolean
+ *      keepLoading: undefined|boolean,
+ *      formData: undefined|boolean
  * }} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
@@ -31,6 +32,7 @@ let droppedFiles = [];
  *   - confirmMessage Function which return promise throwing when form can be submitted
  *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
  *   - keepLoading Keep loader on submit button after receiving ajax response
+ *   - formData If true we send a FormData to the api
  */
 function InitModal($modal, submit, path, options = {}) {
     if(options.clearOnClose) {
@@ -125,15 +127,15 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, success, error, headerCallback, keepLoading, waitDatatable, waitForUserAction} = {}) {
+                             {formData, tables, keepModal, keepForm, validator, success, error, headerCallback, keepLoading, waitDatatable, waitForUserAction} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
 
     if (formValidation) {
-        const smartData = isAttachmentForm
+        const smartData = isAttachmentForm || formData
             ? createFormData(data)
             : JSON.stringify(data);
-
+console.log(formData, smartData);
         $submit.pushLoader('white');
         if (waitForUserAction) {
             return waitForUserAction()
