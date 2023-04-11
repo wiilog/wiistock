@@ -59,6 +59,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::MANAGE_PREPARATIONS_WITH_PLANNING => [
                 'default' => false,
             ],
+            Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY => [
+                'default' => false,
+            ],
             Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST => [
                 'default' => false,
                 SpecificService::CLIENT_SAFRAN_ED => true,
