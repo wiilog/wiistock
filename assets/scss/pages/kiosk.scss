@@ -619,9 +619,14 @@ h1 {
     }
 
     .ref-entry-stock-success, .article-entry-stock-success {
-        line-height: 53px;
+    line-height: 53px;
     }
 }
 
+li {
+    input.select2-search__field {
+        font-size: 25px !important;
+    }
+}
 
 
