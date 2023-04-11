@@ -105,12 +105,12 @@ class AlertService
             $entityManager->flush();
             $this->notificationService->send('notifications', 'Alerte', $content, [
                 'image' => $src
-            ], $src);
+            ]);
             $this->notificationService->send('notifications-web', 'Alerte', $content, [
                 'title' => 'Alerte',
                 'content' => $content,
                 'image' => $src
-            ], $src, true);
+            ], true);
             return true;
         }
     }
