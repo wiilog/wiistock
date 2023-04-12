@@ -30,7 +30,7 @@ $(function () {
     let modalNewSupplier = $("#modalNewFournisseur");
     let submitNewSupplier = $("#submitNewFournisseur");
     let urlNewSupplier = Routing.generate('supplier_new', true);
-    InitModal(modalNewSupplier, submitNewSupplier, urlNewSupplier, {tables: [supplierTable]});
+    InitModal(modalNewSupplier, submitNewSupplier, urlNewSupplier, {tables: [supplierTable], formData: true});
 
     let modalDeleteSupplier = $("#modalDeleteFournisseur");
     let submitDeleteSupplier = $("#submitDeleteFournisseur");

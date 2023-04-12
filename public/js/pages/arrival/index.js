@@ -4,8 +4,10 @@ let onFlyFormOpened = {};
 let clicked = false;
 let pageLength;
 let arrivalsTable;
+let hasDataToRefresh;
 
 $(function () {
+    hasDataToRefresh = false;
     const openNewModal = Boolean($('#openNewModal').val());
     if(openNewModal){
         openArrivalCreationModal();
@@ -92,6 +94,7 @@ $(function () {
     $(document).on(`change`, `.dispatch-checkbox:not(:disabled)`, function () {
         toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
     });
+
 });
 
 function initTableArrival(dispatchMode = false) {
@@ -371,14 +374,22 @@ function createArrival(form = null) {
                                 success: () => {
                                 }
                             },
-                            arrivalsTable
                         );
+                        hasDataToRefresh = true;
                     },
                 }).catch(() => {
                 });
             })
     }, 1);
 
+
+    $modal.off('hide.bs.modal.refresh').on('hide.bs.modal.refresh', function () {
+        if (hasDataToRefresh) {
+            arrivalsTable.ajax.reload(() => {
+                hasDataToRefresh = false;
+            });
+        }
+    });
     return $modal;
 }
 

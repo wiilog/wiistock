@@ -1233,13 +1233,30 @@ class ImportService
                 ->setConform(true);
         }
 
-        $articleFournisseur = $this->checkAndCreateArticleFournisseur(
-            $data['articleFournisseurReference'] ?? null,
-            $data['fournisseurReference'] ?? null,
-            $refArticle
-        );
+        $articleFournisseurReference = $data['articleFournisseurReference'] ?? null;
+        if(!$refArticle && empty($articleFournisseurReference)){
+            $this->throwError('La colonne référence article de référence ou la colonne référence article fournisseur doivent être renseignées.');
+        }
 
-        $article->setArticleFournisseur($articleFournisseur);
+        if(!$refArticle || !empty($articleFournisseurReference)){
+            try {
+                $articleFournisseur = $this->checkAndCreateArticleFournisseur(
+                    $data['articleFournisseurReference'] ?? null,
+                    $data['fournisseurReference'] ?? null,
+                    $refArticle
+                );
+                $article->setArticleFournisseur($articleFournisseur);
+            } catch(Exception $exception){
+                if($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS){
+                    $this->throwError('La référence article fournisseur existe déjà');
+                } else {
+                    throw $exception;
+                }
+            }
+        } else {
+            $articleFournisseur = $article->getArticleFournisseur();
+        }
+
         if ($isNewEntity) {
             $refReferenceArticle = $refArticle->getReference();
             $date = new DateTime('now');

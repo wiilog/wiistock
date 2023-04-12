@@ -1229,7 +1229,7 @@ function onTypeChange($select) {
 
         if ($modal.attr('id') === 'modalNewHandling') {
             $.post(Routing.generate('handling_users_by_type'), {id: type}, function (data) {
-                const $select2 = $('.modal-body select[name=receivers]');
+                const $select2 = $modal.find('select[name=receivers]');
                 $select2.empty().trigger('change');
                 Object.entries(data).forEach(([key, value]) => {
                     let option = new Option(value, key, true, true);
