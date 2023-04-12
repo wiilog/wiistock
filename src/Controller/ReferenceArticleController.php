@@ -620,12 +620,32 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/{reference}/data", name="get_reference_data", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
-    public function getReferenceData(ReferenceArticle $reference)
+    public function getReferenceData(ReferenceArticle $reference, EntityManagerInterface $entityManager)
     {
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $locations = [];
+        if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+            $locations = Stream::from($reference->getStorageRules())
+                ->map(function (StorageRule $rule) use ($articleRepository, $reference) {
+                    $location = $rule->getLocation();
+                    $quantity = $articleRepository->countForRefOnLocation($reference, $location);
+
+                    return [
+                        'location' => [
+                            'id' => $location->getId(),
+                            'label' => $location->getLabel(),
+                        ],
+                        'quantity' => intval($quantity),
+                    ];
+                })
+                ->toArray();
+        }
         return $this->json([
             'label' => $reference->getLibelle(),
             'buyer' => FormatHelper::user($reference->getBuyer()),
-            'stockQuantity' => $reference->getQuantiteStock()
+            'stockQuantity' => $reference->getQuantiteStock(),
+            'quantityType' => $reference->getTypeQuantite(),
+            'locations' => json_encode($locations),
         ]);
     }
 
@@ -1049,7 +1069,7 @@ class ReferenceArticleController extends AbstractController
                 $data['freeField'][0] => $data['freeField'][1]
             ], $entityManager);
         }
-
+        $barcodesToPrint = [];
         try {
             $number = 'C-' . (new DateTime('now'))->format('YmdHis');
             $collecte = new Collecte();
@@ -1101,10 +1121,11 @@ class ReferenceArticleController extends AbstractController
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
                 $article->setQuantite(1)->setCreatedOnKioskAt($date);
             }
-            $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
-            $options['barcode'] = $article->getBarCode();
-            $kioskService->printLabel($options, $entityManager);
 
+            $barcodesToPrint[] = [
+                'text' => $kioskService->getTextForLabel($article, $entityManager),
+                'barcode' => $article->getBarCode()
+            ];
             $ordreCollecte->addArticle($article);
             $entityManager->persist($ordreCollecte);
         } catch(Exception $exception) {
@@ -1132,7 +1153,9 @@ class ReferenceArticleController extends AbstractController
             $message = strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage));
         }
         $refArticleDataService->sendMailEntryStock($reference, $to, $message);
-
+        foreach ($barcodesToPrint as $barcode) {
+            $kioskService->printLabel($barcode, $entityManager);
+        }
         return new JsonResponse([
                 'success' => true,
                 'msg' => "Validation d'entrée de stock",

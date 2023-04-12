@@ -41,6 +41,17 @@
                             <div class="form-group">
                                 {{ form.select('refArticle', trans('Stock', 'Références', 'Référence', false), true, {
                                     type: 'reference',
+                                    additionalAttributes :[{
+                                        name: 'data-other-params',
+                                    },
+                                    {
+                                        name: 'data-other-params-type-quantity',
+                                        value: 'article',
+                                    },
+                                    {
+                                        name: 'data-other-params-status',
+                                        value: 'actif',
+                                    }],
                                 }) }}
                             </div>
                             <div class="form-group">

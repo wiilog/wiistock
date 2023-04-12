@@ -23,6 +23,8 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
+use App\Exceptions\FormException;
+use App\Entity\Zone;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -247,6 +249,10 @@ class ArticleDataService
         }
 
         $refArticle = $referenceArticleRepository->find($data['refArticle']);
+        if($refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE
+            || $refArticle->getStatut()?->getCode() !== ReferenceArticle::STATUT_ACTIF) {
+            throw new FormException('Impossible de créer un article pour une référence de type ' . $refArticle->getTypeQuantite() . ' ou dont le statut est ' . $refArticle->getStatut()?->getNom());
+        }
         $refReferenceArticle = $refArticle->getReference();
         $formattedDate = (new DateTime())->format('ym');
         $references = $articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
@@ -265,9 +271,13 @@ class ArticleDataService
         } else {
             $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
             if (!$location) {
+                $zoneRepository = $entityManager->getRepository(Zone::class);
+                $defaultZone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
+
                 $location = new Emplacement();
                 $location
-                    ->setLabel(Emplacement::LABEL_A_DETERMINER);
+                    ->setLabel(Emplacement::LABEL_A_DETERMINER)
+                    ->setZone($defaultZone);
                 $entityManager->persist($location);
             }
             $location->setIsActive(true);
@@ -401,6 +411,8 @@ class ArticleDataService
             "location" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
             "unitPrice" => $article->getPrixUnitaire(),
             "dateLastInventory" => $article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '',
+            "lastAvailableDate" => $article->getLastAvailableDate() ? $article->getLastAvailableDate()->format('d/m/Y') : '',
+            "firstUnavailableDate" => $article->getFirstUnavailableDate() ? $article->getFirstUnavailableDate()->format('d/m/Y') : '',
             "batch" => $article->getBatch(),
             "stockEntryDate" => $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i') : '',
             "expiryDate" => $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
@@ -604,6 +616,8 @@ class ArticleDataService
             ["title" => "Emplacement", "name" => "location", 'searchable' => true],
             ["title" => "Prix unitaire", "name" => "unitPrice"],
             ["title" => "Dernier inventaire", "name" => "dateLastInventory", 'searchable' => true],
+            ["title" => "Date de disponibilité constatée", "name" => "lastAvailableDate", 'searchable' => true],
+            ["title" => "Date d'épuisement constaté", "name" => "firstUnavailableDate", 'searchable' => true],
             ["title" => "Lot", "name" => "batch"],
             ["title" => "Date d'entrée en stock", "name" => "stockEntryDate", 'searchable' => true],
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
@@ -636,6 +650,8 @@ class ArticleDataService
             $article['empLabel'],
             $article['barCode'],
             $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+            $article['lastAvailableDate'] ? $article['lastAvailableDate']->format('d/m/Y H:i:s') : '',
+            $article['firstUnavailableDate'] ? $article['firstUnavailableDate']->format('d/m/Y H:i:s') : '',
             $article['batch'],
             $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
             $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',

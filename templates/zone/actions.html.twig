@@ -17,9 +17,7 @@
                 icon: "wii-icon wii-icon-trash-black",
                 attributes: {
                     "data-id": zone.id,
-                    "data-target": "#modalDeleteZone",
-                    "data-toggle": "modal",
-                    "onclick": "deleteZone("~zone.id~")",
+                    "onclick": "deleteZone($(this))",
                 },
                 hasRight: hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE'))
             }

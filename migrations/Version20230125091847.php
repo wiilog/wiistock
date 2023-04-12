@@ -24,8 +24,6 @@ final class Version20230125091847 extends AbstractMigration
         if(!$schema->hasTable('zone')){
             $this->addSql('CREATE TABLE zone (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, description LONGTEXT NOT NULL, inventory_indicator DOUBLE PRECISION DEFAULT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
             $this->addSql('ALTER TABLE emplacement ADD zone_id INT DEFAULT NULL');
-            $this->addSql('ALTER TABLE emplacement ADD CONSTRAINT FK_C0CF65F69F2C3FAB FOREIGN KEY (zone_id) REFERENCES zone (id)');
-            $this->addSql('CREATE INDEX IDX_C0CF65F69F2C3FAB ON emplacement (zone_id)');
         }
 
         $this->addSql('INSERT INTO zone(name, description) VALUES (:standardActivityZoneName, :standardActivityZoneName);', [
@@ -34,6 +32,5 @@ final class Version20230125091847 extends AbstractMigration
         $this->addSql('UPDATE emplacement SET zone_id = LAST_INSERT_ID() WHERE zone_id IS NULL;');
     }
 
-    public function down(Schema $schema): void
-    {}
+    public function down(Schema $schema): void {}
 }

@@ -7,7 +7,7 @@
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nouvel arrivage')
+                title: trans('Traçabilité', 'Arrivages UL', 'Divers', 'Nouvel arrivage UL')
             } %}
 
             <div class="modal-body modal-input container-fluid">
@@ -17,7 +17,7 @@
                         {% set supplierRequired = fieldsParam|isFieldRequired(supplierFieldCode, 'requiredCreate') %}
                         <div class="form-group col w-100">
                             <label class="wii-field-name">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur') }}{{ supplierRequired ? '*' }}
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur') }}{{ supplierRequired ? '*' }}
                             </label>
                             <select class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ supplierRequired ? 'needed' }}"
                                     name="fournisseur">
@@ -36,7 +36,7 @@
                                 <span class="btn btn-primary d-flex align-items-center p-2" style="height:36px"
                                       onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
                                     <span class="wii-icon wii-icon-plus mr-2"></span>
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Créer') }}
                                 </span>
                             </div>
                         {% endif %}
@@ -46,7 +46,7 @@
                         {% set carrierRequired = fieldsParam|isFieldRequired(carrierFieldCode, 'requiredCreate') %}
                         <div class="form-group col w-100">
                             <label class="wii-field-name">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur') }}{{ carrierRequired ? '*' }}
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur') }}{{ carrierRequired ? '*' }}
                             </label>
                             <select class="no-clear form-control input-sm data select2 ajax-autocomplete-transporteur {{ carrierRequired ? 'needed' }}"
                                     name="transporteur">
@@ -64,7 +64,7 @@
                                 <span class="btn btn-primary d-flex align-items-center p-2" style="height:36px"
                                       onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
                                     <span class="wii-icon wii-icon-plus mr-2"></span>
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Créer') }}
                                 </span>
                             </div>
                         {% endif %}
@@ -75,7 +75,7 @@
                         {% set driverRequired = fieldsParam|isFieldRequired(driverFieldCode, 'requiredCreate') %}
                         <div class="form-group col w-100">
                             <label class="wii-field-name">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Chauffeur') }}{{ driverRequired ? '*' }}
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Chauffeur') }}{{ driverRequired ? '*' }}
                             </label>
                             <select class="form-control input-sm data select2 ajax-autocomplete-chauffeur {{ driverRequired ? 'needed' }}"
                                     name="chauffeur">
@@ -93,7 +93,7 @@
                                 <span class="btn btn-primary d-flex align-items-center p-2 add-driver" style="height:36px"
                                       onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
                                     <span class="wii-icon wii-icon-plus mr-2"></span>
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Créer') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Créer') }}
                                 </span>
                             </div>
                         {% endif %}
@@ -105,11 +105,11 @@
                             <div class="col fly-form">
                                 <div class="row">
                                     <div class="form-group col invisible" id="fournisseurDisplay">
-                                        <label class="wii-field-name" for="newFournisseur">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Nom') }}*</label>
+                                        <label class="wii-field-name" for="newFournisseur">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Nom') }}*</label>
                                         <input type="text" id="newFournisseur"
                                                class="form-control input-sm valeur newFormulaire neededNew copyOnTheFly"
                                                name="name" maxlength="64">
-                                        <label for="newFournisseurCode" class="wii-field-name mt-2">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Code') }}*</label>
+                                        <label for="newFournisseurCode" class="wii-field-name mt-2">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Code') }}*</label>
                                         <input type="text" id="newFournisseurCode"
                                                class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
                                                name="code" maxlength="64">
@@ -127,11 +127,11 @@
                             <div class="col fly-form">
                                 <div class="row">
                                     <div class="form-group col invisible" id="transporteurDisplay">
-                                        <label class="wii-field-name" for="newTransporteur">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Nom') }}*</label>
+                                        <label class="wii-field-name" for="newTransporteur">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Nom') }}*</label>
                                         <input type="text" id="newTransporteur"
                                                class="form-control input-sm newFormulaire neededNew copyOnTheFly"
                                                name="label" maxlength="64">
-                                        <label for="newTransporteurCode" class="wii-field-name mt-2">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Code') }}*</label>
+                                        <label for="newTransporteurCode" class="wii-field-name mt-2">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Code') }}*</label>
                                         <input type="text" id="newTransporteurCode"
                                                class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
                                                name="code" maxlength="64">
@@ -150,17 +150,15 @@
                             <div class="col fly-form driver">
                                 <div class="row">
                                     <div class="form-group col-10 invisible" id="chauffeurDisplay">
-                                        <label class="wii-field-name" for="newChauffeurName">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Nom') }}*</label>
+                                        <label class="wii-field-name" for="newChauffeurName">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Nom') }}*</label>
                                         <input type="text" id="newChauffeurName"
                                                class="form-control input-sm newFormulaire neededNew"
                                                name="nom" maxlength="64">
-                                        <label for="newChauffeurFirstName"
-                                               class="wii-field-name mt-2">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Prénom') }}</label>
+                                        <label for="newChauffeurFirstName" class="wii-field-name mt-2">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Prénom') }}</label>
                                         <input type="text" id="newChauffeurFirstName"
                                                class="form-control input-sm newFormulaire"
                                                name="prenom" maxlength="64">
-                                        <label for="newChauffeurNumero"
-                                               class="wii-field-name mt-2">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'DocumentID') }}</label>
+                                        <label for="newChauffeurNumero" class="wii-field-name mt-2">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'DocumentID') }}</label>
                                         <input type="text" id="newChauffeurNumero"
                                                class="form-control input-sm newFormulaire"
                                                name="documentID" maxlength="64">
@@ -180,19 +178,20 @@
                     {% set trackingNumberFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(trackingNumberFieldCode, 'displayedCreate') %}
                         {% set trackingNumberRequired = fieldsParam|isFieldRequired(trackingNumberFieldCode, 'requiredCreate') %}
-                        <div class="form-group col-4">
+                        <div class="form-group col-4 noTrackingSection">
                             {% set useTruckArrival = setting_value('USE_TRUCK_ARRIVALS')  %}
                             {% if useTruckArrival %}
-                                    {{ form.select('noTracking', trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur'), trackingNumberRequired, {
+                                    {{ form.select('noTracking', trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur'), trackingNumberRequired, {
                                         disabled: true,
                                         additionalAttributes : [{
-                                            name: 'data-no-empty-option',
+                                            name: 'data-other-params',
                                         }],
                                         multiple: true,
                                         inputClass: 'form-control input-sm data',
                                         includeParams: '[name=transporteur]',
                                         type: 'truckArrivalLine',
-                                        minLength: 0
+                                        minLength: 0,
+                                        autoSelect: true
                                     }) }}
                                 </div>
                                 <div class="form-group col-4">
@@ -201,7 +200,7 @@
                                     }) }}
                             {% else %}
                                 <label class="wii-field-name" for="noTracking">
-                                    {{  trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur') }}{{ trackingNumberRequired ? '*' }}
+                                    {{  trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur') }}{{ trackingNumberRequired ? '*' }}
                                 </label>
                                 <input type="text"
                                        class="form-control input-sm data {{ trackingNumberRequired ? 'needed' }}"
@@ -216,7 +215,7 @@
                         {% set orderNumberRequired = fieldsParam|isFieldRequired(orderNumberFieldCode, 'requiredCreate') %}
                         <div class="form-group col-4">
                             <label class="wii-field-name">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL') }}{{ orderNumberRequired ? '*' }}
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL') }}{{ orderNumberRequired ? '*' }}
                             </label>
                             <select class="form-control input-sm data select2-free w-100 {{ orderNumberRequired ? 'needed' }}"
                                     name="numeroCommandeList"
@@ -231,7 +230,7 @@
                         </div>
                     {% endif %}
                     <div class="form-group col-4">
-                        <label class="wii-field-name" for="type">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type') }}*</label>
+                        <label class="wii-field-name" for="type">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type') }}*</label>
                         {% set uniqueType = typesArrival|length == 1 %}
                         <select class="form-control input-sm data needed {{ uniqueType ? 'needs-default' }}"
                                 id="type"
@@ -242,7 +241,7 @@
                             {% if uniqueType %}
                                 <option value="{{ (typesArrival|first).id }}">{{ (typesArrival|first).label }}</option>
                             {% else %}
-                                <option value="">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Type à choisir...') }}</option>
+                                <option value="">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Type à choisir...') }}</option>
                                 {% for type in typesArrival %}
                                     <option value="{{ type.id }}">
                                         {{ type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) ?: type.label }}
@@ -253,14 +252,14 @@
                     </div>
 
                     <div class="form-group col-4">
-                        <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut') }}*</label>
+                        <label class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Statut') }}*</label>
                         {% set hasDefaultStatus = uniqueType and defaultStatuses|length > 0 %}
                         <select class="form-control input-sm data needed {{ hasDefaultStatus ? 'needs-default' }}"
                                 name="status"
                             {% if hasDefaultStatus %}
                             data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
                             {% endif %}>
-                            <option value="">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Choisir un statut...') }}</option>
+                            <option value="">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Choisir un statut...') }}</option>
                             {% for status in statuses %}
                                 <option class="d-none"
                                         data-type-id="{{ status.type.id }}"
@@ -294,7 +293,7 @@
                         {% set dropLocationRequired = fieldsParam|isFieldRequired(dropLocationFieldCode, 'requiredCreate') %}
                         <div class="form-group w-100 col-4">
                             <label class="wii-field-name">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Emplacement de dépose') }}{{ dropLocationRequired ? '*' }}
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Emplacement de dépose') }}{{ dropLocationRequired ? '*' }}
                             </label>
                             <select name="dropLocation"
                                     class="form-control data ajax-autocomplete-location no-clear d-block {{ dropLocationRequired ? 'needed' }}">
@@ -315,7 +314,7 @@
                             <div class="row">
                                 <div class="form-group col-12 w-100">
                                     <label class="wii-field-name">
-                                        {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Destinataire') }}{{ targetRequired ? '*' }}
+                                        {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire') }}{{ targetRequired ? '*' }}
                                     </label>
                                     <select class="form-control input-sm data ajax-autocomplete-user {{ targetRequired ? 'needed' }} ajax-autocomplete"
                                             name="destinataire">
@@ -334,7 +333,7 @@
                         {% set buyersRequired = fieldsParam|isFieldRequired(buyersFieldCode, 'requiredCreate') %}
                         <div class="form-group w-100 col-4">
                             <label class="wii-field-name">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)') }}{{ buyersRequired ? '*' }}
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)') }}{{ buyersRequired ? '*' }}
                             </label>
 
                             {% set keptBuyers = keptFields[buyersFieldCode] ?? [] %}
@@ -355,7 +354,7 @@
                         {% set projectNumberRequired = fieldsParam|isFieldRequired(projectNumberFieldCode, 'requiredCreate') %}
                         <div class="form-group col-4">
                             <label class="wii-field-name" for="noProject">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet') }}{{ projectNumberRequired ? '*' }}
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Numéro de projet') }}{{ projectNumberRequired ? '*' }}
                             </label>
                             <input type="text"
                                    class="form-control input-sm data {{ projectNumberRequired ? 'needed' }}"
@@ -370,7 +369,7 @@
                         {% set businessUnitRequired = fieldsParam|isFieldRequired(businessUnitFieldCode, 'requiredCreate') %}
                         <div class="form-group col-4">
                             <label class="wii-field-name">
-                                {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit') }}{{ businessUnitRequired ? '*' }}
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Business unit') }}{{ businessUnitRequired ? '*' }}
                             </label>
                             <select class="needs-default form-control input-sm data {{ businessUnitRequired ? 'needed' }}"
                                     name="businessUnit">
@@ -391,7 +390,7 @@
                                        name="customs"
                                     {{ keptFields[customsFieldCode] ?? false ? 'checked' }}>
                                 <label class="text-break text-wrap">
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Douane') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane') }}
                                 </label>
                             </label>
                         </div>
@@ -405,7 +404,7 @@
                                        name="frozen"
                                     {{ keptFields[frozenFieldCode] ?? false ? 'checked' }}>
                                 <label class="text-break text-wrap">
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Congelé') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Congelé') }}
                                 </label>
                             </label>
                         </div>
@@ -421,7 +420,7 @@
                                        name="printArrivage"
                                     {{ keptFields[printArrivalFieldCode] ?? true ? 'checked' }}>
                                 <label class="text-break text-wrap">
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer arrivage') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Imprimer arrivage UL') }}
                                 </label>
                             </label>
                         </div>
@@ -436,7 +435,7 @@
                                     id="printPacks" {{ checked }}>
                                 <input hidden value="{{ checked }}" id="printPacksChecked">
                                 <label class="text-break text-wrap">
-                                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Imprimer unités logistiques') }}
+                                    {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Imprimer unités logistiques') }}
                                 </label>
                             </label>
                         </div>
@@ -444,7 +443,7 @@
                 </div>
 
                 <div class="wii-section-title my-3 d-flex align-items-center">
-                    {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Nombre d\'unités logistiques à ajouter :') }}
+                    {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Nombre d\'unités logistiques à ajouter :') }}
                 </div>
                 <div class="row">
                     {% if natures != null %}
@@ -460,7 +459,7 @@
                                                class="form-control input-sm data-array needed-positiv needs-default {{ isClientSafranED ? "no-clear" }}"
                                                name="packs"
                                                data-custom-label="{{ trans('Traçabilité', 'Général', 'Unité logistique') }}"
-                                               data-custom-needed-positiv-error="{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Veuillez renseigner au moins une unité logistique') }}"
+                                               data-custom-needed-positiv-error="{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Veuillez renseigner au moins une unité logistique') }}"
                                                data-id="{{ nature.id }}"
                                                min="0"
                                                max="500"

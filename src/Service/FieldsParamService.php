@@ -5,7 +5,10 @@ namespace App\Service;
 
 
 use App\Entity\FieldsParam;
+use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 class FieldsParamService
 {
@@ -33,5 +36,26 @@ class FieldsParamService
                 || $this->isFieldRequired($fieldsParam, $fieldConfig['show']['fieldName'], 'displayedEdit')
             );
         });
+    }
+
+    public function checkForErrors(EntityManagerInterface $entityManager, InputBag $inputBag, String $entityCode, Bool $isCreation):InputBag {
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity($entityCode);
+
+        $displayAction = $isCreation ? 'displayedCreate' : 'displayedEdit';
+        $requiredAction = $isCreation ? 'requiredCreate' : 'requiredEdit';
+
+        Stream::from($fieldsParam)
+            ->each(function ($params, $fieldName) use ($inputBag, $displayAction, $requiredAction) {
+                if (!$params[$displayAction]) {
+                    $inputBag->remove($fieldName);
+                } else {
+                    if ($params[$requiredAction] && !$inputBag->has($fieldName)) {
+                        throw new FormException("Une erreur est presente dans le formulaire");
+                    }
+                }
+            });
+
+        return $inputBag;
     }
 }

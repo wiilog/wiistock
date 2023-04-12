@@ -4,9 +4,7 @@ namespace App\Repository;
 
 use App\Entity\TruckArrivalLine;
 use App\Helper\QueryBuilderHelper;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -129,7 +127,7 @@ class TruckArrivalLineRepository extends EntityRepository
             ->addSelect("driver.id AS driver_id")
             ->addSelect("driver.prenom AS driver_first_name")
             ->addSelect("driver.nom AS driver_last_name")
-            ->addSelect("arrivals.id AS arrivals_id")
+            ->addSelect("MAX(arrivals.id) AS arrivals_id")
             ->andWhere("truck_arrival_line.number LIKE :term")
             ->join('truck_arrival_line.truckArrival', 'truck_arrival')
             ->leftJoin('truck_arrival.driver', 'driver')
@@ -150,9 +148,17 @@ class TruckArrivalLineRepository extends EntityRepository
         }
 
         if (strlen($term) == 0) {
-            $qb->addSelect('COUNT(arrivals.id) AS arrivalsCounter')
-                ->having('arrivalsCounter = 0');
+            $qb->andWhere('arrivals.id IS NULL');
         }
+
+        $qb
+            ->addGroupBy('truck_arrival_line.id')
+            ->addGroupBy('truck_arrival_line.number')
+            ->addGroupBy('truck_arrival.number')
+            ->addGroupBy('truck_arrival.id')
+            ->addGroupBy('driver.id')
+            ->addGroupBy('driver.prenom')
+            ->addGroupBy('driver.nom');
 
         return $qb->getQuery()->getArrayResult();
     }

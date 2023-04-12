@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Ajouter des unités logistiques')
+                title: trans('Traçabilité', 'Arrivages UL', 'Divers', 'Ajouter des unités logistiques')
 
             } %}
 
@@ -27,7 +27,7 @@
                 {% if natures != null %}
                     <div class="row mt-4">
                         <div class="col-12 mb-2">
-                            <span class="wii-section-title">{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', "Nombre d'unités logistiques à ajouter :") }}</span>
+                            <span class="wii-section-title">{{ trans('Traçabilité', 'Arrivages UL', 'Divers', "Nombre d'unités logistiques à ajouter :") }}</span>
                         </div>
                         <div class="form-group col-12 blocVisible d-block">
                             <div class="d-block">

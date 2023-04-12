@@ -81,7 +81,7 @@ final class Version20221213103323 extends AbstractMigration
         }
 
         $translationSources = [
-            "Page Flux - Arrivages :\\nDétails arrivages - Liste des unités logistiques - Bouton\\nDétails arrivages - Liste des unités logistiques - Modale Ajouter unité logistique" => "Page Flux - Arrivages :\\nDétails arrivages - Liste des colis - Bouton\\nDétails arrivages - Liste des colis - Modale Ajouter colis ",
+            "Page Arrivages UL :\\nDétails arrivages - Liste des unités logistiques - Bouton\\nDétails arrivages - Liste des unités logistiques - Modale Ajouter unité logistique" => "Page Arrivages UL :\\nDétails arrivages - Liste des colis - Bouton\\nDétails arrivages - Liste des colis - Modale Ajouter colis ",
             "Détails acheminements - Liste des unités logistiques - Nom de colonnes\\nEmails" => "Détails acheminements - Liste des colis - Nom de colonnes\\nEmails",
             "Détails acheminements - Liste des unités logistiques - Nom de colonnes\\nPDF bon acheminement\\nPDF lettre de voiture" => "Détails acheminements - Liste des colis - Nom de colonnes\\nPDF bon acheminement\\nPDF lettre de voiture",
             "L'acheminement contient plus de {1} UL" => "L'acheminement contient plus de {1} colis"

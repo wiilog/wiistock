@@ -365,12 +365,20 @@ class DemandeLivraisonService
         } else {
             $demande = $demandeRepository->find($demandeArray['demande']);
         }
+
         if ($demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON) {
             $response = [];
             $response['success'] = true;
             $response['msg'] = '';
+
+            if ($demande->getArticleLines()->count() === 0 && $demande->getReferenceLines()->count() === 0) {
+                $response['success'] = false;
+                $response['msg'] = "La demande n'a pas d'article";
+            }
+
             // pour réf gérées par articles
             $articleLines = $demande->getArticleLines();
+
             /** @var DeliveryRequestArticleLine $articleLine */
             foreach ($articleLines as $articleLine) {
                 $article = $articleLine->getArticle();

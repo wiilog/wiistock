@@ -48,7 +48,7 @@ class FournisseurController extends AbstractController {
     public function new(Request $request,
                         EntityManagerInterface $entityManager): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
+        if ($data = $request->request->all()) {
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $codeAlreadyUsed = intval($fournisseurRepository->countByCode($data['code']));
 

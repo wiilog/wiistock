@@ -5,15 +5,12 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Emplacement;
 use App\Entity\Menu;
-use App\Entity\Urgence;
+use App\Entity\PurchaseRequestScheduleRule;
 use App\Entity\Zone;
-use App\Service\CSVExportService;
-use App\Service\SpecificService;
-use App\Service\TranslationService;
-use App\Service\UrgenceService;
-use App\Service\UserService;
 use App\Service\ZoneService;
+use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,7 +41,8 @@ class ZoneController extends AbstractController
         $zone = (new Zone())
             ->setName($request->request->get("name"))
             ->setDescription($request->request->get("description"))
-            ->setInventoryIndicator($request->request->get("inventoryIndicator") ?? null);
+            ->setInventoryIndicator($request->request->get("inventoryIndicator") ?? null)
+            ->setActive($request->request->getBoolean("active"));
 
         $manager->persist($zone);
         $manager->flush();
@@ -84,13 +82,25 @@ class ZoneController extends AbstractController
         $data = $request->request->all();
 
         $zoneRepository = $manager->getRepository(Zone::class);
-
         $zone = $zoneRepository->find($data["id"]);
         if ($zone) {
+            if (!$data['active']) {
+                $locationRepository = $manager->getRepository(Emplacement::class);
+                $purchaseRequestScheduleRuleRepository = $manager->getRepository(PurchaseRequestScheduleRule::class);
+                $issue = ($locationRepository->isLocationInNotDoneInventoryMission($zone) ? ' une mission d’inventaire en cours, ' : '')
+                    . ($locationRepository->isLocationInZoneInventoryMissionRule($zone) ? ' une planification d’inventaire, ' : '')
+                    . ( $purchaseRequestScheduleRuleRepository->isZoneInPurchaseRequestScheduleRule($zone) ? ' une planification de demande d’achat, ' : '');
+
+                if ($issue) {
+                    throw new FormException("La zone ou ses emplacements sont contenus dans" . $issue . "vous ne pouvez donc pas la désactiver");
+                }
+            }
+
             $zone
                 ->setName($data["name"])
                 ->setDescription($data["description"])
-                ->setInventoryIndicator($data["inventoryIndicator"] ?? null);
+                ->setInventoryIndicator($data["inventoryIndicator"] ?? null)
+                ->setActive($data['active']);
 
             $manager->persist($zone);
             $manager->flush();
@@ -104,33 +114,21 @@ class ZoneController extends AbstractController
         throw new NotFoundHttpException();
     }
 
-    #[Route("/api-supprimer", name: "zone_delete_api", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/{zone}/delete", name: "zone_delete", options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function deleteApi(Request $request, EntityManagerInterface $manager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $zoneRepository = $manager->getRepository(Zone::class);
-            $zone = $zoneRepository->find($data["id"]);
+    public function delete(Zone                   $zone,
+                           EntityManagerInterface $entityManager): Response {
+        $purchaseRequestScheduleRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
 
-            return $this->json($this->renderView("zone/delete_content.html.twig", [
-                "zone" => $zone
-            ]));
+        if (!$zone->getLocations()->isEmpty()){
+            throw new FormException("Vous ne pouvez pas supprimer cette zone car elle est liée à un ou plusieurs emplacements. Vous pouvez la rendre inactive en modifiant la zone.");
         }
 
-        throw new BadRequestHttpException();
-    }
-
-    #[Route("/supprimer", name: "zone_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response
-    {
-        $data = $request->request->all();
-        $zoneRepository = $entityManager->getRepository(Zone::class);
-        $zone = $zoneRepository->find($data['id']);
-
-        foreach ($zone->getLocations() as $location){
-            $location->setZone(null);
+        $purchaseRequestCounter = $purchaseRequestScheduleRuleRepository->count(['zones' => $zone]);
+        if ($purchaseRequestCounter > 0){
+            throw new FormException("Vous ne pouvez pas supprimer cette zone car elle est lié à une ou plusieurs planifications de demandes d'achat. Vous pouvez la rendre inactive en modifiant la zone.");
         }
+
         $entityManager->remove($zone);
         $entityManager->flush();
 

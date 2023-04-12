@@ -560,13 +560,13 @@ class TrackingMovementController extends AbstractController
                     $translationService->translate('Traçabilité', 'Général', 'Unité logistique', false),
                     $translationService->translate('Traçabilité', 'Général', 'Emplacement', false),
                     $translationService->translate('Traçabilité', 'Général', 'Quantité', false),
-                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false),
+                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false),
                     $translationService->translate('Traçabilité', 'Général', 'Opérateur', false),
                     $translationService->translate('Général', null, 'Modale', 'Commentaire', false),
                     $translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),
                     $translationService->translate('Traçabilité', 'Général', 'Issu de', false),
-                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false),
-                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence', false),
+                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false),
+                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Urgence', false),
                     $translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),
                 ], $freeFieldsConfig['freeFieldsHeader']);
 

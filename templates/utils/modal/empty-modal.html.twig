@@ -12,12 +12,12 @@
 <div class="modal fade {{ class ?? null }}" id="{{ id ?? null }}" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered {{ size ?? '' }}" role="document">
         <div class="modal-content">
-            {% if header %}
+            {% if header is defined and header %}
                 {% include 'utils/modal/header.html.twig' with header %}
             {% endif %}
             <div class="modal-body container-fluid">
             </div>
-            {% if footer %}
+            {% if footer is defined and footer %}
                 {%  include 'utils/modal/footer.html.twig' with footer %}
             {% endif %}
         </div>

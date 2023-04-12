@@ -91,6 +91,8 @@ class DataExportService
             'emplacement',
             'code barre',
             'date dernier inventaire',
+            'date de disponibilité constatée',
+            'date d\'épuisement constaté',
             'lot',
             'date d\'entrée en stock',
             'date de péremption',

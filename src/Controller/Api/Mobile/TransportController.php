@@ -1038,7 +1038,7 @@ class TransportController extends AbstractApiController
                     'title' => $notificationTitle,
                     'content' => $notificationContent,
                     'image' => $_SERVER['APP_URL'] . $notificationImage,
-                ], $_SERVER['APP_URL'] . $notificationImage, true);
+                ], true);
 
                 $emitted = new Notification();
                 $emitted

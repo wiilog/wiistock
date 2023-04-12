@@ -131,6 +131,7 @@ class Import {
             'articleFournisseur' => 'article fournisseur',
             'needsMobileSync' => 'Synchronisation nomade',
             'prixUnitaire' => 'prix unitaire',
+            'rfidTag' => 'tag RFID',
             'limitSecurity' => 'seuil de sécurité',
             'limitWarning' => "seuil d'alerte",
             'quantiteStock' => 'quantité en stock',

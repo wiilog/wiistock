@@ -13,6 +13,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryBuilderHelper;
@@ -50,6 +51,8 @@ class ArticleRepository extends EntityRepository {
 
     private const FIELDS_TYPE_DATE = [
         "dateLastInventory",
+        "firstUnavailableDate",
+        "lastAvailableDate",
         "expiryDate",
         "stockEntryDate",
         "manifacturingDate",
@@ -151,6 +154,8 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('emplacement.label as empLabel')
             ->addSelect('article.barCode')
             ->addSelect('article.dateLastInventory')
+            ->addSelect('article.lastAvailableDate')
+            ->addSelect('article.firstUnavailableDate')
             ->addSelect('article.freeFields')
             ->addSelect('article.batch')
             ->addSelect('article.stockEntryDate')
@@ -1312,6 +1317,25 @@ class ArticleRepository extends EntityRepository {
         return $queryBuilder
             ->getQuery()
             ->toIterable();
+    }
+
+    public function countForRefOnLocation(ReferenceArticle $referenceArticle, Emplacement $location) {
+        return $this->createQueryBuilder('article')
+            ->select('COUNT(article.quantite) as total')
+            ->andWhere('reference_article = :reference_article')
+            ->andWhere('emplacement = :location')
+            ->andWhere('statut.code = :active')
+            ->join('article.articleFournisseur', 'article_fournisseur')
+            ->join('article_fournisseur.referenceArticle', 'reference_article')
+            ->join('article.emplacement', 'emplacement')
+            ->join('article.statut', 'statut')
+            ->setParameters([
+                'reference_article' => $referenceArticle,
+                'location' => $location,
+                'active' => Article::STATUT_ACTIF
+            ])
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function getArticlesByDisputeId(int $disputeId): array {

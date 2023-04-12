@@ -4,8 +4,10 @@ let onFlyFormOpened = {};
 let clicked = false;
 let pageLength;
 let arrivalsTable;
+let hasDataToRefresh;
 
 $(function () {
+    hasDataToRefresh = false;
     const openNewModal = Boolean($('#openNewModal').val());
     if(openNewModal){
         openArrivalCreationModal();
@@ -17,7 +19,7 @@ $(function () {
 
     initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
     Select2Old.location($('#emplacement'), {}, Translation.of('Traçabilité', 'Mouvements', 'Emplacement de dépose', false));
-    Select2Old.init($filtersContainer.find('[name="carriers"]'), Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Transporteurs', false));
+    Select2Old.init($filtersContainer.find('[name="carriers"]'), Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Transporteurs', false));
     initOnTheFlyCopies($('.copyOnTheFly'));
 
     initTableArrival(false).then((returnedArrivalsTable) => {
@@ -28,7 +30,7 @@ $(function () {
     displayFiltersSup(filters, true);
 
     pageLength = Number($('#pageLengthForArrivage').val());
-    Select2Old.provider($('.ajax-autocomplete-fournisseur'), Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Fournisseurs', false));
+    Select2Old.provider($('.ajax-autocomplete-fournisseur'), Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Fournisseurs', false));
 
     const $arrivalsTable = $(`#arrivalsTable`);
     const $dispatchModeContainer = $(`.dispatch-mode-container`);
@@ -92,6 +94,7 @@ $(function () {
     $(document).on(`change`, `.dispatch-checkbox:not(:disabled)`, function () {
         toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
     });
+
 });
 
 function initTableArrival(dispatchMode = false) {
@@ -283,10 +286,14 @@ function createArrival(form = null) {
                 $driverAddButton.attr('disabled', false);
             }
         }
-        $noTrackingSelect.on('select2:unselect', function(element) {
+
+        $modal.find('.noTrackingSection').arrive('.select2-results__option--highlighted', function () {
+            $(this).removeClass('select2-results__option--highlighted');
+        });
+        $noTrackingSelect.off('select2:unselect').on('select2:unselect', function(element) {
             $noTrackingSelect.find(`option[value=${element.params.data.id}]`).remove();
         })
-        $noTrackingSelect.on(`select2:select`, function (element) {
+        $noTrackingSelect.off('select2:select').on(`select2:select`, function (element) {
             const data = element.params.data || {};
             if (data.arrivals_id) {
                 displayAlertModal(
@@ -367,14 +374,22 @@ function createArrival(form = null) {
                                 success: () => {
                                 }
                             },
-                            arrivalsTable
                         );
+                        hasDataToRefresh = true;
                     },
                 }).catch(() => {
                 });
             })
     }, 1);
 
+
+    $modal.off('hide.bs.modal.refresh').on('hide.bs.modal.refresh', function () {
+        if (hasDataToRefresh) {
+            arrivalsTable.ajax.reload(() => {
+                hasDataToRefresh = false;
+            });
+        }
+    });
     return $modal;
 }
 
