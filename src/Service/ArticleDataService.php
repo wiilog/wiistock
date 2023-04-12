@@ -249,7 +249,8 @@ class ArticleDataService
         }
 
         $refArticle = $referenceArticleRepository->find($data['refArticle']);
-        if($refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE || $refArticle->getStatut()?->getNom() !== ReferenceArticle::STATUT_ACTIF) {
+        if($refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE
+            || $refArticle->getStatut()?->getCode() !== ReferenceArticle::STATUT_ACTIF) {
             throw new FormException('Impossible de créer un article pour une référence de type ' . $refArticle->getTypeQuantite() . ' ou dont le statut est ' . $refArticle->getStatut()?->getNom());
         }
         $refReferenceArticle = $refArticle->getReference();

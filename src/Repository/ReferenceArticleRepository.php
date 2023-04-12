@@ -85,8 +85,9 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->setParameter('typeQuantity', $options['type-quantity']);
         }
 
-        if(isset($options['status']) ?? false) {
-            $queryBuilder->andWhere('status.code = :status')
+        if($options['status'] ?? false) {
+            $queryBuilder
+                ->andWhere('status.code = :status')
                 ->setParameter('status', $options['status']);
         }
 
