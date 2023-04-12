@@ -23,6 +23,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
+use App\Exceptions\FormException;
 use App\Entity\Zone;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -248,6 +249,9 @@ class ArticleDataService
         }
 
         $refArticle = $referenceArticleRepository->find($data['refArticle']);
+        if($refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE || $refArticle->getStatut()?->getNom() !== ReferenceArticle::STATUT_ACTIF) {
+            throw new FormException('Impossible de créer un article pour une référence de type ' . $refArticle->getTypeQuantite() . ' ou dont le statut est ' . $refArticle->getStatut()?->getNom());
+        }
         $refReferenceArticle = $refArticle->getReference();
         $formattedDate = (new DateTime())->format('ym');
         $references = $articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
