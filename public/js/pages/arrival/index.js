@@ -290,6 +290,17 @@ function createArrival(form = null) {
         $modal.find('.noTrackingSection').arrive('.select2-results__option--highlighted', function () {
             $(this).removeClass('select2-results__option--highlighted');
         });
+
+        $noTrackingSelect.off('select2:opening select2:closing').on('select2:opening select2:closing', function() {
+            let $searchField = $(this).parent().find('.select2-search__field');
+            $searchField.off('keydown').on('keydown', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+        });
+
         $noTrackingSelect.off('select2:unselect').on('select2:unselect', function(element) {
             $noTrackingSelect.find(`option[value=${element.params.data.id}]`).remove();
         })
