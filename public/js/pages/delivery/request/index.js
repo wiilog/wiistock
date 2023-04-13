@@ -51,6 +51,13 @@ function initNewLivraisonEditor(modal) {
         $('.free-fields-container').children().addClass('d-none');
         $locationSelector.prop(`disabled`, true);
     }
+
+    const defaultTypeId = $('input[name=defaultTypeId]').val();
+    if(defaultTypeId){
+        $(`#modalNewDemande select[name="type"] option[value=${defaultTypeId}]`).prop('selected', true);
+        toggleLocationSelect($('#modalNewDemande select[name="type"]'));
+        onTypeChange($('#modalNewDemande select[name="type"]'));
+    }
 }
 
 function onDeliveryTypeChange($type, mode) {

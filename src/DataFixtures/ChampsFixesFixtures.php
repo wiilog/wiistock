@@ -35,6 +35,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
             ],
 
             FieldsParam::ENTITY_CODE_DEMANDE => [
+                ['code' => FieldsParam::FIELD_CODE_TYPE_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_TYPE_DEMANDE, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE],
                 ['code' => FieldsParam::FIELD_CODE_RECEIVER_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_RECEIVER_DEMANDE, 'values' => [], 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false, 'modalType' => FieldsParam::MODAL_RECEIVER],
                 ['code' => FieldsParam::FIELD_CODE_EXPECTED_AT, 'label' => FieldsParam::FIELD_LABEL_EXPECTED_AT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT, 'label' => FieldsParam::FIELD_LABEL_PROJECT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],

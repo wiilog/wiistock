@@ -1120,8 +1120,11 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON),
                         'category' => CategoryType::DEMANDE_LIVRAISON,
                     ],
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository, $userRepository) {
+                    self::MENU_FIXED_FIELDS => function() use ($typeRepository, $fixedFieldRepository, $userRepository) {
                         $receiver = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+                        $defaultType = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+                        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+
                         return [
                             "receiver" => [
                                 "field" => $receiver->getId(),
@@ -1133,6 +1136,20 @@ class SettingsController extends AbstractController {
                                             "label" => $user->getUsername(),
                                             "value" => $user->getId(),
                                             "selected" => true,
+                                        ];
+                                    })
+                                    ->toArray(),
+                            ],
+                            "type" => [
+                                "field" => $defaultType->getId(),
+                                "modalType" => $defaultType->getModalType(),
+                                "elements" => Stream::from($types)
+                                    ->map(function(Type $type) use ($defaultType, $typeRepository) {
+                                        $selectedType = !empty($defaultType->getElements()) ? $typeRepository->find($defaultType->getElements()[0]) : null;
+                                        return [
+                                            "label" => $type->getLabel(),
+                                            "value" => $type->getId(),
+                                            "selected" => $selectedType && $selectedType->getId() === $type->getId(),
                                         ];
                                     })
                                     ->toArray(),
@@ -1580,7 +1597,7 @@ class SettingsController extends AbstractController {
                 $elements[$line['handlingType']] = $line['user'];
             }
             $field->setElements($elements);
-        } elseif ($field->getModalType() == FieldsParam::MODAL_RECEIVER) {
+        } else if($field->getModalType() == FieldsParam::MODAL_RECEIVER) {
             $settingRepository = $manager->getRepository(Setting::class);
             $setting = $settingRepository->findOneBy(['label' => Setting::RECEIVER_EQUALS_REQUESTER]);
             if($request->request->get("defaultReceiver")){
@@ -1591,6 +1608,12 @@ class SettingsController extends AbstractController {
 
             if($request->request->has(Setting::RECEIVER_EQUALS_REQUESTER)){
                 $setting->setValue($request->request->get(Setting::RECEIVER_EQUALS_REQUESTER));
+            }
+        } else if($field->getModalType() == FieldsParam::MODAL_TYPE) {
+            if($request->request->get("demandeType")){
+                $field->setElements([$request->request->get("demandeType")]);
+            } else {
+                $field->setElements([]);
             }
         }
         $manager->flush();

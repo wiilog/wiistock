@@ -250,6 +250,12 @@ class DemandeController extends AbstractController
             $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
         }
 
+        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+        $defaultType = null;
+        if(!empty($defaultTypeParam->getElements())){
+            $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
+        }
+
         $typeChampLibre = [];
         foreach ($types as $type) {
             $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
@@ -272,6 +278,7 @@ class DemandeController extends AbstractController
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
             'defaultReceiver' => '<option selected value="'.$userForModal->getId().'">'.$userForModal->getUsername().'</option>',
+            'defaultTypeId' => $defaultType?->getId(),
             'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
             'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
         ]);

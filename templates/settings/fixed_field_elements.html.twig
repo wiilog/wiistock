@@ -51,7 +51,7 @@
             {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_RECEIVER') %}
                 <div class="modal-body pt-0">
                     <div class="wii-section-title">Destinataire par défaut</div>
-                    <div class="row">
+                    <div class="row mt-2">
                         <div class="col-12">
                             {{ form.select('defaultReceiver', 'Utilisateur', false, {
                                 type: 'user',
@@ -64,6 +64,20 @@
                     <div class="row mt-2">
                         <div class="col-12">
                             {{ form.checkbox(setting('RECEIVER_EQUALS_REQUESTER'), 'Le destinataire est égal au demandeur', false, setting_value('RECEIVER_EQUALS_REQUESTER')) }}
+                        </div>
+                    </div>
+                </div>
+            {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_TYPE') %}
+                <div class="modal-body pt-0">
+                    <div class="wii-section-title">Type par défaut</div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            {{ form.select('demandeType', 'Type', false, {
+                                multiple: false,
+                                emptyOption: {label: '', value: ''},
+                                value: elements ? elements : null,
+                                items: elements ? elements : null,
+                            }) }}
                         </div>
                     </div>
                 </div>
