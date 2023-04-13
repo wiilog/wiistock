@@ -103,6 +103,11 @@ class DemandeController extends AbstractController
 
             return $this->json($this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
+                'defaultReceiver' => $demande->getDestinataire() ? [
+                    'label' => $demande->getDestinataire()?->getUsername(),
+                    'value' => $demande->getDestinataire()?->getId(),
+                    'selected' => true,
+                ] : [],
                 'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                 'typeChampsLibres' => $typeChampLibre,
@@ -149,6 +154,7 @@ class DemandeController extends AbstractController
 
             if ($requiredEdit) {
                 $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
+                $receiver = isset($data['demandeReceiver']) ? $utilisateurRepository->find($data['demandeReceiver']) : null;
                 $emplacement = $emplacementRepository->find(intval($data['destination']));
                 $project = $projectRepository->find(isset($data['project']) ? intval($data['project']) : -1);
                 $expectedAt = FormatHelper::parseDatetime($data['expectedAt'] ?? '');
@@ -158,6 +164,7 @@ class DemandeController extends AbstractController
                     ->setProject($project)
                     ->setExpectedAt($expectedAt)
                     ->setType($type)
+                    ->setDestinataire($receiver)
                     ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
                 $entityManager->flush();
                 $champLibreService->manageFreeFields($demande, $data, $entityManager);
@@ -233,9 +240,15 @@ class DemandeController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
+        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiver = '';
+        if(!empty($defaultReceiverParam->getElements())){
+            $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
+        }
 
         $typeChampLibre = [];
         foreach ($types as $type) {
@@ -248,6 +261,8 @@ class DemandeController extends AbstractController
             ];
         }
 
+        $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
+        $userForModal = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         return $this->render('demande/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'typeChampsLibres' => $typeChampLibre,
@@ -256,6 +271,7 @@ class DemandeController extends AbstractController
             'fields' => $fields,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
+            'defaultReceiver' => '<option selected value="'.$userForModal->getId().'">'.$userForModal->getUsername().'</option>',
             'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
             'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
         ]);

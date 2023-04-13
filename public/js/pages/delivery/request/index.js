@@ -41,6 +41,11 @@ function initNewLivraisonEditor(modal) {
     Select2Old.location($('.ajax-autocomplete-location'));
     const type = ($('#modalNewDemande select[name="type"] option:selected').val());
     const $locationSelector = $(`#modalNewDemande select[name="destination"]`);
+    const $demandeReceiver = $(`#modalNewDemande select[name="demandeReceiver"]`);
+
+    if($demandeReceiver){
+        $demandeReceiver.append($('input[name=receiverToDisplay]').val());
+    }
 
     if(!type) {
         $('.free-fields-container').children().addClass('d-none');

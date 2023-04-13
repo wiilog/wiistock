@@ -1102,29 +1102,14 @@ class SettingsController extends AbstractController {
                     ],
                 ],
                 self::MENU_REQUESTS => [
-                    self::MENU_DELIVERIES => function() use ($settingRepository, $typeRepository, $fixedFieldRepository) {
-                        $receiver = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
-                        dump($receiver);
-                        return [
-                            "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
-                            "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
-                            "deliveryRequestBehavior" => $settingRepository->findOneBy([
-                                'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
-                                'value' => 1,
-                            ])?->getLabel(),
-                            "receiver" => [
-                                "field" => $receiver->getId(),
-                                "modalType" => $receiver->getModalType(),
-                                "elements" => Stream::from($receiver->getElements())
-                                    ->map(fn(Utilisateur $user) => [
-                                        "label" => $user->getUsername(),
-                                        "value" => $user->getId(),
-                                        "selected" => true,
-                                    ])
-                                    ->toArray(),
-                            ],
-                        ];
-                    },
+                    self::MENU_DELIVERIES => fn() => [
+                        "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
+                        "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
+                        "deliveryRequestBehavior" => $settingRepository->findOneBy([
+                            'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
+                            'value' => 1,
+                        ])?->getLabel(),
+                    ],
                     self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_DELIVERY);
                     },
@@ -1135,6 +1120,25 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON),
                         'category' => CategoryType::DEMANDE_LIVRAISON,
                     ],
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository, $userRepository) {
+                        $receiver = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+                        return [
+                            "receiver" => [
+                                "field" => $receiver->getId(),
+                                "modalType" => $receiver->getModalType(),
+                                "elements" => Stream::from($receiver->getElements() ?? [])
+                                    ->map(function(string $element) use ($userRepository) {
+                                        $user = $userRepository->find($element);
+                                        return [
+                                            "label" => $user->getUsername(),
+                                            "value" => $user->getId(),
+                                            "selected" => true,
+                                        ];
+                                    })
+                                    ->toArray(),
+                            ],
+                        ];
+                    },
                     self::MENU_COLLECT_TYPES_FREE_FIELDS => fn() => [
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_COLLECTE),
                         'category' => CategoryType::DEMANDE_COLLECTE,
@@ -1577,7 +1581,17 @@ class SettingsController extends AbstractController {
             }
             $field->setElements($elements);
         } elseif ($field->getModalType() == FieldsParam::MODAL_RECEIVER) {
-            dump($request->request->get("elements"));
+            $settingRepository = $manager->getRepository(Setting::class);
+            $setting = $settingRepository->findOneBy(['label' => Setting::RECEIVER_EQUALS_REQUESTER]);
+            if($request->request->get("defaultReceiver")){
+                $field->setElements([$request->request->get("defaultReceiver")]);
+            } else {
+                $field->setElements([]);
+            }
+
+            if($request->request->has(Setting::RECEIVER_EQUALS_REQUESTER)){
+                $setting->setValue($request->request->get(Setting::RECEIVER_EQUALS_REQUESTER));
+            }
         }
         $manager->flush();
 
