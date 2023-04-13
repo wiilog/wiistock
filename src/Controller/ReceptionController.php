@@ -403,26 +403,16 @@ class ReceptionController extends AbstractController {
             if ($reception) {
                 $refsToUpdate = [];
                 /** @var ReceptionLine $line */
-                $hasReceptionReferenceArticles = Stream::from($reception->getLines())
-                    ->some(fn(ReceptionLine $line) => !$line->getReceptionReferenceArticles()->isEmpty());
-                $qte = Stream::from($reception->getReceptionReferenceArticles())
-                    ->some(fn(ReceptionReferenceArticle $recepRefArticle) => $recepRefArticle->getQuantite() != 0);
-
-                if (!$hasReceptionReferenceArticles || !$qte) {
-                    foreach ($reception->getLines()->toArray() as $line) {
-                        /** @var ReceptionReferenceArticle $receptionReferenceArticle */
-
-                        foreach ($line->getReceptionReferenceArticles() as $receptionReferenceArticle) {
-                            $reference = $receptionReferenceArticle->getReferenceArticle();
-                            $refsToUpdate[] = $reference;
-
-
-                            $articleRepository->setNullByReception($receptionReferenceArticle);
-                            $entityManager->remove($receptionReferenceArticle);
-                        }
-                        $entityManager->remove($line);
-                        $reception->removeLine($line);
+                foreach ($reception->getLines()->toArray() as $line) {
+                    /** @var ReceptionReferenceArticle $receptionReferenceArticle */
+                    foreach ($line->getReceptionReferenceArticles() as $receptionReferenceArticle) {
+                        $reference = $receptionReferenceArticle->getReferenceArticle();
+                        $refsToUpdate[] = $reference;
+                        $entityManager->remove($receptionReferenceArticle);
+                        $articleRepository->setNullByReception($receptionReferenceArticle);
                     }
+                    $reception->removeLine($line);
+                    $entityManager->remove($line);
                 }
 
                 foreach ($reception->getPurchaseRequestLines() as $line) {
@@ -436,10 +426,8 @@ class ReceptionController extends AbstractController {
                 foreach ($refsToUpdate as $reference) {
                     $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
                 }
-                if (!$hasReceptionReferenceArticles || !$qte) {
-                    $entityManager->remove($reception);
-                    $entityManager->flush();
-                }
+                $entityManager->remove($reception);
+                $entityManager->flush();
             }
 
             return $this->json([
@@ -1517,28 +1505,13 @@ class ReceptionController extends AbstractController {
         if($receptionId = json_decode($request->getContent(), true)) {
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $reception = $receptionRepository->find($receptionId);
-            $getNoLine = $reception?->getLines()?->count() === 0;
-            $getNoReferenceArticles = Stream::from($reception->getLines())
-                ->some(fn(ReceptionLine $line) => !$line->getReceptionReferenceArticles()->isEmpty());
-            $recepRefArticles = $reception->getReceptionReferenceArticles();
-            $qte = Stream::from($recepRefArticles)
-                ->some(fn(ReceptionReferenceArticle $recepRefArticle) => $recepRefArticle->getQuantite() != 0);
+            $receptionReferenceArticles = $reception?->getReceptionReferenceArticles();
 
-            if ($getNoLine || !$getNoReferenceArticles) {
+            if(empty($receptionReferenceArticles)) {
                 $delete = true;
                 $html = "
                     <p>{$translationService->translate('Ordre', 'Réceptions', 'Voulez-vous réellement supprimer cette réception')}</p>
                     <div class='error-msg mt-2'></div>
-                ";
-            }
-            else if (!$getNoLine && ($reception->getStatut()->getNom() === Reception::STATUT_EN_ATTENTE && !$qte)) {
-                $delete = true;
-                $html = "
-                <p class='error-msg'>
-                    Cette {$translationService->translate('Ordre', 'Réceptions', 'recéption.')} est en attente de réception, 
-                    la supprimer engendrera la suppression des {$translationService->translate('Ordre', 'Réceptions', 'articles.')} 
-                    {$translationService->translate('Ordre', 'Réceptions', 'Voulez-vous réellement supprimer cette réception.')}<br> 
-                </p>
                 ";
             } else {
                 $delete = false;
@@ -1550,7 +1523,10 @@ class ReceptionController extends AbstractController {
                 ";
             }
 
-            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+            return new JsonResponse([
+                'delete' => $delete,
+                'html' => $html,
+            ]);
         }
         throw new BadRequestHttpException();
     }
