@@ -61,6 +61,17 @@
                             </div>
                         </div>
 
+                        {% set fieldCodeReceiver = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DEMANDE') %}
+                        {% if fieldsParam|isFieldRequired(fieldCodeReceiver, 'displayedCreate') %}
+                            {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeReceiver, 'requiredCreate') %}
+                            <div class="col-12 col-md-6">
+                                {{ form.select('demandeReceiver', 'Destinataire', fieldRequired, {
+                                    type: 'user',
+                                    multiple: false,
+                                }) }}
+                            </div>
+                        {% endif %}
+
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EXPECTED_AT') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set fieldRequired = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}

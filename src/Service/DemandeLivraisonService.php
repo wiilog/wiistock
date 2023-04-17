@@ -286,6 +286,7 @@ class DemandeLivraisonService
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
         $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
+        $receiver = isset($data['demandeReceiver']) ? $utilisateurRepository->find($data['demandeReceiver']) : null;
         $number = $this->uniqueNumberService->create(
             $entityManager,
             Demande::NUMBER_PREFIX,
@@ -306,7 +307,8 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($number)
             ->setManual($isManual)
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+            ->setDestinataire($receiver);
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 

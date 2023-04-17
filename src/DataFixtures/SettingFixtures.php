@@ -317,6 +317,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::RFID_PREFIX => [],
             Setting::RFID_KPI_MIN => [],
             Setting::RFID_KPI_MAX => [],
+            Setting::RECEIVER_EQUALS_REQUESTER => [
+                'default' => false,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();

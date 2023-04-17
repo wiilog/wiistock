@@ -93,6 +93,9 @@ class Demande implements PairedEntity {
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $manual = false;
 
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $destinataire = null;
+
     public function __construct() {
         $this->preparations = new ArrayCollection();
         $this->referenceLines = new ArrayCollection();
@@ -379,6 +382,16 @@ class Demande implements PairedEntity {
 
     public function setManual(bool $manual): self {
         $this->manual = $manual;
+        return $this;
+    }
+
+    public function getDestinataire(): ?Utilisateur {
+        return $this->destinataire;
+    }
+
+    public function setDestinataire(?Utilisateur $destinataire): self {
+        $this->destinataire = $destinataire;
+
         return $this;
     }
 }
