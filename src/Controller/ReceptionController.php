@@ -2020,7 +2020,7 @@ class ReceptionController extends AbstractController {
                 ->setEmergencyComment('');
         }
 
-        if(isset($demande) && $demande->getType()->getSendMail()) {
+        if(isset($demande) && $demande->getType()->getSendMailRequester()) {
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
                 'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
@@ -2039,6 +2039,30 @@ class ReceptionController extends AbstractController {
                         . '.',
                 ]),
                 $demande->getUtilisateur()
+            );
+        }
+        if(isset($demande)
+            && $demande->getType()->getSendMailReceiver()
+            && $demande->getDestinataire()
+            && !($demande->getType()->getSendMailRequester() && $demande->getUtilisateur()->getId() === $demande->getDestinataire()->getId())) {
+            $nowDate = new DateTime('now');
+            $mailerService->sendMail(
+                'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
+                $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
+                    'demande' => $demande,
+                    'fournisseur' => $reception->getFournisseur(),
+                    'isReception' => true,
+                    'reception' => $reception,
+                    'title' => 'Une ' . $translation->translate('Ordre', 'Réception', 'réception', false)
+                        . ' '
+                        . $reception->getNumber()
+                        . ' de type «'
+                        . $demande->getType()->getLabel()
+                        . '» a été réceptionnée le '
+                        . $nowDate->format('d/m/Y \à H:i')
+                        . '.',
+                ]),
+                $demande->getDestinataire()
             );
         }
         $reception->setStatut($receptionService->getNewStatus($reception));

@@ -28,7 +28,8 @@ class TypeService {
 
         $type
             ->setLabel($data['label'])
-            ->setSendMail(filter_var($data["sendMail"] ?? false, FILTER_VALIDATE_BOOLEAN))
+            ->setSendMailRequester(filter_var($data["sendMail"] ?? false, FILTER_VALIDATE_BOOLEAN))
+            ->setSendMailReceiver(filter_var($data["sendMailReceiver"] ?? false, FILTER_VALIDATE_BOOLEAN))
             ->setCategory($category)
             ->setDescription($data['description'])
             ->setNotificationsEnabled(filter_var($data["notificationsEnabled"] ?? false, FILTER_VALIDATE_BOOLEAN))
