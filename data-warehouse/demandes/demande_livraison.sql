@@ -6,6 +6,7 @@ SELECT id,
        date_attendue,
        projet,
        demandeur,
+       destinataire,
        type,
        statut,
        codes_preparations,
@@ -17,7 +18,10 @@ SELECT id,
        code_barre,
        quantite_disponible,
        quantite_a_prelever,
-       code_UL
+       code_UL,
+       project_article,
+       commentaire_article
+
 FROM (SELECT demande.id                                         AS id,
              demande.numero                                     AS numero,
              demande.created_at                                 AS date_creation,
@@ -45,13 +49,16 @@ FROM (SELECT demande.id                                         AS id,
               WHERE sub_demande.id = demande.id)                AS codes_livraisons,
 
              destination.label                                  AS destination,
+             demande.destinataire_id                            AS destinataire,
              demande.cleaned_comment                            AS commentaire,
              reference_article.reference                        AS reference_article,
              article.label                                      AS libelle,
              article.bar_code                                   AS code_barre,
              article.quantite                                   AS quantite_disponible,
              delivery_request_article_line.quantity_to_pick     AS quantite_a_prelever,
-             pack.code                                          AS code_UL
+             pack.code                                          AS code_UL,
+             request_line_project.code                          AS project_article,
+             article.commentaire                                AS commentaire_article
 
       FROM demande
 
@@ -62,6 +69,8 @@ FROM (SELECT demande.id                                         AS id,
                LEFT JOIN type ON demande.type_id = type.id
                INNER JOIN delivery_request_article_line
                           ON demande.id = delivery_request_article_line.request_id
+               INNER JOIN pack AS request_line_pack ON delivery_request_article_line.pack_id = request_line_pack.id
+               INNER JOIN project AS request_line_project ON request_line_pack.project_id = request_line_project.id
                INNER JOIN article ON delivery_request_article_line.article_id = article.id
                LEFT JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
                LEFT JOIN reference_article ON article_fournisseur.reference_article_id = reference_article.id
@@ -96,13 +105,16 @@ FROM (SELECT demande.id                                         AS id,
               WHERE sub_demande.id IN (demande.id))           AS codes_livraisons,
 
              destination.label                                AS destination,
+             demande.destinataire_id                            AS destinataire,
              demande.cleaned_comment                          AS commentaire,
              reference_article.reference                      AS reference_article,
              reference_article.libelle                        AS libelle,
              reference_article.bar_code                       AS code_barre,
              reference_article.quantite_disponible            AS quantite_disponible,
              delivery_request_reference_line.quantity_to_pick AS quantite_a_prelever,
-             NULL                                             AS code_UL
+             NULL                                             AS code_UL,
+             NULL                                             AS project_article,
+             NULL                                             AS commentaire_article
 
       FROM demande
 

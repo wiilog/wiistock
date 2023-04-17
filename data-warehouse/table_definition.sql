@@ -360,6 +360,7 @@ CREATE TABLE dw_demande_livraison
     date_attendue       date,
     projet              varchar(255),
     demandeur           varchar(255),
+    destinataire        varchar(255),
     type                varchar(255),
     statut              varchar(255),
     codes_preparations  text,
@@ -372,7 +373,9 @@ CREATE TABLE dw_demande_livraison
     quantite_disponible integer,
     quantite_a_prelever integer,
     delais_traitement   float,
-    code_UL             varchar(255)
+    code_UL             varchar(255),
+    projet_article      varchar(255),
+    commentaire_article varchar(255)
 );
 
 CREATE TABLE dw_ordre_transfert
