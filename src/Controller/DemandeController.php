@@ -983,10 +983,12 @@ class DemandeController extends AbstractController
         }
 
         $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
+        $demandeFieldParamExpectedAt = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EXPECTED_AT);;
+        $demandeFieldParamProject = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_PROJECT);
         $recipient = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
         $requiredFreeField = $defaultType ? $freeFieldRepository->getByTypeAndRequiredCreate($defaultType) : [];
-        $createDelivery = $recipient && $defaultType && isset($defaultDeliveryLocations[$defaultType->getId()]) && empty($requiredFreeField);
+        $createDelivery = $recipient && $defaultType && isset($defaultDeliveryLocations[$defaultType->getId()]) && empty($requiredFreeField) && !$demandeFieldParamExpectedAt->isRequiredCreate() && !$demandeFieldParamProject->isRequiredCreate();
 
         $data = [];
         if($createDelivery){
