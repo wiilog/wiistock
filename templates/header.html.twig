@@ -120,7 +120,6 @@
                                 {% if hasDeliveryRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'demande_index') %}
                                     <a class="d-flex align-items-center"
-{#                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"#}
                                        href="{{ path('redirect_before_index', {'open-modal': 'new'}) }}">
                                         <span class="wii-icon wii-icon-menu-delivery quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Livraison</span>
