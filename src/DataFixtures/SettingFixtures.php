@@ -320,6 +320,12 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::RECEIVER_EQUALS_REQUESTER => [
                 'default' => false,
             ],
+            Setting::ALLOWED_DROP_ON_FREE_LOCATION => [
+                'default' => false,
+            ],
+            Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE => [
+                'default' => false,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();
