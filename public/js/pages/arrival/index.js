@@ -13,6 +13,15 @@ $(function () {
         openArrivalCreationModal();
     }
 
+    document.addEventListener('keydown', function (e) {
+        const $target = $(e.target);
+        const isTrackingNumbersInput = $target.parents('.noTrackingSection').length > 0;
+        if (e.which === 13 && isTrackingNumbersInput) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+    }, true);
+
     const $filtersContainer = $('.filters-container');
     const $userFormat = $('#userDateFormat');
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
@@ -289,16 +298,6 @@ function createArrival(form = null) {
 
         $modal.find('.noTrackingSection').arrive('.select2-results__option--highlighted', function () {
             $(this).removeClass('select2-results__option--highlighted');
-        });
-
-        $noTrackingSelect.off('select2:opening select2:closing').on('select2:opening select2:closing', function() {
-            let $searchField = $(this).parent().find('.select2-search__field');
-            $searchField.off('keydown').on('keydown', function(e) {
-                if (e.which === 13) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            });
         });
 
         $noTrackingSelect.off('select2:unselect').on('select2:unselect', function(element) {
