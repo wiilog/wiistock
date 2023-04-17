@@ -2,12 +2,14 @@
 
 namespace App\DataFixtures;
 
+use App\Service\EmplacementDataService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Entity\Emplacement;
 
 class ImportEmplacementFixtures extends Fixture
 {
+    public EmplacementDataService $emplacementDataService;
 
     public function load(ObjectManager $manager)
     {
@@ -33,12 +35,10 @@ class ImportEmplacementFixtures extends Fixture
             $emplacement = $emplacementRepository->findOneBy(['label' => $label]);
 
             if (empty($emplacement) && !isset($emplacements[$label])) {
-                $emplacement = new Emplacement();
-                $emplacement
-                    ->setLabel($label)
-                    ->setIsActive(true)
-                    ->setDescription($description);
-                $manager->persist($emplacement);
+                $emplacement = $this->emplacementDataService->createEmplacement([
+                    "Label" => $label,
+                    "Description" => $description,
+                ], $manager);
 
                 $emplacements[$label] = true;
             }

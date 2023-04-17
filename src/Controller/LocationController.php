@@ -77,13 +77,8 @@ class LocationController extends AbstractController {
      * @Route("/creer", name="emplacement_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response {
+    public function new(Request $request, EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService): Response {
         if ($data = json_decode($request->getContent(), true)) {
-            $naturesRepository = $entityManager->getRepository(Nature::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $userRepository = $entityManager->getRepository(Utilisateur::class);
-            $zoneRepository = $entityManager->getRepository(Zone::class);
-            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
             $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null);
             if ($errorResponse) {
@@ -95,17 +90,7 @@ class LocationController extends AbstractController {
             if ($errorResponse) {
                 return $errorResponse;
             }
-            $zone = $data['zone'] ? $zoneRepository->find($data['zone']) : null;
 
-            $signatoryIds = is_array($data['signatories'])
-                ? $data['signatories']
-                : Stream::explode(',', $data['signatories'])
-                    ->filter()
-                    ->map(fn(string $id) => trim($id))
-                    ->toArray();
-            $signatories = !empty($signatoryIds)
-                ? $userRepository->findBy(['id' => $signatoryIds])
-                : [];
             $email = $data['email'] ?? null;
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
@@ -113,35 +98,8 @@ class LocationController extends AbstractController {
                     "msg" => "L'adresse email renseignée est invalide.",
                 ]);
             }
-            $emplacement = new Emplacement();
-            $emplacement
-                ->setLabel($data["Label"])
-                ->setDescription($data["Description"])
-                ->setIsActive(true)
-                ->setDateMaxTime($dateMaxTime)
-                ->setIsDeliveryPoint($data["isDeliveryPoint"])
-                ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"])
-                ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
-                ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatories($signatories ?? [])
-                ->setEmail($email)
-                ->setZone($zone);
 
-            if (!empty($data['allowed-natures'])) {
-                foreach ($data['allowed-natures'] as $allowedNatureId) {
-                    $emplacement
-                        ->addAllowedNature($naturesRepository->find($allowedNatureId));
-                }
-            }
-
-            if (!empty($data['allowedTemperatures'])) {
-                foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
-                    $emplacement
-                        ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
-                }
-            }
-
-            $entityManager->persist($emplacement);
+            $emplacement = $emplacementDataService->createEmplacement($data, $entityManager);
             $entityManager->flush();
 
             $label = $emplacement->getLabel();

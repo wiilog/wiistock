@@ -8,6 +8,9 @@ use App\Entity\FiltreSup;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
+use App\Entity\Type;
+use App\Entity\Utilisateur;
+use App\Entity\Zone;
 use Doctrine\ORM\EntityManagerInterface;
 
 use Symfony\Component\Security\Core\Security;
@@ -37,6 +40,68 @@ class EmplacementDataService {
     public FormatService $formatService;
 
     private array $labeledCacheLocations = [];
+
+    public function createEmplacement(array $data, EntityManagerInterface $entityManager): Emplacement
+    {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $zoneRepository = $entityManager->getRepository(Zone::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $naturesRepository = $entityManager->getRepository(Nature::class);
+        $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+
+        $defaultZone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
+
+        if(!empty($data['zone'])) {
+            $zone = $zoneRepository->find($data['zone']) ?? $defaultZone;
+        } else {
+            $zone = $defaultZone;
+        }
+
+        if(!empty($data['signatories'])) {
+            $signatoryIds = is_array($data['signatories'])
+                ? $data['signatories']
+                : Stream::explode(',', $data['signatories'])
+                    ->filter()
+                    ->map(fn(string $id) => trim($id))
+                    ->toArray();
+
+            $signatories = !empty($signatoryIds)
+                ? $userRepository->findBy(['id' => $signatoryIds])
+                : [];
+        }
+
+        $location = (new Emplacement())
+            ->setLabel($data["Label"])
+            ->setDescription($data["Description"] ?? null)
+            ->setIsActive($data["isActive"] ?? true)
+            ->setDateMaxTime($data['dateMaxTime'] ?? null)
+            ->setIsDeliveryPoint($data["isDeliveryPoint"] ?? null)
+            ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"] ?? false)
+            ->setAllowedDeliveryTypes(isset($data['allowedDeliveryTypes']) ? $typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]) : [])
+            ->setAllowedCollectTypes(isset($data['allowedCollectTypes']) ? $typeRepository->findBy(["id" => $data["allowedCollectTypes"]]) : [])
+            ->setSignatories($signatories ?? [])
+            ->setEmail($data["email"] ?? null)
+            ->setZone($zone);
+
+
+        if (!empty($data['allowed-natures'])) {
+            foreach ($data['allowed-natures'] as $allowedNatureId) {
+                $location
+                    ->addAllowedNature($naturesRepository->find($allowedNatureId));
+            }
+        }
+
+        if (!empty($data['allowedTemperatures'])) {
+            foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
+                $location
+                    ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
+            }
+        }
+
+        $entityManager->persist($location);
+
+        return $location;
+    }
 
     public function getEmplacementDataByParams($params = null) {
         $user = $this->security->getUser();
@@ -139,8 +204,9 @@ class EmplacementDataService {
         }
 
         if (!$location) {
-            $location = new Emplacement();
-            $location->setLabel($label);
+            $location = $this->createEmplacement([
+                "Label" => $label,
+            ], $entityManager);
             $entityManager->persist($location);
         }
 

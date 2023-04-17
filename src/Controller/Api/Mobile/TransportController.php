@@ -35,6 +35,7 @@ use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportRoundService;
+use App\Service\EmplacementDataService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -746,7 +747,8 @@ class TransportController extends AbstractApiController
                                     TransportHistoryService $historyService,
                                     StatusHistoryService    $statusHistoryService,
                                     TrackingMovementService $trackingMovementService,
-                                    AttachmentService       $attachmentService): Response
+                                    AttachmentService       $attachmentService,
+                                    EmplacementDataService  $emplacementDataService): Response
     {
         $data = $request->request;
         $files = $request->files;
@@ -770,12 +772,10 @@ class TransportController extends AbstractApiController
         $locationRepository = $manager->getRepository(Emplacement::class);
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
         if (!$patient) {
-            $patient = (new Emplacement())
-                ->setLabel("Patient")
-                ->setDescription("Unités logistiques livrées chez un patient")
-                ->setIsActive(true);
-
-            $manager->persist($patient);
+            $patient = $emplacementDataService->createEmplacement([
+                "Label" => "Patient",
+                "Description" => "Unités logistiques livrées chez un patient",
+            ], $manager);
         }
 
         $comment = $data->get('comment');

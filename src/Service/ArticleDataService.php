@@ -56,6 +56,9 @@ class ArticleDataService
 
     private $visibleColumnService;
 
+    #[Required]
+    public EmplacementDataService $emplacementDataService;
+
     private ?array $freeFieldsConfig = null;
 
     public function __construct(RouterInterface $router,
@@ -265,10 +268,9 @@ class ArticleDataService
         } else {
             $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
             if (!$location) {
-                $location = new Emplacement();
-                $location
-                    ->setLabel(Emplacement::LABEL_A_DETERMINER);
-                $entityManager->persist($location);
+                $location = $this->emplacementDataService->createEmplacement([
+                    "Label" => Emplacement::LABEL_A_DETERMINER,
+                ], $entityManager);
             }
             $location->setIsActive(true);
         }

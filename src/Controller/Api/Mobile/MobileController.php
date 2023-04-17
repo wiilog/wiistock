@@ -2710,18 +2710,15 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function addEmplacement(Request $request, EntityManagerInterface $entityManager): Response
+    public function addEmplacement(Request $request, EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         if (!$emplacementRepository->findOneBy(['label' => $request->request->get('label')])) {
-            $toInsert = new Emplacement();
-            $toInsert
-                ->setLabel($request->request->get('label'))
-                ->setIsActive(true)
-                ->setDescription('')
-                ->setIsDeliveryPoint((bool)$request->request->get('isDelivery'));
-            $entityManager->persist($toInsert);
+            $toInsert = $emplacementDataService->createEmplacement([
+                "Label" => $request->request->get('label'),
+                "isDeliveryPoint" => (bool)$request->request->get('isDelivery'),
+            ], $entityManager);
             $entityManager->flush();
 
             return $this->json([

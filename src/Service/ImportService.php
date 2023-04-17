@@ -257,15 +257,18 @@ class ImportService
     #[Required]
     public UserPasswordHasherInterface $encoder;
 
+    private EmplacementDataService $emplacementDataService;
+
     private Import $currentImport;
     private EntityManagerInterface $entityManager;
     private array $importCache = [];
 
     private array $cache = [];
 
-    public function __construct(EntityManagerInterface $entityManager) {
+    public function __construct(EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService) {
         $this->entityManager = $entityManager;
         $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->emplacementDataService = $emplacementDataService;
         $this->resetCache();
     }
 
@@ -1717,7 +1720,7 @@ class ImportService
         $location = $locationRepository->findOneBy(['label' => $data['name']]);
 
         if (!$location) {
-            $location = new Emplacement();
+            $location = $this->emplacementDataService->createEmplacement($data, $this->entityManager);
             $isNewEntity = true;
         }
 
@@ -2087,13 +2090,13 @@ class ImportService
             $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
             $location = $emplacementRepository->findOneBy(['label' => $data['emplacement']]);
             if (empty($location)) {
-                $location = new Emplacement();
-                $location
-                    ->setLabel($data['emplacement'])
-                    ->setIsActive(true)
-                    ->setIsDeliveryPoint(false);
+                $location = $this->emplacementDataService->createEmplacement([
+                    "Label" => $data['emplacement'],
+                    "isActive" => true,
+                    "isDeliveryPoint" => false,
+                ], $this->entityManager);
 
-                $this->entityManager->persist($location);
+                //$this->entityManager->persist($location);
             }
 
             $articleOrRef->setEmplacement($location);
