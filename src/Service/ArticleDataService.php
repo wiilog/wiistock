@@ -23,6 +23,8 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
+use App\Exceptions\FormException;
+use App\Entity\Zone;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -247,6 +249,10 @@ class ArticleDataService
         }
 
         $refArticle = $referenceArticleRepository->find($data['refArticle']);
+        if($refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE
+            || $refArticle->getStatut()?->getCode() !== ReferenceArticle::STATUT_ACTIF) {
+            throw new FormException('Impossible de créer un article pour une référence de type ' . $refArticle->getTypeQuantite() . ' ou dont le statut est ' . $refArticle->getStatut()?->getNom());
+        }
         $refReferenceArticle = $refArticle->getReference();
         $formattedDate = (new DateTime())->format('ym');
         $references = $articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
@@ -265,9 +271,13 @@ class ArticleDataService
         } else {
             $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
             if (!$location) {
+                $zoneRepository = $entityManager->getRepository(Zone::class);
+                $defaultZone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
+
                 $location = new Emplacement();
                 $location
-                    ->setLabel(Emplacement::LABEL_A_DETERMINER);
+                    ->setLabel(Emplacement::LABEL_A_DETERMINER)
+                    ->setZone($defaultZone);
                 $entityManager->persist($location);
             }
             $location->setIsActive(true);

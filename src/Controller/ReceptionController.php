@@ -1505,7 +1505,9 @@ class ReceptionController extends AbstractController {
         if($receptionId = json_decode($request->getContent(), true)) {
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $reception = $receptionRepository->find($receptionId);
-            if($reception?->getLines()?->count() === 0) {
+            $receptionReferenceArticles = $reception?->getReceptionReferenceArticles();
+
+            if(empty($receptionReferenceArticles)) {
                 $delete = true;
                 $html = "
                     <p>{$translationService->translate('Ordre', 'Réceptions', 'Voulez-vous réellement supprimer cette réception')}</p>
@@ -1521,7 +1523,10 @@ class ReceptionController extends AbstractController {
                 ";
             }
 
-            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+            return new JsonResponse([
+                'delete' => $delete,
+                'html' => $html,
+            ]);
         }
         throw new BadRequestHttpException();
     }
