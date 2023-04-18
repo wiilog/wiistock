@@ -326,7 +326,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE => [
                 'default' => false,
             ],
-            Setting::ADD_UL => [
+            Setting::DELIVERY_REQUEST_ADD_UL => [
                 'default' => false,
             ],
         ];
