@@ -268,9 +268,17 @@ class LivraisonsManagerService
             }
 
             $title = $demandeIsPartial ? 'FOLLOW GT // Livraison effectuée partiellement' : 'FOLLOW GT // Livraison effectuée';
-            $bodyTitle = $demandeIsPartial ? 'Votre demande a été livrée partiellement.' : 'Votre demande a bien été livrée.';
+            $bodyTitle = $demandeIsPartial ? 'La demande a été livrée partiellement.' : 'La demande a bien été livrée.';
 
-            if ($livraison->getDemande()->getType()->getSendMailRequester()) {
+            if ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver()) {
+                $to = [];
+                if ($demande->getType()->getSendMailRequester()) {
+                    $to[] = $demande->getUtilisateur();
+                }
+                if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
+                    $to[] = $demande->getDestinataire();
+                }
+
                 $this->mailerService->sendMail(
                     $title,
                     $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
@@ -278,24 +286,7 @@ class LivraisonsManagerService
                         'preparation' => $preparation,
                         'title' => $bodyTitle,
                     ]),
-                    $demande->getUtilisateur()
-                );
-            }
-
-            $title = $demandeIsPartial ? 'FOLLOW GT // Livraison effectuée partiellement' : 'FOLLOW GT // Livraison effectuée';
-            $bodyTitle = $demandeIsPartial ? 'Une demande vous concernant a été livrée partiellement.' : 'Une demande vous concernant a bien été livrée.';
-
-            if ($livraison->getDemande()->getType()->getSendMailReceiver()
-                && $demande->getDestinataire()
-                && !($demande->getType()->getSendMailRequester() && $demande->getUtilisateur()->getId() === $demande->getDestinataire()->getId())) {
-                $this->mailerService->sendMail(
-                    $title,
-                    $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
-                        'request' => $demande,
-                        'preparation' => $preparation,
-                        'title' => $bodyTitle,
-                    ]),
-                    $demande->getDestinataire()
+                    $to
                 );
             }
         }

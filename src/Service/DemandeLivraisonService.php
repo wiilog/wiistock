@@ -546,25 +546,15 @@ class DemandeLivraisonService
             }
         }
 
-        if (!$simpleValidation && $demande->getType()->getSendMailRequester()) {
-            $nowDate = new DateTime('now');
-            $this->mailerService->sendMail(
-                'FOLLOW GT // Validation d\'une demande vous concernant',
-                $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
-                    'demande' => $demande,
-                    'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
-                        . $demande->getType()->getLabel()
-                        . ' a bien été validée le '
-                        . $nowDate->format('d/m/Y \à H:i')
-                        . '.',
-                ]),
-                $demande->getUtilisateur()
-            );
-        }
-        if (!$simpleValidation
-            && $demande->getType()->getSendMailReceiver()
-            && $demande->getDestinataire()
-            && !($demande->getType()->getSendMailRequester() && $demande->getUtilisateur()->getId() === $demande->getDestinataire()->getId())) {
+        if (!$simpleValidation && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {
+            $to = [];
+            if ($demande->getType()->getSendMailRequester()) {
+                $to[] = $demande->getUtilisateur();
+            }
+            if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
+                $to[] = $demande->getDestinataire();
+            }
+
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
                 'FOLLOW GT // Validation d\'une demande vous concernant',
@@ -576,9 +566,10 @@ class DemandeLivraisonService
                         . $nowDate->format('d/m/Y \à H:i')
                         . '.',
                 ]),
-                $demande->getDestinataire()
+                $to
             );
         }
+
         if ($flush) {
             $entityManager->flush();
         }

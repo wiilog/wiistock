@@ -2020,7 +2020,15 @@ class ReceptionController extends AbstractController {
                 ->setEmergencyComment('');
         }
 
-        if(isset($demande) && $demande->getType()->getSendMailRequester()) {
+        if(isset($demande) && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {
+            $to = [];
+            if ($demande->getType()->getSendMailRequester()) {
+                $to[] = $demande->getUtilisateur();
+            }
+            if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
+                $to[] = $demande->getDestinataire();
+            }
+
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
                 'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
@@ -2038,31 +2046,7 @@ class ReceptionController extends AbstractController {
                         . $nowDate->format('d/m/Y \à H:i')
                         . '.',
                 ]),
-                $demande->getUtilisateur()
-            );
-        }
-        if(isset($demande)
-            && $demande->getType()->getSendMailReceiver()
-            && $demande->getDestinataire()
-            && !($demande->getType()->getSendMailRequester() && $demande->getUtilisateur()->getId() === $demande->getDestinataire()->getId())) {
-            $nowDate = new DateTime('now');
-            $mailerService->sendMail(
-                'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
-                $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
-                    'demande' => $demande,
-                    'fournisseur' => $reception->getFournisseur(),
-                    'isReception' => true,
-                    'reception' => $reception,
-                    'title' => 'Une ' . $translation->translate('Ordre', 'Réception', 'réception', false)
-                        . ' '
-                        . $reception->getNumber()
-                        . ' de type «'
-                        . $demande->getType()->getLabel()
-                        . '» a été réceptionnée le '
-                        . $nowDate->format('d/m/Y \à H:i')
-                        . '.',
-                ]),
-                $demande->getDestinataire()
+                $to
             );
         }
         $reception->setStatut($receptionService->getNewStatus($reception));

@@ -940,24 +940,16 @@ class PreparationController extends AbstractController
                 if ($demande->getType()->isNotificationsEnabled()) {
                     $notificationService->toTreat($preparation);
                 }
-                if ($demande->getType()->getSendMailRequester()) {
-                    $nowDate = new DateTime('now');
-                    $mailerService->sendMail(
-                        'FOLLOW GT // Validation d\'une demande vous concernant',
-                        $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
-                            'demande' => $demande,
-                            'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
-                                . $demande->getType()->getLabel()
-                                . ' a bien été validée le '
-                                . $nowDate->format('d/m/Y \à H:i')
-                                . '.',
-                        ]),
-                        $demande->getUtilisateur()
-                    );
-                }
-                if ($demande->getType()->getSendMailReceiver()
-                    && $demande->getDestinataire()
-                    && !($demande->getType()->getSendMailRequester() && $demande->getUtilisateur()->getId() === $demande->getDestinataire()->getId())) {
+
+                if ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver()) {
+                    $to = [];
+                    if ($demande->getType()->getSendMailRequester()) {
+                        $to[] = $demande->getUtilisateur();
+                    }
+                    if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
+                        $to[] = $demande->getDestinataire();
+                    }
+
                     $nowDate = new DateTime('now');
                     $mailerService->sendMail(
                         'FOLLOW GT // Validation d\'une demande vous concernant',
@@ -969,9 +961,10 @@ class PreparationController extends AbstractController
                                 . $nowDate->format('d/m/Y \à H:i')
                                 . '.',
                         ]),
-                        $demande->getDestinataire()
+                        $to
                     );
                 }
+
                 foreach ($refLines as $refLine) {
                     $referenceArticle = $refLine->getReference();
                     if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
