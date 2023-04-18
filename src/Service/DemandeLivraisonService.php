@@ -453,12 +453,17 @@ class DemandeLivraisonService
             }
 
             foreach($demande->getReferenceLines() as $reference) {
-                if($reference->getReference()->getEmplacement()) {
+                if ($reference->getReference()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                    && $reference->getReference()->getEmplacement()) {
                     $locations[$reference->getReference()->getEmplacement()->getId()] = true;
+                }
+                else {
+                    $preparedUponValidation = false;
+                    break;
                 }
             }
 
-            $preparedUponValidation = count($locations) === 1;
+            $preparedUponValidation = $preparedUponValidation ?? (count($locations) === 1);
         } else {
             $preparedUponValidation = false;
         }
