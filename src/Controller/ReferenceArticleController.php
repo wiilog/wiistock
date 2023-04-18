@@ -169,14 +169,12 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
-
             switch($data['type_quantite']) {
-                case 'article':
-                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-                    break;
                 case 'reference':
-                default:
                     $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
+                    break;
+                default:
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
                     break;
             }
 
@@ -195,7 +193,6 @@ class ReferenceArticleController extends AbstractController
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
                 ->setCreatedBy($loggedUser)
                 ->setCreatedAt(new DateTime('now'));
-
             $refArticleDataService->updateDescriptionField($entityManager, $refArticle, $data);
 
             $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
@@ -913,7 +910,6 @@ class ReferenceArticleController extends AbstractController
             ];
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
-
         return $this->render("reference_article/form/new.html.twig", [
             "new_reference" => new ReferenceArticle(),
             "submit_url" => $this->generateUrl("reference_article_new", [
