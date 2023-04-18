@@ -24,6 +24,7 @@ use App\Entity\CategorieCL;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Exceptions\FormException;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Service\DemandeLivraisonService;
@@ -260,23 +261,15 @@ class ArticleController extends AbstractController
                 ]);
             }
 
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $article = $this->articleDataService->newArticle($data, $entityManager);
             $refArticle = $article->getReference();
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $referenceArticleId = $article->getArticleFournisseur()->getReferenceArticle()->getId();
-            $referenceArticle = $referenceArticleRepository->find($referenceArticleId);
-            $referenceArticleRef = $referenceArticle->getReference();
+            $refArticleId = $data["refArticle"];
+            $refArticleFournisseurId = $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : '';
 
-            dump($article,$refArticle, $referenceArticleId, $referenceArticle, $referenceArticleRef);
+            if ($refArticleId != $refArticleFournisseurId) {
 
-            if (str_contains($refArticle, $referenceArticleRef) === false) {
-
-                $refArticleClean = substr($refArticle, 0, -9);
-
-                return $this->json([
-                    'success' => false,
-                    'msg' => "la référence article fournisseur '{$referenceArticleRef}' ne correspond pas à la référence article '{$refArticleClean}'."
-                ]);
+                throw new FormException("la référence article fournisseur ne correspond pas à la référence article");
             }
 
             $entityManager->flush();
