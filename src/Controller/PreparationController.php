@@ -888,6 +888,7 @@ class PreparationController extends AbstractController
 
         $preparationRepository = $manager->getRepository(Preparation::class);
         $statutRepository = $manager->getRepository(Statut::class);
+        $settingRepository = $manager->getRepository(Setting::class);
 
         $launchPreparation = $request->query->get('launchPreparations');
 
@@ -932,8 +933,6 @@ class PreparationController extends AbstractController
         }
 
         if (empty($quantityErrorPreparationId) && $launchPreparation === "1") {
-
-
             foreach ($preparationsToLaunch as $preparation) {
                 $preparation->setStatut($toTreatStatut);
                 $demande = $preparation->getDemande();
@@ -941,21 +940,31 @@ class PreparationController extends AbstractController
                 if ($demande->getType()->isNotificationsEnabled()) {
                     $notificationService->toTreat($preparation);
                 }
-                if ($demande->getType()->getSendMail()) {
+
+                if ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver()) {
+                    $to = [];
+                    if ($demande->getType()->getSendMailRequester()) {
+                        $to[] = $demande->getUtilisateur();
+                    }
+                    if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
+                        $to[] = $demande->getDestinataire();
+                    }
+
                     $nowDate = new DateTime('now');
                     $mailerService->sendMail(
                         'FOLLOW GT // Validation d\'une demande vous concernant',
                         $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                             'demande' => $demande,
-                            'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
+                            'title' => 'La demande de livraison ' . $demande->getNumero() . ' de type '
                                 . $demande->getType()->getLabel()
                                 . ' a bien été validée le '
                                 . $nowDate->format('d/m/Y \à H:i')
                                 . '.',
                         ]),
-                        $demande->getUtilisateur()
+                        $to
                     );
                 }
+
                 foreach ($refLines as $refLine) {
                     $referenceArticle = $refLine->getReference();
                     if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
