@@ -283,7 +283,7 @@
                         <div class="form-group w-100">
                             {{ form.select('articleFournisseur', 'Référence fournisseur', true, {
                                 type: 'supplierArticles',
-                                includeParams: 'select[name=refArticle]',
+                                includeParams: 'select[name=fournisseur], select[name=refArticle]',
                                 minLength: 0,
                                 disabled: true,
                             }) }}
