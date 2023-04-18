@@ -713,7 +713,6 @@ class SelectController extends AbstractController {
     public function customers(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get("term");
         $customers = $entityManager->getRepository(Customer::class)->getForSelect($search);
-
         array_unshift($customers, [
             "id" => "new-item",
             "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau client</b></div>",
