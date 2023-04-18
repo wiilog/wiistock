@@ -261,15 +261,12 @@ class ArticleController extends AbstractController
                 ]);
             }
 
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $article = $this->articleDataService->newArticle($data, $entityManager);
-            $refArticle = $article->getReference();
             $refArticleId = $data["refArticle"];
             $refArticleFournisseurId = $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : '';
 
             if ($refArticleId != $refArticleFournisseurId) {
-
-                throw new FormException("la référence article fournisseur ne correspond pas à la référence article");
+                throw new FormException("La référence article fournisseur ne correspond pas à la référence article");
             }
 
             $entityManager->flush();
