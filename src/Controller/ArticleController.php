@@ -24,6 +24,7 @@ use App\Entity\CategorieCL;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Exceptions\FormException;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Service\DemandeLivraisonService;
@@ -259,7 +260,18 @@ class ArticleController extends AbstractController
                     'msg' => "Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix)."
                 ]);
             }
+
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $article = $this->articleDataService->newArticle($data, $entityManager);
+            $refArticle = $article->getReference();
+            $refArticleId = $data["refArticle"];
+            $refArticleFournisseurId = $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : '';
+
+            if ($refArticleId != $refArticleFournisseurId) {
+
+                throw new FormException("la référence article fournisseur ne correspond pas à la référence article");
+            }
+
             $entityManager->flush();
 
             $quantity = $article->getQuantite();
