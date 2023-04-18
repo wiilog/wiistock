@@ -53,8 +53,11 @@
 <div class="wii-section-title">Ajout référence</div>
 
 <div class="row wii-section">
-    <div class="col-12">
+    <div class="col-12 my-1">
         {{ form.checkbox(setting('DISPLAY_PICKING_LOCATION'), "Faire apparaitre l'emplacement cible de picking à l'ajout d'une référence et dans son traitement", false, setting_value('DISPLAY_PICKING_LOCATION')) }}
+    </div>
+    <div class="col-12 my-1">
+        {{ form.checkbox(setting('ADD_UL'), "Ajout d'unité logistique", false, setting_value('ADD_UL')) }}
     </div>
 </div>
 

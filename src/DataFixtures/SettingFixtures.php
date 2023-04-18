@@ -326,6 +326,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE => [
                 'default' => false,
             ],
+            Setting::ADD_UL => [
+                'default' => false,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();
