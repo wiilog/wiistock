@@ -86,7 +86,7 @@
                                 {% endfor %}
                             </select>
                         {% endif %}
-                        {% if not partialEdit %}
+                        {% if partialEdit %}
                             <label class="mt-3 wii-field-name">
                                 Statut*
                             </label>
@@ -106,7 +106,7 @@
                                            name="statut"
                                            value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
                                            content="Actif"
-                                        {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }}
+                                        {{ not reference.statut or reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }}
                                            onchange="changeNewReferenceStatus($(this))">
                                     <input type="radio"
                                            name="statut"
