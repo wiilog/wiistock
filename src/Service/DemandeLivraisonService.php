@@ -626,6 +626,7 @@ class DemandeLivraisonService
         $config = [
             ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst($this->formatService->status($demande->getStatut()))],
             ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
+            ['label' => 'Destinataire', 'value' => $this->formatService->user($demande->getDestinataire())],
             ['label' => 'Destination', 'value' => $this->formatService->location($demande->getDestination())],
             ['label' => 'Date de la demande', 'value' => $this->formatService->datetime($demande->getCreatedAt())],
             ['label' => 'Date de validation', 'value' => $this->formatService->datetime($demande->getValidatedAt())],
