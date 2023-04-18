@@ -437,6 +437,11 @@ class SettingsController extends AbstractController {
                     "right" => Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS,
                     "save" => true,
                 ],
+                self::MENU_DELIVERIES => [
+                    "label" => "Livraisons",
+                    "right" => Action::SETTINGS_DISPLAY_DELIVERIES,
+                    "save" => true,
+                ],
             ],
         ],
         self::CATEGORY_DASHBOARDS => [
