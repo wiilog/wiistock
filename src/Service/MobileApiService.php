@@ -167,6 +167,7 @@ class MobileApiService {
             "manualDeliveryDisableValidations" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS) == 1,
             "rfidPrefix" => $globalsParameters->getOneParamByLabel(Setting::RFID_PREFIX) ?: null,
             "forceDispatchSignature" => $globalsParameters->getOneParamByLabel(Setting::FORCE_GROUPED_SIGNATURE),
+            "deliveryRequestDropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::ALLOWED_DROP_ON_FREE_LOCATION) == 1,
         ])
             ->toArray();
     }
