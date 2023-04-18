@@ -63,7 +63,7 @@ class UrgencesController extends AbstractController
 
         $urgence = new Urgence();
 
-        $urgenceService->updateUrgence($urgence, $data, $formatService);
+        $urgenceService->updateUrgence($entityManager, $urgence, $data, $formatService);
 
         $response = [];
 
@@ -149,7 +149,7 @@ class UrgencesController extends AbstractController
             $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
                 || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
-            $urgenceService->updateUrgence($urgence, $data, $formatService);
+            $urgenceService->updateUrgence($entityManager, $urgence, $data, $formatService);
             $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
                 $urgence->getDateStart(),
                 $urgence->getDateEnd(),
