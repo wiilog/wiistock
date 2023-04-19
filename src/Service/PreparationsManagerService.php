@@ -564,7 +564,7 @@ class PreparationsManagerService
                         // copy of all free fields
                         $newArticle += $article->getFreeFields();
 
-                        $insertedArticle = $this->articleDataService->newArticle($newArticle, $entityManager);
+                        $insertedArticle = $this->articleDataService->newArticle($entityManager, $newArticle);
                         if ($selected) {
                             $newArticleLine = $line->clone()
                                 ->setPreparation($line->getPreparation())

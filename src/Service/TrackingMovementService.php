@@ -9,14 +9,17 @@ use App\Entity\Cart;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
+use App\Entity\Livraison;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
@@ -150,9 +153,14 @@ class TrackingMovementService extends AbstractController
                 $data ['from'] = $movement->getPreparation()->getNumero();
             } else if ($movement->getDelivery()) {
                 $data ['entityPath'] = 'livraison_show';
-                $data ['fromLabel'] = 'Livraison';
+                $data ['fromLabel'] = 'Ordre de livraison';
                 $data ['entityId'] = $movement->getDelivery()->getId();
                 $data ['from'] = $movement->getDelivery()->getNumero();
+            } else if ($movement->getDeliveryRequest()) {
+                $data ['entityPath'] = 'demande_show';
+                $data ['fromLabel'] = 'Demande de livraison';
+                $data ['entityId'] = $movement->getDeliveryRequest()->getId();
+                $data ['from'] = $movement->getDeliveryRequest()->getNumero();
             }
         }
         return $data;
@@ -457,8 +465,16 @@ class TrackingMovementService extends AbstractController
         if (isset($from)) {
             if ($from instanceof Reception) {
                 $tracking->setReception($from);
+            } else if ($from instanceof Arrivage) {
+                $tracking->setArrivage($from);
             } else if ($from instanceof Dispatch) {
                 $tracking->setDispatch($from);
+            } else if ($from instanceof Demande) {
+                $tracking->setDeliveryRequest($from);
+            } else if ($from instanceof Preparation) {
+                $tracking->setPreparation($from);
+            } else if ($from instanceof Livraison) {
+                $tracking->setDelivery($from);
             }
         }
 

@@ -1881,7 +1881,7 @@ class ReceptionController extends AbstractController {
 
             // we create articles
             for($i = 0; $i < $quantityToReceive; $i++) {
-                $article = $articleDataService->newArticle($articleArray, $entityManager);
+                $article = $articleDataService->newArticle($entityManager, $articleArray);
 
                 if ($demande ?? false) {
                     $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, [

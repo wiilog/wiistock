@@ -261,7 +261,7 @@ class ArticleController extends AbstractController
                 ]);
             }
 
-            $article = $this->articleDataService->newArticle($data, $entityManager);
+            $article = $this->articleDataService->newArticle($entityManager, $data);
             $refArticleId = $data["refArticle"];
             $refArticleFournisseurId = $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : '';
 
@@ -328,7 +328,7 @@ class ArticleController extends AbstractController
         if ($data = $request->request->all()) {
             $article = $entityManager->getRepository(Article::class)->find($data['id']);
                 try {
-                    $article = $this->articleDataService->newArticle($data, $entityManager, $article);
+                    $article = $this->articleDataService->newArticle($entityManager, $data, $article);
                     $response = [
                         'success' => true,
                         'articleId' => $data['id'],

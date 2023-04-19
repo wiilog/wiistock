@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\TrackingMovementRepository;
@@ -72,6 +73,9 @@ class TrackingMovement {
 
     #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'trackingMovements')]
     private ?Livraison $delivery;
+
+    #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'trackingMovements')]
+    private ?Demande $deliveryRequest;
 
     #[ORM\OneToOne(mappedBy: 'lastDrop', targetEntity: Pack::class)]
     private ?Pack $linkedPackLastDrop = null;
@@ -264,6 +268,16 @@ class TrackingMovement {
         $this->delivery = $delivery;
 
         return $this;
+    }
+
+    public function setDeliveryRequest(?Demande $deliveryRequest): self {
+        $this->deliveryRequest = $deliveryRequest;
+
+        return $this;
+    }
+
+    public function getDeliveryRequest(): ?Demande {
+        return $this->deliveryRequest;
     }
 
     public function getReferenceArticle(): ?ReferenceArticle {
