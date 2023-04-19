@@ -3,6 +3,7 @@
 namespace App\Entity\DeliveryRequest;
 
 use App\Entity\Emplacement;
+use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Repository\DeliveryRequest\DeliveryRequestReferenceLineRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -35,7 +36,7 @@ class DeliveryRequestReferenceLine {
     private ?Project $project = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $commentaire = null;
+    private ?string $comment = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -115,12 +116,12 @@ class DeliveryRequestReferenceLine {
         return $this;
     }
 
-    public function getCommentaire(): ?string {
-        return $this->commentaire;
+    public function getComment(): ?string {
+        return $this->comment;
     }
 
-    public function setCommentaire(?string $commentaire): self {
-        $this->commentaire = $commentaire;
+    public function setComment(?string $comment): self {
+        $this->comment = $comment;
 
         return $this;
     }

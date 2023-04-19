@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\Project;
 use App\Repository\DeliveryRequest\DeliveryRequestArticleLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -40,7 +41,7 @@ class DeliveryRequestArticleLine {
     private ?Project $project = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $commentaire = null;
+    private ?string $comment = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -140,12 +141,12 @@ class DeliveryRequestArticleLine {
         return $preparationLine;
     }
 
-    public function getCommentaire(): ?string {
-        return $this->commentaire;
+    public function getComment(): ?string {
+        return $this->comment;
     }
 
-    public function setCommentaire(?string $commentaire): self {
-        $this->commentaire = $commentaire;
+    public function setComment(?string $comment): self {
+        $this->comment = $comment;
 
         return $this;
     }
