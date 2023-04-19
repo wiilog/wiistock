@@ -2281,6 +2281,7 @@ class SettingsController extends AbstractController {
 
         $class = "form-control data";
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
         $arrayFields = $fieldsParamRepository->findByEntityForEntity($entity);
 
         $rows = [];
@@ -2295,6 +2296,11 @@ class SettingsController extends AbstractController {
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
             $editDisabled = in_array($field->getFieldCode(), FieldsParam::NOT_EDITABLE_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
+            $displayed = $field->isDisplayed() ? "checked" : "";
+            $displayedUnderCondition = $field->isDisplayed() ? ($field->isDisplayedUnderCondition() ? "checked" : "") : "disabled";
+            $conditionFixedField = $field->getConditionFixedField() ?? "";
+            $conditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
+            $required = $field->isDisplayed() ? ($field->isRequired() ? "checked" : "") : "disabled";
 
             $filterOnly = in_array($field->getFieldCode(), FieldsParam::FILTER_ONLY_FIELDS) ? "disabled" : "";
             $requireDisabled = $filterOnly || in_array($field->getFieldCode(), FieldsParam::ALWAYS_REQUIRED_FIELDS) ? "disabled" : "";
@@ -2306,14 +2312,36 @@ class SettingsController extends AbstractController {
                     $labelAttributes = "class='font-weight-bold btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
                 }
 
-                $row = [
-                    "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
-                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate $filterOnly/>",
-                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit $filterOnly/>",
-                    "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate $requireDisabled/>",
-                    "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit $requireDisabled/>",
-                    "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",
-                ];
+                if ($entity === FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE) {
+
+                    $conditionFixedFieldOptionsSelected = Stream::from($conditionFixedFieldValue)
+                        ->map(function(string $typeId) use ($typeRepository) {
+                            $type = $typeRepository->find($typeId);
+                            return "<option value='{$type->getId()}' selected>{$type->getLabel()}</option>";
+                        } )
+                        ->join("");
+
+                    $classConditionFixedField = $class . ($displayedUnderCondition === "" ? " d-none" : "");
+                    $classConditionFixedFieldValue = "conditionFixedFieldValueDiv" . ($displayedUnderCondition === "" ? " d-none" : "");
+
+                    $row = [
+                        "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
+                        "displayed" => "<input type='checkbox' name='displayed' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayed />",
+                        "displayedUnderCondition" => "<input type='checkbox' name='displayedUnderCondition' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayedUnderCondition />",
+                        "conditionFixedField" => "<select name='conditionFixedField' class='$classConditionFixedField'><option value='$conditionFixedField' selected>$conditionFixedField</option></select>",
+                        "conditionFixedFieldValue" => "<div class='$classConditionFixedFieldValue'><select name='conditionFixedFieldValue' data-s2='referenceType' multiple class='$class'>$conditionFixedFieldOptionsSelected</select></div>",
+                        "required" => "<input type='checkbox' name='required' class='$class' $required />",
+                    ];
+                } else {
+                    $row = [
+                        "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
+                        "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate $filterOnly/>",
+                        "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit $filterOnly/>",
+                        "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate $requireDisabled/>",
+                        "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit $requireDisabled/>",
+                        "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",
+                    ];
+                }
 
                 if($entity === FieldsParam::ENTITY_CODE_ARRIVAGE) {
                     $row["keptInMemory"] = "<input type='checkbox' name='keptInMemory' class='$class' $keptInMemory $keptInMemoryDisabled/>";
@@ -2321,14 +2349,25 @@ class SettingsController extends AbstractController {
 
                 $rows[] = $row;
             } else {
-                $row = [
-                    "label" => "<span class='font-weight-bold'>$label</span>",
-                    "displayedCreate" => $field->isDisplayedCreate() ? "Oui" : "Non",
-                    "displayedEdit" => $field->isDisplayedEdit() ? "Oui" : "Non",
-                    "requiredCreate" => $field->isRequiredCreate() ? "Oui" : "Non",
-                    "requiredEdit" => $field->isRequiredEdit() ? "Oui" : "Non",
-                    "displayedFilters" => (in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) && $field->isDisplayedFilters()) ? "Oui" : "Non",
-                ];
+                if ($entity === FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE) {
+                    $row = [
+                        "label" => "<span class='font-weight-bold'>$label</span>",
+                        "displayed" => $field->isDisplayed() ? "Oui" : "Non",
+                        "displayedUnderCondition" => $field->isDisplayedUnderCondition() ? "Oui" : "Non",
+                        "conditionFixedField" => $field->getConditionFixedField() ?? "",
+                        "conditionFixedFieldValue" => $field->getConditionFixedFieldValue() ? implode(",", $field->getConditionFixedFieldValue()) : "",
+                        "required" => $field->isRequired() ? "Oui" : "Non",
+                    ];
+                } else {
+                    $row = [
+                        "label" => "<span class='font-weight-bold'>$label</span>",
+                        "displayedCreate" => $field->isDisplayedCreate() ? "Oui" : "Non",
+                        "displayedEdit" => $field->isDisplayedEdit() ? "Oui" : "Non",
+                        "requiredCreate" => $field->isRequiredCreate() ? "Oui" : "Non",
+                        "requiredEdit" => $field->isRequiredEdit() ? "Oui" : "Non",
+                        "displayedFilters" => (in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) && $field->isDisplayedFilters()) ? "Oui" : "Non",
+                    ];
+                }
 
                 if($entity === "arrival") {
                     $row["keptInMemory"] = $field->isKeptInMemory() ? "Oui" : "Non";

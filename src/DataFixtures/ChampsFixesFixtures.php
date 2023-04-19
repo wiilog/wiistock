@@ -5,12 +5,10 @@ namespace App\DataFixtures;
 
 use App\Entity\FieldsParam;
 
-use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
@@ -115,6 +113,10 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_CARRIER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_TYPE, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_TYPE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'modalType' => FieldsParam::MODAL_TYPE_FREE, 'values' => []],
+            ],
+            FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+                ['code' => FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJET, 'label' => FieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJET, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => "Type Reference", 'conditionFixedFieldValue' => [], 'required' => true],
+                ['code' => FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENTAIRE, 'label' => FieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENTAIRE, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => "Type Reference", 'conditionFixedFieldValue' => [], 'required' => false]
             ]
         ];
 
@@ -139,15 +141,28 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
                 if(!$field) {
                     $field = new FieldsParam();
-                    $field
-                        ->setEntityCode($fieldEntity)
-                        ->setFieldCode($fieldCode['code'])
-                        ->setDisplayedCreate($fieldCode['displayedCreate'])
-                        ->setDisplayedEdit($fieldCode['displayedEdit'])
-                        ->setDisplayedFilters($fieldCode['displayedFilters'])
-                        ->setRequiredEdit($fieldCode['default'] ?? false)
-                        ->setRequiredCreate($fieldCode['default'] ?? false)
-                        ->setElements($fieldCode['values'] ?? null);
+                    if ($fieldEntity === FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE) {
+                        $field
+                            ->setEntityCode($fieldEntity)
+                            ->setFieldCode($fieldCode['code'])
+                            ->setDisplayed($fieldCode['displayed'])
+                            ->setDisplayedUnderCondition($fieldCode['displayedUnderCondition'])
+                            ->setConditionFixedField($fieldCode['conditionFixedField'])
+                            ->setConditionFixedFieldValue($fieldCode['conditionFixedFieldValue'])
+                            ->setRequired($fieldCode['required'])
+                            ->setElements($fieldCode['values'] ?? null);
+                    } else {
+                        $field
+                            ->setEntityCode($fieldEntity)
+                            ->setFieldCode($fieldCode['code'])
+                            ->setDisplayedCreate($fieldCode['displayedCreate'])
+                            ->setDisplayedEdit($fieldCode['displayedEdit'])
+                            ->setDisplayedFilters($fieldCode['displayedFilters'])
+                            ->setRequiredEdit($fieldCode['default'] ?? false)
+                            ->setRequiredCreate($fieldCode['default'] ?? false)
+                            ->setElements($fieldCode['values'] ?? null);
+                    }
+
                     $manager->persist($field);
                     $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
                 }
