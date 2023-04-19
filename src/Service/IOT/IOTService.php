@@ -117,16 +117,14 @@ class IOTService
     public HttpService $client;
 
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false) {
-        if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
-            $message = $this->parseAndCreateMessage($frame, $entityManager, $local);
-            $this->linkWithSubEntities($message,
-                $entityManager->getRepository(Pack::class),
-                $entityManager->getRepository(Article::class),
-            );
-            $entityManager->flush();
-            $this->treatTriggers($message, $entityManager);
-            $entityManager->flush();
-        }
+        $message = $this->parseAndCreateMessage($frame, $entityManager, $local);
+        $this->linkWithSubEntities($message,
+            $entityManager->getRepository(Pack::class),
+            $entityManager->getRepository(Article::class),
+        );
+        $entityManager->flush();
+        $this->treatTriggers($message, $entityManager);
+        $entityManager->flush();
     }
 
     private function treatTriggers(SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
@@ -385,43 +383,13 @@ class IOTService
 
     private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local): SensorMessage
     {
-        $profileRepository = $entityManager->getRepository(SensorProfile::class);
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
-        $profileName = $message['profile'];
-
-        $profile = $profileRepository->findOneBy([
-            'name' => $profileName,
-        ]);
-
-        if (!isset($profile)) {
-            $profile = new SensorProfile();
-            $profile
-                ->setName($profileName)
-                ->setMaxTriggers(self::PROFILE_TO_MAX_TRIGGERS[$profileName] ?? 1);
-            $entityManager->persist($profile);
-        }
-        $entityManager->flush();
-        $deviceCode = $message['device_id'];
+        $deviceCode = $message['network']['lora']['devEUI'];
 
         $device = $deviceRepository->findOneBy([
             'code' => $deviceCode,
         ]);
-
-        if (!isset($device)) {
-            $typeLabel = self::PROFILE_TO_TYPE[$profileName] ?? 'Type non détecté';
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $type = $typeRepository->findOneBy(['label' => $typeLabel]);
-
-            $device = new Sensor();
-            $device
-                ->setCode($deviceCode)
-                ->setProfile($profile)
-                ->setBattery(-1)
-                ->setFrequency(self::PROFILE_TO_FREQUENCY[$profileName] ?? 'jamais')
-                ->setType($type);
-            $entityManager->persist($device);
-        }
 
         $newBattery = $this->extractBatteryLevelFromMessage($message);
         $wrapper = $device->getAvailableSensorWrapper();
@@ -440,10 +408,8 @@ class IOTService
         }
         $entityManager->flush();
 
-        $messageDate = new DateTime($message['timestamp'], $local ? null : new DateTimeZone("UTC"));
-        if (!$local) {
-            $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
-        }
+        $messageDate = new DateTime($message['created'], new DateTimeZone("UTC"));
+        $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
 
         $received = new SensorMessage();
         $received
@@ -567,107 +533,29 @@ class IOTService
         }
     }
 
-    public function extractMainDataFromConfig(array $config) {
-        switch ($config['profile']) {
-            case IOTService::KOOVEA_TAG:
-            case IOTService::KOOVEA_HUB:
-                return $config['value'];
-            case IOTService::INEO_SENS_ACS_BTN:
-                return $this->extractEventTypeFromMessage($config);
-            case IOTService::SYMES_ACTION_MULTI:
-            case IOTService::SYMES_ACTION_SINGLE:
-                if (isset($config['payload_cleartext'])) {
-                    $value = hexdec(substr($config['payload_cleartext'], 0, 2));
-                    $event =  $value & ~($value >> 3 << 3);
-                    return $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")");
-                }
-                break;
-            case IOTService::INEO_SENS_ACS_TEMP:
-            case IOTService::DEMO_TEMPERATURE:
-                if (isset($config['payload'])) {
-                    $frame = $config['payload'][0]['data'];
-                    return $frame['jcd_temperature'];
-                }
-                break;
-            case IOTService::INEO_SENS_GPS:
-                if (isset($config['payload'])) {
-                    $frame = $config['payload'][0]['data'];
-                    if (isset($frame['LATITUDE']) && isset($frame['LONGITUDE'])) {
-                        return $frame['LATITUDE'] . ',' . $frame['LONGITUDE'];
-                    } else {
-                        return '-1,-1';
-                    }
-                }
-                break;
+    public function extractMainDataFromConfig(array $config)
+    {
+        if (isset($config['network']['lora']['messageType'])) {
+            return $config['network']['lora']['messageType'];
         }
         return 'Donnée principale non trouvée';
     }
 
     public function extractEventTypeFromMessage(array $config) {
-        switch ($config['profile']) {
-            case IOTService::KOOVEA_TAG:
-            case IOTService::KOOVEA_HUB:
-                return $config['event'];
-            case IOTService::INEO_SENS_ACS_BTN:
-            case IOTService::INEO_SENS_ACS_TEMP:
-            case IOTService::DEMO_TEMPERATURE:
-            if (isset($config['payload'])) {
-                    $frame = $config['payload'][0]['data'];
-                    return $frame['jcd_msg_type'];
-                }
-                break;
-            case IOTService::INEO_SENS_GPS:
-                if (isset($config['payload'])) {
-                    $frame = $config['payload'][0]['data'];
-                    if (isset($frame['NEW_EVT_TYPE'])) {
-                        return $frame['NEW_EVT_TYPE'];
-                    } else if ($frame['NEW_BATT']) {
-                        return 'BATTERY_INFO';
-                    }
-                }
-                break;
-            case IOTService::SYMES_ACTION_SINGLE:
-            case IOTService::SYMES_ACTION_MULTI:
-                if (isset($config['payload_cleartext'])) {
-                    $value = hexdec(substr($config['payload_cleartext'], 0, 2));
-                    $event =  $value & ~($value >> 3 << 3);
-                    return $event === 0 ? self::ACS_PRESENCE : self::ACS_EVENT;
-                }
-                break;
+        if (isset($config['network']['lora']['messageType'])) {
+            return $config['network']['lora']['messageType'];
         }
-        return 'Évenement non trouvé';
+        return 'Événement non trouvé';
     }
 
     public function extractBatteryLevelFromMessage(array $config) {
-        switch ($config['profile']) {
-            case IOTService::KOOVEA_TAG:
-            case IOTService::KOOVEA_HUB:
-                return -1;
-            case IOTService::INEO_SENS_ACS_BTN:
-            case IOTService::INEO_SENS_ACS_TEMP:
-            case IOTService::DEMO_TEMPERATURE:
-                if (isset($config['payload'])) {
-                    $frame = $config['payload'][0]['data'];
-                    return $frame['jcd_battery_level'];
-                }
-                break;
-            case IOTService::INEO_SENS_GPS:
-                if (isset($config['payload'])) {
-                    $frame = $config['payload'][0]['data'];
-                    return $frame['NEW_BATT'] ?? -1;
-                }
-                break;
-            case IOTService::SYMES_ACTION_MULTI:
-            case IOTService::SYMES_ACTION_SINGLE:
-                $tensionBites = substr($config['payload_cleartext'], 20, 2);
-                $level = hexdec($tensionBites) >> 1;
-                $minVoltage = 2400;
-                $maxVoltage = 3700;
-                $incertitudeLevel = 10;
-                $currentVoltage = $level * $incertitudeLevel + $minVoltage;
-                return (($currentVoltage - $minVoltage) / ($maxVoltage - $minVoltage)) * 100;
-        }
-        return -1;
+        $tensionBites = substr($config['value']['payload'], 20, 2);
+        $level = hexdec($tensionBites) >> 1;
+        $minVoltage = 2400;
+        $maxVoltage = 3700;
+        $incertitudeLevel = 10;
+        $currentVoltage = $level * $incertitudeLevel + $minVoltage;
+        return (($currentVoltage - $minVoltage) / ($maxVoltage - $minVoltage)) * 100;
     }
 
     public static function getEntityCodeFromEntity(?PairedEntity $pairedEntity): ?string {
