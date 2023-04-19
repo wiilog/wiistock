@@ -51,7 +51,7 @@ class MouvementStock {
     private $livraisonOrder;
 
     #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'stockMovements')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Demande $deliveryRequest = null;
 
     #[ORM\ManyToOne(targetEntity: OrdreCollecte::class, inversedBy: 'mouvements')]

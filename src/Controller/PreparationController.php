@@ -26,6 +26,7 @@ use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
+use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
@@ -318,10 +319,11 @@ class PreparationController extends AbstractController
     public function delete(Preparation                $preparation,
                            EntityManagerInterface     $entityManager,
                            PreparationsManagerService $preparationsManagerService,
+                           MouvementStockService      $mouvementStockService,
                            RefArticleDataService      $refArticleDataService): Response
     {
 
-        $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
+        $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager, $mouvementStockService);
         $entityManager->flush();
 
         $entityManager->remove($preparation);

@@ -69,12 +69,15 @@ class TrackingMovement {
     private ?Dispatch $dispatch = null;
 
     #[ORM\ManyToOne(targetEntity: Preparation::class, inversedBy: 'trackingMovements')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Preparation $preparation;
 
-    #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'trackingMovements')]
+    #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'trackingMovements', )]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Livraison $delivery;
 
     #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'trackingMovements')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Demande $deliveryRequest;
 
     #[ORM\OneToOne(mappedBy: 'lastDrop', targetEntity: Pack::class)]
