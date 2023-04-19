@@ -30,8 +30,7 @@ class IOTController extends AbstractFOSRestController
     {
         if ($request->headers->get('x-api-key') === $_SERVER['APP_IOT_API_KEY']) {
             $frame = json_decode($request->getContent(), true);
-            $message = $frame['message'];
-            $IOTService->onMessageReceived($message, $entityManager);
+            $IOTService->onMessageReceived($frame, $entityManager);
             return new Response();
         } else {
             throw new BadRequestHttpException();
