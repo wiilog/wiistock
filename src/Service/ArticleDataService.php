@@ -235,7 +235,7 @@ class ArticleDataService
         }
     }
 
-    public function newArticle(array $data, EntityManagerInterface $entityManager, Article $existing = null): Article {
+    public function newArticle(EntityManagerInterface $entityManager, array $data, Article $existing = null): Article {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
