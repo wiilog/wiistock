@@ -31,6 +31,12 @@ class DeliveryRequestReferenceLine {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'deliveryRequestReferenceLines')]
     private ?Emplacement $targetLocationPicking = null;
 
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $commentaire = null;
+
     public function getId(): ?int {
         return $this->id;
     }
@@ -105,6 +111,28 @@ class DeliveryRequestReferenceLine {
         if($targetLocationPicking) {
             $targetLocationPicking->addDeliveryRequestReferenceLine($this);
         }
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): self {
+        $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
 
         return $this;
     }

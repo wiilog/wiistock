@@ -36,6 +36,12 @@ class DeliveryRequestArticleLine {
     #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $commentaire = null;
+
     public function getId(): ?int {
         return $this->id;
     }
@@ -132,6 +138,28 @@ class DeliveryRequestArticleLine {
             ->setArticle($this->getArticle())
             ->setPack($this->getPack());
         return $preparationLine;
+    }
+
+    public function getCommentaire(): ?string {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): self {
+        $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
+
+        return $this;
     }
 
 }
