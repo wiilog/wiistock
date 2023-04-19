@@ -160,6 +160,7 @@ class Action {
     const SETTINGS_DISPLAY_PREPA = 'afficher préparations';
     const SETTINGS_DISPLAY_PREPA_DELIV = 'afficher préparations / livraisons';
     const SETTINGS_DISPLAY_MANAGE_VALIDATIONS = 'afficher gestion des validations';
+    const SETTINGS_DISPLAY_DELIVERIES = 'afficher livraisons';
 
     const SETTINGS_DISPLAY_DASHBOARD = 'afficher Dashboard';
 

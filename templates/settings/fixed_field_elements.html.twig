@@ -10,10 +10,10 @@
             {% include 'utils/modal/header.html.twig' with {
                 title: "Modifier le paramétrage d'un champ fixe"
             } %}
+            <input type="hidden" name="field" value="{{ field }}"/>
 
             {% if modalType == constant('App\\Entity\\FieldsParam::MODAL_TYPE_FREE') %}
                 <div class="modal-body">
-                    <input type="hidden" name="field" value="{{ field }}"/>
                     {{ form.select('elements', 'Valeurs possibles', false, {
                         type: null,
                         editable: true,
@@ -24,7 +24,6 @@
                 </div>
             {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_TYPE_USER') %}
                 <div class="modal-body pt-0">
-                    <input type="hidden" name="field" value="{{ field }}"/>
                     <span class="wii-section-title">Destinataire par défaut par type</span>
                     <div class="zone-type">
                         <input type="hidden" name="types" value="{{ types|json_encode() }}"/>
@@ -48,6 +47,39 @@
                     <template class="row-template">
                         {% include 'settings/fixed_field_elements_row.html.twig' %}
                     </template>
+                </div>
+            {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_RECEIVER') %}
+                <div class="modal-body pt-0">
+                    <div class="wii-section-title">Destinataire par défaut</div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            {{ form.select('defaultReceiver', 'Utilisateur', false, {
+                                type: 'user',
+                                multiple: false,
+                                value: elements ? elements[0] : null,
+                                items: elements ? elements : null,
+                            }) }}
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            {{ form.checkbox(setting('RECEIVER_EQUALS_REQUESTER'), 'Le destinataire est égal au demandeur', false, setting_value('RECEIVER_EQUALS_REQUESTER')) }}
+                        </div>
+                    </div>
+                </div>
+            {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_TYPE') %}
+                <div class="modal-body pt-0">
+                    <div class="wii-section-title">Type par défaut</div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            {{ form.select('demandeType', 'Type', false, {
+                                multiple: false,
+                                emptyOption: {label: '', value: ''},
+                                value: elements ? elements : null,
+                                items: elements ? elements : null,
+                            }) }}
+                        </div>
+                    </div>
                 </div>
             {% endif %}
             {% include 'utils/modal/footer.html.twig' with {

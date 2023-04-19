@@ -1881,7 +1881,7 @@ class ReceptionController extends AbstractController {
 
             // we create articles
             for($i = 0; $i < $quantityToReceive; $i++) {
-                $article = $articleDataService->newArticle($articleArray, $entityManager);
+                $article = $articleDataService->newArticle($entityManager, $articleArray);
 
                 if ($demande ?? false) {
                     $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, [
@@ -2025,7 +2025,15 @@ class ReceptionController extends AbstractController {
                 ->setEmergencyComment('');
         }
 
-        if(isset($demande) && $demande->getType()->getSendMail()) {
+        if(isset($demande) && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {
+            $to = [];
+            if ($demande->getType()->getSendMailRequester()) {
+                $to[] = $demande->getUtilisateur();
+            }
+            if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
+                $to[] = $demande->getDestinataire();
+            }
+
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
                 'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
@@ -2043,7 +2051,7 @@ class ReceptionController extends AbstractController {
                         . $nowDate->format('d/m/Y \à H:i')
                         . '.',
                 ]),
-                $demande->getUtilisateur()
+                $to
             );
         }
         $reception->setStatut($receptionService->getNewStatus($reception));

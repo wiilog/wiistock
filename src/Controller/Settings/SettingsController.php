@@ -437,6 +437,11 @@ class SettingsController extends AbstractController {
                     "right" => Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS,
                     "save" => true,
                 ],
+                self::MENU_DELIVERIES => [
+                    "label" => "Livraisons",
+                    "right" => Action::SETTINGS_DISPLAY_DELIVERIES,
+                    "save" => true,
+                ],
             ],
         ],
         self::CATEGORY_DASHBOARDS => [
@@ -1120,6 +1125,42 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON),
                         'category' => CategoryType::DEMANDE_LIVRAISON,
                     ],
+                    self::MENU_FIXED_FIELDS => function() use ($typeRepository, $fixedFieldRepository, $userRepository) {
+                        $receiver = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+                        $defaultType = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+                        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+
+                        return [
+                            "receiver" => [
+                                "field" => $receiver->getId(),
+                                "modalType" => $receiver->getModalType(),
+                                "elements" => Stream::from($receiver->getElements() ?? [])
+                                    ->map(function(string $element) use ($userRepository) {
+                                        $user = $userRepository->find($element);
+                                        return [
+                                            "label" => $user->getUsername(),
+                                            "value" => $user->getId(),
+                                            "selected" => true,
+                                        ];
+                                    })
+                                    ->toArray(),
+                            ],
+                            "type" => [
+                                "field" => $defaultType->getId(),
+                                "modalType" => $defaultType->getModalType(),
+                                "elements" => Stream::from($types)
+                                    ->map(function(Type $type) use ($defaultType, $typeRepository) {
+                                        $selectedType = !empty($defaultType->getElements()) ? $typeRepository->find($defaultType->getElements()[0]) : null;
+                                        return [
+                                            "label" => $type->getLabel(),
+                                            "value" => $type->getId(),
+                                            "selected" => $selectedType && $selectedType->getId() === $type->getId(),
+                                        ];
+                                    })
+                                    ->toArray(),
+                            ],
+                        ];
+                    },
                     self::MENU_COLLECT_TYPES_FREE_FIELDS => fn() => [
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_COLLECTE),
                         'category' => CategoryType::DEMANDE_COLLECTE,
@@ -1197,7 +1238,7 @@ class SettingsController extends AbstractController {
                             ],
                             "businessUnit" => [
                                 "field" => $businessField->getId(),
-                                "modalType" => $emergencyField->getModalType(),
+                                "modalType" => $businessField->getModalType(),
                                 "elements" => Stream::from($businessField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1561,6 +1602,24 @@ class SettingsController extends AbstractController {
                 $elements[$line['handlingType']] = $line['user'];
             }
             $field->setElements($elements);
+        } else if($field->getModalType() == FieldsParam::MODAL_RECEIVER) {
+            $settingRepository = $manager->getRepository(Setting::class);
+            $setting = $settingRepository->findOneBy(['label' => Setting::RECEIVER_EQUALS_REQUESTER]);
+            if($request->request->get("defaultReceiver")){
+                $field->setElements([$request->request->get("defaultReceiver")]);
+            } else {
+                $field->setElements([]);
+            }
+
+            if($request->request->has(Setting::RECEIVER_EQUALS_REQUESTER)){
+                $setting->setValue($request->request->get(Setting::RECEIVER_EQUALS_REQUESTER));
+            }
+        } else if($field->getModalType() == FieldsParam::MODAL_TYPE) {
+            if($request->request->get("demandeType")){
+                $field->setElements([$request->request->get("demandeType")]);
+            } else {
+                $field->setElements([]);
+            }
         }
         $manager->flush();
 
@@ -1835,16 +1894,21 @@ class SettingsController extends AbstractController {
 
                 $data[] = [
                     "label" => "Notifications push",
-                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $notificationsEnabled>",
+                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1 smaller' $notificationsEnabled>",
                 ];
             }
 
             if ($categoryLabel === CategoryType::DEMANDE_LIVRAISON) {
-                $mailsEnabled = $type && $type->getSendMail() ? "checked" : "";
+                $requesterMailsEnabled = $type && $type->getSendMailRequester() ? "checked" : "";
+                $receiverMailsEnabled = $type && $type->getSendMailReceiver() ? "checked" : "";
 
                 $data[] = [
                     "label" => "Envoi d'un email au demandeur",
-                    "value" => "<input name='mailRequester' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
+                    "value" => "<input name='mailRequester' type='checkbox' class='data form-control mt-1 smaller' $requesterMailsEnabled>",
+                ];
+                $data[] = [
+                    "label" => "Envoi d'un email au destinataire",
+                    "value" => "<input name='mailReceiver' type='checkbox' class='data form-control mt-1 smaller' $receiverMailsEnabled>",
                 ];
             } else {
                 if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
@@ -1952,7 +2016,11 @@ class SettingsController extends AbstractController {
             if ($categoryLabel === CategoryType::DEMANDE_LIVRAISON) {
                 $data[] = [
                     "label" => "Envoi d'un email au demandeur",
-                    "value" => $type?->getSendMail() ? "Activées" : "Désactivées",
+                    "value" => $type?->getSendMailRequester() ? "Activées" : "Désactivées",
+                ];
+                $data[] = [
+                    "label" => "Envoi d'un email au destinataire",
+                    "value" => $type?->getSendMailReceiver() ? "Activées" : "Désactivées",
                 ];
             }
 

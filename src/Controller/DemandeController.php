@@ -103,6 +103,11 @@ class DemandeController extends AbstractController
 
             return $this->json($this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
+                'defaultReceiver' => $demande->getDestinataire() ? [
+                    'label' => $demande->getDestinataire()?->getUsername(),
+                    'value' => $demande->getDestinataire()?->getId(),
+                    'selected' => true,
+                ] : [],
                 'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                 'typeChampsLibres' => $typeChampLibre,
@@ -149,6 +154,7 @@ class DemandeController extends AbstractController
 
             if ($requiredEdit) {
                 $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
+                $receiver = isset($data['demandeReceiver']) ? $utilisateurRepository->find($data['demandeReceiver']) : null;
                 $emplacement = $emplacementRepository->find(intval($data['destination']));
                 $project = $projectRepository->find(isset($data['project']) ? intval($data['project']) : -1);
                 $expectedAt = FormatHelper::parseDatetime($data['expectedAt'] ?? '');
@@ -158,6 +164,7 @@ class DemandeController extends AbstractController
                     ->setProject($project)
                     ->setExpectedAt($expectedAt)
                     ->setType($type)
+                    ->setDestinataire($receiver)
                     ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
                 $entityManager->flush();
                 $champLibreService->manageFreeFields($demande, $data, $entityManager);
@@ -233,9 +240,21 @@ class DemandeController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
+        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiver = '';
+        if(!empty($defaultReceiverParam->getElements())){
+            $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
+        }
+
+        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+        $defaultType = null;
+        if(!empty($defaultTypeParam->getElements())){
+            $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
+        }
 
         $typeChampLibre = [];
         foreach ($types as $type) {
@@ -248,6 +267,10 @@ class DemandeController extends AbstractController
             ];
         }
 
+        $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
+        $userForModal = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
+        $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
+
         return $this->render('demande/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'typeChampsLibres' => $typeChampLibre,
@@ -256,7 +279,9 @@ class DemandeController extends AbstractController
             'fields' => $fields,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
-            'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
+            'defaultReceiver' => $userForModal ? '<option selected value="'.$userForModal->getId().'">'.$userForModal->getUsername().'</option>' : '',
+            'defaultTypeId' => $defaultType?->getId(),
+            'defaultDeliveryLocations' => $defaultDeliveryLocations,
             'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
         ]);
     }
@@ -934,4 +959,66 @@ class DemandeController extends AbstractController
         ]);
     }
 
+    #[Route("/redirect-before-index", name: 'redirect_before_index', options: ["expose" => true], methods: "GET")]
+    public function redirectBeforeIndex(EntityManagerInterface  $entityManager,
+                                        SettingsService         $settingsService,
+                                        FreeFieldService        $champLibreService,
+                                        DemandeLivraisonService $deliveryRequestService){
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+
+        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiver = '';
+        if(!empty($defaultReceiverParam->getElements())){
+            $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
+        }
+
+        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+        $defaultType = null;
+        if(!empty($defaultTypeParam->getElements())){
+            $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
+        }
+
+        $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
+        $demandeFieldParamExpectedAt = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EXPECTED_AT);;
+        $demandeFieldParamProject = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_PROJECT);
+        $recipient = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
+        $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
+        $requiredFreeField = $defaultType ? $freeFieldRepository->getByTypeAndRequiredCreate($defaultType) : [];
+        $createDelivery = $recipient && $defaultType && isset($defaultDeliveryLocations[$defaultType->getId()]) && empty($requiredFreeField) && !$demandeFieldParamExpectedAt->isRequiredCreate() && !$demandeFieldParamProject->isRequiredCreate();
+
+        $data = [];
+        if($createDelivery){
+            $data['destination'] = $defaultDeliveryLocations[$defaultType->getId()]["id"];
+            $data['demandeur'] = $this->getUser();
+            $data['demandeReceiver'] = $recipient->getId();
+            $data['type'] = $defaultType;
+            $data['commentaire'] = StringHelper::cleanedComment($data['commentaire'] ?? null);
+            $demande = $deliveryRequestService->newDemande($data, $entityManager, $champLibreService);
+
+            if ($demande instanceof Demande) {
+                $entityManager->persist($demande);
+                try {
+                    $entityManager->flush();
+                }
+                    /** @noinspection PhpRedundantCatchClauseInspection */
+                catch (UniqueConstraintViolationException $e) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                    ]);
+                }
+
+                return $this->redirectToRoute('demande_show', ['id' => $demande->getId()]);
+            }
+            else {
+                return new JsonResponse($demande);
+            }
+        } else {
+            return $this->redirectToRoute('demande_index', ['open-modal' => 'new']);
+        }
+    }
 }

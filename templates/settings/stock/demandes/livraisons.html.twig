@@ -13,10 +13,15 @@
     <div class="col-md-6 col-12 my-1">
         {{ form.checkbox(
             setting('MANAGE_PREPARATIONS_WITH_PLANNING'),
-            'Réaliser une demande de livraison sans quantité en stock (lancement de préparation)',
+            'Faire le contrôle de la quantité au lancement de préparation',
             false,
             setting_value('MANAGE_PREPARATIONS_WITH_PLANNING')
         ) }}
+    </div>
+    <div class="col-md-6 col-12 my-1">
+        {{ form.checkbox(setting('MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY'), 'Ne pas gérer les quantités en stock', false, setting_value('MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY'), {
+            tooltip: 'Aucun contrôle de quantité ne sera effectué sur aucune des étapes de la<br>livraison. Des articles seront générés automatiquement à la validation<br>de la demande de livraison',
+        }) }}
     </div>
 </div>
 
@@ -48,8 +53,11 @@
 <div class="wii-section-title">Ajout référence</div>
 
 <div class="row wii-section">
-    <div class="col-12">
+    <div class="col-12 my-1">
         {{ form.checkbox(setting('DISPLAY_PICKING_LOCATION'), "Faire apparaitre l'emplacement cible de picking à l'ajout d'une référence et dans son traitement", false, setting_value('DISPLAY_PICKING_LOCATION')) }}
+    </div>
+    <div class="col-12 my-1">
+        {{ form.checkbox(setting('DELIVERY_REQUEST_ADD_UL'), "Ajout d'unité logistique", false, setting_value('DELIVERY_REQUEST_ADD_UL')) }}
     </div>
 </div>
 

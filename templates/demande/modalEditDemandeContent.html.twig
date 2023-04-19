@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
 
 {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
@@ -38,6 +40,18 @@
             </select>
         </div>
     </div>
+
+    {% set fieldCodeReceiver = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DEMANDE') %}
+    {% if fieldsParam|isFieldRequired(fieldCodeReceiver, 'displayedCreate') %}
+        {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeReceiver, 'requiredCreate') %}
+        <div class="col-12 col-md-6">
+            {{ form.select('demandeReceiver', 'Destinataire', fieldRequired, {
+                type: 'user',
+                multiple: false,
+                items: defaultReceiver
+            }) }}
+        </div>
+    {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EXPECTED_AT') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
