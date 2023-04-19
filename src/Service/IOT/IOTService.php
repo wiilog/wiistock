@@ -385,7 +385,7 @@ class IOTService
     {
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
-        $deviceCode = $message['network']['lora']['devEUI'];
+        $deviceCode = $message['metadata']['network']['lora']['devEUI'];
 
         $device = $deviceRepository->findOneBy([
             'code' => $deviceCode,
