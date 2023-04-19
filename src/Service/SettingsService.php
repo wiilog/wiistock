@@ -684,7 +684,8 @@ class SettingsService {
                     ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
                     ->setNotificationsEnabled($data["pushNotifications"] ?? false)
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
-                    ->setSendMail($data["mailRequester"] ?? false)
+                    ->setSendMailRequester($data["mailRequester"] ?? false)
+                    ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setColor($data["color"] ?? null);
 
                 if (isset($files["logo"])) {

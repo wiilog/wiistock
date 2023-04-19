@@ -453,12 +453,17 @@ class DemandeLivraisonService
             }
 
             foreach($demande->getReferenceLines() as $reference) {
-                if($reference->getReference()->getEmplacement()) {
+                if ($reference->getReference()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                    && $reference->getReference()->getEmplacement()) {
                     $locations[$reference->getReference()->getEmplacement()->getId()] = true;
+                }
+                else {
+                    $preparedUponValidation = false;
+                    break;
                 }
             }
 
-            $preparedUponValidation = count($locations) === 1;
+            $preparedUponValidation = $preparedUponValidation ?? (count($locations) === 1);
         } else {
             $preparedUponValidation = false;
         }
@@ -546,21 +551,30 @@ class DemandeLivraisonService
             }
         }
 
-        if (!$simpleValidation && $demande->getType()->getSendMail()) {
+        if (!$simpleValidation && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {
+            $to = [];
+            if ($demande->getType()->getSendMailRequester()) {
+                $to[] = $demande->getUtilisateur();
+            }
+            if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
+                $to[] = $demande->getDestinataire();
+            }
+
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
                 'FOLLOW GT // Validation d\'une demande vous concernant',
                 $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
-                    'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
+                    'title' => 'La demande de livraison ' . $demande->getNumero() . ' de type '
                         . $demande->getType()->getLabel()
                         . ' a bien été validée le '
                         . $nowDate->format('d/m/Y \à H:i')
                         . '.',
                 ]),
-                $demande->getUtilisateur()
+                $to
             );
         }
+
         if ($flush) {
             $entityManager->flush();
         }

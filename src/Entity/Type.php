@@ -83,7 +83,10 @@ class Type {
     private Collection $handlingUsers;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $sendMail = null;
+    private ?bool $sendMailRequester = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $sendMailReceiver = null;
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: Dispatch::class)]
     private Collection $dispatches;
@@ -513,12 +516,22 @@ class Type {
         return $this;
     }
 
-    public function getSendMail(): ?bool {
-        return $this->sendMail;
+    public function getSendMailRequester(): ?bool {
+        return $this->sendMailRequester;
     }
 
-    public function setSendMail(?bool $sendMail): self {
-        $this->sendMail = $sendMail;
+    public function setSendMailRequester(?bool $sendMailRequester): self {
+        $this->sendMailRequester = $sendMailRequester;
+
+        return $this;
+    }
+
+    public function getSendMailReceiver(): ?bool {
+        return $this->sendMailReceiver;
+    }
+
+    public function setSendMailReceiver(?bool $sendMailReceiver): self {
+        $this->sendMailReceiver = $sendMailReceiver;
 
         return $this;
     }

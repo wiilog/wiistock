@@ -777,8 +777,12 @@ class SelectController extends AbstractController {
     public function supplierArticles(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
         $supplier = $request->query->get('fournisseur');
+        $referenceArticle = $request->query->get('refArticle');
 
-        $supplierArticles = $entityManager->getRepository(ArticleFournisseur::class)->getForSelect($search, $supplier);
+        $supplierArticles = $entityManager->getRepository(ArticleFournisseur::class)->getForSelect($search, [
+            'supplier' => $supplier,
+            'referenceArticle' => $referenceArticle
+        ]);
 
         return $this->json([
             "results" => $supplierArticles
