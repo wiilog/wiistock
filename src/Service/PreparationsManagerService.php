@@ -170,7 +170,7 @@ class PreparationsManagerService
                     ],
                 );
                 $this->entityManager->persist($trackingMovementPick);
-
+                $entityManager->flush();
                 $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
                     $articleEntity->getBarCode(),
                     $locationEndPrepa,
@@ -186,7 +186,6 @@ class PreparationsManagerService
                 );
                 $this->entityManager->persist($trackingMovementDrop);
                 $ulToMove[] = $articleEntity?->getCurrentLogisticUnit();
-
                 $this->entityManager->flush();
             }
         }
@@ -537,7 +536,6 @@ class PreparationsManagerService
         $articleTransitStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $articleActiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         $now = new DateTime();
-
         foreach ($articleLines as $line) {
             $article = $line->getArticle();
             $mouvementAlreadySaved = $preparation->getArticleMovement($article);
@@ -545,7 +543,6 @@ class PreparationsManagerService
                 $pickedQuantity = $line->getPickedQuantity();
                 $selected = !(empty($pickedQuantity));
                 $article->setStatut($selected ? $articleTransitStatus : $articleActiveStatus);
-
                 if ($article->getQuantite() >= $pickedQuantity) {
                     // scission des articles dont la quantité prélevée n'est pas totale
                     if ($article->getQuantite() > $pickedQuantity) {
