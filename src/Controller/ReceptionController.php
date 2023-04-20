@@ -1505,7 +1505,9 @@ class ReceptionController extends AbstractController {
         if($receptionId = json_decode($request->getContent(), true)) {
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $reception = $receptionRepository->find($receptionId);
-            if($reception?->getLines()?->count() === 0) {
+            $receptionReferenceArticles = $reception?->getReceptionReferenceArticles();
+
+            if(empty($receptionReferenceArticles)) {
                 $delete = true;
                 $html = "
                     <p>{$translationService->translate('Ordre', 'Réceptions', 'Voulez-vous réellement supprimer cette réception')}</p>
@@ -1521,7 +1523,10 @@ class ReceptionController extends AbstractController {
                 ";
             }
 
-            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+            return new JsonResponse([
+                'delete' => $delete,
+                'html' => $html,
+            ]);
         }
         throw new BadRequestHttpException();
     }
@@ -1876,7 +1881,7 @@ class ReceptionController extends AbstractController {
 
             // we create articles
             for($i = 0; $i < $quantityToReceive; $i++) {
-                $article = $articleDataService->newArticle($articleArray, $entityManager);
+                $article = $articleDataService->newArticle($entityManager, $articleArray);
 
                 if ($demande ?? false) {
                     $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, [
@@ -2020,7 +2025,15 @@ class ReceptionController extends AbstractController {
                 ->setEmergencyComment('');
         }
 
-        if(isset($demande) && $demande->getType()->getSendMail()) {
+        if(isset($demande) && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {
+            $to = [];
+            if ($demande->getType()->getSendMailRequester()) {
+                $to[] = $demande->getUtilisateur();
+            }
+            if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
+                $to[] = $demande->getDestinataire();
+            }
+
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
                 'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
@@ -2038,7 +2051,7 @@ class ReceptionController extends AbstractController {
                         . $nowDate->format('d/m/Y \à H:i')
                         . '.',
                 ]),
-                $demande->getUtilisateur()
+                $to
             );
         }
         $reception->setStatut($receptionService->getNewStatus($reception));

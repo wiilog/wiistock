@@ -33,6 +33,7 @@ doctrine:
                 JSON_EXTRACT: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonExtract
                 JSON_UNQUOTE: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonUnquote
                 JSON_REMOVE: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonRemove
+                JSON_CONTAINS: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContains
                 REPLACE: DoctrineExtensions\Query\Mysql\Replace
                 CAST: DoctrineExtensions\Query\Mysql\Cast
                 DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat

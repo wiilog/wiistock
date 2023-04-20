@@ -41,6 +41,17 @@
                             <div class="form-group">
                                 {{ form.select('refArticle', trans('Stock', 'Références', 'Référence', false), true, {
                                     type: 'reference',
+                                    additionalAttributes :[{
+                                        name: 'data-other-params',
+                                    },
+                                    {
+                                        name: 'data-other-params-type-quantity',
+                                        value: 'article',
+                                    },
+                                    {
+                                        name: 'data-other-params-status',
+                                        value: 'actif',
+                                    }],
                                 }) }}
                             </div>
                             <div class="form-group">
@@ -272,7 +283,8 @@
                         <div class="form-group w-100">
                             {{ form.select('articleFournisseur', 'Référence fournisseur', true, {
                                 type: 'supplierArticles',
-                                includeParams: 'select[name=fournisseur]',
+                                includeParams: 'select[name=fournisseur], select[name=refArticle]',
+                                minLength: 0,
                                 disabled: true,
                             }) }}
                         </div>

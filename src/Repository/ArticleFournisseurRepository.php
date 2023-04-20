@@ -314,7 +314,10 @@ class ArticleFournisseurRepository extends EntityRepository
         return (int) $query->getSingleScalarResult();
     }
 
-    public function getForSelect(?string $search, ?string $supplier = null): array {
+    public function getForSelect(?string $search, array $options = []): array {
+        $supplier = $options['supplier'] ?? null;
+        $referenceArticle = $options['referenceArticle'] ?? null;
+
         $qb = $this->createQueryBuilder("supplier_article")
             ->select("supplier_article.id AS id")
             ->addSelect("supplier_article.reference AS text")
@@ -322,9 +325,17 @@ class ArticleFournisseurRepository extends EntityRepository
             ->setParameter("search", "%$search%");
 
         if($supplier) {
-            $qb->leftJoin("supplier_article.fournisseur", "join_supplier")
+            $qb
+                ->leftJoin("supplier_article.fournisseur", "join_supplier")
                 ->andWhere("join_supplier.id = :supplier")
                 ->setParameter("supplier", $supplier);
+        }
+
+        if($referenceArticle) {
+            $qb
+                ->leftJoin("supplier_article.referenceArticle", "join_referenceArticle")
+                ->andWhere("join_referenceArticle.id = :referenceArticle")
+                ->setParameter("referenceArticle", $referenceArticle);
         }
 
         return $qb

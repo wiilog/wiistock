@@ -241,9 +241,13 @@ class SelectController extends AbstractController {
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        $needsOnlyMobileSyncReference = $request->query->getBoolean('needs-mobile-sync');
+        $options = [
+            'needsOnlyMobileSyncReference' => $request->query->getBoolean('needs-mobile-sync'),
+            'type-quantity' => $request->query->get('type-quantity'),
+            'status' => $request->query->get('status'),
+        ];
 
-        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user, $needsOnlyMobileSyncReference);
+        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options);
 
         return $this->json([
             "results" => $results,
@@ -773,8 +777,12 @@ class SelectController extends AbstractController {
     public function supplierArticles(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
         $supplier = $request->query->get('fournisseur');
+        $referenceArticle = $request->query->get('refArticle');
 
-        $supplierArticles = $entityManager->getRepository(ArticleFournisseur::class)->getForSelect($search, $supplier);
+        $supplierArticles = $entityManager->getRepository(ArticleFournisseur::class)->getForSelect($search, [
+            'supplier' => $supplier,
+            'referenceArticle' => $referenceArticle
+        ]);
 
         return $this->json([
             "results" => $supplierArticles
