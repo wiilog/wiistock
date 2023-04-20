@@ -1170,11 +1170,9 @@ class MobileController extends AbstractApiController
                 try {
                     if ($location) {
                         // flush auto at the end
-                        $entityManager->transactional(function () use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $location) {
-                            $livraisonsManager->setEntityManager($entityManager);
-                            $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location, true);
-                            $entityManager->flush();
-                        });
+                        $livraisonsManager->setEntityManager($entityManager);
+                        $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location, true);
+                        $entityManager->flush();
 
                         $resData['success'][] = [
                             'numero_livraison' => $livraison->getNumero(),
@@ -1196,6 +1194,10 @@ class MobileController extends AbstractApiController
                         default => false,
                     };
 
+                    if($throwable->getCode() === LivraisonsManagerService::NATURE_NOT_ALLOWED){
+                        $message = $throwable->getMessage();
+                    }
+
                     if (!$message) {
                         $exceptionLoggerService->sendLog($throwable, $request);
                     }
@@ -1207,8 +1209,6 @@ class MobileController extends AbstractApiController
                         'message' => $message ?: 'Une erreur est survenue',
                     ];
                 }
-
-                $entityManager->flush();
             }
         }
 
