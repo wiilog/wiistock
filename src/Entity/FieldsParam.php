@@ -183,6 +183,11 @@ class FieldsParam {
     const FIELD_LABEL_EMERGENCY_CARRIER = "transporteur";
     const FIELD_LABEL_EMERGENCY_TYPE = "type d'urgence";
 
+    const ENTITY_CODE_DEMANDE_REF_ARTICLE = 'demandeRefArticle';
+    const FIELD_CODE_DEMANDE_REF_ARTICLE_PROJET = 'project';
+    const FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENTAIRE = 'commentary';
+    const FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJET = 'projet';
+    const FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENTAIRE = 'commentaire';
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
@@ -278,6 +283,21 @@ class FieldsParam {
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $modalType = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $displayed = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $displayedUnderCondition = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $conditionFixedField = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $conditionFixedFieldValue = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $required = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -399,4 +419,53 @@ class FieldsParam {
         $this->modalType = $modalType;
     }
 
+    public function isDisplayed(): ?bool {
+        return $this->displayed;
+    }
+
+    public function setDisplayed(?bool $displayed): self {
+        $this->displayed = $displayed;
+
+        return $this;
+    }
+
+    public function isDisplayedUnderCondition(): ?bool {
+        return $this->displayedUnderCondition;
+    }
+
+    public function setDisplayedUnderCondition(?bool $displayedUnderCondition): self {
+        $this->displayedUnderCondition = $displayedUnderCondition;
+
+        return $this;
+    }
+
+    public function getConditionFixedField(): ?string {
+        return $this->conditionFixedField;
+    }
+
+    public function setConditionFixedField(?string $conditionFixedField): self {
+        $this->conditionFixedField = $conditionFixedField;
+
+        return $this;
+    }
+
+    public function getConditionFixedFieldValue(): ?array {
+        return $this->conditionFixedFieldValue;
+    }
+
+    public function setConditionFixedFieldValue(?array $conditionFixedFieldValue): self {
+        $this->conditionFixedFieldValue = $conditionFixedFieldValue;
+
+        return $this;
+    }
+
+    public function isRequired(): ?bool {
+        return $this->required;
+    }
+
+    public function setRequired(?bool $required): self {
+        $this->required = $required;
+
+        return $this;
+    }
 }

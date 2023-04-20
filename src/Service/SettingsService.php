@@ -790,12 +790,24 @@ class SettingsService {
                 if ($fieldsParam) {
                     $code = $fieldsParam->getFieldCode();
                     $alwaysRequired = in_array($code, FieldsParam::ALWAYS_REQUIRED_FIELDS);
-                    $fieldsParam->setDisplayedCreate($item["displayedCreate"])
-                        ->setRequiredCreate($alwaysRequired || $item["requiredCreate"])
+                    $fieldsParam->setDisplayedCreate($item["displayedCreate"] ?? null)
+                        ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))
                         ->setKeptInMemory($item["keptInMemory"] ?? null)
-                        ->setDisplayedEdit($item["displayedEdit"])
-                        ->setRequiredEdit($alwaysRequired || $item["requiredEdit"])
-                        ->setDisplayedFilters($item["displayedFilters"] ?? null);
+                        ->setDisplayedEdit($item["displayedEdit"] ?? null)
+                        ->setRequiredEdit($alwaysRequired || ($item["requiredEdit"] ?? null))
+                        ->setDisplayedFilters($item["displayedFilters"] ?? null)
+                        ->setDisplayed($item["displayed"] ?? null)
+                        ->setRequired($item["required"] ?? null);
+
+                    if (isset($item["displayedUnderCondition"])) {
+                        $fieldsParam->setDisplayedUnderCondition($item["displayedUnderCondition"]);
+                    }
+                    if (isset($item["conditionFixedField"])) {
+                        $fieldsParam->setConditionFixedField($item["conditionFixedField"]);
+                    }
+                    if (isset($item["conditionFixedFieldValue"])) {
+                        $fieldsParam->setConditionFixedFieldValue($item["conditionFixedFieldValue"] !== "" ? explode(',', $item["conditionFixedFieldValue"]) : []);
+                    }
                 }
             }
         }
