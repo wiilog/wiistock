@@ -421,3 +421,36 @@
         {% endfor %}
     </label>
 {% endmacro %}
+
+{% set macroName = macroName ?? null %}
+{% set macroParams = macroParams ?? null %}
+
+{% if macroName and macroParams %}
+    {# Ability to call an macro dynamicly is not implemented in Twig yet. #}
+    {# See https://github.com/twigphp/Twig/issues/922#issuecomment-11133299 #}
+    {# So i do basic elseif   #}
+    {% if macroName == 'label' %}
+        {{ _self.label(macroParams[0] ?? null, macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null) }}
+    {% elseif macroName == 'switch' %}
+        {{ _self.switch(macroParams[0] ?? null, macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'checkbox' %}
+        {{ _self.checkbox(macroParams[0] ?? null, macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'radio' %}
+        {{ _self.radio(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'select' %}
+        {{ _self.select(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'input' %}
+        {{ _self.input(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'color' %}
+        {{ _self.color(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'textarea' %}
+        {{ _self.textarea(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'wysiwyg' %}
+        {{ _self.wysiwyg(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'image' %}
+        {{ _self.image(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'lang' %}
+        {{ _self.lang(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3]) }}
+    {% endif %}
+{% endif %}
+

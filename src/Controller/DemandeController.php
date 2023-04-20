@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
@@ -24,6 +25,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
+use App\Service\FormatService;
 use App\Service\RefArticleDataService;
 use App\Service\DemandeLivraisonService;
 use App\Service\FreeFieldService;
@@ -352,6 +354,7 @@ class DemandeController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'modifiable' => $status?->getCode() === Demande::STATUT_BROUILLON,
             'finished' => $status?->getCode() === Demande::STATUT_A_TRAITER,
+            "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($demande)),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING)
@@ -573,7 +576,7 @@ class DemandeController extends AbstractController
                 $entityManager,
                 $demande
             );
-            if ($resp === 'article') {
+            if ($resp['article'] ?? false) {
                 $articleDataService->editArticle($data);
                 $resp = true;
             }
@@ -1020,5 +1023,200 @@ class DemandeController extends AbstractController
         } else {
             return $this->redirectToRoute('demande_index', ['open-modal' => 'new']);
         }
+    }
+
+    #[Route("/api/table-article-content/{request}", name: "api_table_articles_content", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function apiTableArticleContent(Demande $request,
+                                           FormatService $formatService,
+                                           EntityManagerInterface $entityManager,
+                                           ArticleDataService $articleDataService): JsonResponse {
+        $user = $this->getUser();
+        $referencesData = Stream::from($request->getReferenceLines())
+            ->map(function (DeliveryRequestReferenceLine $line) use ($formatService) {
+                $reference = $line->getReference();
+                return [
+                    "actions" => "<span class='d-flex justify-content-start align-items-center delete-row' data-id='" . $line->getId() . "'><span class='wii-icon wii-icon-trash'></span></span>",
+                    "reference" => ($reference->getReference() ?: '')
+                        . $this->render('form.html.twig', [
+                            'macroName' => 'input',
+                            'macroParams' => ['lineId', null, true, $line->getId(), ['type' => 'hidden']],
+                        ])->getContent()
+                        . $this->render('form.html.twig', [
+                            'macroName' => 'input',
+                            'macroParams' => ['type', null, true, 'reference', ['type' => 'hidden']],
+                        ])->getContent(),
+                    "label" => $reference->getLibelle() ?: '',
+                    "quantity" => $this->render('form.html.twig', [
+                        'macroName' => 'input',
+                        'macroParams' => ['quantity', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
+                    ])->getContent(),
+                    "location" => $this->render('form.html.twig', [
+                        'macroName' => 'select',
+                        'macroParams' => ['location', null, false, ['type' => 'location', 'items' => [
+                            'text' => $formatService->location($reference->getEmplacement()),
+                            'selected' => true,
+                            'value' => $reference->getEmplacement()?->getId(),
+                        ]]]])->getContent(),
+                    $formatService->location($reference->getEmplacement()),
+                    "barcode" => $reference->getBarcode() ?: '',
+                    "project" => $this->render('form.html.twig', [
+                        'macroName' => 'select',
+                        'macroParams' => ['project', null, false, ['type' => 'project', 'items' => $line->getProject() ? [
+                            'text' => $formatService->project($line->getProject()),
+                            'selected' => true,
+                            'value' => $line->getProject()?->getId(),
+                        ] : []]]])->getContent(),
+                    "comment" => $this->render('form.html.twig', [
+                        'macroName' => 'input',
+                        'macroParams' => ['comment', null, false, $line->getComment()],
+                    ])->getContent(),
+                    "article" => "",
+                ];
+            })
+            ->toArray();
+
+        $articlesData = Stream::from($request->getArticleLines())
+            ->map(function (DeliveryRequestArticleLine $line) use ($entityManager, $request, $user, $articleDataService, $formatService) {
+                $article = $line->getArticle();
+                return [
+                    "actions" => "<span class='d-flex justify-content-start align-items-center delete-row' data-id='" . $line->getId() . "'><span class='wii-icon wii-icon-trash'></span></span>",
+                    "reference" =>
+                        ($article->getReferenceArticle()->getReference() ?: '')
+                        . $this->render('form.html.twig', [
+                            'macroName' => 'input',
+                            'macroParams' => ['lineId', null, true, $line->getId(), ['type' => 'hidden']],
+                        ])->getContent()
+                        . $this->render('form.html.twig', [
+                            'macroName' => 'input',
+                            'macroParams' => ['type', null, true, 'article', ['type' => 'hidden']],
+                        ])->getContent(),
+                    "label" => $article->getLabel() ?: '',
+                    "quantity" => $this->render('form.html.twig', [
+                        'macroName' => 'input',
+                        'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
+                    ])->getContent(),
+                    "location" => $this->render('form.html.twig', [
+                        'macroName' => 'select',
+                        'macroParams' => ['location', null, false, ['type' => 'location', 'items' => [
+                            'text' => $formatService->location($article->getEmplacement()),
+                            'selected' => true,
+                            'value' => $article->getEmplacement()?->getId(),
+                        ]]]])->getContent(),
+                    "barcode" => $article->getBarcode() ?: '',
+                    "project" => $this->render('form.html.twig', [
+                        'macroName' => 'select',
+                        'macroParams' => ['project', null, false, ['type' => 'project', 'items' => $line->getProject() ? [
+                            'text' => $formatService->project($line->getProject()),
+                            'selected' => true,
+                            'value' => $line->getProject()?->getId(),
+                        ] : []]]])->getContent(),
+                    "comment" => $this->render('form.html.twig', [
+                        'macroName' => 'input',
+                        'macroParams' => ['comment', null, false, $line->getComment()],
+                    ])->getContent(),
+                    "article" => $user->getRole()->getQuantityType() === Article::CATEGORIE
+                        ? $this->render('form.html.twig', [
+                            'macroName' => 'select',
+                            'macroParams' => ['article', null, false, [
+                                'items' => Stream::from($articleDataService->findAndSortActiveArticlesByRefArticle($article->getReferenceArticle(), $article->getReferenceArticle()->getStockManagement(), $entityManager))
+                                    ->keymap(function (Article $article) use ($line, $formatService) {
+                                        return [$article->getId(), $article->getBarCode()];
+                                    })
+                                    ->toArray(),
+                                'value' => $article->getId(),
+                            ]]])->getContent()
+                        : $article->getLabel(),
+                ];
+            })
+            ->toArray();
+
+        $data = array_merge($referencesData, $articlesData);
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "reference" => "",
+            "label" => "",
+            "quantity" => "",
+            "project" => "",
+            "comment" => "",
+            "barcode" => "",
+            "location" => "",
+            "article" => "",
+        ];
+
+        return $this->json([
+            "data" => $data,
+        ]);
+    }
+
+    #[Route("/api/demande-article-submit-change/{deliveryRequest}", name: "api_demande_article_submit_change", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function apiDemandeArticleChange(Demande $deliveryRequest,
+                                            Request $request,
+                                            EntityManagerInterface $entityManager,
+                                            RefArticleDataService $refArticleDataService,
+                                            ArticleDataService $articleDataService): JsonResponse {
+        if ($data = json_decode($request->getContent(), true)) {
+            dump($data);
+            if ($lineId = $data['lineId'] ?? null) {
+                // modification
+                if ($data['type'] === 'article') {
+                    $lineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
+
+                } else {
+                    $lineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
+                }
+                $line = $lineRepository->find($lineId);
+                $line->setQuantityToPick($data['quantity-to-pick'] ?? null);
+                $line->setComment($data['comment'] ?? null);
+                $line->setProject(isset($data['project']) ? $entityManager->getRepository(Project::class)->find($data['project']) : null);
+                $line->setTargetLocationPicking(isset($data['location']) ? $entityManager->getRepository(Emplacement::class)->find($data['location']) : null);
+
+                if($line instanceof DeliveryRequestArticleLine) {
+                    $line->setArticle($entityManager->getRepository(Article::class)->find($data['article']));
+                }
+
+                $entityManager->flush();
+                $resp = ['success' => true, 'created' => false];
+            } elseif ($referenceId = $data['referenceId'] ?? null) {
+                // creation
+                $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+                $referenceArticle = $referenceArticleRepository->find($data['referenceId']);
+
+                $currentUser = $this->getUser();
+                $resp = $refArticleDataService->addReferenceToRequest(
+                    $data,
+                    $referenceArticle,
+                    $currentUser,
+                    false,
+                    $entityManager,
+                    $deliveryRequest,
+                    false
+                );
+                $entityManager->flush();
+                $resp['lineId'] = $resp['line']->getId();
+                $resp['created'] = true;
+            }
+        }
+        return new JsonResponse(
+            $resp ?? ['success' => false, 'created' => false]
+        );
+    }
+
+    #[Route("/api/articles-by-reference/{referenceArticle}", name: "api_articles-by-reference", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function apiArticlesByReference( ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager, ArticleDataService $articleDataService): JsonResponse {
+        $articles = $articleDataService->findAndSortActiveArticlesByRefArticle( $referenceArticle, $referenceArticle->getStockManagement(), $entityManager);
+        return $this->json([
+            "success" => true,
+            "data" => Stream::from($articles)
+                ->map(function (Article $article) {
+                    return [
+                        'text' => $article->getBarCode(),
+                        'value' => $article->getId(),
+                    ];
+                })
+                ->toArray(),
+        ]);
     }
 }

@@ -399,7 +399,7 @@ function initDataTable($table, options) {
 
     datatableToReturn = $table
         .on('error.dt', function (e, settings, techNote, message) {
-            console.log('An error has been reported by DataTables: ', message, e, $table.attr('id'));
+            console.error('An error has been reported by DataTables: ', message, e, $table.attr('id'));
         })
         .DataTable(Object.assign({
             fixedColumns: {

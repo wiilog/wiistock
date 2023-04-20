@@ -21,6 +21,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
@@ -636,7 +637,7 @@ class RefArticleDataService {
                                           Demande                $demande,
                                                                  $editRef = true,
                                                                  $fromCart = false) {
-        $resp = true;
+        $resp = [];
         $articleRepository = $entityManager->getRepository(Article::class);
         $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
 
@@ -665,6 +666,7 @@ class RefArticleDataService {
             if(!$fromNomade && $editRef) {
                 $this->editRefArticle($entityManager, $referenceArticle, $data, $user);
             }
+            $resp['type'] = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             if($fromNomade || $loggedUserRole->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE || $fromCart) {
                 if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
@@ -688,11 +690,21 @@ class RefArticleDataService {
                 ]);
 
                 $entityManager->persist($line);
-
-                $resp = 'article';
+                $resp['type'] = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
+                $resp['article'] = true;
             }
+            $resp['success'] = true;
         } else {
-            $resp = false;
+            $resp['success'] = false;
+        }
+        if (isset($line)) {
+            $projectRepository = $entityManager->getRepository(Project::class);
+            $project = ($data['project'] ?? null) ? $projectRepository->find($data['project']) : null;
+            $line
+                ->setComment($data['comment'] ?? null)
+                ->setProject($project);
+
+            $resp['line'] = $line;
         }
         return $resp;
     }

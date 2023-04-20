@@ -754,4 +754,19 @@ class DemandeLivraisonService
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
+    public function getVisibleColumnsTableArticleConfig(Demande $request): array {
+        // TODO faire en fonction de la config de la demande
+        return [
+            ['data' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['title' => 'Référence*', 'data' => 'reference'],
+            ['title' => 'Libellé', 'data' => 'label'],
+            ['title' => 'Article*', 'data' => 'article'],
+            ['title' => 'Quantité*', 'data' => 'quantity'],
+            //TODO traduction de projet
+            ['title' => 'Projet*', 'data' => 'project'],
+            ['title' => 'Commentaire', 'data' => 'comment'],
+            ['title' => 'Code barre', 'data' => 'barcode'],
+            ['title' => 'Emplacement', 'data' => 'location'],
+        ];
+    }
 }
