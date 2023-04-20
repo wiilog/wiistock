@@ -115,8 +115,8 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_TYPE, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_TYPE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'modalType' => FieldsParam::MODAL_TYPE_FREE, 'values' => []],
             ],
             FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
-                ['code' => FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJET, 'label' => FieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJET, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => "Type Reference", 'conditionFixedFieldValue' => [], 'required' => true],
-                ['code' => FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENTAIRE, 'label' => FieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENTAIRE, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => "Type Reference", 'conditionFixedFieldValue' => [], 'required' => false]
+                ['code' => FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => FieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => "Type Reference", 'conditionFixedFieldValue' => [], 'required' => true],
+                ['code' => FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => FieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => "Type Reference", 'conditionFixedFieldValue' => [], 'required' => false]
             ]
         ];
 
