@@ -184,10 +184,10 @@ class FieldsParam {
     const FIELD_LABEL_EMERGENCY_TYPE = "type d'urgence";
 
     const ENTITY_CODE_DEMANDE_REF_ARTICLE = 'demandeRefArticle';
-    const FIELD_CODE_DEMANDE_REF_ARTICLE_PROJET = 'project';
-    const FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENTAIRE = 'commentary';
-    const FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJET = 'projet';
-    const FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENTAIRE = 'commentaire';
+    const FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT = 'project';
+    const FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT = 'comment';
+    const FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT = 'projet';
+    const FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT = 'commentaire';
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
