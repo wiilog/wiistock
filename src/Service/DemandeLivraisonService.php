@@ -611,7 +611,7 @@ class DemandeLivraisonService
             [
                 'label' => 'Projet',
                 'value' => $this->formatService->project($demande?->getProject()) ?? '',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT]
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DEMANDE_PROJECT]
             ],
         ];
 

@@ -48,4 +48,9 @@
     {% elseif emergency is defined and emergency %}
         {% include 'filters/filter_item/filterEmergency.html.twig' %}
     {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEMANDE_PROJECT') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterProject.html.twig' %}
+    {% endif %}
 {% endblock %}

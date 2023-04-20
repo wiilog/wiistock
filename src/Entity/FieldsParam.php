@@ -165,6 +165,9 @@ class FieldsParam {
     const FIELD_LABEL_RECEIVER_DEMANDE = 'destinataire';
     const FIELD_CODE_TYPE_DEMANDE = 'type';
     const FIELD_LABEL_TYPE_DEMANDE = 'type';
+    const FIELD_CODE_DEMANDE_PROJECT = 'demandeProject';
+    const FIELD_LABEL_DEMANDE_PROJECT = 'project';
+
 
     const ENTITY_CODE_EMERGENCY = "urgence";
     const FIELD_CODE_EMERGENCY_BUYER = "buyer";
@@ -225,6 +228,9 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
+
+        // Livraison
+        FieldsParam::FIELD_CODE_DEMANDE_PROJECT
     ];
 
     public const NOT_EDITABLE_FIELDS = [
