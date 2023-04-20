@@ -362,7 +362,6 @@ class TrackingMovementService extends AbstractController
         $removeFromGroup = $options['removeFromGroup'] ?? false;
 
         $pack = $this->packService->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
-
         $tracking = new TrackingMovement();
         $tracking
             ->setQuantity($quantity)

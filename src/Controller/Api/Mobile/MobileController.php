@@ -825,9 +825,9 @@ class MobileController extends AbstractApiController
                                     false,
                                     $emplacementPrepa
                                 );
-
+                                $code = $movement->getRefArticle() ? $movement->getRefArticle()->getBarCode() : $movement->getArticle()->getBarCode();
                                 $trackingMovementPick = $trackingMovementService->createTrackingMovement(
-                                    $movement->getArticle()->getBarCode(),
+                                    $code,
                                     $movement->getEmplacementFrom(),
                                     $nomadUser,
                                     $dateEnd,
@@ -840,9 +840,9 @@ class MobileController extends AbstractApiController
                                     ]
                                 );
                                 $entityManager->persist($trackingMovementPick);
-
+                                $entityManager->flush();
                                 $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
-                                    $movement->getArticle()->getBarCode(),
+                                    $code,
                                     $movement->getEmplacementTo(),
                                     $nomadUser,
                                     $dateEnd,
@@ -857,7 +857,6 @@ class MobileController extends AbstractApiController
 
                                 $entityManager->persist($trackingMovementDrop);
                                 $ulToMove[] = $movement->getArticle()?->getCurrentLogisticUnit();
-
                                 $entityManager->flush();
                             }
                         }
