@@ -36,6 +36,8 @@ class ReferenceArticle
     const DRAFT_STATUS = 'brouillon';
     const QUANTITY_TYPE_REFERENCE = 'reference';
     const QUANTITY_TYPE_ARTICLE = 'article';
+    const DATA_SECURITY_YES = 1;
+    const DATA_SECURITY_NO = 0;
     const BARCODE_PREFIX = 'REF';
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
