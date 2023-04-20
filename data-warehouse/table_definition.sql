@@ -274,6 +274,7 @@ CREATE TABLE dw_arrivage
     utilisateur              varchar(255),
     numero_projet            varchar(255),
     business_unit            varchar(255),
+    no_arrivage_camion       varchar(255),
     reception_id             integer
 );
 
@@ -496,6 +497,21 @@ CREATE TABLE dw_article_champs_libres
     valeur             text
 );
 
+CREATE TABLE dw_arrivage_camion
+(
+    id                  integer,
+    no_arrivage_camion  varchar(255),
+    date_creation       timestamp(0),
+    transporteur        varchar(255),
+    chauffeur           varchar(255),
+    immatriculation     varchar(255),
+    emplacement         varchar(255),
+    operateur           varchar(255),
+    nb_tracking_total   integer,
+    reserve_general     varchar(255),
+    reserve_quantite    varchar(255)
+);
+
 CREATE TABLE dw_projet_article
 (
     article_id          integer,
@@ -503,7 +519,7 @@ CREATE TABLE dw_projet_article
     date_assignation    timestamp(0)
 );
 
-CREATE TABLE dw_arrivage_camion
+CREATE TABLE dw_article
 (
     id                   		integer,
     reference 			 		varchar(255),
