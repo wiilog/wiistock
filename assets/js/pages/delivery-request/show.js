@@ -1,4 +1,3 @@
-import EditableDatatable, {SAVE_MANUALLY, MODE_EDIT, SAVE_FOCUS_OUT, MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT} from "@app/editatable";
 import {GET, POST} from "@app/ajax";
 
 let tables = [];
@@ -301,6 +300,7 @@ function removeLogisticUnitLine($button, logisticUnitId) {
 
 function initEditableTableArticles($table) {
     const form = JSON.parse($('input[name="editableTableArticlesForm"]').val());
+    const fieldsParams = JSON.parse($('input[name="editableTableArticlesFieldsParams"]').val());
 
     const table = initDataTable($table, {
         serverSide: false,
@@ -393,11 +393,12 @@ function initEditableTableArticles($table) {
 
     $table.on(`change`, `select[name="reference"]`, function () {
         const $row = $(this).closest(`tr`);
-        const inputDatas = $(this).select2('data')[0];
-        const label = inputDatas.label;
-        const reference = inputDatas.text;
-        const barCode = inputDatas.barCode;
-        const typeQuantite = inputDatas.typeQuantite;
+        const inputData = $(this).select2('data')[0];
+        const label = inputData.label;
+        const reference = inputData.text;
+        const barCode = inputData.barCode;
+        const refType = inputData.typeId;
+        const typeQuantite = inputData.typeQuantite;
         const referenceArticle = Number($(this).val());
 
         $row.find('span.article-label').text(label);
@@ -419,6 +420,18 @@ function initEditableTableArticles($table) {
                 $articleSelect.closest('label').remove();
             }
         }
+
+        // conditional display
+        // Parametrage|Stock|Demande|Livraison-Champs Fixes
+        Object.entries(fieldsParams).forEach(([field, value]) => {
+            if (value.displayedUnderCondition) {
+                const $field = $row.find(`[name="${field}"]`);
+                if (!(value.conditionFixedField === 'Type Reference' && value.conditionFixedValue.includes(refType.toString()))) {
+                    $field.closest('label').remove();
+                    $field.remove();
+                }
+            }
+        })
 
         $(this).select2('destroy').closest('label').addClass('d-none');
         $(this).closest('td').find('span.article-reference').text(reference);

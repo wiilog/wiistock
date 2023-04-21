@@ -92,11 +92,19 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         return $queryBuilder
-            ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label, emplacement.label AS location, reference.description AS description, reference.typeQuantite as typeQuantite, reference.barCode as barCode")
+            ->select("reference.id AS id")
+            ->addSelect('reference.reference AS text')
+            ->addSelect('reference.libelle AS label')
+            ->addSelect('emplacement.label AS location')
+            ->addSelect('reference.description AS description')
+            ->addSelect('reference.typeQuantite as typeQuantite')
+            ->addSelect('reference.barCode as barCode')
+            ->addSelect('type.id as typeId')
             ->andWhere("reference.reference LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
+            ->leftJoin("reference.type", "type")
             ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
             ->getQuery()

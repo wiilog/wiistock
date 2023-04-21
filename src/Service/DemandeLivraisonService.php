@@ -754,19 +754,32 @@ class DemandeLivraisonService
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
-    public function getVisibleColumnsTableArticleConfig(Demande $request): array {
-        // TODO faire en fonction de la config de la demande
-        return [
+    public function getVisibleColumnsTableArticleConfig(Demande $request, EntityManagerInterface $entityManager): array {
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $isProjectDisplayed = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
+        $isProjectRequired = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
+        $isCommentDisplayed = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
+        $isCommentRequired = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
+
+        $columns = [
             ['data' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Référence*', 'data' => 'reference'],
             ['title' => 'Libellé', 'data' => 'label'],
             ['title' => 'Article*', 'data' => 'article'],
             ['title' => 'Quantité*', 'data' => 'quantity'],
-            //TODO traduction de projet
-            ['title' => 'Projet*', 'data' => 'project'],
-            ['title' => 'Commentaire', 'data' => 'comment'],
             ['title' => 'Code barre', 'data' => 'barcode'],
             ['title' => 'Emplacement', 'data' => 'location'],
         ];
+
+        if($isProjectDisplayed){
+            //TODO traduction de projet
+            $columns[] = ['title' => 'Projet' . ($isProjectRequired ? '*' : ''), 'data' => 'project'];
+        }
+        if($isCommentDisplayed){
+            $columns[] = ['title' => 'Commentaire' . ($isCommentRequired ? '*' : ''), 'data' => 'comment'];
+        }
+
+        return $columns;
     }
 }

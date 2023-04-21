@@ -30,6 +30,11 @@ class FieldsParamRepository extends EntityRepository
                 "displayedEdit" =>$field->isDisplayedEdit(),
                 "displayedFilters" => $field->isDisplayedFilters(),
                 "keptInMemory" => $field->isKeptInMemory(),
+                "displayed" => $field->isDisplayed(),
+                "displayedUnderCondition" => $field->isDisplayedUnderCondition(),
+                "required" => $field->isRequired(),
+                "conditionFixedField" => $field->getConditionFixedField(),
+                "conditionFixedValue" => $field->getConditionFixedFieldValue(),
             ]])
             ->toArray();
     }

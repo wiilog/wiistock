@@ -348,13 +348,16 @@ class DemandeController extends AbstractController
                          EntityManagerInterface $manager): Response {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
         $status = $demande->getStatut();
         return $this->render('demande/show/index.html.twig', [
             'demande' => $demande,
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'modifiable' => $status?->getCode() === Demande::STATUT_BROUILLON,
             'finished' => $status?->getCode() === Demande::STATUT_A_TRAITER,
-            "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($demande)),
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE),
+            "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($demande, $entityManager)),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING)
@@ -1032,8 +1035,21 @@ class DemandeController extends AbstractController
                                            EntityManagerInterface $entityManager,
                                            ArticleDataService $articleDataService): JsonResponse {
         $user = $this->getUser();
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+
+        $isProjectRequired = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
+        $isProjectDisplayedUnderCondition = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayedUnderCondition'] ?? false;
+        $projectConditionFixedField = $isProjectDisplayedUnderCondition ? $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['conditionFixedField'] ?? null : null;
+        $projectConditionFixedValue = $isProjectDisplayedUnderCondition ? $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['conditionFixedValue'] ?? null : null;
+
+        $isCommentRequired = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
+        $isCommentDisplayedUnderCondition = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayedUnderCondition'] ?? false;
+        $commentConditionFixedField = $isCommentDisplayedUnderCondition ? $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['conditionFixedField'] ?? null : null;
+        $commentConditionFixedValue = $isCommentDisplayedUnderCondition ? $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['conditionFixedValue'] ?? null : null;
+
         $referencesData = Stream::from($request->getReferenceLines())
-            ->map(function (DeliveryRequestReferenceLine $line) use ($formatService) {
+            ->map(function (DeliveryRequestReferenceLine $line) use ($commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $isProjectDisplayedUnderCondition, $projectConditionFixedField, $projectConditionFixedValue, $isProjectRequired, $isCommentRequired, $formatService) {
                 $reference = $line->getReference();
                 return [
                     "actions" => "<span class='d-flex justify-content-start align-items-center delete-row' data-id='" . $line->getId() . "'><span class='wii-icon wii-icon-trash'></span></span>",
@@ -1049,7 +1065,7 @@ class DemandeController extends AbstractController
                     "label" => $reference->getLibelle() ?: '',
                     "quantity" => $this->render('form.html.twig', [
                         'macroName' => 'input',
-                        'macroParams' => ['quantity', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
+                        'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
                     ])->getContent(),
                     "location" => $this->render('form.html.twig', [
                         'macroName' => 'select',
@@ -1060,24 +1076,28 @@ class DemandeController extends AbstractController
                         ]]]])->getContent(),
                     $formatService->location($reference->getEmplacement()),
                     "barcode" => $reference->getBarcode() ?: '',
-                    "project" => $this->render('form.html.twig', [
-                        'macroName' => 'select',
-                        'macroParams' => ['project', null, false, ['type' => 'project', 'items' => $line->getProject() ? [
-                            'text' => $formatService->project($line->getProject()),
-                            'selected' => true,
-                            'value' => $line->getProject()?->getId(),
-                        ] : []]]])->getContent(),
-                    "comment" => $this->render('form.html.twig', [
-                        'macroName' => 'input',
-                        'macroParams' => ['comment', null, false, $line->getComment()],
-                    ])->getContent(),
+                    "project" => $isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $projectConditionFixedValue)
+                        ? $this->render('form.html.twig', [
+                            'macroName' => 'select',
+                            'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
+                                'text' => $formatService->project($line->getProject()),
+                                'selected' => true,
+                                'value' => $line->getProject()?->getId(),
+                            ] : []]]])->getContent()
+                        : $formatService->project($line->getProject()) ?? '',
+                    "comment" => $isCommentDisplayedUnderCondition && $commentConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $commentConditionFixedValue)
+                        ? $this->render('form.html.twig', [
+                            'macroName' => 'input',
+                            'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
+                        ])->getContent()
+                        : ($line->getComment() ?: ''),
                     "article" => "",
                 ];
             })
             ->toArray();
 
         $articlesData = Stream::from($request->getArticleLines())
-            ->map(function (DeliveryRequestArticleLine $line) use ($entityManager, $request, $user, $articleDataService, $formatService) {
+            ->map(function (DeliveryRequestArticleLine $line) use ($commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $projectConditionFixedValue, $projectConditionFixedField, $isProjectDisplayedUnderCondition, $isCommentRequired, $isProjectRequired, $entityManager, $request, $user, $articleDataService, $formatService) {
                 $article = $line->getArticle();
                 return [
                     "actions" => "<span class='d-flex justify-content-start align-items-center delete-row' data-id='" . $line->getId() . "'><span class='wii-icon wii-icon-trash'></span></span>",
@@ -1104,17 +1124,21 @@ class DemandeController extends AbstractController
                             'value' => $article->getEmplacement()?->getId(),
                         ]]]])->getContent(),
                     "barcode" => $article->getBarcode() ?: '',
-                    "project" => $this->render('form.html.twig', [
-                        'macroName' => 'select',
-                        'macroParams' => ['project', null, false, ['type' => 'project', 'items' => $line->getProject() ? [
-                            'text' => $formatService->project($line->getProject()),
-                            'selected' => true,
-                            'value' => $line->getProject()?->getId(),
-                        ] : []]]])->getContent(),
-                    "comment" => $this->render('form.html.twig', [
-                        'macroName' => 'input',
-                        'macroParams' => ['comment', null, false, $line->getComment()],
-                    ])->getContent(),
+                    "project" => $isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $projectConditionFixedValue)
+                        ? $this->render('form.html.twig', [
+                            'macroName' => 'select',
+                            'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
+                                'text' => $formatService->project($line->getProject()),
+                                'selected' => true,
+                                'value' => $line->getProject()?->getId(),
+                            ] : []]]])->getContent()
+                        : $formatService->project($line->getProject()) ?? '',
+                    "comment" => $isCommentDisplayedUnderCondition && $commentConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $commentConditionFixedValue)
+                        ? $this->render('form.html.twig', [
+                            'macroName' => 'input',
+                            'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
+                        ])->getContent()
+                        : ($line->getComment() ?: ''),
                     "article" => $user->getRole()->getQuantityType() === Article::CATEGORIE
                         ? $this->render('form.html.twig', [
                             'macroName' => 'select',
@@ -1157,7 +1181,6 @@ class DemandeController extends AbstractController
                                             RefArticleDataService $refArticleDataService,
                                             ArticleDataService $articleDataService): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
-            dump($data);
             if ($lineId = $data['lineId'] ?? null) {
                 // modification
                 if ($data['type'] === 'article') {

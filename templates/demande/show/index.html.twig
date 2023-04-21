@@ -99,6 +99,10 @@
                                     <div class="col-12">
                                         <table id="editableTableArticles" class="table"
                                                data-initial-visible="{{ initial_visible_columns }}"></table>
+                                        {% set projectFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT') %}
+                                        {% set commentFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT') %}
+                                        {% set isProjectDisplayed = fieldsParam|isFieldRequired(projectFieldCode, 'required') %}
+                                        {% set isCommentDisplayed = fieldsParam|isFieldRequired(commentFieldCode, 'required') %}
                                         <input hidden name="editableTableArticlesForm" value="{{ {
                                             'actions': '<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>',
                                             'reference':
@@ -119,14 +123,15 @@
                                                 ~ "<span class='article-reference'></span>",
                                             'label': '<span class="article-label"></span>',
                                             'quantity': form.input('quantity-to-pick', null, true, null, {type: 'number', min: 0}),
-                                            'project': form.select('project', null, true, {type: 'project'}),
-                                            'comment': form.input('comment', null, false, null, {type: 'text'}),
+                                            'project': form.select('project', null, isProjectDisplayed, {type: 'project'}),
+                                            'comment': form.input('comment', null, isCommentDisplayed, null, {type: 'text'}),
                                             'location': form.select('location', null, false, {type: 'location'}),
                                             'barcode': '<span class="article-barcode"></span>',
                                             'article': app.user.role.quantityType == constant('App\\Entity\\Article::CATEGORIE')
                                                 ? form.select('article', null, true, {})
                                                 : '',
                                         } | json_encode }}">
+                                        <input hidden name="editableTableArticlesFieldsParams" value="{{ fieldsParam|json_encode }}">
                                     </div>
                                 </div>
                             {% endif %}
