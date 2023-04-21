@@ -1076,7 +1076,7 @@ class DemandeController extends AbstractController
                         ]]]])->getContent(),
                     $formatService->location($reference->getEmplacement()),
                     "barcode" => $reference->getBarcode() ?: '',
-                    "project" => $isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $projectConditionFixedValue)
+                    "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $projectConditionFixedValue))
                         ? $this->render('form.html.twig', [
                             'macroName' => 'select',
                             'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
@@ -1085,7 +1085,7 @@ class DemandeController extends AbstractController
                                 'value' => $line->getProject()?->getId(),
                             ] : []]]])->getContent()
                         : $formatService->project($line->getProject()) ?? '',
-                    "comment" => $isCommentDisplayedUnderCondition && $commentConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $commentConditionFixedValue)
+                    "comment" => !$isProjectDisplayedUnderCondition || ($isCommentDisplayedUnderCondition && $commentConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $commentConditionFixedValue))
                         ? $this->render('form.html.twig', [
                             'macroName' => 'input',
                             'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
@@ -1124,7 +1124,7 @@ class DemandeController extends AbstractController
                             'value' => $article->getEmplacement()?->getId(),
                         ]]]])->getContent(),
                     "barcode" => $article->getBarcode() ?: '',
-                    "project" => $isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $projectConditionFixedValue)
+                    "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $projectConditionFixedValue))
                         ? $this->render('form.html.twig', [
                             'macroName' => 'select',
                             'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
@@ -1133,7 +1133,7 @@ class DemandeController extends AbstractController
                                 'value' => $line->getProject()?->getId(),
                             ] : []]]])->getContent()
                         : $formatService->project($line->getProject()) ?? '',
-                    "comment" => $isCommentDisplayedUnderCondition && $commentConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $commentConditionFixedValue)
+                    "comment" => !$isCommentDisplayedUnderCondition || ($isCommentDisplayedUnderCondition && $commentConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $commentConditionFixedValue))
                         ? $this->render('form.html.twig', [
                             'macroName' => 'input',
                             'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
