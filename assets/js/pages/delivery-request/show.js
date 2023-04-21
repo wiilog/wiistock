@@ -10,6 +10,7 @@ global.ajaxEditArticle = ajaxEditArticle;
 global.removeLogisticUnitLine = removeLogisticUnitLine;
 global.initDeliveryRequestModal = initDeliveryRequestModal;
 global.openAddLUModal = openAddLUModal;
+global.deleteArticleRow = deleteArticleRow;
 
 $(function () {
     $('.select2').select2();
@@ -219,7 +220,11 @@ function initPageModals() {
     let $submitDeleteArticle = $("#submitDeleteArticle");
     let pathDeleteArticle = Routing.generate('demande_remove_article', true);
     InitModal($modalDeleteArticle, $submitDeleteArticle, pathDeleteArticle, {
-        success: () => loadLogisticUnitList(requestId)
+        success: () => {
+            loadLogisticUnitList(requestId);
+            const $editableTableArticles = $('#editableTableArticles');
+            $editableTableArticles.DataTable().ajax.reload();
+        }
     });
 
     let $modalEditArticle = $("#modalEditArticle");
@@ -441,11 +446,6 @@ function initEditableTableArticles($table) {
 
     let $modalDeleteArticle = $("#modalDeleteArticle");
 
-    $table.on(`click`, `.delete-row`, function() {
-        $modalDeleteArticle.modal('show');
-        // TODO SUPPRIMER LA LIGNE + SUPPRIMER LA LIGNE DANS LA BDD
-    });
-
     $(window).on(`beforeunload`, () =>  {
         const $focus = $(`tr :focus`);
         if($focus.exists()) {
@@ -508,4 +508,3 @@ function addArticleRow(table, $button) {
         scrollToBottom();
     }
 }
-

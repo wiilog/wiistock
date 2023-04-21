@@ -1052,7 +1052,7 @@ class DemandeController extends AbstractController
             ->map(function (DeliveryRequestReferenceLine $line) use ($commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $isProjectDisplayedUnderCondition, $projectConditionFixedField, $projectConditionFixedValue, $isProjectRequired, $isCommentRequired, $formatService) {
                 $reference = $line->getReference();
                 return [
-                    "actions" => "<span class='d-flex justify-content-start align-items-center delete-row' data-id='" . $line->getId() . "'><span class='wii-icon wii-icon-trash'></span></span>",
+                    "actions" => '<span class="d-flex justify-content-start align-items-center delete-row" data-target="#modalDeleteArticle" data-toggle="modal" data-name="reference" data-id="' . $line->getId() . '" onclick="deleteRowDemande($(this), $(\'#modalDeleteArticle\'), $(\'#submitDeleteArticle\'))"><span class="wii-icon wii-icon-trash"></span></span>',
                     "reference" => ($reference->getReference() ?: '')
                         . $this->render('form.html.twig', [
                             'macroName' => 'input',
@@ -1100,7 +1100,7 @@ class DemandeController extends AbstractController
             ->map(function (DeliveryRequestArticleLine $line) use ($commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $projectConditionFixedValue, $projectConditionFixedField, $isProjectDisplayedUnderCondition, $isCommentRequired, $isProjectRequired, $entityManager, $request, $user, $articleDataService, $formatService) {
                 $article = $line->getArticle();
                 return [
-                    "actions" => "<span class='d-flex justify-content-start align-items-center delete-row' data-id='" . $line->getId() . "'><span class='wii-icon wii-icon-trash'></span></span>",
+                    "actions" => '<span class="d-flex justify-content-start align-items-center delete-row" data-target="#modalDeleteArticle" data-toggle="modal" data-name="article" data-id="' . $line->getId() . '" onclick="deleteRowDemande($(this), $(\'#modalDeleteArticle\'), $(\'#submitDeleteArticle\'))"><span class="wii-icon wii-icon-trash"></span></span>',
                     "reference" =>
                         ($article->getReferenceArticle()->getReference() ?: '')
                         . $this->render('form.html.twig', [
