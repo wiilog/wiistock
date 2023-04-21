@@ -677,7 +677,6 @@ function processFilesForm($modal, data) {
     const requiredSheetFile = $requiredSheetFileField.val() === '1';
     const alreadyExistSheetFile = $('input[name=savedSheetFile]').length ? true : false;
 
-    // todo : bug si on ajoute une fiche (données sécurité) et en même temps une pièce jointe (informations) --> si on fait l'un puis l'autre aucun problème
     $.each(droppedFiles, function (index, file) {
         data[`file${index}`] = file;
     });
@@ -993,13 +992,13 @@ function saveDroppedFiles(event, $div) {
 }
 
 function saveInputFiles($inputFile, singleton) {
-    singleton = singleton ? singleton : false;
+    singleton = singleton ?? false;
     let filesToSave = $inputFile[0].files;
     const isMultiple = $inputFile.prop('multiple');
 
     Array.from(filesToSave).forEach(file => {
         if (checkSizeFormat(file) && checkFileFormat(file)) {
-            if (!isMultiple) {
+            if (!isMultiple && !singleton) {
                 droppedFiles = [];
             }
             if (!singleton) droppedFiles.push(file);
