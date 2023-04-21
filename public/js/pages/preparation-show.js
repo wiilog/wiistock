@@ -150,7 +150,7 @@ function submitSplitting($submit) {
                     $submit.popLoader();
                     if (data.success) {
                         $modal.find('.close').click();
-                        tableArticle.ajax.reload();
+                        window.location.reload();
                     } else if (data.msg) {
                         $modal.find('.error-msg').html(data.msg);
                         showBSAlert(data.msg, 'danger');

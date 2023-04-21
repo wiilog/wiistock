@@ -398,8 +398,7 @@ class PreparationController extends AbstractController
                 $preparation = $preparationRepository->find($data['preparation']);
 
                 if ($preparation) {
-                    $statusInProgress = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION,
-                        Preparation::STATUT_EN_COURS_DE_PREPARATION);
+                    $statusInProgress = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION,Preparation::STATUT_EN_COURS_DE_PREPARATION);
                     $preparation
                         ->setStatut($statusInProgress)
                         ->setUtilisateur($this->getUser());
