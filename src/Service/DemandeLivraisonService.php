@@ -142,18 +142,17 @@ class DemandeLivraisonService
         if (!isset($this->freeFieldsConfig)) {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::DEMANDE_LIVRAISON, CategoryType::DEMANDE_LIVRAISON);
         }
-
         $row = [
-            'createdAt' => FormatHelper::datetime($demande->getCreatedAt()),
-            'validatedAt' => FormatHelper::datetime($demande->getValidatedAt()),
-            'destination' => FormatHelper::location($demande->getDestination()),
-            'receiver' => (string) $demande->getDestinataire(),
+            'createdAt' => $this->formatService->datetime($demande->getCreatedAt()),
+            'validatedAt' => $this->formatService->datetime($demande->getValidatedAt()),
+            'destination' => $this->formatService->location($demande->getDestination()),
+            'receiver' => $this->formatService->user($demande->getReceiver()),
             'comment' => $demande->getCommentaire(),
-            'requester' => FormatHelper::deliveryRequester($demande),
+            'requester' => $this->formatService->deliveryRequester($demande),
             'number' => $demande->getNumero() ?? '',
-            'status' => FormatHelper::status($demande->getStatut()),
-            'type' => FormatHelper::type($demande->getType()),
-            'expectedAt' => FormatHelper::date($demande->getExpectedAt()),
+            'status' => $this->formatService->status($demande->getStatut()),
+            'type' => $this->formatService->type($demande->getType()),
+            'expectedAt' => $this->formatService->date($demande->getExpectedAt()),
             'project' => $demande->getProject()?->getCode() ?? '',
             'actions' => $this->templating->render('demande/datatableDemandeRow.html.twig', [
                 'idDemande' => $idDemande,

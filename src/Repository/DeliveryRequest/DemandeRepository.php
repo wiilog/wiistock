@@ -171,7 +171,7 @@ class DemandeRepository extends EntityRepository
                     case 'receivers':
                         $value = explode(',', $filter['value']);
                         $qb
-                            ->join('delivery_request.destinataire', 'filter_receiver')
+                            ->join('delivery_request.receiver', 'filter_receiver')
                             ->andWhere("filter_receiver.id in (:id)")
                             ->setParameter('id', $value);
                         break;
@@ -206,7 +206,7 @@ class DemandeRepository extends EntityRepository
                         ->leftJoin('delivery_request.project', 'search_project')
                         ->leftJoin('delivery_request.utilisateur', 'search_user')
                         ->leftJoin('delivery_request.destination', 'search_location_destination')
-                        ->leftJoin('delivery_request.destinataire', 'search_receiver');
+                        ->leftJoin('delivery_request.receiver', 'search_receiver');
                 }
             }
 
