@@ -168,6 +168,13 @@ class DemandeRepository extends EntityRepository
                         $qb->andWhere('delivery_request.createdAt <= :dateMax')
                             ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                         break;
+                    case 'receivers':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('delivery_request.destinataire', 'filter_receiver')
+                            ->andWhere("filter_receiver.id in (:id)")
+                            ->setParameter('id', $value);
+                        break;
                 }
             }
         }
@@ -181,6 +188,7 @@ class DemandeRepository extends EntityRepository
                         "createdAt" => "DATE_FORMAT(delivery_request.createdAt, '%d/%m/%Y') LIKE :search_value",
                         "validatedAt" => "DATE_FORMAT(delivery_request.validatedAt, '%d/%m/%Y') LIKE :search_value",
                         "requester" => "search_user.username LIKE :search_value",
+                        "receiver" => "search_receiver.username LIKE :search_value",
                         "destination" => "search_location_destination.label LIKE :search_value",
                         "comment" => "delivery_request.commentaire LIKE :search_value",
                         "number" => "delivery_request.numero LIKE :search_value",
@@ -197,7 +205,8 @@ class DemandeRepository extends EntityRepository
                         ->leftJoin('delivery_request.type', 'search_type')
                         ->leftJoin('delivery_request.project', 'search_project')
                         ->leftJoin('delivery_request.utilisateur', 'search_user')
-                        ->leftJoin('delivery_request.destination', 'search_location_destination');
+                        ->leftJoin('delivery_request.destination', 'search_location_destination')
+                        ->leftJoin('delivery_request.destinataire', 'search_receiver');
                 }
             }
 
