@@ -195,8 +195,8 @@ class LivraisonService
             ],
             [
                 'label' => 'Projet',
-                'value' => $this->formatService->project($deliveryOrder?->getDemande()->getProject()) ?? '',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DEMANDE_PROJECT]
+                'value' => $this->formatService->project($deliveryOrder?->getDemande()?->getProject()),
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
             [
                 'label' => 'Commentaire',

@@ -67,8 +67,8 @@
         </div>
     {% endif %}
 
-    {% set fieldCodeProject = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEMANDE_PROJECT') %}
-    {% set fieldLabelProject = constant('App\\Entity\\FieldsParam::FIELD_LABEL_DEMANDE_PROJECT') %}
+    {% set fieldCodeProject = constant('App\\Entity\\FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
+    {% set fieldLabelProject = constant('App\\Entity\\FieldsParam::FIELD_LABEL_DELIVERY_REQUEST_PROJECT') %}
     {% if fieldsParam|isFieldRequired(fieldCodeProject, 'displayedEdit') %}
         {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeProject, 'requiredEdit') %}
         {% set disabled = demande.articleLines.count %}

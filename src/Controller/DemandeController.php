@@ -907,7 +907,7 @@ class DemandeController extends AbstractController
                                     Demande $delivery,
                                     Pack $logisticUnit): JsonResponse {
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
-        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DEMANDE_PROJECT);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
         $projectRequired = $projectField->isDisplayedCreate() && $projectField->isRequiredCreate()
             || $projectField->isDisplayedEdit() && $projectField->isRequiredEdit();
@@ -986,7 +986,7 @@ class DemandeController extends AbstractController
 
         $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
         $demandeFieldParamExpectedAt = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EXPECTED_AT);;
-        $demandeFieldParamProject = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DEMANDE_PROJECT);
+        $demandeFieldParamProject = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
         $recipient = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
         $requiredFreeField = $defaultType ? $freeFieldRepository->getByTypeAndRequiredCreate($defaultType) : [];
