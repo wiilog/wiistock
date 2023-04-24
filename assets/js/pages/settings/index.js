@@ -1247,11 +1247,7 @@ function initializeEmergenciesFixedFields($container, canEdit) {
 
 function changeReceiverInput($checkbox) {
     const isChecked = $checkbox.is(':checked');
-    const $inputReceiver = $checkbox.parent('div').parent('div').parent('div').parent('.modal-body').find('select[name=defaultReceiver]');
-    console.log($checkbox.parent('div').parent('div').parent('div').prev().find('select[name=defaultReceiver]'));
-    if (isChecked) {
-        $inputReceiver.attr('disabled', true);
-    } else {
-        $inputReceiver.attr('disabled', false);
-    }
+    const $inputReceiver = $checkbox.closest('.modal-body').find('select[name=defaultReceiver]');
+
+    $inputReceiver.attr('disabled', isChecked);
 }
