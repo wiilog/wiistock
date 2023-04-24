@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 
 use App\Entity\FieldsParam;
 
+use App\Entity\SublinesFieldsParam;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -114,20 +115,29 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_CARRIER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_TYPE, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_TYPE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'modalType' => FieldsParam::MODAL_TYPE_FREE, 'values' => []],
             ],
-            FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
-                ['code' => FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => FieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => "Type Reference", 'conditionFixedFieldValue' => [], 'required' => true],
-                ['code' => FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => FieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => "Type Reference", 'conditionFixedFieldValue' => [], 'required' => false]
+            SublinesFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+                ['code' => SublinesFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SublinesFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SublinesFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => true],
+                ['code' => SublinesFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SublinesFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SublinesFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => false]
             ]
         ];
 
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $sublinesFieldsParamRepository = $manager->getRepository(SublinesFieldsParam::class);
         $existingFields = $fieldsParamRepository->findAll();
+        $existingSublinesFields = $sublinesFieldsParamRepository->findAll();
 
-        $mappedExistingFields = Stream::from($existingFields)
-            ->keymap(function($field) {
-                return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
-            })
-            ->toArray();
+        $mappedExistingFields = array_merge(
+            Stream::from($existingFields)
+                ->keymap(function($field) {
+                    return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
+                })
+                ->toArray(),
+            Stream::from($existingSublinesFields)
+                ->keymap(function($field) {
+                    return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
+                })
+                ->toArray()
+        );
 
         foreach($listEntityFieldCodes as $fieldEntity => $listFieldCodes) {
             foreach($listFieldCodes as $fieldCode) {
@@ -140,8 +150,8 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                   };
 
                 if(!$field) {
-                    $field = new FieldsParam();
-                    if ($fieldEntity === FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE) {
+                    if ($fieldEntity === SublinesFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE) {
+                        $field = new SublinesFieldsParam();
                         $field
                             ->setEntityCode($fieldEntity)
                             ->setFieldCode($fieldCode['code'])
@@ -152,6 +162,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                             ->setRequired($fieldCode['required'])
                             ->setElements($fieldCode['values'] ?? null);
                     } else {
+                        $field = new FieldsParam();
                         $field
                             ->setEntityCode($fieldEntity)
                             ->setFieldCode($fieldCode['code'])
@@ -166,10 +177,11 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                     $manager->persist($field);
                     $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
                 }
-                $field
-                    ->setFieldLabel($fieldCode['label'])
-                    ->setFieldRequiredHidden($fieldCode['hidden'] ?? false);
+                $field->setFieldLabel($fieldCode['label']);
 
+                if (isset($fieldCode['hidden'])) {
+                    $field->setFieldRequiredHidden($fieldCode['hidden']);
+                }
                 if (isset($fieldCode['modalType'])) {
                     $field->setModalType($fieldCode['modalType']);
                 }

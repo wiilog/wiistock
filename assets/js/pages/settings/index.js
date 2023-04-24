@@ -606,7 +606,7 @@ function initializeDemandesFixedFields($container, canEdit) {
     });
 
     EditableDatatable.create(`#table-demande-addition-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `demandeRefArticle`}),
+        route: Routing.generate('settings_sublines_fixed_field_api', {entity: `demandeRefArticle`}),
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
