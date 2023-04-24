@@ -217,6 +217,10 @@ class SettingsController extends AbstractController {
                             "label" => "Achats - Planification",
                             "right" => Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE
                         ],
+                        self::MENU_SHIPPING => [
+                            "label" => "Expéditions",
+                            "save" => true,
+                        ],
                     ],
                 ],
                 self::MENU_VISIBILITY_GROUPS => [
@@ -620,6 +624,7 @@ class SettingsController extends AbstractController {
     public const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
     public const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
     public const MENU_COLLECTS = "collectes";
+    public const MENU_SHIPPING = "expeditions";
     public const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
     public const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
     public const MENU_PURCHASE_STATUSES = "statuts_achats";
