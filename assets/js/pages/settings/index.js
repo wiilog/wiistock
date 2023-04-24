@@ -265,8 +265,13 @@ $(function() {
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
         if(data) {
-            AJAX.route(`POST`, `settings_save_field_param`, {field}).json(data);
-            $modal.modal(`hide`);
+            AJAX.route(`POST`, `settings_save_field_param`, {field})
+                .json(data)
+                .then((response) => {
+                    if(response.success){
+                        $modal.modal(`hide`);
+                    }
+                });
         }
     });
 
@@ -603,6 +608,8 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+
+    initializeLocationByTypeForDeliveries();
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
@@ -704,6 +711,10 @@ function initializeHandlingFixedFields($container, canEdit) {
 }
 
 function initializeDeliveries() {
+
+}
+
+function initializeLocationByTypeForDeliveries() {
     initDeliveryRequestDefaultLocations();
     $('.new-type-association-button').on('click', function () {
         newTypeAssociation($(this));
@@ -745,7 +756,8 @@ function initDeliveryRequestDefaultLocations() {
 }
 
 function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
-    const $settingTypeAssociation = $(`.setting-type-association`);
+    const $modal = $('#modal-fixed-field-destinationdemande');
+    const $settingTypeAssociation = $modal.find(`.setting-type-association`);
     const $typeTemplate = $(`#type-template`);
 
     let allFilledSelect = true;
