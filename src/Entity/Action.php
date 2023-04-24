@@ -89,6 +89,18 @@ class Action {
     const DISPLAY_TRANSPORT_SUBCONTRACT = 'afficher sous-traitance';
     const EDIT_TRANSPORT_SUBCONTRACT = 'modifier sous-traitance';
 
+    const DISPLAY_SHIPPING = 'afficher expédition';
+    const CREATE_SHIPPING = 'créer expédition';
+    const DISPLAY_SCHEDULE_BUTTON = 'afficher le bouton Planifier';
+    const DISPLAY_SHIP_BUTTON = 'afficher le bouton Expédier';
+    const EDIT_TO_TREAT_SHIPPING = 'modifier expédition en "A traiter"';
+    const EDIT_PLANIFIED_SHIPPING = 'modifier expédition en "Planifiée"';
+    const EDIT_SHIPPED_SHIPPING = 'modifier expédition en "Expédiée"';
+    const DELETE_TO_TREAT_SHIPPING = 'supprimer expédition en "A traiter"';
+    const DELETE_PLANIFIED_SHIPPING = 'supprimer expédition en "Planifiée"';
+    const DELETE_SHIPPED_SHIPPING = 'supprimer expédition en "A Expédiée"';
+    const EDIT_TRANSPORT_SHIPPING_PART = 'modifier partie transport expédition';
+    const GENERATE_PACKING_SLIP = 'générer bordereau de colisage';
 
     // menu ordre
     const DISPLAY_ORDRE_COLL = 'afficher collectes';
