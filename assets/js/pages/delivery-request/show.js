@@ -10,7 +10,6 @@ global.ajaxEditArticle = ajaxEditArticle;
 global.removeLogisticUnitLine = removeLogisticUnitLine;
 global.initDeliveryRequestModal = initDeliveryRequestModal;
 global.openAddLUModal = openAddLUModal;
-global.deleteArticleRow = deleteArticleRow;
 
 $(function () {
     $('.select2').select2();
@@ -475,10 +474,8 @@ function saveArticleLine(requestId, $row,) {
                         if (response.type) {
                             $row.find('input[name="type"]').val(response.type);
                         }
+                        $row.data(`data`, JSON.stringify(data));
                     }
-
-                    // TODO send data to here and save it in the row
-                    // $row.data(`data`, JSON.stringify(data));
                 });
             }
             return true;

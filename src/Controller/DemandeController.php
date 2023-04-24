@@ -1070,10 +1070,8 @@ class DemandeController extends AbstractController
                     "location" => $this->render('form.html.twig', [
                         'macroName' => 'select',
                         'macroParams' => ['location', null, false, ['type' => 'location', 'items' => [
-                            'text' => $formatService->location($reference->getEmplacement()),
-                            'selected' => true,
-                            'value' => $reference->getEmplacement()?->getId(),
-                        ]]]])->getContent(),
+                            $line->getTargetLocationPicking()?->getId() => $formatService->location($line->getTargetLocationPicking()),
+                        ] ]]])->getContent(),
                     $formatService->location($reference->getEmplacement()),
                     "barcode" => $reference->getBarcode() ?: '',
                     "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $projectConditionFixedValue))
@@ -1119,9 +1117,7 @@ class DemandeController extends AbstractController
                     "location" => $this->render('form.html.twig', [
                         'macroName' => 'select',
                         'macroParams' => ['location', null, false, ['type' => 'location', 'items' => [
-                            'text' => $formatService->location($article->getEmplacement()),
-                            'selected' => true,
-                            'value' => $article->getEmplacement()?->getId(),
+                            $line->getTargetLocationPicking()?->getId() => $formatService->location($line->getTargetLocationPicking()),
                         ]]]])->getContent(),
                     "barcode" => $article->getBarcode() ?: '',
                     "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $projectConditionFixedValue))
