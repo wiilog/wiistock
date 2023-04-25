@@ -182,7 +182,28 @@
                                 </div>
                             {% endif %}
                         </div>
+                        {% if reference.id and not partialEdit %}
+                            <div class="col-12 col-md-6 d-flex">
+                                <img src="{{ asset('svg/Douane.svg') }}" class="icon" alt="Image code NDP"
+                                     width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Code NDP</span>
+                                    <span class="wii-body-text">{{ reference.ndpCode ? reference.ndpCode : '-' }}</span>
+                                </label>
+                            </div>
+                        {% else %}
+                            <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
+                                <div class="d-flex">
+                                    <img src="{{ asset('svg/Douane.svg') }}" class="icon mr-2" alt="Image code NDP"
+                                         width="15px">
+                                    <span class="wii-field-name">Code NDP</span>
+                                </div>
+                                <input class="form-control data" name="ndpCode" type="text" value={{ reference.ndpCode }}>
+                            </div>
+                        {% endif %}
+
                     </div>
+
                     <div class="row mt-3">
                         <div class="col-12">
                             {% include 'attachment/attachment.html.twig' with {
@@ -210,6 +231,56 @@
                 <div class="content">
                     <div class="row">
                         {{ macros.descriptionForm(reference.description, descriptionConfig, 6) }}
+                    </div>
+                </div>
+            </div>
+            <div class="wii-box">
+                <div class="header wii-title">Données Sécurité</div>
+                <div class="content">
+                    <label class="wii-field-name w-100">
+                        Marchandise dangereuse
+                    </label>
+                    <div class="wii-switch" data-title="Security">
+                        <input type="radio"
+                               name="security"
+                               value="{{ constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_YES') }}"
+                               content="Oui"
+                               data-title="yes"
+                               onclick="onTypeSecurityChange($(this))"
+                            {{ reference.id ? 'class="security"' : 'class="security data"' }}
+                            {{ reference.dangerousGoods == constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_YES') ? 'checked' }}>
+                        <input type="radio"
+                               name="security"
+                               value="{{ constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_NO') }}"
+                               content="Non"
+                               data-title="no"
+                               onclick="onTypeSecurityChange($(this))"
+                            {{ reference.id ? 'class="security"' : 'class="security data"' }}
+                            {{ not reference.id or reference.dangerousGoods == constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_NO') ? 'checked' }}>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            {% include 'attachment/attachment.html.twig' with {
+                                'isNew' : not reference.id,
+                                'button': 'Parcourir vos fichiers',
+                                'attachments': reference.sheet,
+                                'editAttachments': editable or partialEdit,
+                                'fieldNameClass': 'wii-field-name',
+                                'multiple': false,
+                                'label':'Fiche',
+                                'nameInput':'fileSheet',
+                            } %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
+                            <span class="wii-field-name">Code ONU</span>
+                            <input class="form-control data" name="onuCode" type="text" value={{ reference.onuCode }}>
+                        </div>
+                        <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
+                            <span class="wii-field-name">Classe produit</span>
+                            <input class="form-control data" name="productClass" type="text" value={{ reference.productClass }}>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -676,6 +747,7 @@
 
         <input type="hidden" class="no-clear" id="default-image" value="{{ asset('svg/reference_article/product.svg') }}">
         <input type="hidden" class="no-clear data" name="deletedImage" value="0">
+        <input type="hidden" class="no-clear data" name="deletedSheetFile" value="0">
         <input type="hidden" class="no-clear data" name="suppliers-to-remove" id="suppliers-to-remove" value="">
         <input type="hidden" class="no-clear data" name="storage-rules-to-remove" id="storage-rules-to-remove" value="">
     </div>

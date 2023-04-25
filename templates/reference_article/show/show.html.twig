@@ -89,6 +89,13 @@
                                     <span class="wii-body-text">{{ referenceArticle.visibilityGroup ? referenceArticle.visibilityGroup.label : '-' }}</span>
                                 </label>
                             </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <img src="{{ asset('svg/Douane.svg') }}" alt="Icône code NDP" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Code NDP</span>
+                                    <span class="wii-body-text">{{ referenceArticle.ndpCode ? referenceArticle.ndpCode : '-' }}</span>
+                                </label>
+                            </div>
                         </div>
                         <div class="my-4">
                             {% set plural = referenceArticle.attachments | length > 1 ? 's' : '' %}
@@ -143,6 +150,55 @@
                                     <span class="wii-field-text {{ attributes.name }}">{{ value ?: '-' }}</span>
                                 </div>
                             {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="wii-box">
+                    <div class="header wii-title">Données Sécurité</div>
+                    <div class="content">
+                        <div class="d-flex flex-column mb-3">
+                            <label class="wii-field-name w-100">
+                                Marchandise dangereuse
+                            </label>
+                            <span class="wii-field-text">{{ referenceArticle.dangerousGoods ? 'Oui' : 'Non' }}</span>
+                        </div>
+                        <div class="d-flex flex-column mb-3">
+                            <div class="d-flex flex-wrap">
+                                <label class="wii-field-name w-100">
+                                    Fiche
+                                </label>
+                                {% set url = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
+                                {% if referenceArticle.sheet %}
+                                    <div class="attachment-item show">
+                                            <img src="{{ asset('svg/reference_article/file.svg') }}" alt="Icône fichier" width="13px" class="mr-2">
+                                            <a target="_blank" class="wii-small-text has-tooltip"
+                                               href="{{ url ~ referenceArticle.sheet.fullPath }}"
+                                               download="{{ referenceArticle.sheet.originalName }}"
+                                               title="{{ referenceArticle.sheet.originalName }}">
+                                                {{ referenceArticle.sheet.originalName }}
+                                            </a>
+                                        </div>
+                                {% else %}
+                                    <div class="d-flex mt-2">
+                                        <span class="wii-small-text"
+                                              title="Cette référence n'a aucune pièce jointe">Cette {{ trans('Stock', 'Réceptions', 'référence', false) }} n'a aucune pièce jointe</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-md-6 d-flex flex-column mb-3">
+                                <label class="wii-field-name w-100">
+                                    Code ONU
+                                </label>
+                                <span class="wii-field-text">{{ referenceArticle.onuCode ? referenceArticle.onuCode : '-' }}</span>
+                            </div>
+                            <div class="col-12 col-md-6 d-flex flex-column mb-3">
+                                <label class="wii-field-name w-100">
+                                    Classe produit
+                                </label>
+                                <span class="wii-field-text">{{ referenceArticle.productClass ? referenceArticle.productClass : '-' }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
