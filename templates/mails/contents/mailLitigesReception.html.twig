@@ -51,7 +51,7 @@
             <tr>
                 {% set firstArticle = dispute.articles|first %}
                 {% set firstReceptionReferenceArticle = firstArticle.receptionReferenceArticle %}
-                {% set reception = firstArticle.receptionReferenceArticle.receptionLine.reception %}
+                {% set reception = firstReceptionReferenceArticle.receptionLine.reception %}
 
                 <td class="td"
                     rowspan="{{ dispute.articles|length }}"
