@@ -193,6 +193,7 @@
                                 {% if options.autoSelect ?? false %}data-auto-select{% endif %}
                                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
                                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
+                                {% if options.includeParamsParent is defined %}data-include-params-parent="{{ options.includeParamsParent }}"{% endif %}
                                 {% if options.minLength is defined %}data-min-length="{{ options.minLength }}"{% endif %}
                             {% endif %}
                             {% if options.keepOpen is defined %}data-keep-open{% endif %}

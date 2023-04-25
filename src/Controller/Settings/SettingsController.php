@@ -1108,8 +1108,6 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_REQUESTS => [
                     self::MENU_DELIVERIES => fn() => [
-                        "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
-                        "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
                         "deliveryRequestBehavior" => $settingRepository->findOneBy([
                             'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
                             'value' => 1,
@@ -1128,6 +1126,7 @@ class SettingsController extends AbstractController {
                     self::MENU_FIXED_FIELDS => function() use ($typeRepository, $fixedFieldRepository, $userRepository) {
                         $receiver = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
                         $defaultType = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+                        $defaultLocationByType = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
                         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
                         return [
@@ -1159,6 +1158,12 @@ class SettingsController extends AbstractController {
                                     })
                                     ->toArray(),
                             ],
+                            "locationByType" => [
+                                "field" => $defaultLocationByType->getId(),
+                                "modalType" => $defaultLocationByType->getModalType(),
+                                "elements" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
+                            ],
+                            "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
                         ];
                     },
                     self::MENU_COLLECT_TYPES_FREE_FIELDS => fn() => [
@@ -1621,6 +1626,37 @@ class SettingsController extends AbstractController {
                 $field->setElements([]);
             }
         }
+        else if($field->getModalType() == FieldsParam::MODAL_LOCATION_BY_TYPE){
+            if($request->request->has('deliveryType') && $request->request->has('deliveryRequestLocation')){
+                $deliveryTypes = explode(',', $request->request->get("deliveryType"));
+                $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
+
+                if(count($deliveryTypes) !== count($deliveryRequestLocations)){
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Une configuration d'emplacement de livraison par défaut est invalide",
+                    ]);
+                }
+
+                $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
+                $invalidDeliveryTypes = (
+                    empty($associatedTypesAndLocations)
+                    || !Stream::from($associatedTypesAndLocations)
+                        ->filter(fn(string $key, string $value) => !$key || !$value)
+                        ->isEmpty()
+                );
+                if ($invalidDeliveryTypes) {
+                    throw new RuntimeException("Une configuration d'emplacement de livraison par défaut est invalide");
+                }
+                $field->setElements($associatedTypesAndLocations);
+            } else {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Une configuration d'emplacement de livraison par défaut est invalide",
+                ]);
+            }
+        }
+
         $manager->flush();
 
         return $this->json([

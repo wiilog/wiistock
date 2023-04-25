@@ -12,6 +12,7 @@ class FieldsParam {
     const MODAL_TYPE_USER = 'USER_BY_TYPE';
     const MODAL_RECEIVER = 'RECEIVER';
     const MODAL_TYPE = 'TYPE';
+    const MODAL_LOCATION_BY_TYPE = 'LOCATION_BY_TYPE';
 
     const ENTITY_CODE_RECEPTION = 'réception';
 
@@ -165,9 +166,10 @@ class FieldsParam {
     const FIELD_LABEL_RECEIVER_DEMANDE = 'destinataire';
     const FIELD_CODE_TYPE_DEMANDE = 'type';
     const FIELD_LABEL_TYPE_DEMANDE = 'type';
+    const FIELD_CODE_DESTINATION_DEMANDE = 'destinationDemande';
+    const FIELD_LABEL_DESTINATION_DEMANDE = 'destination';
     const FIELD_CODE_DELIVERY_REQUEST_PROJECT = 'deliveryRequestProject';
     const FIELD_LABEL_DELIVERY_REQUEST_PROJECT = 'project';
-
 
     const ENTITY_CODE_EMERGENCY = "urgence";
     const FIELD_CODE_EMERGENCY_BUYER = "buyer";
@@ -195,7 +197,8 @@ class FieldsParam {
     public const FILTER_ONLY_FIELDS = [
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
-        FieldsParam::FIELD_CODE_TYPE_DEMANDE
+        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
+        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
     ];
 
     public const FILTERED_FIELDS = [
@@ -241,7 +244,8 @@ class FieldsParam {
     public const ALWAYS_REQUIRED_FIELDS = [
         // Acheminements
         FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
-        FieldsParam::FIELD_CODE_TYPE_DEMANDE
+        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
+        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
     ];
 
     #[ORM\Id]

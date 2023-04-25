@@ -232,31 +232,6 @@ class SettingsService {
             }
         }
 
-        if ($request->request->has("deliveryType") && $request->request->has("deliveryRequestLocation")) {
-            $deliveryTypes = explode(',', $request->request->get("deliveryType"));
-            $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
-
-            $setting = $this->manager->getRepository(Setting::class)
-                ->findOneBy(["label" => Setting::DEFAULT_LOCATION_LIVRAISON]);
-            $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
-            $invalidDeliveryTypes = (
-                empty($associatedTypesAndLocations)
-                || !Stream::from($associatedTypesAndLocations)
-                    ->filter(fn(string $key, string $value) => !$key || !$value)
-                    ->isEmpty()
-            );
-            if ($invalidDeliveryTypes) {
-                throw new RuntimeException("Une configuration d'emplacement de livraison par défaut est invalide");
-            }
-            $setting->setValue(json_encode($associatedTypesAndLocations));
-
-            $updated = array_merge($updated, [
-                Setting::DEFAULT_LOCATION_LIVRAISON,
-                "deliveryType",
-                "deliveryRequestLocation",
-            ]);
-        }
-
         if ($request->request->has("deliveryRequestBehavior")) {
             $settingRepository = $this->manager->getRepository(Setting::class);
             $deliveryRequestBehavior = $request->request->get("deliveryRequestBehavior");
@@ -1143,10 +1118,10 @@ class SettingsService {
     public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
         $typeRepository = $entityManager->getRepository(Type::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
-        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
+        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+        $defaultDeliveryLocationsIds = $defaultDeliveryLocationsParam;
 
         $defaultDeliveryLocations = [];
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
@@ -1184,10 +1159,10 @@ class SettingsService {
 
     public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
-        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
+        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+        $defaultDeliveryLocationsIds = $defaultDeliveryLocationsParam;
 
         $defaultDeliveryLocations = [];
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
