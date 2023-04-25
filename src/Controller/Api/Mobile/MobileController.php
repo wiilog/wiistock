@@ -2080,7 +2080,7 @@ class MobileController extends AbstractApiController
             ->setEmplacement($destination)
             ->setArticleFournisseur($articleSupplier)
             ->setType($type)
-            ->setBarCode($articleDataService->generateBarCode())
+            ->setBarCode($articleDataService->generateBarcode())
             ->setStockEntryDate($now)
             ->setDeliveryNote($deliveryLineStr)
             ->setNativeCountry($countryFrom)
