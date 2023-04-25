@@ -8,6 +8,9 @@
         {{ form.textarea('address', 'Adresse', false, customer.address, {}) }}
     </div>
     <div class="col-12 mt-2">
+        {{ form.input('recipient', 'Destinataire', false, customer.recipient, {}) }}
+    </div>
+    <div class="col-12 mt-2">
         {{ form.input('phone-number', 'Téléphone', false, customer.phoneNumber, {
             type: 'tel'
         }) }}
