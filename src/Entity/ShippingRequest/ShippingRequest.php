@@ -15,10 +15,28 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use RuntimeException;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ShippingRequestRepository::class)]
 class ShippingRequest extends StatusHistoryContainer {
+
+    public const SHIPMENT_NATIONAL = "national";
+    public const SHIPMENT_INTERNATIONAL = "international";
+
+    public const SHIPMENT_LABELS = [
+        self::SHIPMENT_NATIONAL => "National",
+        self::SHIPMENT_INTERNATIONAL => "International",
+    ];
+
+    public const CARRYING_OWED = "owed";
+    public const CARRYING_PAID = "paid";
+
+    public const CARRYING_LABELS = [
+        self::CARRYING_OWED => "Dû",
+        self::CARRYING_PAID => "Payé",
+    ];
+
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -69,6 +87,12 @@ class ShippingRequest extends StatusHistoryContainer {
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?DateTime $treatedAt = null;
+
+    #[ORM\Column(type: Types::STRING)]
+    private ?string $shipment = null;
+
+    #[ORM\Column(type: Types::STRING)]
+    private ?string $carrying = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -384,4 +408,29 @@ class ShippingRequest extends StatusHistoryContainer {
 
         return $this;
     }
+
+    public function getShipment(): ?string {
+        return $this->shipment;
+    }
+
+    public function setShipment(?string $shipment): self {
+        if (isset($shipment) && !in_array($shipment, [self::SHIPMENT_NATIONAL, self::SHIPMENT_INTERNATIONAL])) {
+            throw new RuntimeException('Invalid shipment value');
+        }
+        $this->shipment = $shipment;
+        return $this;
+    }
+
+    public function getCarrying(): ?string {
+        return $this->carrying;
+    }
+
+    public function setCarrying(?string $carrying): self {
+        if (isset($carrying) && !in_array($carrying, [self::CARRYING_PAID, self::CARRYING_OWED])) {
+            throw new RuntimeException('Invalid carrying value');
+        }
+        $this->carrying = $carrying;
+        return $this;
+    }
+
 }
