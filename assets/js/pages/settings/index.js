@@ -76,7 +76,6 @@ const initializers = {
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
-    stock_demandes_livraisons: initializeDeliveries,
     stock_inventaires_frequences: initializeInventoryFrequenciesTable,
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
@@ -708,10 +707,6 @@ function initializeHandlingFixedFields($container, canEdit) {
         ],
     });
     initializeType();
-}
-
-function initializeDeliveries() {
-
 }
 
 function initializeLocationByTypeForDeliveries() {

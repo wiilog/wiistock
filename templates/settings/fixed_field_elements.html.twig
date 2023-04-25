@@ -105,29 +105,25 @@
                 <template id="type-template">
                     <div class="d-flex col-12 mb-3 type-association-container">
                         <div class="d-flex align-items-center w-100 delivery-type-container">
-                            <label class="w-100">
-                                <span class="wii-field-name">Type</span>
-                                <select name="deliveryType"
-                                        required
-                                        class="form-control data-array"
-                                        data-s2="deliveryType"
-                                        data-other-params-all-types-option="1"
-                                        data-include-params-parent=".setting-type-association"
-                                        data-include-params="[name=alreadyDefinedTypes]">
-                                </select>
-                            </label>
+                            {{ form.select('deliveryType', 'Type', true, {
+                                type: 'deliveryType',
+                                inputClass: 'form-control data-array',
+                                includeParams: '[name=alreadyDefinedTypes]',
+                                includeParamsParent: '.setting-type-association',
+                                additionalAttributes :[{
+                                    name: 'data-other-params-all-types-option',
+                                    value: 1
+                                }]
+                            }) }}
                         </div>
                         <div class="d-flex align-items-center w-100">
-                            <label class="w-100 ml-2">
-                                <span class="wii-field-name">Emplacement</span>
-                                <select name="deliveryRequestLocation"
-                                        required
-                                        class="form-control data-array"
-                                        data-s2="location"
-                                        data-include-params-parent=".type-association-container"
-                                        data-include-params="select[name=deliveryType]">
-                                </select>
-                            </label>
+                            {{ form.select('deliveryRequestLocation', 'Emplacement', true, {
+                                type: 'location',
+                                inputClass: 'form-control data-array',
+                                labelClass: 'w-100 ml-2',
+                                includeParams: 'select[name=deliveryType]',
+                                includeParamsParent: '.type-association-container',
+                            }) }}
                         </div>
                         <div class="d-flex align-items-end">
                             <div class="btn btn-outline-primary delete-association-line d-flex align-items-center ml-2"
