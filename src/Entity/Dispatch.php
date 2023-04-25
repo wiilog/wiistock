@@ -574,8 +574,8 @@ class Dispatch extends StatusHistoryContainer {
     {
         if ($this->statusHistory->removeElement($statusHistory)) {
             // set the owning side to null (unless already changed)
-            if ($statusHistory->getHandling() === $this) {
-                $statusHistory->setHandling(null);
+            if ($statusHistory->getDispatch() === $this) {
+                $statusHistory->setDispatch(null);
             }
         }
 

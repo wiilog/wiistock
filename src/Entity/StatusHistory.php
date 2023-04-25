@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
@@ -20,6 +21,7 @@ class StatusHistory {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
+    // TODO WIIS-9630 rajouter des on cascade delete pour supprimer les statusHistory
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'statusHistory')]
     private ?TransportOrder $transportOrder = null;
 
@@ -28,6 +30,9 @@ class StatusHistory {
 
     #[ORM\ManyToOne(targetEntity: TransportRound::class, inversedBy: 'statusHistory')]
     private ?TransportRound $transportRound = null;
+
+    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'statusHistory')]
+    private ?ShippingRequest $shippingRequest = null;
 
     #[ORM\ManyToOne(targetEntity: Handling::class, inversedBy: 'statusHistory')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
@@ -168,7 +173,25 @@ class StatusHistory {
     }
 
     public function setDispatch(?Dispatch $dispatch): self {
+        if($this->dispatch && $this->dispatch !== $dispatch) {
+            $this->dispatch->removeStatusHistory($this);
+        }
         $this->dispatch = $dispatch;
+        $dispatch?->addStatusHistory($this);
+
+        return $this;
+    }
+
+    public function getShippingRequest(): ?ShippingRequest {
+        return $this->shippingRequest;
+    }
+
+    public function setShippingRequest(?ShippingRequest $shippingRequest): self {
+        if($this->shippingRequest && $this->shippingRequest !== $shippingRequest) {
+            $this->shippingRequest->removeStatusHistory($this);
+        }
+        $this->shippingRequest = $shippingRequest;
+        $shippingRequest?->addStatusHistory($this);
 
         return $this;
     }
