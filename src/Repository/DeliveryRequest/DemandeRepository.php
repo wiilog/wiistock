@@ -113,16 +113,21 @@ class DemandeRepository extends EntityRepository
             ->execute();
     }
 
-	public function countByUser($user): int
-	{
-        return $this->createQueryBuilder('request')
+    public function countByUser($user): int
+    {
+        $qb = $this->createQueryBuilder('request');
+        $exprBuilder = $qb->expr();
+        return $qb
             ->select('COUNT(request)')
-            ->andWhere('request.utilisateur = :user')
+            ->andWhere($exprBuilder->orX(
+                'request.receiver = :user',
+                'request.utilisateur = :user'
+            ))
             ->setMaxResults(1)
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
-	}
+    }
 
 	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
