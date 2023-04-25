@@ -169,14 +169,12 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
-
             switch($data['type_quantite']) {
-                case 'article':
-                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-                    break;
                 case 'reference':
-                default:
                     $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
+                    break;
+                default:
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
                     break;
             }
 
@@ -198,8 +196,7 @@ class ReferenceArticleController extends AbstractController
                 ->setNdpCode($data['ndpCode'])
                 ->setDangerousGoods(filter_var($data['security'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setOnuCode($data['onuCode'])
-                ->setProductClass($data['productClass'])
-            ;
+                ->setProductClass($data['productClass']);
 
             $refArticleDataService->updateDescriptionField($entityManager, $refArticle, $data);
 
@@ -926,7 +923,6 @@ class ReferenceArticleController extends AbstractController
             ];
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
-
         return $this->render("reference_article/form/new.html.twig", [
             "new_reference" => new ReferenceArticle(),
             "submit_url" => $this->generateUrl("reference_article_new", [
