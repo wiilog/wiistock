@@ -131,17 +131,22 @@ class PreparationsManagerService
                 ->toArray();
         } else {
             $articles = Stream::from($mouvementStockRepository->findByPreparation($preparation))
-                ->map(fn(MouvementStock $mouvement) => [
-                    'article' => $mouvement->getArticle(),
-                    'quantity' => $mouvement->getQuantity(),
-                    'movement' => $mouvement,
-                ]);
+                ->map(function (MouvementStock $mouvement) {
+                    return $mouvement->getArticle()
+                        ? [
+                            'article' => $mouvement->getArticle(),
+                            'quantity' => $mouvement->getQuantity(),
+                            'movement' => $mouvement,
+                        ]
+                        : null;
+                })
+                ->filter()
+                ->toArray();
         }
         foreach ($articles as $article) {
             $articleEntity = $article['article'];
             $quantity = $article['quantity'];
             $movement = $article['movement'] ?? null;
-            $refArticle = $articleEntity->getReferenceArticle();
 
             if ( !$movement || $movement->getType() === MouvementStock::TYPE_TRANSFER) {
                 $this->createMovementLivraison(
