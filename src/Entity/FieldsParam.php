@@ -393,8 +393,10 @@ class FieldsParam {
         return $this->modalType;
     }
 
-    public function setModalType(?string $modalType): void
+    public function setModalType(?string $modalType): self
     {
         $this->modalType = $modalType;
+
+        return $this;
     }
 }

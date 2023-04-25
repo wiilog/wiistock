@@ -1269,10 +1269,10 @@ function initializeEmergenciesFixedFields($container, canEdit) {
 
 function changeDisplayRefArticleTable($checkbox) {
     const check = $checkbox.is(':checked');
-    const $displayedUnderCondition = $checkbox.parent('td').parent('tr').find('input[name=displayedUnderCondition]');
-    const $conditionFixedField = $checkbox.parent('td').parent('tr').find('select[name=conditionFixedField]');
-    const $conditionFixedFieldValueDiv = $checkbox.parent('td').parent('tr').find('.conditionFixedFieldValueDiv');
-    const $required = $checkbox.parent('td').parent('tr').find('input[name=required]');
+    const $displayedUnderCondition = $checkbox.closest('tr').find('input[name=displayedUnderCondition]');
+    const $conditionFixedField = $checkbox.closest('tr').find('select[name=conditionFixedField]');
+    const $conditionFixedFieldValueDiv = $checkbox.closest('tr').find('.conditionFixedFieldValueDiv');
+    const $required = $checkbox.closest('tr').find('input[name=required]');
 
     if (!check) {
         if ($checkbox[0].name === "displayed") {

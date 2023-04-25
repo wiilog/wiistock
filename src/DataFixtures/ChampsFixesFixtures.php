@@ -115,10 +115,13 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_CARRIER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_TYPE, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_TYPE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'modalType' => FieldsParam::MODAL_TYPE_FREE, 'values' => []],
             ],
+        ];
+
+        $sublinesFieldCodes = [
             SublinesFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
                 ['code' => SublinesFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SublinesFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SublinesFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => true],
                 ['code' => SublinesFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SublinesFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SublinesFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => false]
-            ]
+            ],
         ];
 
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
@@ -139,6 +142,36 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ->toArray()
         );
 
+        foreach($sublinesFieldCodes as $fieldEntity => $listFieldCodes) {
+            foreach ($listFieldCodes as $fieldCode) {
+                $fieldUniqueKey = $fieldEntity . '-' . $fieldCode['code'];
+                $field = $mappedExistingFields[$fieldUniqueKey] ?? null;
+
+                if (isset($field))  {
+                    unset($mappedExistingFields[$fieldUniqueKey]);
+                }
+
+                if(!$field) {
+                    $field = new SublinesFieldsParam();
+                    $field
+                        ->setEntityCode($fieldEntity)
+                        ->setFieldCode($fieldCode['code'])
+                        ->setDisplayed($fieldCode['displayed'])
+                        ->setDisplayedUnderCondition($fieldCode['displayedUnderCondition'])
+                        ->setConditionFixedField($fieldCode['conditionFixedField'])
+                        ->setConditionFixedFieldValue($fieldCode['conditionFixedFieldValue'])
+                        ->setRequired($fieldCode['required'])
+                        ->setElements($fieldCode['values'] ?? null);
+
+                    $manager->persist($field);
+                    $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
+                }
+                $field->setFieldLabel($fieldCode['label']);
+
+                $manager->flush();
+            }
+        }
+
         foreach($listEntityFieldCodes as $fieldEntity => $listFieldCodes) {
             foreach($listFieldCodes as $fieldCode) {
 
@@ -147,44 +180,28 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
                   if (isset($field))  {
                       unset($mappedExistingFields[$fieldUniqueKey]);
-                  };
+                  }
 
                 if(!$field) {
-                    if ($fieldEntity === SublinesFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE) {
-                        $field = new SublinesFieldsParam();
-                        $field
-                            ->setEntityCode($fieldEntity)
-                            ->setFieldCode($fieldCode['code'])
-                            ->setDisplayed($fieldCode['displayed'])
-                            ->setDisplayedUnderCondition($fieldCode['displayedUnderCondition'])
-                            ->setConditionFixedField($fieldCode['conditionFixedField'])
-                            ->setConditionFixedFieldValue($fieldCode['conditionFixedFieldValue'])
-                            ->setRequired($fieldCode['required'])
-                            ->setElements($fieldCode['values'] ?? null);
-                    } else {
-                        $field = new FieldsParam();
-                        $field
-                            ->setEntityCode($fieldEntity)
-                            ->setFieldCode($fieldCode['code'])
-                            ->setDisplayedCreate($fieldCode['displayedCreate'])
-                            ->setDisplayedEdit($fieldCode['displayedEdit'])
-                            ->setDisplayedFilters($fieldCode['displayedFilters'])
-                            ->setRequiredEdit($fieldCode['default'] ?? false)
-                            ->setRequiredCreate($fieldCode['default'] ?? false)
-                            ->setElements($fieldCode['values'] ?? null);
-                    }
+                    $field = new FieldsParam();
+                    $field
+                        ->setEntityCode($fieldEntity)
+                        ->setFieldCode($fieldCode['code'])
+                        ->setDisplayedCreate($fieldCode['displayedCreate'])
+                        ->setDisplayedEdit($fieldCode['displayedEdit'])
+                        ->setDisplayedFilters($fieldCode['displayedFilters'])
+                        ->setRequiredEdit($fieldCode['default'] ?? false)
+                        ->setRequiredCreate($fieldCode['default'] ?? false)
+                        ->setElements($fieldCode['values'] ?? null);
 
                     $manager->persist($field);
                     $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
                 }
-                $field->setFieldLabel($fieldCode['label']);
+                $field
+                    ->setFieldLabel($fieldCode['label'])
+                    ->setFieldRequiredHidden($fieldCode['hidden'] ?? null)
+                    ->setModalType($fieldCode['modalType'] ?? null);
 
-                if (isset($fieldCode['hidden'])) {
-                    $field->setFieldRequiredHidden($fieldCode['hidden']);
-                }
-                if (isset($fieldCode['modalType'])) {
-                    $field->setModalType($fieldCode['modalType']);
-                }
                 $manager->flush();
             }
         }
