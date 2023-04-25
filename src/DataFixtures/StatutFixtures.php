@@ -195,7 +195,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
             ],
             CategorieStatut::SHIPMENT => [
                 ShippingRequest::STATUS_DRAFT,
-                ShippingRequest::STATUS_TO_PREPARE,
+                ShippingRequest::STATUS_TO_TREAT,
                 ShippingRequest::STATUS_SCHEDULED,
                 ShippingRequest::STATUS_SHIPPED,
             ],
