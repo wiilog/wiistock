@@ -347,7 +347,7 @@ class DemandeLivraisonService
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settings = $entityManager->getRepository(Setting::class);
-        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING) && !$settings->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         if ($fromNomade) {
             $demande = $this->newDemande($demandeArray, $entityManager, $champLibreService, $fromNomade);
@@ -463,7 +463,6 @@ class DemandeLivraisonService
             ->setExpectedAt($demande->getExpectedAt())
             ->setNumero($this->preparationsManager->generateNumber($date, $entityManager))
             ->setDate($date);
-
 
         if(!$demande->getValidatedAt()) {
             $demande->setValidatedAt($date);

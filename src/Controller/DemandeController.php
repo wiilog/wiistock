@@ -354,7 +354,8 @@ class DemandeController extends AbstractController
             'finished' => $status?->getCode() === Demande::STATUT_A_TRAITER,
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
-            'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING)
+            'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
+            'manageDeliveriesWithoutStockQuantities' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY)
         ]);
     }
 
@@ -491,7 +492,7 @@ class DemandeController extends AbstractController
     public function articleApi(Demande $demande, EntityManagerInterface $entityManager): Response
     {
         $settings = $entityManager->getRepository(Setting::class);
-        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING) && !$settings->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
         $referenceLines = $demande->getReferenceLines();
         $rowsRC = [];
         foreach ($referenceLines as $line) {

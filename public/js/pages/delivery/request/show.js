@@ -6,7 +6,11 @@ $(function () {
     initDateTimePicker();
     Select2Old.user('Utilisateurs');
     Select2Old.articleReference($('.ajax-autocomplete'), {
-        minQuantity: Number($('input[name=managePreparationWithPlanning]').val()) ? 0 : 1,
+        minQuantity: !Number($('input[name=manageDeliveriesWithoutStockQuantities]').val())
+            ? (Number($('input[name=managePreparationWithPlanning]').val())
+                ? 0
+                : 1)
+            : 0,
     });
 
     loadLogisticUnitList(requestId);
@@ -134,6 +138,7 @@ function setMaxQuantity(select) {
     let params = {
         refArticleId: select.val(),
     };
+
     $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
         if (data) {
             let modalBody = select.closest(".modal-body");

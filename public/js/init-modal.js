@@ -140,7 +140,7 @@ function processSubmitAction($modal,
         const smartData = isAttachmentForm || formData
             ? createFormData(data)
             : JSON.stringify(data);
-console.log(formData, smartData);
+
         $submit.pushLoader('white');
         if (waitForUserAction) {
             return waitForUserAction()
