@@ -36,6 +36,7 @@ global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
+global.changeReceiverInput = changeReceiverInput;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -1249,4 +1250,11 @@ function initializeEmergenciesFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+}
+
+function changeReceiverInput($checkbox) {
+    const isChecked = $checkbox.is(':checked');
+    const $inputReceiver = $checkbox.closest('.modal-body').find('select[name=defaultReceiver]');
+
+    $inputReceiver.attr('disabled', isChecked);
 }

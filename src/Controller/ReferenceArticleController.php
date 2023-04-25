@@ -169,14 +169,12 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
-
             switch($data['type_quantite']) {
-                case 'article':
-                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-                    break;
                 case 'reference':
-                default:
                     $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
+                    break;
+                default:
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
                     break;
             }
 
@@ -194,7 +192,11 @@ class ReferenceArticleController extends AbstractController
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
                 ->setCreatedBy($loggedUser)
-                ->setCreatedAt(new DateTime('now'));
+                ->setCreatedAt(new DateTime('now'))
+                ->setNdpCode($data['ndpCode'])
+                ->setDangerousGoods(filter_var($data['security'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                ->setOnuCode($data['onuCode'])
+                ->setProductClass($data['productClass']);
 
             $refArticleDataService->updateDescriptionField($entityManager, $refArticle, $data);
 
@@ -341,6 +343,14 @@ class ReferenceArticleController extends AbstractController
 
                 $refArticle->setImage($attachments[0]);
                 $request->files->remove('image');
+            }
+            if($request->files->has('fileSheet')) {
+                $file = $request->files->get('fileSheet');
+                $attachments = $attachmentService->createAttachements([$file]);
+                $entityManager->persist($attachments[0]);
+
+                $refArticle->setSheet($attachments[0]);
+                $request->files->remove('fileSheet');
             }
             $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
 
@@ -913,7 +923,6 @@ class ReferenceArticleController extends AbstractController
             ];
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
-
         return $this->render("reference_article/form/new.html.twig", [
             "new_reference" => new ReferenceArticle(),
             "submit_url" => $this->generateUrl("reference_article_new", [

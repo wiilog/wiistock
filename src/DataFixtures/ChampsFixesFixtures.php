@@ -40,6 +40,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_EXPECTED_AT, 'label' => FieldsParam::FIELD_LABEL_EXPECTED_AT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT, 'label' => FieldsParam::FIELD_LABEL_PROJECT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_DESTINATION_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_DESTINATION_DEMANDE,  'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_LOCATION_BY_TYPE],
+                ['code' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT, 'label' => FieldsParam::FIELD_LABEL_DELIVERY_REQUEST_PROJECT . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Va chercher dans le référentiel projet">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
 
             FieldsParam::ENTITY_CODE_ARRIVAGE => [

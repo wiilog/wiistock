@@ -58,12 +58,15 @@
                                 multiple: false,
                                 value: elements ? elements[0] : null,
                                 items: elements ? elements : null,
+                                disabled: setting_value('RECEIVER_EQUALS_REQUESTER'),
                             }) }}
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-12">
-                            {{ form.checkbox(setting('RECEIVER_EQUALS_REQUESTER'), 'Le destinataire est égal au demandeur', false, setting_value('RECEIVER_EQUALS_REQUESTER')) }}
+                            {{ form.checkbox(setting('RECEIVER_EQUALS_REQUESTER'), 'Le destinataire est égal au demandeur', false, setting_value('RECEIVER_EQUALS_REQUESTER'), {
+                                onChange: 'changeReceiverInput($(this))',
+                            }) }}
                         </div>
                     </div>
                 </div>
