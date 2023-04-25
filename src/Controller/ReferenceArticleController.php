@@ -192,7 +192,12 @@ class ReferenceArticleController extends AbstractController
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
                 ->setCreatedBy($loggedUser)
-                ->setCreatedAt(new DateTime('now'));
+                ->setCreatedAt(new DateTime('now'))
+                ->setNdpCode($data['ndpCode'])
+                ->setDangerousGoods(filter_var($data['security'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                ->setOnuCode($data['onuCode'])
+                ->setProductClass($data['productClass']);
+
             $refArticleDataService->updateDescriptionField($entityManager, $refArticle, $data);
 
             $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
@@ -338,6 +343,14 @@ class ReferenceArticleController extends AbstractController
 
                 $refArticle->setImage($attachments[0]);
                 $request->files->remove('image');
+            }
+            if($request->files->has('fileSheet')) {
+                $file = $request->files->get('fileSheet');
+                $attachments = $attachmentService->createAttachements([$file]);
+                $entityManager->persist($attachments[0]);
+
+                $refArticle->setSheet($attachments[0]);
+                $request->files->remove('fileSheet');
             }
             $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
 
