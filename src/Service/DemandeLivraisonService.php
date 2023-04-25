@@ -320,7 +320,7 @@ class DemandeLivraisonService
             ->setNumero($number)
             ->setManual($isManual)
             ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
-            ->setDestinataire($receiver);
+            ->setReceiver($receiver);
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 
@@ -514,8 +514,8 @@ class DemandeLivraisonService
             if ($demande->getType()->getSendMailRequester()) {
                 $to[] = $demande->getUtilisateur();
             }
-            if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
-                $to[] = $demande->getDestinataire();
+            if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
+                $to[] = $demande->getReceiver();
             }
 
             $nowDate = new DateTime('now');
@@ -598,7 +598,7 @@ class DemandeLivraisonService
         $config = [
             ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst($this->formatService->status($demande->getStatut()))],
             ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
-            ['label' => 'Destinataire', 'value' => $this->formatService->user($demande->getDestinataire())],
+            ['label' => 'Destinataire', 'value' => $this->formatService->user($demande->getReceiver())],
             ['label' => 'Destination', 'value' => $this->formatService->location($demande->getDestination())],
             ['label' => 'Date de la demande', 'value' => $this->formatService->datetime($demande->getCreatedAt())],
             ['label' => 'Date de validation', 'value' => $this->formatService->datetime($demande->getValidatedAt())],
