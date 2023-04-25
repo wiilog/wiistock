@@ -168,6 +168,12 @@ class DemandeRepository extends EntityRepository
                         $qb->andWhere('delivery_request.createdAt <= :dateMax')
                             ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                         break;
+                    case 'project':
+                        $qb
+                            ->leftJoin('delivery_request.project', 'filter_project')
+                            ->andWhere('filter_project.id LIKE :id')
+                            ->setParameter('id', $filter['value']);
+                        break;
                 }
             }
         }

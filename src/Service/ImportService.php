@@ -1229,7 +1229,7 @@ class ImportService
             $statutRepository = $this->entityManager->getRepository(Statut::class);
             $article
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF))
-                ->setBarCode($this->articleDataService->generateBarCode())
+                ->setBarCode($this->articleDataService->generateBarcode())
                 ->setConform(true);
         }
 

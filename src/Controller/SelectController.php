@@ -717,7 +717,6 @@ class SelectController extends AbstractController {
     public function customers(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get("term");
         $customers = $entityManager->getRepository(Customer::class)->getForSelect($search);
-
         array_unshift($customers, [
             "id" => "new-item",
             "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau client</b></div>",
@@ -777,8 +776,12 @@ class SelectController extends AbstractController {
     public function supplierArticles(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
         $supplier = $request->query->get('fournisseur');
+        $referenceArticle = $request->query->get('refArticle');
 
-        $supplierArticles = $entityManager->getRepository(ArticleFournisseur::class)->getForSelect($search, $supplier);
+        $supplierArticles = $entityManager->getRepository(ArticleFournisseur::class)->getForSelect($search, [
+            'supplier' => $supplier,
+            'referenceArticle' => $referenceArticle
+        ]);
 
         return $this->json([
             "results" => $supplierArticles

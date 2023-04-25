@@ -1894,16 +1894,21 @@ class SettingsController extends AbstractController {
 
                 $data[] = [
                     "label" => "Notifications push",
-                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $notificationsEnabled>",
+                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1 smaller' $notificationsEnabled>",
                 ];
             }
 
             if ($categoryLabel === CategoryType::DEMANDE_LIVRAISON) {
-                $mailsEnabled = $type && $type->getSendMail() ? "checked" : "";
+                $requesterMailsEnabled = $type && $type->getSendMailRequester() ? "checked" : "";
+                $receiverMailsEnabled = $type && $type->getSendMailReceiver() ? "checked" : "";
 
                 $data[] = [
                     "label" => "Envoi d'un email au demandeur",
-                    "value" => "<input name='mailRequester' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
+                    "value" => "<input name='mailRequester' type='checkbox' class='data form-control mt-1 smaller' $requesterMailsEnabled>",
+                ];
+                $data[] = [
+                    "label" => "Envoi d'un email au destinataire",
+                    "value" => "<input name='mailReceiver' type='checkbox' class='data form-control mt-1 smaller' $receiverMailsEnabled>",
                 ];
             } else {
                 if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
@@ -2011,7 +2016,11 @@ class SettingsController extends AbstractController {
             if ($categoryLabel === CategoryType::DEMANDE_LIVRAISON) {
                 $data[] = [
                     "label" => "Envoi d'un email au demandeur",
-                    "value" => $type?->getSendMail() ? "Activées" : "Désactivées",
+                    "value" => $type?->getSendMailRequester() ? "Activées" : "Désactivées",
+                ];
+                $data[] = [
+                    "label" => "Envoi d'un email au destinataire",
+                    "value" => $type?->getSendMailReceiver() ? "Activées" : "Désactivées",
                 ];
             }
 

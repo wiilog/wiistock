@@ -35,6 +35,7 @@ class LivraisonsManagerService
 
     public const MOUVEMENT_DOES_NOT_EXIST_EXCEPTION = 'mouvement-does-not-exist';
     public const LIVRAISON_ALREADY_BEGAN = 'livraison-already-began';
+    public const NATURE_NOT_ALLOWED = 1;
 
     #[Required]
     public NotificationService $notificationService;
@@ -202,7 +203,11 @@ class LivraisonsManagerService
                     ['delivery' => $livraison]
                 );
 
-                $dropMovement = $tracking["movement"];
+                if($tracking['success']){
+                    $dropMovement = $tracking["movement"];
+                } else {
+                    throw new Exception($tracking['msg'], self::NATURE_NOT_ALLOWED);
+                }
 
                 if ($articleLine->getPack()) {
                     $pickingMovement->setLogisticUnitParent($articleLine->getPack());
@@ -268,9 +273,17 @@ class LivraisonsManagerService
             }
 
             $title = $demandeIsPartial ? 'FOLLOW GT // Livraison effectuée partiellement' : 'FOLLOW GT // Livraison effectuée';
-            $bodyTitle = $demandeIsPartial ? 'Votre demande a été livrée partiellement.' : 'Votre demande a bien été livrée.';
+            $bodyTitle = $demandeIsPartial ? 'La demande a été livrée partiellement.' : 'La demande a bien été livrée.';
 
-            if ($livraison->getDemande()->getType()->getSendMail()) {
+            if ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver()) {
+                $to = [];
+                if ($demande->getType()->getSendMailRequester()) {
+                    $to[] = $demande->getUtilisateur();
+                }
+                if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
+                    $to[] = $demande->getDestinataire();
+                }
+
                 $this->mailerService->sendMail(
                     $title,
                     $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
@@ -278,7 +291,7 @@ class LivraisonsManagerService
                         'preparation' => $preparation,
                         'title' => $bodyTitle,
                     ]),
-                    $demande->getUtilisateur()
+                    $to
                 );
             }
         }

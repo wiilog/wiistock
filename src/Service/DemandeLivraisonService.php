@@ -14,6 +14,8 @@ use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\MouvementStock;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Project;
@@ -21,6 +23,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -83,6 +86,15 @@ class DemandeLivraisonService
 
     #[Required]
     public Security $security;
+
+    #[Required]
+    public ArticleDataService $articleService;
+
+    #[Required]
+    public MouvementStockService $stockMovementService;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -441,27 +453,10 @@ class DemandeLivraisonService
         $response['success'] = true;
         $response['msg'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $date = new DateTime('now');
 
-        $preparedUponValidationSetting = $settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
-        if($preparedUponValidationSetting) {
-            $locations = [];
-            foreach($demande->getArticleLines() as $article) {
-                $locations[$article->getArticle()->getEmplacement()->getId()] = true;
-            }
-
-            foreach($demande->getReferenceLines() as $reference) {
-                if($reference->getReference()->getEmplacement()) {
-                    $locations[$reference->getReference()->getEmplacement()->getId()] = true;
-                }
-            }
-
-            $preparedUponValidation = count($locations) === 1;
-        } else {
-            $preparedUponValidation = false;
-        }
+        $preparedUponValidation = $this->treatSetting_preparedUponValidation($entityManager, $demande);
 
         $preparation = new Preparation();
         $preparation
@@ -491,40 +486,8 @@ class DemandeLivraisonService
         if (!$needsQuantitiesCheck) {
             $preparation->setPlanned(true);
         }
-
-        // modification du statut articles => en transit
-        $statutArticleIntransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
-        $requestLines = $demande->getArticleLines();
-        foreach ($requestLines as $requestArticleLine) {
-            $article = $requestArticleLine->getArticle();
-            $article->setStatut($statutArticleIntransit);
-
-            $preparationArticleLine = $requestArticleLine->createPreparationOrderLine();
-            $preparationArticleLine
-                ->setPreparation($preparation)
-                ->setPickedQuantity($requestArticleLine->getPickedQuantity());
-            $entityManager->persist($preparationArticleLine);
-        }
-
-        $lignesArticles = $demande->getReferenceLines();
         $refArticleToUpdateQuantities = [];
-        foreach ($lignesArticles as $ligneArticle) {
-            $referenceArticle = $ligneArticle->getReference();
-            $lignesArticlePreparation = new PreparationOrderReferenceLine();
-            $lignesArticlePreparation
-                ->setPickedQuantity($ligneArticle->getPickedQuantity())
-                ->setQuantityToPick($ligneArticle->getQuantityToPick())
-                ->setTargetLocationPicking($ligneArticle->getTargetLocationPicking())
-                ->setReference($referenceArticle)
-                ->setPreparation($preparation);
-            $entityManager->persist($lignesArticlePreparation);
-            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE && $needsQuantitiesCheck) {
-                $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantityToPick());
-            } else {
-                $refArticleToUpdateQuantities[] = $referenceArticle;
-            }
-            $preparation->addReferenceLine($lignesArticlePreparation);
-        }
+        $this->persistPreparationLine($entityManager, $preparation, $needsQuantitiesCheck, $refArticleToUpdateQuantities, $date);
 
         $sendNotification = $options['sendNotification']??true;
         try {
@@ -546,21 +509,30 @@ class DemandeLivraisonService
             }
         }
 
-        if (!$simpleValidation && $demande->getType()->getSendMail()) {
+        if (!$simpleValidation && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {
+            $to = [];
+            if ($demande->getType()->getSendMailRequester()) {
+                $to[] = $demande->getUtilisateur();
+            }
+            if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
+                $to[] = $demande->getDestinataire();
+            }
+
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
                 'FOLLOW GT // Validation d\'une demande vous concernant',
                 $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
-                    'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
+                    'title' => 'La demande de livraison ' . $demande->getNumero() . ' de type '
                         . $demande->getType()->getLabel()
                         . ' a bien été validée le '
                         . $nowDate->format('d/m/Y \à H:i')
                         . '.',
                 ]),
-                $demande->getUtilisateur()
+                $to
             );
         }
+
         if ($flush) {
             $entityManager->flush();
         }
@@ -585,10 +557,10 @@ class DemandeLivraisonService
 
             $dateEnd = new DateTime('now');
             $user = $this->security->getUser();
-            if($demande->getArticleLines()->count()) {
-                $locationEndPrepa = $demande->getArticleLines()->first()->getArticle()->getEmplacement();
-            } else if($demande->getReferenceLines()->count()) {
-                $locationEndPrepa = $demande->getReferenceLines()->first()->getReference()->getEmplacement();
+            if($preparation->getArticleLines()->count()) {
+                $locationEndPrepa = $preparation->getArticleLines()->first()->getArticle()->getEmplacement();
+            } else if($preparation->getReferenceLines()->count()) {
+                $locationEndPrepa = $preparation->getReferenceLines()->first()->getReference()->getEmplacement();
             } else {
                 throw new \RuntimeException("Invalid state");
             }
@@ -626,6 +598,7 @@ class DemandeLivraisonService
         $config = [
             ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst($this->formatService->status($demande->getStatut()))],
             ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
+            ['label' => 'Destinataire', 'value' => $this->formatService->user($demande->getDestinataire())],
             ['label' => 'Destination', 'value' => $this->formatService->location($demande->getDestination())],
             ['label' => 'Date de la demande', 'value' => $this->formatService->datetime($demande->getCreatedAt())],
             ['label' => 'Date de validation', 'value' => $this->formatService->datetime($demande->getValidatedAt())],
@@ -638,7 +611,7 @@ class DemandeLivraisonService
             [
                 'label' => 'Projet',
                 'value' => $this->formatService->project($demande?->getProject()) ?? '',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT]
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
         ];
 
@@ -738,6 +711,179 @@ class DemandeLivraisonService
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+    }
+
+    public function treatSetting_manageDeliveryWithoutStockQuantity(EntityManagerInterface       $entityManager,
+                                                                    Preparation                  $preparation,
+                                                                    DeliveryRequestReferenceLine $referenceLine,
+                                                                    Emplacement                  $locationReception,
+                                                                    DateTime                     $date,
+                                                                    array                        &$createdBarcodes): void {
+        $request = $preparation->getDemande();
+        $reference = $referenceLine->getReference();
+
+        if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+            $supplierArticle = $reference->getArticlesFournisseur()->first() ?: null;
+            if ($supplierArticle) {
+                $article = $this->articleService->newArticle($entityManager, [
+                    'articleFournisseur' => $supplierArticle->getId(),
+                    'conform' => true,
+                    'quantite' => $referenceLine->getQuantityToPick(),
+                    'emplacement' => $locationReception,
+                    'statut' => Article::STATUT_ACTIF,
+                    'refArticle' => $reference
+                ], ["excludeBarcodes" => $createdBarcodes]);
+
+                $createdBarcodes[] = $article->getBarcode();
+
+                $articleLine = new PreparationOrderArticleLine();
+                $articleLine
+                    ->setQuantityToPick($article->getQuantite())
+                    ->setArticle($article)
+                    ->setAutoGenerated(true)
+                    ->setPreparation($preparation);
+                $entityManager->persist($articleLine);
+
+                $stockMovement = $this->stockMovementService->createMouvementStock(
+                    $request->getUtilisateur(),
+                    null,
+                    $article->getQuantite(),
+                    $article,
+                    MouvementStock::TYPE_ENTREE,
+                    [
+                        "from" => $request,
+                        "date" => $date,
+                        "locationTo" => $article->getEmplacement()
+                    ]
+                );
+
+                $trackingTaking = $this->trackingMovementService->createTrackingMovement(
+                    $article->getBarCode(),
+                    $article->getEmplacement(),
+                    $request->getUtilisateur(),
+                    $date,
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        "quantity" => $article->getQuantite(),
+                        "refOrArticle" => $article,
+                        "from" => $request,
+                        "mouvementStock" => $stockMovement
+                    ]
+                );
+
+                $entityManager->persist($stockMovement);
+                $entityManager->persist($trackingTaking);
+                $entityManager->persist($articleLine);
+            }
+        }
+    }
+
+    public function treatSetting_preparedUponValidation(EntityManagerInterface $entityManager, Demande $request): bool {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $preparedUponValidationSetting = $settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
+        $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
+
+        $defaultLocationReception = $defaultLocationReceptionSetting
+            ? $locationRepository->find($defaultLocationReceptionSetting)
+            : null;
+        $manageDeliveryWithoutStockQuantitySetting = $defaultLocationReception && $settingRepository->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
+
+        if($preparedUponValidationSetting) {
+            $locations = [];
+            foreach($request->getArticleLines() as $article) {
+                $locations[$article->getArticle()->getEmplacement()->getId()] = true;
+            }
+
+            foreach($request->getReferenceLines() as $referenceLine) {
+                $reference = $referenceLine->getReference();
+                if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE && $reference->getEmplacement()) {
+                    $locations[$reference->getEmplacement()->getId()] = true;
+                }
+                else if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+                    if ($manageDeliveryWithoutStockQuantitySetting) {
+                        $locations[$defaultLocationReception->getId()] = true;
+                    }
+                    else {
+                        $preparedUponValidation = false;
+                        break;
+                    }
+                }
+            }
+
+            $preparedUponValidation = $preparedUponValidation ?? (count($locations) === 1);
+        } else {
+            $preparedUponValidation = false;
+        }
+
+        return $preparedUponValidation;
+    }
+
+    private function persistPreparationLine(EntityManagerInterface $entityManager,
+                                            Preparation            $preparation,
+                                            bool                   $needsQuantitiesCheck,
+                                            array                  &$refArticleToUpdateQuantities,
+                                            DateTime               $date): void {
+
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
+        $defaultLocationReception = $defaultLocationReceptionSetting
+            ? $locationRepository->find($defaultLocationReceptionSetting)
+            : null;
+        $manageDeliveryWithoutStockQuantitySetting = $defaultLocationReception && $settingRepository->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
+
+        $request = $preparation->getDemande();
+
+        // modification du statut articles => en transit
+        $statutArticleIntransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
+        $deliveryRequestArticleLines = $request->getArticleLines();
+        foreach ($deliveryRequestArticleLines as $requestArticleLine) {
+            $article = $requestArticleLine->getArticle();
+            $article->setStatut($statutArticleIntransit);
+
+            $preparationArticleLine = $requestArticleLine->createPreparationOrderLine();
+            $preparationArticleLine
+                ->setPreparation($preparation)
+                ->setPickedQuantity($requestArticleLine->getPickedQuantity());
+            $entityManager->persist($preparationArticleLine);
+        }
+
+        $deliveryRequestReferenceLines = $request->getReferenceLines();
+        $refArticleToUpdateQuantities = [];
+        $createdBarcodes = [];
+        foreach ($deliveryRequestReferenceLines as $requestReferenceLine) {
+            $referenceArticle = $requestReferenceLine->getReference();
+
+            // if we have $manageDeliveryWithoutStockQuantitySetting === true => we add to preparation
+            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                || !$manageDeliveryWithoutStockQuantitySetting) {
+                $lignesArticlePreparation = new PreparationOrderReferenceLine();
+                $lignesArticlePreparation
+                    ->setPickedQuantity($requestReferenceLine->getPickedQuantity())
+                    ->setQuantityToPick($requestReferenceLine->getQuantityToPick())
+                    ->setTargetLocationPicking($requestReferenceLine->getTargetLocationPicking())
+                    ->setReference($referenceArticle)
+                    ->setPreparation($preparation);
+                $entityManager->persist($lignesArticlePreparation);
+                if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE && $needsQuantitiesCheck) {
+                    $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $requestReferenceLine->getQuantityToPick());
+                }
+                else {
+                    $refArticleToUpdateQuantities[] = $referenceArticle;
+                }
+                $preparation->addReferenceLine($lignesArticlePreparation);
+            }
+            else {
+                // create PreparationOrderArticleLine
+                $this->treatSetting_manageDeliveryWithoutStockQuantity($entityManager, $preparation, $requestReferenceLine, $defaultLocationReception, $date, $createdBarcodes);
+            }
+        }
     }
 
 }

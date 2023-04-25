@@ -1100,14 +1100,14 @@ class ReferenceArticleController extends AbstractController
 
             if(!$referenceExist){
                 $entityManager->flush();
-                $article = $articleDataService->newArticle([
+                $article = $articleDataService->newArticle($entityManager, [
                     'statut' => Article::STATUT_INACTIF,
                     'refArticle' => $reference->getId(),
                     'emplacement' => $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT),
                     'articleFournisseur' => $supplierArticle->getId(),
                     'libelle' => $reference->getLibelle(),
                     'quantite' => 1,
-                ], $entityManager);
+                ]);
                 $article
                     ->setReference($reference->getReference())
                     ->setInactiveSince($date)
