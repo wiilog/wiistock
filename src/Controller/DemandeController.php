@@ -103,9 +103,9 @@ class DemandeController extends AbstractController
 
             return $this->json($this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
-                'defaultReceiver' => $demande->getDestinataire() ? [
-                    'label' => $demande->getDestinataire()?->getUsername(),
-                    'value' => $demande->getDestinataire()?->getId(),
+                'defaultReceiver' => $demande->getReceiver() ? [
+                    'label' => $demande->getReceiver()?->getUsername(),
+                    'value' => $demande->getReceiver()?->getId(),
                     'selected' => true,
                 ] : [],
                 'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
@@ -164,7 +164,7 @@ class DemandeController extends AbstractController
                     ->setProject($project)
                     ->setExpectedAt($expectedAt)
                     ->setType($type)
-                    ->setDestinataire($receiver)
+                    ->setReceiver($receiver)
                     ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
                 $entityManager->flush();
                 $champLibreService->manageFreeFields($demande, $data, $entityManager);
