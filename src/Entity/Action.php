@@ -98,7 +98,7 @@ class Action {
     const EDIT_SHIPPED_SHIPPING = 'modifier expédition en "Expédiée"';
     const DELETE_TO_TREAT_SHIPPING = 'supprimer expédition en "A traiter"';
     const DELETE_PLANIFIED_SHIPPING = 'supprimer expédition en "Planifiée"';
-    const DELETE_SHIPPED_SHIPPING = 'supprimer expédition en "A Expédiée"';
+    const DELETE_SHIPPED_SHIPPING = 'supprimer expédition en "Expédiée"';
     const EDIT_TRANSPORT_SHIPPING_PART = 'modifier partie transport expédition';
     const GENERATE_PACKING_SLIP = 'générer bordereau de colisage';
 
