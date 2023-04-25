@@ -19,10 +19,10 @@ class ShippingRequestExpectedLine {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $quantity = null;
 
-    #[ORM\Column(type: Types::FLOAT)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3)]
     private ?float $price = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3)]
+    #[ORM\Column(type: Types::FLOAT)]
     private ?float $weight = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]

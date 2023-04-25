@@ -76,6 +76,12 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?DateTime $requestCaredAt = null;
 
+    /**
+     * "Date d'enlèvement"
+     */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?DateTime $expectedPickedAt = null;
+
     #[ORM\Column(type: Types::TEXT)]
     private ?string $comment = null;
 
@@ -93,6 +99,12 @@ class ShippingRequest extends StatusHistoryContainer {
 
     #[ORM\Column(type: Types::STRING)]
     private ?string $carrying = null;
+
+    #[ORM\Column(type: Types::FLOAT)]
+    private ?float $grossWeight = null;
+
+    #[ORM\Column(type: Types::STRING)]
+    private ?string $trackingNumber = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -432,5 +444,34 @@ class ShippingRequest extends StatusHistoryContainer {
         $this->carrying = $carrying;
         return $this;
     }
+
+    public function getExpectedPickedAt(): ?DateTime {
+        return $this->expectedPickedAt;
+    }
+
+    public function setExpectedPickedAt(?DateTime $expectedPickedAt): self {
+        $this->expectedPickedAt = $expectedPickedAt;
+        return $this;
+    }
+
+    public function getGrossWeight(): ?float {
+        return $this->grossWeight;
+    }
+
+    public function setGrossWeight(?float $grossWeight): self {
+        $this->grossWeight = $grossWeight;
+        return $this;
+    }
+
+    public function getTrackingNumber(): ?string {
+        return $this->trackingNumber;
+    }
+
+    public function setTrackingNumber(?string $trackingNumber): self {
+        $this->trackingNumber = $trackingNumber;
+        return $this;
+    }
+
+
 
 }
