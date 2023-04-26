@@ -48,24 +48,26 @@
         </div>
     {% endif %}
     <div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
-    {% if attachments is iterable %}
-        {% if isNew != true %}
-            {% for attachment in attachments %}
-                {% include 'attachment/attachmentLine.html.twig' with {
-                    attachment: attachment,
-                    canRemove: editAttachments,
-                    icon: icon ?? null,
-                    fullWidth: fullWidth ?? false
-                } %}
-            {% endfor %}
+    {% if attachments is defined %}
+        {% if attachments is iterable %}
+            {% if isNew != true %}
+                {% for attachment in attachments %}
+                    {% include 'attachment/attachmentLine.html.twig' with {
+                        attachment: attachment,
+                        canRemove: editAttachments,
+                        icon: icon ?? null,
+                        fullWidth: fullWidth ?? false
+                    } %}
+                {% endfor %}
+            {% endif %}
+        {% elseif attachments %}
+            {% include 'attachment/attachmentLine.html.twig' with {
+                attachment: attachments,
+                canRemove: editAttachments,
+                icon: icon ?? null,
+                sheetFileClass: "delete-sheet-file",
+                savedSheetFiles:"savedSheetFile"
+            } %}
         {% endif %}
-    {% elseif attachments %}
-        {% include 'attachment/attachmentLine.html.twig' with {
-            attachment: attachments,
-            canRemove: editAttachments,
-            icon: icon ?? null,
-            sheetFileClass: "delete-sheet-file",
-            savedSheetFiles:"savedSheetFile"
-        } %}
     {% endif %}
 </div>
