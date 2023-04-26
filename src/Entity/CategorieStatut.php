@@ -33,6 +33,7 @@ class CategorieStatut {
     const TRANSPORT_ORDER_DELIVERY = 'ordre de transport livraison';
     const TRANSPORT_ORDER_COLLECT = 'ordre de transport collecte';
     const TRANSPORT_ROUND = 'tournée';
+    const SHIPMENT = 'expédition';
     const IMPORT = 'import';
     const EXPORT = 'export';
 

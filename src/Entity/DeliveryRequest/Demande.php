@@ -96,7 +96,7 @@ class Demande implements PairedEntity {
     private bool $manual = false;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
-    private ?Utilisateur $destinataire = null;
+    private ?Utilisateur $receiver = null;
 
     #[ORM\OneToMany(mappedBy: 'deliveryRequest', targetEntity: TrackingMovement::class)]
     private Collection $trackingMovements;
@@ -395,12 +395,12 @@ class Demande implements PairedEntity {
         return $this;
     }
 
-    public function getDestinataire(): ?Utilisateur {
-        return $this->destinataire;
+    public function getReceiver(): ?Utilisateur {
+        return $this->receiver;
     }
 
-    public function setDestinataire(?Utilisateur $destinataire): self {
-        $this->destinataire = $destinataire;
+    public function setReceiver(?Utilisateur $receiver): self {
+        $this->receiver = $receiver;
 
         return $this;
     }
