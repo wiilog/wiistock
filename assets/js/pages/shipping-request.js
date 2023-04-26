@@ -64,5 +64,14 @@ function initModalNewShippingRequest() {
             }
         })
     });
+
+    // pre-filling customer information according to the customer
+    const $customersSelect = $modal.find('select[name="customerName"]')
+    $customersSelect.on('change', () => {
+       const customerData = $customersSelect.select2('data');
+       $modal.find('input[name="customerPhone"]').val(customerData[0].phone);
+       $modal.find('input[name="customerRecipient"]').val(customerData[0].recipient);
+       $modal.find('input[name="customerAddress"]').val(customerData[0].address);
+    });
 }
 
