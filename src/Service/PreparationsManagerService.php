@@ -187,6 +187,10 @@ class PreparationsManagerService
                 );
                 $this->entityManager->persist($trackingMovementPick);
 
+                if(!$articleEntity->getTrackingPack()){
+                    $articleEntity->setTrackingPack($trackingMovementPick->getPack());
+                }
+
                 $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
                     $articleEntity->getTrackingPack() ?: $articleEntity->getBarCode(),
                     $locationEndPrepa,
