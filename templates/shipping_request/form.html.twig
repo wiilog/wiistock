@@ -50,32 +50,32 @@
         Destinataire
     </div>
     <div class="row">
-        <div class="col-6">
-            {# form.select('requesters', 'Demandeur(s)', true, {
-                type: 'user',
-                multiple: true,
-            }) #}
+        <div class="col-6 mt-2">
+            {{ form.select('customerName', 'Client', true, {
+                type: 'customers',
+                items: [],
+                labelOptions: {
+                    class: 'm-0',
+                },
+            }) }}
         </div>
+        <div class="col-6 mt-2">
+            {{ form.input('customerPhone', 'Téléphone', true, null,{}) }}
+        </div>
+        <div class="col-6 mt-2">
+            {{ form.input('customerRecipient', 'A l\'attention de', false, null,{}) }}
+        </div>
+        <div class="col-12 mt-2">
+            {{ form.input('customerAddress', 'Adresse de livraison', true, null,{
+                type: 'textarea',
+            }) }}
+        </div>
+
     </div>
-
-
     <div class="row">
-        <div class="col-6">
+        <div class="col-6 mt-2">
 
         </div>
 
     </div>
-    <div class="row">
-        <div class="col-6">
-
-        </div>
-
-    </div>
-    <div class="row">
-        <div class="col-6">
-
-        </div>
-
-    </div>
-
 </form>
