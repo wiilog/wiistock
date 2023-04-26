@@ -121,24 +121,29 @@ class PreparationsManagerService
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $now = new DateTime('now');
-        $createDirectDelivery = $settingRepository->getOneParamByLabel(Setting::DIRECT_DELIVERY);
         $ulToMove = [];
-        if ($createDirectDelivery) {
-            $articles = Stream::from($preparation->getArticleLines())
-                ->map(fn(PreparationOrderArticleLine $line) => [
-                    'article' => $line->getArticle(),
-                    'quantity' => $line->getPickedQuantity(),
-                ])
-                ->toArray();
-        } else {
-            $articles = Stream::from($mouvementStockRepository->findByPreparation($preparation))
-                ->map(fn (MouvementStock $mouvement) => [
+        $stockMovements = $preparation->getMouvements();
+        $articles = ($stockMovements->count()
+            ? Stream::from($stockMovements)
+                ->map(fn(MouvementStock $mouvement) => [
                     'article' => $mouvement->getArticle() ?: $mouvement->getRefArticle(),
                     'quantity' => $mouvement->getQuantity(),
                     'movement' => $mouvement,
                 ])
-                ->toArray();
-        }
+            : Stream::from(
+                Stream::from($preparation->getArticleLines())
+                    ->map(fn(PreparationOrderArticleLine $line) => [
+                        'article' => $line->getArticle(),
+                        'quantity' => $line->getPickedQuantity(),
+                    ]),
+                Stream::from($preparation->getReferenceLines())
+                    ->map(fn(PreparationOrderReferenceLine $line) => [
+                        'article' => $line->getReference(),
+                        'quantity' => $line->getPickedQuantity(),
+                    ])
+                ))
+            ->toArray();
+
         foreach ($articles as $article) {
             /** @var Article|ReferenceArticle $articleEntity */
             $articleEntity = $article['article'];
