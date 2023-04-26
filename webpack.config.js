@@ -48,7 +48,7 @@ Encore
     .addEntry('form-add-inventory-locations', './assets/js/pages/inventory-mission/form-add-inventory-locations.js')
     .addEntry('truck-arrival-index', './assets/js/pages/truck-arrival/index.js')
     .addEntry('truck-arrival-show', './assets/js/pages/truck-arrival/show.js')
-    .addEntry('shipping-request', './assets/js/pages/shipping-request.js')
+    .addEntry('shipping-request-index', './assets/js/pages/shipping-request/index.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 
