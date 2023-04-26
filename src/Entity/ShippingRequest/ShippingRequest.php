@@ -37,6 +37,10 @@ class ShippingRequest extends StatusHistoryContainer {
         self::CARRYING_PAID => "Payé",
     ];
 
+    public const STATUS_DRAFT = 'Brouillon';
+    public const STATUS_TO_TREAT = 'A traiter';
+    public const STATUS_SCHEDULED = "Planifiée";
+    public const STATUS_SHIPPED = "Expédiée";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
