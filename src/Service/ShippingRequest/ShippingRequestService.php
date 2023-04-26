@@ -1,47 +1,28 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\ShippingRequest;
 
-use App\Entity\Arrivage;
-use App\Entity\Attachment;
-use App\Entity\CategorieStatut;
-use App\Entity\DispatchPack;
-use App\Entity\DispatchReferenceArticle;
-use App\Entity\Emplacement;
-use App\Entity\FreeField;
-use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FieldsParam;
-use App\Entity\FiltreSup;
-use App\Entity\Language;
-use App\Entity\Nature;
-use App\Entity\Pack;
-use App\Entity\ReferenceArticle;
-use App\Entity\Setting;
+use App\Entity\FreeField;
 use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\TrackingMovement;
-use App\Entity\Statut;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Exceptions\FormException;
-use App\Helper\LanguageHelper;
-use App\Service\Document\TemplateDocumentService;
-use DateTime;
+use App\Service\FormatService;
+use App\Service\FreeFieldService;
+use App\Service\LanguageService;
+use App\Service\MailerService;
+use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
+use App\Service\UserService;
+use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\AdMob\Date;
-use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
-class ShippingService {
+class ShippingRequestService {
 
     #[Required]
     public Twig_Environment $templating;
@@ -130,6 +111,10 @@ class ShippingService {
 
     public function dataRowShipping(ShippingRequest $shipping, array $options = []): array
     {
-        return [];
+        $row = [
+
+        ];
+
+        return $row;
     }
 }
