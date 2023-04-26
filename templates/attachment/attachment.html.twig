@@ -60,7 +60,7 @@
                     } %}
                 {% endfor %}
             {% endif %}
-        {% elseif attachments %}
+        {% else %}
             {% include 'attachment/attachmentLine.html.twig' with {
                 attachment: attachments,
                 canRemove: editAttachments,
