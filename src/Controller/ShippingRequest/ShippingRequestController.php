@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\Menu;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Service\ShippingRequest\ShippingRequestService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -40,5 +41,17 @@ class ShippingRequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING], mode: HasPermission::IN_JSON)]
     public function api(EntityManagerInterface $entityManager, Request $request, ShippingRequestService $service) {
         return $this->json($service->getDataForDatatable($entityManager, $request));
+    }
+
+    #[Route("/voir/{id}", name:"shipping_show_page", options:["expose"=>true])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function showPage(Request                $request,
+                             ShippingRequest        $shippingRequest,
+                             EntityManagerInterface $entityManager): Response {
+
+
+        return $this->render('shipping_request/show.html.twig', [
+            'shipping'=> $shippingRequest,
+        ]);
     }
 }
