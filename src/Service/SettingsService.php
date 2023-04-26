@@ -26,6 +26,7 @@ use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
@@ -765,12 +766,39 @@ class SettingsService {
                 if ($fieldsParam) {
                     $code = $fieldsParam->getFieldCode();
                     $alwaysRequired = in_array($code, FieldsParam::ALWAYS_REQUIRED_FIELDS);
-                    $fieldsParam->setDisplayedCreate($item["displayedCreate"])
-                        ->setRequiredCreate($alwaysRequired || $item["requiredCreate"])
+                    $fieldsParam
+                        ->setDisplayedCreate($item["displayedCreate"] ?? null)
+                        ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))
                         ->setKeptInMemory($item["keptInMemory"] ?? null)
-                        ->setDisplayedEdit($item["displayedEdit"])
-                        ->setRequiredEdit($alwaysRequired || $item["requiredEdit"])
+                        ->setDisplayedEdit($item["displayedEdit"] ?? null)
+                        ->setRequiredEdit($alwaysRequired || ($item["requiredEdit"] ?? null))
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
+                }
+            }
+        }
+
+        if (isset($tables["subFixedFields"])) {
+            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["subFixedFields"]);
+
+            $subLineFieldsParamRepository = $this->manager->getRepository(SubLineFieldsParam::class);
+            $fieldsParams = Stream::from($subLineFieldsParamRepository->findBy(["id" => $ids]))
+                ->keymap(fn($day) => [$day->getId(), $day])
+                ->toArray();
+
+            foreach (array_filter($tables["subFixedFields"]) as $item) {
+                /** @var SubLineFieldsParam $fieldsParam */
+                $fieldsParam = $fieldsParams[$item["id"]] ?? null;
+
+                if ($fieldsParam) {
+                    $fieldsParam
+                        ->setDisplayed($item["displayed"] ?? null)
+                        ->setConditionFixedField(SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD)
+                        ->setRequired($item["required"] ?? null);
+
+                    if (isset($item["displayedUnderCondition"])) {
+                        $fieldsParam->setDisplayedUnderCondition($item["displayedUnderCondition"]);
+                        $fieldsParam->setConditionFixedFieldValue(isset($item["conditionFixedFieldValue"]) ?? $item["conditionFixedFieldValue"] !== "" ? explode(',', $item["conditionFixedFieldValue"]) : []);
+                    }
                 }
             }
         }
