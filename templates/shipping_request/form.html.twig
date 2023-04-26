@@ -1,5 +1,6 @@
 {% import 'form.html.twig' as form %}
 
+{% set requester = app.user %}
 <form name="formShippingRequest">
     <div class="wii-section-title d-flex align-items-center pt-0">
         Informations
@@ -9,6 +10,21 @@
             {{ form.select('requesters', 'Demandeur(s)', true, {
                 type: 'user',
                 multiple: true,
+                additionalAttributes : [
+                    {
+                        name: 'data-other-params',
+                        value: '1'
+                    }, {
+                        name: 'data-other-params-with-phone-numbers',
+                        value: '1'
+                    }
+                ],
+                items: [{
+                    value: requester.id,
+                    label: requester.username,
+                    phone: requester.phone,
+                    selected: true,
+                }],
             }) }}
         </div>
         <div class="col-6 mt-2">
@@ -35,10 +51,10 @@
     </div>
     <div class="row">
         <div class="col-6">
-            {{ form.select('requesters', 'Demandeur(s)', true, {
+            {# form.select('requesters', 'Demandeur(s)', true, {
                 type: 'user',
                 multiple: true,
-            }) }}
+            }) #}
         </div>
     </div>
 
