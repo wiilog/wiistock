@@ -188,7 +188,6 @@ class FieldsParam {
     const FIELD_LABEL_EMERGENCY_CARRIER = "transporteur";
     const FIELD_LABEL_EMERGENCY_TYPE = "type d'urgence";
 
-
     public const MEMORY_UNKEEPABLE_FIELDS = [
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
         FieldsParam::FIELD_CODE_PJ_ARRIVAGE,
@@ -404,9 +403,10 @@ class FieldsParam {
         return $this->modalType;
     }
 
-    public function setModalType(?string $modalType): void
+    public function setModalType(?string $modalType): self
     {
         $this->modalType = $modalType;
-    }
 
+        return $this;
+    }
 }
