@@ -93,8 +93,8 @@ class ShippingRequestService {
                 ->map(fn(Utilisateur $requester) => $requester->getUsername())
                 ->toArray()),
             "customerOrderNumber" => $shipping->getCustomerOrderNumber(),
-            "freeDelivery" => $shipping->isFreeDelivery(),
-            "compliantArticles" => $shipping->isCompliantArticles(),
+            "freeDelivery" => $shipping->isFreeDelivery() ? 'Oui' : 'Non',
+            "compliantArticles" => $shipping->isCompliantArticles() ? 'Oui' : 'Non',
             "customerName" => $shipping->getCustomerName(),
             "customerRecipient" => $shipping->getCustomerRecipient(),
             "customerPhone" => $shipping->getCustomerPhone(),
