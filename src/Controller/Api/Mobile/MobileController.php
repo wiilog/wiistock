@@ -1991,7 +1991,12 @@ class MobileController extends AbstractApiController
         if ($article) {
             throw new FormException("Tag RFID déjà existant en base.");
         }
-        $type = $typeRepository->find($request->request->get('type'));
+
+        $typeStr = $request->request->get('type');
+        $type = $typeStr
+            ? $typeRepository->find($typeStr)
+            : null;
+
         $statut = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
 
         $fromMatrix = $request->request->getBoolean('fromMatrix');
@@ -2111,7 +2116,7 @@ class MobileController extends AbstractApiController
         $entityManager->persist($stockMovement);
 
         $trackingMovement = $trackingMovementService->createTrackingMovement(
-            $article,
+            $article->getTrackingPack() ?: $article->getBarCode(),
             $article->getEmplacement(),
             $this->getUser(),
             $now,
