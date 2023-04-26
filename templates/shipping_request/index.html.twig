@@ -45,14 +45,14 @@
         </div>
     </div>
 
-    <!--{ include "utils/visible_columns.html.twig" with {
-        'fields': [],
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
         'table': 'tableShippings',
-        'route': ''
-     }-->
+        'route': 'save_column_visible_for_shipping_request'
+    } %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/shipping-request.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('shipping-request') }}
 {% endblock %}
