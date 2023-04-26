@@ -822,9 +822,7 @@ class SettingsService {
 
                     if (isset($item["displayedUnderCondition"])) {
                         $fieldsParam->setDisplayedUnderCondition($item["displayedUnderCondition"]);
-                        if (isset($item["conditionFixedFieldValue"])) {
-                            $fieldsParam->setConditionFixedFieldValue($item["conditionFixedFieldValue"] !== "" ? explode(',', $item["conditionFixedFieldValue"]) : []);
-                        }
+                        $fieldsParam->setConditionFixedFieldValue(isset($item["conditionFixedFieldValue"]) ?? $item["conditionFixedFieldValue"] !== "" ? explode(',', $item["conditionFixedFieldValue"]) : []);
                     }
                 }
             }
