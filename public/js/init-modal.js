@@ -672,7 +672,7 @@ function processFilesForm($modal, data) {
     const required = $requiredFileField.val() === '1';
 
     const $savedFiles = $modal.find('.data[name="savedFiles[]"]');
-    const sheetFile = $('input[name=fileSheet]').get(0).files;
+    const sheetFile = $('input[name=fileSheet]').get(0)?.files;
     const $requiredSheetFileField = $modal.find('input[name="isSheetFileNeeded"][type="hidden"]');
     const requiredSheetFile = $requiredSheetFileField.val() === '1';
     const alreadyExistSheetFile = $('input[name=savedSheetFile]').length ? true : false;
