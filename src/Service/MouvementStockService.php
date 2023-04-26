@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Controller\Settings\SettingsController;
 use App\Entity\Article;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Import;
@@ -99,14 +100,21 @@ class MouvementStockService
     }
 
     public function getFromColumnConfig(MouvementStock $mouvement): array {
-        if ($mouvement->getPreparationOrder()) {
+        if ($mouvement->getDeliveryRequest()) {
+            $from = 'demande de livraison';
+            $path = 'demande_show';
+            $pathParams = [
+                'id' => $mouvement->getDeliveryRequest()->getId()
+            ];
+        }
+        else if ($mouvement->getPreparationOrder()) {
             $from = 'préparation';
             $path = 'preparation_show';
             $pathParams = [
                 'id' => $mouvement->getPreparationOrder()->getId()
             ];
         } else if ($mouvement->getLivraisonOrder()) {
-            $from = 'livraison';
+            $from = 'ordre de livraison';
             $path = 'livraison_show';
             $pathParams = [
                 'id' => $mouvement->getLivraisonOrder()->getId()
@@ -136,7 +144,7 @@ class MouvementStockService
             $pathParams = [
                 'id' => $mouvement->getTransferOrder()->getId()
             ];
-        }  else if (in_array($mouvement->getType(), [MouvementStock::TYPE_INVENTAIRE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE])) {
+        } else if (in_array($mouvement->getType(), [MouvementStock::TYPE_INVENTAIRE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE])) {
             $from = 'inventaire';
         }
         return [
@@ -172,6 +180,9 @@ class MouvementStockService
         }
 
         $from = $options['from'] ?? null;
+        $locationTo = $options['locationTo'] ?? null;
+        $date = $options['date'] ?? null;
+
         if ($from) {
             if ($from instanceof Preparation) {
                 $newMouvement->setPreparationOrder($from);
@@ -191,6 +202,17 @@ class MouvementStockService
             else if ($from instanceof TransferOrder) {
                 $newMouvement->setTransferOrder($from);
             }
+            else if ($from instanceof Demande) {
+                $newMouvement->setDeliveryRequest($from);
+            }
+        }
+
+        if ($date) {
+            $newMouvement->setDate($date);
+        }
+
+        if ($locationTo) {
+            $newMouvement->setEmplacementTo($locationTo);
         }
 
         return $newMouvement;
