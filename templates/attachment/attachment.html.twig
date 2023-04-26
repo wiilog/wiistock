@@ -48,7 +48,7 @@
         </div>
     {% endif %}
     <div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
-    {% if attachments is iterable %}
+    {% if attachments is defined and attachments is iterable %}
         {% if isNew != true %}
             {% for attachment in attachments %}
                 {% include 'attachment/attachmentLine.html.twig' with {
@@ -59,7 +59,7 @@
                 } %}
             {% endfor %}
         {% endif %}
-    {% elseif attachments %}
+    {% elseif attachments is defined %}
         {% include 'attachment/attachmentLine.html.twig' with {
             attachment: attachments,
             canRemove: editAttachments,
