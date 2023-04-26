@@ -99,8 +99,8 @@
                                     <div class="col-12">
                                         <table id="editableTableArticles" class="table"
                                                data-initial-visible="{{ initial_visible_columns }}"></table>
-                                        {% set projectFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT') %}
-                                        {% set commentFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT') %}
+                                        {% set projectFieldCode = constant('App\\Entity\\SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT') %}
+                                        {% set commentFieldCode = constant('App\\Entity\\SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT') %}
                                         {% set isProjectDisplayed = fieldsParam|isFieldRequired(projectFieldCode, 'required') %}
                                         {% set isCommentDisplayed = fieldsParam|isFieldRequired(commentFieldCode, 'required') %}
                                         <input hidden name="editableTableArticlesForm" value="{{ {

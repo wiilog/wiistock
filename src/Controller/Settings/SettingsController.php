@@ -216,7 +216,7 @@ class SettingsController extends AbstractController {
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
                         self::MENU_PURCHASE_PLANIFICATION => [
                             "label" => "Achats - Planification",
-                            "right" => Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE
+                            "right" => Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE,
                         ],
                         self::MENU_SHIPPING => [
                             "label" => "Expéditions",
@@ -466,7 +466,7 @@ class SettingsController extends AbstractController {
             "menus" => [
                 self::MENU_TYPES_FREE_FIELDS => [
                     "right" => Action::SETTINGS_DISPLAY_IOT,
-                    "label" => "Types et champs libres"
+                    "label" => "Types et champs libres",
                 ],
             ],
         ],
@@ -477,7 +477,7 @@ class SettingsController extends AbstractController {
                 self::MENU_ALERTS => [
                     "label" => "Alertes",
                     "right" => Action::SETTINGS_DISPLAY_NOTIFICATIONS_ALERTS,
-                    "wrapped" => false
+                    "wrapped" => false,
                 ],
                 self::MENU_PUSH_NOTIFICATIONS => [
                     "label" => "Notifications push",
@@ -492,7 +492,7 @@ class SettingsController extends AbstractController {
                 self::MENU_LANGUAGES => [
                     "label" => "Langues",
                     "right" => Action::SETTINGS_DISPLAY_LABELS_PERSO,
-                    'route' => "settings_language_index"
+                    'route' => "settings_language_index",
                 ],
                 self::MENU_ROLES => [
                     "label" => "Rôles",
@@ -706,7 +706,7 @@ class SettingsController extends AbstractController {
             'label' => $language->getLabel(),
             'value' => $language->getId(),
             'iconUrl' => $language->getFlag(),
-            'checked' => $language->getSelected()
+            'checked' => $language->getSelected(),
         ])
         ->toArray();
 
@@ -789,7 +789,7 @@ class SettingsController extends AbstractController {
                 ],
                 'language' => $language,
                 'translations' => $translations,
-            ])
+            ]),
         ]);
     }
 
@@ -843,7 +843,7 @@ class SettingsController extends AbstractController {
         if (in_array($language->getSlug(),Language::NOT_DELETABLE_LANGUAGES)) {
             return $this->json([
                 "success" => false,
-                "message" => "Cette langue ne peut pas être supprimée"
+                "message" => "Cette langue ne peut pas être supprimée",
             ]);
         }
         else {
@@ -865,7 +865,7 @@ class SettingsController extends AbstractController {
 
             return $this->json([
                 "success" => true,
-                "msg" => "La langue <strong>{$language->getLabel()}</strong> a bien été supprimée."
+                "msg" => "La langue <strong>{$language->getLabel()}</strong> a bien été supprimée.",
             ]);
         }
     }
@@ -1023,7 +1023,7 @@ class SettingsController extends AbstractController {
         self::CATEGORY_GLOBAL => "\Closure[]", self::CATEGORY_STOCK => "\Closure[][]",
         self::CATEGORY_TRACING => "\Closure[][]", self::CATEGORY_TRACKING => "array",
         self::CATEGORY_IOT => "\Closure[]", self::CATEGORY_DATA => "\Closure[]",
-        self::CATEGORY_NOTIFICATIONS => "\Closure[]", self::CATEGORY_USERS => "\Closure[]"
+        self::CATEGORY_NOTIFICATIONS => "\Closure[]", self::CATEGORY_USERS => "\Closure[]",
 
     ])]
     public function customValues(EntityManagerInterface $entityManager): array {
@@ -1069,7 +1069,7 @@ class SettingsController extends AbstractController {
                         ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                         ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
                         ->join(""),
-                ]
+                ],
             ],
             self::CATEGORY_STOCK => [
                 self::MENU_ARTICLES => [
@@ -1205,8 +1205,8 @@ class SettingsController extends AbstractController {
                     ],
                 ],
                 self::MENU_TOUCH_TERMINAL => fn() => [
-                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll())
-                ]
+                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
+                ],
             ],
             self::CATEGORY_TRACING => [
                 self::MENU_DISPATCHES => [
@@ -1392,7 +1392,7 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                ]
+                ],
             ],
             self::CATEGORY_TRACKING => [
                 self::MENU_ROUNDS => fn() => [
@@ -2401,6 +2401,7 @@ class SettingsController extends AbstractController {
         $arrayFields = $fieldsParamRepository->findByEntityForEntity($entity);
 
         $rows = [];
+        /** @var FieldsParam $field */
         foreach ($arrayFields as $field) {
             $label = ucfirst($field->getFieldLabel());
             $displayedCreate = $field->isDisplayedCreate() ? "checked" : "";
@@ -2412,11 +2413,6 @@ class SettingsController extends AbstractController {
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
             $editDisabled = in_array($field->getFieldCode(), FieldsParam::NOT_EDITABLE_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
-            $displayed = $field->isDisplayed() ? "checked" : "";
-            $displayedUnderCondition = $field->isDisplayed() ? ($field->isDisplayedUnderCondition() ? "checked" : "") : "disabled";
-            $conditionFixedField = $field->getConditionFixedField() ?? "";
-            $conditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
-            $required = $field->isDisplayed() ? ($field->isRequired() ? "checked" : "") : "disabled";
 
 
             $filterOnly = in_array($field->getFieldCode(), FieldsParam::FILTER_ONLY_FIELDS) ? "disabled" : "";
@@ -2429,36 +2425,14 @@ class SettingsController extends AbstractController {
                     $labelAttributes = "class='font-weight-bold btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
                 }
 
-                if ($entity === FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE) {
-
-                    $conditionFixedFieldOptionsSelected = Stream::from($conditionFixedFieldValue)
-                        ->map(function(string $typeId) use ($typeRepository) {
-                            $type = $typeRepository->find($typeId);
-                            return "<option value='{$type->getId()}' selected>{$type->getLabel()}</option>";
-                        } )
-                        ->join("");
-
-                    $classConditionFixedField = $class . ($displayedUnderCondition === "" ? " d-none" : "");
-                    $classConditionFixedFieldValue = "conditionFixedFieldValueDiv" . ($displayedUnderCondition === "" ? " d-none" : "");
-
-                    $row = [
-                        "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
-                        "displayed" => "<input type='checkbox' name='displayed' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayed />",
-                        "displayedUnderCondition" => "<input type='checkbox' name='displayedUnderCondition' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayedUnderCondition />",
-                        "conditionFixedField" => "<select name='conditionFixedField' class='$classConditionFixedField'><option value='$conditionFixedField' selected>$conditionFixedField</option></select>",
-                        "conditionFixedFieldValue" => "<div class='$classConditionFixedFieldValue'><select name='conditionFixedFieldValue' data-s2='referenceType' multiple class='$class'>$conditionFixedFieldOptionsSelected</select></div>",
-                        "required" => "<input type='checkbox' name='required' class='$class' $required />",
-                    ];
-                } else {
-                    $row = [
-                        "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
-                        "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate $filterOnly/>",
-                        "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit $filterOnly/>",
-                        "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate $requireDisabled/>",
-                        "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit $requireDisabled/>",
-                        "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",
-                    ];
-                }
+                $row = [
+                    "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
+                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate $filterOnly/>",
+                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit $filterOnly/>",
+                    "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate $requireDisabled/>",
+                    "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit $requireDisabled/>",
+                    "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",
+                ];
 
                 if($entity === FieldsParam::ENTITY_CODE_ARRIVAGE) {
                     $row["keptInMemory"] = "<input type='checkbox' name='keptInMemory' class='$class' $keptInMemory $keptInMemoryDisabled/>";
@@ -2466,25 +2440,14 @@ class SettingsController extends AbstractController {
 
                 $rows[] = $row;
             } else {
-                if ($entity === FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE) {
-                    $row = [
-                        "label" => "<span class='font-weight-bold'>$label</span>",
-                        "displayed" => $field->isDisplayed() ? "Oui" : "Non",
-                        "displayedUnderCondition" => $field->isDisplayedUnderCondition() ? "Oui" : "Non",
-                        "conditionFixedField" => $field->getConditionFixedField() ?? "",
-                        "conditionFixedFieldValue" => $field->getConditionFixedFieldValue() ? implode(",", $field->getConditionFixedFieldValue()) : "",
-                        "required" => $field->isRequired() ? "Oui" : "Non",
-                    ];
-                } else {
-                    $row = [
-                        "label" => "<span class='font-weight-bold'>$label</span>",
-                        "displayedCreate" => $field->isDisplayedCreate() ? "Oui" : "Non",
-                        "displayedEdit" => $field->isDisplayedEdit() ? "Oui" : "Non",
-                        "requiredCreate" => $field->isRequiredCreate() ? "Oui" : "Non",
-                        "requiredEdit" => $field->isRequiredEdit() ? "Oui" : "Non",
-                        "displayedFilters" => (in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) && $field->isDisplayedFilters()) ? "Oui" : "Non",
-                    ];
-                }
+                $row = [
+                    "label" => "<span class='font-weight-bold'>$label</span>",
+                    "displayedCreate" => $field->isDisplayedCreate() ? "Oui" : "Non",
+                    "displayedEdit" => $field->isDisplayedEdit() ? "Oui" : "Non",
+                    "requiredCreate" => $field->isRequiredCreate() ? "Oui" : "Non",
+                    "requiredEdit" => $field->isRequiredEdit() ? "Oui" : "Non",
+                    "displayedFilters" => (in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) && $field->isDisplayedFilters()) ? "Oui" : "Non",
+                ];
 
                 if($entity === "arrival") {
                     $row["keptInMemory"] = $field->isKeptInMemory() ? "Oui" : "Non";
@@ -2712,7 +2675,7 @@ class SettingsController extends AbstractController {
                             "attributes" => [
                                 "data-id" => $mission->getId(),
                                 "onclick" => "editMissionRule($(this))",
-                            ]
+                            ],
                         ],
                         [
                             "title" => "Annuler la planification",
@@ -2721,7 +2684,7 @@ class SettingsController extends AbstractController {
                                 "data-id" => $mission->getId(),
                                 "class" => "pointer",
                                 "onclick" => "cancelInventoryMission($(this))",
-                            ]
+                            ],
                         ],
                         [
                             "title" => "Supprimer la planification",
@@ -2730,9 +2693,9 @@ class SettingsController extends AbstractController {
                                 "data-id" => $mission->getId(),
                                 "class" => "pointer",
                                 "onclick" => "deleteInventoryMission($(this))",
-                            ]
+                            ],
                         ],
-                    ]
+                    ],
                 ]),
                 "missionType" => $mission->getMissionType() ? InventoryMission::TYPES_LABEL[$mission->getMissionType()] ?? '' : '',
                 "label" => $mission->getLabel(),
@@ -2865,12 +2828,12 @@ class SettingsController extends AbstractController {
         $manager->flush();
 
         $html = $this->renderView('settings/modal_edit_translations_content.html.twig', [
-            'lines' => $typesLitige
+            'lines' => $typesLitige,
         ]);
 
         return new JsonResponse([
             'success' => true,
-            'html' => $html
+            'html' => $html,
         ]);
     }
 
@@ -2899,7 +2862,7 @@ class SettingsController extends AbstractController {
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => "Les traductions ont bien été modifiées."
+                'msg' => "Les traductions ont bien été modifiées.",
             ]);
         }
         throw new BadRequestHttpException();
@@ -3105,7 +3068,7 @@ class SettingsController extends AbstractController {
             "height" => "",
             "width" => "",
             "module" => "",
-            "natureOrType" => ""
+            "natureOrType" => "",
         ];
 
         return $this->json([

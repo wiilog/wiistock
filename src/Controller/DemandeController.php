@@ -21,6 +21,7 @@ use App\Entity\Setting;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\ArticleDataService;
@@ -350,7 +351,7 @@ class DemandeController extends AbstractController
                          EntityManagerInterface $manager): Response {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
 
         $status = $demande->getStatut();
         return $this->render('demande/show/index.html.twig', [
@@ -358,7 +359,7 @@ class DemandeController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'modifiable' => $status?->getCode() === Demande::STATUT_BROUILLON,
             'finished' => $status?->getCode() === Demande::STATUT_A_TRAITER,
-            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE),
+            'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE),
             "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($demande, $entityManager)),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
@@ -1037,18 +1038,20 @@ class DemandeController extends AbstractController
                                            EntityManagerInterface $entityManager,
                                            ArticleDataService $articleDataService): JsonResponse {
         $user = $this->getUser();
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $fieldsParam = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
 
-        $isProjectRequired = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
-        $isProjectDisplayedUnderCondition = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayedUnderCondition'] ?? false;
-        $projectConditionFixedField = $isProjectDisplayedUnderCondition ? $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['conditionFixedField'] ?? null : null;
-        $projectConditionFixedValue = $isProjectDisplayedUnderCondition ? $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['conditionFixedValue'] ?? null : null;
+        $projectParam = $fieldsParam[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT] ?? [];
+        $isProjectRequired = $projectParam['required'] ?? false;
+        $isProjectDisplayedUnderCondition = $projectParam['displayedUnderCondition'] ?? false;
+        $projectConditionFixedField = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedField'] ?? null : null;
+        $projectConditionFixedValue = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedValue'] ?? null : null;
 
-        $isCommentRequired = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
-        $isCommentDisplayedUnderCondition = $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayedUnderCondition'] ?? false;
-        $commentConditionFixedField = $isCommentDisplayedUnderCondition ? $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['conditionFixedField'] ?? null : null;
-        $commentConditionFixedValue = $isCommentDisplayedUnderCondition ? $fieldsParam[FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['conditionFixedValue'] ?? null : null;
+        $commentParam = $fieldsParam[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT] ?? [];
+        $isCommentRequired = $commentParam['required'] ?? false;
+        $isCommentDisplayedUnderCondition = $commentParam['displayedUnderCondition'] ?? false;
+        $commentConditionFixedField = $isCommentDisplayedUnderCondition ? $commentParam['conditionFixedField'] ?? null : null;
+        $commentConditionFixedValue = $isCommentDisplayedUnderCondition ? $commentParam['conditionFixedValue'] ?? null : null;
 
         $referencesData = Stream::from($request->getReferenceLines())
             ->map(function (DeliveryRequestReferenceLine $line) use ($commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $isProjectDisplayedUnderCondition, $projectConditionFixedField, $projectConditionFixedValue, $isProjectRequired, $isCommentRequired, $formatService) {
@@ -1079,7 +1082,7 @@ class DemandeController extends AbstractController
                     "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $projectConditionFixedValue))
                         ? $this->render('form.html.twig', [
                             'macroName' => 'select',
-                            'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
+                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
                                 'text' => $formatService->project($line->getProject()),
                                 'selected' => true,
                                 'value' => $line->getProject()?->getId(),
@@ -1088,7 +1091,7 @@ class DemandeController extends AbstractController
                     "comment" => !$isProjectDisplayedUnderCondition || ($isCommentDisplayedUnderCondition && $commentConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $commentConditionFixedValue))
                         ? $this->render('form.html.twig', [
                             'macroName' => 'input',
-                            'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
+                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
                         ])->getContent()
                         : ($line->getComment() ?: ''),
                     "article" => "",
@@ -1125,7 +1128,7 @@ class DemandeController extends AbstractController
                     "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $projectConditionFixedValue))
                         ? $this->render('form.html.twig', [
                             'macroName' => 'select',
-                            'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
+                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
                                 'text' => $formatService->project($line->getProject()),
                                 'selected' => true,
                                 'value' => $line->getProject()?->getId(),
@@ -1134,7 +1137,7 @@ class DemandeController extends AbstractController
                     "comment" => !$isCommentDisplayedUnderCondition || ($isCommentDisplayedUnderCondition && $commentConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $commentConditionFixedValue))
                         ? $this->render('form.html.twig', [
                             'macroName' => 'input',
-                            'macroParams' => [FieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
+                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
                         ])->getContent()
                         : ($line->getComment() ?: ''),
                     "article" => $user->getRole()->getQuantityType() === Article::CATEGORIE

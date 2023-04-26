@@ -121,8 +121,8 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
         $subLinesFieldCodes = [
             SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
-                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => true],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => false]
+                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => false]
             ],
         ];
 
@@ -166,7 +166,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                         ->setElements($fieldCode['values'] ?? null);
 
                     $manager->persist($field);
-                    $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
+                    $output->writeln('Champ fixe de ligne ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
                 }
                 $field->setFieldLabel($fieldCode['label']);
 

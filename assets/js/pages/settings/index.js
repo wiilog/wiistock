@@ -36,7 +36,6 @@ global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
-global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 global.changeReceiverInput = changeReceiverInput;
 global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 
@@ -1315,38 +1314,4 @@ function changeReceiverInput($checkbox) {
     const $inputReceiver = $checkbox.closest('.modal-body').find('select[name=defaultReceiver]');
 
     $inputReceiver.attr('disabled', isChecked);
-}
-
-function changeDisplayRefArticleTable($checkbox) {
-    const check = $checkbox.is(':checked');
-    const $displayedUnderCondition = $checkbox.parent('td').parent('tr').find('input[name=displayedUnderCondition]');
-    const $conditionFixedField = $checkbox.parent('td').parent('tr').find('select[name=conditionFixedField]');
-    const $conditionFixedFieldValueDiv = $checkbox.parent('td').parent('tr').find('.conditionFixedFieldValueDiv');
-    const $required = $checkbox.parent('td').parent('tr').find('input[name=required]');
-
-    if (!check) {
-        if ($checkbox[0].name === "displayed") {
-            $displayedUnderCondition.attr('disabled', true);
-            $required.attr('disabled', true);
-            if ($displayedUnderCondition.is(':checked')) {
-                $conditionFixedField.addClass("d-none");
-                $conditionFixedFieldValueDiv.addClass("d-none");
-            }
-        } else if ($checkbox[0].name === "displayedUnderCondition") {
-            $conditionFixedField.addClass("d-none");
-            $conditionFixedFieldValueDiv.addClass("d-none");
-        }
-    } else {
-        if ($checkbox[0].name === "displayed") {
-            $displayedUnderCondition.attr('disabled', false);
-            $required.attr('disabled', false);
-            if ($displayedUnderCondition.is(':checked')) {
-                $conditionFixedField.removeClass("d-none");
-                $conditionFixedFieldValueDiv.removeClass("d-none");
-            }
-        } else if ($checkbox[0].name === "displayedUnderCondition") {
-            $conditionFixedField.removeClass("d-none");
-            $conditionFixedFieldValueDiv.removeClass("d-none");
-        }
-    }
 }
