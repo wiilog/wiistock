@@ -1,7 +1,9 @@
 let tableShippings;
 
 $(function() {
-    initTableShippings();
+    // TODO DECOMMENTER
+    // initTableShippings();
+    initModalNewShippingRequest()
 })
 
 
@@ -47,4 +49,15 @@ function initTableShippings() {
         tableShippings = initDataTable('tableShippings', tableShippingsConfig);
         return arrivalsTable;
     }
+}
+
+function initModalNewShippingRequest(){
+    const $modal = $('#modalNewShippingRequest')
+    // pre-filling of the phone according to the applicant
+    $modal.find('select[name="requesters"]').on('change', ()=> {
+        console.log('$this', $(this));
+        const $phoneInput = $('input[name="phone"]')
+        const requestersData = $(this).select2('data');
+        console.log(requestersData);
+    })
 }

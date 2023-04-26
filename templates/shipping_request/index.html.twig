@@ -17,6 +17,18 @@
                 {% if hasRightToExport %}
                     {% include "utils/action-buttons/header-buttons.html.twig" with {
                         actions: [
+
+                            {
+                                hasRight: hasRightToCreate,
+                                title: 'ADEGAGER',
+                                icon: "wii-icon wii-icon-plus",
+                                attributes: {
+                                    "data-toggle": "modal",
+                                    "data-target": "#modalNewShippingRequest",
+                                }
+                            },
+
+
                             {
                                 hasRight: hasRightToExport,
                                 title: "Exporter au format CSV",
@@ -44,6 +56,8 @@
             </div>
         </div>
     </div>
+
+    {% include "shipping_request/modalNew.html.twig" %}
 
     <!--{ include "utils/visible_columns.html.twig" with {
         'fields': [],

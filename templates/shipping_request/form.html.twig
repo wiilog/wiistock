@@ -1,0 +1,65 @@
+{% import 'form.html.twig' as form %}
+
+<form name="formShippingRequest">
+    <div class="wii-section-title d-flex align-items-center pt-0">
+        Informations
+    </div>
+    <div class="row">
+        <div class="col-6 mt-2">
+            {{ form.select('requesters', 'Demandeur(s)', true, {
+                type: 'user',
+                multiple: true,
+            }) }}
+        </div>
+        <div class="col-6 mt-2">
+            {{ form.select('requesterPhoneNumbers', 'Téléphone', true, {
+                type: null,
+                multiple: true,
+                editable: true,
+            }) }}
+        </div>
+        <div class="col-6 mt-2">
+            {{ form.input('customerOrderNumber', 'N° commande client', true, null,{}) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 my-3">
+            {{ form.checkbox('freeDelivery', 'Livraison à titre gracieux', false, false, {}) }}
+        </div>
+        <div class="col-6 my-3">
+            {{ form.checkbox('compliantArticles', 'Article(s) conforme(s)', false, false, {}) }}
+        </div>
+    </div>
+    <div class="wii-section-title d-flex align-items-center pt-0">
+        Destinataire
+    </div>
+    <div class="row">
+        <div class="col-6">
+            {{ form.select('requesters', 'Demandeur(s)', true, {
+                type: 'user',
+                multiple: true,
+            }) }}
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-6">
+
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-6">
+
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-6">
+
+        </div>
+
+    </div>
+
+</form>
