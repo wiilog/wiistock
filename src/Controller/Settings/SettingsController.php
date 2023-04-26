@@ -1165,8 +1165,8 @@ class SettingsController extends AbstractController {
                                     ->toArray(),
                             ],
                             "locationByType" => [
-                                "field" => $defaultLocationByType->getId(),
-                                "modalType" => $defaultLocationByType->getModalType(),
+                                "field" => $defaultLocationByType?->getId(),
+                                "modalType" => $defaultLocationByType?->getModalType(),
                                 "elements" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
                             ],
                             "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
