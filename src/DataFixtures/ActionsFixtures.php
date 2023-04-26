@@ -56,6 +56,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_ASSOCIATION_BR = 'association BR';
     const SUB_MENU_ENCO = 'encours';
     const SUB_MENU_EMERGENCYS = 'urgences';
+    const SUB_MENU_SHIPPING = 'expéditions';
 
     public const MENUS = [
         Menu::TRACA => [
@@ -166,6 +167,20 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::CREATE_TRANSPORT,
                 Action::EDIT_TRANSPORT,
                 Action::DELETE_TRANSPORT,
+            ],
+            self::SUB_MENU_SHIPPING => [
+                Action::DISPLAY_SHIPPING,
+                Action::CREATE_SHIPPING,
+                Action::DISPLAY_SCHEDULE_BUTTON,
+                Action::DISPLAY_SHIP_BUTTON,
+                Action::EDIT_TO_TREAT_SHIPPING,
+                Action::EDIT_PLANIFIED_SHIPPING,
+                Action::EDIT_SHIPPED_SHIPPING,
+                Action::DELETE_TO_TREAT_SHIPPING,
+                Action::DELETE_PLANIFIED_SHIPPING,
+                Action::DELETE_SHIPPED_SHIPPING,
+                Action::EDIT_TRANSPORT_SHIPPING_PART,
+                Action::GENERATE_PACKING_SLIP,
             ],
         ],
         Menu::ORDRE => [

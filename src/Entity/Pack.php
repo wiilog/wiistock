@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportHistory;
 use App\Helper\FormatHelper;
@@ -116,6 +117,9 @@ class Pack implements PairedEntity {
 
     #[ORM\Column(type: 'boolean')]
     private ?bool $articleContainer = false;
+
+    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestLine::class)]
+    private ?ShippingRequestLine $shippingRequestLine = null;
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -741,6 +745,24 @@ class Pack implements PairedEntity {
     public function setArticleContainer(?bool $articleContainer): self
     {
         $this->articleContainer = $articleContainer;
+        return $this;
+    }
+
+    public function getShippingRequestLine(): ?ShippingRequestLine {
+        return $this->shippingRequestLine;
+    }
+
+    public function setShippingRequestLine(?ShippingRequestLine $line): self {
+        if($this->shippingRequestLine && $this->shippingRequestLine->getPack() !== $this) {
+            $oldLine = $this->shippingRequestLine;
+            $this->shippingRequestLine = null;
+            $oldLine->setPack(null);
+        }
+        $this->shippingRequestLine = $line;
+        if($this->shippingRequestLine && $this->shippingRequestLine->getPack() !== $this) {
+            $this->shippingRequestLine->setPack($this);
+        }
+
         return $this;
     }
 
