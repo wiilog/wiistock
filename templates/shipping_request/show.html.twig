@@ -8,9 +8,6 @@
 
 {% endblock %}
 
-{% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')) %}
-{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
-
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
 
@@ -33,7 +30,7 @@
                                         <a data-id='{{ shipping.id }}'
                                            data-target='#modalEditDispatch'
                                            data-toggle='modal'
-                                           onclick="/*editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), false, initDatePickers)*/"
+                                           onclick=""
                                            class="dropdown-item pointer">
                                             <i class="fa fa-pen mr-2"></i>
                                             {{ trans('Général', null, 'Modale', 'Modifier') }}
