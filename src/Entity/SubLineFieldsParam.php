@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\SublinesFieldsParamRepository;
+use App\Repository\SubLineFieldsParamRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SublinesFieldsParamRepository::class)]
-class SublinesFieldsParam {
+#[ORM\Entity(repositoryClass: SubLineFieldsParamRepository::class)]
+class SubLineFieldsParam {
 
     const DEFAULT_CONDITION_FIXED_FIELD = "Type Reference";
 

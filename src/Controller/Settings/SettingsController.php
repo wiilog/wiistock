@@ -30,7 +30,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\SublinesFieldsParam;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
@@ -2293,9 +2293,9 @@ class SettingsController extends AbstractController {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
         $class = "form-control data";
-        $SublinesFieldsParamRepository = $entityManager->getRepository(SublinesFieldsParam::class);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $arrayFields = $SublinesFieldsParamRepository->findByEntityForEntity($entity);
+        $arrayFields = $subLineFieldsParamRepository->findByEntityForEntity($entity);
 
         $rows = [];
         foreach ($arrayFields as $field) {

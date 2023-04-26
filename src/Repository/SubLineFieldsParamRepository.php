@@ -2,27 +2,27 @@
 
 namespace App\Repository;
 
-use App\Entity\SublinesFieldsParam;
+use App\Entity\SubLineFieldsParam;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
 /**
- * @method SublinesFieldsParam|null find($id, $lockMode = null, $lockVersion = null)
- * @method SublinesFieldsParam|null findOneBy(array $criteria, array $orderBy = null)
- * @method SublinesFieldsParam[]    findAll()
- * @method SublinesFieldsParam[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method SubLineFieldsParam|null find($id, $lockMode = null, $lockVersion = null)
+ * @method SubLineFieldsParam|null findOneBy(array $criteria, array $orderBy = null)
+ * @method SubLineFieldsParam[]    findAll()
+ * @method SubLineFieldsParam[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class SublinesFieldsParamRepository extends EntityRepository
+class SubLineFieldsParamRepository extends EntityRepository
 {
     function getByEntity(string $entity): array {
-        $fields = $this->createQueryBuilder("sublinesFieldsParam")
-            ->andWhere("sublinesFieldsParam.entityCode = :entity")
+        $fields = $this->createQueryBuilder("subLineFieldsParam")
+            ->andWhere("subLineFieldsParam.entityCode = :entity")
             ->setParameter("entity", $entity)
             ->getQuery()
             ->getResult();
 
         return Stream::from($fields)
-            ->keymap(fn(SublinesFieldsParam $field) => [$field->getFieldCode(), [
+            ->keymap(fn(SubLineFieldsParam $field) => [$field->getFieldCode(), [
                 "displayed" =>$field->isDisplayed(),
                 "displayedUnderCondition" =>$field->isDisplayedUnderCondition(),
                 "conditionFixedField" =>$field->getConditionFixedField(),
@@ -41,10 +41,10 @@ class SublinesFieldsParamRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByEntityAndCode(string $entity, string $field): ?SublinesFieldsParam {
-        return $this->createQueryBuilder("sublinesFieldsParam")
-            ->where("sublinesFieldsParam.entityCode = :entity")
-            ->andWhere("sublinesFieldsParam.fieldCode = :field")
+    public function findByEntityAndCode(string $entity, string $field): ?SubLineFieldsParam {
+        return $this->createQueryBuilder("subLineFieldsParam")
+            ->where("subLineFieldsParam.entityCode = :entity")
+            ->andWhere("subLineFieldsParam.fieldCode = :field")
             ->setParameter("entity", $entity)
             ->setParameter("field", $field)
             ->getQuery()
@@ -52,10 +52,10 @@ class SublinesFieldsParamRepository extends EntityRepository
     }
 
     public function getElements(string $entity, string $field): ?array {
-        $result = $this->createQueryBuilder("sublinesFieldsParam")
-            ->select("sublinesFieldsParam.elements")
-            ->where("sublinesFieldsParam.entityCode = :entity")
-            ->andWhere("sublinesFieldsParam.fieldCode = :field")
+        $result = $this->createQueryBuilder("subLineFieldsParam")
+            ->select("subLineFieldsParam.elements")
+            ->where("subLineFieldsParam.entityCode = :entity")
+            ->andWhere("subLineFieldsParam.fieldCode = :field")
             ->setParameter("entity", $entity)
             ->setParameter("field", $field)
             ->getQuery()

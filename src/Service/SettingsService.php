@@ -26,7 +26,7 @@ use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\SublinesFieldsParam;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
@@ -805,26 +805,26 @@ class SettingsService {
         if (isset($tables["subFixedFields"])) {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["subFixedFields"]);
 
-            $sublinesFieldsParamRepository = $this->manager->getRepository(SublinesFieldsParam::class);
-            $fieldsParams = Stream::from($sublinesFieldsParamRepository->findBy(["id" => $ids]))
+            $subLineFieldsParamRepository = $this->manager->getRepository(SubLineFieldsParam::class);
+            $fieldsParams = Stream::from($subLineFieldsParamRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
             foreach (array_filter($tables["subFixedFields"]) as $item) {
-                /** @var SublinesFieldsParam $fieldsParam */
+                /** @var SubLineFieldsParam $fieldsParam */
                 $fieldsParam = $fieldsParams[$item["id"]] ?? null;
 
                 if ($fieldsParam) {
                     $fieldsParam
                         ->setDisplayed($item["displayed"] ?? null)
-                        ->setConditionFixedField(SublinesFieldsParam::DEFAULT_CONDITION_FIXED_FIELD)
+                        ->setConditionFixedField(SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD)
                         ->setRequired($item["required"] ?? null);
 
                     if (isset($item["displayedUnderCondition"])) {
                         $fieldsParam->setDisplayedUnderCondition($item["displayedUnderCondition"]);
-                    }
-                    if (isset($item["conditionFixedFieldValue"])) {
-                        $fieldsParam->setConditionFixedFieldValue($item["conditionFixedFieldValue"] !== "" ? explode(',', $item["conditionFixedFieldValue"]) : []);
+                        if (isset($item["conditionFixedFieldValue"])) {
+                            $fieldsParam->setConditionFixedFieldValue($item["conditionFixedFieldValue"] !== "" ? explode(',', $item["conditionFixedFieldValue"]) : []);
+                        }
                     }
                 }
             }

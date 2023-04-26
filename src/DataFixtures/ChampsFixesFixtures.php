@@ -5,7 +5,7 @@ namespace App\DataFixtures;
 
 use App\Entity\FieldsParam;
 
-use App\Entity\SublinesFieldsParam;
+use App\Entity\SubLineFieldsParam;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -117,17 +117,17 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
             ],
         ];
 
-        $sublinesFieldCodes = [
-            SublinesFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
-                ['code' => SublinesFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SublinesFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SublinesFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => true],
-                ['code' => SublinesFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SublinesFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SublinesFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => false]
+        $subLinesFieldCodes = [
+            SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => true],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => false]
             ],
         ];
 
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
-        $sublinesFieldsParamRepository = $manager->getRepository(SublinesFieldsParam::class);
+        $subLineFieldsParamRepository = $manager->getRepository(SubLineFieldsParam::class);
         $existingFields = $fieldsParamRepository->findAll();
-        $existingSublinesFields = $sublinesFieldsParamRepository->findAll();
+        $existingSubLinesFields = $subLineFieldsParamRepository->findAll();
 
         $mappedExistingFields = array_merge(
             Stream::from($existingFields)
@@ -135,14 +135,14 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                     return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
                 })
                 ->toArray(),
-            Stream::from($existingSublinesFields)
+            Stream::from($existingSubLinesFields)
                 ->keymap(function($field) {
                     return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
                 })
                 ->toArray()
         );
 
-        foreach($sublinesFieldCodes as $fieldEntity => $listFieldCodes) {
+        foreach($subLinesFieldCodes as $fieldEntity => $listFieldCodes) {
             foreach ($listFieldCodes as $fieldCode) {
                 $fieldUniqueKey = $fieldEntity . '-' . $fieldCode['code'];
                 $field = $mappedExistingFields[$fieldUniqueKey] ?? null;
@@ -152,7 +152,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 }
 
                 if(!$field) {
-                    $field = new SublinesFieldsParam();
+                    $field = new SubLineFieldsParam();
                     $field
                         ->setEntityCode($fieldEntity)
                         ->setFieldCode($fieldCode['code'])
