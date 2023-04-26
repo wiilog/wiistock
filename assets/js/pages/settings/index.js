@@ -37,6 +37,7 @@ global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
 global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
+global.changeReceiverInput = changeReceiverInput;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -77,7 +78,6 @@ const initializers = {
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
-    stock_demandes_livraisons: initializeDeliveries,
     stock_inventaires_frequences: initializeInventoryFrequenciesTable,
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
@@ -266,8 +266,13 @@ $(function() {
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
         if(data) {
-            AJAX.route(`POST`, `settings_save_field_param`, {field}).json(data);
-            $modal.modal(`hide`);
+            AJAX.route(`POST`, `settings_save_field_param`, {field})
+                .json(data)
+                .then((response) => {
+                    if(response.success){
+                        $modal.modal(`hide`);
+                    }
+                });
         }
     });
 
@@ -626,6 +631,8 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `required`, title: `Obligatoire`},
         ],
     });
+
+    initializeLocationByTypeForDeliveries();
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
@@ -726,7 +733,7 @@ function initializeHandlingFixedFields($container, canEdit) {
     initializeType();
 }
 
-function initializeDeliveries() {
+function initializeLocationByTypeForDeliveries() {
     initDeliveryRequestDefaultLocations();
     $('.new-type-association-button').on('click', function () {
         newTypeAssociation($(this));
@@ -768,7 +775,8 @@ function initDeliveryRequestDefaultLocations() {
 }
 
 function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
-    const $settingTypeAssociation = $(`.setting-type-association`);
+    const $modal = $('#modal-fixed-field-destinationdemande');
+    const $settingTypeAssociation = $modal.find(`.setting-type-association`);
     const $typeTemplate = $(`#type-template`);
 
     let allFilledSelect = true;
@@ -1299,4 +1307,11 @@ function changeDisplayRefArticleTable($checkbox) {
             $conditionFixedFieldValueDiv.removeClass("d-none");
         }
     }
+}
+
+function changeReceiverInput($checkbox) {
+    const isChecked = $checkbox.is(':checked');
+    const $inputReceiver = $checkbox.closest('.modal-body').find('select[name=defaultReceiver]');
+
+    $inputReceiver.attr('disabled', isChecked);
 }

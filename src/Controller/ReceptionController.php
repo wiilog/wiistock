@@ -1881,7 +1881,7 @@ class ReceptionController extends AbstractController {
 
             // we create articles
             for($i = 0; $i < $quantityToReceive; $i++) {
-                $article = $articleDataService->newArticle($articleArray, $entityManager);
+                $article = $articleDataService->newArticle($entityManager, $articleArray);
 
                 if ($demande ?? false) {
                     $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, [
@@ -2030,8 +2030,8 @@ class ReceptionController extends AbstractController {
             if ($demande->getType()->getSendMailRequester()) {
                 $to[] = $demande->getUtilisateur();
             }
-            if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
-                $to[] = $demande->getDestinataire();
+            if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
+                $to[] = $demande->getReceiver();
             }
 
             $nowDate = new DateTime('now');
