@@ -81,7 +81,8 @@ function initModalNewShippingRequest() {
         .create($modal)
         .submitTo(POST, 'shipping_request_form_submit', {success: (data) => {
             if(data.success) {
-                window.location.href = Routing.generate('shipping_request_show', {id: data.shippingRequestId});
+                // TODO uncomment after 9575
+                // window.location.href = Routing.generate('shipping_request_show', {id: data.shippingRequestId});
             }
         }});
 }
