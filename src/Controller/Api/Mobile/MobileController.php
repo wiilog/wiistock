@@ -2655,7 +2655,7 @@ class MobileController extends AbstractApiController
             ->setLocationTo($dropLocation)
             ->setCarrierTrackingNumber($request->request->get('carrierTrackingNumber'))
             ->setCommentaire($request->request->get('comment'))
-            ->setEmergency($request->request->getBoolean('emergency'))
+            ->setEmergency($request->request->get('emergency'))
             ->setEmails($emails);
 
         if($receiver) {
