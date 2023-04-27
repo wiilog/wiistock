@@ -108,9 +108,7 @@ function getCompareStock(submit) {
         })
         .then(function (response) {
             if (response.success) {
-                $('.zone-entete').html(response.entete);
-                $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
-                loadLogisticUnitList(requestId);
+                location.reload();
             } else {
                 showBSAlert(response.msg, 'danger');
             }
@@ -411,12 +409,13 @@ function initEditableTableArticles($table) {
         const label = inputData.label;
         const reference = inputData.text;
         const barCode = inputData.barCode;
+        const location = inputData.location;
         const refType = inputData.typeId;
         const typeQuantite = inputData.typeQuantite;
         const referenceArticle = Number($(this).val());
 
-        $row.find('span.article-label').text(label);
-        $row.find('span.article-barcode').text(barCode);
+        $row.find('.article-label').text(label);
+        $row.find('.article-barcode').text(barCode);
 
         const $articleSelect = $row.find('select[name="article"]');
         if ($articleSelect.exists()) {
@@ -437,7 +436,9 @@ function initEditableTableArticles($table) {
         if (!(typeQuantite === 'article')) {
             $row.find('select[name="targetLocationPicking"]').closest('label').remove();
         }
-
+        else {//if (typeQuantite === 'reference')
+            $row.find('.article-location').text(location);
+        }
         // conditional display
         // Parametrage|Stock|Demande|Livraison-Champs Fixes
         Object.entries(fieldsParams).forEach(([field, value]) => {

@@ -82,19 +82,20 @@
                             {% else %}
                                 <div class="row wii-page-card-header" id="boutonCollecteInf">
                                     <div class="col-auto ml-auto">
-                                        {% include "utils/action-buttons/header-buttons.html.twig" with {
-                                            actions: [
-                                                {
-                                                    hasRight: true,
-                                                    title: 'Gestion des colonnes',
-                                                    icon: "fas fa-cog mr-2",
-                                                    attributes: {
-                                                        "data-toggle": "",
-                                                        "data-target": "",
-                                                    }
-                                                },
-                                            ]
-                                        } %}
+{#                                        TODO WIIS-9529 #}
+{#                                        {% include "utils/action-buttons/header-buttons.html.twig" with {#}
+{#                                            actions: [#}
+{#                                                {#}
+{#                                                    hasRight: true,#}
+{#                                                    title: 'Gestion des colonnes',#}
+{#                                                    icon: "fas fa-cog mr-2",#}
+{#                                                    attributes: {#}
+{#                                                        "data-toggle": "",#}
+{#                                                        "data-target": "",#}
+{#                                                    }#}
+{#                                                },#}
+{#                                            ]#}
+{#                                        } %}#}
                                     </div>
                                     <div class="col-12">
                                         <table id="editableTableArticles" class="table"
@@ -126,7 +127,7 @@
                                             'quantity': form.input('quantity-to-pick', null, true, null, {type: 'number', min: 0}),
                                             'project': form.select('project', null, isProjectDisplayed, {type: 'project'}),
                                             'comment': form.input('comment', null, isCommentDisplayed, null, {type: 'text'}),
-                                            'location': '',
+                                            'location': '<span class="article-barcode"></span>',
                                             'barcode': '<span class="article-barcode"></span>',
                                             'article': userQuantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE')
                                                 ? form.select('article', null, true, {})

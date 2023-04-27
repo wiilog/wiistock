@@ -3849,9 +3849,9 @@ class MobileController extends AbstractApiController
      * @Wii\RestVersionChecked()
      */
     public function finishTruckArrival(Request                $request,
-                                     EntityManagerInterface $entityManager,
-                                     UniqueNumberService $uniqueNumberService,
-                                     KernelInterface $kernel): Response {
+                                       EntityManagerInterface $entityManager,
+                                       UniqueNumberService    $uniqueNumberService,
+                                       KernelInterface        $kernel): Response {
         $data = $request->request;
 
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
