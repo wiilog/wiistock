@@ -1072,7 +1072,7 @@ class DemandeController extends AbstractController
                         'macroName' => 'input',
                         'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
                     ])->getContent(),
-                    "location" => $formatService->location($reference->getEmplacement()),
+                    "location" => $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE ? $formatService->location($reference->getEmplacement()) : null,
                     "barcode" => $reference->getBarcode() ?: '',
                     "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $projectConditionFixedValue))
                         ? $this->render('form.html.twig', [
@@ -1188,7 +1188,6 @@ class DemandeController extends AbstractController
                 // modification
                 if ($data['type'] === 'article') {
                     $lineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
-
                 } else {
                     $lineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
                 }
@@ -1204,7 +1203,7 @@ class DemandeController extends AbstractController
 
                 $entityManager->flush();
                 $resp = ['success' => true, 'created' => false];
-            } elseif ($referenceId = $data['referenceId'] ?? null) {
+            } elseif ($data['referenceId'] ?? null) {
                 // creation
                 $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
                 $referenceArticle = $referenceArticleRepository->find($data['referenceId']);
