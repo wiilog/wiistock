@@ -2346,6 +2346,7 @@ class SettingsController extends AbstractController {
             $conditionFixedField = $field->getConditionFixedField() ?? "";
             $conditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
             $required = $field->isDisplayed() ? ($field->isRequired() ? "checked" : "") : "disabled";
+            $disabledDisplayedUnderCondition = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION) ? 'disabled' : '';
 
             if ($edit) {
                 $labelAttributes = "class='font-weight-bold'";
@@ -2363,9 +2364,9 @@ class SettingsController extends AbstractController {
                 $row = [
                     "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
                     "displayed" => "<input type='checkbox' name='displayed' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayed />",
-                    "displayedUnderCondition" => "<input type='checkbox' name='displayedUnderCondition' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayedUnderCondition />",
+                    "displayedUnderCondition" => "<input type='checkbox' name='displayedUnderCondition' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayedUnderCondition $disabledDisplayedUnderCondition/>",
                     "conditionFixedField" => "<select name='conditionFixedField' class='$classConditionFixedField'><option value='$conditionFixedField' selected>$conditionFixedField</option></select>",
-                    "conditionFixedFieldValue" => "<div class='$classConditionFixedFieldValue'><select name='conditionFixedFieldValue' data-s2='referenceType' multiple class='$class'>$conditionFixedFieldOptionsSelected</select></div>",
+                    "conditionFixedFieldValue" => "<div class='$classConditionFixedFieldValue'><select name='conditionFixedFieldValue' data-parent='body' data-min-length='0' data-s2='referenceType' multiple class='$class'>$conditionFixedFieldOptionsSelected</select></div>",
                     "required" => "<input type='checkbox' name='required' class='$class' $required />",
                 ];
 
