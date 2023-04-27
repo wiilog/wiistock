@@ -1045,13 +1045,13 @@ class DemandeController extends AbstractController
         $isProjectRequired = $projectParam['required'] ?? false;
         $isProjectDisplayedUnderCondition = $projectParam['displayedUnderCondition'] ?? false;
         $projectConditionFixedField = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedField'] ?? null : null;
-        $projectConditionFixedValue = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedValue'] ?? null : null;
+        $projectConditionFixedValue = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedFieldValue'] ?? [] : [];
 
         $commentParam = $fieldsParam[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT] ?? [];
         $isCommentRequired = $commentParam['required'] ?? false;
         $isCommentDisplayedUnderCondition = $commentParam['displayedUnderCondition'] ?? false;
         $commentConditionFixedField = $isCommentDisplayedUnderCondition ? $commentParam['conditionFixedField'] ?? null : null;
-        $commentConditionFixedValue = $isCommentDisplayedUnderCondition ? $commentParam['conditionFixedValue'] ?? null : null;
+        $commentConditionFixedValue = $isCommentDisplayedUnderCondition ? $commentParam['conditionFixedFieldValue'] ?? [] : [];
 
         $referencesData = Stream::from($request->getReferenceLines())
             ->map(function (DeliveryRequestReferenceLine $line) use ($commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $isProjectDisplayedUnderCondition, $projectConditionFixedField, $projectConditionFixedValue, $isProjectRequired, $isCommentRequired, $formatService) {
