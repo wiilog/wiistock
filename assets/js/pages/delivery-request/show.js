@@ -338,15 +338,6 @@ function initEditableTableArticles($table) {
                     ignoreErrors: true,
                 });
 
-                $row.off('click.delete-row')
-                    .on('click.delete-row', '.delete-row', function(){
-                    if (!($(this).data('id'))){
-                        const row = table.row($(this).closest(`tr`));
-                        row.remove();
-                        table.draw();
-                    }
-                });
-
                 $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
             });
 
