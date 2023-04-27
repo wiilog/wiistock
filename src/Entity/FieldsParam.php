@@ -288,21 +288,6 @@ class FieldsParam {
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $modalType = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $displayed = null;
-
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $displayedUnderCondition = null;
-
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $conditionFixedField = null;
-
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $conditionFixedFieldValue = null;
-
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $required = null;
-
     public function getId(): ?int {
         return $this->id;
     }
