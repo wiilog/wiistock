@@ -19,6 +19,9 @@ class Customer
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $address = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $recipient = null;
+
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $phoneNumber = null;
 
@@ -54,6 +57,16 @@ class Customer
     {
         $this->address = $address;
 
+        return $this;
+    }
+    public function getRecipient(): ?string
+    {
+        return $this->recipient;
+    }
+
+    public function setRecipient(?string $recipient): self
+    {
+        $this->recipient = $recipient;
         return $this;
     }
 
@@ -97,6 +110,7 @@ class Customer
         return [
             "name" => $this->getName(),
             "address" => str_replace(["\r", "\n"], ' ', $this->getAddress()),
+            "recipient" => $this->getRecipient(),
             "phone" => $this->getPhoneNumber(),
             "email" => $this->getEmail(),
             "fax" => $this->getFax(),
