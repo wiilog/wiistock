@@ -405,11 +405,6 @@ function initEditableTableArticles($table) {
         addArticleRow(table, $(this));
     });
 
-    $table.off(`click.pointer`)
-        .on(`click.pointer`, `.pointer`, function () {
-            addArticleRow(table, $(this));
-        });
-
     $table.on(`change`, `select[name="reference"]`, function () {
         const $row = $(this).closest(`tr`);
         const inputData = $(this).select2('data')[0];
