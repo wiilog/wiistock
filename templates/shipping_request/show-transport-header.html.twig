@@ -59,7 +59,7 @@
                         <div class="col-12 col-md-6 d-flex mb-2">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">Nombre de colis</span>
-                                <span class="wii-body-text">{{ packsCount ?? '-' }}</span>
+                                <span class="wii-body-text">{{ packsCount > 0 ? packsCount : '-' }}</span>
                             </label>
                         </div>
                         <div class="col-12 col-md-6 d-flex mb-2">
@@ -73,13 +73,13 @@
                         <div class="col-12 col-md-6 d-flex mb-2">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">Valeur totale</span>
-                                <span class="wii-body-text">{{ totalValue ?? '-' }}</span>
+                                <span class="wii-body-text">{{ totalValue > 0 ? totalValue : '-' }}</span>
                             </label>
                         </div>
                         <div class="col-12 col-md-6 d-flex mb-2">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">Poids net (kg)</span>
-                                <span class="wii-body-text">{{ totalValue ?? '-' }}</span>
+                                <span class="wii-body-text">{{ netWeight > 0 ? netWeight : '-' }}</span>
                             </label>
                         </div>
                     </div>
