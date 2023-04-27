@@ -338,8 +338,17 @@ function initEditableTableArticles($table) {
                     ignoreErrors: true,
                 });
 
+                $row.off('click.delete-row')
+                    .on('click.delete-row', '.delete-row', function(){
+                    if (!($(this).data('id'))){
+                        const row = table.row($(this).closest(`tr`));
+                        row.remove();
+                        table.draw();
+                    }
+                });
+
                 $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
-            })
+            });
 
             $rows.off(`focusout.keyboardNavigation`).on(`focusout.keyboardNavigation`, function (event) {
                 const $row = $(this);
@@ -395,6 +404,11 @@ function initEditableTableArticles($table) {
     $table.on(`click`, `.add-row`, function () {
         addArticleRow(table, $(this));
     });
+
+    $table.off(`click.pointer`)
+        .on(`click.pointer`, `.pointer`, function () {
+            addArticleRow(table, $(this));
+        });
 
     $table.on(`change`, `select[name="reference"]`, function () {
         const $row = $(this).closest(`tr`);

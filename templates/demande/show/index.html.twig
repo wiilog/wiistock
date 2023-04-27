@@ -105,7 +105,7 @@
                                         {% set isCommentDisplayed = fieldsParam|isFieldRequired(commentFieldCode, 'required') %}
                                         {% set userQuantityType = app.user.role.quantityType %}
                                         <input hidden name="editableTableArticlesForm" value="{{ {
-                                            'actions': '<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>',
+                                            'actions': '<span class="d-flex justify-content-start align-items-center delete-row"><span class="wii-icon wii-icon-trash"></span></span>',
                                             'reference':
                                                 form.select('reference', null, true, {
                                                     type: 'reference',
