@@ -435,7 +435,7 @@ function initEditableTableArticles($table) {
         Object.entries(fieldsParams).forEach(([field, value]) => {
             if (value.displayedUnderCondition) {
                 const $field = $row.find(`[name="${field}"]`);
-                if (!(value.conditionFixedField === 'Type Reference' && value.conditionFixedValue.includes(refType.toString()))) {
+                if (value.conditionFixedField !== 'Type Reference' || !value.conditionFixedFieldValue.includes(refType.toString())) {
                     $field.closest('label').remove();
                     $field.remove();
                 }

@@ -2358,8 +2358,8 @@ class SettingsController extends AbstractController {
                     } )
                     ->join("");
 
-                $classConditionFixedField = $class . (!$field->isDisplayed() ? " d-none" : "");
-                $classConditionFixedFieldValue = "conditionFixedFieldValueDiv" . (!$field->isDisplayed() ? " d-none" : "");
+                $classConditionFixedField = $class . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition())  ? " d-none" : "");
+                $classConditionFixedFieldValue = "conditionFixedFieldValueDiv" . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition()) ? " d-none" : "");
 
                 $row = [
                     "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
