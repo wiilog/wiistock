@@ -1182,7 +1182,6 @@ class DemandeController extends AbstractController
                                             EntityManagerInterface $entityManager,
                                             RefArticleDataService  $refArticleDataService): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
-            dump($data);
             if ($lineId = $data['lineId'] ?? null) {
                 $projectRepository = $entityManager->getRepository(Project::class);
                 // modification
