@@ -19,13 +19,13 @@ class ShippingRequestLine {
     private ?int $quantity = null;
 
     #[ORM\OneToOne(inversedBy: 'shippingRequestLine', targetEntity: Article::class)]
-    private Article $article;
+    private ?Article $article;
 
     #[ORM\ManyToOne(targetEntity: ShippingRequestPack::class, inversedBy: 'lines')]
-    private ShippingRequestPack $shippingRequestPack;
+    private ?ShippingRequestPack $shippingRequestPack;
 
     #[ORM\ManyToOne(targetEntity: ShippingRequestExpectedLine::class, inversedBy: 'lines')]
-    private ShippingRequestExpectedLine $expectedLine;
+    private ?ShippingRequestExpectedLine $expectedLine;
 
     public function getId(): ?int {
         return $this->id;

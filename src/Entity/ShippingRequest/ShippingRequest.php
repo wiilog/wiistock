@@ -113,7 +113,7 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::STRING)]
     private ?string $trackingNumber = null;
 
-    #[ORM\Column(type: Types::INTEGER)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $packCount = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
@@ -152,6 +152,7 @@ class ShippingRequest extends StatusHistoryContainer {
         $this->requesters = new ArrayCollection();
         $this->expectedLines = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
+        $this->packLines = new ArrayCollection();
     }
 
     public function getId(): ?int {

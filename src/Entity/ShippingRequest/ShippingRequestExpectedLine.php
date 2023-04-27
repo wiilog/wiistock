@@ -6,6 +6,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Repository\ShippingRequest\ShippingRequestExpectedLineRepository;
 use App\Repository\ShippingRequest\ShippingRequestPackRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -34,7 +35,11 @@ class ShippingRequestExpectedLine {
     private ?ShippingRequest $request = null;
 
     #[ORM\OneToMany(mappedBy: 'expectedLine', targetEntity: ShippingRequestLine::class)]
-    private ?Collection $lines = null;
+    private Collection $lines;
+
+    public function __construct() {
+        $this->lines = new ArrayCollection();
+    }
 
     public function getId(): ?int {
         return $this->id;

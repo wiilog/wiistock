@@ -31,7 +31,7 @@ class ShippingRequestPack {
     private ?ShippingRequest $request = null;
 
     public function __construct() {
-        $this->shippingRequestLines = new ArrayCollection();
+        $this->lines = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -80,48 +80,48 @@ class ShippingRequestPack {
 
     public function setRequest(?ShippingRequest $request): self {
         if($this->request && $this->request !== $request) {
-            $this->request->removeLine($this);
+            $this->request->removePackLine($this);
         }
         $this->request = $request;
-        $request?->addLine($this);
+        $request?->addPackLine($this);
 
         return $this;
     }
 
     /**
-     * @return Collection<int, Article>
+     * @return Collection<int, ShippingRequestLine>
      */
-    public function getShippingRequestLines(): Collection {
-        return $this->shippingRequestLines;
+    public function getLines(): Collection {
+        return $this->lines;
     }
 
-    public function addShippingRequestLine(ShippingRequestLine $shippingRequestLine): self {
-        if (!$this->shippingRequestLines->contains($shippingRequestLine)) {
-            $this->shippingRequestLines[] = $shippingRequestLine;
-            $shippingRequestLine->setShippingRequestPack($this);
+    public function addLine(ShippingRequestLine $line): self {
+        if (!$this->lines->contains($line)) {
+            $this->lines[] = $line;
+            $line->setShippingRequestPack($this);
         }
 
         return $this;
     }
 
-    public function removeShippingRequestLine(ShippingRequestLine $shippingRequestLine): self {
-        if ($this->shippingRequestLines->removeElement($shippingRequestLine)) {
-            if ($shippingRequestLine->getShippingRequestPack() === $this) {
-                $shippingRequestLine->setShippingRequestPack(null);
+    public function removeLine(ShippingRequestLine $line): self {
+        if ($this->lines->removeElement($line)) {
+            if ($line->getShippingRequestPack() === $this) {
+                $line->setShippingRequestPack(null);
             }
         }
 
         return $this;
     }
 
-    public function setShippingRequestLines(?iterable $shippingRequestLines): self {
-        foreach($this->getShippingRequestLines()->toArray() as $shippingRequestLine) {
-            $this->removeShippingRequestLine($shippingRequestLine);
+    public function setLines(?iterable $lines): self {
+        foreach($this->getlines()->toArray() as $line) {
+            $this->removeline($line);
         }
 
-        $this->shippingRequestLines = new ArrayCollection();
-        foreach($shippingRequestLines ?? [] as $shippingRequestLine) {
-            $this->addShippingRequestLine($shippingRequestLine);
+        $this->lines = new ArrayCollection();
+        foreach($lines ?? [] as $line) {
+            $this->addLine($line);
         }
 
         return $this;
