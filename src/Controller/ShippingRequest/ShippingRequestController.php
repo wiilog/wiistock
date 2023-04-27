@@ -43,12 +43,11 @@ class ShippingRequestController extends AbstractController {
         return $this->json($service->getDataForDatatable($entityManager, $request));
     }
 
-    #[Route("/voir/{id}", name:"shipping_show_page", options:["expose"=>true])]
+    #[Route("/voir/{id}", name:"shipping_request_show", options:["expose"=>true], methods: ['GET']) ]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function showPage(Request                $request,
                              ShippingRequest        $shippingRequest,
                              EntityManagerInterface $entityManager): Response {
-
 
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
