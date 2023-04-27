@@ -127,7 +127,7 @@
                                             'quantity': form.input('quantity-to-pick', null, true, null, {type: 'number', min: 0}),
                                             'project': form.select('project', null, isProjectDisplayed, {type: 'project'}),
                                             'comment': form.input('comment', null, isCommentDisplayed, null, {type: 'text'}),
-                                            'location': '<span class="article-barcode"></span>',
+                                            'location': '<span class="article-location"></span>',
                                             'barcode': '<span class="article-barcode"></span>',
                                             'article': userQuantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE')
                                                 ? form.select('article', null, true, {})

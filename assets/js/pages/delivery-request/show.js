@@ -424,12 +424,12 @@ function initEditableTableArticles($table) {
                 $articleSelect.closest('label').remove();
             }
         }
-        if (!(typeQuantite === 'article')) {
+
+        if (typeQuantite === 'reference') {
             $row.find('select[name="targetLocationPicking"]').closest('label').remove();
-        }
-        else {//if (typeQuantite === 'reference')
             $row.find('.article-location').text(location);
         }
+
         // conditional display
         // Parametrage|Stock|Demande|Livraison-Champs Fixes
         Object.entries(fieldsParams).forEach(([field, value]) => {
