@@ -1,6 +1,7 @@
 {% set fullWidth = fullWidth ?? false %}
 {% set inForm = inForm ?? true %}
 {% set canRemove = canRemove ?? true %}
+{% dump(attachment) %}
 {% set href = attachment.fullPath is defined and attachment.fullPath is not null
     ? attachment.fullPath
     : ('/uploads/attachements/' ~ attachment.fileName) %}
