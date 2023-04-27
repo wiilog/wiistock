@@ -5,6 +5,7 @@ namespace App\Entity\ShippingRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Repository\ShippingRequest\ShippingRequestExpectedLineRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -30,6 +31,9 @@ class ShippingRequestExpectedLine {
 
     #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'expectedLines')]
     private ?ShippingRequest $request = null;
+
+    #[ORM\OneToMany(mappedBy: 'expectedLine', targetEntity: ShippingRequestLine::class)]
+    private ?Collection $lines = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -85,4 +89,27 @@ class ShippingRequestExpectedLine {
         return $this;
     }
 
+
+    public function getLines(): Collection {
+        return $this->lines;
+    }
+
+    public function addLine(ShippingRequestLine $line): self {
+        if (!$this->lines->contains($line)) {
+            $this->lines[] = $line;
+            $line->setExpectedLine($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLine(ShippingRequestLine $line): self {
+        if ($this->lines->removeElement($line)) {
+            if ($line->getExpectedLine() === $this) {
+                $line->setExpectedLine(null);
+            }
+        }
+
+        return $this;
+    }
 }
