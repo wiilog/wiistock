@@ -4,13 +4,13 @@ namespace App\Entity\ShippingRequest;
 
 use App\Entity\Article;
 use App\Entity\Pack;
-use App\Repository\ShippingRequest\ShippingRequestExpectedLineRepository;
+use App\Repository\ShippingRequest\ShippingRequestPackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: ShippingRequestExpectedLineRepository::class)]
+#[ORM\Entity(repositoryClass: ShippingRequestPackRepository::class)]
 class ShippingRequestPack {
 
     #[ORM\Id]
@@ -19,16 +19,16 @@ class ShippingRequestPack {
     private ?int $id = null;
 
     #[ORM\Column(type: Types::FLOAT)]
-    private ?float $size = null;//pack
+    private ?float $size = null;
 
     #[ORM\OneToOne(inversedBy: 'shippingRequestPack', targetEntity: Pack::class)]
-    private ?Pack $pack = null;//pack
+    private ?Pack $pack = null;
 
     #[ORM\OneToMany(mappedBy: 'shippingRequestPack', targetEntity: ShippingRequestLine::class)]
-    private Collection $shippingRequestLines;// col de shippingLine dans shi pack
+    private Collection $lines;
 
-    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'lines')]
-    private ?ShippingRequest $request = null;//pack
+    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'packLines')]
+    private ?ShippingRequest $request = null;
 
     public function __construct() {
         $this->shippingRequestLines = new ArrayCollection();

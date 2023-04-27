@@ -3,12 +3,11 @@
 namespace App\Entity\ShippingRequest;
 
 use App\Entity\Article;
-use App\Repository\ShippingRequest\ShippingRequestExpectedLineRepository;
-use Doctrine\Common\Collections\Collection;
+use App\Repository\ShippingRequest\ShippingRequestLineRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: ShippingRequestExpectedLineRepository::class)]
+#[ORM\Entity(repositoryClass: ShippingRequestLineRepository::class)]
 class ShippingRequestLine {
 
     #[ORM\Id]
@@ -19,13 +18,13 @@ class ShippingRequestLine {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $quantity = null;
 
-    #[ORM\OneToOne(mappedBy: 'shippingRequestLine', targetEntity: Article::class)]
+    #[ORM\OneToOne(inversedBy: 'shippingRequestLine', targetEntity: Article::class)]
     private Article $article;
 
-    #[ORM\ManyToOne(targetEntity: ShippingRequestPack::class, inversedBy: 'shippingRequestLines')]
+    #[ORM\ManyToOne(targetEntity: ShippingRequestPack::class, inversedBy: 'lines')]
     private ShippingRequestPack $shippingRequestPack;
 
-    #[ORM\ManyToOne(targetEntity: ShippingRequestExpectedLine::class, inversedBy: 'shippingRequestLines')]
+    #[ORM\ManyToOne(targetEntity: ShippingRequestExpectedLine::class, inversedBy: 'lines')]
     private ShippingRequestExpectedLine $expectedLine;
 
     public function getId(): ?int {

@@ -113,6 +113,9 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::STRING)]
     private ?string $trackingNumber = null;
 
+    #[ORM\Column(type: Types::INTEGER)]
+    private ?int $packCount = null;
+
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Statut $status = null;
@@ -144,9 +147,6 @@ class ShippingRequest extends StatusHistoryContainer {
 
     #[ORM\OneToMany(mappedBy: 'shippingRequest', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
-
-    #[ORM\Column(type: Types::INTEGER)]
-    private int $packCount;
 
     public function __construct() {
         $this->requesters = new ArrayCollection();
