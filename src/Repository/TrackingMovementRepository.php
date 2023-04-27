@@ -306,6 +306,14 @@ class TrackingMovementRepository extends EntityRepository
             ->andWhere('join_trackingType.nom LIKE :priseType')
             ->andWhere('tracking_movement.finished = :finished')
             ->andWhere($typeCondition)
+            ->addGroupBy("join_pack")
+            ->addGroupBy('join_trackingType')
+            ->addGroupBy('tracking_movement')
+            ->addGroupBy('join_operator')
+            ->addGroupBy('join_location')
+            ->addGroupBy('join_pack_nature')
+            ->addGroupBy('join_packParent')
+            ->addGroupBy('join_stockMovement')
             ->setParameter('operator', $operator)
             ->setParameter('priseType', TrackingMovement::TYPE_PRISE)
             ->setParameter('finished', false);
@@ -314,6 +322,7 @@ class TrackingMovementRepository extends EntityRepository
             $queryBuilder
                 ->join('join_stockMovement.collecteOrder', 'join_stockMovement_collectOrder')
                 ->andWhere('join_stockMovement_collectOrder.id IN (:collecteOrderId)')
+                ->addGroupBy('join_stockMovement_collectOrder')
                 ->setParameter('collecteOrderId', $filterDemandeCollecteIds, Connection::PARAM_STR_ARRAY);
         }
 
