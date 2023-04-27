@@ -75,11 +75,22 @@ class ShippingRequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function showPage(Request                $request,
                              ShippingRequest        $shippingRequest,
+                             ShippingRequestService $shippingRequestService,
                              EntityManagerInterface $entityManager): Response {
 
 
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
+            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+        ]);
+    }
+
+    #[Route("/get-transport-header-config/{id}", name:"get_transport_header_config", methods: ['GET', 'POST'], options:["expose"=>true])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function getTransportHeaderConfig(ShippingRequest        $shippingRequest,
+                                             ShippingRequestService $shippingRequestService): Response {
+        return $this->json([
+            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
         ]);
     }
 }

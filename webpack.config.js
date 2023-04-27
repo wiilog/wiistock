@@ -49,6 +49,7 @@ Encore
     .addEntry('truck-arrival-index', './assets/js/pages/truck-arrival/index.js')
     .addEntry('truck-arrival-show', './assets/js/pages/truck-arrival/show.js')
     .addEntry('shipping-request-index', './assets/js/pages/shipping-request/index.js')
+    .addEntry('shipping-request-show', './assets/js/pages/shipping-request/show.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

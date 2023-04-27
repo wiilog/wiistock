@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Demande | {{ trans('Expédition', 'Général', 'Expédition', false) }} | Détails{% endblock %}
 
@@ -6,6 +7,11 @@
 
 {% block page_filter %}
 
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('shipping-request-show') }}
 {% endblock %}
 
 {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')) %}
@@ -16,7 +22,9 @@
 
 
 {% block page_content %}
-
+    {{ form.input('shippingId', '', false, shipping.id, {
+        type: 'hidden'
+    }) }}
     <div class="mb-4 ra-container d-flex justify-content-center align-content-center">
         <div class="row wii-column w-100">
             <div class="col-md-4 col-12">
@@ -136,8 +144,6 @@
                         </div>
                     </div>
                 </div>
-
-
                 <div class="content comment-container">
                     <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
                     {% if shipping.comment != '<p><br></p>' %}
@@ -148,16 +154,20 @@
                         -
                     {% endif %}
                 </div>
-
-
+            </div>
+            <div class="transport-header col-md-8 col-12">
+                <div class="wii-box">
+                    <div class="d-flex align-items-center justify-content-center p-3">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <span class="ml-3">Récupération des données en cours</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    </div>
-
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/shipping.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('shipping-request-show') }}
 {% endblock %}
