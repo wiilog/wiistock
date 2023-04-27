@@ -103,6 +103,7 @@
                                         {% set commentFieldCode = constant('App\\Entity\\SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT') %}
                                         {% set isProjectDisplayed = fieldsParam|isFieldRequired(projectFieldCode, 'required') %}
                                         {% set isCommentDisplayed = fieldsParam|isFieldRequired(commentFieldCode, 'required') %}
+                                        {% set userQuantityType = app.user.role.quantityType %}
                                         <input hidden name="editableTableArticlesForm" value="{{ {
                                             'actions': '<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>',
                                             'reference':
@@ -125,10 +126,13 @@
                                             'quantity': form.input('quantity-to-pick', null, true, null, {type: 'number', min: 0}),
                                             'project': form.select('project', null, isProjectDisplayed, {type: 'project'}),
                                             'comment': form.input('comment', null, isCommentDisplayed, null, {type: 'text'}),
-                                            'location': form.select('location', null, false, {type: 'location'}),
+                                            'location': '',
                                             'barcode': '<span class="article-barcode"></span>',
-                                            'article': app.user.role.quantityType == constant('App\\Entity\\Article::CATEGORIE')
+                                            'article': userQuantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE')
                                                 ? form.select('article', null, true, {})
+                                                : '',
+                                            'targetLocationPicking': userQuantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE')
+                                                ? form.select('targetLocationPicking', null, false, {type: 'location'})
                                                 : '',
                                         } | json_encode }}">
                                         <input hidden name="editableTableArticlesFieldsParams" value="{{ fieldsParam|json_encode }}">

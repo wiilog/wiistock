@@ -50,44 +50,46 @@ $(function () {
 function loadLogisticUnitList(requestId) {
     const $logisticUnitsContainer = $('.logistic-units-container');
     wrapLoadingOnActionButton($logisticUnitsContainer, () => (
-            AJAX.route('GET', 'delivery_request_logistic_units_api', {id: requestId})
-                .json()
-                .then(({html}) => {
-                    $logisticUnitsContainer.html(html);
-                    $logisticUnitsContainer.find('.articles-container table')
-                        .each(function () {
-                            const $table = $(this);
-                            const table = initDataTable($table, {
-                                serverSide: false,
-                                ordering: true,
-                                paging: false,
-                                searching: false,
-                                processing: true,
-                                order: [['reference', "desc"]],
-                                columns: [
-                                    {data: 'Actions', title: '', className: 'noVis', orderable: false},
-                                    {data: 'reference', title: 'Référence'},
-                                    {data: 'barcode', title: 'Code barre'},
-                                    {data: 'label', title: 'Libellé'},
-                                    {data: 'location', title: 'Emplacement'},
-                                    {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
-                                    {data: 'quantityToPick', title: 'Quantité à prélever'},
-                                    {data: 'error', title: 'Erreur', visible: false},
-                                ],
-                                rowConfig: {
-                                    needsRowClickAction: true,
-                                    needsColor: true,
-                                    color: 'danger',
-                                    dataToCheck: 'error'
-                                },
-                                domConfig: {
-                                    removeInfo: true,
-                                },
-                            });
-
-                            tables.push(table);
+        AJAX
+            .route('GET', 'delivery_request_logistic_units_api', {id: requestId})
+            .json()
+            .then(({html}) => {
+                $logisticUnitsContainer.html(html);
+                $logisticUnitsContainer
+                    .find('.articles-container table')
+                    .each(function () {
+                        const $table = $(this);
+                        const table = initDataTable($table, {
+                            serverSide: false,
+                            ordering: true,
+                            paging: false,
+                            searching: false,
+                            processing: true,
+                            order: [['reference', "desc"]],
+                            columns: [
+                                {data: 'Actions', title: '', className: 'noVis', orderable: false},
+                                {data: 'reference', title: 'Référence'},
+                                {data: 'barcode', title: 'Code barre'},
+                                {data: 'label', title: 'Libellé'},
+                                {data: 'location', title: 'Emplacement'},
+                                {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
+                                {data: 'quantityToPick', title: 'Quantité à prélever'},
+                                {data: 'error', title: 'Erreur', visible: false},
+                            ],
+                            rowConfig: {
+                                needsRowClickAction: true,
+                                needsColor: true,
+                                color: 'danger',
+                                dataToCheck: 'error'
+                            },
+                            domConfig: {
+                                removeInfo: true,
+                            },
                         });
-                })
+
+                        tables.push(table);
+                    });
+            })
         )
     );
 }
@@ -100,10 +102,10 @@ function getCompareStock(submit) {
     };
 
     return $.post({
-        url: path,
-        dataType: 'json',
-        data: JSON.stringify(params)
-    })
+            url: path,
+            dataType: 'json',
+            data: JSON.stringify(params)
+        })
         .then(function (response) {
             if (response.success) {
                 $('.zone-entete').html(response.entete);
@@ -154,7 +156,6 @@ function setMaxQuantity(select) {
             let modalBody = select.closest(".modal-body");
             modalBody.find('#quantity-to-deliver').attr('max', data);
         }
-
     }, 'json');
 }
 
@@ -170,9 +171,9 @@ function validateLivraison(livraisonId, $button) {
 
     wrapLoadingOnActionButton($button, () => (
         $.post({
-            url: Routing.generate('demande_livraison_has_articles'),
-            data: params
-        })
+                url: Routing.generate('demande_livraison_has_articles'),
+                data: params
+            })
             .then(function (resp) {
                 if (resp === true) {
                     return getCompareStock($button);
@@ -423,6 +424,9 @@ function initEditableTableArticles($table) {
             } else {
                 $articleSelect.closest('label').remove();
             }
+        }
+        if (!(typeQuantite === 'article')) {
+            $row.find('select[name="targetLocationPicking"]').closest('label').remove();
         }
 
         // conditional display

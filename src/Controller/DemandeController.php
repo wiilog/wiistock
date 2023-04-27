@@ -352,6 +352,7 @@ class DemandeController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $currentUser = $this->getUser();
 
         $status = $demande->getStatut();
         return $this->render('demande/show/index.html.twig', [
@@ -360,7 +361,7 @@ class DemandeController extends AbstractController
             'modifiable' => $status?->getCode() === Demande::STATUT_BROUILLON,
             'finished' => $status?->getCode() === Demande::STATUT_A_TRAITER,
             'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE),
-            "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($demande, $entityManager)),
+            "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($demande, $entityManager, $currentUser)),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING)
@@ -379,7 +380,6 @@ class DemandeController extends AbstractController
             ->unique()
             // null packs in first
             ->sort(fn(?Pack $logisticUnit1, ?Pack $logisticUnit2) => ($logisticUnit1?->getCode() <=> $logisticUnit2?->getCode()))
-
             ->map(fn(?Pack $logisticUnit) => [
                 "pack" => $logisticUnit
                     ? [
@@ -1072,12 +1072,7 @@ class DemandeController extends AbstractController
                         'macroName' => 'input',
                         'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
                     ])->getContent(),
-                    "location" => $this->render('form.html.twig', [
-                        'macroName' => 'select',
-                        'macroParams' => ['location', null, false, ['type' => 'location', 'items' => [
-                            $line->getTargetLocationPicking()?->getId() => $formatService->location($line->getTargetLocationPicking()),
-                        ] ]]])->getContent(),
-                    $formatService->location($reference->getEmplacement()),
+                    "location" => $formatService->location($reference->getEmplacement()),
                     "barcode" => $reference->getBarcode() ?: '',
                     "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $projectConditionFixedValue))
                         ? $this->render('form.html.twig', [
@@ -1095,12 +1090,14 @@ class DemandeController extends AbstractController
                         ])->getContent()
                         : ($line->getComment() ?: ''),
                     "article" => "",
+                    "targetLocationPicking" => "",
                 ];
             })
             ->toArray();
 
+        $isUserQuantityTypeArticle = $user->getRole()->getQuantityType() == ReferenceArticle::QUANTITY_TYPE_ARTICLE;
         $articlesData = Stream::from($request->getArticleLines())
-            ->map(function (DeliveryRequestArticleLine $line) use ($commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $projectConditionFixedValue, $projectConditionFixedField, $isProjectDisplayedUnderCondition, $isCommentRequired, $isProjectRequired, $entityManager, $request, $user, $articleDataService, $formatService) {
+            ->map(function (DeliveryRequestArticleLine $line) use ($isUserQuantityTypeArticle, $commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $projectConditionFixedValue, $projectConditionFixedField, $isProjectDisplayedUnderCondition, $isCommentRequired, $isProjectRequired, $entityManager, $request, $user, $articleDataService, $formatService) {
                 $article = $line->getArticle();
                 return [
                     "actions" => '<span class="d-flex justify-content-start align-items-center delete-row" data-target="#modalDeleteArticle" data-toggle="modal" data-name="article" data-id="' . $line->getId() . '" onclick="deleteRowDemande($(this), $(\'#modalDeleteArticle\'), $(\'#submitDeleteArticle\'))"><span class="wii-icon wii-icon-trash"></span></span>',
@@ -1119,11 +1116,7 @@ class DemandeController extends AbstractController
                         'macroName' => 'input',
                         'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
                     ])->getContent(),
-                    "location" => $this->render('form.html.twig', [
-                        'macroName' => 'select',
-                        'macroParams' => ['location', null, false, ['type' => 'location', 'items' => [
-                            $line->getTargetLocationPicking()?->getId() => $formatService->location($line->getTargetLocationPicking()),
-                        ]]]])->getContent(),
+                    "location" => $formatService->location($article->getEmplacement()),
                     "barcode" => $article->getBarcode() ?: '',
                     "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $projectConditionFixedValue))
                         ? $this->render('form.html.twig', [
@@ -1140,7 +1133,7 @@ class DemandeController extends AbstractController
                             'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
                         ])->getContent()
                         : ($line->getComment() ?: ''),
-                    "article" => $user->getRole()->getQuantityType() === Article::CATEGORIE
+                    "article" => $isUserQuantityTypeArticle
                         ? $this->render('form.html.twig', [
                             'macroName' => 'select',
                             'macroParams' => ['article', null, false, [
@@ -1152,6 +1145,13 @@ class DemandeController extends AbstractController
                                 'value' => $article->getId(),
                             ]]])->getContent()
                         : $article->getLabel(),
+                    "targetLocationPicking" => !$isUserQuantityTypeArticle
+                        ? $this->render('form.html.twig', [
+                            'macroName' => 'select',
+                            'macroParams' => ['targetLocationPicking', null, false, ['type' => 'location', 'items' => [
+                                $line->getTargetLocationPicking()?->getId() => $formatService->location($line->getTargetLocationPicking()),
+                            ]]]])->getContent()
+                        : $formatService->location($line->getTargetLocationPicking()),
                 ];
             })
             ->toArray();
@@ -1167,6 +1167,7 @@ class DemandeController extends AbstractController
             "barcode" => "",
             "location" => "",
             "article" => "",
+            "targetLocationPicking" => "",
         ];
 
         return $this->json([
@@ -1176,13 +1177,14 @@ class DemandeController extends AbstractController
 
     #[Route("/api/demande-article-submit-change/{deliveryRequest}", name: "api_demande_article_submit_change", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function apiDemandeArticleChange(Demande $deliveryRequest,
-                                            Request $request,
+    public function apiDemandeArticleChange(Demande                $deliveryRequest,
+                                            Request                $request,
                                             EntityManagerInterface $entityManager,
-                                            RefArticleDataService $refArticleDataService,
-                                            ArticleDataService $articleDataService): JsonResponse {
+                                            RefArticleDataService  $refArticleDataService): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
+            dump($data);
             if ($lineId = $data['lineId'] ?? null) {
+                $projectRepository = $entityManager->getRepository(Project::class);
                 // modification
                 if ($data['type'] === 'article') {
                     $lineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
@@ -1191,12 +1193,12 @@ class DemandeController extends AbstractController
                     $lineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
                 }
                 $line = $lineRepository->find($lineId);
-                $line->setQuantityToPick($data['quantity-to-pick'] ?? null);
-                $line->setComment($data['comment'] ?? null);
-                $line->setProject(isset($data['project']) ? $entityManager->getRepository(Project::class)->find($data['project']) : null);
-                $line->setTargetLocationPicking(isset($data['location']) ? $entityManager->getRepository(Emplacement::class)->find($data['location']) : null);
+                $line
+                    ->setQuantityToPick($data['quantity-to-pick'] ?? null)
+                    ->setComment($data['comment'] ?? null)
+                    ->setProject(isset($data['project']) ? $projectRepository->find($data['project']) : null);
 
-                if($line instanceof DeliveryRequestArticleLine) {
+                if ($line instanceof DeliveryRequestArticleLine && !empty($data['article'])) {
                     $line->setArticle($entityManager->getRepository(Article::class)->find($data['article']));
                 }
 
@@ -1229,8 +1231,8 @@ class DemandeController extends AbstractController
 
     #[Route("/api/articles-by-reference/{referenceArticle}", name: "api_articles-by-reference", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function apiArticlesByReference( ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager, ArticleDataService $articleDataService): JsonResponse {
-        $articles = $articleDataService->findAndSortActiveArticlesByRefArticle( $referenceArticle, $referenceArticle->getStockManagement(), $entityManager);
+    public function apiArticlesByReference(ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager, ArticleDataService $articleDataService): JsonResponse {
+        $articles = $articleDataService->findAndSortActiveArticlesByRefArticle($referenceArticle, $referenceArticle->getStockManagement(), $entityManager);
         return $this->json([
             "success" => true,
             "data" => Stream::from($articles)

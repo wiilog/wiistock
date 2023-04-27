@@ -888,13 +888,15 @@ class DemandeLivraisonService
         }
     }
 
-    public function getVisibleColumnsTableArticleConfig(Demande $request, EntityManagerInterface $entityManager): array {
+    public function getVisibleColumnsTableArticleConfig(Demande $request, EntityManagerInterface $entityManager, Utilisateur $user): array {
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
         $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
         $isProjectRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
         $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
         $isCommentRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
+        $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
 
         $columns = [
             ['data' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
@@ -906,6 +908,9 @@ class DemandeLivraisonService
             ['title' => 'Emplacement', 'data' => 'location'],
         ];
 
+        if($isTargetLocationPickingDisplayed){
+            $columns[] = ['title' => 'Emplacement cible picking', 'data' => 'targetLocationPicking'];
+        }
         if($isProjectDisplayed){
             //TODO traduction de projet
             $columns[] = ['title' => 'Projet' . ($isProjectRequired ? '*' : ''), 'data' => 'project'];
