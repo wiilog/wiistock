@@ -3,8 +3,12 @@
 namespace App\Service\ShippingRequest;
 
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
+use App\Service\FormatService;
 use App\Service\VisibleColumnService;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
@@ -21,6 +25,9 @@ class ShippingRequestService {
 
     #[Required]
     public Security $security;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -80,26 +87,27 @@ class ShippingRequestService {
 
     public function dataRowShipping(ShippingRequest $shipping): array
     {
+        $formatService = $this->formatService;
         $row = [
             "number" => $shipping->getNumber(),
-            "status" => $shipping->getStatus()->getCode(),
-            "createdAt" => $shipping->getCreatedAt()->format("d/m/Y H:i"),
-            "requestCaredAt" => $shipping->getRequestCaredAt()->format("d/m/Y H:i"),
-            "validatedAt" => $shipping->getValidatedAt()->format("d/m/Y H:i"),
-            "plannedAt" => $shipping->getPlannedAt()->format("d/m/Y H:i"),
-            "expectedPickedAt" => $shipping->getExpectedPickedAt()->format("d/m/Y H:i"),
-            "treatedAt" => $shipping->getTreatedAt()->format("d/m/Y H:i"),
+            "status" => $formatService->status($shipping->getStatus()),
+            "createdAt" => $formatService->datetime($shipping->getCreatedAt()),
+            "requestCaredAt" => $formatService->datetime($shipping->getRequestCaredAt()),
+            "validatedAt" => $formatService->datetime($shipping->getValidatedAt()),
+            "plannedAt" => $formatService->datetime($shipping->getPlannedAt()),
+            "expectedPickedAt" => $formatService->datetime($shipping->getExpectedPickedAt()),
+            "treatedAt" => $formatService->datetime($shipping->getTreatedAt()),
             "requesters" => implode(",", Stream::from($shipping->getRequesters())
-                ->map(fn(Utilisateur $requester) => $requester->getUsername())
+                ->map(fn(Utilisateur $requester) => $formatService->user($requester))
                 ->toArray()),
             "customerOrderNumber" => $shipping->getCustomerOrderNumber(),
-            "freeDelivery" => $shipping->isFreeDelivery(),
-            "compliantArticles" => $shipping->isCompliantArticles(),
+            "freeDelivery" => $formatService->bool($shipping->isFreeDelivery()),
+            "compliantArticles" => $formatService->bool($shipping->isCompliantArticles()),
             "customerName" => $shipping->getCustomerName(),
             "customerRecipient" => $shipping->getCustomerRecipient(),
             "customerPhone" => $shipping->getCustomerPhone(),
             "customerAddress" => $shipping->getCustomerAddress(),
-            "carrier" => $shipping->getCarrier() ? $shipping->getCarrier()->getLabel() : '',
+            "carrier" => $formatService->carrier($shipping->getCarrier()),
             "trackingNumber" => $shipping->getTrackingNumber(),
             "shipment" => $shipping->getShipment(),
             "carrying" => $shipping->getCarrying(),
@@ -108,5 +116,62 @@ class ShippingRequestService {
         ];
 
         return $row;
+    }
+
+    public function updateShippingRequest(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, $data): bool {
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $requiredFields= [
+            'requesters',
+            'requesterPhoneNumbers',
+            'customerOrderNumber',
+            'customerName',
+            'customerAddress',
+            'customerPhone',
+            'requestCaredAt',
+            'shipment',
+            'carrying',
+        ];
+
+        foreach ($requiredFields as $requiredField) {
+            if (empty($data[$requiredField])) {
+                throw new FormException("Une erreur est survenue un champ requis est manquant");
+            }
+        }
+
+        $requestersIds = Stream::from(explode(',', $data['requesters'] ?? ''))->filter();
+        if (count($requestersIds) > 0) {
+            $requesters = new ArrayCollection(
+               $requestersIds
+                    ->map(fn($requesterId) => $userRepository->find($requesterId))
+                    ->toArray());
+            $shippingRequest->setRequesters($requesters);
+        } else {
+            throw new FormException("Vous devez sélectionner au moins un demandeur");
+        }
+
+        $carrierId = $data['carrier'] ?? '';
+        if ($carrierId) {
+            $carrier = $carrierRepository->find($carrierId);
+            $shippingRequest->setCarrier($carrier);
+        } else {
+            throw new FormException("Vous devez sélectionner un transporteur");
+        }
+
+        $shippingRequest
+            ->setRequesterPhoneNumbers(explode(',', $data['requesterPhoneNumbers'] ?? ''))
+            ->setCustomerOrderNumber($data['customerOrderNumber'] ?? '')
+            ->setFreeDelivery(boolval($data['freeDelivery'] ?? false))
+            ->setCompliantArticles(boolval($data['compliantArticles'] ?? false))
+            ->setCustomerName($data['customerName'] ?? '')
+            ->setCustomerPhone($data['customerPhone'] ?? '')
+            ->setCustomerRecipient($data['customerRecipient'] ?? '')
+            ->setCustomerAddress($data['customerAddress'] ?? '')
+            ->setRequestCaredAt($this->formatService->parseDatetime($data['requestCaredAt'] ?? '', ))
+            ->setShipment($data['shipment'] ?? '')
+            ->setCarrying($data['carrying'] ?? '')
+            ->setComment($data['comment'] ?? '');
+
+        return true;
     }
 }

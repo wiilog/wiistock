@@ -1,3 +1,6 @@
+import Form from "@app/form";
+import { POST } from "@app/ajax";
+
 let tableShippings;
 
 $(function() {
@@ -69,9 +72,17 @@ function initModalNewShippingRequest() {
     const $customersSelect = $modal.find('select[name="customerName"]')
     $customersSelect.on('change', () => {
        const customerData = $customersSelect.select2('data');
-       $modal.find('input[name="customerPhone"]').val(customerData[0].phone);
+       $modal.find('input[name="customerPhone"]').val(customerData[0].phoneNumber);
        $modal.find('input[name="customerRecipient"]').val(customerData[0].recipient);
        $modal.find('input[name="customerAddress"]').val(customerData[0].address);
     });
+
+    Form
+        .create($modal)
+        .submitTo(POST, 'shipping_request_form_submit', {success: (data) => {
+            if(data.success) {
+                window.location.href = Routing.generate('shipping_request_show', {id: data.shippingRequestId});
+            }
+        }});
 }
 
