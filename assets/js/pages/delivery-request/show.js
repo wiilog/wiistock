@@ -1,5 +1,15 @@
+import {GET, POST} from "@app/ajax";
+
 let tables = [];
 const requestId = $('#demande-id').val();
+
+global.ajaxGetAndFillArticle = ajaxGetAndFillArticle;
+global.deleteRowDemande = deleteRowDemande;
+global.validateLivraison = validateLivraison;
+global.ajaxEditArticle = ajaxEditArticle;
+global.removeLogisticUnitLine = removeLogisticUnitLine;
+global.initDeliveryRequestModal = initDeliveryRequestModal;
+global.openAddLUModal = openAddLUModal;
 
 $(function () {
     $('.select2').select2();
@@ -30,16 +40,23 @@ $(function () {
         clearModal('#modalNewArticle');
         $(this).find('#reference').select2("open");
     });
+
+    const $editableTableArticles = $('#editableTableArticles');
+    if ($editableTableArticles.length) {
+        initEditableTableArticles($editableTableArticles);
+    }
 });
 
 function loadLogisticUnitList(requestId) {
     const $logisticUnitsContainer = $('.logistic-units-container');
     wrapLoadingOnActionButton($logisticUnitsContainer, () => (
-        AJAX.route('GET', 'delivery_request_logistic_units_api', {id: requestId})
+        AJAX
+            .route('GET', 'delivery_request_logistic_units_api', {id: requestId})
             .json()
             .then(({html}) => {
                 $logisticUnitsContainer.html(html);
-                $logisticUnitsContainer.find('.articles-container table')
+                $logisticUnitsContainer
+                    .find('.articles-container table')
                     .each(function () {
                         const $table = $(this);
                         const table = initDataTable($table, {
@@ -85,10 +102,10 @@ function getCompareStock(submit) {
     };
 
     return $.post({
-        url: path,
-        dataType: 'json',
-        data: JSON.stringify(params)
-    })
+            url: path,
+            dataType: 'json',
+            data: JSON.stringify(params)
+        })
         .then(function (response) {
             if (response.success) {
                 $('.zone-entete').html(response.entete);
@@ -139,7 +156,6 @@ function setMaxQuantity(select) {
             let modalBody = select.closest(".modal-body");
             modalBody.find('#quantity-to-deliver').attr('max', data);
         }
-
     }, 'json');
 }
 
@@ -155,9 +171,9 @@ function validateLivraison(livraisonId, $button) {
 
     wrapLoadingOnActionButton($button, () => (
         $.post({
-            url: Routing.generate('demande_livraison_has_articles'),
-            data: params
-        })
+                url: Routing.generate('demande_livraison_has_articles'),
+                data: params
+            })
             .then(function (resp) {
                 if (resp === true) {
                     return getCompareStock($button);
@@ -204,7 +220,11 @@ function initPageModals() {
     let $submitDeleteArticle = $("#submitDeleteArticle");
     let pathDeleteArticle = Routing.generate('demande_remove_article', true);
     InitModal($modalDeleteArticle, $submitDeleteArticle, pathDeleteArticle, {
-        success: () => loadLogisticUnitList(requestId)
+        success: () => {
+            loadLogisticUnitList(requestId);
+            const $editableTableArticles = $('#editableTableArticles');
+            $editableTableArticles.DataTable().ajax.reload();
+        }
     });
 
     let $modalEditArticle = $("#modalEditArticle");
@@ -233,9 +253,6 @@ function openAddLUModal() {
     const $logisticUnit = $modal.find(`[name="logisticUnit"]`);
 
     $logisticUnit.off(`change`);
-
-    //si y'a que val null ça marche pas je sais pas pourquoi me
-    //demandez pas de toute façon vous pouvez pas le suis parti
     $logisticUnit.val(null).empty().trigger(`change`);
     $details.html(``);
     $submit.prop(`disabled`, true);
@@ -284,4 +301,211 @@ function removeLogisticUnitLine($button, logisticUnitId) {
             .json()
             .then(() => loadLogisticUnitList(requestId))
     ));
+}
+
+function initEditableTableArticles($table) {
+    const form = JSON.parse($('input[name="editableTableArticlesForm"]').val());
+    const fieldsParams = JSON.parse($('input[name="editableTableArticlesFieldsParams"]').val());
+
+    const table = initDataTable($table, {
+        serverSide: false,
+        ajax: {
+            type: "GET",
+            url: Routing.generate('api_table_articles_content', {request: requestId}, true),
+        },
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        domConfig: {
+            removeInfo: true,
+        },
+        ordering: false,
+        paging: false,
+        searching: false,
+        scrollY: false,
+        scrollX: true,
+        drawCallback: () => {
+            $(`#packTable_wrapper`).css(`overflow-x`, `scroll`);
+            $(`.dataTables_scrollBody, .dataTables_scrollHead`)
+                .css('overflow', 'visible')
+                .css('overflow-y', 'visible');
+
+            const $rows = $(table.rows().nodes());
+
+            $rows.each(function () {
+                const $row = $(this);
+                const data = Form.process($row, {
+                    ignoreErrors: true,
+                });
+
+                $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
+            });
+
+            $rows.off(`focusout.keyboardNavigation`).on(`focusout.keyboardNavigation`, function (event) {
+                const $row = $(this);
+                const $target = $(event.target);
+                const $relatedTarget = $(event.relatedTarget);
+
+
+                const wasLineSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
+                if ((event.relatedTarget && $.contains(this, event.relatedTarget))
+                    || $relatedTarget.is(`button.delete-row`)
+                    || wasLineSelect) {
+                    return;
+                }
+
+                saveArticleLine(requestId, $row);
+            });
+
+            scrollToBottom();
+            if (!$table.data('initialized')) {
+                $table.data('initialized', true);
+                // Resize table to avoid bug related to WIIS-8276,
+                // timeout is necessary because drawCallback doesnt seem to be called when everything is fully loaded,
+                // because we have some custom rendering actions which may take more time than native datatable rendering
+                setTimeout(() => {
+                    $table.DataTable().columns.adjust().draw();
+                }, 500);
+            }
+        },
+        createdRow: (row, data) => {
+            // we display only + td on this line
+            if (data && data.createRow) {
+                const $row = $(row);
+                const $tds = $row.children();
+                const $tdAction = $tds.first();
+                const $tdOther = $tds.slice(1);
+
+                $tdAction
+                    .attr('colspan', $tds.length)
+                    .addClass('add-row');
+                $tdOther.addClass('d-none');
+            }
+        },
+    });
+
+    scrollToBottom();
+    $table.on(`keydown`, `[name="quantity"]`, function (event) {
+        if (event.key === `.` || event.key === `,` || event.key === `-` || event.key === `+` || event.key === `e`) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    });
+
+    $table.on(`click`, `.add-row`, function () {
+        addArticleRow(table, $(this));
+    });
+
+    $table.on(`change`, `select[name="reference"]`, function () {
+        const $row = $(this).closest(`tr`);
+        const inputData = $(this).select2('data')[0];
+        const label = inputData.label;
+        const reference = inputData.text;
+        const barCode = inputData.barCode;
+        const refType = inputData.typeId;
+        const typeQuantite = inputData.typeQuantite;
+        const referenceArticle = Number($(this).val());
+
+        $row.find('span.article-label').text(label);
+        $row.find('span.article-barcode').text(barCode);
+
+        const $articleSelect = $row.find('select[name="article"]');
+        if ($articleSelect.exists()) {
+            if(typeQuantite === 'article') {
+                AJAX
+                    .route(GET, 'api_articles-by-reference', {referenceArticle})
+                    .json()
+                    .then(({data}) => {
+                        const articleSelect = $row.find('select[name="article"]')
+                        data.forEach((article) => {
+                            articleSelect.append(`<option value="${article.value}">${article.text}</option>`);
+                        });
+                    });
+            } else {
+                $articleSelect.closest('label').remove();
+            }
+        }
+        if (!(typeQuantite === 'article')) {
+            $row.find('select[name="targetLocationPicking"]').closest('label').remove();
+        }
+
+        // conditional display
+        // Parametrage|Stock|Demande|Livraison-Champs Fixes
+        Object.entries(fieldsParams).forEach(([field, value]) => {
+            if (value.displayedUnderCondition) {
+                const $field = $row.find(`[name="${field}"]`);
+                if (!(value.conditionFixedField === 'Type Reference' && value.conditionFixedValue.includes(refType.toString()))) {
+                    $field.closest('label').remove();
+                    $field.remove();
+                }
+            }
+        })
+
+        $(this).select2('destroy').closest('label').addClass('d-none');
+        $(this).closest('td').find('span.article-reference').text(reference);
+        $(this).closest('td').find('input[name="referenceId"]').val(referenceArticle);
+    });
+
+
+    let $modalDeleteArticle = $("#modalDeleteArticle");
+
+    $(window).on(`beforeunload`, () =>  {
+        const $focus = $(`tr :focus`);
+        if($focus.exists()) {
+            if(savePackLine(dispatchId, $focus.closest(`tr`), false)) {
+                return true;
+            }
+        }
+    });
+    return table;
+}
+
+function saveArticleLine(requestId, $row,) {
+    let data = Form.process($row);
+    data = data instanceof FormData ? data.asObject() : data;
+
+    if (data) {
+        if (!jQuery.deepEquals(data, JSON.parse($row.data(`data`)))) {
+            AJAX
+                .route(POST, `api_demande_article_submit_change`, {deliveryRequest : requestId})
+                .json(data)
+                .then((response) => {
+                    if (response.success) {
+                        if (response.lineId) {
+                            $row.find(`.delete-row`).data(`id`, response.lineId);
+                            $row.find('input[name="lineId"]').val(response.lineId);
+                        }
+                        if (response.type) {
+                            $row.find('input[name="type"]').val(response.type);
+                        }
+                        $row.data(`data`, JSON.stringify(data));
+                    }
+                });
+            }
+            return true;
+    } else {
+        $row.find('.is-invalid').first().trigger('focus');
+        return false;
+    }
+}
+
+function scrollToBottom() {
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
+function addArticleRow(table, $button) {
+    const $table = $button.closest('table');
+    const $isInvalid = $table.find('.is-invalid');
+
+    if ($isInvalid.length === 0) {
+        const row = table.row($button.closest(`tr`));
+        const data = row.data();
+
+        row.remove();
+        table.row.add(JSON.parse($(`input[name="editableTableArticlesForm"]`).val()));
+        table.row.add(data);
+        table.draw();
+
+        scrollToBottom();
+    }
 }

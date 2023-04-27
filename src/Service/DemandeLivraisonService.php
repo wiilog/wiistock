@@ -23,6 +23,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -887,4 +888,37 @@ class DemandeLivraisonService
         }
     }
 
+    public function getVisibleColumnsTableArticleConfig(Demande $request, EntityManagerInterface $entityManager, Utilisateur $user): array {
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
+        $isProjectRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
+        $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
+        $isCommentRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
+        $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+
+        $columns = [
+            ['data' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['title' => 'Référence*', 'data' => 'reference'],
+            ['title' => 'Libellé', 'data' => 'label'],
+            ['title' => 'Article*', 'data' => 'article'],
+            ['title' => 'Quantité*', 'data' => 'quantity'],
+            ['title' => 'Code barre', 'data' => 'barcode'],
+            ['title' => 'Emplacement', 'data' => 'location'],
+        ];
+
+        if($isTargetLocationPickingDisplayed){
+            $columns[] = ['title' => 'Emplacement cible picking', 'data' => 'targetLocationPicking'];
+        }
+        if($isProjectDisplayed){
+            //TODO traduction de projet
+            $columns[] = ['title' => 'Projet' . ($isProjectRequired ? '*' : ''), 'data' => 'project'];
+        }
+        if($isCommentDisplayed){
+            $columns[] = ['title' => 'Commentaire' . ($isCommentRequired ? '*' : ''), 'data' => 'comment'];
+        }
+
+        return $columns;
+    }
 }

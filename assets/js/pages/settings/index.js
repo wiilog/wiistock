@@ -36,8 +36,8 @@ global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
-global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 global.changeReceiverInput = changeReceiverInput;
+global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();

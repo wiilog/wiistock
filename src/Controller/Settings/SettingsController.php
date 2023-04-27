@@ -216,7 +216,7 @@ class SettingsController extends AbstractController {
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
                         self::MENU_PURCHASE_PLANIFICATION => [
                             "label" => "Achats - Planification",
-                            "right" => Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE
+                            "right" => Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE,
                         ],
                         self::MENU_SHIPPING => [
                             "label" => "Expéditions",
@@ -466,7 +466,7 @@ class SettingsController extends AbstractController {
             "menus" => [
                 self::MENU_TYPES_FREE_FIELDS => [
                     "right" => Action::SETTINGS_DISPLAY_IOT,
-                    "label" => "Types et champs libres"
+                    "label" => "Types et champs libres",
                 ],
             ],
         ],
@@ -477,7 +477,7 @@ class SettingsController extends AbstractController {
                 self::MENU_ALERTS => [
                     "label" => "Alertes",
                     "right" => Action::SETTINGS_DISPLAY_NOTIFICATIONS_ALERTS,
-                    "wrapped" => false
+                    "wrapped" => false,
                 ],
                 self::MENU_PUSH_NOTIFICATIONS => [
                     "label" => "Notifications push",
@@ -492,7 +492,7 @@ class SettingsController extends AbstractController {
                 self::MENU_LANGUAGES => [
                     "label" => "Langues",
                     "right" => Action::SETTINGS_DISPLAY_LABELS_PERSO,
-                    'route' => "settings_language_index"
+                    'route' => "settings_language_index",
                 ],
                 self::MENU_ROLES => [
                     "label" => "Rôles",
@@ -706,7 +706,7 @@ class SettingsController extends AbstractController {
             'label' => $language->getLabel(),
             'value' => $language->getId(),
             'iconUrl' => $language->getFlag(),
-            'checked' => $language->getSelected()
+            'checked' => $language->getSelected(),
         ])
         ->toArray();
 
@@ -789,7 +789,7 @@ class SettingsController extends AbstractController {
                 ],
                 'language' => $language,
                 'translations' => $translations,
-            ])
+            ]),
         ]);
     }
 
@@ -843,7 +843,7 @@ class SettingsController extends AbstractController {
         if (in_array($language->getSlug(),Language::NOT_DELETABLE_LANGUAGES)) {
             return $this->json([
                 "success" => false,
-                "message" => "Cette langue ne peut pas être supprimée"
+                "message" => "Cette langue ne peut pas être supprimée",
             ]);
         }
         else {
@@ -865,7 +865,7 @@ class SettingsController extends AbstractController {
 
             return $this->json([
                 "success" => true,
-                "msg" => "La langue <strong>{$language->getLabel()}</strong> a bien été supprimée."
+                "msg" => "La langue <strong>{$language->getLabel()}</strong> a bien été supprimée.",
             ]);
         }
     }
@@ -1023,7 +1023,7 @@ class SettingsController extends AbstractController {
         self::CATEGORY_GLOBAL => "\Closure[]", self::CATEGORY_STOCK => "\Closure[][]",
         self::CATEGORY_TRACING => "\Closure[][]", self::CATEGORY_TRACKING => "array",
         self::CATEGORY_IOT => "\Closure[]", self::CATEGORY_DATA => "\Closure[]",
-        self::CATEGORY_NOTIFICATIONS => "\Closure[]", self::CATEGORY_USERS => "\Closure[]"
+        self::CATEGORY_NOTIFICATIONS => "\Closure[]", self::CATEGORY_USERS => "\Closure[]",
 
     ])]
     public function customValues(EntityManagerInterface $entityManager): array {
@@ -1069,7 +1069,7 @@ class SettingsController extends AbstractController {
                         ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                         ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
                         ->join(""),
-                ]
+                ],
             ],
             self::CATEGORY_STOCK => [
                 self::MENU_ARTICLES => [
@@ -1205,8 +1205,8 @@ class SettingsController extends AbstractController {
                     ],
                 ],
                 self::MENU_TOUCH_TERMINAL => fn() => [
-                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll())
-                ]
+                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
+                ],
             ],
             self::CATEGORY_TRACING => [
                 self::MENU_DISPATCHES => [
@@ -1392,7 +1392,7 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                ]
+                ],
             ],
             self::CATEGORY_TRACKING => [
                 self::MENU_ROUNDS => fn() => [
@@ -2398,9 +2398,11 @@ class SettingsController extends AbstractController {
 
         $class = "form-control data";
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
         $arrayFields = $fieldsParamRepository->findByEntityForEntity($entity);
 
         $rows = [];
+        /** @var FieldsParam $field */
         foreach ($arrayFields as $field) {
             $label = ucfirst($field->getFieldLabel());
             $displayedCreate = $field->isDisplayedCreate() ? "checked" : "";
@@ -2674,7 +2676,7 @@ class SettingsController extends AbstractController {
                             "attributes" => [
                                 "data-id" => $mission->getId(),
                                 "onclick" => "editMissionRule($(this))",
-                            ]
+                            ],
                         ],
                         [
                             "title" => "Annuler la planification",
@@ -2683,7 +2685,7 @@ class SettingsController extends AbstractController {
                                 "data-id" => $mission->getId(),
                                 "class" => "pointer",
                                 "onclick" => "cancelInventoryMission($(this))",
-                            ]
+                            ],
                         ],
                         [
                             "title" => "Supprimer la planification",
@@ -2692,9 +2694,9 @@ class SettingsController extends AbstractController {
                                 "data-id" => $mission->getId(),
                                 "class" => "pointer",
                                 "onclick" => "deleteInventoryMission($(this))",
-                            ]
+                            ],
                         ],
-                    ]
+                    ],
                 ]),
                 "missionType" => $mission->getMissionType() ? InventoryMission::TYPES_LABEL[$mission->getMissionType()] ?? '' : '',
                 "label" => $mission->getLabel(),
@@ -2827,12 +2829,12 @@ class SettingsController extends AbstractController {
         $manager->flush();
 
         $html = $this->renderView('settings/modal_edit_translations_content.html.twig', [
-            'lines' => $typesLitige
+            'lines' => $typesLitige,
         ]);
 
         return new JsonResponse([
             'success' => true,
-            'html' => $html
+            'html' => $html,
         ]);
     }
 
@@ -2861,7 +2863,7 @@ class SettingsController extends AbstractController {
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => "Les traductions ont bien été modifiées."
+                'msg' => "Les traductions ont bien été modifiées.",
             ]);
         }
         throw new BadRequestHttpException();
@@ -3067,7 +3069,7 @@ class SettingsController extends AbstractController {
             "height" => "",
             "width" => "",
             "module" => "",
-            "natureOrType" => ""
+            "natureOrType" => "",
         ];
 
         return $this->json([
