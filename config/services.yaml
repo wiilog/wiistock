@@ -5,9 +5,9 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '6.29.14#rfid'
-    nomade_version: '=6.29.13#rfid'
-    nomade_apk: 'https://ftp.wiilog.fr/wiistock/recette/app-6-29-13-rfid.apk'
+    web_version: '6.30.2#rfid'
+    nomade_version: '=6.30.1#rfid'
+    nomade_apk: 'https://ftp.wiilog.fr/wiistock/recette/app-6-30-1-rfid.apk'
     client: '%env(APP_CLIENT)%'
     appLocale: '%env(APP_LOCALE)%'
 

@@ -235,7 +235,12 @@ class ArticleDataService
         }
     }
 
-    public function newArticle(EntityManagerInterface $entityManager, array $data, Article $existing = null): Article {
+    public function newArticle(EntityManagerInterface $entityManager, array $data, array $options = []): Article {
+
+        /** @var Article|null $existing */
+        $existing = $options['existing'] ?? null;
+        $excludeBarcodes = $options['excludeBarcodes'] ?? [];
+
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -302,7 +307,7 @@ class ArticleDataService
                 ->setEmplacement($location)
                 ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
                 ->setType($type)
-                ->setBarCode($data['barcode'] ?? $this->generateBarCode())
+                ->setBarCode($data['barcode'] ?? $this->generateBarcode($excludeBarcodes))
                 ->setStockEntryDate(new DateTime("now"))
                 ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
                 ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
@@ -454,18 +459,23 @@ class ArticleDataService
         return $row;
     }
 
-	public function generateBarCode()
+	public function generateBarcode(array $excludeBarcodes = []): string
 	{
+        $now = new DateTime('now');
+        $dateCode = $now->format('ym');
+
         $articleRepository = $this->entityManager->getRepository(Article::class);
+        $highestBarCode = $articleRepository->getHighestBarCodeByDateCode($dateCode);
+        $highestCounter = $highestBarCode ? (int) substr($highestBarCode, 7, 8) : 0;
 
-		$now = new DateTime('now');
-		$dateCode = $now->format('ym');
+        do {
+            $highestCounter++;
+            $newCounter = sprintf('%08u', $highestCounter);
+            $generatedBarcode = Article::BARCODE_PREFIX . $dateCode . $newCounter;
+        }
+        while(in_array($generatedBarcode, $excludeBarcodes));
 
-		$highestBarCode = $articleRepository->getHighestBarCodeByDateCode($dateCode);
-		$highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
-
-		$newCounter =  sprintf('%08u', $highestCounter+1);
-		return Article::BARCODE_PREFIX . $dateCode . $newCounter;
+		return $generatedBarcode;
 	}
 
     public function getBarcodeConfig(Article $article, Reception $reception = null): array {

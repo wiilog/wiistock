@@ -5,12 +5,11 @@ namespace App\DataFixtures;
 
 use App\Entity\FieldsParam;
 
-use App\Service\SpecificService;
+use App\Entity\SubLineFieldsParam;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
@@ -39,6 +38,8 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_RECEIVER_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_RECEIVER_DEMANDE, 'values' => [], 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false, 'modalType' => FieldsParam::MODAL_RECEIVER],
                 ['code' => FieldsParam::FIELD_CODE_EXPECTED_AT, 'label' => FieldsParam::FIELD_LABEL_EXPECTED_AT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT, 'label' => FieldsParam::FIELD_LABEL_PROJECT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_DESTINATION_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_DESTINATION_DEMANDE,  'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_LOCATION_BY_TYPE],
+                ['code' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT, 'label' => FieldsParam::FIELD_LABEL_DELIVERY_REQUEST_PROJECT . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Va chercher dans le référentiel projet">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
 
             FieldsParam::ENTITY_CODE_ARRIVAGE => [
@@ -115,17 +116,63 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_CARRIER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_TYPE, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_TYPE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'modalType' => FieldsParam::MODAL_TYPE_FREE, 'values' => []],
-            ]
+            ],
+        ];
+
+        $subLinesFieldCodes = [
+            SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => true],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => false]
+            ],
         ];
 
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $subLineFieldsParamRepository = $manager->getRepository(SubLineFieldsParam::class);
         $existingFields = $fieldsParamRepository->findAll();
+        $existingSubLinesFields = $subLineFieldsParamRepository->findAll();
 
-        $mappedExistingFields = Stream::from($existingFields)
-            ->keymap(function($field) {
-                return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
-            })
-            ->toArray();
+        $mappedExistingFields = array_merge(
+            Stream::from($existingFields)
+                ->keymap(function($field) {
+                    return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
+                })
+                ->toArray(),
+            Stream::from($existingSubLinesFields)
+                ->keymap(function($field) {
+                    return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
+                })
+                ->toArray()
+        );
+
+        foreach($subLinesFieldCodes as $fieldEntity => $listFieldCodes) {
+            foreach ($listFieldCodes as $fieldCode) {
+                $fieldUniqueKey = $fieldEntity . '-' . $fieldCode['code'];
+                $field = $mappedExistingFields[$fieldUniqueKey] ?? null;
+
+                if (isset($field))  {
+                    unset($mappedExistingFields[$fieldUniqueKey]);
+                }
+
+                if(!$field) {
+                    $field = new SubLineFieldsParam();
+                    $field
+                        ->setEntityCode($fieldEntity)
+                        ->setFieldCode($fieldCode['code'])
+                        ->setDisplayed($fieldCode['displayed'])
+                        ->setDisplayedUnderCondition($fieldCode['displayedUnderCondition'])
+                        ->setConditionFixedField($fieldCode['conditionFixedField'])
+                        ->setConditionFixedFieldValue($fieldCode['conditionFixedFieldValue'])
+                        ->setRequired($fieldCode['required'])
+                        ->setElements($fieldCode['values'] ?? null);
+
+                    $manager->persist($field);
+                    $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
+                }
+                $field->setFieldLabel($fieldCode['label']);
+
+                $manager->flush();
+            }
+        }
 
         foreach($listEntityFieldCodes as $fieldEntity => $listFieldCodes) {
             foreach($listFieldCodes as $fieldCode) {
@@ -135,7 +182,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
                   if (isset($field))  {
                       unset($mappedExistingFields[$fieldUniqueKey]);
-                  };
+                  }
 
                 if(!$field) {
                     $field = new FieldsParam();
@@ -148,16 +195,15 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                         ->setRequiredEdit($fieldCode['default'] ?? false)
                         ->setRequiredCreate($fieldCode['default'] ?? false)
                         ->setElements($fieldCode['values'] ?? null);
+
                     $manager->persist($field);
                     $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
                 }
                 $field
                     ->setFieldLabel($fieldCode['label'])
-                    ->setFieldRequiredHidden($fieldCode['hidden'] ?? false);
+                    ->setFieldRequiredHidden($fieldCode['hidden'] ?? null)
+                    ->setModalType($fieldCode['modalType'] ?? null);
 
-                if (isset($fieldCode['modalType'])) {
-                    $field->setModalType($fieldCode['modalType']);
-                }
                 $manager->flush();
             }
         }
