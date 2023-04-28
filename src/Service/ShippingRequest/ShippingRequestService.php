@@ -6,16 +6,12 @@ use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Utilisateur;
 use App\Service\FormatService;
 use App\Service\VisibleColumnService;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 
 class ShippingRequestService {
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
 
     #[Required]
     public VisibleColumnService $visibleColumnService;
@@ -39,8 +35,8 @@ class ShippingRequestService {
             ['title' => 'Date d\'expédition', 'name' => 'treatedAt'],
             ['title' => 'Demandeur', 'name' => 'requesters'],
             ['title' => 'N° commande client', 'name' => 'customerOrderNumber'],
-            ['title' => 'Transporteur', 'name' => 'freeDelivery'],
-            ['title' => 'Transporteur', 'name' => 'compliantArticles'],
+            ['title' => 'Livraison à titre gracieux', 'name' => 'freeDelivery'],
+            ['title' => 'Articles conformes', 'name' => 'compliantArticles'],
             ['title' => 'Client', 'name' => 'customerName'],
             ['title' => 'A l\'attention de', 'name' => 'customerRecipient'],
             ['title' => 'Téléphone', 'name' => 'customerPhone'],
@@ -56,8 +52,8 @@ class ShippingRequestService {
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 
-    public function getDataForDatatable(Request $request) : array{
-        $shippingRepository = $this->entityManager->getRepository(ShippingRequest::class);
+    public function getDataForDatatable(Request $request, EntityManager $entityManager) : array {
+        $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
 
         $queryResult = $shippingRepository->findByParamsAndFilters(
             $request->request,
