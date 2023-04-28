@@ -12,6 +12,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\ShippingRequest\ShippingRequestService;
+use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
@@ -75,10 +76,11 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/form-submit", name: "shipping_request_form_submit", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::CREATE_SHIPPING], mode: HasPermission::IN_JSON)]
-    public function formSubmit(Request $request,
+    public function formSubmit(Request                $request,
                                EntityManagerInterface $entityManager,
                                ShippingRequestService $shippingRequestService,
-                               UniqueNumberService $uniqueNumberService): JsonResponse {
+                               UniqueNumberService    $uniqueNumberService,
+                               StatusHistoryService   $statusHistoryService): JsonResponse {
         $data = $request->request->all();
 
         if($shippingRequestId = $data['shippingRequestId'] ?? false) {
@@ -90,9 +92,14 @@ class ShippingRequestController extends AbstractController {
             $shippingRequest
                 ->setNumber($uniqueNumberService->create($entityManager, ShippingRequest::NUMBER_PREFIX, ShippingRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT))
                 ->setCreatedAt(new \DateTime('now'))
-                ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::SHIPMENT, ShippingRequest::STATUS_DRAFT))
-                ->setCreatedBy($this->getUser())
-            ;
+                ->setCreatedBy($this->getUser());
+
+            $statusHistoryService->updateStatus(
+                $entityManager,
+                $shippingRequest,
+                $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::SHIPMENT, ShippingRequest::STATUS_DRAFT),
+                ['setStatus' => true],
+            );
 
             $entityManager->persist($shippingRequest);
         }
