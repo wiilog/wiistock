@@ -1688,40 +1688,6 @@ class DispatchController extends AbstractController {
             'msg' => 'Signature groupée effectuée avec succès',
         ]);
     }
-
-    #[Route("/{dispatch}/dispatch-packs-api", name: "dispatch_packs_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
-    public function getDispatchPacksApi(EntityManagerInterface  $entityManager,
-                                         Dispatch               $dispatch,
-                                         Request                $request): JsonResponse {
-
-        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
-
-        $start = $request->query->get('start') ?: 0;
-        $search = $request->query->get('search') ?: 0;
-
-        $listLength = 5;
-
-        $result = $dispatchPackRepository->getByDispatch($dispatch, [
-            "start" => $start,
-            "length" => $listLength,
-            "search" => $search,
-        ]);
-
-        return $this->json([
-            "success" => true,
-            "html" => $this->renderView("dispatch/line-list.html.twig", [
-                "dispatch" => $dispatch,
-                "dispatchPacks" => $result["data"],
-                "total" => $result["total"],
-                "current" => $start,
-                "currentPage" => floor($start / $listLength),
-                "pageLength" => $listLength,
-                "pagesCount" => ceil($result["total"] / $listLength),
-            ]),
-        ]);
-    }
-
     #[Route("/form-reference", name:"dispatch_form_reference", options: ['expose' => true], methods: "POST")]
     #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function formReference(Request $request,
