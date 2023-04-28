@@ -1057,6 +1057,7 @@ class DemandeController extends AbstractController
             ->map(function (DeliveryRequestReferenceLine $line) use ($commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $isProjectDisplayedUnderCondition, $projectConditionFixedField, $projectConditionFixedValue, $isProjectRequired, $isCommentRequired, $formatService) {
                 $reference = $line->getReference();
                 return [
+                    "createRow" => false,
                     "actions" => '<span class="d-flex justify-content-start align-items-center delete-row" data-target="#modalDeleteArticle" data-toggle="modal" data-name="reference" data-id="' . $line->getId() . '" onclick="deleteRowDemande($(this), $(\'#modalDeleteArticle\'), $(\'#submitDeleteArticle\'))"><span class="wii-icon wii-icon-trash"></span></span>',
                     "reference" => ($reference->getReference() ?: '')
                         . $this->render('form.html.twig', [
@@ -1100,6 +1101,7 @@ class DemandeController extends AbstractController
             ->map(function (DeliveryRequestArticleLine $line) use ($isUserQuantityTypeArticle, $commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $projectConditionFixedValue, $projectConditionFixedField, $isProjectDisplayedUnderCondition, $isCommentRequired, $isProjectRequired, $entityManager, $request, $user, $articleDataService, $formatService) {
                 $article = $line->getArticle();
                 return [
+                    "createRow" => false,
                     "actions" => '<span class="d-flex justify-content-start align-items-center delete-row" data-target="#modalDeleteArticle" data-toggle="modal" data-name="article" data-id="' . $line->getId() . '" onclick="deleteRowDemande($(this), $(\'#modalDeleteArticle\'), $(\'#submitDeleteArticle\'))"><span class="wii-icon wii-icon-trash"></span></span>',
                     "reference" =>
                         ($article->getReferenceArticle()->getReference() ?: '')
@@ -1158,6 +1160,7 @@ class DemandeController extends AbstractController
 
         $data = array_merge($referencesData, $articlesData);
         $data[] = [
+            "createRow" => true,
             "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
             "reference" => "",
             "label" => "",
