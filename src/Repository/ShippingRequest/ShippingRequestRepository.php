@@ -14,6 +14,31 @@ class ShippingRequestRepository extends EntityRepository {
         $qb = $this->createQueryBuilder("shipping_request");
 
         $total = QueryBuilderHelper::count($qb, 'shipping_request');
+        //filtres sup
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'statut':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('shipping_request.status', 'filter_status')
+                        ->andWhere('filter_status.id IN (:statut)')
+                        ->setParameter('statut', $value);
+                    break;
+                case 'customerOrderNumber':
+                    $qb
+                        ->andWhere('shipping_request.customerOrderNumber LIKE :customerOrderNumber')
+                        ->setParameter('customerOrderNumber', $filter['value']);
+                    break;
+                case 'carriers':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('shipping_request.carrier', 'carrier')
+                        ->andWhere('carrier.id IN (:carrierId)')
+                        ->setParameter('carrierId', $value);
+                    break;
+            }
+        }
+
 
         //Filter search
         if (!empty($params)) {

@@ -2,6 +2,7 @@
 
 namespace App\Service\ShippingRequest;
 
+use App\Entity\FiltreSup;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Utilisateur;
 use App\Service\VisibleColumnService;
@@ -53,11 +54,13 @@ class ShippingRequestService {
     }
 
     public function getDataForDatatable(Request $request) : array{
+        $user = $this->security->getUser();
         $shippingRepository = $this->entityManager->getRepository(ShippingRequest::class);
-
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_SHIPPING, $user);
         $queryResult = $shippingRepository->findByParamsAndFilters(
             $request->request,
-            [],
+            $filters,
             $this->visibleColumnService,
             [
                 'user' => $this->security->getUser(),

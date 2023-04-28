@@ -4,7 +4,11 @@
 {% block title_tooltip %}Demande | Expédition{% endblock %}
 
 {% block page_filter %}
-
+    {% include 'filters/filtersDemands.html.twig' with {
+        page: 'PAGE_SHIPPING',
+        tableSelector: '#tableShippings',
+        statuts : statuses,
+    }%}
 {% endblock %}
 
 {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')) %}
