@@ -18,13 +18,13 @@ class ShippingRequestPack {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::FLOAT)]
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $size = null;
 
     #[ORM\OneToOne(inversedBy: 'shippingRequestPack', targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
-    #[ORM\OneToMany(mappedBy: 'shippingRequestPack', targetEntity: ShippingRequestLine::class)]
+    #[ORM\OneToMany(mappedBy: 'shippingPack', targetEntity: ShippingRequestLine::class)]
     private Collection $lines;
 
     #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'packLines')]
@@ -53,15 +53,6 @@ class ShippingRequestPack {
             $this->pack->setShippingRequestPack($this);
         }
 
-        return $this;
-    }
-
-    public function getQuantity(): ?int {
-        return $this->quantity;
-    }
-
-    public function setQuantity(?int $quantity): self {
-        $this->quantity = $quantity;
         return $this;
     }
 
@@ -98,7 +89,7 @@ class ShippingRequestPack {
     public function addLine(ShippingRequestLine $line): self {
         if (!$this->lines->contains($line)) {
             $this->lines[] = $line;
-            $line->setShippingRequestPack($this);
+            $line->setShippingPack($this);
         }
 
         return $this;
@@ -106,8 +97,8 @@ class ShippingRequestPack {
 
     public function removeLine(ShippingRequestLine $line): self {
         if ($this->lines->removeElement($line)) {
-            if ($line->getShippingRequestPack() === $this) {
-                $line->setShippingRequestPack(null);
+            if ($line->getShippingPack() === $this) {
+                $line->setShippingPack(null);
             }
         }
 
