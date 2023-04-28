@@ -113,6 +113,9 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::STRING)]
     private ?string $trackingNumber = null;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $packCount = null;
+
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Statut $status = null;
@@ -139,8 +142,8 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: ShippingRequestExpectedLine::class)]
     private Collection $expectedLines;
 
-    #[ORM\OneToMany(mappedBy: 'request', targetEntity: ShippingRequestLine::class)]
-    private Collection $lines;
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: ShippingRequestPack::class)]
+    private Collection $packLines;
 
     #[ORM\OneToMany(mappedBy: 'shippingRequest', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
@@ -149,6 +152,7 @@ class ShippingRequest extends StatusHistoryContainer {
         $this->requesters = new ArrayCollection();
         $this->expectedLines = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
+        $this->packLines = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -309,23 +313,23 @@ class ShippingRequest extends StatusHistoryContainer {
         return $this;
     }
 
-    public function getLines(): Collection {
-        return $this->lines;
+    public function getPackLines(): Collection {
+        return $this->packLines;
     }
 
-    public function addLine(ShippingRequestLine $line): self {
-        if (!$this->lines->contains($line)) {
-            $this->lines[] = $line;
-            $line->setRequest($this);
+    public function addPackLine(ShippingRequestPack $packLine): self {
+        if (!$this->packLines->contains($packLine)) {
+            $this->packLines[] = $packLine;
+            $packLine->setRequest($this);
         }
 
         return $this;
     }
 
-    public function removeLine(ShippingRequestLine $line): self {
-        if ($this->lines->removeElement($line)) {
-            if ($line->getRequest() === $this) {
-                $line->setRequest(null);
+    public function removePackLine(ShippingRequestPack $packLine): self {
+        if ($this->packLines->removeElement($packLine)) {
+            if ($packLine->getRequest() === $this) {
+                $packLine->setRequest(null);
             }
         }
 
@@ -485,6 +489,15 @@ class ShippingRequest extends StatusHistoryContainer {
 
     public function setNumber(?string $number): self {
         $this->number = $number;
+        return $this;
+    }
+
+    public function getPackCount(): ?int {
+        return $this->packCount;
+    }
+
+    public function setPackCount(?int $packCount): self {
+        $this->packCount = $packCount;
         return $this;
     }
 }

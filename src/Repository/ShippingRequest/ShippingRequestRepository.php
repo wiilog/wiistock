@@ -125,4 +125,11 @@ class ShippingRequestRepository extends EntityRepository {
             'total' => $total
         ];
     }
+
+    public function iterateShippingRequests(): iterable {
+        return $this
+            ->createQueryBuilder('shipping_request')
+            ->getQuery()
+            ->toIterable();
+    }
 }
