@@ -182,26 +182,14 @@
                                 </div>
                             {% endif %}
                         </div>
-                        {% if reference.id and not partialEdit %}
-                            <div class="col-12 col-md-6 d-flex">
-                                <img src="{{ asset('svg/Douane.svg') }}" class="icon" alt="Image code NDP"
-                                     width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Code NDP</span>
-                                    <span class="wii-body-text">{{ reference.ndpCode ? reference.ndpCode : '-' }}</span>
-                                </label>
+                        <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
+                            <div class="d-flex">
+                                <img src="{{ asset('svg/Douane.svg') }}" class="icon mr-2" alt="Image code NDP"
+                                     width="15px">
+                                <span class="wii-field-name">Code NDP</span>
                             </div>
-                        {% else %}
-                            <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
-                                <div class="d-flex">
-                                    <img src="{{ asset('svg/Douane.svg') }}" class="icon mr-2" alt="Image code NDP"
-                                         width="15px">
-                                    <span class="wii-field-name">Code NDP</span>
-                                </div>
-                                <input class="form-control data" name="ndpCode" type="text" value={{ reference.ndpCode }}>
-                            </div>
-                        {% endif %}
-
+                            <input class="form-control data" name="ndpCode" type="text" value={{ reference.ndpCode }}>
+                        </div>
                     </div>
 
                     <div class="row mt-3">
@@ -271,7 +259,8 @@
                                 'nameInput':'fileSheet',
                                 'attachmentLineOptions': {
                                     "sheetFileClass": "delete-sheet-file",
-                                    "savedSheetFiles":"savedSheetFile"
+                                    "savedSheetFiles":"savedSheetFile",
+                                    "dropFrameName":"dropFrameSheet"
                                 }
                             } %}
                         </div>

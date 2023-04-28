@@ -703,12 +703,22 @@ function processFilesForm($modal, data) {
         });
     }
 
-    const isInvalidRequired = (requiredSheetFile && sheetFile.length === 0 && !alreadyExistSheetFile) || (required && droppedFiles.length === 0 && $savedFiles.length === 0);
+    const isInvalidRequiredSheet = (requiredSheetFile && sheetFile.length === 0 && !alreadyExistSheetFile)
+    const isInvalidRequired = (required && droppedFiles.length === 0 && $savedFiles.length === 0);
+    let dropFrame;
+
+    if(isInvalidRequired){
+        dropFrame = [$modal.find('.dropFrame')]
+    }else if(isInvalidRequiredSheet){
+        dropFrame = [$modal.find('.dropFrameSheet')]
+    }else{
+        dropFrame = []
+    }
 
     return {
-        success: !isInvalidRequired,
-        errorMessages: isInvalidRequired ? [Translation.of('Général', '', 'Modale', 'Vous devez ajouter au moins une pièce jointe.')] : [],
-        $isInvalidElements: isInvalidRequired ? [$modal.find('.dropFrame')] : []
+        success: !isInvalidRequired && !isInvalidRequiredSheet,
+        errorMessages: (isInvalidRequired || isInvalidRequiredSheet) ? [Translation.of('Général', '', 'Modale', 'Vous devez ajouter au moins une pièce jointe.')] : [],
+        $isInvalidElements: dropFrame,
     };
 }
 
