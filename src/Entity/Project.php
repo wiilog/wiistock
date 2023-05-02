@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Repository\ProjectRepository;
 use Doctrine\ORM\Mapping as ORM;
 
