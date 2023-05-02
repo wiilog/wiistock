@@ -316,6 +316,10 @@ function initDataTable($table, options) {
             column.name = column.data;
         }
 
+        if(column.required) {
+            column.title += '*';
+        }
+
         if (config.order && Array.isArray(config.order)) {
             const newOrder = [];
             for (let [name, order] of config.order) {

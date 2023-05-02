@@ -195,6 +195,8 @@ class LivraisonController extends AbstractController {
                             "barCode" => $article->getBarCode() ?: '',
                             "label" => $article->getLabel() ?: '',
                             "quantity" => $line->getPickedQuantity(),
+                            "project" => $this->formatService->project($line?->getPreparation()->getDemande()->getProject()) ?? '',
+                            "comment" => $article->getCommentaire() ?: '',
                             "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                                 'id' => $article->getId(),
                             ]),
