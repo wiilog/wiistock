@@ -363,7 +363,7 @@ class DemandeController extends AbstractController
             'modifiable' => $status?->getCode() === Demande::STATUT_BROUILLON,
             'finished' => $status?->getCode() === Demande::STATUT_A_TRAITER,
             'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE),
-            "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($demande, $entityManager, $currentUser)),
+            "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($entityManager, $demande, true)),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
@@ -373,7 +373,9 @@ class DemandeController extends AbstractController
 
     #[Route("/delivery-request-logistic-units-api", name: "delivery_request_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
-    public function logisticUnitsApi(Request $request, EntityManagerInterface $manager): Response {
+    public function logisticUnitsApi(Request                 $request,
+                                     DemandeLivraisonService $deliveryRequestService,
+                                     EntityManagerInterface  $manager): Response {
         $deliveryRequest = $manager->find(Demande::class, $request->query->get('id'));
         $needsQuantitiesCheck = !$manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
         $editable = $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON;
@@ -416,7 +418,9 @@ class DemandeController extends AbstractController
                                 && $article->getQuantite() < $line->getQuantityToPick()
                                 && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON
                             ),
-                            "Actions" => $this->renderView(
+                            "project" => $this->getFormatter()->project($line->getProject()),
+                            "comment" => $line->getComment(),
+                            "actions" => $this->renderView(
                                 'demande/datatableLigneArticleRow.html.twig',
                                 [
                                     'id' => $line->getId(),
@@ -442,9 +446,12 @@ class DemandeController extends AbstractController
                     "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
                     "quantityToPick" => $line->getQuantityToPick() ?? '',
                     "barcode" => $reference->getBarCode() ?? '',
-                    "error" => $needsQuantitiesCheck && $reference->getQuantiteDisponible() < $line->getQuantityToPick()
+                    "error" => $needsQuantitiesCheck
+                        && $reference->getQuantiteDisponible() < $line->getQuantityToPick()
                         && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON,
-                    "Actions" => $this->renderView(
+                    "project" => $this->getFormatter()->project($line->getProject()),
+                    "comment" => $line->getComment(),
+                    "actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
                             'id' => $line->getId(),
@@ -467,6 +474,8 @@ class DemandeController extends AbstractController
         }
         $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
 
+        $columns = $deliveryRequestService->getVisibleColumnsTableArticleConfig($manager, $deliveryRequest);
+
         return $this->json([
             "success" => true,
             "html" => $this->renderView("demande/show/line-list.html.twig", [
@@ -474,6 +483,7 @@ class DemandeController extends AbstractController
                 "emptyLines" => $deliveryRequest->getArticleLines()->isEmpty() && $deliveryRequest->getReferenceLines()->isEmpty(),
                 "editable" => $editable
             ]),
+            "columns" => $columns,
         ]);
     }
 
@@ -1071,7 +1081,7 @@ class DemandeController extends AbstractController
                             'macroParams' => ['type', null, true, 'reference', ['type' => 'hidden']],
                         ])->getContent(),
                     "label" => $reference->getLibelle() ?: '',
-                    "quantity" => $this->render('form.html.twig', [
+                    "quantityToPick" => $this->render('form.html.twig', [
                         'macroName' => 'input',
                         'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
                     ])->getContent(),
@@ -1115,7 +1125,7 @@ class DemandeController extends AbstractController
                             'macroParams' => ['type', null, true, 'article', ['type' => 'hidden']],
                         ])->getContent(),
                     "label" => $article->getLabel() ?: '',
-                    "quantity" => $this->render('form.html.twig', [
+                    "quantityToPick" => $this->render('form.html.twig', [
                         'macroName' => 'input',
                         'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
                     ])->getContent(),
@@ -1164,7 +1174,7 @@ class DemandeController extends AbstractController
             "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
             "reference" => "",
             "label" => "",
-            "quantity" => "",
+            "quantityToPick" => "",
             "project" => "",
             "comment" => "",
             "barcode" => "",

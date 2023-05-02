@@ -6,6 +6,7 @@ use App\Entity\Emplacement;
 use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Repository\DeliveryRequest\DeliveryRequestReferenceLineRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DeliveryRequestReferenceLineRepository::class)]
@@ -35,7 +36,7 @@ class DeliveryRequestReferenceLine {
     #[ORM\ManyToOne(targetEntity: Project::class)]
     private ?Project $project = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
     public function getId(): ?int {
