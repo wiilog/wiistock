@@ -11,7 +11,7 @@
 
     <input type="hidden" name="isAttachmentForm" value="1"/>
     <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
-    <input type="hidden"  name="isSheetFileNeeded" value="{{ required ? 1 : 0 }}"/>
+    <input type="hidden" name="isSheetFileNeeded" value="{{ required ? 1 : 0 }}"/>
 
     {% if not noLabel %}
         <label for="dropfile"
@@ -49,25 +49,16 @@
     {% endif %}
     <div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
     {% if attachments is defined %}
-        {% if attachments is iterable %}
-            {% if isNew != true %}
-                {% for attachment in attachments %}
-                    {% include 'attachment/attachmentLine.html.twig' with {
-                        attachment: attachment,
-                        canRemove: editAttachments,
-                        icon: icon ?? null,
-                        fullWidth: fullWidth ?? false
-                    } %}
-                {% endfor %}
-            {% endif %}
-        {% else %}
-            {% include 'attachment/attachmentLine.html.twig' with {
-                attachment: attachments,
-                canRemove: editAttachments,
-                icon: icon ?? null,
-                sheetFileClass: "delete-sheet-file",
-                savedSheetFiles:"savedSheetFile"
-            } %}
+        {% if isNew != true %}
+            {% for attachment in attachments %}
+                // attachmentLineOptions
+                {% include 'attachment/attachmentLine.html.twig' with {
+                    attachment: attachment,
+                    canRemove: editAttachments,
+                    icon: icon ?? null,
+                    fullWidth: fullWidth ?? false
+                }|merge(attachmentLineOptions ?? {}) %}
+            {% endfor %}
         {% endif %}
     {% endif %}
 </div>
