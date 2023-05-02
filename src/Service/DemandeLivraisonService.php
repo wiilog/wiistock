@@ -888,7 +888,9 @@ class DemandeLivraisonService
         }
     }
 
-    public function getVisibleColumnsTableArticleConfig(Demande $request, EntityManagerInterface $entityManager, Utilisateur $user): array {
+    public function getVisibleColumnsTableArticleConfig(EntityManagerInterface $entityManager,
+                                                        $request,
+                                                        bool $editMode = false): array {
         $columnsVisible = $request->getVisibleColumns() ?? [];
 
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
@@ -901,30 +903,31 @@ class DemandeLivraisonService
         $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
 
         $columns = [
-            ["data" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Référence', 'required' => $editMode, 'data' => 'reference'],
-            ['title' => 'Code barre', 'data' => 'barcode'],
-            ['title' => 'Libellé', 'data' => 'label'],
-            ['title' => 'Article', 'required' => $editMode, 'data' => 'article', 'removeColumn' => !$editMode,],
-            ['title' => 'Quantité', 'required' => $editMode, 'data' => 'quantityToPick'],
-            ['title' => 'Emplacement', 'data' => 'location'],
-            ["data" => "error", "title" => "Erreur", "visible" => false, 'removeColumn' => $editMode,],
+            ["name" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['title' => 'Référence', 'required' => $editMode, 'name' => 'reference', 'alwaysVisible' => true],
+            ['title' => 'Code barre', 'name' => 'barcode', 'alwaysVisible' => false],
+            ['title' => 'Libellé', 'name' => 'label', 'alwaysVisible' => false],
+            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'removeColumn' => !$editMode, 'alwaysVisible' => true],
+            ['title' => 'Quantité', 'required' => $editMode, 'name' => 'quantityToPick', 'alwaysVisible' => true],
+            ['title' => 'Emplacement', 'name' => 'location', 'alwaysVisible' => false],
+            ["name" => "error", "title" => "Erreur", "visible" => false, 'removeColumn' => $editMode, 'alwaysVisible' => true],
 
             // TODO WIIS-9646
-            ['title' => 'Emplacement cible picking', 'data' => 'targetLocationPicking', 'removeColumn' => !$isTargetLocationPickingDisplayed],
+            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true],
 
             //TODO traduction de projet
-            ['title' => 'Projet', 'required' => $editMode && $isProjectRequired, 'data' => 'project', 'removeColumn' => !$isProjectDisplayed],
-            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'removeColumn' => !$isProjectDisplayed],
+            ['title' => 'Projet', 'required' => $editMode && $isProjectRequired, 'name' => 'project', 'alwaysVisible' => true],
+            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'name' => 'comment', 'alwaysVisible' => true],
         ];
 
-
-        return Stream::from($columns)
+        $columns = Stream::from($columns)
             ->filter(fn (array $column) => !($column['removeColumn'] ?? false)) // display column if removeColumn not defined
             ->map(function (array $column) {
                 unset($column['removeColumn']);
                 return $column;
             })
             ->values();
+
+        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 }

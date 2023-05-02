@@ -355,7 +355,7 @@ class DemandeController extends AbstractController
         $currentUser = $this->getUser();
 
         $status = $demande->getStatut();
-        $fields = $demandeLivraisonService->getVisibleColumnsTableArticleConfig($demande,$entityManager);
+        $fields = $demandeLivraisonService->getVisibleColumnsTableArticleConfig($entityManager, $demande);
 
         return $this->render('demande/show/index.html.twig', [
             'demande' => $demande,
