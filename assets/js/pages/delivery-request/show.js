@@ -470,7 +470,7 @@ function saveArticleLine(requestId, $row,) {
                 .route(POST, `api_demande_article_submit_change`, {deliveryRequest : requestId})
                 .json(data)
                 .then((response) => {
-                    if (response) {
+                    if (response.success) {
                         if (response.lineId) {
                             $row.find(`.delete-row`).attr(`data-id`, response.lineId);
                             $row.find('input[name="lineId"]').val(response.lineId);
