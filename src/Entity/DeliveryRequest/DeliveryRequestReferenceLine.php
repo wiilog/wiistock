@@ -3,6 +3,7 @@
 namespace App\Entity\DeliveryRequest;
 
 use App\Entity\Emplacement;
+use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Repository\DeliveryRequest\DeliveryRequestReferenceLineRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -30,6 +31,12 @@ class DeliveryRequestReferenceLine {
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'deliveryRequestReferenceLines')]
     private ?Emplacement $targetLocationPicking = null;
+
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $comment = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -105,6 +112,28 @@ class DeliveryRequestReferenceLine {
         if($targetLocationPicking) {
             $targetLocationPicking->addDeliveryRequestReferenceLine($this);
         }
+
+        return $this;
+    }
+
+    public function getComment(): ?string {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self {
+        $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
 
         return $this;
     }

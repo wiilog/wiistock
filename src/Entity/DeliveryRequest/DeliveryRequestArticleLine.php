@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\Project;
 use App\Repository\DeliveryRequest\DeliveryRequestArticleLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -35,6 +36,12 @@ class DeliveryRequestArticleLine {
 
     #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $pack = null;
+
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $comment = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -132,6 +139,28 @@ class DeliveryRequestArticleLine {
             ->setArticle($this->getArticle())
             ->setPack($this->getPack());
         return $preparationLine;
+    }
+
+    public function getComment(): ?string {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self {
+        $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
+
+        return $this;
     }
 
 }
