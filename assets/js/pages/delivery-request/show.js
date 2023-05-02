@@ -10,6 +10,7 @@ global.ajaxEditArticle = ajaxEditArticle;
 global.removeLogisticUnitLine = removeLogisticUnitLine;
 global.initDeliveryRequestModal = initDeliveryRequestModal;
 global.openAddLUModal = openAddLUModal;
+global.onChangeFillComment = onChangeFillComment;
 
 $(function () {
     $('.select2').select2();
@@ -508,5 +509,27 @@ function addArticleRow(table, $button) {
         table.draw();
 
         scrollToBottom();
+    }
+}
+
+function onChangeFillComment($selector) {
+    const $row = $selector.closest('tr');
+    const $article = $row.find('select[name="article"]');
+    const $quantity = $row.find('input[name=quantity-to-pick]');
+    const $comment = $row.find('input[name=comment]');
+    const project = $row.find('select[name=project]').find(':selected').text();
+    const receiver = $row.find('input[name=deliveryRequestReceiver]').val();
+
+    let fill = true;
+    if (($article && $article.val() === null) || $quantity.val() === null) {
+        fill = false;
+    }
+
+    if (fill) {
+        if (project === '') {
+            $comment.val("Sortie magasin effectuée à la demande de SAFRAN CERAMICS/SAMC" + (receiver ? "destiné à " + receiver : "."));
+        } else {
+            $comment.val("Sortie magasin effectuée sous le code " + project + " à la demande de SAFRAN CERAMICS/SAMC" + (receiver ? "destiné à " + receiver : "."));
+        }
     }
 }
