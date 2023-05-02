@@ -309,6 +309,8 @@ class DemandeLivraisonService
 
         $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? '');
 
+        $visibleColumns = $utilisateur->getVisibleColumns()[Demande::VISIBLE_COLUMNS_SHOW_FIELD] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
+
         $demande = new Demande();
         $demande
             ->setStatut($statut)
@@ -321,7 +323,8 @@ class DemandeLivraisonService
             ->setNumero($number)
             ->setManual($isManual)
             ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
-            ->setReceiver($receiver);
+            ->setReceiver($receiver)
+            ->setVisibleColumns($visibleColumns);
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 

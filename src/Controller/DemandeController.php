@@ -1269,13 +1269,15 @@ class DemandeController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
 
+        dump($data);
+
         $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
         $deliveryRequest = $deliveryRequestRepository->find($data['id']);
 
         $deliveryRequest->setVisibleColumns($fields);
 
         $currentUser = $this->getUser();
-        $visibleColumnService->setVisibleColumns('deliveryRequestShow', $fields, $currentUser);
+        $visibleColumnService->setVisibleColumns(Demande::VISIBLE_COLUMNS_SHOW_FIELD, $fields, $currentUser);
 
         $entityManager->flush();
 
