@@ -913,11 +913,11 @@ class DemandeLivraisonService
             ["name" => "error", "title" => "Erreur", "visible" => false, 'removeColumn' => $editMode, 'alwaysVisible' => true],
 
             // TODO WIIS-9646
-            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true],
+            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => !$isTargetLocationPickingDisplayed],
 
             //TODO traduction de projet
-            ['title' => 'Projet', 'required' => $editMode && $isProjectRequired, 'name' => 'project', 'alwaysVisible' => true],
-            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'name' => 'comment', 'alwaysVisible' => true],
+            ['title' => 'Projet', 'required' => $editMode && $isProjectRequired, 'name' => 'project', 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed],
+            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'name' => 'comment', 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
         ];
 
         $columns = Stream::from($columns)
