@@ -47,6 +47,9 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
+    #[ORM\Column(type: Types::STRING, unique: true, nullable: false)]
+    private ?string $number = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?DateTime $createdAt = null;
 
@@ -476,6 +479,12 @@ class ShippingRequest extends StatusHistoryContainer {
         return $this;
     }
 
+    public function getNumber(): ?string {
+        return $this->number;
+    }
 
-
+    public function setNumber(?string $number): self {
+        $this->number = $number;
+        return $this;
+    }
 }
