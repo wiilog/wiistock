@@ -1230,6 +1230,7 @@ class DemandeController extends AbstractController
                 $entityManager->flush();
                 $resp['lineId'] = $resp['line']->getId();
                 $resp['created'] = true;
+                $resp['success'] = true;
             }
         }
         return new JsonResponse(
