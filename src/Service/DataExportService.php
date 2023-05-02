@@ -9,6 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
 use App\Entity\ScheduleRule;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
@@ -17,6 +18,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
+use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,6 +46,9 @@ class DataExportService
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public ShippingRequestService $shippingRequestService;
 
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
@@ -127,6 +132,49 @@ class DataExportService
             'Date demande terminée',
             'Objets',
             'Anomalie température',
+        ];
+    }
+
+    public function createShippingRequestHeader() {
+        return [
+            "Numéro",
+            "Statut",
+            "Date de création",
+            "Date de validation",
+            "Date de planification",
+            "Date d'enlèvement prévu",
+            "Date d'expédition",
+            "Date de prise en charge souhaitée",
+            "Demandeur(s)",
+            "N° commande client",
+            "Livraison à titre gracieux",
+            "Articles conformes",
+            "Client",
+            "A l'attention de",
+            "Téléphone client",
+            "Adresse livraison",
+            "Unité logistique",
+            "Nature",
+            "Référence",
+            "Libellé",
+            "Article",
+            "Quantité",
+            "Prix unitaire ()",
+            "Poids nets (kg)",
+            "Montant total",
+            "Marchandise dangereuse",
+            "FDS",
+            "Code ONU",
+            "Classe produit",
+            "Code NDP",
+            "Envoi",
+            "Port",
+            "Nombre de colis",
+            "Dimension colis (cm)",
+            "Poids net transport (kg)",
+            "Poids brut transport (kg)",
+            "Valeur total transport",
+            "Spécification transport"
         ];
     }
 
@@ -224,6 +272,24 @@ class DataExportService
         /** @var Arrivage $arrival */
         foreach ($data as $arrival) {
             $this->arrivalService->putArrivalLine($output, $arrival, $columnToExport);
+        }
+    }
+
+    public function exportShippingRequests(iterable $data,
+                                           mixed $output) {
+        /** @var ShippingRequest $shippingRequest */
+        foreach ($data as $shippingRequest) {
+            if ($shippingRequest->getLines()->count() > 0) {
+                foreach ($shippingRequest->getLines() as $line) {
+                    foreach ($line->getArticles() as $article) {
+                        $this->shippingRequestService->putShippingRequestLine($output, $shippingRequest, $line, $article);
+                    }
+                }
+            } else {
+                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
+                    $this->shippingRequestService->putShippingRequestLine($output, $shippingRequest, $expectedLine);
+                }
+            }
         }
     }
 

@@ -6,15 +6,20 @@ use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\Menu;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Utilisateur;
+use App\Service\CSVExportService;
+use App\Service\DataExportService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/expeditions")
@@ -44,7 +49,8 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/api", name: "shipping_api", options: ["expose" => true], methods: ['GET', 'POST'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, ShippingRequestService $service) {
+    public function api(Request                $request,
+                        ShippingRequestService $service) {
         return $this->json($service->getDataForDatatable($request));
     }
 
@@ -68,5 +74,23 @@ class ShippingRequestController extends AbstractController {
             'success' => true,
             'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
         ]);
+    }
+
+    #[Route("/csv", name: "get_shipping_requests_csv", options: ["expose" => true], methods: ['GET'])]
+    public function exportShippingRequests(Request                $request,
+                                           EntityManagerInterface $entityManager,
+                                           CSVExportService       $csvService,
+                                           DataExportService      $dataExportService) {
+        $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
+
+        $csvHeader = $dataExportService->createShippingRequestHeader();
+
+        $today = new DateTime();
+        $today = $today->format("d-m-Y-H-i-s");
+        $shippingRequestsIterator = $shippingRepository->iterateShippingRequests();
+
+        return $csvService->streamResponse(function ($output) use ($dataExportService, $shippingRequestsIterator) {
+            $dataExportService->exportShippingRequests($shippingRequestsIterator, $output);
+        }, "export-expeditions_$today.csv", $csvHeader);
     }
 }
