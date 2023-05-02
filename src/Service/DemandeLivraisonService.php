@@ -888,7 +888,10 @@ class DemandeLivraisonService
         }
     }
 
-    public function getVisibleColumnsTableArticleConfig(Demande $request, EntityManagerInterface $entityManager, Utilisateur $user): array {
+    public function getVisibleColumnsTableArticleConfig(Demande $request, EntityManagerInterface $entityManager): array {
+
+        $columnsVisible = $request->getVisibleColumns() ?? [];
+
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
@@ -899,26 +902,26 @@ class DemandeLivraisonService
         $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
 
         $columns = [
-            ['data' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Référence*', 'data' => 'reference'],
-            ['title' => 'Libellé', 'data' => 'label'],
-            ['title' => 'Article*', 'data' => 'article'],
-            ['title' => 'Quantité*', 'data' => 'quantity'],
-            ['title' => 'Code barre', 'data' => 'barcode'],
-            ['title' => 'Emplacement', 'data' => 'location'],
+            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis',],
+            ['title' => 'Référence*', 'name' => 'reference', 'alwaysVisible' => true,],
+            ['title' => 'Libellé', 'name' => 'label','alwaysVisible' => false,],
+            ['title' => 'Article*', 'name' => 'article','alwaysVisible' => true,],
+            ['title' => 'Quantité*', 'name' => 'quantity','alwaysVisible' => true,],
+            ['title' => 'Code barre', 'name' => 'barcode','alwaysVisible' => false,],
+            ['title' => 'Emplacement', 'name' => 'location','alwaysVisible' => false,],
         ];
 
         if($isTargetLocationPickingDisplayed){
-            $columns[] = ['title' => 'Emplacement cible picking', 'data' => 'targetLocationPicking'];
+            $columns[] = ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true,];
         }
         if($isProjectDisplayed){
             //TODO traduction de projet
-            $columns[] = ['title' => 'Projet' . ($isProjectRequired ? '*' : ''), 'data' => 'project'];
+            $columns[] = ['title' => 'Projet' . ($isProjectRequired ? '*' : ''), 'name' => 'project', 'alwaysVisible' => true,];
         }
         if($isCommentDisplayed){
-            $columns[] = ['title' => 'Commentaire' . ($isCommentRequired ? '*' : ''), 'data' => 'comment'];
+            $columns[] = ['title' => 'Commentaire' . ($isCommentRequired ? '*' : ''), 'name' => 'comment', 'alwaysVisible' => true,];
         }
 
-        return $columns;
+        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 }

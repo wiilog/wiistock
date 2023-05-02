@@ -82,20 +82,19 @@
                             {% else %}
                                 <div class="row wii-page-card-header" id="boutonCollecteInf">
                                     <div class="col-auto ml-auto">
-{#                                        TODO WIIS-9529 #}
-{#                                        {% include "utils/action-buttons/header-buttons.html.twig" with {#}
-{#                                            actions: [#}
-{#                                                {#}
-{#                                                    hasRight: true,#}
-{#                                                    title: 'Gestion des colonnes',#}
-{#                                                    icon: "fas fa-cog mr-2",#}
-{#                                                    attributes: {#}
-{#                                                        "data-toggle": "",#}
-{#                                                        "data-target": "",#}
-{#                                                    }#}
-{#                                                },#}
-{#                                            ]#}
-{#                                        } %}#}
+                                        {% include "utils/action-buttons/header-buttons.html.twig" with {
+                                            actions: [
+                                                {
+                                                    hasRight: true,
+                                                    title: 'Gestion des colonnes',
+                                                    icon: "fas fa-cog mr-2",
+                                                    attributes: {
+                                                        "data-toggle": "modal",
+                                                        "data-target": "#modalColumnVisible",
+                                                    }
+                                                },
+                                            ]
+                                        } %}
                                     </div>
                                     <div class="col-12">
                                         <table id="editableTableArticles" class="table"
@@ -156,6 +155,13 @@
     {% if modifiable and setting_value('DELIVERY_REQUEST_ADD_UL') and hasRightEdit %}
         {% include 'demande/modalNewArticle.html.twig' %}
         {% include 'demande/modalEditArticle.html.twig' %}
+    {%  else %}
+        {% include "utils/visible_columns.html.twig" with {
+            'fields': fields,
+            'table': 'editableTableArticles',
+            'route': 'save_visible_columns_for_delivery_request_show',
+            'otherFields': form.input('id' , null, false, demande.id, {type: 'hidden'})
+        } %}
     {% endif %}
 
     {% include 'demande/modalDeleteArticle.html.twig' %}
