@@ -45,7 +45,7 @@ class ShippingRequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING], mode: HasPermission::IN_JSON)]
     public function api(Request                $request,
                         ShippingRequestService $service,
-                        EntityManager          $entityManager) {
+                        EntityManagerInterface $entityManager) {
         return $this->json($service->getDataForDatatable($request, $entityManager));
     }
 

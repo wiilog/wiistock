@@ -1,9 +1,10 @@
 let tableShippings;
 
 $(function() {
-    initTableShippings();
+    initTableShippings().then((table) => {
+        tableShippings = table;
+    });
 })
-
 
 function initTableShippings() {
     let initialVisible = $(`#tableShippings`).data(`initial-visible`);
@@ -24,12 +25,12 @@ function initTableShippings() {
             paging: true,
             ajax: {
                 url: Routing.generate('shipping_request_api', true),
-                type: "GET",
+                type: "POST",
             },
             rowConfig: {
                 needsRowClickAction: true,
             },
-            columns,
+            columns: columns,
             hideColumnConfig: {
                 columns,
                 tableFilter: 'tableShippings'
@@ -37,9 +38,9 @@ function initTableShippings() {
             drawConfig: {
                 needsSearchOverride: true,
             },
-            page: 'shipping-request',
+            page: 'shippingRequest',
         };
-        tableShippings = initDataTable('tableShippings', tableShippingsConfig);
-        return tableShippings;
+
+        return initDataTable('tableShippings', tableShippingsConfig);
     }
 }
