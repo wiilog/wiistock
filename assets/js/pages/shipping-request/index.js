@@ -1,3 +1,5 @@
+import {GET} from "@app/ajax";
+
 let tableShippings;
 
 $(function() {
@@ -9,8 +11,8 @@ $(function() {
 function initTableShippings() {
     let initialVisible = $(`#tableShippings`).data(`initial-visible`);
     if (!initialVisible) {
-        return $
-            .post(Routing.generate('shipping_request_api_columns'))
+        return AJAX
+            .route(GET, 'shipping_request_api_columns')
             .then(columns => proceed(columns));
     } else {
         return new Promise((resolve) => {
@@ -25,7 +27,7 @@ function initTableShippings() {
             paging: true,
             ajax: {
                 url: Routing.generate('shipping_request_api', true),
-                type: "POST",
+                type: "GET",
             },
             rowConfig: {
                 needsRowClickAction: true,

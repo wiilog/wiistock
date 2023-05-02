@@ -109,7 +109,7 @@ class ShippingRequestRepository extends EntityRepository {
             }
         }
 
-        // compte éléments filtrés
+        // counts the filtered elements
         $filtered = QueryBuilderHelper::count($qb, 'shipping_request');
 
         if (!empty($params)) {
