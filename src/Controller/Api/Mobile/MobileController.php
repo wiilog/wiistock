@@ -825,9 +825,9 @@ class MobileController extends AbstractApiController
                                     false,
                                     $emplacementPrepa
                                 );
-
+                                $code = $movement->getRefArticle() ? $movement->getRefArticle()->getBarCode() : $movement->getArticle()->getBarCode();
                                 $trackingMovementPick = $trackingMovementService->createTrackingMovement(
-                                    $movement->getArticle()->getBarCode(),
+                                    $code,
                                     $movement->getEmplacementFrom(),
                                     $nomadUser,
                                     $dateEnd,
@@ -840,9 +840,9 @@ class MobileController extends AbstractApiController
                                     ]
                                 );
                                 $entityManager->persist($trackingMovementPick);
-
+                                $entityManager->flush();
                                 $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
-                                    $movement->getArticle()->getBarCode(),
+                                    $code,
                                     $movement->getEmplacementTo(),
                                     $nomadUser,
                                     $dateEnd,
@@ -857,7 +857,6 @@ class MobileController extends AbstractApiController
 
                                 $entityManager->persist($trackingMovementDrop);
                                 $ulToMove[] = $movement->getArticle()?->getCurrentLogisticUnit();
-
                                 $entityManager->flush();
                             }
                         }
@@ -1170,11 +1169,9 @@ class MobileController extends AbstractApiController
                 try {
                     if ($location) {
                         // flush auto at the end
-                        $entityManager->transactional(function () use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $location) {
-                            $livraisonsManager->setEntityManager($entityManager);
-                            $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location, true);
-                            $entityManager->flush();
-                        });
+                        $livraisonsManager->setEntityManager($entityManager);
+                        $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location, true);
+                        $entityManager->flush();
 
                         $resData['success'][] = [
                             'numero_livraison' => $livraison->getNumero(),
@@ -1196,6 +1193,10 @@ class MobileController extends AbstractApiController
                         default => false,
                     };
 
+                    if($throwable->getCode() === LivraisonsManagerService::NATURE_NOT_ALLOWED){
+                        $message = $throwable->getMessage();
+                    }
+
                     if (!$message) {
                         $exceptionLoggerService->sendLog($throwable, $request);
                     }
@@ -1207,8 +1208,6 @@ class MobileController extends AbstractApiController
                         'message' => $message ?: 'Une erreur est survenue',
                     ];
                 }
-
-                $entityManager->flush();
             }
         }
 
@@ -1991,7 +1990,12 @@ class MobileController extends AbstractApiController
         if ($article) {
             throw new FormException("Tag RFID déjà existant en base.");
         }
-        $type = $typeRepository->find($request->request->get('type'));
+
+        $typeStr = $request->request->get('type');
+        $type = $typeStr
+            ? $typeRepository->find($typeStr)
+            : null;
+
         $statut = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
 
         $fromMatrix = $request->request->getBoolean('fromMatrix');
@@ -2081,7 +2085,7 @@ class MobileController extends AbstractApiController
             ->setEmplacement($destination)
             ->setArticleFournisseur($articleSupplier)
             ->setType($type)
-            ->setBarCode($articleDataService->generateBarCode())
+            ->setBarCode($articleDataService->generateBarcode())
             ->setStockEntryDate($now)
             ->setDeliveryNote($deliveryLineStr)
             ->setNativeCountry($countryFrom)
@@ -2111,7 +2115,7 @@ class MobileController extends AbstractApiController
         $entityManager->persist($stockMovement);
 
         $trackingMovement = $trackingMovementService->createTrackingMovement(
-            $article,
+            $article->getTrackingPack() ?: $article->getBarCode(),
             $article->getEmplacement(),
             $this->getUser(),
             $now,
@@ -3845,9 +3849,9 @@ class MobileController extends AbstractApiController
      * @Wii\RestVersionChecked()
      */
     public function finishTruckArrival(Request                $request,
-                                     EntityManagerInterface $entityManager,
-                                     UniqueNumberService $uniqueNumberService,
-                                     KernelInterface $kernel): Response {
+                                       EntityManagerInterface $entityManager,
+                                       UniqueNumberService    $uniqueNumberService,
+                                       KernelInterface        $kernel): Response {
         $data = $request->request;
 
         $carrierRepository = $entityManager->getRepository(Transporteur::class);

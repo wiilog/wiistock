@@ -225,7 +225,7 @@ class ArticleController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
 
-        $barcode = $articleDataService->generateBarCode();
+        $barcode = $articleDataService->generateBarcode();
 
         return $this->render("article/form/new.html.twig", [
             "new_article" => new Article(),
@@ -261,7 +261,7 @@ class ArticleController extends AbstractController
                 ]);
             }
 
-            $article = $this->articleDataService->newArticle($data, $entityManager);
+            $article = $this->articleDataService->newArticle($entityManager, $data);
             $refArticleId = $data["refArticle"];
             $refArticleFournisseurId = $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : '';
 
@@ -314,7 +314,7 @@ class ArticleController extends AbstractController
             return $this->json([
                 'success' => false,
                 'msg' => "Le code barre de l'article a été actualisé, veuillez valider de nouveau le formulaire.",
-                'barcode' => $articleDataService->generateBarCode()
+                'barcode' => $articleDataService->generateBarcode()
             ]);
         }
     }
@@ -328,7 +328,9 @@ class ArticleController extends AbstractController
         if ($data = $request->request->all()) {
             $article = $entityManager->getRepository(Article::class)->find($data['id']);
                 try {
-                    $article = $this->articleDataService->newArticle($data, $entityManager, $article);
+                    $article = $this->articleDataService->newArticle($entityManager, $data, [
+                        "existing" => $article,
+                    ]);
                     $response = [
                         'success' => true,
                         'articleId' => $data['id'],

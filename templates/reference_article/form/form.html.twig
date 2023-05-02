@@ -4,7 +4,7 @@
 {% set partialEdit = reference.id and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
 {% set hasRightCreateDraft = (not reference.id or reference.statut.draft) and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_DRAFT_REFERENCE')) %}
 {% set disabled = editable ? '' : 'disabled' %}
-{% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') %}
+{% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') %}
 {% set statuses = {
     'actif': {
         'status': 'active',
@@ -106,7 +106,7 @@
                                            name="statut"
                                            value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
                                            content="Actif"
-                                        {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }}
+                                        {{ not reference.statut or reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }}
                                            onchange="changeNewReferenceStatus($(this))">
                                     <input type="radio"
                                            name="statut"
@@ -182,7 +182,28 @@
                                 </div>
                             {% endif %}
                         </div>
+                        {% if reference.id and not partialEdit %}
+                            <div class="col-12 col-md-6 d-flex">
+                                <img src="{{ asset('svg/Douane.svg') }}" class="icon" alt="Image code NDP"
+                                     width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Code NDP</span>
+                                    <span class="wii-body-text">{{ reference.ndpCode ? reference.ndpCode : '-' }}</span>
+                                </label>
+                            </div>
+                        {% else %}
+                            <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
+                                <div class="d-flex">
+                                    <img src="{{ asset('svg/Douane.svg') }}" class="icon mr-2" alt="Image code NDP"
+                                         width="15px">
+                                    <span class="wii-field-name">Code NDP</span>
+                                </div>
+                                <input class="form-control data" name="ndpCode" type="text" value={{ reference.ndpCode }}>
+                            </div>
+                        {% endif %}
+
                     </div>
+
                     <div class="row mt-3">
                         <div class="col-12">
                             {% include 'attachment/attachment.html.twig' with {
@@ -210,6 +231,60 @@
                 <div class="content">
                     <div class="row">
                         {{ macros.descriptionForm(reference.description, descriptionConfig, 6) }}
+                    </div>
+                </div>
+            </div>
+            <div class="wii-box">
+                <div class="header wii-title">Données Sécurité</div>
+                <div class="content">
+                    <label class="wii-field-name w-100">
+                        Marchandise dangereuse
+                    </label>
+                    <div class="wii-switch" data-title="Security">
+                        <input type="radio"
+                               name="security"
+                               value="{{ constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_YES') }}"
+                               content="Oui"
+                               data-title="yes"
+                               onclick="onTypeSecurityChange($(this))"
+                            {{ reference.id ? 'class="security"' : 'class="security data"' }}
+                            {{ reference.dangerousGoods == constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_YES') ? 'checked' }}>
+                        <input type="radio"
+                               name="security"
+                               value="{{ constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_NO') }}"
+                               content="Non"
+                               data-title="no"
+                               onclick="onTypeSecurityChange($(this))"
+                            {{ reference.id ? 'class="security"' : 'class="security data"' }}
+                            {{ not reference.id or reference.dangerousGoods == constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_NO') ? 'checked' }}>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            {% include 'attachment/attachment.html.twig' with {
+                                'isNew' : not reference.id,
+                                'button': 'Parcourir vos fichiers',
+                                'attachments': reference.sheet ? [reference.sheet] : [],
+                                'editAttachments': editable or partialEdit,
+                                'fieldNameClass': 'wii-field-name',
+                                'multiple': false,
+                                'label':'Fiche',
+                                'nameInput':'fileSheet',
+                                'attachmentLineOptions': {
+                                    "sheetFileClass": "delete-sheet-file",
+                                    "savedSheetFiles":"savedSheetFile"
+                                }
+                            } %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
+                            <span class="wii-field-name">Code ONU</span>
+                            <input class="form-control data" name="onuCode" type="text" value={{ reference.onuCode }}>
+                        </div>
+                        <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
+                            <span class="wii-field-name">Classe produit</span>
+                            <input class="form-control data" name="productClass" type="text" value={{ reference.productClass }}>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -245,20 +320,23 @@
                         <div class="wii-switch needed" data-title="Statut">
                             <input type="radio"
                                    name="type_quantite"
-                                   value="reference"
-                                   content="Référence"
-                                   data-title="reference"
-                                   onclick="onTypeQuantityChange($(this))"
-                                {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') ? 'checked' }}>
-                            <input type="radio"
-                                   name="type_quantite"
                                    value="article"
                                    content="Article"
                                    data-title="article"
                                    onclick="onTypeQuantityChange($(this))"
                                 {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') ? 'checked' }}>
+                                {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') ? 'checked' }}>
+
+
+                            <input type="radio"
+                                   name="type_quantite"
+                                   value="reference"
+                                   content="Référence"
+                                   data-title="reference"
+                                   onclick="onTypeQuantityChange($(this))"
+                                {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
+                                {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') ? 'checked' }}>
+
                         </div>
                     {% endif %}
 
@@ -302,14 +380,14 @@
                                             </div>
                                         {% endif %}
                                     {% else %}
-                                        <div class="col-12 col-md-6 reference mt-3 {{ reference.id and reference.typeQuantite != 'reference' ? 'd-none' }}">
+                                        <div class="col-12 col-md-6 reference mt-3 {{ not reference.id and reference.typeQuantite != 'reference' ? 'd-none' }}">
                                             <label class="w-100">
                                                 <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
                                                     Emplacement*
                                                 </span>
                                                 <select name="emplacement"
-                                                        class="form-control w-100 data needed"
+                                                        class="form-control w-100 data"
                                                         data-s2="location"
                                                     {% if defaultLocation is defined and defaultLocation %}
                                                         data-draft-default-value="{{ defaultLocation.id }}"
@@ -323,7 +401,7 @@
                                                 </select>
                                             </label>
                                         </div>
-                                        <div class="col-12 col-md-4 reference mt-3">
+                                        <div class="col-12 col-md-4 reference mt-3 {{ not reference.id and reference.typeQuantite != 'reference' ? 'd-none' }}">
                                             <label>
                                                 <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
@@ -334,7 +412,7 @@
                                                     <input type="number"
                                                            data-no-arrow
                                                            name="quantite"
-                                                           class="form-control data needed w-50"
+                                                           class="form-control data w-50"
                                                            min="0"
                                                            value="{{ hasRightCreateDraft ? 0 : '' }}"
                                                         {{ hasRightCreateDraft ? 'disabled' }}>
@@ -405,7 +483,7 @@
                                 <div class="row">
                                     {% if not partialEdit %}
                                         <div class="col-12 col-md-4 mt-3">
-                                            <div class="reference {{ reference.id and reference.typeQuantite != 'reference' ? 'd-none' }}">
+                                            <div class="reference {{ not reference.id or reference.typeQuantite != 'reference' ? 'd-none' }}">
                                                 <label>
                                                     <span class="icon wii-field-name">
                                                         <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
@@ -415,7 +493,7 @@
                                                            value="{{ reference.prixUnitaire }}" min="0">
                                                 </label>
                                             </div>
-                                            <div class="article {{ not reference.id or reference.typeQuantite != 'article' ? 'd-none' }}">
+                                            <div class="article {{ reference.id and reference.typeQuantite != 'article' ? 'd-none' }}">
                                                 <label>
                                                     <span class="icon wii-field-name">
                                                         <img src="{{ asset('svg/reference_article/stock-management.svg') }}"
@@ -676,6 +754,7 @@
 
         <input type="hidden" class="no-clear" id="default-image" value="{{ asset('svg/reference_article/product.svg') }}">
         <input type="hidden" class="no-clear data" name="deletedImage" value="0">
+        <input type="hidden" class="no-clear data" name="deletedSheetFile" value="0">
         <input type="hidden" class="no-clear data" name="suppliers-to-remove" id="suppliers-to-remove" value="">
         <input type="hidden" class="no-clear data" name="storage-rules-to-remove" id="storage-rules-to-remove" value="">
     </div>

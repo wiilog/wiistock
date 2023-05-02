@@ -26,6 +26,7 @@ use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
+use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
@@ -318,10 +319,11 @@ class PreparationController extends AbstractController
     public function delete(Preparation                $preparation,
                            EntityManagerInterface     $entityManager,
                            PreparationsManagerService $preparationsManagerService,
+                           MouvementStockService      $mouvementStockService,
                            RefArticleDataService      $refArticleDataService): Response
     {
 
-        $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
+        $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager, $mouvementStockService);
         $entityManager->flush();
 
         $entityManager->remove($preparation);
@@ -947,8 +949,8 @@ class PreparationController extends AbstractController
                     if ($demande->getType()->getSendMailRequester()) {
                         $to[] = $demande->getUtilisateur();
                     }
-                    if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
-                        $to[] = $demande->getDestinataire();
+                    if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
+                        $to[] = $demande->getReceiver();
                     }
 
                     $nowDate = new DateTime('now');

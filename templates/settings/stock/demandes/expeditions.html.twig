@@ -1,0 +1,37 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section-title">Emplacements par défaut</div>
+<div class="row wii-section">
+    <div class="col-md-6 col-12 my-1">
+        {% set settingShippingLocationFrom = setting_value('SHIPPING_LOCATION_FROM', 'App\\Entity\\Emplacement') %}
+        {{ form.select(setting('SHIPPING_LOCATION_FROM'), "Emplacement d'expédition", false, {
+            type: 'location',
+            placeholder: "Sélectionnez un emplacement d'expédition",
+            search: true,
+            value: settingShippingLocationFrom ? settingShippingLocationFrom.id : null,
+            items: settingShippingLocationFrom ? {
+                0: {
+                    'value': settingShippingLocationFrom.id,
+                    'label':  settingShippingLocationFrom.label,
+                    'selected': true
+                }
+            } : null,
+        }) }}
+    </div>
+    <div class="col-md-6 col-12 my-1">
+        {% set settingShippingLocationTo = setting_value('SHIPPING_LOCATION_TO', 'App\\Entity\\Emplacement') %}
+        {{ form.select(setting('SHIPPING_LOCATION_TO'), "Quai d'expédition", false, {
+            type: 'location',
+            placeholder: "Sélectionnez un quai d'expédition",
+            search: true,
+            value: settingShippingLocationTo ? settingShippingLocationTo.id : null,
+            items: settingShippingLocationTo ? {
+                0: {
+                    'value': settingShippingLocationTo.id,
+                    'label':  settingShippingLocationTo.label,
+                    'selected': true
+                }
+            } : null,
+        }) }}
+    </div>
+</div>

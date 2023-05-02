@@ -29,6 +29,13 @@
             : trans('Général', null, 'Zone filtre', 'Utilisateurs', false))
     } %}
 
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        placeholder: (page == 'PAGE_HAND'
+            ? trans('Demande', 'Général', 'Destinataires', false)
+            : trans('Général', null, 'Zone filtre', 'Destinataires', false)),
+        name: constant('App\\Entity\\FiltreSup::FIELD_RECEIVERS')
+    } %}
+
     {% if page == 'PAGE_HAND' %}
         {% include 'filters/filter_item/filterSubject.html.twig' %}
         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
@@ -47,5 +54,12 @@
         {% endif %}
     {% elseif emergency is defined and emergency %}
         {% include 'filters/filter_item/filterEmergency.html.twig' %}
+    {% endif %}
+
+    {% if page == 'PAGE_DEM_LIVRAISON' %}
+        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
+        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+            {% include 'filters/filter_item/filterProject.html.twig' %}
+        {% endif %}
     {% endif %}
 {% endblock %}
