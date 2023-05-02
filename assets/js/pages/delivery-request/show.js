@@ -412,7 +412,7 @@ function initEditableTableArticles($table) {
         if ($articleSelect.exists()) {
             if(typeQuantite === 'article') {
                 AJAX
-                    .route(GET, 'api_articles-by-reference', {referenceArticle})
+                    .route(GET, 'api_articles-by-reference', {'demande': $('[name=demandeId]').val(), referenceArticle})
                     .json()
                     .then(({data}) => {
                         const articleSelect = $row.find('select[name="article"]')

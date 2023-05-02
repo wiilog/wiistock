@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryFrequency;
@@ -291,7 +292,8 @@ class ArticleRepository extends EntityRepository {
 	public function findActiveArticles(ReferenceArticle $referenceArticle,
                                        ?Emplacement     $targetLocationPicking = null,
                                        ?string          $fieldToOrder = null,
-                                       ?string          $order = null): array
+                                       ?string          $order = null,
+                                       ?Demande         $demande = null): array
 	{
 	    $queryBuilder = $this->createQueryBuilder('article')
             ->join('article.articleFournisseur', 'articleFournisseur')
@@ -308,6 +310,14 @@ class ArticleRepository extends EntityRepository {
 	        $queryBuilder
                 ->addOrderBy('IF(article.emplacement = :targetLocationPicking, 1, 0)', Criteria::DESC)
                 ->setParameter('targetLocationPicking', $targetLocationPicking);
+        }
+
+        if($demande){
+            $queryBuilder
+                ->andWhere('request.id != :demandeId OR request.id IS NULL')
+                ->leftJoin('article.deliveryRequestLines', 'lines')
+                ->leftJoin('lines.request', 'request')
+                ->setParameter('demandeId', $demande->getId());
         }
 
 	    if ($order && $fieldToOrder) {

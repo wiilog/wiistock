@@ -102,11 +102,15 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('type.id as typeId')
             ->andWhere("reference.reference LIKE :term")
             ->andWhere("status.code != :draft")
+            ->andWhere("deliveryRequest.id != :demandeId OR deliveryRequest.id IS NULL")
+            ->leftJoin("reference.deliveryRequestLines", "lines")
+            ->leftJoin("lines.request", "deliveryRequest")
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
             ->leftJoin("reference.type", "type")
             ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
+            ->setParameter("demandeId", $options['demandeId'])
             ->getQuery()
             ->getArrayResult();
     }

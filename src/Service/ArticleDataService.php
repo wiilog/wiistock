@@ -142,9 +142,9 @@ class ArticleDataService
         return $data;
     }
 
-    public function findAndSortActiveArticlesByRefArticle(ReferenceArticle $refArticle, $management ,EntityManagerInterface $entityManager){
+    public function findAndSortActiveArticlesByRefArticle(ReferenceArticle $refArticle, $management, EntityManagerInterface $entityManager, ?Demande $demande = null){
         $articleRepository = $this->entityManager->getRepository(Article::class);
-        $articles = $articleRepository->findActiveArticles($refArticle);
+        $articles = $articleRepository->findActiveArticles($refArticle, null, null, null, $demande);
         return $management
             ? Stream::from($articles)
                 ->sort(function (Article $article1, Article $article2) use ($management) {
