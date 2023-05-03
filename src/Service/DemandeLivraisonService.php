@@ -894,7 +894,12 @@ class DemandeLivraisonService
     public function getVisibleColumnsTableArticleConfig(EntityManagerInterface $entityManager,
                                                         $request,
                                                         bool $editMode = false): array {
-        $columnsVisible = $request->getVisibleColumns() ?? [];
+        $columnsVisible = $request->getVisibleColumns();
+        if ($columnsVisible === null) {
+            $request->setVisibleColumns(Demande::DEFAULT_VISIBLE_COLUMNS);
+            $entityManager->flush();
+            $columnsVisible = $request->getVisibleColumns();
+        }
 
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);

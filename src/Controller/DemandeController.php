@@ -1269,8 +1269,6 @@ class DemandeController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
 
-        dump($data);
-
         $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
         $deliveryRequest = $deliveryRequestRepository->find($data['id']);
 

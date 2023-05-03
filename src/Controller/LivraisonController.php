@@ -192,9 +192,10 @@ class LivraisonController extends AbstractController {
                         $article = $line->getArticle();
                         return [
                             "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
-                            "barCode" => $article->getBarCode() ?: '',
+                            "barcode" => $article->getBarCode() ?: '',
                             "label" => $article->getLabel() ?: '',
                             "quantity" => $line->getPickedQuantity(),
+                            // TODO RECUP LES BON CHAMPS POUR LES PROJETS ET COMMENTAIRES
                             "project" => $this->formatService->project($line?->getPreparation()->getDemande()->getProject()) ?? '',
                             "comment" => $article->getCommentaire() ?: '',
                             "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
@@ -212,15 +213,20 @@ class LivraisonController extends AbstractController {
                 return [
                     "reference" => $reference->getReference(),
                     "label" => $reference->getLibelle(),
-                    "barCode" => $reference->getBarCode() ?: '',
+                    "barcode" => $reference->getBarCode() ?: '',
                     "location" => $this->formatService->location($reference->getEmplacement()),
                     "quantity" => $line->getPickedQuantity(),
+                    // TODO RECUP LES BON CHAMPS POUR LES PROJETS ET COMMENTAIRES
+                    "project" => $this->formatService->project($line?->getPreparation()->getDemande()->getProject()) ?? '',
+                    "comment" => '',
                     "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                         'refArticleId' => $reference->getId(),
                     ]),
                 ];
             })
             ->toArray();
+
+        //TODO LES Articles !!!!!!!!!!!!!!!
 
         if (!isset($lines[0]) || $lines[0]['pack'] !== null) {
             array_unshift($lines, [
@@ -253,7 +259,7 @@ class LivraisonController extends AbstractController {
                 if ($articleLine->getQuantityToPick() !== 0 && $articleLine->getPickedQuantity() !== 0 && !$article->getCurrentLogisticUnit()) {
                     $rows[] = [
                         "reference" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "barCode" => $article->getBarCode() ?: '',
+                        "barcode" => $article->getBarCode() ?: '',
                         "label" => $article->getLabel() ?: '',
                         "location" => FormatHelper::location($article->getEmplacement()),
                         "quantity" => $articleLine->getPickedQuantity(),
@@ -293,14 +299,15 @@ class LivraisonController extends AbstractController {
      * @Route("/voir/{id}", name="livraison_show", options={"expose"=true}, methods={"GET","POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
-    public function show(Livraison $livraison, LivraisonService $livraisonService): Response
+    public function show(EntityManagerInterface $entityManager, Livraison $livraison, LivraisonService $livraisonService): Response
     {
         $headerDetailsConfig = $livraisonService->createHeaderDetailsConfig($livraison);
 
         return $this->render('livraison/show.html.twig', [
             'livraison' => $livraison,
             'finished' => $livraison->isCompleted(),
-            'headerConfig' => $headerDetailsConfig
+            'headerConfig' => $headerDetailsConfig,
+            'initialVisibleColumns' => json_encode($livraisonService->getVisibleColumnsShow($entityManager, $livraison->getDemande())),
         ]);
     }
 
