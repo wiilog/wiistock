@@ -507,20 +507,17 @@ function onChangeFillComment($selector) {
     const $row = $selector.closest('tr');
     const settingWithProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT]').val();
     const settingWithoutProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT]').val();
-    if (settingWithProject !== null && settingWithoutProject !== null && settingWithProject !== "" && settingWithoutProject !== "") {
+    if (settingWithProject && settingWithoutProject) {
         const $article = $row.find('select[name="article"]');
         const $quantity = $row.find('input[name=quantity-to-pick]');
         const $comment = $row.find('input[name=comment]');
         const project = $row.find('select[name=project]').find(':selected').text();
         const receiver = $('input[name=deliveryRequestReceiver]').val();
 
-        let fill = true;
-        if (($article && $article.val() === null) || $quantity.val() === null) {
-            fill = false;
-        }
+        let fill = !($quantity.val() === null || ($article && $article.val() === null));
 
         if (fill) {
-            if (project === '') {
+            if (!project) {
                 let textWithoutProject = settingWithoutProject.replace("@Destinataire", receiver ?? "");
                 $comment.val(textWithoutProject);
             } else {
