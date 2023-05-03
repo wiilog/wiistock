@@ -397,6 +397,8 @@ function initEditableTableArticles($table) {
         const referenceArticle = Number($(this).val());
 
         $row.find('.article-label').text(label);
+        //CSS: allow to wrap text and not taking the place of "article" field
+        $row.find('.article-label').css('white-space','normal')
         $row.find('.article-barcode').text(barCode);
 
         const $articleSelect = $row.find('select[name="article"]');
