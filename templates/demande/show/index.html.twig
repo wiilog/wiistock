@@ -113,13 +113,19 @@
                                                     additionalAttributes: [
                                                         {
                                                             name: 'data-other-params',
-                                                        }, {
+                                                        },
+                                                        {
                                                             name: 'data-other-params-with-articles',
                                                             value: '1'
-                                                        }, {
-                                                            name: 'data-other-params-delivery-request',
+                                                        },
+                                                        {
+                                                            name: 'data-other-params-ignored-delivery-request',
                                                             value: demande.id
-                                                        }
+                                                        },
+                                                        {
+                                                            name: 'data-other-params-status',
+                                                            value: constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')
+                                                        },
                                                     ],
                                                 })
                                                 ~ form.input('lineId', null, false, null, {type: 'hidden'})

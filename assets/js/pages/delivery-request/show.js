@@ -416,6 +416,7 @@ function initEditableTableArticles($table) {
                     .json()
                     .then(({data}) => {
                         const articleSelect = $row.find('select[name="article"]')
+                        articleSelect.append(`<option></option>`);
                         data.forEach((article) => {
                             articleSelect.append(`<option value="${article.value}">${article.text}</option>`);
                         });

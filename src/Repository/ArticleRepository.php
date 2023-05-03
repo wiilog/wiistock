@@ -293,13 +293,14 @@ class ArticleRepository extends EntityRepository {
                                        ?Emplacement     $targetLocationPicking = null,
                                        ?string          $fieldToOrder = null,
                                        ?string          $order = null,
-                                       ?Demande         $request = null): array
+                                       ?Demande         $ignoredDeliveryRequest = null): array
 	{
 	    $queryBuilder = $this->createQueryBuilder('article')
+            ->distinct()
             ->join('article.articleFournisseur', 'articleFournisseur')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->join('article.statut', 'articleStatus')
-            ->where('articleStatus.nom = :activeStatus')
+            ->where('articleStatus.code = :activeStatus')
             ->andWhere('article.quantite IS NOT NULL')
             ->andWhere('article.quantite > 0')
             ->andWhere('referenceArticle = :refArticle')
@@ -312,12 +313,20 @@ class ArticleRepository extends EntityRepository {
                 ->setParameter('targetLocationPicking', $targetLocationPicking);
         }
 
-        if($request){
+        if($ignoredDeliveryRequest){
+            $queryHasResult = $this->createQueryBuilder("article_has_request")
+                ->select('COUNT(article_has_request)')
+                ->join("article_has_request.deliveryRequestLines", "lines")
+                ->join("lines.request", "deliveryRequest")
+                ->andWhere("deliveryRequest = :ignoredDeliveryRequest")
+                ->andWhere("article_has_request.id = article.id")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
             $queryBuilder
-                ->andWhere('request.id != :requestId OR request.id IS NULL')
-                ->leftJoin('article.deliveryRequestLines', 'lines')
-                ->leftJoin('lines.request', 'request')
-                ->setParameter('requestId', $request->getId());
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('ignoredDeliveryRequest', $ignoredDeliveryRequest);
         }
 
 	    if ($order && $fieldToOrder) {

@@ -91,15 +91,24 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->setParameter('status', $options['status']);
         }
 
-        if($options['deliveryRequestId'] ?? false){
+        if($options['ignoredDeliveryRequest'] ?? false) {
+            $queryHasResult = $this->createQueryBuilder("reference_has_request")
+                ->select('COUNT(reference_has_request)')
+                ->join("reference_has_request.deliveryRequestLines", "lines")
+                ->join("lines.request", "deliveryRequest")
+                ->andWhere("deliveryRequest.id = :deliveryRequestId")
+                ->andWhere("reference_has_request.id = reference.id")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
             $queryBuilder
-                ->andWhere("deliveryRequest.id IS NULL OR deliveryRequest.id != :deliveryRequestId")
-                ->leftJoin("reference.deliveryRequestLines", "lines")
-                ->leftJoin("lines.request", "deliveryRequest")
-                ->setParameter('deliveryRequestId', $options['deliveryRequestId']);
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('deliveryRequestId', $options['ignoredDeliveryRequest']);
         }
 
         return $queryBuilder
+            ->distinct()
             ->select("reference.id AS id")
             ->addSelect('reference.reference AS text')
             ->addSelect('reference.libelle AS label')
