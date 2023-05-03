@@ -363,8 +363,8 @@ class PreparationsManagerService
                 $newLigneArticle
                     ->setPreparation($newPreparation)
                     ->setReference($refArticle)
-                    ->setQuantityToPick($newQuantity);
-
+                    ->setQuantityToPick($newQuantity)
+                    ->setDeliveryRequestReferenceLine($ligneArticlePreparation->getDeliveryRequestReferenceLine());
                 if (empty($pickedQuantity)) {
                     $entityManager->remove($ligneArticlePreparation);
                 }
@@ -521,7 +521,8 @@ class PreparationsManagerService
                 $articleLine = new PreparationOrderArticleLine();
                 $articleLine
                     ->setArticle($article)
-                    ->setPreparation($preparation);
+                    ->setPreparation($preparation)
+                    ->setDeliveryRequestReferenceLine($referenceLine->getDeliveryRequestReferenceLine());
                 $entityManager->persist($articleLine);
             }
 

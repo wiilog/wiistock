@@ -190,14 +190,14 @@ class LivraisonController extends AbstractController {
                     ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
                     ->map(function(PreparationOrderArticleLine $line) {
                         $article = $line->getArticle();
+                        $deliveryRequestLine = $line->getDeliveryRequestArticleLine() ?? $line->getDeliveryRequestReferenceLine();
                         return [
                             "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
                             "barcode" => $article->getBarCode() ?: '',
                             "label" => $article->getLabel() ?: '',
                             "quantity" => $line->getPickedQuantity(),
-                            // TODO RECUP LES BON CHAMPS POUR LES PROJETS ET COMMENTAIRES
-                            "project" => $this->formatService->project($line?->getPreparation()->getDemande()->getProject()) ?? '',
-                            "comment" => $article->getCommentaire() ?: '',
+                            "project" => $this->formatService?->project($deliveryRequestLine->getProject()),
+                            "comment" => $deliveryRequestLine?->getComment() ?: '',
                             "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                                 'id' => $article->getId(),
                             ]),
@@ -210,23 +210,21 @@ class LivraisonController extends AbstractController {
         $references = Stream::from($preparationOrder->getReferenceLines())
             ->map(function(PreparationOrderReferenceLine $line) {
                 $reference = $line->getReference();
+                $deliveryRequestLine = $line->getDeliveryRequestReferenceLine();
                 return [
                     "reference" => $reference->getReference(),
                     "label" => $reference->getLibelle(),
                     "barcode" => $reference->getBarCode() ?: '',
                     "location" => $this->formatService->location($reference->getEmplacement()),
                     "quantity" => $line->getPickedQuantity(),
-                    // TODO RECUP LES BON CHAMPS POUR LES PROJETS ET COMMENTAIRES
-                    "project" => $this->formatService->project($line?->getPreparation()->getDemande()->getProject()) ?? '',
-                    "comment" => '',
+                    "project" => $this->formatService?->project($deliveryRequestLine->getProject()),
+                    "comment" => $deliveryRequestLine?->getComment() ?: '',
                     "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                         'refArticleId' => $reference->getId(),
                     ]),
                 ];
             })
             ->toArray();
-
-        //TODO LES Articles !!!!!!!!!!!!!!!
 
         if (!isset($lines[0]) || $lines[0]['pack'] !== null) {
             array_unshift($lines, [
