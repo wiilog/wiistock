@@ -113,10 +113,19 @@
                                                     additionalAttributes: [
                                                         {
                                                             name: 'data-other-params',
-                                                        }, {
+                                                        },
+                                                        {
                                                             name: 'data-other-params-with-articles',
                                                             value: '1'
-                                                        }
+                                                        },
+                                                        {
+                                                            name: 'data-other-params-ignored-delivery-request',
+                                                            value: demande.id
+                                                        },
+                                                        {
+                                                            name: 'data-other-params-status',
+                                                            value: constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')
+                                                        },
                                                     ],
                                                 })
                                                 ~ form.input('lineId', null, false, null, {type: 'hidden'})
@@ -151,7 +160,7 @@
     <button class="btn btn-outline-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
     <input type="hidden" name="showTargetLocationPicking" value="{{ showTargetLocationPicking }}">
     <input type="hidden" name="managePreparationWithPlanning" value="{{ managePreparationWithPlanning }}">
-    <input id="demande-id" type="hidden" value="{{ demande.id }}"/>
+    <input name="requestId" type="hidden" value="{{ demande.id }}"/>
 
     {% if modifiable and setting_value('DELIVERY_REQUEST_ADD_UL') and hasRightEdit %}
         {% include 'demande/modalNewArticle.html.twig' %}

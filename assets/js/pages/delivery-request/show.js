@@ -1,7 +1,7 @@
 import {GET, POST} from "@app/ajax";
 
 let tables = [];
-const requestId = $('#demande-id').val();
+const requestId = $('[name=requestId]').val();
 
 global.ajaxGetAndFillArticle = ajaxGetAndFillArticle;
 global.deleteRowDemande = deleteRowDemande;
@@ -403,10 +403,11 @@ function initEditableTableArticles($table) {
         if ($articleSelect.exists()) {
             if(typeQuantite === 'article') {
                 AJAX
-                    .route(GET, 'api_articles-by-reference', {referenceArticle})
+                    .route(GET, 'api_articles-by-reference', {'request': $('[name=requestId]').val(), referenceArticle})
                     .json()
                     .then(({data}) => {
                         const articleSelect = $row.find('select[name="article"]')
+                        articleSelect.append(`<option></option>`);
                         data.forEach((article) => {
                             articleSelect.append(`<option value="${article.value}">${article.text}</option>`);
                         });
