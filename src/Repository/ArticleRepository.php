@@ -293,7 +293,7 @@ class ArticleRepository extends EntityRepository {
                                        ?Emplacement     $targetLocationPicking = null,
                                        ?string          $fieldToOrder = null,
                                        ?string          $order = null,
-                                       ?Demande         $demande = null): array
+                                       ?Demande         $request = null): array
 	{
 	    $queryBuilder = $this->createQueryBuilder('article')
             ->join('article.articleFournisseur', 'articleFournisseur')
@@ -312,12 +312,12 @@ class ArticleRepository extends EntityRepository {
                 ->setParameter('targetLocationPicking', $targetLocationPicking);
         }
 
-        if($demande){
+        if($request){
             $queryBuilder
-                ->andWhere('request.id != :demandeId OR request.id IS NULL')
+                ->andWhere('request.id != :requestId OR request.id IS NULL')
                 ->leftJoin('article.deliveryRequestLines', 'lines')
                 ->leftJoin('lines.request', 'request')
-                ->setParameter('demandeId', $demande->getId());
+                ->setParameter('requestId', $request->getId());
         }
 
 	    if ($order && $fieldToOrder) {
