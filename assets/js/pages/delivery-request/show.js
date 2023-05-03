@@ -53,7 +53,7 @@ function loadLogisticUnitList(requestId) {
         AJAX
             .route('GET', 'delivery_request_logistic_units_api', {id: requestId})
             .json()
-            .then(({html}) => {
+            .then(({html, columns}) => {
                 $logisticUnitsContainer.html(html);
                 $logisticUnitsContainer
                     .find('.articles-container table')
@@ -66,16 +66,7 @@ function loadLogisticUnitList(requestId) {
                             searching: false,
                             processing: true,
                             order: [['reference', "desc"]],
-                            columns: [
-                                {data: 'Actions', title: '', className: 'noVis', orderable: false},
-                                {data: 'reference', title: 'Référence'},
-                                {data: 'barcode', title: 'Code barre'},
-                                {data: 'label', title: 'Libellé'},
-                                {data: 'location', title: 'Emplacement'},
-                                {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
-                                {data: 'quantityToPick', title: 'Quantité à prélever'},
-                                {data: 'error', title: 'Erreur', visible: false},
-                            ],
+                            columns,
                             rowConfig: {
                                 needsRowClickAction: true,
                                 needsColor: true,
