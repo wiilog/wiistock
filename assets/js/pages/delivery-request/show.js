@@ -1,7 +1,7 @@
 import {GET, POST} from "@app/ajax";
 
 let tables = [];
-const requestId = $('#demande-id').val();
+const requestId = $('[name=requestId]').val();
 
 global.ajaxGetAndFillArticle = ajaxGetAndFillArticle;
 global.deleteRowDemande = deleteRowDemande;
@@ -53,7 +53,7 @@ function loadLogisticUnitList(requestId) {
         AJAX
             .route('GET', 'delivery_request_logistic_units_api', {id: requestId})
             .json()
-            .then(({html}) => {
+            .then(({html, columns}) => {
                 $logisticUnitsContainer.html(html);
                 $logisticUnitsContainer
                     .find('.articles-container table')
@@ -66,16 +66,7 @@ function loadLogisticUnitList(requestId) {
                             searching: false,
                             processing: true,
                             order: [['reference', "desc"]],
-                            columns: [
-                                {data: 'Actions', title: '', className: 'noVis', orderable: false},
-                                {data: 'reference', title: 'Référence'},
-                                {data: 'barcode', title: 'Code barre'},
-                                {data: 'label', title: 'Libellé'},
-                                {data: 'location', title: 'Emplacement'},
-                                {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
-                                {data: 'quantityToPick', title: 'Quantité à prélever'},
-                                {data: 'error', title: 'Erreur', visible: false},
-                            ],
+                            columns,
                             rowConfig: {
                                 needsRowClickAction: true,
                                 needsColor: true,
@@ -412,10 +403,11 @@ function initEditableTableArticles($table) {
         if ($articleSelect.exists()) {
             if(typeQuantite === 'article') {
                 AJAX
-                    .route(GET, 'api_articles-by-reference', {referenceArticle})
+                    .route(GET, 'api_articles-by-reference', {'request': $('[name=requestId]').val(), referenceArticle})
                     .json()
                     .then(({data}) => {
                         const articleSelect = $row.find('select[name="article"]')
+                        articleSelect.append(`<option></option>`);
                         data.forEach((article) => {
                             articleSelect.append(`<option value="${article.value}">${article.text}</option>`);
                         });
@@ -448,7 +440,6 @@ function initEditableTableArticles($table) {
     });
 
 
-    let $modalDeleteArticle = $("#modalDeleteArticle");
 
     $(window).on(`beforeunload`, () =>  {
         const $focus = $(`tr :focus`);
@@ -473,7 +464,7 @@ function saveArticleLine(requestId, $row,) {
                 .then((response) => {
                     if (response.success) {
                         if (response.lineId) {
-                            $row.find(`.delete-row`).data(`id`, response.lineId);
+                            $row.find(`.delete-row`).attr(`data-id`, response.lineId);
                             $row.find('input[name="lineId"]').val(response.lineId);
                         }
                         if (response.type) {
@@ -506,6 +497,13 @@ function addArticleRow(table, $button) {
         table.row.add(JSON.parse($(`input[name="editableTableArticlesForm"]`).val()));
         table.row.add(data);
         table.draw();
+
+        $('.delete-row').attr({
+            'onclick':"deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))",
+            'data-target':'#modalDeleteArticle',
+            'data-toggle':'modal',
+            'data-name':'reference',
+        })
 
         scrollToBottom();
     }

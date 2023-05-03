@@ -10,6 +10,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\ShippingRequest\ShippingRequestLine;
+use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArticleRepository;
 use DateTime;
@@ -171,7 +172,7 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $productionDate = null;
 
-    #[ORM\ManyToOne(targetEntity: ShippingRequestLine::class, inversedBy: 'articles')]
+    #[ORM\OneToOne(mappedBy: 'article', targetEntity: ShippingRequestLine::class)]
     private ?ShippingRequestLine $shippingRequestLine = null;
 
     public function __construct() {
@@ -888,11 +889,15 @@ class Article implements PairedEntity {
     }
 
     public function setShippingRequestLine(?ShippingRequestLine $line): self {
-        if($this->shippingRequestLine && $this->shippingRequestLine !== $line) {
-            $this->shippingRequestLine->removeArticle($this);
+        if($this->shippingRequestLine && $this->shippingRequestLine->getArticle() !== $this) {
+            $oldLine = $this->shippingRequestLine;
+            $this->shippingRequestLine = null;
+            $oldLine->setArticle(null);
         }
         $this->shippingRequestLine = $line;
-        $line?->addArticle($this);
+        if($this->shippingRequestLine && $this->shippingRequestLine->getArticle() !== $this) {
+            $this->shippingRequestLine->setArticle($this);
+        }
 
         return $this;
     }

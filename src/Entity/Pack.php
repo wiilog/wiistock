@@ -5,7 +5,7 @@ namespace App\Entity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
-use App\Entity\ShippingRequest\ShippingRequestLine;
+use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportHistory;
 use App\Helper\FormatHelper;
@@ -118,8 +118,8 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'boolean')]
     private ?bool $articleContainer = false;
 
-    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestLine::class)]
-    private ?ShippingRequestLine $shippingRequestLine = null;
+    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class)]
+    private ?ShippingRequestPack $shippingRequestPack = null;
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -748,22 +748,21 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getShippingRequestLine(): ?ShippingRequestLine {
-        return $this->shippingRequestLine;
+    public function getShippingRequestPack(): ?ShippingRequestPack {
+        return $this->shippingRequestPack;
     }
 
-    public function setShippingRequestLine(?ShippingRequestLine $line): self {
-        if($this->shippingRequestLine && $this->shippingRequestLine->getPack() !== $this) {
-            $oldLine = $this->shippingRequestLine;
-            $this->shippingRequestLine = null;
-            $oldLine->setPack(null);
+    public function setShippingRequestPack(?ShippingRequestPack $shippingRequestPack): self {
+        if($this->shippingRequestPack && $this->shippingRequestPack->getPack() !== $this) {
+            $oldShippingRequestPack = $this->shippingRequestPack;
+            $this->shippingRequestPack = null;
+            $oldShippingRequestPack->setPack(null);
         }
-        $this->shippingRequestLine = $line;
-        if($this->shippingRequestLine && $this->shippingRequestLine->getPack() !== $this) {
-            $this->shippingRequestLine->setPack($this);
+        $this->shippingRequestPack = $shippingRequestPack;
+        if($this->shippingRequestPack && $this->shippingRequestPack->getPack() !== $this) {
+            $this->shippingRequestPack->setPack($this);
         }
 
         return $this;
     }
-
 }

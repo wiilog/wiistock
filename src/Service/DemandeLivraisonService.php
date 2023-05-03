@@ -888,7 +888,9 @@ class DemandeLivraisonService
         }
     }
 
-    public function getVisibleColumnsTableArticleConfig(Demande $request, EntityManagerInterface $entityManager, Utilisateur $user): array {
+    public function getVisibleColumnsTableArticleConfig(EntityManagerInterface $entityManager,
+                                                        Demande                $request,
+                                                        bool                   $editMode = false): array {
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
@@ -899,26 +901,30 @@ class DemandeLivraisonService
         $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
 
         $columns = [
-            ['data' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Référence*', 'data' => 'reference'],
-            ['title' => 'Libellé', 'data' => 'label'],
-            ['title' => 'Article*', 'data' => 'article'],
-            ['title' => 'Quantité*', 'data' => 'quantity'],
+            ["data" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['title' => 'Référence', 'required' => $editMode, 'data' => 'reference'],
             ['title' => 'Code barre', 'data' => 'barcode'],
+            ['title' => 'Libellé', 'data' => 'label'],
+            ['title' => 'Article', 'required' => $editMode, 'data' => 'article', 'removeColumn' => !$editMode,],
+            ['title' => 'Quantité', 'required' => $editMode, 'data' => 'quantityToPick'],
             ['title' => 'Emplacement', 'data' => 'location'],
+            ["data" => "error", "title" => "Erreur", "visible" => false, 'removeColumn' => $editMode,],
+
+            // TODO WIIS-9646
+            ['title' => 'Emplacement cible picking', 'data' => 'targetLocationPicking', 'removeColumn' => !$isTargetLocationPickingDisplayed],
+
+            //TODO traduction de projet
+            ['title' => 'Projet', 'required' => $editMode && $isProjectRequired, 'data' => 'project', 'removeColumn' => !$isProjectDisplayed],
+            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'removeColumn' => !$isProjectDisplayed],
         ];
 
-        if($isTargetLocationPickingDisplayed){
-            $columns[] = ['title' => 'Emplacement cible picking', 'data' => 'targetLocationPicking'];
-        }
-        if($isProjectDisplayed){
-            //TODO traduction de projet
-            $columns[] = ['title' => 'Projet' . ($isProjectRequired ? '*' : ''), 'data' => 'project'];
-        }
-        if($isCommentDisplayed){
-            $columns[] = ['title' => 'Commentaire' . ($isCommentRequired ? '*' : ''), 'data' => 'comment'];
-        }
 
-        return $columns;
+        return Stream::from($columns)
+            ->filter(fn (array $column) => !($column['removeColumn'] ?? false)) // display column if removeColumn not defined
+            ->map(function (array $column) {
+                unset($column['removeColumn']);
+                return $column;
+            })
+            ->values();
     }
 }
