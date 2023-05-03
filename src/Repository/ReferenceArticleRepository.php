@@ -91,12 +91,12 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->setParameter('status', $options['status']);
         }
 
-        if($options['requestId'] ?? false){
+        if($options['deliveryRequestId'] ?? false){
             $queryBuilder
-                ->andWhere("deliveryRequest.id != :requestId OR deliveryRequest.id IS NULL")
+                ->andWhere("deliveryRequest.id IS NULL OR deliveryRequest.id != :deliveryRequestId")
                 ->leftJoin("reference.deliveryRequestLines", "lines")
                 ->leftJoin("lines.request", "deliveryRequest")
-                ->setParameter('requestId', $options['requestId']);
+                ->setParameter('deliveryRequestId', $options['deliveryRequestId']);
         }
 
         return $queryBuilder

@@ -1,7 +1,7 @@
 import {GET, POST} from "@app/ajax";
 
 let tables = [];
-const requestId = $('#demande-id').val();
+const requestId = $('[name=requestId]').val();
 
 global.ajaxGetAndFillArticle = ajaxGetAndFillArticle;
 global.deleteRowDemande = deleteRowDemande;

@@ -245,7 +245,7 @@ class SelectController extends AbstractController {
             'needsOnlyMobileSyncReference' => $request->query->getBoolean('needs-mobile-sync'),
             'type-quantity' => $request->query->get('type-quantity'),
             'status' => $request->query->get('status'),
-            'requestId' => $request->query->get('requestId'),
+            'deliveryRequestId' => $request->query->get('delivery-request'),
         ];
 
         $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options);
