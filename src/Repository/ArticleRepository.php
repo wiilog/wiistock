@@ -709,9 +709,8 @@ class ArticleRepository extends EntityRepository {
     public function getByLivraisonsIds($livraisonsIds)
     {
         return $this->createQueryBuilder('article')
-            ->select('article.reference AS reference')
-            ->addSelect('join_location.label AS location')
-            ->addSelect('join_ref_article.reference AS refArticleReference')
+            ->select('join_location.label AS location')
+            ->addSelect('join_ref_article.reference AS reference')
             ->addSelect('article.label AS label')
             ->addSelect('join_preparationOrderLines.quantityToPick AS quantity')
             ->addSelect('0 as is_ref')
