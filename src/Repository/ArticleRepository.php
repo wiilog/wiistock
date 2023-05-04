@@ -734,7 +734,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('join_preparationOrderLines.quantityToPick AS quantity')
             ->addSelect('0 as is_ref')
             ->addSelect('join_delivery.id AS id_livraison')
-            ->addSelect('article.barCode AS barCode')
+            ->addSelect('article.barCode AS barcode')
             ->addSelect('join_targetLocationPicking.label AS targetLocationPicking')
             ->addSelect('join_currentLogisticUnit.id AS currentLogisticUnitId')
             ->addSelect('join_currentLogisticUnit.code AS currentLogisticUnitCode')
