@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Attachment;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
@@ -11,6 +12,7 @@ use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Setting;
+use App\Entity\SubLineFieldsParam;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -55,6 +57,9 @@ class LivraisonService
 
     #[Required]
     public TranslationService $translation;
+
+    #[Required]
+    public VisibleColumnService $visibleColumnService;
 
     public function __construct(RouterInterface $router,
                                 EntityManagerInterface $entityManager,
@@ -337,5 +342,38 @@ class LivraisonService
         $entityManager->persist($wayBillAttachment);
 
         return $wayBillAttachment;
+    }
+
+    public function getVisibleColumnsShow(EntityManagerInterface $entityManager, Demande $request) :Array {
+        $columnsVisible = $request->getVisibleColumns();
+        if ($columnsVisible === null) {
+            $request->setVisibleColumns(Demande::DEFAULT_VISIBLE_COLUMNS);
+            $entityManager->flush();
+            $columnsVisible = $request->getVisibleColumns();
+        }
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
+        $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
+
+        $columns= [
+            ['name' => 'Actions', 'title' => '', 'className' => 'noVis', 'orderable' => false, 'alwaysVisible' => true],
+            ['name' => 'reference', 'title' => 'Référence', 'alwaysVisible' => true],
+            ['name' => 'barcode', 'title' => 'Code barre', 'alwaysVisible' => false],
+            ['name' => 'label', 'title' => 'Libellé', 'alwaysVisible' => false],
+            ['name' => 'quantity', 'title' => 'Quantité', 'alwaysVisible' => true],
+            ['name' => 'project', 'title' => 'Projet', 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed],
+            ['name' => 'comment', 'title' => 'Commentaire', 'orderable' => false, 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
+        ];
+
+        $columns = Stream::from($columns)
+            ->filter(fn (array $column) => !($column['removeColumn'] ?? false)) // display column if removeColumn not defined
+            ->map(function (array $column) {
+                unset($column['removeColumn']);
+                return $column;
+            })
+            ->values();
+
+        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 }

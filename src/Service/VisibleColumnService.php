@@ -59,6 +59,7 @@ class VisibleColumnService {
                         'isColumnVisible' => $visible,
                         "type" => $column['type'] ?? null,
                         "searchable" => $column['searchable'] ?? null,
+                        "required" => $column['required'] ?? false,
                     ];
                 },
                 $fields

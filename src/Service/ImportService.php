@@ -1668,7 +1668,8 @@ class ImportService
                             ->setPickedQuantity($line->getPickedQuantity())
                             ->setQuantityToPick($line->getQuantityToPick())
                             ->setReference($articleReference)
-                            ->setTargetLocationPicking($targetLocationPicking);
+                            ->setTargetLocationPicking($targetLocationPicking)
+                            ->setDeliveryRequestReferenceLine($line);
                         $this->entityManager->persist($lignesArticlePreparation);
                         if ($articleReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                             $articleReference->setQuantiteReservee(($articleReference->getQuantiteReservee() ?? 0) + $line->getQuantityToPick());
