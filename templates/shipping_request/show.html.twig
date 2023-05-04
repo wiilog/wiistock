@@ -55,9 +55,13 @@
                                 </span>
                                 </div>
                             </div>
-                            <div class="flex flex-col justify-content-end text-center">
+                            <div class="flex flex-col justify-content-end text-right">
                                 <p class="wii-field-name">{{ shipping.createdBy.username }}</p>
-                                <p class="wii-small-text">{{ shipping.requesterPhoneNumbers[0] }}</p>
+                                <p class="wii-small-text">
+                                    {% for phoneNumber in shipping.requesterPhoneNumbers %}
+                                        {{ phoneNumber }}
+                                    {% endfor %}
+                                </p>
                             </div>
                         </div>
                     </div>
