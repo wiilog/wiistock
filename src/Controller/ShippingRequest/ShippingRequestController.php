@@ -5,10 +5,16 @@ namespace App\Controller\ShippingRequest;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\Menu;
+use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\ShippingRequest\ShippingRequestService;
+use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
+use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -69,5 +75,47 @@ class ShippingRequestController extends AbstractController {
             'success' => true,
             'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
         ]);
+    }
+
+    #[Route("/form-submit", name: "shipping_request_form_submit", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::CREATE_SHIPPING], mode: HasPermission::IN_JSON)]
+    public function formSubmit(Request                $request,
+                               EntityManagerInterface $entityManager,
+                               ShippingRequestService $shippingRequestService,
+                               UniqueNumberService    $uniqueNumberService,
+                               StatusHistoryService   $statusHistoryService): JsonResponse {
+        $data = $request->request->all();
+
+        if($shippingRequestId = $data['shippingRequestId'] ?? false) {
+            $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
+            $shippingRequest = $shippingRequestRepository->find($shippingRequestId);
+        } else {
+            $statusRepository = $entityManager->getRepository(Statut::class);
+            $shippingRequest = new ShippingRequest();
+            $shippingRequest
+                ->setNumber($uniqueNumberService->create($entityManager, ShippingRequest::NUMBER_PREFIX, ShippingRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT))
+                ->setCreatedAt(new \DateTime('now'))
+                ->setCreatedBy($this->getUser());
+
+            $statusHistoryService->updateStatus(
+                $entityManager,
+                $shippingRequest,
+                $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::SHIPMENT, ShippingRequest::STATUS_DRAFT),
+                ['setStatus' => true],
+            );
+
+            $entityManager->persist($shippingRequest);
+        }
+
+        if($shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data)){
+            $entityManager->flush();
+            return $this->json([
+                'success' => true,
+                'msg' => 'Votre demande d\'expédition a bien été enregistrée',
+                'shippingRequestId' => $shippingRequest->getId(),
+            ]);
+        } else {
+            throw new FormException();
+        }
     }
 }

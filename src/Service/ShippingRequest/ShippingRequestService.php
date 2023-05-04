@@ -3,10 +3,13 @@
 namespace App\Service\ShippingRequest;
 
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\FormatService;
 use App\Service\VisibleColumnService;
-use Doctrine\ORM\EntityManager;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -52,8 +55,8 @@ class ShippingRequestService {
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 
-    public function getDataForDatatable(Request $request, EntityManager $entityManager) : array {
-        $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
+    public function getDataForDatatable(Request $request) : array{
+        $shippingRepository = $this->entityManager->getRepository(ShippingRequest::class);
 
         $queryResult = $shippingRepository->findByParamsAndFilters(
             $request->request,
@@ -81,7 +84,6 @@ class ShippingRequestService {
     public function dataRowShipping(ShippingRequest $shipping): array
     {
         $formatService = $this->formatService;
-
         $row = [
             "number" => $shipping->getNumber(),
             "status" => $formatService->status($shipping->getStatus()),
@@ -108,5 +110,62 @@ class ShippingRequestService {
         ];
 
         return $row;
+    }
+
+    public function updateShippingRequest(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, $data): bool {
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $requiredFields= [
+            'requesters',
+            'requesterPhoneNumbers',
+            'customerOrderNumber',
+            'customerName',
+            'customerAddress',
+            'customerPhone',
+            'requestCaredAt',
+            'shipment',
+            'carrying',
+        ];
+
+        foreach ($requiredFields as $requiredField) {
+            if (empty($data[$requiredField])) {
+                throw new FormException("Une erreur est survenue un champ requis est manquant");
+            }
+        }
+
+        $requestersIds = Stream::from(explode(',', $data['requesters'] ?? ''))->filter();
+        if (count($requestersIds) > 0) {
+            $requesters = new ArrayCollection(
+               $requestersIds
+                    ->map(fn($requesterId) => $userRepository->find($requesterId))
+                    ->toArray());
+            $shippingRequest->setRequesters($requesters);
+        } else {
+            throw new FormException("Vous devez sélectionner au moins un demandeur");
+        }
+
+        $carrierId = $data['carrier'] ?? '';
+        if ($carrierId) {
+            $carrier = $carrierRepository->find($carrierId);
+            $shippingRequest->setCarrier($carrier);
+        } else {
+            throw new FormException("Vous devez sélectionner un transporteur");
+        }
+
+        $shippingRequest
+            ->setRequesterPhoneNumbers(explode(',', $data['requesterPhoneNumbers'] ?? ''))
+            ->setCustomerOrderNumber($data['customerOrderNumber'] ?? '')
+            ->setFreeDelivery(boolval($data['freeDelivery'] ?? false))
+            ->setCompliantArticles(boolval($data['compliantArticles'] ?? false))
+            ->setCustomerName($data['customerName'] ?? '')
+            ->setCustomerPhone($data['customerPhone'] ?? '')
+            ->setCustomerRecipient($data['customerRecipient'] ?? '')
+            ->setCustomerAddress($data['customerAddress'] ?? '')
+            ->setRequestCaredAt($this->formatService->parseDatetime($data['requestCaredAt'] ?? '', ))
+            ->setShipment($data['shipment'] ?? '')
+            ->setCarrying($data['carrying'] ?? '')
+            ->setComment($data['comment'] ?? '');
+
+        return true;
     }
 }

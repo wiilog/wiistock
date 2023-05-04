@@ -1,0 +1,114 @@
+{% import 'form.html.twig' as form %}
+
+{% set requester = app.user %}
+<form name="formShippingRequest">
+    <div class="wii-section-title d-flex align-items-center pt-0">
+        Informations
+    </div>
+    <div class="row">
+        <div class="col-6 mt-2">
+            {{ form.select('requesters', 'Demandeur(s)', true, {
+                type: 'user',
+                multiple: true,
+                additionalAttributes : [
+                    {
+                        name: 'data-other-params',
+                        value: '1'
+                    }, {
+                        name: 'data-other-params-with-phone-numbers',
+                        value: '1'
+                    }
+                ],
+                items: [{
+                    value: requester.id,
+                    label: requester.username,
+                    phone: requester.phone,
+                    selected: true,
+                }],
+            }) }}
+        </div>
+        <div class="col-6 mt-2">
+            {{ form.select('requesterPhoneNumbers', 'Téléphone', true, {
+                type: null,
+                multiple: true,
+                editable: true,
+            }) }}
+        </div>
+        <div class="col-6 mt-2">
+            {{ form.input('customerOrderNumber', 'N° commande client', true, null,{}) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 my-3">
+            {{ form.checkbox('freeDelivery', 'Livraison à titre gracieux', false, false, {}) }}
+        </div>
+        <div class="col-6 my-3">
+            {{ form.checkbox('compliantArticles', 'Article(s) conforme(s)', false, false, {}) }}
+        </div>
+    </div>
+    <div class="wii-section-title d-flex align-items-center mt-2">
+        Destinataire
+    </div>
+    <div class="row">
+        <div class="col-6 mt-2">
+            {{ form.select('customerName', 'Client', true, {
+                type: 'customers',
+                items: [],
+                labelOptions: {
+                    class: 'm-0',
+                },
+            }) }}
+        </div>
+        <div class="col-6 mt-2">
+            {{ form.input('customerPhone', 'Téléphone', true, null,{}) }}
+        </div>
+        <div class="col-6 mt-2">
+            {{ form.input('customerRecipient', 'A l\'attention de', false, null,{}) }}
+        </div>
+        <div class="col-12 mt-2">
+            {{ form.input('customerAddress', 'Adresse de livraison', true, null,{
+                type: 'textarea',
+            }) }}
+        </div>
+    </div>
+    <div class="wii-section-title d-flex align-items-center mt-2">
+        Expédition
+    </div>
+    <div class="row">
+        <div class="col-6 mt-2">
+            {{ form.input('requestCaredAt', 'Date de prise en charge souhaitée', true, null , {
+                type: 'date',
+            }) }}
+        </div>
+        <div class="col-6 mt-2">
+            {{ form.select('carrier', 'Transporteur', true, {
+                type: 'carrier',
+                items: [],
+            }) }}
+        </div>
+        <div class="col-6 mt-2">
+            {% set shipmentOptions = constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_LABELS')|map((v, k) => ({
+                value: k,
+                label: v,
+                checked: k == constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_NATIONAL')
+            })) %}
+            {{ form.switch('shipment', 'Envoi', false, shipmentOptions ) }}
+        </div>
+        <div class="col-6 mt-2">
+            {% set carrying = constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_LABELS')|map((v, k) => ({
+                value: k,
+                label: v,
+                checked: k == constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_OWED')
+            })) %}
+            {{ form.switch('carrying', 'Port', false, carrying ) }}
+        </div>
+    </div>
+    <div class="wii-section-title d-flex align-items-center mt-2">
+        Autre
+    </div>
+    <div class="row">
+        <div class="col-8 mt-2">
+            {{ form.wysiwyg('comment', 'Commentaire', false, null ) }}
+        </div>
+    </div>
+</form>
