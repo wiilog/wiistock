@@ -187,7 +187,7 @@ class ShippingRequestService {
     }
 
     public function createHeaderTransportDetailsConfig(ShippingRequest $shippingRequest) {
-        $packsCount = $shippingRequest->getLines()->count();
+        $packsCount = $shippingRequest->getpackLines()->count();
 
         return $this->templating->render('shipping_request/show-transport-header.html.twig', [
             'shipping' => $shippingRequest,
