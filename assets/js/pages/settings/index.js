@@ -1281,7 +1281,7 @@ function changeDisplayRefArticleTable($checkbox) {
     const $conditionFixedField = $checkbox.closest('tr').find('select[name=conditionFixedField]');
     const $conditionFixedFieldValueDiv = $checkbox.closest('tr').find('.conditionFixedFieldValueDiv');
     const $required = $checkbox.closest('tr').find('input[name=required]');
-
+    const alwaysDisabledDisplayedUnderConditionFields = JSON.parse($('[name=disabledDisplayedUnderConditionFields]').val());
     if (!check) {
         if ($checkbox[0].name === "displayed") {
             $displayedUnderCondition.attr('disabled', true);
@@ -1295,7 +1295,7 @@ function changeDisplayRefArticleTable($checkbox) {
             $conditionFixedFieldValueDiv.addClass("d-none");
         }
     } else {
-        if ($checkbox[0].name === "displayed") {
+        if ($checkbox[0].name === "displayed" && !alwaysDisabledDisplayedUnderConditionFields.includes($checkbox.attr('id'))) {
             $displayedUnderCondition.attr('disabled', false);
             $required.attr('disabled', false);
             if ($displayedUnderCondition.is(':checked')) {

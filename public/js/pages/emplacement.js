@@ -27,7 +27,7 @@ const locationsTableConfig = {
         {data: 'pairing', title: '', className: 'pairing-row'},
         {data: 'name', title: 'Nom'},
         {data: 'description', title: 'Description'},
-        {data: 'deliveryPoint', title: 'Point de livraison'},
+        {data: 'deliveryPoint', title: 'Point de ' + Translation.of('Demande', 'Livraison', 'Livraison', false).toLowerCase()},
         {data: 'ongoingVisibleOnMobile', title: 'Encours visible'},
         {data: 'maxDelay', title: 'Délai maximum'},
         {data: 'active', title: 'Actif / Inactif'},

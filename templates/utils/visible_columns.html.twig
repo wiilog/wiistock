@@ -6,6 +6,7 @@
                 } %}
 
             <div class="modal-body">
+                {{ otherFields is defined ? otherFields|raw }}
                 <table class="table" style="width:100%">
                     <thead>
                     <tr>

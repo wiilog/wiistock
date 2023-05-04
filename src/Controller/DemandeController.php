@@ -31,6 +31,7 @@ use App\Service\RefArticleDataService;
 use App\Service\DemandeLivraisonService;
 use App\Service\FreeFieldService;
 use App\Service\SettingsService;
+use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -195,10 +196,11 @@ class DemandeController extends AbstractController
      * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request,
-                        EntityManagerInterface $entityManager,
+    public function new(Request                 $request,
+                        EntityManagerInterface  $entityManager,
                         DemandeLivraisonService $demandeLivraisonService,
-                        FreeFieldService $champLibreService): Response
+                        FreeFieldService        $champLibreService,
+                        TranslationService      $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $data['commentaire'] = StringHelper::cleanedComment($data['commentaire'] ?? null);
@@ -213,7 +215,7 @@ class DemandeController extends AbstractController
                 catch (UniqueConstraintViolationException $e) {
                     return new JsonResponse([
                         'success' => false,
-                        'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                        'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
                     ]);
                 }
 
@@ -355,6 +357,8 @@ class DemandeController extends AbstractController
         $currentUser = $this->getUser();
 
         $status = $demande->getStatut();
+        $fields = $demandeLivraisonService->getVisibleColumnsTableArticleConfig($entityManager, $demande);
+
         return $this->render('demande/show/index.html.twig', [
             'demande' => $demande,
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
@@ -364,7 +368,8 @@ class DemandeController extends AbstractController
             "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($entityManager, $demande, true)),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
-            'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING)
+            'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
+            'fields' => $fields,
         ]);
     }
 
@@ -486,7 +491,9 @@ class DemandeController extends AbstractController
 
     #[Route("remove_delivery_request_logistic_unit_line", name: "remove_delivery_request_logistic_unit_line", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
-    public function removeLogisticUnitLine(Request $request, EntityManagerInterface $manager): Response {
+    public function removeLogisticUnitLine(Request                  $request,
+                                           EntityManagerInterface   $manager,
+                                           TranslationService       $translation): Response {
         $query = $request->query->all();
         $logisticUnit = $manager->find(Pack::class, $query['logisticUnitId']);
         $deliveryRequest = $manager->find(Demande::class, $query['deliveryRequestId']);
@@ -499,7 +506,7 @@ class DemandeController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => "L'unité logistique a bien été retirée de la demande de livraison."
+            'msg' => "L'unité logistique a bien été retirée de la " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
         ]);
     }
 
@@ -608,8 +615,9 @@ class DemandeController extends AbstractController
      * @Route("/retirer-article", name="demande_remove_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function removeArticle(Request $request,
-                                  EntityManagerInterface $entityManager): Response {
+    public function removeArticle(Request                   $request,
+                                  EntityManagerInterface    $entityManager,
+                                  TranslationService        $translation): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
             $articleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
@@ -627,7 +635,7 @@ class DemandeController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'msg' => "La ligne a bien été retirée de la demande de livraison."
+                'msg' => "La ligne a bien été retirée de la " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
             ]);
         }
         throw new BadRequestHttpException();
@@ -710,9 +718,10 @@ class DemandeController extends AbstractController
      * @HasPermission({Menu::DEM, Action::EXPORT})
      */
     public function getDemandesCSV(EntityManagerInterface $entityManager,
-                                   Request $request,
-                                   FreeFieldService $freeFieldService,
-                                   CSVExportService $CSVExportService): Response
+                                   Request                $request,
+                                   FreeFieldService       $freeFieldService,
+                                   CSVExportService       $CSVExportService,
+                                   TranslationService     $translation): Response
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -745,9 +754,9 @@ class DemandeController extends AbstractController
                     'numéro',
                     'type demande',
                     'date attendue',
-                    'projet',
+                    mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)),
                     'code(s) préparation(s)',
-                    'code(s) livraison(s)',
+                    'code(s) ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . '(s)',
                     'référence article',
                     'libellé article',
                     'code-barre article',
@@ -919,10 +928,11 @@ class DemandeController extends AbstractController
     }
 
     #[Route("/{delivery}/ajouter-ul/{logisticUnit}", name: "delivery_add_logistic_unit", options: ["expose" => true], methods: "POST")]
-    public function addLogisticUnit(EntityManagerInterface $manager,
+    public function addLogisticUnit(EntityManagerInterface  $manager,
                                     DemandeLivraisonService $demandeLivraisonService,
-                                    Demande $delivery,
-                                    Pack $logisticUnit): JsonResponse {
+                                    Demande                 $delivery,
+                                    Pack                    $logisticUnit,
+                                    TranslationService      $translation): JsonResponse {
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
         $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
@@ -932,14 +942,14 @@ class DemandeController extends AbstractController
         if(!$logisticUnit->getProject() && $projectRequired) {
             return $this->json([
                 "success" => false,
-                "msg" => "Le projet est obligatoire pour les demandes de livraison, l'unité logistique n'en a pas et ne peut pas être ajoutée",
+                "msg" => "Le " . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . " est obligatoire pour les " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ", l'unité logistique n'en a pas et ne peut pas être ajoutée",
             ]);
         }
 
         if($delivery->getProject() && $logisticUnit?->getProject()?->getId() != $delivery->getProject()->getId()) {
             return $this->json([
                 "success" => false,
-                "msg" => "L'unité logistique n'a pas le même projet que la demande",
+                "msg" => "L'unité logistique n'a pas le même " . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . " que la demande",
             ]);
         }
 
@@ -982,7 +992,8 @@ class DemandeController extends AbstractController
     public function redirectBeforeIndex(EntityManagerInterface  $entityManager,
                                         SettingsService         $settingsService,
                                         FreeFieldService        $champLibreService,
-                                        DemandeLivraisonService $deliveryRequestService){
+                                        DemandeLivraisonService $deliveryRequestService,
+                                        TranslationService      $translation){
         $typeRepository = $entityManager->getRepository(Type::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -1027,7 +1038,7 @@ class DemandeController extends AbstractController
                 catch (UniqueConstraintViolationException $e) {
                     return new JsonResponse([
                         'success' => false,
-                        'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                        'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
                     ]);
                 }
 
@@ -1256,6 +1267,31 @@ class DemandeController extends AbstractController
                     ];
                 })
                 ->toArray(),
+        ]);
+    }
+
+    #[Route("/visible-column-show", name: "save_visible_columns_for_delivery_request_show", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
+    public function saveVisibleColumnShow(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response {
+
+        $data = json_decode($request->getContent(), true);
+        $fields = array_keys($data);
+
+        $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
+        $deliveryRequest = $deliveryRequestRepository->find($data['id']);
+
+        $deliveryRequest->setVisibleColumns($fields);
+
+        $currentUser = $this->getUser();
+        $visibleColumnService->setVisibleColumns(Demande::VISIBLE_COLUMNS_SHOW_FIELD, $fields, $currentUser);
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
         ]);
     }
 }

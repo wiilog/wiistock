@@ -24,11 +24,15 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Security;
 
 class UserService
 {
+
+    #[Required]
+    public TranslationService $translation;
 
     public const MIN_MOBILE_KEY_LENGTH = 14;
     public const MAX_MOBILE_KEY_LENGTH = 24;
@@ -145,9 +149,9 @@ class UserService
         $hasPurchaseRequestShcheduleRules = $purchaseRequestScheduleRuleRepository->count(['requester' => $user]);
 
         return [
-            'demande(s) de livraison' => $isUsedInRequests,
+            mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) => $isUsedInRequests,
             'demande(s) de collecte' => $isUsedInCollects,
-            'ordre(s) de livraison' => $isUsedInDeliveryOrders,
+            mb_strtolower($this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false)) => $isUsedInDeliveryOrders,
             'ordre(s) de collecte' => $isUsedInCollectOrders,
             'demande(s) de service' => $isUsedInHandlings,
             'ordre(s) de préparation' => $isUsedInPreparationOrders,

@@ -56,6 +56,9 @@ class ArticleDataService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public TranslationService $translation;
+
     private $visibleColumnService;
 
     private ?array $freeFieldsConfig = null;
@@ -635,7 +638,7 @@ class ArticleDataService
             ["title" => "Date d'entrée en stock", "name" => "stockEntryDate", 'searchable' => true],
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
-            ["title" => "Projet", "name" => "project", 'searchable' => true],
+            ["title" => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), "name" => "project", 'searchable' => true],
             ["title" => "Tag RFID", "name" => "RFIDtag", 'searchable' => true],
             ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
             ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],

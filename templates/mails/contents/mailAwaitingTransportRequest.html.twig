@@ -7,7 +7,7 @@
     <ul>
         <li>Numéro de demande : <b>{{ prefix }}{{ transportRequest.number }}</b></li>
         <li>Date de création : <b>{{ transportRequest.createdAt | format_helper('longDate', {short: true, time: true}, '') }}</b></li>
-        <li>Date{{ not isCollect ? ' de livraison' }} : <b>{{ transportRequest.expectedAt | format_helper('longDate', {short: true, time: not isCollect}, '') }}</b></li>
+        <li>Date{{ not isCollect ? ' de ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower }} : <b>{{ transportRequest.expectedAt | format_helper('longDate', {short: true, time: not isCollect}, '') }}</b></li>
         <li>Demandeur : <b>{{ transportRequest.createdBy.username }}</b></li>
         <li>Type : <b>{{ transportRequest.type.label }}</b></li>
         <li>N° dossier : <b>{{ transportRequest.contact.fileNumber }}</b></li>

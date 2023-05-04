@@ -35,37 +35,38 @@ $(function () {
 
 function loadLogisticUnitPack(deliveryId) {
     const $logisticUnitsContainer = $('.logistic-units-container');
+    const columns = $logisticUnitsContainer.data('initial-visible');
+
     wrapLoadingOnActionButton($logisticUnitsContainer, () => (
-            AJAX.route('GET', 'delivery_order_logistic_units_api', {id: deliveryId})
-                .json()
-                .then(({html}) => {
-                    $logisticUnitsContainer.html(html);
-                    $logisticUnitsContainer.find('.articles-container table')
-                        .each(function () {
-                            const $table = $(this);
-                            initDataTable($table, {
-                                serverSide: false,
-                                ordering: true,
-                                paging: false,
-                                searching: false,
-                                columns: [
-                                    {data: 'Actions', title: '', className: 'noVis', orderable: false},
-                                    {data: 'reference', title: 'Référence'},
-                                    {data: 'barCode', title: 'Code barre'},
-                                    {data: 'label', title: 'Libellé'},
-                                    {data: 'quantity', title: 'Quantité'},
-                                    {data: 'project', title: Translation.of('Ordre', 'Livraison', 'Détails', 'Projet')},
-                                    {data: 'comment', title: 'Commentaire', orderable: false},
-                                ],
-                                domConfig: {
-                                    removeInfo: true,
-                                },
-                                rowConfig: {
-                                    needsRowClickAction: true,
-                                },
-                            })
-                        });
-                })
+        AJAX.route('GET', 'delivery_order_logistic_units_api', {id: deliveryId})
+            .json()
+            .then(({html}) => {
+                $logisticUnitsContainer.html(html);
+                $logisticUnitsContainer.find('.articles-container table')
+                    .each(function () {
+                        const $table = $(this);
+                        initDataTable($table, {
+                            serverSide: false,
+                            ordering: true,
+                            paging: false,
+                            searching: false,
+                            columns,
+                            domConfig: {
+                                removeInfo: true,
+                            },
+                            rowConfig: {
+                                needsRowClickAction: true,
+                            },
+                            drawConfig: {
+                                needsColumnHide: true,
+                            },
+                            hideColumnConfig: {
+                                columns,
+                                tableFilter: 'articles-container'
+                            },
+                        })
+                    });
+            })
         )
     );
 }

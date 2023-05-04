@@ -24,6 +24,7 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
@@ -38,6 +39,8 @@ class Demande implements PairedEntity {
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
+    const VISIBLE_COLUMNS_SHOW_FIELD = 'deliveryRequestShow';
+const DEFAULT_VISIBLE_COLUMNS = ['barcode','location', 'label'];
     use CleanedCommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
@@ -103,6 +106,9 @@ class Demande implements PairedEntity {
 
     #[ORM\OneToMany(mappedBy: 'deliveryRequest', targetEntity: MouvementStock::class)]
     private Collection $stockMovements;
+
+    #[ORM\Column(type: Types::JSON , nullable: true)]
+    private ?array $visibleColumns;
 
     public function __construct() {
         $this->preparations = new ArrayCollection();
@@ -457,6 +463,16 @@ class Demande implements PairedEntity {
                 $stockMovement->setDeliveryRequest(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getVisibleColumns(): ?array {
+        return $this->visibleColumns;
+    }
+
+    public function setVisibleColumns(?array $visibleColumns): self {
+        $this->visibleColumns = $visibleColumns;
 
         return $this;
     }

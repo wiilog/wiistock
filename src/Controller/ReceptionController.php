@@ -849,11 +849,12 @@ class ReceptionController extends AbstractController {
      * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
      */
-    public function show(EntityManagerInterface $entityManager,
-                         SettingsService $settingsService,
-                         ReceptionService $receptionService,
-                         TagTemplateService $tagTemplateService,
-                         Reception $reception): Response {
+    public function show(EntityManagerInterface     $entityManager,
+                         SettingsService            $settingsService,
+                         ReceptionService           $receptionService,
+                         TagTemplateService         $tagTemplateService,
+                         Reception                  $reception,
+                         TranslationService         $translation): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -884,9 +885,9 @@ class ReceptionController extends AbstractController {
         ])?->getLabel();
 
         $deliverySwitchLabel = match ($deliveryRequestBehaviorSettingLabel) {
-            Setting::CREATE_DELIVERY_ONLY => 'Demande de livraison seule',
-            Setting::DIRECT_DELIVERY => 'Ordre de livraison',
-            default => 'Livraison',
+            Setting::CREATE_DELIVERY_ONLY => $translation->translate("Demande", "Livraison", "Demande de livraison", false) . ' seule',
+            Setting::DIRECT_DELIVERY => $translation->translate("Ordre", "Livraison", "Ordre de livraison", false),
+            default => $translation->translate("Demande", "Livraison", "Livraison", false),
         };
 
         return $this->render("reception/show/index.html.twig", [
@@ -1779,7 +1780,7 @@ class ReceptionController extends AbstractController {
                                 catch (UniqueConstraintViolationException $e) {
                                     return new JsonResponse([
                                         'success' => false,
-                                        'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                                        'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
                                     ]);
                                 }
                                 foreach ($mouvements as $mouvement) {
@@ -1808,7 +1809,7 @@ class ReceptionController extends AbstractController {
                     else {
                         return new JsonResponse([
                             'success' => false,
-                            'msg' => 'Erreur lors de la création de la demande de livraison.',
+                            'msg' => 'Erreur lors de la création de la ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . '.',
                         ]);
                     }
                 }

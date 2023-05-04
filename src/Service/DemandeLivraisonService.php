@@ -174,9 +174,9 @@ class DemandeLivraisonService
         return $row;
     }
 
-    public function parseRequestForCard(Demande     $demande,
-                                        DateService $dateService,
-                                        array       $averageRequestTimesByType): array
+    public function parseRequestForCard(Demande             $demande,
+                                        DateService         $dateService,
+                                        array               $averageRequestTimesByType): array
     {
 
         $requestStatus = $demande->getStatut()?->getCode();
@@ -241,7 +241,7 @@ class DemandeLivraisonService
 
         return [
             'href' => $href ?? null,
-            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)),
             'estimatedFinishTime' => $deliveryDateEstimated,
             'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
@@ -309,6 +309,8 @@ class DemandeLivraisonService
 
         $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? '');
 
+        $visibleColumns = $utilisateur->getVisibleColumns()[Demande::VISIBLE_COLUMNS_SHOW_FIELD] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
+
         $demande = new Demande();
         $demande
             ->setStatut($statut)
@@ -321,7 +323,8 @@ class DemandeLivraisonService
             ->setNumero($number)
             ->setManual($isManual)
             ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
-            ->setReceiver($receiver);
+            ->setReceiver($receiver)
+            ->setVisibleColumns($visibleColumns);
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 
@@ -436,7 +439,7 @@ class DemandeLivraisonService
                 'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
-            $response['msg'] = 'Votre demande de livraison a bien été validée';
+            $response['msg'] = 'Votre ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' a bien été validée';
             $response['demande'] = $demande;
         }
         return $response;
@@ -526,7 +529,7 @@ class DemandeLivraisonService
                 'FOLLOW GT // Validation d\'une demande vous concernant',
                 $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
-                    'title' => 'La demande de livraison ' . $demande->getNumero() . ' de type '
+                    'title' => 'La '  . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '
                         . $demande->getType()->getLabel()
                         . ' a bien été validée le '
                         . $nowDate->format('d/m/Y \à H:i')
@@ -545,7 +548,7 @@ class DemandeLivraisonService
                 'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
-            $response['msg'] = 'Votre demande de livraison a bien été validée';
+            $response['msg'] = 'Votre ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' a bien été validée';
             $response['demande'] = $demande;
         }
 
@@ -612,7 +615,7 @@ class DemandeLivraisonService
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
             [
-                'label' => 'Projet',
+                'label' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false),
                 'value' => $this->formatService->project($demande?->getProject()) ?? '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
@@ -709,7 +712,7 @@ class DemandeLivraisonService
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Type', 'name' => 'type'],
             ['title' => 'Date attendue', 'name' => 'expectedAt'],
-            ['title' => 'Projet', 'name' => 'project'],
+            ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'name' => 'project'],
             ['title' => 'Destination', 'name' => 'destination'],
             ['title' => 'Commentaire', 'name' => 'comment', 'orderable' => false],
         ];
@@ -745,7 +748,8 @@ class DemandeLivraisonService
                     ->setQuantityToPick($article->getQuantite())
                     ->setArticle($article)
                     ->setAutoGenerated(true)
-                    ->setPreparation($preparation);
+                    ->setPreparation($preparation)
+                    ->setDeliveryRequestReferenceLine($referenceLine);
                 $entityManager->persist($articleLine);
 
                 $stockMovement = $this->stockMovementService->createMouvementStock(
@@ -873,7 +877,8 @@ class DemandeLivraisonService
                     ->setQuantityToPick($requestReferenceLine->getQuantityToPick())
                     ->setTargetLocationPicking($requestReferenceLine->getTargetLocationPicking())
                     ->setReference($referenceArticle)
-                    ->setPreparation($preparation);
+                    ->setPreparation($preparation)
+                    ->setDeliveryRequestReferenceLine($requestReferenceLine);
                 $entityManager->persist($lignesArticlePreparation);
                 if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE && $needsQuantitiesCheck) {
                     $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $requestReferenceLine->getQuantityToPick());
@@ -891,8 +896,15 @@ class DemandeLivraisonService
     }
 
     public function getVisibleColumnsTableArticleConfig(EntityManagerInterface $entityManager,
-                                                        Demande                $request,
-                                                        bool                   $editMode = false): array {
+                                                        $request,
+                                                        bool $editMode = false): array {
+        $columnsVisible = $request->getVisibleColumns();
+        if ($columnsVisible === null) {
+            $request->setVisibleColumns(Demande::DEFAULT_VISIBLE_COLUMNS);
+            $entityManager->flush();
+            $columnsVisible = $request->getVisibleColumns();
+        }
+
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
@@ -903,30 +915,31 @@ class DemandeLivraisonService
         $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
 
         $columns = [
-            ["data" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Référence', 'required' => $editMode, 'data' => 'reference'],
-            ['title' => 'Code barre', 'data' => 'barcode'],
-            ['title' => 'Libellé', 'data' => 'label'],
-            ['title' => 'Article', 'required' => $editMode, 'data' => 'article', 'removeColumn' => !$editMode,],
-            ['title' => 'Quantité', 'required' => $editMode, 'data' => 'quantityToPick'],
-            ['title' => 'Emplacement', 'data' => 'location'],
-            ["data" => "error", "title" => "Erreur", "visible" => false, 'removeColumn' => $editMode,],
+            ["name" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['title' => 'Référence', 'required' => $editMode, 'name' => 'reference', 'alwaysVisible' => true],
+            ['title' => 'Code barre', 'name' => 'barcode', 'alwaysVisible' => false],
+            ['title' => 'Libellé', 'name' => 'label', 'alwaysVisible' => false],
+            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'removeColumn' => !$editMode, 'alwaysVisible' => true],
+            ['title' => 'Quantité', 'required' => $editMode, 'name' => 'quantityToPick', 'alwaysVisible' => true],
+            ['title' => 'Emplacement', 'name' => 'location', 'alwaysVisible' => false],
+            ["name" => "error", "title" => "Erreur", "visible" => false, 'removeColumn' => $editMode, 'alwaysVisible' => true],
 
             // TODO WIIS-9646
-            ['title' => 'Emplacement cible picking', 'data' => 'targetLocationPicking', 'removeColumn' => !$isTargetLocationPickingDisplayed],
+            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => !$isTargetLocationPickingDisplayed],
 
             //TODO traduction de projet
-            ['title' => 'Projet', 'required' => $editMode && $isProjectRequired, 'data' => 'project', 'removeColumn' => !$isProjectDisplayed],
-            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'removeColumn' => !$isProjectDisplayed],
+            ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'required' => $editMode && $isProjectRequired, 'name' => 'project', 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed, 'data' => 'project'],
+            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'name' => 'comment', 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
         ];
 
-
-        return Stream::from($columns)
+        $columns = Stream::from($columns)
             ->filter(fn (array $column) => !($column['removeColumn'] ?? false)) // display column if removeColumn not defined
             ->map(function (array $column) {
                 unset($column['removeColumn']);
                 return $column;
             })
             ->values();
+
+        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 }

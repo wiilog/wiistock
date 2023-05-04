@@ -55,6 +55,9 @@ class CartService {
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public TranslationService $translation;
+
     private function emptyCart(Cart $cart, ?array $referencesToRemove = null): void {
         if ($referencesToRemove) {
             /** @var ReferenceArticle $reference */
@@ -156,7 +159,9 @@ class CartService {
         ];
     }
 
-    public function manageDeliveryRequest(array $data, Utilisateur $user, EntityManagerInterface $manager): array {
+    public function manageDeliveryRequest(array                     $data,
+                                          Utilisateur               $user,
+                                          EntityManagerInterface    $manager): array {
         $cartContent = json_decode($data['cart'] ?? '[]', true);
 
         $userCart = $user->getCart();
@@ -228,12 +233,12 @@ class CartService {
             catch (UniqueConstraintViolationException) {
                 return [
                     'success' => false,
-                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.',
+                    'msg' => 'Une autre demande de ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Livraison", false)) . ' est en cours de création, veuillez réessayer.',
                 ];
             }
 
             $link = $this->router->generate('demande_show', ['id' => $deliveryRequest->getId()]);
-            $msg = "Les references ont bien été ajoutées dans une nouvelle demande de livraison";
+            $msg = "Les references ont bien été ajoutées dans une nouvelle " . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false));
         } else {
             throw new \RuntimeException("Unknown parameter");
         }

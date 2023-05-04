@@ -41,6 +41,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -459,7 +460,8 @@ class ReferenceArticleController extends AbstractController
      */
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         UserService            $userService): Response {
+                         UserService            $userService,
+                         TranslationService     $translation): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
             && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
             return $this->json([
@@ -498,7 +500,7 @@ class ReferenceArticleController extends AbstractController
                 catch (RequestNeedToBeProcessedException $exception) {
                     $response = [
                         'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier la quantité d'une référence qui est dans un ordre de livraison en cours."
+                        'msg' => "Vous ne pouvez pas modifier la quantité d'une référence qui est dans un " . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)) . " en cours."
                     ];
                 }
             } else {
@@ -516,7 +518,9 @@ class ReferenceArticleController extends AbstractController
      * @Route("/supprimer", name="reference_article_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response
+    public function delete(Request                  $request,
+                           EntityManagerInterface   $entityManager,
+                           TranslationService       $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -544,7 +548,7 @@ class ReferenceArticleController extends AbstractController
                     'success' => false,
                     'msg' => '
                         Cette référence article est lié à une unité logistique, des mouvements, une collecte,
-                        une livraison, une réception ou un article fournisseur et ne peut pas être supprimée.
+                        une ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . ', une réception ou un article fournisseur et ne peut pas être supprimée.
                     '
                 ]);
             }
