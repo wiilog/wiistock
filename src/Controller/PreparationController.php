@@ -32,6 +32,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use App\Service\TagTemplateService;
+use App\Service\TranslationService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -250,9 +251,10 @@ class PreparationController extends AbstractController
      * @Route("/voir/{id}", name="preparation_show", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
      */
-    public function show(Preparation            $preparation,
-                         TagTemplateService $tagTemplateService,
-                         EntityManagerInterface $entityManager): Response
+    public function show(Preparation                $preparation,
+                         TagTemplateService         $tagTemplateService,
+                         EntityManagerInterface     $entityManager,
+                         TranslationService         $translation): Response
     {
         $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
         $sensorWrappers = Stream::from($sensorWrappers)
@@ -298,7 +300,7 @@ class PreparationController extends AbstractController
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
                 ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
                 ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => $this->formatService->date($demande->getExpectedAt())]] : []),
-                ...($demande->getProject() ? [['label' => 'Projet', 'value' => $demande->getProject()->getCode() ]] : []),
+                ...($demande->getProject() ? [['label' => $translation->translate('Référentiel', 'Projet', 'Projet', false), 'value' => $demande->getProject()->getCode() ]] : []),
                 ...($preparation->getExpectedAt() ? [['label' => 'Date de préparation', 'value' => $this->formatService->date($preparation->getExpectedAt())]] : []),
                 [
                     'label' => 'Commentaire',

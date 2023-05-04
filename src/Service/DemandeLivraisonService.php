@@ -610,7 +610,7 @@ class DemandeLivraisonService
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
             [
-                'label' => 'Projet',
+                'label' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false),
                 'value' => $this->formatService->project($demande?->getProject()) ?? '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
@@ -707,7 +707,7 @@ class DemandeLivraisonService
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Type', 'name' => 'type'],
             ['title' => 'Date attendue', 'name' => 'expectedAt'],
-            ['title' => 'Projet', 'name' => 'project'],
+            ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'name' => 'project'],
             ['title' => 'Destination', 'name' => 'destination'],
             ['title' => 'Commentaire', 'name' => 'comment', 'orderable' => false],
         ];
@@ -913,8 +913,7 @@ class DemandeLivraisonService
             // TODO WIIS-9646
             ['title' => 'Emplacement cible picking', 'data' => 'targetLocationPicking', 'removeColumn' => !$isTargetLocationPickingDisplayed],
 
-            //TODO traduction de projet
-            ['title' => 'Projet', 'required' => $editMode && $isProjectRequired, 'data' => 'project', 'removeColumn' => !$isProjectDisplayed],
+            ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'required' => $editMode && $isProjectRequired, 'data' => 'project', 'removeColumn' => !$isProjectDisplayed],
             ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'removeColumn' => !$isProjectDisplayed],
         ];
 

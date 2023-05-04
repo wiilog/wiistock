@@ -54,7 +54,7 @@ function loadLogisticUnitPack(deliveryId) {
                                     {data: 'barCode', title: 'Code barre'},
                                     {data: 'label', title: 'Libellé'},
                                     {data: 'quantity', title: 'Quantité'},
-                                    {data: 'project', title: Translation.of('Ordre', 'Livraison', 'Détails', 'Projet')},
+                                    {data: 'project', title: Translation.of('Référentiel', 'Projet', 'Projet', false)},
                                     {data: 'comment', title: 'Commentaire', orderable: false},
                                 ],
                                 domConfig: {

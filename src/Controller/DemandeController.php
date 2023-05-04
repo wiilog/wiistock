@@ -31,6 +31,7 @@ use App\Service\RefArticleDataService;
 use App\Service\DemandeLivraisonService;
 use App\Service\FreeFieldService;
 use App\Service\SettingsService;
+use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -710,9 +711,10 @@ class DemandeController extends AbstractController
      * @HasPermission({Menu::DEM, Action::EXPORT})
      */
     public function getDemandesCSV(EntityManagerInterface $entityManager,
-                                   Request $request,
-                                   FreeFieldService $freeFieldService,
-                                   CSVExportService $CSVExportService): Response
+                                   Request                $request,
+                                   FreeFieldService       $freeFieldService,
+                                   CSVExportService       $CSVExportService,
+                                   TranslationService     $translation): Response
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -745,7 +747,7 @@ class DemandeController extends AbstractController
                     'numéro',
                     'type demande',
                     'date attendue',
-                    'projet',
+                    mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)),
                     'code(s) préparation(s)',
                     'code(s) livraison(s)',
                     'référence article',
@@ -919,10 +921,11 @@ class DemandeController extends AbstractController
     }
 
     #[Route("/{delivery}/ajouter-ul/{logisticUnit}", name: "delivery_add_logistic_unit", options: ["expose" => true], methods: "POST")]
-    public function addLogisticUnit(EntityManagerInterface $manager,
+    public function addLogisticUnit(EntityManagerInterface  $manager,
                                     DemandeLivraisonService $demandeLivraisonService,
-                                    Demande $delivery,
-                                    Pack $logisticUnit): JsonResponse {
+                                    Demande                 $delivery,
+                                    Pack                    $logisticUnit,
+                                    TranslationService      $translation): JsonResponse {
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
         $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
@@ -932,14 +935,14 @@ class DemandeController extends AbstractController
         if(!$logisticUnit->getProject() && $projectRequired) {
             return $this->json([
                 "success" => false,
-                "msg" => "Le projet est obligatoire pour les demandes de livraison, l'unité logistique n'en a pas et ne peut pas être ajoutée",
+                "msg" => "Le " . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . " est obligatoire pour les demandes de livraison, l'unité logistique n'en a pas et ne peut pas être ajoutée",
             ]);
         }
 
         if($delivery->getProject() && $logisticUnit?->getProject()?->getId() != $delivery->getProject()->getId()) {
             return $this->json([
                 "success" => false,
-                "msg" => "L'unité logistique n'a pas le même projet que la demande",
+                "msg" => "L'unité logistique n'a pas le même " . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . " que la demande",
             ]);
         }
 

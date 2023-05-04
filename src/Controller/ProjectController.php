@@ -13,6 +13,7 @@ use App\Entity\ProjectHistoryRecord;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\ProjectService;
+use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,7 +45,9 @@ class ProjectController extends AbstractController
 
     #[Route('/new', name: 'project_new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
-    public function new(Request $request, EntityManagerInterface $manager): Response
+    public function new(Request                     $request,
+                        EntityManagerInterface      $manager,
+                        TranslationService          $translation): Response
     {
         $data = $request->request->all();
 
@@ -54,7 +57,7 @@ class ProjectController extends AbstractController
         if ($existing) {
             return $this->json([
                 'success' => false,
-                'msg' => 'Un projet avec ce code existe déjà'
+                'msg' => 'Un ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' avec ce code existe déjà'
             ]);
         } else if (mb_strlen($data['code']) > 15) {
             return $this->json([
@@ -74,7 +77,7 @@ class ProjectController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'msg' => 'Le projet a bien été créé'
+                'msg' => 'Le ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' a bien été créé'
             ]);
         }
     }
@@ -95,7 +98,9 @@ class ProjectController extends AbstractController
 
     #[Route('/edit', name: 'project_edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function edit(Request $request, EntityManagerInterface $manager): Response
+    public function edit(Request                    $request,
+                         EntityManagerInterface     $manager,
+                         TranslationService         $translation): Response
     {
         $data = $request->request->all();
         $project = $manager->find(Project::class, $data['id']);
@@ -106,7 +111,7 @@ class ProjectController extends AbstractController
         if ($existing && $existing !== $project) {
             return $this->json([
                 'success' => false,
-                'msg' => 'Un projet avec ce code existe déjà'
+                'msg' => 'Un ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' avec ce code existe déjà'
             ]);
         } else if (mb_strlen($data['code']) > 15) {
             return $this->json([
@@ -126,14 +131,16 @@ class ProjectController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'msg' => 'Le projet a bien été modifiée'
+                'msg' => 'Le ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' a bien été modifiée'
             ]);
         }
     }
 
     #[Route('/delete-check', name: 'project_check_delete', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function checkProjectCanBeDeleted(Request $request, EntityManagerInterface $manager): Response
+    public function checkProjectCanBeDeleted(Request                $request,
+                                             EntityManagerInterface $manager,
+                                             TranslationService     $translation): Response
     {
         $id = json_decode($request->getContent(), true);
         $projectRepository = $manager->getRepository(Project::class);
@@ -153,17 +160,19 @@ class ProjectController extends AbstractController
         return $this->json([
             'delete' => empty($logisticUnitCount) && empty($projectHistoryRecordCount) && empty($requestLineCount),
             'html' => match(true) {
-                $logisticUnitCount > 0         => '<span>Ce projet est lié à une ou plusieurs unités logistiques ou articles, vous ne pouvez pas le supprimer</span>',
-                $projectHistoryRecordCount > 0 => '<span>Ce projet est lié à un ou plusieurs historiques de projet, vous ne pouvez pas le supprimer</span>',
-                $requestLineCount > 0          => '<span>Ce projet est lié à une ou plusieurs lignes de demande de livraison, vous ne pouvez pas le supprimer</span>',
-                default                        => '<span>Voulez-vous réellement supprimer ce projet ?</span>'
+                $logisticUnitCount > 0         => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à une ou plusieurs unités logistiques ou articles, vous ne pouvez pas le supprimer</span>',
+                $projectHistoryRecordCount > 0 => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à un ou plusieurs historiques de ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ', vous ne pouvez pas le supprimer</span>',
+                $requestLineCount > 0          => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à une ou plusieurs lignes de demande de livraison, vous ne pouvez pas le supprimer</span>',
+                default                        => '<span>Voulez-vous réellement supprimer ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' ?</span>'
             }
         ]);
     }
 
     #[Route('/delete', name: 'project_delete', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function delete(Request $request, EntityManagerInterface $manager): Response
+    public function delete(Request                $request,
+                           EntityManagerInterface $manager,
+                           TranslationService     $translation): Response
     {
         $project = $manager->find(Project::class, $request->request->get("id"));
 
@@ -172,7 +181,7 @@ class ProjectController extends AbstractController
 
         return $this->json([
             "success" => true,
-            "msg" => "Le projet a bien été supprimé"
+            "msg" => "Le " . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . " a bien été supprimé"
         ]);
     }
 

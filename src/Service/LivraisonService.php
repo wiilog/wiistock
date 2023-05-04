@@ -53,6 +53,9 @@ class LivraisonService
     #[Required]
     public SpecificService $specificService;
 
+    #[Required]
+    public TranslationService $translation;
+
     public function __construct(RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
@@ -194,7 +197,7 @@ class LivraisonService
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
             [
-                'label' => 'Projet',
+                'label' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false),
                 'value' => $this->formatService->project($deliveryOrder?->getDemande()?->getProject()),
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
