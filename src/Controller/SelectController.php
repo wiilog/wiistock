@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Chauffeur;
@@ -15,6 +16,8 @@ use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
 use App\Entity\Nature;
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
@@ -41,6 +44,7 @@ class SelectController extends AbstractController {
 
     /**
      * @Route("/select/emplacement", name="ajax_select_locations", options={"expose": true})
+     * @HasPermission({Menu::PARAM, Action::LIST}, mode=HasPermission::IN_JSON)
      */
     public function locations(Request $request, EntityManagerInterface $manager): Response {
         $deliveryType = $request->query->get("deliveryType") ?? null;
@@ -70,6 +74,7 @@ class SelectController extends AbstractController {
     }
 
     #[Route('/select/roundsDelivererPending', name: 'ajax_select_rounds_deliverer_pending', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::LIST])]
     public function roundsDelivererPending(Request $request, EntityManagerInterface $manager): Response {
         $term = $request->query->get("term");
 
@@ -82,6 +87,7 @@ class SelectController extends AbstractController {
 
     /**
      * @Route("/select/roles", name="ajax_select_roles", options={"expose": true})
+     * @HasPermission({Menu::PARAM, Action::LIST}, mode=HasPermission::IN_JSON)
      */
     public function roles(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Role::class)->getForSelect(
