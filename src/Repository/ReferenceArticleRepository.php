@@ -851,7 +851,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('join_preparationLine.pickedQuantity AS quantity')
             ->addSelect('1 AS is_ref')
             ->addSelect('join_delivery.id AS id_livraison')
-            ->addSelect('referenceArticle.barCode AS barCode')
+            ->addSelect('referenceArticle.barCode AS barcode')
             ->leftJoin('referenceArticle.emplacement', 'join_location')
             ->join('referenceArticle.preparationOrderReferenceLines', 'join_preparationLine')
             ->join('join_preparationLine.preparation', 'join_preparation')
