@@ -129,11 +129,9 @@ class ShippingRequestService {
     }
 
     public function createHeaderTransportDetailsConfig(ShippingRequest $shippingRequest){
-        $packsCount = $shippingRequest->getLines()->count();
-
         return $this->templating->render('shipping_request/show-transport-header.html.twig', [
             'shipping' => $shippingRequest,
-            'packsCount' => $packsCount,
+            'packsCount' => $shippingRequest->getPackCount(),
             'totalValue' => Stream::from($shippingRequest->getExpectedLines())
                 ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getPrice())
                 ->sum(),

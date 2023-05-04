@@ -11,6 +11,7 @@
 
 {% block stylesheets %}
     {{ parent() }}
+    {{ encore_entry_link_tags('shipping-request-index') }}
     {{ encore_entry_link_tags('shipping-request-show') }}
 {% endblock %}
 
@@ -137,13 +138,17 @@
                 </div>
 
             </div>
+            <div class="transport-header col-md-8 col-12">
+                <div class="wii-box">
+                    {{ detailsTransportConfig|raw }}
+                </div>
+            </div>
         </div>
     </div>
-
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/shipping-request.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('shipping-request-index') }}
     {{ encore_entry_script_tags('shipping-request-show') }}
 {% endblock %}
