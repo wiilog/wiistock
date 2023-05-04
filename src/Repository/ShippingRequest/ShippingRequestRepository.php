@@ -131,6 +131,13 @@ class ShippingRequestRepository extends EntityRepository {
         ];
     }
 
+    public function iterateShippingRequests(): iterable {
+        return $this
+            ->createQueryBuilder('shipping_request')
+            ->getQuery()
+            ->toIterable();
+    }
+
     public function getLastNumberByDate(string $date): ?string
     {
         $result = $this->createQueryBuilder('shipping_request')

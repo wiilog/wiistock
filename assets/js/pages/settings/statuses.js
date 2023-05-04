@@ -193,7 +193,7 @@ function getStatusesColumn(mode) {
         },
         {
             data: `commentNeeded`,
-            title: `<div class='small-column'>Commentaire obligatoire</div>`,
+            title: `<div class='small-column'>Commentaire obligatoire signature groupée</div>`,
             modes: [MODE_DISPATCH]
         },
         {data: `order`, class: `maxw-70px`, title: `Ordre`, required: true},

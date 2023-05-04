@@ -169,7 +169,7 @@ class FieldsParam {
     const FIELD_CODE_DESTINATION_DEMANDE = 'destinationDemande';
     const FIELD_LABEL_DESTINATION_DEMANDE = 'destination';
     const FIELD_CODE_DELIVERY_REQUEST_PROJECT = 'deliveryRequestProject';
-    const FIELD_LABEL_DELIVERY_REQUEST_PROJECT = 'project';
+    const FIELD_LABEL_DELIVERY_REQUEST_PROJECT = 'projet';
 
     const ENTITY_CODE_EMERGENCY = "urgence";
     const FIELD_CODE_EMERGENCY_BUYER = "buyer";

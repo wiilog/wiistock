@@ -35,7 +35,7 @@ class SubLineFieldsParamRepository extends EntityRepository
     function findByEntityForEntity(string $entity): array {
         return $this->createQueryBuilder("fixed_field")
             ->where("fixed_field.entityCode = :entity")
-            ->orderBy("fixed_field.fieldLabel", "ASC")
+            ->orderBy("fixed_field.displayedUnderCondition", "ASC")
             ->setParameter("entity", $entity)
             ->getQuery()
             ->getResult();
