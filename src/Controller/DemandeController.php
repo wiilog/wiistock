@@ -1089,7 +1089,7 @@ class DemandeController extends AbstractController
                     "label" => $reference->getLibelle() ?: '',
                     "quantityToPick" => $this->render('form.html.twig', [
                         'macroName' => 'input',
-                        'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1, 'onChange' => 'onChangeFillComment($(this))']],
+                        'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
                     ])->getContent(),
                     "location" => $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE ? $formatService->location($reference->getEmplacement()) : null,
                     "barcode" => $reference->getBarcode() ?: '',
@@ -1100,7 +1100,8 @@ class DemandeController extends AbstractController
                                 'text' => $formatService->project($line->getProject()),
                                 'selected' => true,
                                 'value' => $line->getProject()?->getId(),
-                            ] : [], 'onChange' => 'onChangeFillComment($(this))']]])->getContent()
+                                'onChange' => 'onChangeFillComment($(this))',
+                            ] : [] ]]])->getContent()
                         : $formatService->project($line->getProject()) ?? '',
                     "comment" =>  $this->render('form.html.twig', [
                             'macroName' => 'input',
@@ -1143,6 +1144,7 @@ class DemandeController extends AbstractController
                                 'text' => $formatService->project($line->getProject()),
                                 'selected' => true,
                                 'value' => $line->getProject()?->getId(),
+                                'onChange' => 'onChangeFillComment($(this))',
                             ] : []]]])->getContent()
                         : $formatService->project($line->getProject()) ?? '',
                     "comment" => $this->render('form.html.twig', [
