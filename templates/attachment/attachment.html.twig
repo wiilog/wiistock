@@ -51,7 +51,6 @@
     {% if attachments is defined %}
         {% if isNew != true %}
             {% for attachment in attachments %}
-                // attachmentLineOptions
                 {% include 'attachment/attachmentLine.html.twig' with {
                     attachment: attachment,
                     canRemove: editAttachments,
