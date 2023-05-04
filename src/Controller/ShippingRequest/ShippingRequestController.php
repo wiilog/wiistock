@@ -5,16 +5,11 @@ namespace App\Controller\ShippingRequest;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
-use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Exceptions\FormException;
 use App\Service\ShippingRequest\ShippingRequestService;
-use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
-use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -54,14 +49,17 @@ class ShippingRequestController extends AbstractController {
         return $this->json($service->getDataForDatatable( $entityManager, $request));
     }
 
-    #[Route("/voir/{id}", name:"shipping_request_show", options:["expose"=>true], methods: ['GET']) ]
+    #[Route("/voir/{id}", name:"shipping_show_page", options:["expose"=>true])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function showPage(Request                $request,
                              ShippingRequest        $shippingRequest,
+                             ShippingRequestService $shippingRequestService,
                              EntityManagerInterface $entityManager): Response {
 
+
         return $this->render('shipping_request/show.html.twig', [
-            'shipping'=> $shippingRequest,
+            'shipping' => $shippingRequest,
+            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
         ]);
     }
 
@@ -89,11 +87,11 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/new", name: "shipping_request_new", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::CREATE_SHIPPING], mode: HasPermission::IN_JSON)]
-    public function new(Request                $request,
-                               EntityManagerInterface $entityManager,
-                               ShippingRequestService $shippingRequestService,
-                               UniqueNumberService    $uniqueNumberService,
-                               StatusHistoryService   $statusHistoryService): JsonResponse {
+    public function new(   Request                $request,
+                           EntityManagerInterface $entityManager,
+                           ShippingRequestService $shippingRequestService,
+                           UniqueNumberService    $uniqueNumberService,
+                           StatusHistoryService   $statusHistoryService): JsonResponse {
         $data = $request->request->all();
 
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -148,5 +146,14 @@ class ShippingRequestController extends AbstractController {
         } else {
             throw new FormException();
         }
+    }
+
+    #[Route("/get-transport-header-config/{id}", name:"get_transport_header_config", methods: ['GET', 'POST'], options:["expose"=>true])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function getTransportHeaderConfig(ShippingRequest        $shippingRequest,
+                                             ShippingRequestService $shippingRequestService): Response {
+        return $this->json([
+            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+        ]);
     }
 }

@@ -127,6 +127,7 @@ $icons: (
     'location-blue':'../../public/svg/location-blue.svg',
     'delivery':'../../public/svg/delivery.svg',
     'client': '../../public/svg/client.svg',
+    'delivery' : "../../public/svg/delivery.svg",
 );
 
 @each $iconName, $iconPath in $icons {
