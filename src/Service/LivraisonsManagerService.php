@@ -290,6 +290,7 @@ class LivraisonsManagerService
                         'request' => $demande,
                         'preparation' => $preparation,
                         'title' => $bodyTitle,
+                        'dropLocation' => $nextLocation
                     ]),
                     $to
                 );
