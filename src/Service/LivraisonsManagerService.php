@@ -237,7 +237,7 @@ class LivraisonsManagerService
                 $article = $articleLine->getArticle();
                 $article
                     ->setStatut($inactiveArticleStatus)
-                    ->setEmplacement($demande->getDestination());
+                    ->setEmplacement($nextLocation);
             }
 
             $referenceLines = $preparation->getReferenceLines();

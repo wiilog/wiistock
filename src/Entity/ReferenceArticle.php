@@ -172,7 +172,7 @@ class ReferenceArticle
     #[ORM\ManyToOne(targetEntity: VisibilityGroup::class, inversedBy: 'articleReferences')]
     private ?VisibilityGroup $visibilityGroup = null;
 
-    #[ORM\OneToOne(inversedBy: 'referenceArticle', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'referenceArticleImage', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $image = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
@@ -214,7 +214,7 @@ class ReferenceArticle
     #[ORM\Column(type:'boolean')]
     private ?bool $dangerous_goods;
 
-    #[ORM\OneToOne(inversedBy: 'referenceArticle', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'referenceArticleSheet', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $sheet = null;
 
     public function __construct() {
@@ -1020,14 +1020,14 @@ class ReferenceArticle
     }
 
     public function setImage(?Attachment $image): self {
-        if($this->image && $this->image->getReferenceArticle() !== $this) {
+        if($this->image && $this->image->getReferenceArticleImage() !== $this) {
             $oldImage = $this->image;
             $this->image = null;
-            $oldImage->setReferenceArticle(null);
+            $oldImage->setReferenceArticleImage(null);
         }
         $this->image = $image;
-        if($this->image && $this->image->getReferenceArticle() !== $this) {
-            $this->image->setReferenceArticle($this);
+        if($this->image && $this->image->getReferenceArticleImage() !== $this) {
+            $this->image->setReferenceArticleImage($this);
         }
 
         return $this;
@@ -1205,14 +1205,14 @@ class ReferenceArticle
         return $this->sheet;
     }
     public function setSheet(?Attachment $image): self {
-        if($this->sheet && $this->sheet->getReferenceArticle() !== $this) {
+        if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
             $oldImage = $this->sheet;
             $this->sheet = null;
-            $oldImage->setReferenceArticle(null);
+            $oldImage->setReferenceArticleSheet(null);
         }
         $this->sheet = $image;
-        if($this->sheet && $this->sheet->getReferenceArticle() !== $this) {
-            $this->sheet->setReferenceArticle($this);
+        if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
+            $this->sheet->setReferenceArticleSheet($this);
         }
 
         return $this;
