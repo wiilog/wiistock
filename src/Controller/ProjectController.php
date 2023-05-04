@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Menu;
 use App\Entity\Action;
 
@@ -137,16 +139,23 @@ class ProjectController extends AbstractController
         $projectRepository = $manager->getRepository(Project::class);
         $packRepository = $manager->getRepository(Pack::class);
         $projectHistoryRecordRepository = $manager->getRepository(ProjectHistoryRecord::class);
+        $deliveryRequestReferenceLineRepository = $manager->getRepository(DeliveryRequestReferenceLine::class);
+        $deliveryRequestArticleLineRepository = $manager->getRepository(DeliveryRequestArticleLine::class);
 
         $project = $projectRepository->find($id);
         $logisticUnitCount = $packRepository->count(['project' => $project]);
         $projectHistoryRecordCount = $projectHistoryRecordRepository->count(['project' => $project]);
+        $requestLineCount = (
+            $deliveryRequestReferenceLineRepository->count(['project' => $project])
+            + $deliveryRequestArticleLineRepository->count(['project' => $project])
+        );
 
         return $this->json([
-            'delete' => empty($logisticUnitCount) && empty($projectHistoryRecordCount),
+            'delete' => empty($logisticUnitCount) && empty($projectHistoryRecordCount) && empty($requestLineCount),
             'html' => match(true) {
                 $logisticUnitCount > 0         => '<span>Ce projet est lié à une ou plusieurs unités logistiques ou articles, vous ne pouvez pas le supprimer</span>',
                 $projectHistoryRecordCount > 0 => '<span>Ce projet est lié à un ou plusieurs historiques de projet, vous ne pouvez pas le supprimer</span>',
+                $requestLineCount > 0          => '<span>Ce projet est lié à une ou plusieurs lignes de demande de livraison, vous ne pouvez pas le supprimer</span>',
                 default                        => '<span>Voulez-vous réellement supprimer ce projet ?</span>'
             }
         ]);

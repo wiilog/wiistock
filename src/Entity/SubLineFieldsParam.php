@@ -11,10 +11,15 @@ class SubLineFieldsParam {
     const DEFAULT_CONDITION_FIXED_FIELD = "Type Reference";
 
     const ENTITY_CODE_DEMANDE_REF_ARTICLE = 'demandeRefArticle';
+
     const FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT = 'project';
-    const FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT = 'comment';
     const FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT = 'projet';
+    const FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT = 'comment';
     const FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT = 'commentaire';
+
+    public const DISABLED_DISPLAYED_UNDER_CONDITION = [
+        SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

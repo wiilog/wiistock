@@ -4,10 +4,10 @@ namespace App\Repository\ShippingRequest;
 
 use Doctrine\ORM\EntityRepository;
 
-class ShippingRequestExpectedLineRepository extends EntityRepository {
+class ShippingRequestPackRepository extends EntityRepository {
     public function iterateShippingRequestExpectedLines(): iterable {
         return $this
-            ->createQueryBuilder('shipping_request_expected_line')
+            ->createQueryBuilder('shipping_request_pack')
             ->getQuery()
             ->toIterable();
     }

@@ -1,15 +1,18 @@
+import {GET} from "@app/ajax";
+
 let tableShippings;
 
 $(function() {
-    initTableShippings();
+    initTableShippings().then((table) => {
+        tableShippings = table;
+    });
 })
-
 
 function initTableShippings() {
     let initialVisible = $(`#tableShippings`).data(`initial-visible`);
     if (!initialVisible) {
-        return $
-            .post(Routing.generate('shipping_api_columns'))
+        return AJAX
+            .route(GET, 'shipping_request_api_columns')
             .then(columns => proceed(columns));
     } else {
         return new Promise((resolve) => {
@@ -23,13 +26,13 @@ function initTableShippings() {
             serverSide: true,
             paging: true,
             ajax: {
-                url: Routing.generate('shipping_api', true),
-                type: "POST",
+                url: Routing.generate('shipping_request_api', true),
+                type: "GET",
             },
             rowConfig: {
                 needsRowClickAction: true,
             },
-            columns,
+            columns: columns,
             hideColumnConfig: {
                 columns,
                 tableFilter: 'tableShippings'
@@ -37,9 +40,9 @@ function initTableShippings() {
             drawConfig: {
                 needsSearchOverride: true,
             },
-            page: 'shipping-request',
+            page: 'shippingRequest',
         };
-        tableShippings = initDataTable('tableShippings', tableShippingsConfig);
-        return tableShippings;
+
+        return initDataTable('tableShippings', tableShippingsConfig);
     }
 }

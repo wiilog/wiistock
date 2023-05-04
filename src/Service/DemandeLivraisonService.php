@@ -23,6 +23,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -453,6 +454,7 @@ class DemandeLivraisonService
         $response['success'] = true;
         $response['msg'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $date = new DateTime('now');
 
@@ -494,7 +496,8 @@ class DemandeLivraisonService
             if ($flush) $entityManager->flush();
             if ($demande->getType()->isNotificationsEnabled()
                 && !$demande->isManual()
-                && $sendNotification) {
+                && $sendNotification
+                && !$settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION)) {
                 $this->notificationService->toTreat($preparation);
             }
         } /** @noinspection PhpRedundantCatchClauseInspection */
@@ -887,4 +890,43 @@ class DemandeLivraisonService
         }
     }
 
+    public function getVisibleColumnsTableArticleConfig(EntityManagerInterface $entityManager,
+                                                        Demande                $request,
+                                                        bool                   $editMode = false): array {
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
+        $isProjectRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
+        $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
+        $isCommentRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
+        $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+
+        $columns = [
+            ["data" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['title' => 'Référence', 'required' => $editMode, 'data' => 'reference'],
+            ['title' => 'Code barre', 'data' => 'barcode'],
+            ['title' => 'Libellé', 'data' => 'label'],
+            ['title' => 'Article', 'required' => $editMode, 'data' => 'article', 'removeColumn' => !$editMode,],
+            ['title' => 'Quantité', 'required' => $editMode, 'data' => 'quantityToPick'],
+            ['title' => 'Emplacement', 'data' => 'location'],
+            ["data" => "error", "title" => "Erreur", "visible" => false, 'removeColumn' => $editMode,],
+
+            // TODO WIIS-9646
+            ['title' => 'Emplacement cible picking', 'data' => 'targetLocationPicking', 'removeColumn' => !$isTargetLocationPickingDisplayed],
+
+            //TODO traduction de projet
+            ['title' => 'Projet', 'required' => $editMode && $isProjectRequired, 'data' => 'project', 'removeColumn' => !$isProjectDisplayed],
+            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'removeColumn' => !$isProjectDisplayed],
+        ];
+
+
+        return Stream::from($columns)
+            ->filter(fn (array $column) => !($column['removeColumn'] ?? false)) // display column if removeColumn not defined
+            ->map(function (array $column) {
+                unset($column['removeColumn']);
+                return $column;
+            })
+            ->values();
+    }
 }

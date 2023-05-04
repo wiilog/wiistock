@@ -11,15 +11,14 @@ use App\Entity\Utilisateur;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/expeditions")
- */
+#[Route("/expeditions")]
 class ShippingRequestController extends AbstractController {
 
     #[Route("/", name: "shipping_request_index")]
@@ -34,7 +33,7 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/api-columns", name: "shipping_api_columns", options: ["expose" => true], methods: ['GET', 'POST'], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-columns", name: "shipping_request_api_columns", options: ["expose" => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING], mode: HasPermission::IN_JSON)]
     public function apiColumns(ShippingRequestService $service): Response {
         $currentUser = $this->getUser();
@@ -43,10 +42,12 @@ class ShippingRequestController extends AbstractController {
         return new JsonResponse($columns);
     }
 
-    #[Route("/api", name: "shipping_api", options: ["expose" => true], methods: ['GET', 'POST'], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "shipping_request_api", options: ["expose" => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, ShippingRequestService $service) {
-        return $this->json($service->getDataForDatatable($request));
+    public function api(Request                $request,
+                        ShippingRequestService $service,
+                        EntityManagerInterface $entityManager) {
+        return $this->json($service->getDataForDatatable($request, $entityManager));
     }
 
     #[Route("/colonne-visible", name: "save_column_visible_for_shipping_request", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
