@@ -5,12 +5,14 @@ $(function () {
     $('.select2').select2();
     initDateTimePicker();
     Select2Old.user('Utilisateurs');
-    Select2Old.articleReference($('.ajax-autocomplete'), {
-        minQuantity: !Number($('input[name=manageDeliveriesWithoutStockQuantities]').val())
-            ? (Number($('input[name=managePreparationWithPlanning]').val())
-                ? 0
-                : 1)
-            : 0,
+
+    const needsQuantitiesCheck = (
+        !Number($('input[name=manageDeliveriesWithoutStockQuantities]').val())
+        && !Number($('input[name=managePreparationWithPlanning]').val())
+    );
+
+    Select2Old.articleReference($('#modalNewArticle').find('[name=referenceArticle]'), {
+        minQuantity: needsQuantitiesCheck ? 1 : undefined,
     });
 
     loadLogisticUnitList(requestId);

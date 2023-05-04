@@ -3,7 +3,7 @@
     <input class="form-control data needed"
            type="number"
            {% if not setting_value('MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY') %}min=1{% endif %}
-           {% if needsQuantitiesCheck is defined and needsQuantitiesCheck %}max="{{ maximum }}"{% endif %}
+           {% if needsQuantitiesCheck ?? false %}max="{{ maximum }}"{% endif %}
            id="quantity-to-deliver-with-choice"
            name="quantity-to-pick"
            value="0">
