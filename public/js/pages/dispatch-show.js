@@ -4,9 +4,9 @@ $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
-    loadDispatchReferenceArticle();
+    if(!$('#packTable').exists()) {loadDispatchReferenceArticle();}
     getStatusHistory(dispatchId);
-    packsTable = initializePacksTable(dispatchId, isEdit);
+    packsTable =initializePacksTable(dispatchId, isEdit);
 
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
@@ -634,7 +634,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
     wrapLoadingOnActionButton(
         $logisticUnitsContainer,
         () => (
-            AJAX.route('GET', 'dispatch_packs_api', params)
+            AJAX.route('GET', 'dispatch_logistic_units_packs_api', params)
                 .json()
                 .then(data => {
                     $logisticUnitsContainer.html(data.html);

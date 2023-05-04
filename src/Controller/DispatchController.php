@@ -757,9 +757,9 @@ class DispatchController extends AbstractController {
         $entityManager->flush();
     }
 
-    /**
-     * @Route("/packs/api/{dispatch}", name="dispatch_pack_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
+
+    #[Route("/packs/api/{dispatch}", name: "dispatch_pack_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
     public function apiPack(UserService $userService,
                             DispatchService $service,
                             Dispatch $dispatch): Response {
@@ -1630,7 +1630,8 @@ class DispatchController extends AbstractController {
         return $this->json($response);
     }
 
-    #[Route("/{dispatch}/dispatch-packs-api", name: "dispatch_packs_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/{dispatch}/dispatch-packs-api", name: "dispatch_logistic_units_packs_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
     public function getDispatchPacksApi(EntityManagerInterface  $entityManager,
                                          Dispatch               $dispatch,
                                          Request                $request): JsonResponse {
