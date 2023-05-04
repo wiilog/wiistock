@@ -362,7 +362,7 @@ class LivraisonService
             ['name' => 'barcode', 'title' => 'Code barre', 'alwaysVisible' => false],
             ['name' => 'label', 'title' => 'Libellé', 'alwaysVisible' => false],
             ['name' => 'quantity', 'title' => 'Quantité', 'alwaysVisible' => true],
-            ['name' => 'project', 'title' => 'Projet', 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed],
+            ['name' => 'project', 'title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed],
             ['name' => 'comment', 'title' => 'Commentaire', 'orderable' => false, 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
         ];
 
