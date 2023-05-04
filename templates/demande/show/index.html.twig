@@ -134,7 +134,7 @@
                                                 ~ "<span class='article-reference'></span>",
                                             'label': '<span class="article-label"></span>',
                                             'quantityToPick': form.input('quantity-to-pick', null, true, null, {type: 'number', min: 0, onChange: 'onChangeFillComment($(this))'}),
-                                            'project': form.select(trans('Référentiel', 'Projet', "Projet", false), null, isProjectDisplayed, {type: 'project', onChange: 'onChangeFillComment($(this))'}),
+                                            'project': form.select('project', null, isProjectDisplayed, {type: 'project', onChange: 'onChangeFillComment($(this))'}),
                                             'comment': form.input('comment', null, isCommentDisplayed, null, {type: 'text'}),
                                             'location': '<span class="article-location"></span>',
                                             'barcode': '<span class="article-barcode"></span>',
@@ -149,6 +149,7 @@
                                         <input hidden name="deliveryRequestReceiver" value="{{ demande.receiver ? demande.receiver.username }}">
                                         <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT" value="{{ setting_value("DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT") }}">
                                         <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT" value="{{ setting_value("DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT") }}">
+                                        <input hidden name="type" value="{{ userQuantityType }}">
                                     </div>
                                 </div>
                             {% endif %}
