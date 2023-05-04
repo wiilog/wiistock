@@ -52,7 +52,7 @@ class ShippingRequestController extends AbstractController {
     public function api(Request                $request,
                         ShippingRequestService $service,
                         EntityManagerInterface $entityManager) {
-        return $this->json($service->getDataForDatatable($request, $entityManager));
+        return $this->json($service->getDataForDatatable( $entityManager, $request));
     }
 
     #[Route("/colonne-visible", name: "save_column_visible_for_shipping_request", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]

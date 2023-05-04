@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class ShippingRequestService {
 
@@ -55,8 +56,8 @@ class ShippingRequestService {
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 
-    public function getDataForDatatable(Request $request) : array{
-        $shippingRepository = $this->entityManager->getRepository(ShippingRequest::class);
+    public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) : array{
+        $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
 
         $queryResult = $shippingRepository->findByParamsAndFilters(
             $request->request,
