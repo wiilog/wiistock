@@ -63,7 +63,7 @@ class AnnotationListener {
             /** @var Utilisateur $user */
             $user = $controller->getUser();
 
-            if (!$user?->getStatus()) {
+            if ($user && !$user->getStatus()) {
                 $event->setController(fn() => new RedirectResponse($this->router->generate("logout")));
             }
         }
