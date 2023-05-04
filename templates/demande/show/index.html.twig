@@ -116,10 +116,6 @@
                                                             name: 'data-other-params',
                                                         },
                                                         {
-                                                            name: 'data-other-params-with-articles',
-                                                            value: '1'
-                                                        },
-                                                        {
                                                             name: 'data-other-params-ignored-delivery-request',
                                                             value: demande.id
                                                         },
@@ -127,7 +123,14 @@
                                                             name: 'data-other-params-status',
                                                             value: constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')
                                                         },
-                                                    ],
+                                                    ]|merge(
+                                                        not manageDeliveriesWithoutStockQuantities and not managePreparationWithPlanning
+                                                            ? [{
+                                                                name: 'data-other-params-min-quantity',
+                                                                value: 1
+                                                            }]
+                                                            : []
+                                                    ),
                                                 })
                                                 ~ form.input('lineId', null, false, null, {type: 'hidden'})
                                                 ~ form.input('type', null, false, null, {type: 'hidden'})
