@@ -1,7 +1,7 @@
 import {GET, POST} from "@app/ajax";
 
 let tables = [];
-const requestId = $('#demande-id').val();
+const requestId = $('[name=requestId]').val();
 
 global.ajaxGetAndFillArticle = ajaxGetAndFillArticle;
 global.deleteRowDemande = deleteRowDemande;
@@ -10,6 +10,7 @@ global.ajaxEditArticle = ajaxEditArticle;
 global.removeLogisticUnitLine = removeLogisticUnitLine;
 global.initDeliveryRequestModal = initDeliveryRequestModal;
 global.openAddLUModal = openAddLUModal;
+global.onChangeFillComment = onChangeFillComment;
 
 $(function () {
     $('.select2').select2();
@@ -336,7 +337,7 @@ function initEditableTableArticles($table) {
                 const $relatedTarget = $(event.relatedTarget);
 
 
-                const wasLineSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
+                const wasLineSelect = $target.closest(`td`).find(`select[name="reference"]`).exists();
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
                     || $relatedTarget.is(`button.delete-row`)
                     || wasLineSelect) {
@@ -397,22 +398,27 @@ function initEditableTableArticles($table) {
         const referenceArticle = Number($(this).val());
 
         $row.find('.article-label').text(label);
+        //CSS: allow to wrap text and not taking the place of "article" field
+        $row.find('.article-label').css('white-space','normal')
         $row.find('.article-barcode').text(barCode);
 
         const $articleSelect = $row.find('select[name="article"]');
         if ($articleSelect.exists()) {
             if(typeQuantite === 'article') {
                 AJAX
-                    .route(GET, 'api_articles-by-reference', {referenceArticle})
+                    .route(GET, 'api_articles-by-reference', {'request': $('[name=requestId]').val(), referenceArticle})
                     .json()
                     .then(({data}) => {
                         const articleSelect = $row.find('select[name="article"]')
+                        articleSelect.append(`<option></option>`);
                         data.forEach((article) => {
                             articleSelect.append(`<option value="${article.value}">${article.text}</option>`);
                         });
+                        articleSelect.focus();
                     });
             } else {
                 $articleSelect.closest('label').remove();
+                $row.find('input[name="quantity-to-pick"]').focus();
             }
         }
 
@@ -439,7 +445,6 @@ function initEditableTableArticles($table) {
     });
 
 
-    let $modalDeleteArticle = $("#modalDeleteArticle");
 
     $(window).on(`beforeunload`, () =>  {
         const $focus = $(`tr :focus`);
@@ -464,7 +469,7 @@ function saveArticleLine(requestId, $row,) {
                 .then((response) => {
                     if (response.success) {
                         if (response.lineId) {
-                            $row.find(`.delete-row`).data(`id`, response.lineId);
+                            $row.find(`.delete-row`).attr(`data-id`, response.lineId);
                             $row.find('input[name="lineId"]').val(response.lineId);
                         }
                         if (response.type) {
@@ -498,6 +503,51 @@ function addArticleRow(table, $button) {
         table.row.add(data);
         table.draw();
 
+        $('.delete-row').attr({
+            'onclick':"deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))",
+            'data-target':'#modalDeleteArticle',
+            'data-toggle':'modal',
+            'data-name':'reference',
+        })
+
         scrollToBottom();
+
+        // find added row
+        const $lastRow = $table.find('tbody tr:last-child');
+        const $addedRow = $lastRow.prev();
+
+        // wait for the row to be added
+        setTimeout(() => {
+            $addedRow.find('select.needed[required]').first().select2('open');
+        }, 100);
     }
+}
+
+function onChangeFillComment($selector) {
+    const $row = $selector.closest('tr');
+    const settingWithProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT]').val();
+    const settingWithoutProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT]').val();
+    if (settingWithProject && settingWithoutProject) {
+        const $article = $row.find('select[name="article"]');
+        const $quantity = $row.find('input[name=quantity-to-pick]');
+        const $comment = $row.find('input[name=comment]');
+        const project = $row.find('select[name=project]').find(':selected').text();
+        const receiver = $('input[name=deliveryRequestReceiver]').val();
+
+        let fill = !($quantity.val() === null || ($article && $article.val() === null));
+
+        if (fill) {
+            if (!project) {
+                let textWithoutProject = settingWithoutProject.replace("@Destinataire", receiver ?? "");
+                $comment.val(textWithoutProject);
+            } else {
+                let textWithProject = settingWithProject
+                                        .replace("@Destinataire", receiver ?? "")
+                                        .replace("@Projet", project);
+                $comment.val(textWithProject);
+            }
+        }
+    }
+
+
 }

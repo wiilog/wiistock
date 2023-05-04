@@ -1070,6 +1070,7 @@ class DemandeController extends AbstractController
             ->map(function (DeliveryRequestReferenceLine $line) use ($commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $isProjectDisplayedUnderCondition, $projectConditionFixedField, $projectConditionFixedValue, $isProjectRequired, $isCommentRequired, $formatService) {
                 $reference = $line->getReference();
                 return [
+                    "createRow" => false,
                     "actions" => '<span class="d-flex justify-content-start align-items-center delete-row" data-target="#modalDeleteArticle" data-toggle="modal" data-name="reference" data-id="' . $line->getId() . '" onclick="deleteRowDemande($(this), $(\'#modalDeleteArticle\'), $(\'#submitDeleteArticle\'))"><span class="wii-icon wii-icon-trash"></span></span>',
                     "reference" => ($reference->getReference() ?: '')
                         . $this->render('form.html.twig', [
@@ -1083,7 +1084,7 @@ class DemandeController extends AbstractController
                     "label" => $reference->getLibelle() ?: '',
                     "quantityToPick" => $this->render('form.html.twig', [
                         'macroName' => 'input',
-                        'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
+                        'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1, 'onChange' => 'onChangeFillComment($(this))']],
                     ])->getContent(),
                     "location" => $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE ? $formatService->location($reference->getEmplacement()) : null,
                     "barcode" => $reference->getBarcode() ?: '',
@@ -1094,7 +1095,7 @@ class DemandeController extends AbstractController
                                 'text' => $formatService->project($line->getProject()),
                                 'selected' => true,
                                 'value' => $line->getProject()?->getId(),
-                            ] : []]]])->getContent()
+                            ] : [], 'onChange' => 'onChangeFillComment($(this))']]])->getContent()
                         : $formatService->project($line->getProject()) ?? '',
                     "comment" => !$isProjectDisplayedUnderCondition || ($isCommentDisplayedUnderCondition && $commentConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $commentConditionFixedValue))
                         ? $this->render('form.html.twig', [
@@ -1113,6 +1114,7 @@ class DemandeController extends AbstractController
             ->map(function (DeliveryRequestArticleLine $line) use ($isUserQuantityTypeArticle, $commentConditionFixedValue, $commentConditionFixedField, $isCommentDisplayedUnderCondition, $projectConditionFixedValue, $projectConditionFixedField, $isProjectDisplayedUnderCondition, $isCommentRequired, $isProjectRequired, $entityManager, $request, $user, $articleDataService, $formatService) {
                 $article = $line->getArticle();
                 return [
+                    "createRow" => false,
                     "actions" => '<span class="d-flex justify-content-start align-items-center delete-row" data-target="#modalDeleteArticle" data-toggle="modal" data-name="article" data-id="' . $line->getId() . '" onclick="deleteRowDemande($(this), $(\'#modalDeleteArticle\'), $(\'#submitDeleteArticle\'))"><span class="wii-icon wii-icon-trash"></span></span>',
                     "reference" =>
                         ($article->getReferenceArticle()->getReference() ?: '')
@@ -1156,6 +1158,7 @@ class DemandeController extends AbstractController
                                     })
                                     ->toArray(),
                                 'value' => $article->getId(),
+                                'onChange' => 'onChangeFillComment($(this))',
                             ]]])->getContent()
                         : $article->getLabel(),
                     "targetLocationPicking" => !$isUserQuantityTypeArticle
@@ -1171,6 +1174,7 @@ class DemandeController extends AbstractController
 
         $data = array_merge($referencesData, $articlesData);
         $data[] = [
+            "createRow" => true,
             "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
             "reference" => "",
             "label" => "",
@@ -1233,6 +1237,7 @@ class DemandeController extends AbstractController
                 $entityManager->flush();
                 $resp['lineId'] = $resp['line']->getId();
                 $resp['created'] = true;
+                $resp['success'] = true;
             }
         }
         return new JsonResponse(
@@ -1240,10 +1245,10 @@ class DemandeController extends AbstractController
         );
     }
 
-    #[Route("/api/articles-by-reference/{referenceArticle}", name: "api_articles-by-reference", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/api/articles-by-reference/{request}/{referenceArticle}", name: "api_articles-by-reference", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function apiArticlesByReference(ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager, ArticleDataService $articleDataService): JsonResponse {
-        $articles = $articleDataService->findAndSortActiveArticlesByRefArticle($referenceArticle, $referenceArticle->getStockManagement(), $entityManager);
+    public function apiArticlesByReference(Demande $request, ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager, ArticleDataService $articleDataService): JsonResponse {
+        $articles = $articleDataService->findAndSortActiveArticlesByRefArticle($referenceArticle, $referenceArticle->getStockManagement(), $entityManager, $request);
         return $this->json([
             "success" => true,
             "data" => Stream::from($articles)

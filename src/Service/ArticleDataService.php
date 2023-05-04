@@ -122,7 +122,7 @@ class ArticleDataService
                     ])];
             } else {
                 $management = $refArticle->getStockManagement();
-                $articles = self::findAndSortActiveArticlesByRefArticle($refArticle, $management, $this->entityManager);
+                $articles = $this->findAndSortActiveArticlesByRefArticle($refArticle, $management, $this->entityManager);
 
                 $articleIdsInRequest = $request->getArticleLines()
                     ->map(fn (DeliveryRequestArticleLine $line) => $line->getArticle()->getId())
@@ -145,9 +145,9 @@ class ArticleDataService
         return $data;
     }
 
-    public function findAndSortActiveArticlesByRefArticle(ReferenceArticle $refArticle, $management ,EntityManagerInterface $entityManager){
-        $articleRepository = $this->entityManager->getRepository(Article::class);
-        $articles = $articleRepository->findActiveArticles($refArticle);
+    public function findAndSortActiveArticlesByRefArticle(ReferenceArticle $refArticle, $management, EntityManagerInterface $entityManager, ?Demande $demande = null){
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $articles = $articleRepository->findActiveArticles($refArticle, null, null, null, $demande);
         return $management
             ? Stream::from($articles)
                 ->sort(function (Article $article1, Article $article2) use ($management) {

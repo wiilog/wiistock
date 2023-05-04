@@ -106,6 +106,7 @@
                                         {% set isCommentDisplayed = fieldsParam|isFieldRequired(commentFieldCode, 'required') %}
                                         {% set userQuantityType = app.user.role.quantityType %}
                                         <input hidden name="editableTableArticlesForm" value="{{ {
+                                            'createRow' : false,
                                             'actions': '<span class="d-flex justify-content-start align-items-center delete-row"><span class="wii-icon wii-icon-trash"></span></span>',
                                             'reference':
                                                 form.select('reference', null, true, {
@@ -113,10 +114,19 @@
                                                     additionalAttributes: [
                                                         {
                                                             name: 'data-other-params',
-                                                        }, {
+                                                        },
+                                                        {
                                                             name: 'data-other-params-with-articles',
                                                             value: '1'
-                                                        }
+                                                        },
+                                                        {
+                                                            name: 'data-other-params-ignored-delivery-request',
+                                                            value: demande.id
+                                                        },
+                                                        {
+                                                            name: 'data-other-params-status',
+                                                            value: constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')
+                                                        },
                                                     ],
                                                 })
                                                 ~ form.input('lineId', null, false, null, {type: 'hidden'})
@@ -124,19 +134,22 @@
                                                 ~ form.input('referenceId', null, false, null, {type: 'hidden'})
                                                 ~ "<span class='article-reference'></span>",
                                             'label': '<span class="article-label"></span>',
-                                            'quantityToPick': form.input('quantity-to-pick', null, true, null, {type: 'number', min: 0}),
-                                            'project': form.select('project', null, isProjectDisplayed, {type: 'project'}),
+                                            'quantityToPick': form.input('quantity-to-pick', null, true, null, {type: 'number', min: 0, onChange: 'onChangeFillComment($(this))'}),
+                                            'project': form.select('project', null, isProjectDisplayed, {type: 'project', onChange: 'onChangeFillComment($(this))'}),
                                             'comment': form.input('comment', null, isCommentDisplayed, null, {type: 'text'}),
                                             'location': '<span class="article-location"></span>',
                                             'barcode': '<span class="article-barcode"></span>',
                                             'article': userQuantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE')
-                                                ? form.select('article', null, true, {})
+                                                ? form.select('article', null, true, {onChange: 'onChangeFillComment($(this))'})
                                                 : '',
                                             'targetLocationPicking': userQuantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE')
                                                 ? form.select('targetLocationPicking', null, false, {type: 'location'})
                                                 : '',
                                         } | json_encode }}">
                                         <input hidden name="editableTableArticlesFieldsParams" value="{{ fieldsParam|json_encode }}">
+                                        <input hidden name="deliveryRequestReceiver" value="{{ demande.receiver ? demande.receiver.username }}">
+                                        <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT" value="{{ setting_value("DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT") }}">
+                                        <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT" value="{{ setting_value("DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT") }}">
                                     </div>
                                 </div>
                             {% endif %}
@@ -151,7 +164,7 @@
     <button class="btn btn-outline-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
     <input type="hidden" name="showTargetLocationPicking" value="{{ showTargetLocationPicking }}">
     <input type="hidden" name="managePreparationWithPlanning" value="{{ managePreparationWithPlanning }}">
-    <input id="demande-id" type="hidden" value="{{ demande.id }}"/>
+    <input name="requestId" type="hidden" value="{{ demande.id }}"/>
 
     {% if modifiable and setting_value('DELIVERY_REQUEST_ADD_UL') and hasRightEdit %}
         {% include 'demande/modalNewArticle.html.twig' %}
