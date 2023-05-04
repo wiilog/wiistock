@@ -36,6 +36,7 @@ global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
+global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 global.changeReceiverInput = changeReceiverInput;
 
 const index = JSON.parse($(`input#settings`).val());
@@ -606,6 +607,28 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+
+    EditableDatatable.create(`#table-demande-addition-fixed-fields`, {
+        route: Routing.generate('settings_sublines_fixed_field_api', {entity: `demandeRefArticle`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`, width: `115px`},
+            {data: `displayed`, title: `Afficher`, width: `70px`},
+            {data: `displayedUnderCondition`, title: `Afficher sous condition`, width: `50px`},
+            {data: `conditionFixedField`, title: `Champ fixe`,  width: `150px`},
+            {data: `conditionFixedFieldValue`, title: `Valeur`,  width: `220px`},
+            {data: `required`, title: `Obligatoire`},
         ],
     });
 
@@ -1250,6 +1273,40 @@ function initializeEmergenciesFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+}
+
+function changeDisplayRefArticleTable($checkbox) {
+    const check = $checkbox.is(':checked');
+    const $displayedUnderCondition = $checkbox.closest('tr').find('input[name=displayedUnderCondition]');
+    const $conditionFixedField = $checkbox.closest('tr').find('select[name=conditionFixedField]');
+    const $conditionFixedFieldValueDiv = $checkbox.closest('tr').find('.conditionFixedFieldValueDiv');
+    const $required = $checkbox.closest('tr').find('input[name=required]');
+
+    if (!check) {
+        if ($checkbox[0].name === "displayed") {
+            $displayedUnderCondition.attr('disabled', true);
+            $required.attr('disabled', true);
+            if ($displayedUnderCondition.is(':checked')) {
+                $conditionFixedField.addClass("d-none");
+                $conditionFixedFieldValueDiv.addClass("d-none");
+            }
+        } else if ($checkbox[0].name === "displayedUnderCondition") {
+            $conditionFixedField.addClass("d-none");
+            $conditionFixedFieldValueDiv.addClass("d-none");
+        }
+    } else {
+        if ($checkbox[0].name === "displayed") {
+            $displayedUnderCondition.attr('disabled', false);
+            $required.attr('disabled', false);
+            if ($displayedUnderCondition.is(':checked')) {
+                $conditionFixedField.removeClass("d-none");
+                $conditionFixedFieldValueDiv.removeClass("d-none");
+            }
+        } else if ($checkbox[0].name === "displayedUnderCondition") {
+            $conditionFixedField.removeClass("d-none");
+            $conditionFixedFieldValueDiv.removeClass("d-none");
+        }
+    }
 }
 
 function changeReceiverInput($checkbox) {

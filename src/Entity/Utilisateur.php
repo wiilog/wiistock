@@ -39,7 +39,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_HANDLING_VISIBLE_COLUMNS = ["actions", "desiredDate", "creationDate", "requester", "validationDate", "number", "status", "type", "subject", "treatedBy", "emergency"];
     const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
     const DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "unloadingLocation", "number", "trackingLinesNumber", "countTrackingLines", "operator" ,"reserves", "carrier"];
-    const DEFAULT_SHIPPING_VISIBLE_COLUMNS = ["trackingNumber", "status", "createdAt", "requestCaredAt", "validatedAt", "plannedAt", "expectedPickedAt", "treatedAt", "requesters", "customerOrderNumber", "customerName", "carrier"];
+    const DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS = ["number", "status", "createdAt", "requestCaredAt", "validatedAt", "plannedAt", "expectedPickedAt", "treatedAt", "requesters", "customerOrderNumber", "customerName", "carrier"];
     const DEFAULT_VISIBLE_COLUMNS = [
         'reference' => self::DEFAULT_REFERENCE_VISIBLE_COLUMNS,
         'article' => self::DEFAULT_ARTICLE_VISIBLE_COLUMNS,
@@ -52,7 +52,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'handling' => self::DEFAULT_HANDLING_VISIBLE_COLUMNS,
         'truckArrival' => self::DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS,
         'arrivalPack' => self::DEFAULT_PACK_VISIBLE_COLUMNS,
-        'shippingRequest' => self::DEFAULT_SHIPPING_VISIBLE_COLUMNS,
+        'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS,
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [

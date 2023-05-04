@@ -2,57 +2,16 @@
 
 namespace App\Service\ShippingRequest;
 
-use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
-use App\Entity\FreeField;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Utilisateur;
 use App\Service\FormatService;
-use App\Service\FreeFieldService;
-use App\Service\LanguageService;
-use App\Service\MailerService;
-use App\Service\TrackingMovementService;
-use App\Service\TranslationService;
-use App\Service\UserService;
 use App\Service\VisibleColumnService;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
-use Twig\Environment as Twig_Environment;
 
 class ShippingRequestService {
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
 
     #[Required]
     public VisibleColumnService $visibleColumnService;
@@ -60,14 +19,13 @@ class ShippingRequestService {
     #[Required]
     public Security $security;
 
-    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+    #[Required]
+    public FormatService $formatService;
 
+    public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
-        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_SHIPPING, CategorieCL::DEMANDE_SHIPPING);
-
         $columns = [
-            ['title' => 'Numéro', 'name' => 'trackingNumber'],
+            ['title' => 'Numéro', 'name' => 'number'],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Date de création', 'name' => 'createdAt'],
             ['title' => 'Date de prise en charge souhaitée', 'name' => 'requestCaredAt'],
@@ -77,29 +35,40 @@ class ShippingRequestService {
             ['title' => 'Date d\'expédition', 'name' => 'treatedAt'],
             ['title' => 'Demandeur', 'name' => 'requesters'],
             ['title' => 'N° commande client', 'name' => 'customerOrderNumber'],
+            ['title' => 'Livraison à titre gracieux', 'name' => 'freeDelivery'],
+            ['title' => 'Articles conformes', 'name' => 'compliantArticles'],
             ['title' => 'Client', 'name' => 'customerName'],
+            ['title' => 'A l\'attention de', 'name' => 'customerRecipient'],
+            ['title' => 'Téléphone', 'name' => 'customerPhone'],
+            ['title' => 'Adresse de livraison', 'name' => 'customerAddress'],
             ['title' => 'Transporteur', 'name' => 'carrier'],
+            ['title' => 'Numéro tracking', 'name' => 'trackingNumber'],
+            ['title' => 'Envoi', 'name' => 'shipment'],
+            ['title' => 'Port', 'name' => 'carrying'],
+            ['title' => 'Commentaire', 'name' => 'comment'],
+            ['title' => 'Poids brut (kg)', 'name' => 'grossWeight'],
         ];
-        // ajouter tous les autres champs
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 
-    public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) {
-        return [];
+    public function getDataForDatatable(Request $request, EntityManager $entityManager) : array {
         $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
 
-        $queryResult = $shippingRepository->findByParamsAndFilters();
+        $queryResult = $shippingRepository->findByParamsAndFilters(
+            $request->request,
+            [],
+            $this->visibleColumnService,
+            [
+                'user' => $this->security->getUser(),
+            ]
+        );
 
         $shippingRequests = $queryResult['data'];
 
         $rows = [];
         foreach ($shippingRequests as $shipping) {
-            $rows[] = $this->dataRowShipping($shipping[0], [
-                'totalWeight' => $shipping['totalWeight'],
-                'packsCount' => $shipping['packsCount'],
-                'packsInDispatchCount' => $shipping['dispatchedPacksCount']
-            ]);
+            $rows[] = $this->dataRowShipping($shipping);
         }
 
         return [
@@ -109,10 +78,33 @@ class ShippingRequestService {
         ];
     }
 
-    public function dataRowShipping(ShippingRequest $shipping, array $options = []): array
+    public function dataRowShipping(ShippingRequest $shipping): array
     {
-        $row = [
+        $formatService = $this->formatService;
 
+        $row = [
+            "number" => $shipping->getNumber(),
+            "status" => $formatService->status($shipping->getStatus()),
+            "createdAt" => $formatService->datetime($shipping->getCreatedAt()),
+            "requestCaredAt" => $formatService->datetime($shipping->getRequestCaredAt()),
+            "validatedAt" => $formatService->datetime($shipping->getValidatedAt()),
+            "plannedAt" => $formatService->datetime($shipping->getPlannedAt()),
+            "expectedPickedAt" => $formatService->datetime($shipping->getExpectedPickedAt()),
+            "treatedAt" => $formatService->datetime($shipping->getTreatedAt()),
+            "requesters" => $formatService->users($shipping->getRequesters()),
+            "customerOrderNumber" => $shipping->getCustomerOrderNumber(),
+            "freeDelivery" => $formatService->bool($shipping->isFreeDelivery()),
+            "compliantArticles" => $formatService->bool($shipping->isCompliantArticles()),
+            "customerName" => $shipping->getCustomerName(),
+            "customerRecipient" => $shipping->getCustomerRecipient(),
+            "customerPhone" => $shipping->getCustomerPhone(),
+            "customerAddress" => $shipping->getCustomerAddress(),
+            "carrier" => $formatService->carrier($shipping->getCarrier()),
+            "trackingNumber" => $shipping->getTrackingNumber(),
+            "shipment" => ShippingRequest::SHIPMENT_LABELS[$shipping->getShipment()] ?? '',
+            "carrying" => ShippingRequest::CARRYING_LABELS[$shipping->getCarrying()] ?? '',
+            "comment" => $shipping->getComment(),
+            "grossWeight" => $shipping->getGrossWeight(),
         ];
 
         return $row;

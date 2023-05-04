@@ -30,6 +30,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
@@ -1164,8 +1165,8 @@ class SettingsController extends AbstractController {
                                     ->toArray(),
                             ],
                             "locationByType" => [
-                                "field" => $defaultLocationByType->getId(),
-                                "modalType" => $defaultLocationByType->getModalType(),
+                                "field" => $defaultLocationByType?->getId(),
+                                "modalType" => $defaultLocationByType?->getModalType(),
                                 "elements" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
                             ],
                             "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
@@ -2317,14 +2318,74 @@ class SettingsController extends AbstractController {
             $manager->remove($entity->getLabelTranslation());
         }
 
-
-
         $manager->remove($entity);
         $manager->flush();
 
         return $this->json([
             "success" => true,
             "msg" => "Le champ libre a été supprimé",
+        ]);
+    }
+
+    /**
+     * @Route("/champ-fixe/sous-lignes/{entity}", name="settings_sublines_fixed_field_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     */
+    public function sublinesFixedFieldApi(Request $request, EntityManagerInterface $entityManager, string $entity): Response {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+
+        $class = "form-control data";
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $arrayFields = $subLineFieldsParamRepository->findByEntityForEntity($entity);
+
+        $rows = [];
+        foreach ($arrayFields as $field) {
+            $label = ucfirst($field->getFieldLabel());
+            $displayed = $field->isDisplayed() ? "checked" : "";
+            $displayedUnderCondition = $field->isDisplayed() ? ($field->isDisplayedUnderCondition() ? "checked" : "") : "disabled";
+            $conditionFixedField = $field->getConditionFixedField() ?? "";
+            $conditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
+            $required = $field->isDisplayed() ? ($field->isRequired() ? "checked" : "") : "disabled";
+
+            if ($edit) {
+                $labelAttributes = "class='font-weight-bold'";
+
+                $conditionFixedFieldOptionsSelected = Stream::from($conditionFixedFieldValue)
+                    ->map(function(string $typeId) use ($typeRepository) {
+                        $type = $typeRepository->find($typeId);
+                        return "<option value='{$type->getId()}' selected>{$type->getLabel()}</option>";
+                    } )
+                    ->join("");
+
+                $classConditionFixedField = $class . ($displayedUnderCondition === "" ? " d-none" : "");
+                $classConditionFixedFieldValue = "conditionFixedFieldValueDiv" . ($displayedUnderCondition === "" ? " d-none" : "");
+
+                $row = [
+                    "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
+                    "displayed" => "<input type='checkbox' name='displayed' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayed />",
+                    "displayedUnderCondition" => "<input type='checkbox' name='displayedUnderCondition' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayedUnderCondition />",
+                    "conditionFixedField" => "<select name='conditionFixedField' class='$classConditionFixedField'><option value='$conditionFixedField' selected>$conditionFixedField</option></select>",
+                    "conditionFixedFieldValue" => "<div class='$classConditionFixedFieldValue'><select name='conditionFixedFieldValue' data-s2='referenceType' multiple class='$class'>$conditionFixedFieldOptionsSelected</select></div>",
+                    "required" => "<input type='checkbox' name='required' class='$class' $required />",
+                ];
+
+                $rows[] = $row;
+            } else {
+                $row = [
+                    "label" => "<span class='font-weight-bold'>$label</span>",
+                    "displayed" => $field->isDisplayed() ? "Oui" : "Non",
+                    "displayedUnderCondition" => $field->isDisplayedUnderCondition() ? "Oui" : "Non",
+                    "conditionFixedField" => $field->getConditionFixedField() ?? "",
+                    "conditionFixedFieldValue" => $field->getConditionFixedFieldValue() ? implode(",", $field->getConditionFixedFieldValue()) : "",
+                    "required" => $field->isRequired() ? "Oui" : "Non",
+                ];
+
+                $rows[] = $row;
+            }
+        }
+
+        return $this->json([
+            "data" => $rows,
         ]);
     }
 
@@ -2350,6 +2411,7 @@ class SettingsController extends AbstractController {
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
             $editDisabled = in_array($field->getFieldCode(), FieldsParam::NOT_EDITABLE_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
+
 
             $filterOnly = in_array($field->getFieldCode(), FieldsParam::FILTER_ONLY_FIELDS) ? "disabled" : "";
             $requireDisabled = $filterOnly || in_array($field->getFieldCode(), FieldsParam::ALWAYS_REQUIRED_FIELDS) ? "disabled" : "";
