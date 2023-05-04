@@ -28,7 +28,7 @@
                                 <div class="dropdown-menu dropdown-follow-gt pointer">
                                     {% if hasRightEdit %}
                                         <a data-id='{{ shipping.id }}'
-                                           data-target='#modalEditDispatch'
+                                           data-target='#modalEditShippingRequest'
                                            data-toggle='modal'
                                            onclick=""
                                            class="dropdown-item pointer">
@@ -124,6 +124,10 @@
             </div>
         </div>
     </div>
+
+    {% include "shipping_request/modalEdit.html.twig" with {
+        shipping
+    }%}
 
 {% endblock %}
 

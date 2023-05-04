@@ -2,6 +2,12 @@
 
 {% set requester = app.user %}
 <form name="formShippingRequest">
+    {% if shipping.id %}
+    {{ form.input('shippingRequestId', null, true, shipping.id, {
+            type: 'hidden',
+        }) }}
+    {% endif %}
+
     <div class="wii-section-title d-flex align-items-center pt-0">
         Informations
     </div>
@@ -19,7 +25,14 @@
                         value: '1'
                     }
                 ],
-                items: [{
+                items: shipping.id
+                ? shipping.requesters | map((requester) => ({
+                    value: requester.id,
+                    label: requester.username,
+                    phone: requester.phone,
+                    selected: true,
+                }))
+                : [{
                     value: requester.id,
                     label: requester.username,
                     phone: requester.phone,

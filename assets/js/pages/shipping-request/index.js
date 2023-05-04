@@ -1,3 +1,5 @@
+import {GET, POST} from "@app/ajax";
+
 let tableShippings;
 
 $(function() {
@@ -27,7 +29,7 @@ function initTableShippings() {
             paging: true,
             ajax: {
                 url: Routing.generate('shipping_request_api', true),
-                type: "GET",
+                type: GET,
             },
             rowConfig: {
                 needsRowClickAction: true,
@@ -78,10 +80,9 @@ function initModalNewShippingRequest() {
 
     Form
         .create($modal)
-        .submitTo(POST, 'shipping_request_form_submit', {success: (data) => {
+        .submitTo(POST, 'shipping_request_new', {success: (data) => {
             if(data.success) {
-                // TODO uncomment after 9575
-                // window.location.href = Routing.generate('shipping_request_show', {id: data.shippingRequestId});
+                window.location.href = Routing.generate('shipping_request_show', {id: data.shippingRequestId});
             }
         }});
 }
