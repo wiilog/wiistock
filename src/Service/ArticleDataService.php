@@ -115,7 +115,8 @@ class ArticleDataService
                 $data = [
                     'selection' => $this->templating->render('demande/choiceContent.html.twig', [
                         'maximum' => $availableQuantity,
-                        'showTargetLocationPicking' => $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
+                        'showTargetLocationPicking' => $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
+                        'needsQuantitiesCheck' => $needsQuantitiesCheck,
                     ])];
             } else {
                 $management = $refArticle->getStockManagement();
@@ -132,6 +133,7 @@ class ArticleDataService
                         'maximum' => $availableQuantity,
                         'deliveryRequest' => $request,
                         'articleIdsInRequest' => $articleIdsInRequest,
+                        'needsQuantitiesCheck' => $needsQuantitiesCheck,
                     ])
                 ];
             }

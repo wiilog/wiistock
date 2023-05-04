@@ -116,10 +116,6 @@
                                                             name: 'data-other-params',
                                                         },
                                                         {
-                                                            name: 'data-other-params-with-articles',
-                                                            value: '1'
-                                                        },
-                                                        {
                                                             name: 'data-other-params-ignored-delivery-request',
                                                             value: demande.id
                                                         },
@@ -127,7 +123,14 @@
                                                             name: 'data-other-params-status',
                                                             value: constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')
                                                         },
-                                                    ],
+                                                    ]|merge(
+                                                        not manageDeliveriesWithoutStockQuantities and not managePreparationWithPlanning
+                                                            ? [{
+                                                                name: 'data-other-params-min-quantity',
+                                                                value: 1
+                                                            }]
+                                                            : []
+                                                    ),
                                                 })
                                                 ~ form.input('lineId', null, false, null, {type: 'hidden'})
                                                 ~ form.input('type', null, false, null, {type: 'hidden'})
@@ -163,6 +166,7 @@
     </div>
     <button class="btn btn-outline-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
     <input type="hidden" name="showTargetLocationPicking" value="{{ showTargetLocationPicking }}">
+    <input type="hidden" name="manageDeliveriesWithoutStockQuantities" value="{{ manageDeliveriesWithoutStockQuantities }}">
     <input type="hidden" name="managePreparationWithPlanning" value="{{ managePreparationWithPlanning }}">
     <input name="requestId" type="hidden" value="{{ demande.id }}"/>
 

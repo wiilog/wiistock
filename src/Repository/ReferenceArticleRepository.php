@@ -85,6 +85,12 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->setParameter('typeQuantity', $options['type-quantity']);
         }
 
+        if($options['minQuantity'] ?? false) {
+            $queryBuilder
+                ->andWhere('reference.quantiteDisponible >= :minQuantity')
+                ->setParameter('minQuantity', $options['minQuantity']);
+        }
+
         if($options['status'] ?? false) {
             $queryBuilder
                 ->andWhere('status.code = :status')
