@@ -78,6 +78,13 @@ function loadLogisticUnitList(requestId) {
                             domConfig: {
                                 removeInfo: true,
                             },
+                            drawConfig: {
+                                needsColumnHide: true,
+                            },
+                            hideColumnConfig: {
+                                columns,
+                                tableFilter: 'logistic-units-container'
+                            },
                         });
 
                         tables.push(table);
