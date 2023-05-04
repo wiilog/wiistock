@@ -3,13 +3,17 @@
 namespace App\Service\ShippingRequest;
 
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\Utilisateur;
 use App\Service\FormatService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
+use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class ShippingRequestService {
 
@@ -22,9 +26,16 @@ class ShippingRequestService {
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public Twig_Environment $templating;
+
+    #[Required]
+    public RouterInterface $router;
+
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
         $columns = [
+            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Numéro', 'name' => 'number'],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Date de création', 'name' => 'createdAt'],
@@ -80,9 +91,16 @@ class ShippingRequestService {
 
     public function dataRowShipping(ShippingRequest $shipping): array
     {
+        $url = $this->router->generate('shipping_show_page', [
+            "id" => $shipping->getId()
+        ]);
+
         $formatService = $this->formatService;
 
         $row = [
+            "actions" => $this->templating->render('shipping_request/actions.html.twig', [
+                'url' => $url,
+            ]),
             "number" => $shipping->getNumber(),
             "status" => $formatService->status($shipping->getStatus()),
             "createdAt" => $formatService->datetime($shipping->getCreatedAt()),
@@ -108,5 +126,18 @@ class ShippingRequestService {
         ];
 
         return $row;
+    }
+
+    public function createHeaderTransportDetailsConfig(ShippingRequest $shippingRequest){
+        return $this->templating->render('shipping_request/show-transport-header.html.twig', [
+            'shipping' => $shippingRequest,
+            'packsCount' => $shippingRequest->getPackCount(),
+            'totalValue' => Stream::from($shippingRequest->getExpectedLines())
+                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getPrice())
+                ->sum(),
+            'netWeight' => Stream::from($shippingRequest->getExpectedLines())
+                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
+                ->sum(),
+        ]);
     }
 }
