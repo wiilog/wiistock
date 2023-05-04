@@ -336,7 +336,7 @@ function initEditableTableArticles($table) {
                 const $relatedTarget = $(event.relatedTarget);
 
 
-                const wasLineSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
+                const wasLineSelect = $target.closest(`td`).find(`select[name="reference"]`).exists();
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
                     || $relatedTarget.is(`button.delete-row`)
                     || wasLineSelect) {
@@ -411,9 +411,11 @@ function initEditableTableArticles($table) {
                         data.forEach((article) => {
                             articleSelect.append(`<option value="${article.value}">${article.text}</option>`);
                         });
+                        articleSelect.focus();
                     });
             } else {
                 $articleSelect.closest('label').remove();
+                $row.find('input[name="quantity-to-pick"]').focus();
             }
         }
 
@@ -506,5 +508,14 @@ function addArticleRow(table, $button) {
         })
 
         scrollToBottom();
+
+        // find added row
+        const $lastRow = $table.find('tbody tr:last-child');
+        const $addedRow = $lastRow.prev();
+
+        // wait for the row to be added
+        setTimeout(() => {
+            $addedRow.find('select.needed[required]').first().select2('open');
+        }, 100);
     }
 }
