@@ -56,7 +56,15 @@ class AnnotationListener {
         }
 
         $reader = new AnnotationReader();
+        /** @var AbstractController $controller */
         [$controller, $method] = $event->getController();
+
+        /** @var Utilisateur $user */
+        $user = $controller->getUser();
+
+        if(!$user?->getStatus()){
+            return new RedirectResponse("/logout");
+        }
 
         try {
             $class = new ReflectionClass($controller);
