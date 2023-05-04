@@ -351,7 +351,8 @@ class DemandeLivraisonService
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settings = $entityManager->getRepository(Setting::class);
-        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $settingNeedPlanningValidation = $settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $settingMangeDeliveriesWithoutStockQuantity = $settings->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         if ($fromNomade) {
             $demande = $this->newDemande($demandeArray, $entityManager, $champLibreService, $fromNomade);
@@ -423,15 +424,21 @@ class DemandeLivraisonService
             /** @var DeliveryRequestReferenceLine $line */
             foreach ($demande->getReferenceLines() as $line) {
                 $articleRef = $line->getReference();
-                if ($line->getQuantityToPick() > $articleRef->getQuantiteDisponible()) {
+                //verification des quantités dispo si ref est gérée par reference OU le paramétrage "ne pas gérer les quantités en stock" n'est pas coché
+                $checkQuantity = (
+                    $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                    || !$settingMangeDeliveriesWithoutStockQuantity
+                );
+
+                if ($checkQuantity && $line->getQuantityToPick() > $articleRef->getQuantiteDisponible()) {
                     $response['success'] = false;
                     $response['nomadMessage'] = "Erreur de quantité sur l'article : " . $articleRef->getBarCode();
                     $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
                 }
             }
-            if ($response['success'] || (!$needsQuantitiesCheck && !$fromNomade)) {
+            if ($response['success'] || ($settingNeedPlanningValidation && !$fromNomade)) {
                 $entityManager->persist($demande);
-                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade, $simple, $flush, $needsQuantitiesCheck);
+                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade, $simple, $flush, $settingNeedPlanningValidation);
             }
         } else {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
@@ -446,12 +453,12 @@ class DemandeLivraisonService
     }
 
     public function validateDLAfterCheck(EntityManagerInterface $entityManager,
-                                         Demande $demande,
-                                         bool $fromNomade = false,
-                                         bool $simpleValidation = false,
-                                         bool $flush = true,
-                                         bool $needsQuantitiesCheck = true,
-                                         array $options = []): array
+                                         Demande                $demande,
+                                         bool                   $fromNomade = false,
+                                         bool                   $simpleValidation = false,
+                                         bool                   $flush = true,
+                                         bool                   $settingNeedPlanningValidation = true,
+                                         array                  $options = []): array
     {
         $response = [];
         $response['success'] = true;
@@ -476,7 +483,7 @@ class DemandeLivraisonService
 
         $preparationStatus = $statutRepository->findOneByCategorieNameAndStatutCode(
             Preparation::CATEGORIE,
-            $needsQuantitiesCheck ? Preparation::STATUT_A_TRAITER : Preparation::STATUT_VALIDATED,
+            !$settingNeedPlanningValidation ? Preparation::STATUT_A_TRAITER : Preparation::STATUT_VALIDATED,
         );
 
         $preparation->setStatut($preparationStatus);
@@ -488,11 +495,11 @@ class DemandeLivraisonService
         $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $demande->setStatut($statutD);
 
-        if (!$needsQuantitiesCheck) {
+        if ($settingNeedPlanningValidation) {
             $preparation->setPlanned(true);
         }
         $refArticleToUpdateQuantities = [];
-        $this->persistPreparationLine($entityManager, $preparation, $needsQuantitiesCheck, $refArticleToUpdateQuantities, $date);
+        $this->persistPreparationLine($entityManager, $preparation, !$settingNeedPlanningValidation, $refArticleToUpdateQuantities, $date);
 
         $sendNotification = $options['sendNotification']??true;
         try {
@@ -509,7 +516,7 @@ class DemandeLivraisonService
             $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
             return $response;
         }
-        if ($needsQuantitiesCheck) {
+        if (!$settingNeedPlanningValidation) {
             foreach ($refArticleToUpdateQuantities as $refArticle) {
                 $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
             }
