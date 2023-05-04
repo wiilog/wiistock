@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryFrequency;
@@ -291,13 +292,15 @@ class ArticleRepository extends EntityRepository {
 	public function findActiveArticles(ReferenceArticle $referenceArticle,
                                        ?Emplacement     $targetLocationPicking = null,
                                        ?string          $fieldToOrder = null,
-                                       ?string          $order = null): array
+                                       ?string          $order = null,
+                                       ?Demande         $ignoredDeliveryRequest = null): array
 	{
 	    $queryBuilder = $this->createQueryBuilder('article')
+            ->distinct()
             ->join('article.articleFournisseur', 'articleFournisseur')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->join('article.statut', 'articleStatus')
-            ->where('articleStatus.nom = :activeStatus')
+            ->where('articleStatus.code = :activeStatus')
             ->andWhere('article.quantite IS NOT NULL')
             ->andWhere('article.quantite > 0')
             ->andWhere('referenceArticle = :refArticle')
@@ -308,6 +311,22 @@ class ArticleRepository extends EntityRepository {
 	        $queryBuilder
                 ->addOrderBy('IF(article.emplacement = :targetLocationPicking, 1, 0)', Criteria::DESC)
                 ->setParameter('targetLocationPicking', $targetLocationPicking);
+        }
+
+        if($ignoredDeliveryRequest){
+            $queryHasResult = $this->createQueryBuilder("article_has_request")
+                ->select('COUNT(article_has_request)')
+                ->join("article_has_request.deliveryRequestLines", "lines")
+                ->join("lines.request", "deliveryRequest")
+                ->andWhere("deliveryRequest = :ignoredDeliveryRequest")
+                ->andWhere("article_has_request.id = article.id")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
+            $queryBuilder
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('ignoredDeliveryRequest', $ignoredDeliveryRequest);
         }
 
 	    if ($order && $fieldToOrder) {
@@ -709,9 +728,8 @@ class ArticleRepository extends EntityRepository {
     public function getByLivraisonsIds($livraisonsIds)
     {
         return $this->createQueryBuilder('article')
-            ->select('article.reference AS reference')
-            ->addSelect('join_location.label AS location')
-            ->addSelect('join_ref_article.reference AS refArticleReference')
+            ->select('join_location.label AS location')
+            ->addSelect('join_ref_article.reference AS reference')
             ->addSelect('article.label AS label')
             ->addSelect('join_preparationOrderLines.quantityToPick AS quantity')
             ->addSelect('0 as is_ref')

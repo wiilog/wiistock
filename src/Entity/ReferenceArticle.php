@@ -36,6 +36,8 @@ class ReferenceArticle
     const DRAFT_STATUS = 'brouillon';
     const QUANTITY_TYPE_REFERENCE = 'reference';
     const QUANTITY_TYPE_ARTICLE = 'article';
+    const DATA_SECURITY_YES = 1;
+    const DATA_SECURITY_NO = 0;
     const BARCODE_PREFIX = 'REF';
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
@@ -170,7 +172,7 @@ class ReferenceArticle
     #[ORM\ManyToOne(targetEntity: VisibilityGroup::class, inversedBy: 'articleReferences')]
     private ?VisibilityGroup $visibilityGroup = null;
 
-    #[ORM\OneToOne(inversedBy: 'referenceArticle', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'referenceArticleImage', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $image = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
@@ -200,6 +202,21 @@ class ReferenceArticle
     #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: StorageRule::class, orphanRemoval: true)]
     private Collection $storageRules;
 
+    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    private ?string $ndp_code = null;
+
+    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    private ?string $onu_code = null;
+
+    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    private ?string $product_class = null;
+
+    #[ORM\Column(type:'boolean')]
+    private ?bool $dangerous_goods;
+
+    #[ORM\OneToOne(inversedBy: 'referenceArticleSheet', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    private ?Attachment $sheet = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -224,6 +241,7 @@ class ReferenceArticle
         $this->quantiteReservee = 0;
         $this->quantiteDisponible = 0;
         $this->upToDateInventory = false;
+        $this->dangerous_goods = false;
     }
 
     public function getId(): ?int {
@@ -1002,14 +1020,14 @@ class ReferenceArticle
     }
 
     public function setImage(?Attachment $image): self {
-        if($this->image && $this->image->getReferenceArticle() !== $this) {
+        if($this->image && $this->image->getReferenceArticleImage() !== $this) {
             $oldImage = $this->image;
             $this->image = null;
-            $oldImage->setReferenceArticle(null);
+            $oldImage->setReferenceArticleImage(null);
         }
         $this->image = $image;
-        if($this->image && $this->image->getReferenceArticle() !== $this) {
-            $this->image->setReferenceArticle($this);
+        if($this->image && $this->image->getReferenceArticleImage() !== $this) {
+            $this->image->setReferenceArticleImage($this);
         }
 
         return $this;
@@ -1134,4 +1152,70 @@ class ReferenceArticle
 
         return $this;
     }
+
+    public function getNdpCode(): ?string
+    {
+        return $this->ndp_code;
+    }
+
+    public function setNdpCode(?string $ndp_code): self
+    {
+        $this->ndp_code = $ndp_code;
+
+        return $this;
+    }
+
+    public function getOnuCode(): ?string
+    {
+        return $this->onu_code;
+    }
+
+    public function setOnuCode(?string $onu_code): self
+    {
+        $this->onu_code = $onu_code;
+
+        return $this;
+    }
+
+    public function getProductClass(): ?string
+    {
+        return $this->product_class;
+    }
+
+    public function setProductClass(?string $product_class): self
+    {
+        $this->product_class = $product_class;
+
+        return $this;
+    }
+
+    public function isDangerousGoods(): ?bool
+    {
+        return $this->dangerous_goods;
+    }
+
+    public function setDangerousGoods(bool $dangerous_goods): self
+    {
+        $this->dangerous_goods = $dangerous_goods;
+
+        return $this;
+    }
+
+    public function getSheet(): ?Attachment {
+        return $this->sheet;
+    }
+    public function setSheet(?Attachment $image): self {
+        if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
+            $oldImage = $this->sheet;
+            $this->sheet = null;
+            $oldImage->setReferenceArticleSheet(null);
+        }
+        $this->sheet = $image;
+        if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
+            $this->sheet->setReferenceArticleSheet($this);
+        }
+
+        return $this;
+    }
+
 }

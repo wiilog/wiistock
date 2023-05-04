@@ -57,6 +57,7 @@ class CustomerRepository extends EntityRepository
             ->select("customer.name AS id")
             ->addSelect("customer.name AS text")
             ->addSelect("customer.address AS address")
+            ->addSelect("customer.recipient AS recipient")
             ->addSelect("customer.email AS email")
             ->addSelect("customer.phoneNumber AS phoneNumber")
             ->addSelect("customer.fax AS fax")

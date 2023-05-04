@@ -245,6 +245,8 @@ class SelectController extends AbstractController {
             'needsOnlyMobileSyncReference' => $request->query->getBoolean('needs-mobile-sync'),
             'type-quantity' => $request->query->get('type-quantity'),
             'status' => $request->query->get('status'),
+            'ignoredDeliveryRequest' => $request->query->get('ignored-delivery-request'),
+            'minQuantity'  => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
         ];
 
         $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options);
@@ -717,7 +719,6 @@ class SelectController extends AbstractController {
     public function customers(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get("term");
         $customers = $entityManager->getRepository(Customer::class)->getForSelect($search);
-
         array_unshift($customers, [
             "id" => "new-item",
             "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau client</b></div>",

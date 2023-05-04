@@ -237,7 +237,7 @@ class LivraisonsManagerService
                 $article = $articleLine->getArticle();
                 $article
                     ->setStatut($inactiveArticleStatus)
-                    ->setEmplacement($demande->getDestination());
+                    ->setEmplacement($nextLocation);
             }
 
             $referenceLines = $preparation->getReferenceLines();
@@ -280,8 +280,8 @@ class LivraisonsManagerService
                 if ($demande->getType()->getSendMailRequester()) {
                     $to[] = $demande->getUtilisateur();
                 }
-                if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
-                    $to[] = $demande->getDestinataire();
+                if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
+                    $to[] = $demande->getReceiver();
                 }
 
                 $this->mailerService->sendMail(

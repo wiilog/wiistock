@@ -3,8 +3,7 @@
         <div class="minw-100px">
             <div class="input-group">
                 <select class="form-control data cursor-default filter-input"
-                        name="project" {{ disabled }}
-                        id="project">
+                        name="project" {{ disabled }}>
                     <option value>{{ placeholder is defined ? placeholder : 'Projet' }}</option>
                     {% for project in projects | sort((a, b) => a.code <=> b.code) %}
                         <option value="{{ project.id }}">{{ project.code }}</option>

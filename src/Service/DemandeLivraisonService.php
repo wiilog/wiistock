@@ -23,6 +23,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -142,17 +143,17 @@ class DemandeLivraisonService
         if (!isset($this->freeFieldsConfig)) {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::DEMANDE_LIVRAISON, CategoryType::DEMANDE_LIVRAISON);
         }
-
         $row = [
-            'createdAt' => FormatHelper::datetime($demande->getCreatedAt()),
-            'validatedAt' => FormatHelper::datetime($demande->getValidatedAt()),
-            'destination' => FormatHelper::location($demande->getDestination()),
+            'createdAt' => $this->formatService->datetime($demande->getCreatedAt()),
+            'validatedAt' => $this->formatService->datetime($demande->getValidatedAt()),
+            'destination' => $this->formatService->location($demande->getDestination()),
+            'receiver' => $this->formatService->user($demande->getReceiver()),
             'comment' => $demande->getCommentaire(),
-            'requester' => FormatHelper::deliveryRequester($demande),
+            'requester' => $this->formatService->deliveryRequester($demande),
             'number' => $demande->getNumero() ?? '',
-            'status' => FormatHelper::status($demande->getStatut()),
-            'type' => FormatHelper::type($demande->getType()),
-            'expectedAt' => FormatHelper::date($demande->getExpectedAt()),
+            'status' => $this->formatService->status($demande->getStatut()),
+            'type' => $this->formatService->type($demande->getType()),
+            'expectedAt' => $this->formatService->date($demande->getExpectedAt()),
             'project' => $demande->getProject()?->getCode() ?? '',
             'actions' => $this->templating->render('demande/datatableDemandeRow.html.twig', [
                 'idDemande' => $idDemande,
@@ -320,7 +321,7 @@ class DemandeLivraisonService
             ->setNumero($number)
             ->setManual($isManual)
             ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
-            ->setDestinataire($receiver);
+            ->setReceiver($receiver);
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 
@@ -513,8 +514,8 @@ class DemandeLivraisonService
             if ($demande->getType()->getSendMailRequester()) {
                 $to[] = $demande->getUtilisateur();
             }
-            if ($demande->getType()->getSendMailReceiver() && $demande->getDestinataire()) {
-                $to[] = $demande->getDestinataire();
+            if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
+                $to[] = $demande->getReceiver();
             }
 
             $nowDate = new DateTime('now');
@@ -597,7 +598,7 @@ class DemandeLivraisonService
         $config = [
             ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst($this->formatService->status($demande->getStatut()))],
             ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
-            ['label' => 'Destinataire', 'value' => $this->formatService->user($demande->getDestinataire())],
+            ['label' => 'Destinataire', 'value' => $this->formatService->user($demande->getReceiver())],
             ['label' => 'Destination', 'value' => $this->formatService->location($demande->getDestination())],
             ['label' => 'Date de la demande', 'value' => $this->formatService->datetime($demande->getCreatedAt())],
             ['label' => 'Date de validation', 'value' => $this->formatService->datetime($demande->getValidatedAt())],
@@ -610,7 +611,7 @@ class DemandeLivraisonService
             [
                 'label' => 'Projet',
                 'value' => $this->formatService->project($demande?->getProject()) ?? '',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT]
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
         ];
 
@@ -700,6 +701,7 @@ class DemandeLivraisonService
             ['title' => 'Date de création', 'name' => 'createdAt'],
             ['title' => 'Date de validation', 'name' => 'validatedAt'],
             ['title' => 'Demandeur', 'name' => 'requester'],
+            ['title' => 'Destinataire', 'name' => 'receiver'],
             ['title' => 'Numéro', 'name' => 'number'],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Type', 'name' => 'type'],
@@ -885,4 +887,43 @@ class DemandeLivraisonService
         }
     }
 
+    public function getVisibleColumnsTableArticleConfig(EntityManagerInterface $entityManager,
+                                                        Demande                $request,
+                                                        bool                   $editMode = false): array {
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
+        $isProjectRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
+        $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
+        $isCommentRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
+        $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+
+        $columns = [
+            ["data" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['title' => 'Référence', 'required' => $editMode, 'data' => 'reference'],
+            ['title' => 'Code barre', 'data' => 'barcode'],
+            ['title' => 'Libellé', 'data' => 'label'],
+            ['title' => 'Article', 'required' => $editMode, 'data' => 'article', 'removeColumn' => !$editMode,],
+            ['title' => 'Quantité', 'required' => $editMode, 'data' => 'quantityToPick'],
+            ['title' => 'Emplacement', 'data' => 'location'],
+            ["data" => "error", "title" => "Erreur", "visible" => false, 'removeColumn' => $editMode,],
+
+            // TODO WIIS-9646
+            ['title' => 'Emplacement cible picking', 'data' => 'targetLocationPicking', 'removeColumn' => !$isTargetLocationPickingDisplayed],
+
+            //TODO traduction de projet
+            ['title' => 'Projet', 'required' => $editMode && $isProjectRequired, 'data' => 'project', 'removeColumn' => !$isProjectDisplayed],
+            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'removeColumn' => !$isProjectDisplayed],
+        ];
+
+
+        return Stream::from($columns)
+            ->filter(fn (array $column) => !($column['removeColumn'] ?? false)) // display column if removeColumn not defined
+            ->map(function (array $column) {
+                unset($column['removeColumn']);
+                return $column;
+            })
+            ->values();
+    }
 }

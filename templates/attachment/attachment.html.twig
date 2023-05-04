@@ -1,15 +1,21 @@
 <div class="{{ bigger is defined ? bigger }}">
+    {% set multiple = multiple is defined and multiple %}
     {% set required = required is defined and required %}
     {% set editAttachments = editAttachments is not defined or editAttachments %}
     {% set fieldNameClass = fieldNameClass is defined and fieldNameClass ? fieldNameClass : '' %}
     {% set buttonOnly = buttonOnly is defined and buttonOnly %}
     {% set noLabel = noLabel is defined and noLabel %}
     {% set disabled = disabled is defined and disabled %}
+    {% set labelTitle = label is defined and label ? label : "Pièces jointes" %}
+    {% set name = nameInput is defined and nameInput ? nameInput : null %}
+
     <input type="hidden" name="isAttachmentForm" value="1"/>
     <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
+    <input type="hidden" name="isSheetFileNeeded" value="{{ required ? 1 : 0 }}"/>
 
     {% if not noLabel %}
-        <label for="dropfile"  class="{{ override is not defined or not override ? 'wii-field-name'}} {{ fieldNameClass }}">{{ trans('Général', null, 'Modale', 'Pièces jointes') }}{{ required ? '*' }}</label>
+        <label for="dropfile"
+               class="{{ override is not defined or not override ? 'wii-field-name' }} {{ fieldNameClass }} {{ labelTitle }}">{{ trans('Général', null, 'Modale', labelTitle) }}{{ required ? '*' }}</label>
     {% endif %}
     {% if editAttachments %}
         <div class="dropFrame {{ buttonOnly ? 'button-only p-0' }} justify-content-md-center {{ small ?? false ? 'small-frame' }}"
@@ -30,23 +36,29 @@
                         Importer
                     {% else %}
                         {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}
-                    {%  endif %}
+                    {% endif %}
                 </button>
-                <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
-                       onchange="saveInputFiles($(this))">
+                {% if not name %}
+                    <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
+                           onchange="saveInputFiles($(this))">
+                {% else %}
+                    <input type="file" name="{{ name }}" class="data-file d-none fileInput" id="upload-article-reference-image" onchange="saveInputFiles($(this), singleton=true)">
+                {% endif %}
             </div>
         </div>
     {% endif %}
     <div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
-
-    {% if isNew != true %}
-        {% for attachment in attachments %}
-            {% include 'attachment/attachmentLine.html.twig' with {
-                attachment: attachment,
-                canRemove: editAttachments,
-                icon: icon ?? null,
-                fullWidth: fullWidth ?? false
-            } %}
-        {% endfor %}
+    {% if attachments is defined %}
+        {% if isNew != true %}
+            {% for attachment in attachments %}
+                // attachmentLineOptions
+                {% include 'attachment/attachmentLine.html.twig' with {
+                    attachment: attachment,
+                    canRemove: editAttachments,
+                    icon: icon ?? null,
+                    fullWidth: fullWidth ?? false
+                }|merge(attachmentLineOptions ?? {}) %}
+            {% endfor %}
+        {% endif %}
     {% endif %}
 </div>
