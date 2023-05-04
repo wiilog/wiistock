@@ -61,7 +61,7 @@ class SecuriteController extends AbstractController {
                           EntityManagerInterface $entityManager,
                           string $success = ''): Response {
         $loggedUser = $this->getUser();
-        if($loggedUser && $loggedUser instanceof Utilisateur) {
+        if($loggedUser && $loggedUser instanceof Utilisateur && $loggedUser->getStatus()) {
             $loggedUser->setLastLogin(new DateTime('now'));
             $entityManager->flush();
             return $this->redirectToRoute('app_index');
