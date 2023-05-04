@@ -9,7 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\MappedSuperclass()]
 abstract class DeliveryRequestLine
 {
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Project $project = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
