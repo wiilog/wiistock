@@ -355,6 +355,8 @@ class DemandeController extends AbstractController
         $currentUser = $this->getUser();
 
         $status = $demande->getStatut();
+        $fields = $demandeLivraisonService->getVisibleColumnsTableArticleConfig($entityManager, $demande);
+
         return $this->render('demande/show/index.html.twig', [
             'demande' => $demande,
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
@@ -364,7 +366,8 @@ class DemandeController extends AbstractController
             "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($entityManager, $demande, true)),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
-            'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING)
+            'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
+            'fields' => $fields,
         ]);
     }
 
@@ -1256,6 +1259,31 @@ class DemandeController extends AbstractController
                     ];
                 })
                 ->toArray(),
+        ]);
+    }
+
+    #[Route("/visible-column-show", name: "save_visible_columns_for_delivery_request_show", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
+    public function saveVisibleColumnShow(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response {
+
+        $data = json_decode($request->getContent(), true);
+        $fields = array_keys($data);
+
+        $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
+        $deliveryRequest = $deliveryRequestRepository->find($data['id']);
+
+        $deliveryRequest->setVisibleColumns($fields);
+
+        $currentUser = $this->getUser();
+        $visibleColumnService->setVisibleColumns(Demande::VISIBLE_COLUMNS_SHOW_FIELD, $fields, $currentUser);
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
         ]);
     }
 }
