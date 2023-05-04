@@ -1,7 +1,7 @@
 import {GET, POST} from "@app/ajax";
 
 let tables = [];
-const requestId = $('#demande-id').val();
+const requestId = $('[name=requestId]').val();
 
 global.ajaxGetAndFillArticle = ajaxGetAndFillArticle;
 global.deleteRowDemande = deleteRowDemande;
@@ -403,10 +403,11 @@ function initEditableTableArticles($table) {
         if ($articleSelect.exists()) {
             if(typeQuantite === 'article') {
                 AJAX
-                    .route(GET, 'api_articles-by-reference', {referenceArticle})
+                    .route(GET, 'api_articles-by-reference', {'request': $('[name=requestId]').val(), referenceArticle})
                     .json()
                     .then(({data}) => {
                         const articleSelect = $row.find('select[name="article"]')
+                        articleSelect.append(`<option></option>`);
                         data.forEach((article) => {
                             articleSelect.append(`<option value="${article.value}">${article.text}</option>`);
                         });
@@ -439,7 +440,6 @@ function initEditableTableArticles($table) {
     });
 
 
-    let $modalDeleteArticle = $("#modalDeleteArticle");
 
     $(window).on(`beforeunload`, () =>  {
         const $focus = $(`tr :focus`);
@@ -464,7 +464,7 @@ function saveArticleLine(requestId, $row,) {
                 .then((response) => {
                     if (response.success) {
                         if (response.lineId) {
-                            $row.find(`.delete-row`).data(`id`, response.lineId);
+                            $row.find(`.delete-row`).attr(`data-id`, response.lineId);
                             $row.find('input[name="lineId"]').val(response.lineId);
                         }
                         if (response.type) {
@@ -497,6 +497,13 @@ function addArticleRow(table, $button) {
         table.row.add(JSON.parse($(`input[name="editableTableArticlesForm"]`).val()));
         table.row.add(data);
         table.draw();
+
+        $('.delete-row').attr({
+            'onclick':"deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))",
+            'data-target':'#modalDeleteArticle',
+            'data-toggle':'modal',
+            'data-name':'reference',
+        })
 
         scrollToBottom();
     }

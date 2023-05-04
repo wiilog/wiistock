@@ -1233,6 +1233,7 @@ class DemandeController extends AbstractController
                 $entityManager->flush();
                 $resp['lineId'] = $resp['line']->getId();
                 $resp['created'] = true;
+                $resp['success'] = true;
             }
         }
         return new JsonResponse(
@@ -1240,10 +1241,10 @@ class DemandeController extends AbstractController
         );
     }
 
-    #[Route("/api/articles-by-reference/{referenceArticle}", name: "api_articles-by-reference", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/api/articles-by-reference/{request}/{referenceArticle}", name: "api_articles-by-reference", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function apiArticlesByReference(ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager, ArticleDataService $articleDataService): JsonResponse {
-        $articles = $articleDataService->findAndSortActiveArticlesByRefArticle($referenceArticle, $referenceArticle->getStockManagement(), $entityManager);
+    public function apiArticlesByReference(Demande $request, ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager, ArticleDataService $articleDataService): JsonResponse {
+        $articles = $articleDataService->findAndSortActiveArticlesByRefArticle($referenceArticle, $referenceArticle->getStockManagement(), $entityManager, $request);
         return $this->json([
             "success" => true,
             "data" => Stream::from($articles)
