@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\Menu;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Utilisateur;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\TranslationService;
@@ -68,6 +69,17 @@ class ShippingRequestController extends AbstractController {
         return $this->json([
             'success' => true,
             'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
+        ]);
+    }
+
+    #[Route("/voir/{id}", name:"shipping_request_show", options:["expose"=>true], methods: ['GET']) ]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function showPage(Request                $request,
+                             ShippingRequest        $shippingRequest,
+                             EntityManagerInterface $entityManager): Response {
+
+        return $this->render('shipping_request/show.html.twig', [
+            'shipping'=> $shippingRequest,
         ]);
     }
 }

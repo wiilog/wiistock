@@ -1081,7 +1081,7 @@ class DemandeController extends AbstractController
                     "label" => $reference->getLibelle() ?: '',
                     "quantityToPick" => $this->render('form.html.twig', [
                         'macroName' => 'input',
-                        'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
+                        'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1, 'onChange' => 'onChangeFillComment($(this))']],
                     ])->getContent(),
                     "location" => $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE ? $formatService->location($reference->getEmplacement()) : null,
                     "barcode" => $reference->getBarcode() ?: '',
@@ -1092,7 +1092,7 @@ class DemandeController extends AbstractController
                                 'text' => $formatService->project($line->getProject()),
                                 'selected' => true,
                                 'value' => $line->getProject()?->getId(),
-                            ] : []]]])->getContent()
+                            ] : [], 'onChange' => 'onChangeFillComment($(this))']]])->getContent()
                         : $formatService->project($line->getProject()) ?? '',
                     "comment" => !$isProjectDisplayedUnderCondition || ($isCommentDisplayedUnderCondition && $commentConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $commentConditionFixedValue))
                         ? $this->render('form.html.twig', [
@@ -1155,6 +1155,7 @@ class DemandeController extends AbstractController
                                     })
                                     ->toArray(),
                                 'value' => $article->getId(),
+                                'onChange' => 'onChangeFillComment($(this))',
                             ]]])->getContent()
                         : $article->getLabel(),
                     "targetLocationPicking" => !$isUserQuantityTypeArticle
