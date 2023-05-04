@@ -94,10 +94,10 @@ class ShippingRequestService {
     public function dataRowShipping(ShippingRequest $shipping): array
     {
         $formatService = $this->formatService;
+
         $url = $this->router->generate('shipping_show_page', [
             "id" => $shipping->getId()
         ]);
-
         $row = [
             "actions" => $this->templating->render('shipping_request/actions.html.twig', [
                 'url' => $url,
@@ -129,6 +129,19 @@ class ShippingRequestService {
         return $row;
     }
 
+    public function createHeaderTransportDetailsConfig(ShippingRequest $shippingRequest){
+        return $this->templating->render('shipping_request/show-transport-header.html.twig', [
+            'shipping' => $shippingRequest,
+            'packsCount' => $shippingRequest->getPackCount(),
+            'totalValue' => Stream::from($shippingRequest->getExpectedLines())
+                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getPrice())
+                ->sum(),
+            'netWeight' => Stream::from($shippingRequest->getExpectedLines())
+                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
+                ->sum(),
+        ]);
+    }
+
     public function updateShippingRequest(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, $data): bool {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
@@ -153,7 +166,7 @@ class ShippingRequestService {
         $requestersIds = Stream::from(explode(',', $data['requesters'] ?? ''))->filter();
         if (count($requestersIds) > 0) {
             $requesters = new ArrayCollection(
-               $requestersIds
+                $requestersIds
                     ->map(fn($requesterId) => $userRepository->find($requesterId))
                     ->toArray());
             $shippingRequest->setRequesters($requesters);

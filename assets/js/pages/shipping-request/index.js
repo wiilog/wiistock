@@ -15,6 +15,7 @@ function initTableShippings() {
     if (!initialVisible) {
         return AJAX
             .route(GET, 'shipping_request_api_columns')
+            .json()
             .then(columns => proceed(columns));
     } else {
         return new Promise((resolve) => {

@@ -454,6 +454,7 @@ class DemandeLivraisonService
         $response['success'] = true;
         $response['msg'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $date = new DateTime('now');
 
@@ -495,7 +496,8 @@ class DemandeLivraisonService
             if ($flush) $entityManager->flush();
             if ($demande->getType()->isNotificationsEnabled()
                 && !$demande->isManual()
-                && $sendNotification) {
+                && $sendNotification
+                && !$settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION)) {
                 $this->notificationService->toTreat($preparation);
             }
         } /** @noinspection PhpRedundantCatchClauseInspection */
