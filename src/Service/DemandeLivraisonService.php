@@ -903,7 +903,7 @@ class DemandeLivraisonService
     }
 
     public function getVisibleColumnsTableArticleConfig(EntityManagerInterface $entityManager,
-                                                        $request,
+                                                        Demande $request,
                                                         bool $editMode = false): array {
         $columnsVisible = $request->getVisibleColumns();
         if ($columnsVisible === null) {
@@ -923,13 +923,13 @@ class DemandeLivraisonService
 
         $columns = [
             ["name" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ["name" => "error", 'alwaysVisible' => true, 'orderable' => false, 'removeColumn' => $editMode, 'class' => 'noVis', 'forceHidden' => true],
             ['title' => 'Référence', 'required' => $editMode, 'name' => 'reference', 'alwaysVisible' => true],
             ['title' => 'Code barre', 'name' => 'barcode', 'alwaysVisible' => false],
             ['title' => 'Libellé', 'name' => 'label', 'alwaysVisible' => false],
             ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'removeColumn' => !$editMode, 'alwaysVisible' => true],
             ['title' => 'Quantité', 'required' => $editMode, 'name' => 'quantityToPick', 'alwaysVisible' => true],
             ['title' => 'Emplacement', 'name' => 'location', 'alwaysVisible' => false],
-            ["name" => "error", "title" => "Erreur", "visible" => false, 'removeColumn' => $editMode, 'alwaysVisible' => true, 'class' => 'noVis'],
 
             // TODO WIIS-9646
             ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => !$isTargetLocationPickingDisplayed],

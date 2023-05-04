@@ -78,6 +78,13 @@ function loadLogisticUnitList(requestId) {
                             domConfig: {
                                 removeInfo: true,
                             },
+                            drawConfig: {
+                                needsColumnHide: true,
+                            },
+                            hideColumnConfig: {
+                                columns,
+                                tableFilter: 'logistic-units-container'
+                            },
                         });
 
                         tables.push(table);
@@ -535,6 +542,9 @@ function addArticleRow(table, $button) {
 }
 
 function onChangeFillComment($selector) {
+
+    console.log("onChangeFillComment", $selector);
+
     const $row = $selector.closest('tr');
     const settingWithProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT]').val();
     const settingWithoutProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT]').val();
