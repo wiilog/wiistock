@@ -1,6 +1,7 @@
 import {GET, POST} from "@app/ajax";
 
 let tables = [];
+let editableTableArticles = null;
 const requestId = $('[name=requestId]').val();
 
 global.ajaxGetAndFillArticle = ajaxGetAndFillArticle;
@@ -296,6 +297,7 @@ function removeLogisticUnitLine($button, logisticUnitId) {
 function initEditableTableArticles($table) {
     const form = JSON.parse($('input[name="editableTableArticlesForm"]').val());
     const fieldsParams = JSON.parse($('input[name="editableTableArticlesFieldsParams"]').val());
+    const columns = $table.data('initial-visible');
 
     const table = initDataTable($table, {
         serverSide: false,
@@ -308,6 +310,13 @@ function initEditableTableArticles($table) {
         },
         domConfig: {
             removeInfo: true,
+        },
+        drawConfig: {
+            needsColumnHide: true,
+        },
+        hideColumnConfig: {
+            columns,
+            tableFilter: 'editableTableArticles'
         },
         ordering: false,
         paging: false,
@@ -373,6 +382,8 @@ function initEditableTableArticles($table) {
             }
         },
     });
+
+    editableTableArticles = table;
 
     scrollToBottom();
     $table.on(`keydown`, `[name="quantity"]`, function (event) {

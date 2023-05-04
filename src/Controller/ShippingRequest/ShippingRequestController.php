@@ -72,14 +72,26 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/voir/{id}", name:"shipping_request_show", options:["expose"=>true], methods: ['GET']) ]
+    #[Route("/voir/{id}", name:"shipping_show_page", options:["expose"=>true])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function showPage(Request                $request,
                              ShippingRequest        $shippingRequest,
+                             ShippingRequestService $shippingRequestService,
                              EntityManagerInterface $entityManager): Response {
+
 
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
+            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+        ]);
+    }
+
+    #[Route("/get-transport-header-config/{id}", name:"get_transport_header_config", methods: ['GET', 'POST'], options:["expose"=>true])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function getTransportHeaderConfig(ShippingRequest        $shippingRequest,
+                                             ShippingRequestService $shippingRequestService): Response {
+        return $this->json([
+            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
         ]);
     }
 }
