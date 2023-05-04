@@ -56,6 +56,9 @@ class LivraisonService
     public SpecificService $specificService;
 
     #[Required]
+    public TranslationService $translation;
+
+    #[Required]
     public VisibleColumnService $visibleColumnService;
 
     public function __construct(RouterInterface $router,
@@ -199,7 +202,7 @@ class LivraisonService
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
             [
-                'label' => 'Projet',
+                'label' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false),
                 'value' => $this->formatService->project($deliveryOrder?->getDemande()?->getProject()),
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],

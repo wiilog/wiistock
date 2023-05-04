@@ -22,6 +22,10 @@ class TranslationCategory {
         "IoT",
     ];
 
+    public const NONE_MULTILINGUE_MENU = [
+        "Demande" => "Livraison",
+    ];
+
     #[Id]
     #[GeneratedValue]
     #[Column(type: "integer")]

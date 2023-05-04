@@ -21,17 +21,21 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 use Doctrine\ORM\EntityManagerInterface;
 
 class MouvementStockService
 {
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public TranslationService $translation;
 
     public function getDataForDatatable(Utilisateur $user, ?InputBag $params = null): array
     {
@@ -101,7 +105,7 @@ class MouvementStockService
 
     public function getFromColumnConfig(MouvementStock $mouvement): array {
         if ($mouvement->getDeliveryRequest()) {
-            $from = 'demande de livraison';
+            $from = mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false));
             $path = 'demande_show';
             $pathParams = [
                 'id' => $mouvement->getDeliveryRequest()->getId()
@@ -114,7 +118,7 @@ class MouvementStockService
                 'id' => $mouvement->getPreparationOrder()->getId()
             ];
         } else if ($mouvement->getLivraisonOrder()) {
-            $from = 'ordre de livraison';
+            $from = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false));
             $path = 'livraison_show';
             $pathParams = [
                 'id' => $mouvement->getLivraisonOrder()->getId()

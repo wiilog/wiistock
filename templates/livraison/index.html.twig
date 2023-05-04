@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Ordre | Livraison{% endblock %}
+{% block title %}Ordre | {{ trans('Ordre', 'Livraison', 'Livraison', false) }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersDemands.html.twig' with {

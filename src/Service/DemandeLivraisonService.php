@@ -174,9 +174,9 @@ class DemandeLivraisonService
         return $row;
     }
 
-    public function parseRequestForCard(Demande     $demande,
-                                        DateService $dateService,
-                                        array       $averageRequestTimesByType): array
+    public function parseRequestForCard(Demande             $demande,
+                                        DateService         $dateService,
+                                        array               $averageRequestTimesByType): array
     {
 
         $requestStatus = $demande->getStatut()?->getCode();
@@ -241,7 +241,7 @@ class DemandeLivraisonService
 
         return [
             'href' => $href ?? null,
-            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)),
             'estimatedFinishTime' => $deliveryDateEstimated,
             'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
@@ -439,7 +439,7 @@ class DemandeLivraisonService
                 'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
-            $response['msg'] = 'Votre demande de livraison a bien été validée';
+            $response['msg'] = 'Votre ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' a bien été validée';
             $response['demande'] = $demande;
         }
         return $response;
@@ -529,7 +529,7 @@ class DemandeLivraisonService
                 'FOLLOW GT // Validation d\'une demande vous concernant',
                 $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
-                    'title' => 'La demande de livraison ' . $demande->getNumero() . ' de type '
+                    'title' => 'La '  . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '
                         . $demande->getType()->getLabel()
                         . ' a bien été validée le '
                         . $nowDate->format('d/m/Y \à H:i')
@@ -548,7 +548,7 @@ class DemandeLivraisonService
                 'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
-            $response['msg'] = 'Votre demande de livraison a bien été validée';
+            $response['msg'] = 'Votre ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' a bien été validée';
             $response['demande'] = $demande;
         }
 
@@ -615,7 +615,7 @@ class DemandeLivraisonService
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
             [
-                'label' => 'Projet',
+                'label' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false),
                 'value' => $this->formatService->project($demande?->getProject()) ?? '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
@@ -712,7 +712,7 @@ class DemandeLivraisonService
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Type', 'name' => 'type'],
             ['title' => 'Date attendue', 'name' => 'expectedAt'],
-            ['title' => 'Projet', 'name' => 'project'],
+            ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'name' => 'project'],
             ['title' => 'Destination', 'name' => 'destination'],
             ['title' => 'Commentaire', 'name' => 'comment', 'orderable' => false],
         ];
@@ -928,8 +928,8 @@ class DemandeLivraisonService
             ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => !$isTargetLocationPickingDisplayed],
 
             //TODO traduction de projet
-            ['title' => 'Projet', 'required' => $editMode && $isProjectRequired, 'name' => 'project', 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed],
-            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'name' => 'comment', 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
+            ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'required' => $editMode && $isProjectRequired, 'name' => 'project', 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed, 'data' => 'project'],
+            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'name' => 'comment', 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
         ];
 
         $columns = Stream::from($columns)

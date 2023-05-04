@@ -36,6 +36,7 @@ use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Annotation\HasPermission;
 
@@ -323,7 +324,9 @@ class ArticleController extends AbstractController
      * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(Request                $request,
+                         EntityManagerInterface $entityManager,
+                         TranslationService     $translation): Response
     {
         if ($data = $request->request->all()) {
             $article = $entityManager->getRepository(Article::class)->find($data['id']);
@@ -349,7 +352,7 @@ class ArticleController extends AbstractController
                 catch(RequestNeedToBeProcessedException $exception) {
                     $response = [
                         'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une demande de livraison."
+                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
                     ];
                 }
             return new JsonResponse($response);

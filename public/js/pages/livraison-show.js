@@ -36,16 +36,7 @@ $(function () {
 function loadLogisticUnitPack(deliveryId) {
     const $logisticUnitsContainer = $('.logistic-units-container');
     const columns = $logisticUnitsContainer.data('initial-visible');
-    console.log(columns);
-    console.log( [
-        {data: 'Actions', title: '', className: 'noVis', orderable: false},
-        {data: 'reference', title: 'Référence'},
-        {data: 'barCode', title: 'Code barre'},
-        {data: 'label', title: 'Libellé'},
-        {data: 'quantity', title: 'Quantité'},
-        {data: 'project', title: Translation.of('Ordre', 'Livraison', 'Détails', 'Projet')},
-        {data: 'comment', title: 'Commentaire', orderable: false},
-    ]);
+
     wrapLoadingOnActionButton($logisticUnitsContainer, () => (
         AJAX.route('GET', 'delivery_order_logistic_units_api', {id: deliveryId})
             .json()
