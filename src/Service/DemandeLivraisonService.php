@@ -174,9 +174,9 @@ class DemandeLivraisonService
         return $row;
     }
 
-    public function parseRequestForCard(Demande     $demande,
-                                        DateService $dateService,
-                                        array       $averageRequestTimesByType): array
+    public function parseRequestForCard(Demande             $demande,
+                                        DateService         $dateService,
+                                        array               $averageRequestTimesByType): array
     {
 
         $requestStatus = $demande->getStatut()?->getCode();
@@ -241,7 +241,7 @@ class DemandeLivraisonService
 
         return [
             'href' => $href ?? null,
-            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)),
             'estimatedFinishTime' => $deliveryDateEstimated,
             'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
@@ -436,7 +436,7 @@ class DemandeLivraisonService
                 'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
-            $response['msg'] = 'Votre demande de livraison a bien été validée';
+            $response['msg'] = 'Votre ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' a bien été validée';
             $response['demande'] = $demande;
         }
         return $response;
@@ -526,7 +526,7 @@ class DemandeLivraisonService
                 'FOLLOW GT // Validation d\'une demande vous concernant',
                 $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
-                    'title' => 'La demande de livraison ' . $demande->getNumero() . ' de type '
+                    'title' => 'La '  . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '
                         . $demande->getType()->getLabel()
                         . ' a bien été validée le '
                         . $nowDate->format('d/m/Y \à H:i')
@@ -545,7 +545,7 @@ class DemandeLivraisonService
                 'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
-            $response['msg'] = 'Votre demande de livraison a bien été validée';
+            $response['msg'] = 'Votre ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' a bien été validée';
             $response['demande'] = $demande;
         }
 

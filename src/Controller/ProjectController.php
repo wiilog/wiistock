@@ -162,7 +162,7 @@ class ProjectController extends AbstractController
             'html' => match(true) {
                 $logisticUnitCount > 0         => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à une ou plusieurs unités logistiques ou articles, vous ne pouvez pas le supprimer</span>',
                 $projectHistoryRecordCount > 0 => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à un ou plusieurs historiques de ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ', vous ne pouvez pas le supprimer</span>',
-                $requestLineCount > 0          => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à une ou plusieurs lignes de demande de livraison, vous ne pouvez pas le supprimer</span>',
+                $requestLineCount > 0          => '<span>Ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' est lié à une ou plusieurs lignes de ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ', vous ne pouvez pas le supprimer</span>',
                 default                        => '<span>Voulez-vous réellement supprimer ce ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' ?</span>'
             }
         ]);

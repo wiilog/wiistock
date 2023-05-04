@@ -28,6 +28,7 @@ use App\Service\GeoService;
 use App\Service\PackService;
 use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
+use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -73,6 +74,9 @@ class TransportService {
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public TranslationService $translation;
 
     public function persistTransportRequest(EntityManagerInterface $entityManager,
                                             Utilisateur $user,
@@ -569,7 +573,7 @@ class TransportService {
         }
         $dataTransportRequest = [
             TransportRequest::NUMBER_PREFIX . $request->getNumber(),
-            $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison-Collecte" : "Livraison") : "Collecte",
+            $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? $this->translation->translate("Demande", "Livraison", "Livraison", false) . "-Collecte" : $this->translation->translate("Demande", "Livraison", "Livraison", false)) : "Collecte",
             $this->formatService->type($request->getType()),
             $this->formatService->status($request->getStatus()),
             ...($request instanceof TransportDeliveryRequest ? [$this->formatService->bool(!empty($request->getEmergency()))] : []),
@@ -693,7 +697,7 @@ class TransportService {
 
         $dataTransportRequest = [
             $request->getNumber(),
-            $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison-Collecte" : "Livraison") : "Collecte",
+            $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? $this->translation->translate("Demande", "Livraison", "Livraison", false) . "-Collecte" : $this->translation->translate("Demande", "Livraison", "Livraison", false)) : "Collecte",
             $this->formatService->type($request->getType()),
             $this->formatService->status($order->getStatus()),
             ...($request instanceof TransportDeliveryRequest ? [$this->formatService->bool(!empty($request->getEmergency()))] : []),

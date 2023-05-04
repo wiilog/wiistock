@@ -296,7 +296,7 @@ class PreparationController extends AbstractController
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
                 ['label' => 'Statut', 'value' => ucfirst($status)],
-                ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
+                ['label' => 'Point de ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Livraison", false)), 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
                 ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
                 ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => $this->formatService->date($demande->getExpectedAt())]] : []),
@@ -884,11 +884,12 @@ class PreparationController extends AbstractController
 
     #[Route('/lancement-preparations/check-preparation-stock', name: 'planning_preparation_launch_check_stock', options: ['expose' => true], methods: 'POST')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
-    public function checkStock(Request                $request,
-                               EntityManagerInterface $manager,
-                               MailerService          $mailerService,
-                               RefArticleDataService  $refArticleDataService,
-                               NotificationService    $notificationService): JsonResponse {
+    public function checkStock(Request                  $request,
+                               EntityManagerInterface   $manager,
+                               MailerService            $mailerService,
+                               RefArticleDataService    $refArticleDataService,
+                               NotificationService      $notificationService,
+                               TranslationService       $translation): JsonResponse {
         $data = json_decode($request->getContent());
 
         $preparationRepository = $manager->getRepository(Preparation::class);
@@ -960,7 +961,7 @@ class PreparationController extends AbstractController
                         'FOLLOW GT // Validation d\'une demande vous concernant',
                         $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                             'demande' => $demande,
-                            'title' => 'La demande de livraison ' . $demande->getNumero() . ' de type '
+                            'title' => 'La ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '
                                 . $demande->getType()->getLabel()
                                 . ' a bien été validée le '
                                 . $nowDate->format('d/m/Y \à H:i')

@@ -41,7 +41,7 @@
                 placeholder: 'Sélectionnez un ' ~ (trans('Référentiel', 'Projet', "Projet", false) | lower),
                 emptyOption: {text: '', value: ''},
                 disabled: disabledProject,
-                tooltip: disabledProject ? 'Le ' ~ (trans('Référentiel', 'Projet', "Projet", false) | lower) ~ ' ne peut pas être modifié car l\'unité logistique est dans une réception en cours, une livraison en cours ou un panier' : null
+                tooltip: disabledProject ? 'Le ' ~ (trans('Référentiel', 'Projet', "Projet", false) | lower) ~ ' ne peut pas être modifié car l\'unité logistique est dans une réception en cours, une ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower ~ ' en cours ou un panier' : null
             }) }}
         </div>
         <div class="form-group col-md-6 col-12">

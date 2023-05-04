@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 {% import 'form.html.twig' as form %}
 
-{% block title %}Demande | Livraison | Détails{% endblock %}
+{% block title %}Demande | {{ trans('Demande', 'Livraison', 'Livraison', false) }} | Détails{% endblock %}
 {% block titleLink path('demande_index') %}
 
 {% block stylesheets %}
@@ -30,7 +30,7 @@
                         modifiable: modifiable,
                         showDetails: showDetails,
                         titleLogo: demande.preparations|filter(p=>p.pairings|length > 0)|length >= 1 ? 'pairing' : null,
-                        titleLogoTooltip: "Cette livraison est liée à un capteur"
+                        titleLogoTooltip: "Cette " ~ trans('Demande', 'Livraison', 'Livraison', false) | lower ~ " est liée à un capteur"
                     } %}
                 </div>
             </div>

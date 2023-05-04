@@ -357,10 +357,11 @@ class LivraisonController extends AbstractController {
     /**
      * @Route("/csv", name="get_delivery_order_csv", options={"expose"=true}, methods={"GET"})
      */
-    public function getDeliveryOrderCSV(Request                $request,
-                                        CSVExportService       $CSVExportService,
-                                        EntityManagerInterface $entityManager,
-                                        LivraisonService       $livraisonService): Response {
+    public function getDeliveryOrderCSV(Request                 $request,
+                                        CSVExportService        $CSVExportService,
+                                        EntityManagerInterface  $entityManager,
+                                        LivraisonService        $livraisonService,
+                                        TranslationService      $translation): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -375,7 +376,7 @@ class LivraisonController extends AbstractController {
                 'numéro',
                 'statut',
                 'date création',
-                'date de livraison',
+                'date de ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)),
                 'date de la demande',
                 'demandeur',
                 'opérateur',
@@ -559,14 +560,15 @@ class LivraisonController extends AbstractController {
     /**
      * @Route("/{deliveryOrder}/delivery-note/{attachment}", name="print_delivery_note_delivery_order", options={"expose"=true}, methods="GET")
      */
-    public function printDeliveryNote(EntityManagerInterface $entityManager,
-                                      Livraison $deliveryOrder,
-                                      PDFGeneratorService $pdfService,
-                                      SpecificService $specificService): Response {
+    public function printDeliveryNote(EntityManagerInterface    $entityManager,
+                                      Livraison                 $deliveryOrder,
+                                      PDFGeneratorService       $pdfService,
+                                      SpecificService           $specificService,
+                                      TranslationService        $translation): Response {
         if(!$deliveryOrder->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
-                "msg" => 'Le bon de livraison n\'existe pas pour cette ordre de livraison'
+                "msg" => 'Le bon de livraison n\'existe pas pour cette ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false))
             ]);
         }
 

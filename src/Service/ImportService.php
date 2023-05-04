@@ -1386,7 +1386,7 @@ class ImportService
             $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw, false, true)->toArray();
             if(!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
-                $this->throwError("Les types de demandes de livraison suivants sont invalides : $invalidTypesStr");
+                $this->throwError("Les types de " . mb_strtolower($this->translationService->translate("Demande", "Livraison", "Demande de livraison", false)) . " suivants sont invalides : $invalidTypesStr");
             }
 
             foreach ($user->getDeliveryTypes() as $type) {
@@ -1799,7 +1799,7 @@ class ImportService
 
             $diff = Stream::diff($elements, $allowedDeliveryTypesLabels, true);
             if (!$diff->isEmpty()) {
-                $this->throwError("Les types de demandes de livraison suivants n'existent pas : {$diff->join(", ")}");
+                $this->throwError("Les types de " . mb_strtolower($this->translationService->translate("Demande", "Livraison", "Demande de livraison", false)) . " suivants n'existent pas : {$diff->join(", ")}");
             } else {
                 $location->setAllowedDeliveryTypes($typeRepository->findBy(['label' => $elements]));
             }

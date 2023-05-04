@@ -28,7 +28,7 @@
                     ? {
                         "disabled": true,
                         "style": "pointer-events: initial",
-                        "title": "La livraison est associée à un capteur, il faut d'abord la dissocier de son capteur",
+                        "title": "La " ~ trans('Ordre', 'Livraison', 'Livraison', false) | lower ~ " est associée à un capteur, il faut d'abord la dissocier de son capteur",
                     }
                     : {
                         "data-target": "#modalDeletePreparation",
@@ -62,14 +62,14 @@
             {
                 hasRight: hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) and demande,
                 icon: "fas fa-external-link-alt",
-                title: "Retourner à la demande de livraison",
+                title: "Retourner à la " ~ trans('Demande', 'Livraison', 'Demande de livraison', false) | lower,
                 dropdownOnly: true,
                 href: demande ? path('demande_show', {'id': demande.id}),
             },
             {
                 hasRight: hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) and livraison is not empty,
                 icon: "fas fa-external-link-alt",
-                title: "Aller vers l'ordre de livraison",
+                title: "Aller vers l'" ~ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower,
                 dropdownOnly: true,
                 href: livraison ? path('livraison_show', {'id': livraison.id}),
             },

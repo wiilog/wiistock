@@ -19,6 +19,7 @@ use App\Service\CSVExportService;
 use App\Service\MouvementStockService;
 use App\Service\TrackingMovementService;
 
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -96,10 +97,11 @@ class MouvementStockController extends AbstractController
     /**
      * @Route("/nouveau", name="mvt_stock_new", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
-    public function new(Request $request,
-                        MouvementStockService $mouvementStockService,
+    public function new(Request                 $request,
+                        MouvementStockService   $mouvementStockService,
                         TrackingMovementService $trackingMovementService,
-                        EntityManagerInterface $entityManager): Response
+                        EntityManagerInterface  $entityManager,
+                        TranslationService      $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -179,7 +181,7 @@ class MouvementStockController extends AbstractController
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
                     if (($chosenArticleToMove instanceof Article && !in_array($chosenArticleToMove->getStatut()->getCode(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]))
                         || ($chosenArticleToMove instanceof ReferenceArticle && $referenceArticleRepository->isUsedInQuantityChangingProcesses($chosenArticleToMove))) {
-                        $response['msg'] = 'La référence saisie est présente dans une demande de livraison/collecte/transfert en cours de traitement, impossible de la transférer.';
+                        $response['msg'] = 'La référence saisie est présente dans une demande de ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . '/collecte/transfert en cours de traitement, impossible de la transférer.';
                     } else if (empty($chosenLocation)) {
                         $response['msg'] = 'L\'emplacement saisi est inconnu.';
                     } else {

@@ -38,7 +38,7 @@
                                 {{ form.switch('requestType', null, true, [
                                     {
                                         value: DISCR_DELIVERY,
-                                        label: 'Livraison',
+                                        label: trans('Demande', 'Livraison', 'Livraison', false),
                                         wiiIcon: 'cart-delivery'
                                     },
                                     {
@@ -119,7 +119,7 @@
                                         'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
                                         'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
                                         'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_DELIVERY_TYPES_FREE_FIELDS'),
-                                    }) }}" class="btn btn-primary mt-2">Configuration des types de livraison</a><br>
+                                    }) }}" class="btn btn-primary mt-2">Configuration des types de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}</a><br>
                                     <a href="{{ path('settings_item', {
                                         'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACKING'),
                                         'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_TRANSPORT_REQUESTS'),
@@ -143,7 +143,7 @@
                             </div>
                             <div class="col-12"
                                  data-request-type="{{ DISCR_DELIVERY }}">
-                                {{ form.checkbox('collectLinked', 'Faire une collecte en même temps que la livraison', false, false, {
+                                {{ form.checkbox('collectLinked', 'Faire une collecte en même temps que la ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower, false, false, {
                                     slider: true
                                 }) }}
                             </div>
@@ -163,7 +163,7 @@
                          data-request-type="{{ DISCR_DELIVERY }}">
                         <div class="col-md-6 col-12">
                             {% set expectedAtValue = request.expectedAt ? request.expectedAt|date('Y-m-d\\TH:i') %}
-                            {{ form.input('expectedAt', 'Date et heure de livraison', true, expectedAtValue, {
+                            {{ form.input('expectedAt', 'Date et heure de ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower, true, expectedAtValue, {
                                 type: 'datetime-local',
                                 disabled: assignedOrder
                             }) }}

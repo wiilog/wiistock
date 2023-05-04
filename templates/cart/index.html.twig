@@ -71,7 +71,7 @@
                     <div class="header wii-title">Demande</div>
                     <div class="content">
                         {{ form.switch('requestType', 'Type de demande', false, [
-                            {label: 'Livraison', wiiIcon: 'cart-delivery', value: 'delivery', checked: true},
+                            {label: trans('Demande', 'Livraison', 'Livraison', false), wiiIcon: 'cart-delivery', value: 'delivery', checked: true},
                             {label: 'Collecte', wiiIcon: 'cart-collect', value: 'collect', disabled: app.user.cart.articles is not empty},
                             {label: 'Achat', wiiIcon: 'cart-purchase', value: 'purchase', disabled: app.user.cart.articles is not empty},
                         ]) }}
@@ -85,9 +85,9 @@
 
                         <div class="sub-form existing-delivery mt-3 d-none">
                             <div class="my-delivery-requests pb-2">
-                                <div class="section mt-3">Ma demande de livraison</div>
-                                {{ form.select('existingDelivery', 'Mes livraisons', true, {
-                                    placeholder: 'Sélectionnez une livraison',
+                                <div class="section mt-3">Ma demande de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}</div>
+                                {{ form.select('existingDelivery', 'Mes ' ~ (trans('Demande', 'Livraison', 'Livraison', false) | lower) ~ 's', true, {
+                                    placeholder: 'Sélectionnez une ' ~ (trans('Demande', 'Livraison', 'Livraison', false) | lower),
                                     items: deliveryRequests,
                                     onChange: 'onDeliveryChanged($(this))',
                                 }) }}
@@ -111,7 +111,7 @@
                         </div>
 
                         <div class="sub-form create-delivery mt-3 {{ app.user.cart.articles is empty ? 'd-none' }}">
-                            <div class="section mt-3">Ma nouvelle demande de livraison</div>
+                            <div class="section mt-3">Ma nouvelle demande de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}</div>
 
                             <div class="row mt-2">
                                 <div class="col-md-6 col-12 mb-2">

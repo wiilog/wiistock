@@ -8,7 +8,7 @@
         <div class="form-group col-12">
             <label class="wii-field-name">Demande*</label>
             <select class="data form-control w-100 needed" name="kind">
-                <option value="delivery" {{ kind == 'delivery' ? 'selected' }}>Livraison</option>
+                <option value="delivery" {{ kind == 'delivery' ? 'selected' }}>{{ trans('Demande', 'Livraison', 'Livraison', false) }}</option>
                 <option value="collect" {{ kind == 'collect' ? 'selected' }}>Collecte</option>
                 <option value="handling" {{ kind == 'handling' ? 'selected' }}>Service</option>
                 <option value="dispatch" {{ kind == 'dispatch' ? 'selected' }}>Acheminement</option>
