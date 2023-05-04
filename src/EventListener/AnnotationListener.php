@@ -58,11 +58,13 @@ class AnnotationListener {
         /** @var AbstractController $controller */
         [$controller, $method] = $event->getController();
 
-        /** @var Utilisateur $user */
-        $user = $controller->getUser();
+        if ($controller instanceof AbstractController) {
+            /** @var Utilisateur $user */
+            $user = $controller->getUser();
 
-        if(!$user?->getStatus()){
-            $event->setController(fn() => new RedirectResponse($this->router->generate("logout")));
+            if (!$user?->getStatus()) {
+                $event->setController(fn() => new RedirectResponse($this->router->generate("logout")));
+            }
         }
 
         try {
