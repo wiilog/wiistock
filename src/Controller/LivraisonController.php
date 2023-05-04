@@ -196,7 +196,7 @@ class LivraisonController extends AbstractController {
                             "barcode" => $article->getBarCode() ?: '',
                             "label" => $article->getLabel() ?: '',
                             "quantity" => $line->getPickedQuantity(),
-                            "project" => $this->formatService?->project($deliveryRequestLine->getProject()),
+                            "project" => $this->formatService->project($deliveryRequestLine?->getProject()),
                             "comment" => $deliveryRequestLine?->getComment() ?: '',
                             "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                                 'id' => $article->getId(),
@@ -217,7 +217,7 @@ class LivraisonController extends AbstractController {
                     "barcode" => $reference->getBarCode() ?: '',
                     "location" => $this->formatService->location($reference->getEmplacement()),
                     "quantity" => $line->getPickedQuantity(),
-                    "project" => $this->formatService?->project($deliveryRequestLine->getProject()),
+                    "project" => $this->formatService->project($deliveryRequestLine?->getProject()),
                     "comment" => $deliveryRequestLine?->getComment() ?: '',
                     "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                         'refArticleId' => $reference->getId(),
