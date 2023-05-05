@@ -1,15 +1,14 @@
 import {POST} from "@app/ajax";
+import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 $(function() {
     const shippingId = $('[name=shippingId]').val();
 
     const $modalEdit = $('#modalEditShippingRequest');
-    Form
-        .create($modalEdit)
-        .submitTo(POST, 'shipping_request_edit', {success: (data) => {
-                $modalEdit.modal('hide');
-                window.location.reload();
-        }});
+    initModalFormShippingRequest($modalEdit, 'shipping_request_edit', () => {
+        $modalEdit.modal('hide');
+        window.location.reload();
+    });
 });
 
 function refreshTransportHeader(shippingId){

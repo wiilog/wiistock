@@ -55,7 +55,7 @@ class ShippingRequestController extends AbstractController {
         return $this->json($service->getDataForDatatable( $entityManager, $request));
     }
 
-    #[Route("/voir/{id}", name:"shipping_show_page", options:["expose"=>true])]
+    #[Route("/voir/{id}", name:"shipping_request_show", options:["expose"=>true])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function showPage(Request                $request,
                              ShippingRequest        $shippingRequest,
