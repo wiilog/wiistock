@@ -2331,9 +2331,7 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champ-fixe/sous-lignes/{entity}", name="settings_sublines_fixed_field_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function sublinesFixedFieldApi(Request $request, EntityManagerInterface $entityManager, string $entity): Response {
-        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
-
+    public function subLinesFixedFieldApi(EntityManagerInterface $entityManager, string $entity): Response {
         $class = "form-control data";
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -2345,45 +2343,33 @@ class SettingsController extends AbstractController {
             $displayed = $field->isDisplayed() ? "checked" : "";
             $displayedUnderCondition = $field->isDisplayed() ? ($field->isDisplayedUnderCondition() ? "checked" : "") : "disabled";
             $conditionFixedField = $field->getConditionFixedField() ?? "";
-            $conditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
+            $rawConditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
             $required = $field->isDisplayed() ? ($field->isRequired() ? "checked" : "") : "disabled";
             $disabledDisplayedUnderCondition = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION) ? 'disabled' : '';
 
-            if ($edit) {
-                $labelAttributes = "class='font-weight-bold'";
+            $labelAttributes = "class='font-weight-bold'";
 
-                $conditionFixedFieldOptionsSelected = Stream::from($conditionFixedFieldValue)
-                    ->map(function(string $typeId) use ($typeRepository) {
-                        $type = $typeRepository->find($typeId);
-                        return "<option value='{$type->getId()}' selected>{$type->getLabel()}</option>";
-                    } )
-                    ->join("");
+            $conditionFixedFieldValue = !empty($rawConditionFixedFieldValue)
+                ? $typeRepository->findBy(['id' => $rawConditionFixedFieldValue])
+                : [];
 
-                $classConditionFixedField = $class . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition())  ? " d-none" : "");
-                $classConditionFixedFieldValue = "conditionFixedFieldValueDiv" . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition()) ? " d-none" : "");
+            $conditionFixedFieldOptionsSelected = Stream::from($conditionFixedFieldValue)
+                ->map(fn(Type $type) => "<option value='{$type->getId()}' selected>{$type->getLabel()}</option>")
+                ->join("");
 
-                $row = [
-                    "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
-                    "displayed" => "<input type='checkbox' name='displayed' id='{$field->getFieldCode()}' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayed />",
-                    "displayedUnderCondition" => "<input type='checkbox' name='displayedUnderCondition' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayedUnderCondition $disabledDisplayedUnderCondition/>",
-                    "conditionFixedField" => "<select name='conditionFixedField' class='$classConditionFixedField'><option value='$conditionFixedField' selected>$conditionFixedField</option></select>",
-                    "conditionFixedFieldValue" => "<div class='$classConditionFixedFieldValue'><select name='conditionFixedFieldValue' data-parent='body' data-min-length='0' data-s2='referenceType' multiple class='$class'>$conditionFixedFieldOptionsSelected</select></div>",
-                    "required" => "<input type='checkbox' name='required' class='$class' $required />",
-                ];
+            $classConditionFixedField = $class . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition())  ? " d-none" : "");
+            $classConditionFixedFieldValue = "conditionFixedFieldValueDiv" . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition()) ? " d-none" : "");
 
-                $rows[] = $row;
-            } else {
-                $row = [
-                    "label" => "<span class='font-weight-bold'>$label</span>",
-                    "displayed" => $field->isDisplayed() ? "Oui" : "Non",
-                    "displayedUnderCondition" => $field->isDisplayedUnderCondition() ? "Oui" : "Non",
-                    "conditionFixedField" => $field->getConditionFixedField() ?? "",
-                    "conditionFixedFieldValue" => $field->getConditionFixedFieldValue() ? implode(",", $field->getConditionFixedFieldValue()) : "",
-                    "required" => $field->isRequired() ? "Oui" : "Non",
-                ];
+            $row = [
+                "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
+                "displayed" => "<input type='checkbox' name='displayed' id='{$field->getFieldCode()}' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayed />",
+                "displayedUnderCondition" => "<input type='checkbox' name='displayedUnderCondition' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayedUnderCondition $disabledDisplayedUnderCondition/>",
+                "conditionFixedField" => "<select name='conditionFixedField' class='$classConditionFixedField'><option value='$conditionFixedField' selected>$conditionFixedField</option></select>",
+                "conditionFixedFieldValue" => "<div class='$classConditionFixedFieldValue'><select name='conditionFixedFieldValue' data-parent='body' data-min-length='0' data-s2='referenceType' multiple class='$class'>$conditionFixedFieldOptionsSelected</select></div>",
+                "required" => "<input type='checkbox' name='required' class='$class' $required />",
+            ];
 
-                $rows[] = $row;
-            }
+            $rows[] = $row;
         }
 
         return $this->json([
@@ -2399,7 +2385,6 @@ class SettingsController extends AbstractController {
 
         $class = "form-control data";
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
         $arrayFields = $fieldsParamRepository->findByEntityForEntity($entity);
 
         $rows = [];

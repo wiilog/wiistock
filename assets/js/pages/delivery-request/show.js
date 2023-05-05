@@ -78,6 +78,13 @@ function loadLogisticUnitList(requestId) {
                             domConfig: {
                                 removeInfo: true,
                             },
+                            drawConfig: {
+                                needsColumnHide: true,
+                            },
+                            hideColumnConfig: {
+                                columns,
+                                tableFilter: 'logistic-units-container'
+                            },
                         });
 
                         tables.push(table);
@@ -530,6 +537,7 @@ function addArticleRow(table, $button) {
         // wait for the row to be added
         setTimeout(() => {
             $addedRow.find('select.needed[required]').first().select2('open');
+            onChangeFillComment($addedRow.find('select[name="project"]'))
         }, 100);
     }
 }
@@ -545,20 +553,14 @@ function onChangeFillComment($selector) {
         const project = $row.find('select[name=project]').find(':selected').text();
         const receiver = $('input[name=deliveryRequestReceiver]').val();
 
-        let fill = !($quantity.val() === null || ($article && $article.val() === null));
-
-        if (fill) {
-            if (!project) {
-                let textWithoutProject = settingWithoutProject.replace("@Destinataire", receiver ?? "");
-                $comment.val(textWithoutProject);
-            } else {
-                let textWithProject = settingWithProject
-                                        .replace("@Destinataire", receiver ?? "")
-                                        .replace("@Projet", project);
-                $comment.val(textWithProject);
-            }
+        if (!project) {
+            let textWithoutProject = settingWithoutProject.replace("@Destinataire", receiver ?? "");
+            $comment.val(textWithoutProject);
+        } else {
+            let textWithProject = settingWithProject
+                                    .replace("@Destinataire", receiver ?? "")
+                                    .replace("@Projet", project);
+            $comment.val(textWithProject);
         }
     }
-
-
 }
