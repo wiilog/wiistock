@@ -16,18 +16,15 @@ use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
-use App\Service\FormatService;
 use App\Service\ReserveService;
 use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
