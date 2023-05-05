@@ -135,7 +135,7 @@
                                             'label': '<span class="article-label"></span>',
                                             'quantityToPick': form.input('quantity-to-pick', null, true, null, {type: 'number', min: 0}),
                                             'project': form.select('project', null, isProjectDisplayed, {type: 'project', onChange: 'onChangeFillComment($(this))'}),
-                                            'comment': form.input('comment', null, isCommentDisplayed, null, {type: 'text'}),
+                                            'comment': form.textarea('comment', null, isCommentDisplayed, null, {type: 'text', style: 'height: 36px'}),
                                             'location': '<span class="article-location"></span>',
                                             'barcode': '<span class="article-barcode"></span>',
                                             'article': userQuantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE')

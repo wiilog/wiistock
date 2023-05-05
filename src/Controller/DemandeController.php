@@ -421,7 +421,7 @@ class DemandeController extends AbstractController
                                 && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON
                             ),
                             "project" => $this->getFormatter()->project($line->getProject()),
-                            "comment" => $line->getComment(),
+                            "comment" => '<div class="text-wrap ">'.$line->getComment().'</div>',
                             "actions" => $this->renderView(
                                 'demande/datatableLigneArticleRow.html.twig',
                                 [
@@ -452,7 +452,7 @@ class DemandeController extends AbstractController
                         && $reference->getQuantiteDisponible() < $line->getQuantityToPick()
                         && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                     "project" => $this->getFormatter()->project($line->getProject()),
-                    "comment" => $line->getComment(),
+                    "comment" => '<div class="text-wrap">'.$line->getComment().'</div>',
                     "actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
@@ -1104,8 +1104,8 @@ class DemandeController extends AbstractController
                             ] : [] ]]])->getContent()
                         : $formatService->project($line->getProject()) ?? '',
                     "comment" =>  $this->render('form.html.twig', [
-                            'macroName' => 'input',
-                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
+                            'macroName' => 'textarea',
+                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment(),['style'=> 'height: 36px']]
                         ])->getContent(),
                     "article" => "",
                     "targetLocationPicking" => "",
@@ -1148,8 +1148,8 @@ class DemandeController extends AbstractController
                             ] : []]]])->getContent()
                         : $formatService->project($line->getProject()) ?? '',
                     "comment" => $this->render('form.html.twig', [
-                            'macroName' => 'input',
-                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
+                            'macroName' => 'textarea',
+                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment(), ['style'=> 'height: 36px']]
                         ])->getContent(),
                     "article" => $isUserQuantityTypeArticle
                         ? $this->render('form.html.twig', [
