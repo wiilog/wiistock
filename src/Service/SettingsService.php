@@ -37,6 +37,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\IOT\AlertTemplateService;
 use DateTime;
@@ -795,10 +796,18 @@ class SettingsService {
                         ->setConditionFixedField(SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD)
                         ->setRequired($item["required"] ?? null);
 
-                    if (isset($item["displayedUnderCondition"])) {
-                        $fieldsParam->setDisplayedUnderCondition($item["displayedUnderCondition"]);
-                        $fieldsParam->setConditionFixedFieldValue(isset($item["conditionFixedFieldValue"]) ?? $item["conditionFixedFieldValue"] !== "" ? explode(',', $item["conditionFixedFieldValue"]) : []);
+                    $displayedUnderCondition = $item["displayedUnderCondition"] ?? false;
+                    $conditionFixedFieldValue = Stream::explode(",", $item["conditionFixedFieldValue"] ?? "")
+                        ->filter()
+                        ->toArray();
+
+                    if ($displayedUnderCondition && empty($conditionFixedFieldValue)) {
+                        throw new FormException("Vous devez saisir la colonne valeur");
                     }
+
+                    $fieldsParam
+                        ->setDisplayedUnderCondition($displayedUnderCondition)
+                        ->setConditionFixedFieldValue($conditionFixedFieldValue);
                 }
             }
         }

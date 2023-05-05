@@ -2331,7 +2331,7 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champ-fixe/sous-lignes/{entity}", name="settings_sublines_fixed_field_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function sublinesFixedFieldApi(Request $request, EntityManagerInterface $entityManager, string $entity): Response {
+    public function subLinesFixedFieldApi(EntityManagerInterface $entityManager, string $entity): Response {
         $class = "form-control data";
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -2385,7 +2385,6 @@ class SettingsController extends AbstractController {
 
         $class = "form-control data";
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
         $arrayFields = $fieldsParamRepository->findByEntityForEntity($entity);
 
         $rows = [];
