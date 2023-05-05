@@ -373,6 +373,9 @@ function initEditableTableArticles($table) {
                     $table.DataTable().columns.adjust().draw();
                 }, 500);
             }
+
+            const $button = $table.find(`.wii-icon.wii-icon-plus`);
+            addArticleRow(table, $button)
         },
         createdRow: (row, data) => {
             // we display only + td on this line
