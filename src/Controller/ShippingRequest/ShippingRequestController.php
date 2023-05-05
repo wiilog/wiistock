@@ -5,11 +5,16 @@ namespace App\Controller\ShippingRequest;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\ShippingRequest\ShippingRequestService;
+use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
+use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,6 +34,7 @@ class ShippingRequestController extends AbstractController {
         return $this->render('shipping_request/index.html.twig', [
             "fields" => $fields,
             "initial_visible_columns" => $this->apiColumns($service)->getContent(),
+            "shipping" => new ShippingRequest(),
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Service\ShippingRequest;
 
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
+use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\FormatService;
@@ -197,20 +198,5 @@ class ShippingRequestService {
             ->setComment($data['comment'] ?? '');
 
         return true;
-    }
-
-    public function createHeaderTransportDetailsConfig(ShippingRequest $shippingRequest) {
-        $packsCount = $shippingRequest->getpackLines()->count();
-
-        return $this->templating->render('shipping_request/show-transport-header.html.twig', [
-            'shipping' => $shippingRequest,
-            'packsCount' => $packsCount,
-            'totalValue' => Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getPrice())
-                ->sum(),
-            'netWeight' => Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
-                ->sum(),
-        ]);
     }
 }

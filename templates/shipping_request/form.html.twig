@@ -26,37 +26,43 @@
                     }
                 ],
                 items: shipping.id
-                ? shipping.requesters | map((requester) => ({
-                    value: requester.id,
-                    label: requester.username,
-                    phone: requester.phone,
-                    selected: true,
-                }))
-                : [{
-                    value: requester.id,
-                    label: requester.username,
-                    phone: requester.phone,
-                    selected: true,
-                }],
-            }) }}
+                    ? shipping.requesters | map((requester) => ({
+                        value: requester.id,
+                        label: requester.username,
+                        phone: requester.phone,
+                        selected: true,
+                    }))
+                    : [{
+                        value: requester.id,
+                        label: requester.username,
+                        phone: requester.phone,
+                        selected: true,
+                    }],
+                }) }}
         </div>
         <div class="col-6 mt-2">
             {{ form.select('requesterPhoneNumbers', 'Téléphone', true, {
                 type: null,
                 multiple: true,
                 editable: true,
+                items: shipping.id ? shipping.requesterPhoneNumbers | map((phoneNumbers) => ({
+                    value: phoneNumbers,
+                    label: phoneNumbers,
+                    selected: true,
+                })): [],
             }) }}
+
         </div>
         <div class="col-6 mt-2">
-            {{ form.input('customerOrderNumber', 'N° commande client', true, null,{}) }}
+            {{ form.input('customerOrderNumber', 'N° commande client', true, shipping.customerOrderNumber,{}) }}
         </div>
     </div>
     <div class="row">
         <div class="col-6 my-3">
-            {{ form.checkbox('freeDelivery', 'Livraison à titre gracieux', false, false, {}) }}
+            {{ form.checkbox('freeDelivery', 'Livraison à titre gracieux', false, shipping.freeDelivery, {}) }}
         </div>
         <div class="col-6 my-3">
-            {{ form.checkbox('compliantArticles', 'Article(s) conforme(s)', false, false, {}) }}
+            {{ form.checkbox('compliantArticles', 'Article(s) conforme(s)', false, shipping.compliantArticles, {}) }}
         </div>
     </div>
     <div class="wii-section-title d-flex align-items-center mt-2">
@@ -70,16 +76,21 @@
                 labelOptions: {
                     class: 'm-0',
                 },
+                items: shipping.customerName ? [{
+                    value: shipping.customerName,
+                    label: shipping.customerName,
+                    selected: true,
+                }] : [],
             }) }}
         </div>
         <div class="col-6 mt-2">
-            {{ form.input('customerPhone', 'Téléphone', true, null,{}) }}
+            {{ form.input('customerPhone', 'Téléphone', true, shipping.customerPhone,{}) }}
         </div>
         <div class="col-6 mt-2">
-            {{ form.input('customerRecipient', 'A l\'attention de', false, null,{}) }}
+            {{ form.input('customerRecipient', 'A l\'attention de', false, shipping.customerRecipient,{}) }}
         </div>
         <div class="col-12 mt-2">
-            {{ form.input('customerAddress', 'Adresse de livraison', true, null,{
+            {{ form.input('customerAddress', 'Adresse de livraison', true, shipping.customerAddress,{
                 type: 'textarea',
             }) }}
         </div>
@@ -89,21 +100,25 @@
     </div>
     <div class="row">
         <div class="col-6 mt-2">
-            {{ form.input('requestCaredAt', 'Date de prise en charge souhaitée', true, null , {
+            {{ form.input('requestCaredAt', 'Date de prise en charge souhaitée', true, shipping.requestCaredAt|date('Y-m-d'), {
                 type: 'date',
             }) }}
         </div>
         <div class="col-6 mt-2">
             {{ form.select('carrier', 'Transporteur', true, {
                 type: 'carrier',
-                items: [],
+                items: shipping.carrier ? [{
+                    value: shipping.carrier.id,
+                    label: shipping.carrier.label,
+                    selected: true,
+                }] : [],
             }) }}
         </div>
         <div class="col-6 mt-2">
             {% set shipmentOptions = constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_LABELS')|map((v, k) => ({
                 value: k,
                 label: v,
-                checked: k == constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_NATIONAL')
+                checked: shipping.id ? shipping.shipment : k == constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_NATIONAL')
             })) %}
             {{ form.switch('shipment', 'Envoi', false, shipmentOptions ) }}
         </div>
@@ -111,7 +126,7 @@
             {% set carrying = constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_LABELS')|map((v, k) => ({
                 value: k,
                 label: v,
-                checked: k == constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_OWED')
+                checked: shipping.id ? shipping.carrying : k == constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_OWED')
             })) %}
             {{ form.switch('carrying', 'Port', false, carrying ) }}
         </div>
@@ -121,7 +136,7 @@
     </div>
     <div class="row">
         <div class="col-8 mt-2">
-            {{ form.wysiwyg('comment', 'Commentaire', false, null ) }}
+            {{ form.wysiwyg('comment', 'Commentaire', false, shipping.comment) }}
         </div>
     </div>
 </form>
