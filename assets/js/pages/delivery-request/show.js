@@ -385,6 +385,7 @@ function initEditableTableArticles($table) {
                 $tdAction
                     .attr('colspan', $tds.length)
                     .addClass('add-row');
+                $row.find('span.add-row').removeClass('add-row');
                 $tdOther.addClass('d-none');
             }
         },
@@ -510,9 +511,7 @@ function scrollToBottom() {
 
 function addArticleRow(table, $button) {
     const $table = $button.closest('table');
-    const $isInvalid = $table.find('.is-invalid');
-
-    if ($isInvalid.length === 0) {
+    if (Form.process($table)) {
         const row = table.row($button.closest(`tr`));
         const data = row.data();
 
