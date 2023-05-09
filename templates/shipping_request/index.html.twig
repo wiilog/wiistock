@@ -45,6 +45,8 @@
         </div>
     </div>
 
+    {% include "shipping_request/modalNew.html.twig" %}
+
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
         'table': 'tableShippings',
@@ -54,4 +56,5 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('shipping-request-index') }}
 {% endblock %}
