@@ -6,7 +6,7 @@
             <div class="form-group col-md-6 col-12">
                 <label class="wii-field-name">Nom fournisseur*</label>
                 <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierLabel"
-                        onchange="loadAndDisplayLabels($(this))"
+                        onchange="loadAndDisplayLabels($(this), 'fournisseur')"
                         name="fournisseurLabel">
                     {% if line and line.fournisseur %}
                         <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.nom }}</option>
@@ -16,7 +16,7 @@
             <div class="form-group col-md-6 col-12">
                 <label class="wii-field-name">Code fournisseur*</label>
                 <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierCode"
-                        onchange="loadAndDisplayInfos($(this))"
+                        onchange="loadAndDisplayInfos($(this), 'fournisseurLabel')"
                         name="fournisseur">
                     {% if line and line.fournisseur %}
                         <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.codeReference }}</option>

@@ -1,5 +1,69 @@
 {% import 'form.html.twig' as form %}
 
+<div class="wii-section-title">Création de références via création de demande d'expédition</div>
+<div class="wii-section">
+    <div class="row mx-1 wii-small-text">
+        Paramétrage des valeurs par défaut pour les champs obligatoires
+    </div>
+    <div class="row my-1">
+        <div class="col-md-6 col-12">
+            {% set settingShippingReferenceDefaultType = setting_value('SHIPPING_REFERENCE_DEFAULT_TYPE', 'App\\Entity\\Type') %}
+            {{ form.select(setting('SHIPPING_REFERENCE_DEFAULT_TYPE'), "Type", true, {
+                type: 'referenceType',
+                placeholder: "Sélectionnez un type",
+                search: true,
+                value: settingShippingReferenceDefaultType ? settingShippingReferenceDefaultType.id : null,
+                items: settingShippingReferenceDefaultType ? {
+                    0: {
+                        'value': settingShippingReferenceDefaultType.id,
+                        'label':  settingShippingReferenceDefaultType.label,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+    </div>
+    <div class="row ligneFournisseurArticle">
+        {% set shippingFournisseurReferenceName = setting_value('SHIPPING_FOURNISSEUR_LABEL_REFERENCE_CREATE', 'App\\Entity\\Fournisseur') %}
+        {% set shippingFournisseurReferenceCode = setting_value('SHIPPING_FOURNISSEUR_REFERENCE_CREATE', 'App\\Entity\\Fournisseur') %}
+        <div class="form-group col-3">
+            {{ form.select('SHIPPING_FOURNISSEUR_LABEL_REFERENCE_CREATE', 'Nom fournisseur', true, {
+                type: 'supplierLabel',
+                value: shippingFournisseurReferenceName ? shippingFournisseurReferenceName.id : null,
+                items: shippingFournisseurReferenceName ? {
+                    0: {
+                        'value': shippingFournisseurReferenceName.id,
+                        'label': shippingFournisseurReferenceName.nom,
+                        'selected': true,
+                    }
+                } : null,
+                onChange: "loadAndDisplayLabels($(this), 'SHIPPING_FOURNISSEUR_REFERENCE_CREATE')"
+            }) }}
+        </div>
+        <div class="form-group col-3">
+            {{ form.select('SHIPPING_FOURNISSEUR_REFERENCE_CREATE', 'Code fournisseur', true, {
+                type: 'supplierCode',
+                value: shippingFournisseurReferenceCode ? shippingFournisseurReferenceCode.id : null,
+                items: shippingFournisseurReferenceCode ? {
+                    0: {
+                        'value': shippingFournisseurReferenceCode.id,
+                        'label': shippingFournisseurReferenceCode.codeReference,
+                        'selected': true,
+                    }
+                } : null,
+                onChange: "loadAndDisplayInfos($(this), 'SHIPPING_FOURNISSEUR_LABEL_REFERENCE_CREATE')"
+            }) }}
+        </div>
+        <div class="form-group col-3">
+            {{ form.label('Référence article fournisseur', false, false, {}) }}
+            {{ form.checkbox(setting('SHIPPING_REF_ARTICLE_FOURNISSEUR_EQUALS_REFERENCE'), 'Egale à la référence article', false, setting_value('SHIPPING_REF_ARTICLE_FOURNISSEUR_EQUALS_REFERENCE')) }}
+        </div>
+        <div class="form-group col-3">
+            {{ form.label('Libellé article fournisseur', false, false, {}) }}
+            {{ form.checkbox(setting('SHIPPING_ARTICLE_FOURNISSEUR_LABEL_EQUALS_REFERENCE_LABEL'), 'Egale au libellé référence', false, setting_value('SHIPPING_ARTICLE_FOURNISSEUR_LABEL_EQUALS_REFERENCE_LABEL')) }}
+        </div>
+    </div>
+</div>
 <div class="wii-section-title">Emplacements par défaut</div>
 <div class="row wii-section">
     <div class="col-md-6 col-12 my-1">
