@@ -81,8 +81,6 @@ class AnnotationListener {
 
         $annotation = $this->getAnnotation($reader, $method, RestAuthenticated::class);
         if ($annotation instanceof RestAuthenticated) {
-            dump($controller);
-            dump('caca');
             $this->handleRestAuthenticated($event, $controller);
         }
 
