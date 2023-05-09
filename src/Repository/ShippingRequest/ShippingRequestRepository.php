@@ -46,6 +46,7 @@ class ShippingRequestRepository extends EntityRepository {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
+                        "number" => "shipping_request.number LIKE :search_value",
                         "trackingNumber" => "shipping_request.trackingNumber LIKE :search_value",
                         "status" => "search_status.code LIKE :search_value",
                         "createdAt" => "DATE_FORMAT(shipping_request.createdAt, '%d/%m/%Y') LIKE :search_value",
@@ -132,6 +133,9 @@ class ShippingRequestRepository extends EntityRepository {
                 }
             }
         }
+
+        // counts the filtered elements
+        $filtered = QueryBuilderHelper::count($qb, 'shipping_request');
 
         if (!empty($params)) {
             if ($params->getInt('start')) {

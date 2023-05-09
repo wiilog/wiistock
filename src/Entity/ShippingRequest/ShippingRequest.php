@@ -49,7 +49,7 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, unique: true, nullable: false)]
     private ?string $number = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
