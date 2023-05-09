@@ -172,9 +172,7 @@ function deleteRowDemande($button) {
                             lineId,
                         })
                         .json()
-                        .then(() => {
-                            return loadTable();
-                        })
+                        .then(() => loadTable())
                         .then(() => {
                             $modal.modal('hide');
                         })
@@ -317,7 +315,6 @@ function removeLogisticUnitLine($button, logisticUnitId) {
 }
 
 function initEditableTableArticles($table) {
-    console.error("opkkop^p")
     const fieldsParams = JSON.parse($('input[name="editableTableArticlesFieldsParams"]').val());
     const columns = $table.data('initial-visible');
 
@@ -480,7 +477,6 @@ function initEditableTableArticles($table) {
 
     $table.on(`keydown`, function(event) {
         const tabulationKeyCode = 9;
-        console.log();
 
         const $target = $(event.target);
         // check if input is the last of the row
@@ -491,7 +487,6 @@ function initEditableTableArticles($table) {
                 .last()
         );
 
-        console.error(event.keyCode, lastInputOfRow)
         if (event.keyCode === tabulationKeyCode
             && lastInputOfRow) {
             event.preventDefault();
@@ -579,8 +574,8 @@ function onChangeFillComment($selector) {
     const settingWithProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT]').val();
     const settingWithoutProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT]').val();
     if (settingWithProject && settingWithoutProject) {
-        const $comment = $row.find('input[name=comment]');
-        const project = $row.find('select[name=project]').find(':selected').text();
+        const $comment = $row.find('[name=comment]');
+        const project = $row.find('[name=project]').find(':selected').text();
         const receiver = $('input[name=deliveryRequestReceiver]').val();
 
         if (!project) {
