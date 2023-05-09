@@ -1,8 +1,9 @@
-import {GET, POST} from "@app/ajax";
+import AJAX from "@app/ajax";
 
 let tables = [];
 let editableTableArticles = null;
 const requestId = $('[name=requestId]').val();
+let pageInitialized = false;
 
 global.ajaxGetAndFillArticle = ajaxGetAndFillArticle;
 global.deleteRowDemande = deleteRowDemande;
@@ -21,7 +22,6 @@ $(function () {
         minQuantity: Number($('input[name=managePreparationWithPlanning]').val()) ? 0 : 1,
     });
 
-    loadLogisticUnitList(requestId);
     initPageModals();
 
     const $submitNewArticle = $('#submitNewArticle');
@@ -43,17 +43,14 @@ $(function () {
         $(this).find('#reference').select2("open");
     });
 
-    const $editableTableArticles = $('#editableTableArticles');
-    if ($editableTableArticles.length) {
-        initEditableTableArticles($editableTableArticles);
-    }
+    loadTable();
 });
 
 function loadLogisticUnitList(requestId) {
     const $logisticUnitsContainer = $('.logistic-units-container');
     wrapLoadingOnActionButton($logisticUnitsContainer, () => (
         AJAX
-            .route('GET', 'delivery_request_logistic_units_api', {id: requestId})
+            .route(AJAX.GET, 'delivery_request_logistic_units_api', {id: requestId})
             .json()
             .then(({html, columns}) => {
                 $logisticUnitsContainer.html(html);
@@ -157,11 +154,40 @@ function setMaxQuantity(select) {
     }, 'json');
 }
 
-function deleteRowDemande(button, modal, submit) {
-    let id = button.data('id');
-    let name = button.data('name');
-    modal.find(submit).attr('value', id);
-    modal.find(submit).attr('name', name);
+function deleteRowDemande($button) {
+    const lineId = $button.data('id');
+    const type = $button.data('name');
+    const $modal = $('#modalDeleteArticle');
+    const $submit = $modal.find('.submit-button');
+    if (lineId) {
+        $modal.modal('show');
+
+        $submit
+            .off('click.remove-line')
+            .on('click.remove-line', () => {
+                wrapLoadingOnActionButton($submit, () => (
+                    AJAX
+                        .route(AJAX.DELETE, 'delivery_request_remove_article', {
+                            type,
+                            lineId,
+                        })
+                        .json()
+                        .then(() => {
+                            return loadTable();
+                        })
+                        .then(() => {
+                            $modal.modal('hide');
+                        })
+                ));
+            });
+    }
+    else {
+        const datatable = $('#editableTableArticles').DataTable();
+        const row = datatable.row($button.closest(`tr`));
+        row.remove();
+        datatable.draw();
+        $modal.modal('hide');
+    }
 }
 
 function validateLivraison(livraisonId, $button) {
@@ -214,17 +240,6 @@ function initPageModals() {
         success: () => loadLogisticUnitList(requestId)
     });
 
-    let $modalDeleteArticle = $("#modalDeleteArticle");
-    let $submitDeleteArticle = $("#submitDeleteArticle");
-    let pathDeleteArticle = Routing.generate('demande_remove_article', true);
-    InitModal($modalDeleteArticle, $submitDeleteArticle, pathDeleteArticle, {
-        success: () => {
-            loadLogisticUnitList(requestId);
-            const $editableTableArticles = $('#editableTableArticles');
-            $editableTableArticles.DataTable().ajax.reload();
-        }
-    });
-
     let $modalEditArticle = $("#modalEditArticle");
     let $submitEditArticle = $("#submitEditArticle");
     let pathEditArticle = Routing.generate('demande_article_edit', true);
@@ -261,7 +276,7 @@ function openAddLUModal() {
         const logisticUnit = $logisticUnit.val();
 
         if (logisticUnit) {
-            AJAX.route(`GET`, `delivery_logistic_unit_details`, {logisticUnit})
+            AJAX.route(AJAX.GET, `delivery_logistic_unit_details`, {logisticUnit})
                 .json()
                 .then(({html}) => {
                     $details.html(html);
@@ -277,7 +292,7 @@ function openAddLUModal() {
             const logisticUnit = $logisticUnit.val();
 
             wrapLoadingOnActionButton($(this), () => (
-                AJAX.route(`POST`, `delivery_add_logistic_unit`, {delivery, logisticUnit})
+                AJAX.route(AJAX.POST, `delivery_add_logistic_unit`, {delivery, logisticUnit})
                     .json()
                     .then(result => {
                         if (result.success) {
@@ -295,21 +310,21 @@ function openAddLUModal() {
 
 function removeLogisticUnitLine($button, logisticUnitId) {
     wrapLoadingOnActionButton($button, () => (
-        AJAX.route('POST', 'remove_delivery_request_logistic_unit_line', {logisticUnitId, deliveryRequestId: requestId})
+        AJAX.route(AJAX.POST, 'remove_delivery_request_logistic_unit_line', {logisticUnitId, deliveryRequestId: requestId})
             .json()
             .then(() => loadLogisticUnitList(requestId))
     ));
 }
 
 function initEditableTableArticles($table) {
-    const form = JSON.parse($('input[name="editableTableArticlesForm"]').val());
+    console.error("opkkop^p")
     const fieldsParams = JSON.parse($('input[name="editableTableArticlesFieldsParams"]').val());
     const columns = $table.data('initial-visible');
 
     const table = initDataTable($table, {
         serverSide: false,
         ajax: {
-            type: "GET",
+            type: AJAX.GET,
             url: Routing.generate('api_table_articles_content', {request: requestId}, true),
         },
         rowConfig: {
@@ -425,7 +440,7 @@ function initEditableTableArticles($table) {
         if ($articleSelect.exists()) {
             if(typeQuantite === 'article') {
                 AJAX
-                    .route(GET, 'api_articles-by-reference', {'request': $('[name=requestId]').val(), referenceArticle})
+                    .route(AJAX.GET, 'api_articles-by-reference', {'request': $('[name=requestId]').val(), referenceArticle})
                     .json()
                     .then(({data}) => {
                         const articleSelect = $row.find('select[name="article"]')
@@ -463,27 +478,53 @@ function initEditableTableArticles($table) {
         $(this).closest('td').find('input[name="referenceId"]').val(referenceArticle);
     });
 
+    $table.on(`keydown`, function(event) {
+        const tabulationKeyCode = 9;
+        console.log();
 
+        const $target = $(event.target);
+        // check if input is the last of the row
+        const lastInputOfRow = $target.is(
+            $target
+                .closest('tr')
+                .find('.data')
+                .last()
+        );
+
+        console.error(event.keyCode, lastInputOfRow)
+        if (event.keyCode === tabulationKeyCode
+            && lastInputOfRow) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const $nextRow = $target.closest(`tr`).next();
+            const $addRowButton = $nextRow.find(`.add-row`);
+            if($addRowButton.exists()) {
+                addArticleRow(table, $addRowButton);
+            }
+        }
+    });
 
     $(window).on(`beforeunload`, () =>  {
         const $focus = $(`tr :focus`);
         if($focus.exists()) {
-            if(savePackLine(dispatchId, $focus.closest(`tr`), false)) {
+            if(saveArticleLine(requestId, $focus.closest(`tr`))) {
                 return true;
             }
         }
     });
+
     return table;
 }
 
-function saveArticleLine(requestId, $row,) {
+function saveArticleLine(requestId, $row) {
     let data = Form.process($row);
     data = data instanceof FormData ? data.asObject() : data;
 
     if (data) {
         if (!jQuery.deepEquals(data, JSON.parse($row.data(`data`)))) {
             AJAX
-                .route(POST, `api_demande_article_submit_change`, {deliveryRequest : requestId})
+                .route(AJAX.POST, `api_demande_article_submit_change`, {deliveryRequest : requestId})
                 .json(data)
                 .then((response) => {
                     if (response.success) {
@@ -520,13 +561,6 @@ function addArticleRow(table, $button) {
         table.row.add(data);
         table.draw();
 
-        $('.delete-row').attr({
-            'onclick':"deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))",
-            'data-target':'#modalDeleteArticle',
-            'data-toggle':'modal',
-            'data-name':'reference',
-        })
-
         scrollToBottom();
 
         // find added row
@@ -536,7 +570,6 @@ function addArticleRow(table, $button) {
         // wait for the row to be added
         setTimeout(() => {
             $addedRow.find('select.needed[required]').first().select2('open');
-            onChangeFillComment($addedRow.find('select[name="project"]'))
         }, 100);
     }
 }
@@ -546,8 +579,6 @@ function onChangeFillComment($selector) {
     const settingWithProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT]').val();
     const settingWithoutProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT]').val();
     if (settingWithProject && settingWithoutProject) {
-        const $article = $row.find('select[name="article"]');
-        const $quantity = $row.find('input[name=quantity-to-pick]');
         const $comment = $row.find('input[name=comment]');
         const project = $row.find('select[name=project]').find(':selected').text();
         const receiver = $('input[name=deliveryRequestReceiver]').val();
@@ -561,5 +592,27 @@ function onChangeFillComment($selector) {
                                     .replace("@Projet", project);
             $comment.val(textWithProject);
         }
+    }
+}
+
+function loadTable() {
+    const $editableTableArticles = $('#editableTableArticles');
+    if ($editableTableArticles.exists()) {
+        if (pageInitialized) {
+            return new Promise((resolve) => {
+                $editableTableArticles.DataTable().ajax.reload(() => {
+                    pageInitialized = true;
+                    resolve();
+                })
+            });
+        }
+        else {
+            initEditableTableArticles($editableTableArticles);
+            pageInitialized = true;
+        }
+    }
+    else {
+        loadLogisticUnitList(requestId);
+        pageInitialized = true;
     }
 }

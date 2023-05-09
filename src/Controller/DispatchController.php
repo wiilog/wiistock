@@ -760,9 +760,9 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/packs/api/{dispatch}", name="dispatch_pack_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
-    public function apiPack(UserService $userService,
+    public function apiPack(UserService     $userService,
                             DispatchService $service,
-                            Dispatch $dispatch): Response {
+                            Dispatch        $dispatch): Response {
         $dispatchStatus = $dispatch->getStatut();
         $edit = (
             $dispatchStatus->isDraft()
