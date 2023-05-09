@@ -36,6 +36,97 @@ class ShippingRequestRepository extends EntityRepository {
                         ->andWhere('carrier.id IN (:carrierId)')
                         ->setParameter('carrierId', $value);
                     break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('shipping_request.requesters', 'filter_requester')
+                        ->andWhere("filter_requester.id in (:filter_requester_username_value)")
+                        ->setParameter('filter_requester_username_value', $value);
+                    break;
+                case 'date-choice_creationDate':
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('shipping_request.createdAt >= :filter_dateMin_value')
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('shipping_request.createdAt <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                break;
+                        }
+                    }
+                    break;
+                case 'date-choice_caredDate':
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('shipping_request.requestCaredAt >= :filter_dateMin_value')
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('shipping_request.requestCaredAt <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                break;
+                        }
+                    }
+                    break;
+                case 'date-choice_validationDate':
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('shipping_request.validatedAt >= :filter_dateMin_value')
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('shipping_request.validatedAt <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                break;
+                        }
+                    }
+                    break;
+                case 'date-choice_planificationDate':
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('shipping_request.plannedAt >= :filter_dateMin_value')
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('shipping_request.plannedAt <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                break;
+                        }
+                    }
+                    break;
+                case 'date-choice_pickedDate':
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('shipping_request.expectedPickedAt >= :filter_dateMin_value')
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('shipping_request.expectedPickedAt <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                break;
+                        }
+                    }
+                    break;
+                case 'date-choice_expeditionDate':
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('shipping_request.treatedAt >= :filter_dateMin_value')
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . " 00:00:00");
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('shipping_request.treatedAt <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                                break;
+                        }
+                    }
+                    break;
             }
         }
 
