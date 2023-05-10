@@ -528,6 +528,7 @@ function saveArticleLine(requestId, $row) {
                             $row.find('input[name="lineId"]').val(response.lineId);
                         }
                         if (response.type) {
+                            $row.find(`.delete-row`).attr(`data-name`, response.type);
                             $row.find('input[name="type"]').val(response.type);
                         }
                         $row.data(`data`, JSON.stringify(data));
