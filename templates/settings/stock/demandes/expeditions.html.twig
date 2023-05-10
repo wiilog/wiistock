@@ -24,10 +24,10 @@
         </div>
     </div>
     <div class="row ligneFournisseurArticle">
-        {% set shippingFournisseurReferenceName = setting_value('SHIPPING_FOURNISSEUR_LABEL_REFERENCE_CREATE', 'App\\Entity\\Fournisseur') %}
-        {% set shippingFournisseurReferenceCode = setting_value('SHIPPING_FOURNISSEUR_REFERENCE_CREATE', 'App\\Entity\\Fournisseur') %}
+        {% set shippingFournisseurReferenceName = setting_value('SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE', 'App\\Entity\\Fournisseur') %}
+        {% set shippingFournisseurReferenceCode = setting_value('SHIPPING_SUPPLIER_REFERENCE_CREATE', 'App\\Entity\\Fournisseur') %}
         <div class="form-group col-3">
-            {{ form.select('SHIPPING_FOURNISSEUR_LABEL_REFERENCE_CREATE', 'Nom fournisseur', true, {
+            {{ form.select('SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE', 'Nom fournisseur', true, {
                 type: 'supplierLabel',
                 value: shippingFournisseurReferenceName ? shippingFournisseurReferenceName.id : null,
                 items: shippingFournisseurReferenceName ? {
@@ -37,11 +37,11 @@
                         'selected': true,
                     }
                 } : null,
-                onChange: "loadAndDisplayLabels($(this), 'SHIPPING_FOURNISSEUR_REFERENCE_CREATE')"
+                onChange: "loadAndDisplayLabels($(this), 'SHIPPING_SUPPLIER_REFERENCE_CREATE')"
             }) }}
         </div>
         <div class="form-group col-3">
-            {{ form.select('SHIPPING_FOURNISSEUR_REFERENCE_CREATE', 'Code fournisseur', true, {
+            {{ form.select('SHIPPING_SUPPLIER_REFERENCE_CREATE', 'Code fournisseur', true, {
                 type: 'supplierCode',
                 value: shippingFournisseurReferenceCode ? shippingFournisseurReferenceCode.id : null,
                 items: shippingFournisseurReferenceCode ? {
@@ -51,16 +51,16 @@
                         'selected': true,
                     }
                 } : null,
-                onChange: "loadAndDisplayInfos($(this), 'SHIPPING_FOURNISSEUR_LABEL_REFERENCE_CREATE')"
+                onChange: "loadAndDisplayInfos($(this), 'SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE')"
             }) }}
         </div>
         <div class="form-group col-3">
             {{ form.label('Référence article fournisseur', false, false, {}) }}
-            {{ form.checkbox(setting('SHIPPING_REF_ARTICLE_FOURNISSEUR_EQUALS_REFERENCE'), 'Egale à la référence article', false, setting_value('SHIPPING_REF_ARTICLE_FOURNISSEUR_EQUALS_REFERENCE')) }}
+            {{ form.checkbox(setting('SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE'), 'Egale à la référence article', false, setting_value('SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE')) }}
         </div>
         <div class="form-group col-3">
             {{ form.label('Libellé article fournisseur', false, false, {}) }}
-            {{ form.checkbox(setting('SHIPPING_ARTICLE_FOURNISSEUR_LABEL_EQUALS_REFERENCE_LABEL'), 'Egale au libellé référence', false, setting_value('SHIPPING_ARTICLE_FOURNISSEUR_LABEL_EQUALS_REFERENCE_LABEL')) }}
+            {{ form.checkbox(setting('SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL'), 'Egale au libellé référence', false, setting_value('SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL')) }}
         </div>
     </div>
 </div>

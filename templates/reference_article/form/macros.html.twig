@@ -1,4 +1,4 @@
-{% macro supplier_article_line(reference, line, editable = false, index = 0 , withDeleteButton = false) %}
+{% macro supplier_article_line(reference, line, editable = false, index = 0 , withDeleteButton = false, supplierToSelect = []) %}
     <div class="ligneFournisseurArticle"
          data-multiple-key="frl"
          data-multiple-object-index="{{ index }}">
@@ -11,6 +11,9 @@
                     {% if line and line.fournisseur %}
                         <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.nom }}</option>
                     {% endif %}
+                    {% if supplierToSelect.supplier is defined and supplierToSelect.supplier %}
+                        <option value="{{ supplierToSelect.supplier.id }}" selected>{{ supplierToSelect.supplier.nom }}</option>
+                    {% endif %}
                 </select>
             </div>
             <div class="form-group col-md-6 col-12">
@@ -21,12 +24,15 @@
                     {% if line and line.fournisseur %}
                         <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.codeReference }}</option>
                     {% endif %}
+                    {% if supplierToSelect.supplierCode is defined and supplierToSelect.supplierCode %}
+                        <option value="{{ supplierToSelect.supplierCode.id }}" selected>{{ supplierToSelect.supplierCode.codeReference }}</option>
+                    {% endif %}
                 </select>
             </div>
             <div class="form-group col-md-6 col-12">
                 <label class="wii-field-name">Ref article fournisseur*</label>
                 <input class="form-control data w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
-                       name="referenceFournisseur" value="{{ line ? line.reference }}">
+                       name="referenceFournisseur" value="{{ line ? line.reference : (supplierToSelect.refArticleSupplierEqualsReference is defined and supplierToSelect.refArticleSupplierEqualsReference ? supplierToSelect.draftDefaultReference) }}">
             </div>
             <div class="form-group col-md-6 col-12">
                 <label class="wii-field-name">Libellé*</label>
