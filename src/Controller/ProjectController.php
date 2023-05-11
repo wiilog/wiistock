@@ -24,7 +24,6 @@ use App\Annotation\HasPermission;
 class ProjectController extends AbstractController
 {
 
-    const MAX_CHAR_CODE_PROJET = 20;
 
     #[Route('/liste', name: 'project_index', methods: 'GET')]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_PROJECTS])]
@@ -56,10 +55,10 @@ class ProjectController extends AbstractController
                 'success' => false,
                 'msg' => 'Un projet avec ce code existe déjà'
             ]);
-        } else if (mb_strlen($data['code']) > $this::MAX_CHAR_CODE_PROJET) {
+        } else if (mb_strlen($data['code']) > ProjectService::MAX_LENGTH_CODE_PROJECT) {
             return $this->json([
                 'success' => false,
-                'msg' => 'La longueur maximale du code est de ' . $this::MAX_CHAR_CODE_PROJET .  ' caractères',
+                'msg' => 'La longueur maximale du code est de ' . ProjectService::MAX_LENGTH_CODE_PROJECT .  ' caractères',
             ]);
         } else {
             $projectManager = $manager->getRepository(Utilisateur::class)->findOneBy(['id' => $data['projectManager']]);
@@ -108,10 +107,11 @@ class ProjectController extends AbstractController
                 'success' => false,
                 'msg' => 'Un projet avec ce code existe déjà'
             ]);
-        } else if (mb_strlen($data['code']) > $this::MAX_CHAR_CODE_PROJET) {
+        } else if (mb_strlen($data['code']) > ProjectService::MAX_LENGTH_CODE_PROJECT) {
+
             return $this->json([
                 'success' => false,
-                'msg' => 'La longueur maximale du code est de ' . $this::MAX_CHAR_CODE_PROJET .  ' caractères',
+                'msg' => 'La longueur maximale du code est de ' . ProjectService::MAX_LENGTH_CODE_PROJECT .  ' caractères',
             ]);
         } else {
             $projectManager = $manager->getRepository(Utilisateur::class)->findOneBy(['id' => $data['projectManager']]);
