@@ -997,7 +997,8 @@ class DeliveryRequestService
                         ["name" => "data-other-params"],
                         ["name" => "data-other-params-ignored-delivery-request", "value" => $deliveryRequest->getId()],
                         ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
-                    ]
+                    ],
+                    "onChange" => 'onChangeFillComment($(this))',
                 ]),
                 $this->formService->macro("hidden", "lineId"),
                 $this->formService->macro("hidden", "type"),
@@ -1020,7 +1021,8 @@ class DeliveryRequestService
             "label" => $labelColumn,
             "quantityToPick" => $this->formService->macro("input", "quantity-to-pick", null, true, $line?->getQuantityToPick(), [
                 "type" => "number",
-                "min" => 1
+                "min" => 1,
+                "onChange" => 'onChangeFillComment($(this))',
             ]),
             "project" => $this->formService->macro("select", "project", null, $projectRequired, [
                 "type" => "project",
