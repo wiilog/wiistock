@@ -275,7 +275,9 @@ class LivraisonsManagerService
                 }
             }
 
-            $title = $demandeIsPartial ? 'FOLLOW GT // ' . $this->translation->translate("Demande", "Livraison", "Livraison", false) . ' effectuée partiellement' : 'FOLLOW GT // ' . $this->translation->translate("Demande", "Livraison", "Livraison", false) .' effectuée';
+            $title = $demandeIsPartial
+                ? 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée partiellement'
+                : 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) .' effectuée';
             $bodyTitle = $demandeIsPartial ? 'La demande a été livrée partiellement.' : 'La demande a bien été livrée.';
 
             if ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver()) {
