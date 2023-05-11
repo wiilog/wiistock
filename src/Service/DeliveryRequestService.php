@@ -1021,7 +1021,8 @@ class DeliveryRequestService
             "label" => $labelColumn,
             "quantityToPick" => $this->formService->macro("input", "quantity-to-pick", null, true, $line?->getQuantityToPick(), [
                 "type" => "number",
-                "min" => 1
+                "min" => 1,
+                "onChange" => 'onChangeFillComment($(this))',
             ]),
             "project" => $this->formService->macro("select", "project", null, $projectRequired, [
                 "type" => "project",
