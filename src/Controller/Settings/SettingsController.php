@@ -27,6 +27,7 @@ use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
+use App\Entity\Role;
 use App\Entity\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -1042,6 +1043,7 @@ class SettingsController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
         $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
         return [
@@ -1180,6 +1182,29 @@ class SettingsController extends AbstractController {
                     self::MENU_PURCHASE_STATUSES => fn() => [
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_PURCHASE_REQUEST),
                     ],
+                    self::MENU_SHIPPING => function() use ($settingRepository, $roleRepository) {
+                        $toTreatRoleIds = $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES)
+                            ? explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))
+                            : null;
+                        $shippedRoleIds = $settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES)
+                            ? explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))
+                            : null;
+
+                        return [
+                            'toTreatRoles' => $toTreatRoleIds ? Stream::from($roleRepository->findBy(['id' => $toTreatRoleIds]))
+                                ->map(fn(Role $role) => [
+                                    'label' => $role->getLabel(),
+                                    'value' => $role->getId(),
+                                    'selected' => true
+                                ]) : [],
+                            'shippedRoles' => $shippedRoleIds ? Stream::from($roleRepository->findBy(['id' => $shippedRoleIds]))
+                                ->map(fn(Role $role) => [
+                                    'label' => $role->getLabel(),
+                                    'value' => $role->getId(),
+                                    'selected' => true
+                                ]) : [],
+                        ];
+                    },
                 ],
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [

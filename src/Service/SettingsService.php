@@ -198,6 +198,7 @@ class SettingsService {
      */
     private function saveCustom(Request $request, array $settings, array &$updated, array &$result): void {
         $data = $request->request;
+        $settingRepository = $this->manager->getRepository(Setting::class);
 
         if ($client = $data->get(Setting::APP_CLIENT)) {
             $this->changeClient($client);
@@ -235,7 +236,6 @@ class SettingsService {
         }
 
         if ($request->request->has("deliveryRequestBehavior")) {
-            $settingRepository = $this->manager->getRepository(Setting::class);
             $deliveryRequestBehavior = $request->request->get("deliveryRequestBehavior");
 
             $previousDeliveryRequestBehaviorSetting = $settingRepository->findOneBy([

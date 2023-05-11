@@ -99,3 +99,45 @@
         }) }}
     </div>
 </div>
+
+<div class="wii-section-title">Création de références via création de demande d'expédition</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="form-group col-5">
+            {{ form.label('Passage au statut à traiter', false, false, {
+                class: 'mb-2',
+            }) }}
+            {{ form.checkbox(setting('SHIPPING_TO_TREAT_SEND_TO_REQUESTER'), 'Envoyer un email au(x) demandeur(s)', false, setting_value('SHIPPING_TO_TREAT_SEND_TO_REQUESTER')) }}
+        </div>
+        <div class="row form-group col-7">
+            {{ form.checkbox(setting('SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES'), 'Envoyer un email aux utilisateurs ayant les rôles :', false, setting_value('SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES'), {
+                containerClass: 'col-6 mt-2',
+            }) }}
+            {{ form.select(setting('SHIPPING_TO_TREAT_SEND_TO_ROLES'), '', false, {
+                type: 'roles',
+                labelClass: 'w-100 col-6',
+                items: toTreatRoles,
+                multiple: true,
+            }) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-5">
+            {{ form.label('Passage au statut expédiée', false, false, {
+                class: 'mb-2',
+            }) }}
+            {{ form.checkbox(setting('SHIPPING_SHIPPED_SEND_TO_REQUESTER'), 'Envoyer un email au(x) demandeur(s)', false, setting_value('SHIPPING_SHIPPED_SEND_TO_REQUESTER')) }}
+        </div>
+        <div class="row form-group col-7">
+            {{ form.checkbox(setting('SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES'), 'Envoyer un email aux utilisateurs ayant les rôles :', false, setting_value('SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES'), {
+                containerClass: 'col-6 mt-2',
+            }) }}
+            {{ form.select(setting('SHIPPING_SHIPPED_SEND_TO_ROLES'), '', false, {
+                type: 'roles',
+                labelClass: 'w-100 col-6',
+                items: shippedRoles,
+                multiple: true,
+            }) }}
+        </div>
+    </div>
+</div>
