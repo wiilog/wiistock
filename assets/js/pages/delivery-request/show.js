@@ -530,6 +530,7 @@ function saveArticleLine(requestId, $row) {
                         if (response.type) {
                             $row.find('input[name="type"]').val(response.type);
                         }
+
                         $row.data(`data`, JSON.stringify(data));
                     }
                 });
