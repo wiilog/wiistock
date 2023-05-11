@@ -997,7 +997,8 @@ class DeliveryRequestService
                         ["name" => "data-other-params"],
                         ["name" => "data-other-params-ignored-delivery-request", "value" => $deliveryRequest->getId()],
                         ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
-                    ]
+                    ],
+                    "onChange" => 'onChangeFillComment($(this))',
                 ]),
                 $this->formService->macro("hidden", "lineId"),
                 $this->formService->macro("hidden", "type"),
