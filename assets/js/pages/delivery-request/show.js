@@ -524,14 +524,20 @@ function saveArticleLine(requestId, $row) {
                 .then((response) => {
                     if (response.success) {
                         if (response.lineId) {
-                            $row.find(`.delete-row`).attr(`data-id`, response.lineId);
+                            $row.find(`.delete-row`)
+                                .attr('data-id', response.lineId)
+                                .data('id', response.lineId);
                             $row.find('input[name="lineId"]').val(response.lineId);
                         }
                         if (response.type) {
+                            $row.find(`.delete-row`)
+                                .data('name', response.type)
+                                .attr('data-name', response.type);
                             $row.find('input[name="type"]').val(response.type);
                         }
-
-                        $row.data(`data`, JSON.stringify(data));
+                        $row
+                            .data(`data`, JSON.stringify(data))
+                            .attr(`data-data`, JSON.stringify(data));
                     }
                 });
             }
