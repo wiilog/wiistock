@@ -138,7 +138,7 @@ class RefArticleDataService
     public TranslationService $translationService;
 
     #[Required]
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     private ?array $freeFieldsConfig = null;
 

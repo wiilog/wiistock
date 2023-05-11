@@ -26,9 +26,8 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
-use App\Service\FormatService;
 use App\Service\RefArticleDataService;
-use App\Service\DemandeLivraisonService;
+use App\Service\DeliveryRequestService;
 use App\Service\FreeFieldService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
@@ -56,9 +55,9 @@ class DemandeController extends AbstractController
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function compareStock(Request $request,
-                                 DemandeLivraisonService $demandeLivraisonService,
-                                 FreeFieldService $champLibreService,
+    public function compareStock(Request                $request,
+                                 DeliveryRequestService $demandeLivraisonService,
+                                 FreeFieldService       $champLibreService,
                                  EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -127,9 +126,9 @@ class DemandeController extends AbstractController
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request,
-                         FreeFieldService $champLibreService,
-                         DemandeLivraisonService $demandeLivraisonService,
+    public function edit(Request                $request,
+                         FreeFieldService       $champLibreService,
+                         DeliveryRequestService $demandeLivraisonService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -196,11 +195,11 @@ class DemandeController extends AbstractController
      * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request                 $request,
-                        EntityManagerInterface  $entityManager,
-                        DemandeLivraisonService $demandeLivraisonService,
-                        FreeFieldService        $champLibreService,
-                        TranslationService      $translation): Response
+    public function new(Request                $request,
+                        EntityManagerInterface $entityManager,
+                        DeliveryRequestService $demandeLivraisonService,
+                        FreeFieldService       $champLibreService,
+                        TranslationService     $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $data['commentaire'] = StringHelper::cleanedComment($data['commentaire'] ?? null);
@@ -235,11 +234,11 @@ class DemandeController extends AbstractController
      * @Route("/liste/{reception}/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR})
      */
-    public function index(EntityManagerInterface  $entityManager,
-                          SettingsService         $settingsService,
-                          DemandeLivraisonService $deliveryRequestService,
-                                                  $reception = null,
-                                                  $filter = null): Response {
+    public function index(EntityManagerInterface $entityManager,
+                          SettingsService        $settingsService,
+                          DeliveryRequestService $deliveryRequestService,
+                                                 $reception = null,
+                                                 $filter = null): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -297,8 +296,8 @@ class DemandeController extends AbstractController
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function delete(Request $request,
-                           DemandeLivraisonService $demandeLivraisonService,
+    public function delete(Request                $request,
+                           DeliveryRequestService $demandeLivraisonService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -332,8 +331,8 @@ class DemandeController extends AbstractController
      * @Route("/api", options={"expose"=true}, name="demande_api", methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request,
-                        DemandeLivraisonService $demandeLivraisonService): Response
+    public function api(Request                $request,
+                        DeliveryRequestService $demandeLivraisonService): Response
     {
         // cas d'un filtre statut depuis page d'accueil
         $filterStatus = $request->request->get('filterStatus');
@@ -348,36 +347,37 @@ class DemandeController extends AbstractController
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR})
      */
     public function show(EntityManagerInterface $entityManager,
-                         DemandeLivraisonService $demandeLivraisonService,
-                         Demande $demande,
+                         DeliveryRequestService $deliveryRequestService,
+                         Demande                $deliveryRequest,
                          EntityManagerInterface $manager): Response {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $currentUser = $this->getUser();
 
-        $status = $demande->getStatut();
-        $fields = $demandeLivraisonService->getVisibleColumnsTableArticleConfig($entityManager, $demande);
+        $status = $deliveryRequest->getStatut();
+        $fields = $deliveryRequestService->getVisibleColumnsTableArticleConfig($entityManager, $deliveryRequest);
 
         return $this->render('demande/show/index.html.twig', [
-            'demande' => $demande,
+            'demande' => $deliveryRequest,
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'modifiable' => $status?->getCode() === Demande::STATUT_BROUILLON,
             'finished' => $status?->getCode() === Demande::STATUT_A_TRAITER,
             'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE),
-            "initial_visible_columns" => json_encode($demandeLivraisonService->getVisibleColumnsTableArticleConfig($entityManager, $demande, true)),
-            'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
+            "initial_visible_columns" => json_encode($deliveryRequestService->getVisibleColumnsTableArticleConfig($entityManager, $deliveryRequest, true)),
+            'showDetails' => $deliveryRequestService->createHeaderDetailsConfig($deliveryRequest),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
             'fields' => $fields,
+            'editatableLineForm' => $deliveryRequestService->editatableLineForm($manager, $deliveryRequest, $currentUser)
         ]);
     }
 
     #[Route("/delivery-request-logistic-units-api", name: "delivery_request_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
-    public function logisticUnitsApi(Request                 $request,
-                                     DemandeLivraisonService $deliveryRequestService,
-                                     EntityManagerInterface  $manager): Response {
+    public function logisticUnitsApi(Request                $request,
+                                     DeliveryRequestService $deliveryRequestService,
+                                     EntityManagerInterface $manager): Response {
         $deliveryRequest = $manager->find(Demande::class, $request->query->get('id'));
         $needsQuantitiesCheck = !$manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
         $editable = $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON;
@@ -421,7 +421,7 @@ class DemandeController extends AbstractController
                                 && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON
                             ),
                             "project" => $this->getFormatter()->project($line->getProject()),
-                            "comment" => $line->getComment(),
+                            "comment" => '<div class="text-wrap ">'.$line->getComment().'</div>',
                             "actions" => $this->renderView(
                                 'demande/datatableLigneArticleRow.html.twig',
                                 [
@@ -452,7 +452,7 @@ class DemandeController extends AbstractController
                         && $reference->getQuantiteDisponible() < $line->getQuantityToPick()
                         && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                     "project" => $this->getFormatter()->project($line->getProject()),
-                    "comment" => $line->getComment(),
+                    "comment" => '<div class="text-wrap">'.$line->getComment().'</div>',
                     "actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
@@ -511,69 +511,6 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/api/{id}", name="demande_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
-     */
-    public function articleApi(Demande $demande, EntityManagerInterface $entityManager): Response
-    {
-        $settings = $entityManager->getRepository(Setting::class);
-        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
-        $referenceLines = $demande->getReferenceLines();
-        $rowsRC = [];
-        foreach ($referenceLines as $line) {
-            $rowsRC[] = [
-                "reference" => $line->getReference()->getReference() ?: '',
-                "label" => $line->getReference()->getLibelle() ?: '',
-                "location" => FormatHelper::location($line->getReference()->getEmplacement()),
-                "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
-                "quantityToPick" => $line->getQuantityToPick() ?? '',
-                "barcode" => $line->getReference() ? $line->getReference()->getBarCode() : '',
-                "error" => $needsQuantitiesCheck && $line->getReference()->getQuantiteDisponible() < $line->getQuantityToPick()
-                    && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
-                "Actions" => $this->renderView(
-                    'demande/datatableLigneArticleRow.html.twig',
-                    [
-                        'id' => $line->getId(),
-                        'name' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
-                        'refArticleId' => $line->getReference()->getId(),
-                        'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
-                        'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
-                    ]
-                )
-            ];
-        }
-        $articleLines = $demande->getArticleLines();
-        $rowsCA = [];
-        foreach ($articleLines as $line) {
-            $article = $line->getArticle();
-            $rowsCA[] = [
-                "reference" => $article->getArticleFournisseur()->getReferenceArticle()
-                    ? $article->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : '',
-                "label" => $article->getLabel() ?: '',
-                "location" => FormatHelper::location($article->getEmplacement()),
-                "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
-                "quantityToPick" => $line->getQuantityToPick() ?: '',
-                "barcode" => $article->getBarCode() ?? '',
-                "error" => $needsQuantitiesCheck && $article->getQuantite() < $line->getQuantityToPick() && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
-                "Actions" => $this->renderView(
-                    'demande/datatableLigneArticleRow.html.twig',
-                    [
-                        'id' => $line->getId(),
-                        'articleId' => $article->getId(),
-                        'name' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
-                        'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
-                        'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
-                    ]
-                ),
-            ];
-        }
-
-        $data['data'] = array_merge($rowsCA, $rowsRC);
-        return new JsonResponse($data);
-    }
-
-    /**
      * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
@@ -612,33 +549,33 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/retirer-article", name="demande_remove_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/{lineId}", name="delivery_request_remove_article", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function removeArticle(Request                   $request,
-                                  EntityManagerInterface    $entityManager,
-                                  TranslationService        $translation): Response {
-        if ($data = json_decode($request->getContent(), true)) {
-            $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
-            $articleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
+    public function removeLine(Request                $request,
+                               EntityManagerInterface $entityManager,
+                               string                 $lineId,
+                               TranslationService     $translation): Response {
+        $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
+        $articleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
 
-            if (array_key_exists(ReferenceArticle::QUANTITY_TYPE_REFERENCE, $data)) {
-                $line = $referenceLineRepository->find($data[ReferenceArticle::QUANTITY_TYPE_REFERENCE]);
-            } elseif (array_key_exists(ReferenceArticle::QUANTITY_TYPE_ARTICLE, $data)) {
-                $line = $articleLineRepository->find($data[ReferenceArticle::QUANTITY_TYPE_ARTICLE]);
-            }
+        $type = $request->query->get("type");
 
-            if (isset($line)) {
-                $entityManager->remove($line);
-                $entityManager->flush();
-            }
+        $line = match($type) {
+            ReferenceArticle::QUANTITY_TYPE_REFERENCE => $referenceLineRepository->find($lineId),
+            ReferenceArticle::QUANTITY_TYPE_ARTICLE   => $articleLineRepository->find($lineId),
+            default                                   => null
+        };
 
-            return $this->json([
-                'success' => true,
-                'msg' => "La ligne a bien été retirée de la " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
-            ]);
+        if (isset($line)) {
+            $entityManager->remove($line);
+            $entityManager->flush();
         }
-        throw new BadRequestHttpException();
+
+        return $this->json([
+            'success' => true,
+            'msg' => "La ligne a bien été retirée de la " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
+        ]);
     }
 
     /**
@@ -882,8 +819,8 @@ class DemandeController extends AbstractController
      * @Route("/api-references", options={"expose"=true}, name="demande_api_references", methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function apiReferences(Request $request,
-                        DemandeLivraisonService $demandeLivraisonService): Response
+    public function apiReferences(Request                $request,
+                                  DeliveryRequestService $demandeLivraisonService): Response
     {
         $data = $demandeLivraisonService->getDataForReferencesDatatable($request->request->get('deliveryId'));
 
@@ -894,7 +831,7 @@ class DemandeController extends AbstractController
      * @Route("/api-columns", name="delivery_request_api_columns", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function apiColumns(EntityManagerInterface $entityManager, DemandeLivraisonService $deliveryRequestService): Response {
+    public function apiColumns(EntityManagerInterface $entityManager, DeliveryRequestService $deliveryRequestService): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
@@ -928,11 +865,11 @@ class DemandeController extends AbstractController
     }
 
     #[Route("/{delivery}/ajouter-ul/{logisticUnit}", name: "delivery_add_logistic_unit", options: ["expose" => true], methods: "POST")]
-    public function addLogisticUnit(EntityManagerInterface  $manager,
-                                    DemandeLivraisonService $demandeLivraisonService,
-                                    Demande                 $delivery,
-                                    Pack                    $logisticUnit,
-                                    TranslationService      $translation): JsonResponse {
+    public function addLogisticUnit(EntityManagerInterface $manager,
+                                    DeliveryRequestService $demandeLivraisonService,
+                                    Demande                $delivery,
+                                    Pack                   $logisticUnit,
+                                    TranslationService     $translation): JsonResponse {
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
         $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
@@ -989,11 +926,11 @@ class DemandeController extends AbstractController
     }
 
     #[Route("/redirect-before-index", name: 'redirect_before_index', options: ["expose" => true], methods: "GET")]
-    public function redirectBeforeIndex(EntityManagerInterface  $entityManager,
-                                        SettingsService         $settingsService,
-                                        FreeFieldService        $champLibreService,
-                                        DemandeLivraisonService $deliveryRequestService,
-                                        TranslationService      $translation){
+    public function redirectBeforeIndex(EntityManagerInterface $entityManager,
+                                        SettingsService        $settingsService,
+                                        FreeFieldService       $champLibreService,
+                                        DeliveryRequestService $deliveryRequestService,
+                                        TranslationService     $translation){
         $typeRepository = $entityManager->getRepository(Type::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -1054,10 +991,10 @@ class DemandeController extends AbstractController
 
     #[Route("/api/table-article-content/{request}", name: "api_table_articles_content", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function apiTableArticleContent(Demande $request,
-                                           FormatService $formatService,
+    public function apiTableArticleContent(Demande                $request,
+                                           DeliveryRequestService $deliveryRequestService,
                                            EntityManagerInterface $entityManager,
-                                           ArticleDataService $articleDataService): JsonResponse {
+                                           ArticleDataService     $articleDataService): JsonResponse {
         $user = $this->getUser();
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $fieldsParam = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
@@ -1072,11 +1009,18 @@ class DemandeController extends AbstractController
         $isCommentRequired = $commentParam['required'] ?? false;
 
         $referencesData = Stream::from($request->getReferenceLines())
-            ->map(function (DeliveryRequestReferenceLine $line) use ($isProjectDisplayedUnderCondition, $projectConditionFixedField, $projectConditionFixedValue, $isProjectRequired, $isCommentRequired, $formatService) {
+            ->map(function (DeliveryRequestReferenceLine $line) use ($isProjectDisplayedUnderCondition, $projectConditionFixedField, $projectConditionFixedValue, $isProjectRequired, $isCommentRequired) {
                 $reference = $line->getReference();
                 return [
                     "createRow" => false,
-                    "actions" => '<span class="d-flex justify-content-start align-items-center delete-row" data-target="#modalDeleteArticle" data-toggle="modal" data-name="reference" data-id="' . $line->getId() . '" onclick="deleteRowDemande($(this), $(\'#modalDeleteArticle\'), $(\'#submitDeleteArticle\'))"><span class="wii-icon wii-icon-trash"></span></span>',
+                    "actions" => '
+                        <span class="d-flex justify-content-start align-items-center delete-row"
+                              data-name="reference"
+                              data-id="' . $line->getId() . '"
+                              onclick="deleteRowDemande($(this))">
+                            <span class="wii-icon wii-icon-trash"></span>
+                        </span>
+                    ',
                     "reference" => ($reference->getReference() ?: '')
                         . $this->render('form.html.twig', [
                             'macroName' => 'input',
@@ -1091,21 +1035,21 @@ class DemandeController extends AbstractController
                         'macroName' => 'input',
                         'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
                     ])->getContent(),
-                    "location" => $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE ? $formatService->location($reference->getEmplacement()) : null,
+                    "location" => $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE ? $this->getFormatter()->location($reference->getEmplacement()) : null,
                     "barcode" => $reference->getBarcode() ?: '',
                     "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $projectConditionFixedValue))
                         ? $this->render('form.html.twig', [
                             'macroName' => 'select',
                             'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
-                                'text' => $formatService->project($line->getProject()),
+                                'text' => $this->getFormatter()->project($line->getProject()),
                                 'selected' => true,
                                 'value' => $line->getProject()?->getId(),
                                 'onChange' => 'onChangeFillComment($(this))',
                             ] : [] ]]])->getContent()
-                        : $formatService->project($line->getProject()) ?? '',
+                        : $this->getFormatter()->project($line->getProject()) ?? '',
                     "comment" =>  $this->render('form.html.twig', [
-                            'macroName' => 'input',
-                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
+                            'macroName' => 'textarea',
+                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment(),['style'=> 'height: 36px']]
                         ])->getContent(),
                     "article" => "",
                     "targetLocationPicking" => "",
@@ -1115,11 +1059,18 @@ class DemandeController extends AbstractController
 
         $isUserQuantityTypeArticle = $user->getRole()->getQuantityType() == ReferenceArticle::QUANTITY_TYPE_ARTICLE;
         $articlesData = Stream::from($request->getArticleLines())
-            ->map(function (DeliveryRequestArticleLine $line) use ($isUserQuantityTypeArticle, $projectConditionFixedValue, $projectConditionFixedField, $isProjectDisplayedUnderCondition, $isCommentRequired, $isProjectRequired, $entityManager, $request, $user, $articleDataService, $formatService) {
+            ->map(function (DeliveryRequestArticleLine $line) use ($isUserQuantityTypeArticle, $projectConditionFixedValue, $projectConditionFixedField, $isProjectDisplayedUnderCondition, $isCommentRequired, $isProjectRequired, $entityManager, $request, $user, $articleDataService) {
                 $article = $line->getArticle();
                 return [
                     "createRow" => false,
-                    "actions" => '<span class="d-flex justify-content-start align-items-center delete-row" data-target="#modalDeleteArticle" data-toggle="modal" data-name="article" data-id="' . $line->getId() . '" onclick="deleteRowDemande($(this), $(\'#modalDeleteArticle\'), $(\'#submitDeleteArticle\'))"><span class="wii-icon wii-icon-trash"></span></span>',
+                    "actions" => '
+                        <span class="d-flex justify-content-start align-items-center delete-row"
+                              data-name="article"
+                              data-id="' . $line->getId() . '"
+                              onclick="deleteRowDemande($(this))">
+                            <span class="wii-icon wii-icon-trash"></span>
+                            </span>
+                        ',
                     "reference" =>
                         ($article->getReferenceArticle()->getReference() ?: '')
                         . $this->render('form.html.twig', [
@@ -1135,30 +1086,28 @@ class DemandeController extends AbstractController
                         'macroName' => 'input',
                         'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
                     ])->getContent(),
-                    "location" => $formatService->location($article->getEmplacement()),
+                    "location" => $this->getFormatter()->location($article->getEmplacement()),
                     "barcode" => $article->getBarcode() ?: '',
                     "project" => !$isProjectDisplayedUnderCondition || ($projectConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $projectConditionFixedValue))
                         ? $this->render('form.html.twig', [
                             'macroName' => 'select',
                             'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
-                                'text' => $formatService->project($line->getProject()),
+                                'text' => $this->getFormatter()->project($line->getProject()),
                                 'selected' => true,
                                 'value' => $line->getProject()?->getId(),
                                 'onChange' => 'onChangeFillComment($(this))',
                             ] : []]]])->getContent()
-                        : $formatService->project($line->getProject()) ?? '',
+                        : $this->getFormatter()->project($line->getProject()) ?? '',
                     "comment" => $this->render('form.html.twig', [
-                            'macroName' => 'input',
-                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment()]
+                            'macroName' => 'textarea',
+                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment(), ['style'=> 'height: 36px']]
                         ])->getContent(),
                     "article" => $isUserQuantityTypeArticle
                         ? $this->render('form.html.twig', [
                             'macroName' => 'select',
                             'macroParams' => ['article', null, false, [
                                 'items' => Stream::from($articleDataService->findAndSortActiveArticlesByRefArticle($article->getReferenceArticle(), $article->getReferenceArticle()->getStockManagement(), $entityManager))
-                                    ->keymap(function (Article $article) use ($line, $formatService) {
-                                        return [$article->getId(), $article->getBarCode()];
-                                    })
+                                    ->keymap(fn (Article $article) => [$article->getId(), $article->getBarCode()])
                                     ->toArray(),
                                 'value' => $article->getId(),
                                 'onChange' => 'onChangeFillComment($(this))',
@@ -1168,14 +1117,17 @@ class DemandeController extends AbstractController
                         ? $this->render('form.html.twig', [
                             'macroName' => 'select',
                             'macroParams' => ['targetLocationPicking', null, false, ['type' => 'location', 'items' => [
-                                $line->getTargetLocationPicking()?->getId() => $formatService->location($line->getTargetLocationPicking()),
+                                $line->getTargetLocationPicking()?->getId() => $this->getFormatter()->location($line->getTargetLocationPicking()),
                             ]]]])->getContent()
-                        : $formatService->location($line->getTargetLocationPicking()),
+                        : $this->getFormatter()->location($line->getTargetLocationPicking()),
                 ];
             })
             ->toArray();
 
         $data = array_merge($referencesData, $articlesData);
+
+        $data[] = $deliveryRequestService->editatableLineForm($entityManager, $request, $user);
+
         $data[] = [
             "createRow" => true,
             "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
@@ -1268,9 +1220,9 @@ class DemandeController extends AbstractController
 
     #[Route("/visible-column-show", name: "save_visible_columns_for_delivery_request_show", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
-    public function saveVisibleColumnShow(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response {
+    public function saveVisibleColumnShow(Request                $request,
+                                          EntityManagerInterface $entityManager,
+                                          VisibleColumnService   $visibleColumnService): Response {
 
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);

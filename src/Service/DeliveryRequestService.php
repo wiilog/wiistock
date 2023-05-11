@@ -27,7 +27,6 @@ use App\Entity\SubLineFieldsParam;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\Security\Core\Security;
@@ -38,8 +37,11 @@ use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
-class DemandeLivraisonService
+class DeliveryRequestService
 {
+    #[Required]
+    public FormService $formService;
+
     #[Required]
     public Twig_Environment $templating;
 
@@ -168,7 +170,7 @@ class DemandeLivraisonService
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $demande->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
 
         return $row;
@@ -946,5 +948,100 @@ class DemandeLivraisonService
             ->values();
 
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+    }
+
+    public function editatableLineForm(EntityManagerInterface $entityManager,
+                                       Demande $deliveryRequest,
+                                       Utilisateur $currentUser): array {
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $fieldsParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+
+        $projectRequired = $fieldsParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
+        $commentRequired = $fieldsParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
+
+        $userRole = $currentUser->getRole()->getQuantityType();
+
+        $line = null; // TODO adrien
+
+        if (isset($line)) {
+            $lineType = match (true) {
+                $line instanceof DeliveryRequestArticleLine => 'article',
+                $line instanceof DeliveryRequestReferenceLine => 'reference',
+                default => null,
+            };
+            $actionType = "data-name='$lineType'";
+            $actionId = 'data-id="' . $line->getId() . '"';
+            $referenceArticle = match (true) {
+                $line instanceof DeliveryRequestArticleLine => $line->getArticle()->getReferenceArticle(),
+                $line instanceof DeliveryRequestReferenceLine => $line->getReference(),
+                default => '',
+            };
+            $referenceColumn = Stream::from([
+                $referenceArticle?->getReference() ?: '',
+                $this->formService->macro("hidden", "lineId", $line->getId()),
+                $this->formService->macro("hidden", "type", $lineType),
+            ])->join('');
+            $labelColumn = match (true) {
+                $line instanceof DeliveryRequestArticleLine => $line->getArticle()->getLabel(),
+                $line instanceof DeliveryRequestReferenceLine => $line->getReference()->getLibelle(),
+                default => '',
+            };
+        }
+        else {
+            $actionType = '';
+            $actionId = '';
+            $referenceColumn = Stream::from([
+                $this->formService->macro("select", "reference", null, true, [
+                    "type" => "reference",
+                    "additionalAttributes" => [
+                        ["name" => "data-other-params"],
+                        ["name" => "data-other-params-ignored-delivery-request", "value" => $deliveryRequest->getId()],
+                        ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
+                    ]
+                ]),
+                $this->formService->macro("hidden", "lineId"),
+                $this->formService->macro("hidden", "type"),
+                $this->formService->macro("hidden", "referenceId"),
+                "<span class='article-reference'></span>",
+            ])->join('');
+            $labelColumn = '<span class="article-label"></span>';
+        }
+
+        return [
+            "actions" => "
+                <span class='d-flex justify-content-start align-items-center delete-row'
+                      onclick='deleteRowDemande($(this))'
+                      $actionType
+                      $actionId>
+                    <span class='wii-icon wii-icon-trash'></span>
+                </span>
+            ",
+            'reference' => $referenceColumn,
+            "label" => $labelColumn,
+            "quantityToPick" => $this->formService->macro("input", "quantity-to-pick", null, true, $line?->getQuantityToPick(), [
+                "type" => "number",
+                "min" => 1
+            ]),
+            "project" => $this->formService->macro("select", "project", null, $projectRequired, [
+                "type" => "project",
+                "onChange" => "onChangeFillComment($(this))",
+            ]),
+            "comment" => $this->formService->macro("textarea", "comment", null, $commentRequired, null, [
+                "type" => "text",
+                "style" => "height: 36px"
+            ]),
+            "location" => '<span class="article-location"></span>',
+            "barcode" => '<span class="article-barcode"></span>',
+            "article" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE
+                ? $this->formService->macro("select", "article", null, true, [
+                    "onChange" => 'onChangeFillComment($(this))'
+                ])
+                : "",
+            "targetLocationPicking" => $userRole === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                ? $this->formService->macro("select", "targetLocationPicking", null, false, [
+                    "type" => "location"
+                ])
+                : "",
+        ];
     }
 }

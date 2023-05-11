@@ -44,7 +44,7 @@ class CartService {
     public FreeFieldService $freeFieldService;
 
     #[Required]
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     #[Required]
     public PurchaseRequestService $purchaseRequestService;
