@@ -11,12 +11,12 @@
                 {% if shipping.status.draft %}
                     <button type="button"
                             data-id='{{ shipping.id }}'
-                            onclick=""
+                            onclick="validateShippingRequest({{ shipping.id }})"
                             class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
                         <span class="wii-icon wii-icon-check-white mr-2"></span>
                         Valider l'expédition
                     </button>
-                {% elseif shipping.status.notTreated and hasRightDisplayScheduleButton%}
+                {% elseif shipping.status.notTreated and hasRightDisplayScheduleButton %}
                     <button type="button"
                             data-id='{{ shipping.id }}'
                             onclick=""

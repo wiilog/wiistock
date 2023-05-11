@@ -5,10 +5,13 @@ namespace App\Controller\ShippingRequest;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Service\ShippingRequest\ShippingRequestService;
+use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManager;
@@ -83,6 +86,56 @@ class ShippingRequestController extends AbstractController {
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+        ]);
+    }
+
+    #[Route("/validateShippingRequest/{id}", name:'shipping_request_validation', options:["expose"=>true], methods: ['GET'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function shippingRequestValidation(ShippingRequest        $shippingRequest,
+                                              StatusHistoryService   $statusHistoryService,
+                                              EntityManagerInterface $entityManager): JsonResponse
+    {
+        $currentUser = $this->getUser();
+
+        // shippingRequest need at least 1 expectedLines (ref)
+        if($shippingRequest->getExpectedLines()->count() <= 0){
+            return $this->json([
+                'success'=>false,
+                'msg'=> 'Veuillez ajouter au moins une référence.',
+            ]);
+        }
+
+        $newStatusForShippingRequest = $entityManager->getRepository(Statut::class)
+                                                     ->findOneByCategorieNameAndStatutCode(
+                                                         CategorieStatut::SHIPMENT,
+                                                         ShippingRequest::STATUS_TO_TREAT
+                                                     );
+
+        $shippingRequest
+            ->setValidatedAt(new \DateTime())
+            ->setValidatedBy($currentUser)
+        ;
+
+        $statusHistoryService->updateStatus(
+            $entityManager,
+            $shippingRequest,
+            $newStatusForShippingRequest,
+            ['setStatus'=> true],
+        );
+
+        // Check that the status has been updated
+        if($shippingRequest->getStatus() !== $newStatusForShippingRequest){
+            return $this->json([
+                'success'=>false,
+                'msg'=> 'Une erreur est survenue lors du changement de statut.',
+            ]);
+        }
+
+        $entityManager->flush();
+
+        return $this->json([
+            "success"=> true,
+            'msg'=> 'La validation de votre demande d\'expédition a bien été prise en compte. ',
         ]);
     }
 
