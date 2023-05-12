@@ -18,8 +18,7 @@
                     </button>
                 {% elseif shipping.status.notTreated and hasRightDisplayScheduleButton %}
                     <button type="button"
-                            data-target='#modalScheduledShippingRequest'
-                            data-toggle='modal'
+                            onclick="openScheduledShippingRequestModal($(this))"
                             data-id='{{ shipping.id }}'
                             class="btn btn-primary align-items-center justify-content-center split-button mr-0">
                         <span class="wii-icon wii-icon-calendar mr-2"></span>

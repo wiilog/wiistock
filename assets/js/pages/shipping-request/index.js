@@ -3,6 +3,7 @@ import {GET} from "@app/ajax";
 let tableShippings;
 
 global.validateShippingRequest = validateShippingRequest;
+global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
 
 $(function() {
     initTableShippings().then((table) => {
@@ -71,4 +72,15 @@ function initScheduledShippingRequestForm(){
 }
 function openPackingPack(dataShippingRequestForm){
     //todo WIIS-9591
+}
+
+function openScheduledShippingRequestModal($button){
+    const id = $button.data('id')
+    AJAX.route(`GET`, `check_expected_lines_data`, {id})
+        .json()
+        .then((res) => {
+            if (res.success) {
+                $('#modalScheduledShippingRequest').modal('show');
+            }
+        });
 }
