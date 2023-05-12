@@ -6,10 +6,13 @@ use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Service\LanguageService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
@@ -20,6 +23,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 #[Route("/expeditions")]
 class ShippingRequestController extends AbstractController {
@@ -145,6 +149,30 @@ class ShippingRequestController extends AbstractController {
                                              ShippingRequestService $shippingRequestService): Response {
         return $this->json([
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+        ]);
+    }
+
+    #[Route("/{shippingRequest}/status-history-api", name: "shipping_request_status_history_api", options: ['expose' => true], methods: "GET")]
+    public function statusHistoryApi(ShippingRequest $shippingRequest,
+                                     LanguageService $languageService): JsonResponse {
+        $user = $this->getUser();
+        $statusWorkflow = ShippingRequest::STATUS_WORKFLOW_SHIPPING_REQUEST;
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView('shipping_request/status-history.html.twig', [
+                "userLanguage" => $user->getLanguage(),
+                "defaultLanguage" => $languageService->getDefaultLanguage(),
+                "statusWorkflow" => $statusWorkflow,
+                "statusesHistory" => Stream::from($shippingRequest->getStatusHistory())
+                    ->map(fn(StatusHistory $statusHistory) => [
+                        "status" => $this->getFormatter()->status($statusHistory->getStatus()),
+                        "date" => $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG
+                            ? $this->getFormatter()->longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                            : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user),
+                    ])
+                    ->toArray(),
+                "shippingRequest" => $shippingRequest,
+            ]),
         ]);
     }
 }

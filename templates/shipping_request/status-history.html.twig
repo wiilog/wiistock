@@ -1,0 +1,40 @@
+<div class="timeline d-flex justify-content-center bg-green-light p-1 mb-2">
+    <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
+    <span> {{ trans('Demande', 'Général', 'Demande') }} <strong>{{ shippingRequest.status.code }}</strong></span>
+</div>
+
+{% set lastHistory = statusesHistory | last ?: null %}
+{% set lastStatus = lastHistory ? lastHistory.status : null %}
+{% set followingStatusIndex = lastStatus is not null ? ((statusWorkflow|flip)[lastStatus] ?? null) : 0 %}
+{% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
+
+{% set finishedStatusesName = [constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_SHIPPED')] %}
+
+{% for history in statusesHistory %}
+    {% set state = (shippingRequest.status.code == history.status and loop.last
+        ? 'current'
+        : 'past')
+    %}
+    <div class="history-line">
+        <div class="history-line-left-content">
+            <div class="title-left {{ state == 'current' and loop.last and followingStatuses is empty ? 'last' }} {{ state }}">{{ history['status'] }}</div>
+        </div>
+        <div class="history-line-right-content
+            {{ loop.last ? 'last-history-line' }}
+            {{ loop.last and followingStatuses is empty ? 'last' }}
+            {{ state }}">
+            <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }} text-left">
+                <span class="ml-2">{{ history['date'] }}</span>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% for followingStatus in followingStatuses %}
+    <div class="history-line">
+        <div class="history-line-left-content">
+            <div class="title-left future">{{ followingStatus }}</div>
+        </div>
+        <div class="history-line-right-content future {{ loop.last ? 'last'}}">
+        </div>
+    </div>
+{% endfor %}

@@ -42,6 +42,13 @@ class ShippingRequest extends StatusHistoryContainer {
     public const STATUS_SCHEDULED = "Planifiée";
     public const STATUS_SHIPPED = "Expédiée";
 
+    public const STATUS_WORKFLOW_SHIPPING_REQUEST = [
+        ShippingRequest::STATUS_DRAFT,
+        ShippingRequest::STATUS_TO_TREAT,
+        ShippingRequest::STATUS_SCHEDULED,
+        ShippingRequest::STATUS_SHIPPED,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
