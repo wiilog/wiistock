@@ -8,6 +8,7 @@ $(function() {
     initTableShippings().then((table) => {
         tableShippings = table;
     });
+    initScheduledShippingRequestForm();
 })
 
 function initTableShippings() {
@@ -59,4 +60,15 @@ function validateShippingRequest(shipping_request_id){
                 //location.reload()
             }
         });
+}
+
+function initScheduledShippingRequestForm(){
+    let $modalScheduledShippingRequest = $('#modalScheduledShippingRequest');
+    Form.create($modalScheduledShippingRequest).onSubmit((data, form) => {
+        $modalScheduledShippingRequest.modal('hide');
+        openPackingPack(data);
+    });
+}
+function openPackingPack(dataShippingRequestForm){
+    //todo WIIS-9591
 }

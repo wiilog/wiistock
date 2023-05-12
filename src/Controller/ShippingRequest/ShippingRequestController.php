@@ -9,7 +9,9 @@ use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
+use App\Service\FormatService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
@@ -20,6 +22,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 #[Route("/expeditions")]
 class ShippingRequestController extends AbstractController {
@@ -77,14 +80,22 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/voir/{id}", name:"shipping_show_page", options:["expose"=>true])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function showPage(Request                $request,
-                             ShippingRequest        $shippingRequest,
+    public function showPage(ShippingRequest        $shippingRequest,
                              ShippingRequestService $shippingRequestService,
-                             EntityManagerInterface $entityManager): Response {
+                             EntityManagerInterface $entityManager,
+                             FormatService          $formatService ): Response {
 
+        $transporteurs = $formatService->carriers($entityManager->getRepository(Transporteur::class)->findAll());
+
+        if (!empty($transporteurs)) {
+            $transporteurs = Stream::explode(",", $transporteurs)->toArray();
+        } else {
+            $transporteurs = [];
+        }
 
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
+            'transporteurs' => $transporteurs,
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
         ]);
     }
