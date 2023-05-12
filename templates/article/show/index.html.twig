@@ -23,6 +23,10 @@
         'consommé': {
             'status': 'consommé',
             'color': '#E8E8E8'
+        },
+        'en litige': {
+            'status': 'en litige',
+            'color': 'rgba(215, 51, 83, 0.20)'
         }
     } %}
     {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
@@ -104,14 +108,14 @@
                         </div>
                     </div>
                     <div class="wii-section-title d-flex align-items-center pl-3">
-                        <span class="wii-icon wii-icon-document wii-icon-15px-primary mr-2"></span>Projet
+                        <span class="wii-icon wii-icon-document wii-icon-15px-primary mr-2"></span>{{ trans('Référentiel', 'Projet', "Projet", false) }}
                     </div>
                     <div class="content">
                         <div class="row">
                             <div class="col-12 col-md-6 d-flex">
                                 <img src="{{ asset('svg/document.svg') }}" alt="Icône projet" width="20px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Projet</span>
+                                    <span class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) | lower }}</span>
                                     <span class="wii-body-text">{{ currentProjectCode ?: '-' }}</span>
                                 </label>
                             </div>
@@ -127,14 +131,14 @@
                             <table class="table mt-2">
                                 <thead>
                                     <tr>
-                                        <th scope="col" class="wii-field-name">Ancien projet</th>
+                                        <th scope="col" class="wii-field-name">Ancien {{ trans('Référentiel', 'Projet', "Projet", false) | lower }}</th>
                                         <th scope="col" class="wii-field-name">Assigné le</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for record in projectHistory %}
                                         <tr>
-                                            <td class="wii-body-text">{{ record.project ? record.project.code : 'Aucun projet' }}</td>
+                                            <td class="wii-body-text">{{ record.project ? record.project.code : 'Aucun ' ~ (trans('Référentiel', 'Projet', "Projet", false) | lower) }}</td>
                                             <td class="wii-body-text">{{ record.createdAt|format_helper('longDate', {time: true}) }}</td>
                                         </tr>
                                     {% endfor %}
@@ -286,14 +290,14 @@
                             <div class="col-12 col-md-6 d-flex">
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Date disponible constatée</span>
+                                    <span class="wii-field-name">Date de disponibilité constatée</span>
                                     <span class="wii-body-text">{{ article.lastAvailableDate|format_helper('longDate') }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 d-flex">
                                 <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Date d'épuisement constatée</span>
+                                    <span class="wii-field-name">Date d'épuisement constaté</span>
                                     <span class="wii-body-text">{{ article.firstUnavailableDate|format_helper('longDate') }}</span>
                                 </label>
                             </div>

@@ -26,6 +26,7 @@ use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
@@ -36,6 +37,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\IOT\AlertTemplateService;
 use DateTime;
@@ -243,31 +245,6 @@ class SettingsService {
             foreach ($statuses as $status) {
                 $status->setNom($codes[$status->getCode()]);
             }
-        }
-
-        if ($request->request->has("deliveryType") && $request->request->has("deliveryRequestLocation")) {
-            $deliveryTypes = explode(',', $request->request->get("deliveryType"));
-            $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
-
-            $setting = $this->manager->getRepository(Setting::class)
-                ->findOneBy(["label" => Setting::DEFAULT_LOCATION_LIVRAISON]);
-            $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
-            $invalidDeliveryTypes = (
-                empty($associatedTypesAndLocations)
-                || !Stream::from($associatedTypesAndLocations)
-                    ->filter(fn(string $key, string $value) => !$key || !$value)
-                    ->isEmpty()
-            );
-            if ($invalidDeliveryTypes) {
-                throw new RuntimeException("Une configuration d'emplacement de livraison par défaut est invalide");
-            }
-            $setting->setValue(json_encode($associatedTypesAndLocations));
-
-            $updated = array_merge($updated, [
-                Setting::DEFAULT_LOCATION_LIVRAISON,
-                "deliveryType",
-                "deliveryRequestLocation",
-            ]);
         }
 
         if ($request->request->has("deliveryRequestBehavior")) {
@@ -722,7 +699,8 @@ class SettingsService {
                     ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
                     ->setNotificationsEnabled($data["pushNotifications"] ?? false)
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
-                    ->setSendMail($data["mailRequester"] ?? false)
+                    ->setSendMailRequester($data["mailRequester"] ?? false)
+                    ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setColor($data["color"] ?? null);
 
                 if (isset($files["logo"])) {
@@ -827,12 +805,47 @@ class SettingsService {
                 if ($fieldsParam) {
                     $code = $fieldsParam->getFieldCode();
                     $alwaysRequired = in_array($code, FieldsParam::ALWAYS_REQUIRED_FIELDS);
-                    $fieldsParam->setDisplayedCreate($item["displayedCreate"])
-                        ->setRequiredCreate($alwaysRequired || $item["requiredCreate"])
+                    $fieldsParam
+                        ->setDisplayedCreate($item["displayedCreate"] ?? null)
+                        ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))
                         ->setKeptInMemory($item["keptInMemory"] ?? null)
-                        ->setDisplayedEdit($item["displayedEdit"])
-                        ->setRequiredEdit($alwaysRequired || $item["requiredEdit"])
+                        ->setDisplayedEdit($item["displayedEdit"] ?? null)
+                        ->setRequiredEdit($alwaysRequired || ($item["requiredEdit"] ?? null))
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
+                }
+            }
+        }
+
+        if (isset($tables["subFixedFields"])) {
+            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["subFixedFields"]);
+
+            $subLineFieldsParamRepository = $this->manager->getRepository(SubLineFieldsParam::class);
+            $fieldsParams = Stream::from($subLineFieldsParamRepository->findBy(["id" => $ids]))
+                ->keymap(fn($day) => [$day->getId(), $day])
+                ->toArray();
+
+            foreach (array_filter($tables["subFixedFields"]) as $item) {
+                /** @var SubLineFieldsParam $fieldsParam */
+                $fieldsParam = $fieldsParams[$item["id"]] ?? null;
+
+                if ($fieldsParam) {
+                    $fieldsParam
+                        ->setDisplayed($item["displayed"] ?? null)
+                        ->setConditionFixedField(SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD)
+                        ->setRequired($item["required"] ?? null);
+
+                    $displayedUnderCondition = $item["displayedUnderCondition"] ?? false;
+                    $conditionFixedFieldValue = Stream::explode(",", $item["conditionFixedFieldValue"] ?? "")
+                        ->filter()
+                        ->toArray();
+
+                    if ($displayedUnderCondition && empty($conditionFixedFieldValue)) {
+                        throw new FormException("Vous devez saisir la colonne valeur");
+                    }
+
+                    $fieldsParam
+                        ->setDisplayedUnderCondition($displayedUnderCondition)
+                        ->setConditionFixedFieldValue($conditionFixedFieldValue);
                 }
             }
         }
@@ -1180,10 +1193,10 @@ class SettingsService {
     public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
         $typeRepository = $entityManager->getRepository(Type::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
-        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
+        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+        $defaultDeliveryLocationsIds = $defaultDeliveryLocationsParam;
 
         $defaultDeliveryLocations = [];
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
@@ -1221,10 +1234,10 @@ class SettingsService {
 
     public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
-        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
+        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+        $defaultDeliveryLocationsIds = $defaultDeliveryLocationsParam;
 
         $defaultDeliveryLocations = [];
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {

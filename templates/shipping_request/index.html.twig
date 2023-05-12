@@ -1,0 +1,59 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ trans('Demande', 'Général', 'Demande', false) }} | Expédition{% endblock %}
+{% block title_tooltip %}Demande | Expédition{% endblock %}
+
+{% block page_filter %}
+
+{% endblock %}
+
+{% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')) %}
+{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto btn-group dispatch-button-container">
+                {% if hasRightToExport %}
+                    {% include "utils/action-buttons/header-buttons.html.twig" with {
+                        actions: [
+                            {
+                                hasRight: hasRightToExport,
+                                title: "Exporter au format CSV",
+                                icon : "fa fa-file-csv",
+                                attributes: {
+                                    "onclick" : "",
+                                },
+                            },
+                            {
+                                title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                                icon: "fa fa-cog",
+                                attributes: {
+                                    "data-toggle": "modal",
+                                    "data-target": "#modalColumnVisible",
+                                },
+                            }
+                        ]
+                    } %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableShippings" class="table w-100" data-initial-visible="{{ initial_visible_columns }}"></table>
+            </div>
+        </div>
+    </div>
+
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableShippings',
+        'route': 'save_column_visible_for_shipping_request',
+        'reload': true
+    } %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('shipping-request-index') }}
+{% endblock %}

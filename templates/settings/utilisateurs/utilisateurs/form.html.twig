@@ -181,12 +181,12 @@
         <div class="col-12 col-md-6">
             <div class="p-3">
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Types de livraison</label>
+                    <label class="col-12 wii-field-name">Types de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}</label>
                     <div class="col-12">
                         <select name="deliveryTypes"
                                 class="form-control data w-100"
                                 multiple="multiple"
-                                title="Types de livraison"
+                                title="Types de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}"
                                 data-s2="deliveryType">
                             {% for type in user.deliveryTypes %}
                                 <option value="{{ type.id }}" selected>{{ type.label }}</option>

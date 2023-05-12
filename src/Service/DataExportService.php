@@ -45,6 +45,9 @@ class DataExportService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public TranslationService $translation;
+
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
             'reference',
@@ -91,13 +94,13 @@ class DataExportService
             'emplacement',
             'code barre',
             'date dernier inventaire',
-            'date disponible constatée',
-            'date d\'épuisement constatée',
+            'date de disponibilité constatée',
+            'date d\'épuisement constaté',
             'lot',
             'date d\'entrée en stock',
             'date de péremption',
             'groupe de visibilité',
-            'projet',
+            mb_strtolower($this->translation->translate('Référentiel', 'Projet', 'Projet', false)),
             'prix unitaire',
             'numéro de commande',
             'numéro de bon de livraison',

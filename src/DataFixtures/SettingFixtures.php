@@ -59,6 +59,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::MANAGE_PREPARATIONS_WITH_PLANNING => [
                 'default' => false,
             ],
+            Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY => [
+                'default' => false,
+            ],
             Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST => [
                 'default' => false,
                 SpecificService::CLIENT_SAFRAN_ED => true,
@@ -320,6 +323,18 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM => [
                 'default' => null,
             ]
+            Setting::RECEIVER_EQUALS_REQUESTER => [
+                'default' => false,
+            ],
+            Setting::ALLOWED_DROP_ON_FREE_LOCATION => [
+                'default' => false,
+            ],
+            Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE => [
+                'default' => false,
+            ],
+            Setting::DELIVERY_REQUEST_ADD_UL => [
+                'default' => false,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();

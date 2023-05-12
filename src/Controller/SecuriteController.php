@@ -61,7 +61,7 @@ class SecuriteController extends AbstractController {
                           EntityManagerInterface $entityManager,
                           string $success = ''): Response {
         $loggedUser = $this->getUser();
-        if($loggedUser && $loggedUser instanceof Utilisateur) {
+        if($loggedUser && $loggedUser instanceof Utilisateur && $loggedUser->getStatus()) {
             $loggedUser->setLastLogin(new DateTime('now'));
             $entityManager->flush();
             return $this->redirectToRoute('app_index');
@@ -75,7 +75,7 @@ class SecuriteController extends AbstractController {
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $user = $utilisateurRepository->findOneBy(['email' => $lastUsername]);
         if($user && $user->getStatus() === false) {
-            $errorToDisplay = 'L\'utilisateur est inactif';
+            return $this->redirectToRoute('logout');
         } else if($error) {
             $errorToDisplay = 'Les identifiants renseignés sont incorrects';
         }
@@ -112,7 +112,7 @@ class SecuriteController extends AbstractController {
                 $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
                 $password = $this->passwordEncoder->hashPassword($user, $user->getPlainPassword());
                 $user
-                    ->setStatus(true)
+                    ->setStatus(false)
                     ->setPassword($password)
                     ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
                     ->setMobileLoginKey($uniqueMobileKey);

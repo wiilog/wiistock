@@ -11,6 +11,7 @@ use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\PurchaseRequest;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
@@ -191,6 +192,12 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
                 TransportRound::STATUS_AWAITING_DELIVERER,
                 TransportRound::STATUS_ONGOING,
                 TransportRound::STATUS_FINISHED,
+            ],
+            CategorieStatut::SHIPMENT => [
+                ShippingRequest::STATUS_DRAFT,
+                ShippingRequest::STATUS_TO_TREAT,
+                ShippingRequest::STATUS_SCHEDULED,
+                ShippingRequest::STATUS_SHIPPED,
             ],
         ];
 

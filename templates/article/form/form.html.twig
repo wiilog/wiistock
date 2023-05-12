@@ -41,6 +41,17 @@
                             <div class="form-group">
                                 {{ form.select('refArticle', trans('Stock', 'Références', 'Référence', false), true, {
                                     type: 'reference',
+                                    additionalAttributes :[{
+                                        name: 'data-other-params',
+                                    },
+                                    {
+                                        name: 'data-other-params-type-quantity',
+                                        value: 'article',
+                                    },
+                                    {
+                                        name: 'data-other-params-status',
+                                        value: 'actif',
+                                    }],
                                 }) }}
                             </div>
                             <div class="form-group">
@@ -116,7 +127,7 @@
                             <div class="col-12 col-md-6 d-flex">
                                 <img src="{{ asset('svg/document.svg') }}" alt="Icône projet" width="20px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Projet</span>
+                                    <span class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</span>
                                     <span class="wii-body-text">{{ article.currentLogisticUnit and article.currentLogisticUnit.project ? article.currentLogisticUnit.project.code : '-' }}</span>
                                 </label>
                             </div>
@@ -146,7 +157,7 @@
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
                             <div class="col-6 mt-2">
-                                {{ form.input('deliveryNoteLine', 'Ligne bon de livraison', required, article.id ? article.deliveryNote) }}
+                                {{ form.input('deliveryNoteLine', 'Ligne bon de ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower, required, article.id ? article.deliveryNote) }}
                             </div>
                         {% endif %}
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_MANUFACTURE_DATE') %}
@@ -272,7 +283,8 @@
                         <div class="form-group w-100">
                             {{ form.select('articleFournisseur', 'Référence fournisseur', true, {
                                 type: 'supplierArticles',
-                                includeParams: 'select[name=fournisseur]',
+                                includeParams: 'select[name=fournisseur], select[name=refArticle]',
+                                minLength: 0,
                                 disabled: true,
                             }) }}
                         </div>

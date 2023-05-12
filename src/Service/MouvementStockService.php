@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Controller\Settings\SettingsController;
 use App\Entity\Article;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Import;
@@ -20,17 +21,21 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 use Doctrine\ORM\EntityManagerInterface;
 
 class MouvementStockService
 {
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public TranslationService $translation;
 
     public function getDataForDatatable(Utilisateur $user, ?InputBag $params = null): array
     {
@@ -99,14 +104,21 @@ class MouvementStockService
     }
 
     public function getFromColumnConfig(MouvementStock $mouvement): array {
-        if ($mouvement->getPreparationOrder()) {
+        if ($mouvement->getDeliveryRequest()) {
+            $from = mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false));
+            $path = 'demande_show';
+            $pathParams = [
+                'id' => $mouvement->getDeliveryRequest()->getId()
+            ];
+        }
+        else if ($mouvement->getPreparationOrder()) {
             $from = 'préparation';
             $path = 'preparation_show';
             $pathParams = [
                 'id' => $mouvement->getPreparationOrder()->getId()
             ];
         } else if ($mouvement->getLivraisonOrder()) {
-            $from = 'livraison';
+            $from = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false));
             $path = 'livraison_show';
             $pathParams = [
                 'id' => $mouvement->getLivraisonOrder()->getId()
@@ -136,7 +148,7 @@ class MouvementStockService
             $pathParams = [
                 'id' => $mouvement->getTransferOrder()->getId()
             ];
-        }  else if (in_array($mouvement->getType(), [MouvementStock::TYPE_INVENTAIRE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE])) {
+        } else if (in_array($mouvement->getType(), [MouvementStock::TYPE_INVENTAIRE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE])) {
             $from = 'inventaire';
         }
         return [
@@ -172,6 +184,9 @@ class MouvementStockService
         }
 
         $from = $options['from'] ?? null;
+        $locationTo = $options['locationTo'] ?? null;
+        $date = $options['date'] ?? null;
+
         if ($from) {
             if ($from instanceof Preparation) {
                 $newMouvement->setPreparationOrder($from);
@@ -191,6 +206,17 @@ class MouvementStockService
             else if ($from instanceof TransferOrder) {
                 $newMouvement->setTransferOrder($from);
             }
+            else if ($from instanceof Demande) {
+                $newMouvement->setDeliveryRequest($from);
+            }
+        }
+
+        if ($date) {
+            $newMouvement->setDate($date);
+        }
+
+        if ($locationTo) {
+            $newMouvement->setEmplacementTo($locationTo);
         }
 
         return $newMouvement;

@@ -89,6 +89,18 @@ class Action {
     const DISPLAY_TRANSPORT_SUBCONTRACT = 'afficher sous-traitance';
     const EDIT_TRANSPORT_SUBCONTRACT = 'modifier sous-traitance';
 
+    const DISPLAY_SHIPPING = 'afficher expédition';
+    const CREATE_SHIPPING = 'créer expédition';
+    const DISPLAY_SCHEDULE_BUTTON = 'afficher le bouton Planifier';
+    const DISPLAY_SHIP_BUTTON = 'afficher le bouton Expédier';
+    const EDIT_TO_TREAT_SHIPPING = 'modifier expédition en "A traiter"';
+    const EDIT_PLANIFIED_SHIPPING = 'modifier expédition en "Planifiée"';
+    const EDIT_SHIPPED_SHIPPING = 'modifier expédition en "Expédiée"';
+    const DELETE_TO_TREAT_SHIPPING = 'supprimer expédition en "A traiter"';
+    const DELETE_PLANIFIED_SHIPPING = 'supprimer expédition en "Planifiée"';
+    const DELETE_SHIPPED_SHIPPING = 'supprimer expédition en "Expédiée"';
+    const EDIT_TRANSPORT_SHIPPING_PART = 'modifier partie transport expédition';
+    const GENERATE_PACKING_SLIP = 'générer bordereau de colisage';
 
     // menu ordre
     const DISPLAY_ORDRE_COLL = 'afficher collectes';
@@ -152,6 +164,7 @@ class Action {
     const SETTINGS_DISPLAY_TRACK_REQUESTS = 'afficher demandes track';
     const SETTINGS_DISPLAY_ROUND = 'afficher tournées';
     const SETTINGS_DISPLAY_TEMPERATURES = 'afficher températures';
+    const SETTINGS_DISPLAY_EMERGENCIES = 'afficher urgences';
 
 
     const SETTINGS_DISPLAY_MOBILE_DISPATCH = 'afficher acheminements mobile';
@@ -160,6 +173,7 @@ class Action {
     const SETTINGS_DISPLAY_PREPA = 'afficher préparations';
     const SETTINGS_DISPLAY_PREPA_DELIV = 'afficher préparations / livraisons';
     const SETTINGS_DISPLAY_MANAGE_VALIDATIONS = 'afficher gestion des validations';
+    const SETTINGS_DISPLAY_DELIVERIES = 'afficher livraisons';
 
     const SETTINGS_DISPLAY_DASHBOARD = 'afficher Dashboard';
 

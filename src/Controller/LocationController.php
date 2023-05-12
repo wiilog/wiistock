@@ -28,6 +28,7 @@ use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
 use App\Service\PDFGeneratorService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
 
@@ -48,6 +49,9 @@ class LocationController extends AbstractController {
 
     /** @Required */
     public UserService $userService;
+
+    /** @Required */
+    public TranslationService $translation;
 
     /**
      * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
@@ -206,11 +210,6 @@ class LocationController extends AbstractController {
                 "deliveryTypes" => $deliveryTypes,
                 "collectTypes" => $collectTypes,
                 "temperatures" => $temperatures,
-                "locationZone" =>  $emplacement->getZone() ? [
-                        "label" => $emplacement->getZone()->getName(),
-                        "value" => $emplacement->getZone()->getId(),
-                        "selected" => true
-                    ] : [],
                 "selectZone" => count($zones) === 1 ? $zones[0] : null
             ]));
         }
@@ -324,7 +323,8 @@ class LocationController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    private function isEmplacementUsed(EntityManagerInterface $entityManager, int $emplacementId): array {
+    private function isEmplacementUsed(EntityManagerInterface $entityManager,
+                                       int                    $emplacementId): array {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
@@ -348,7 +348,7 @@ class LocationController extends AbstractController {
         if ($dispatches > 0) $usedBy[] = 'acheminements';
 
         $livraisons = $livraisonRepository->countByEmplacement($emplacementId);
-        if ($livraisons > 0) $usedBy[] = 'livraisons';
+        if ($livraisons > 0) $usedBy[] = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Livraison", false)) . 's';
 
         $collectes = $collecteRepository->countByEmplacement($emplacementId);
         if ($collectes > 0) $usedBy[] = 'collectes';

@@ -84,6 +84,7 @@ class ImportService
             "referenceReference",
             "articleFournisseurReference",
             "fournisseurReference",
+            "rfidTag",
         ],
         Import::ENTITY_REF => [
             "buyer",
@@ -227,7 +228,7 @@ class ImportService
     public ReceptionService $receptionService;
 
     #[Required]
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     #[Required]
     public ArticleFournisseurService $articleFournisseurService;
@@ -1044,6 +1045,7 @@ class ImportService
                 $type = new Type();
                 $type
                     ->setLabel($data['type'])
+                    ->setColor('#3353D7')
                     ->setCategory($categoryType);
                 $this->entityManager->persist($type);
             }
@@ -1195,6 +1197,10 @@ class ImportService
             $article->setPrixUnitaire($data['prixUnitaire']);
         }
 
+        if (isset($data['rfidTag'])) {
+            $article->setRFIDtag($data['rfidTag']);
+        }
+
         if (isset($data['batch'])) {
             $article->setBatch($data['batch']);
         }
@@ -1223,17 +1229,34 @@ class ImportService
             $statutRepository = $this->entityManager->getRepository(Statut::class);
             $article
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF))
-                ->setBarCode($this->articleDataService->generateBarCode())
+                ->setBarCode($this->articleDataService->generateBarcode())
                 ->setConform(true);
         }
 
-        $articleFournisseur = $this->checkAndCreateArticleFournisseur(
-            $data['articleFournisseurReference'] ?? null,
-            $data['fournisseurReference'] ?? null,
-            $refArticle
-        );
+        $articleFournisseurReference = $data['articleFournisseurReference'] ?? null;
+        if(!$refArticle && empty($articleFournisseurReference)){
+            $this->throwError('La colonne référence article de référence ou la colonne référence article fournisseur doivent être renseignées.');
+        }
 
-        $article->setArticleFournisseur($articleFournisseur);
+        if(!$refArticle || !empty($articleFournisseurReference)){
+            try {
+                $articleFournisseur = $this->checkAndCreateArticleFournisseur(
+                    $data['articleFournisseurReference'] ?? null,
+                    $data['fournisseurReference'] ?? null,
+                    $refArticle
+                );
+                $article->setArticleFournisseur($articleFournisseur);
+            } catch(Exception $exception){
+                if($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS){
+                    $this->throwError('La référence article fournisseur existe déjà');
+                } else {
+                    throw $exception;
+                }
+            }
+        } else {
+            $articleFournisseur = $article->getArticleFournisseur();
+        }
+
         if ($isNewEntity) {
             $refReferenceArticle = $refArticle->getReference();
             $date = new DateTime('now');
@@ -1363,7 +1386,7 @@ class ImportService
             $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw, false, true)->toArray();
             if(!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
-                $this->throwError("Les types de demandes de livraison suivants sont invalides : $invalidTypesStr");
+                $this->throwError("Les types de " . mb_strtolower($this->translationService->translate("Demande", "Livraison", "Demande de livraison", false)) . " suivants sont invalides : $invalidTypesStr");
             }
 
             foreach ($user->getDeliveryTypes() as $type) {
@@ -1645,7 +1668,8 @@ class ImportService
                             ->setPickedQuantity($line->getPickedQuantity())
                             ->setQuantityToPick($line->getQuantityToPick())
                             ->setReference($articleReference)
-                            ->setTargetLocationPicking($targetLocationPicking);
+                            ->setTargetLocationPicking($targetLocationPicking)
+                            ->setDeliveryRequestReferenceLine($line);
                         $this->entityManager->persist($lignesArticlePreparation);
                         if ($articleReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                             $articleReference->setQuantiteReservee(($articleReference->getQuantiteReservee() ?? 0) + $line->getQuantityToPick());
@@ -1776,7 +1800,7 @@ class ImportService
 
             $diff = Stream::diff($elements, $allowedDeliveryTypesLabels, true);
             if (!$diff->isEmpty()) {
-                $this->throwError("Les types de demandes de livraison suivants n'existent pas : {$diff->join(", ")}");
+                $this->throwError("Les types de " . mb_strtolower($this->translationService->translate("Demande", "Livraison", "Demande de livraison", false)) . " suivants n'existent pas : {$diff->join(", ")}");
             } else {
                 $location->setAllowedDeliveryTypes($typeRepository->findBy(['label' => $elements]));
             }
@@ -1851,8 +1875,8 @@ class ImportService
         $project = $projectAlreadyExists ?? new Project();
 
         if (!$projectAlreadyExists && isset($data['code'])) {
-            if ((strlen($data['code'])) > 15) {
-                $this->throwError("La valeur saisie pour le code ne doit pas dépasser 15 caractères");
+            if ((strlen($data['code'])) > ProjectService::MAX_LENGTH_CODE_PROJECT) {
+                $this->throwError("La valeur saisie pour le code ne doit pas dépasser ". ProjectService::MAX_LENGTH_CODE_PROJECT ." caractères");
             } else {
                 $project->setCode($data['code']);
             }

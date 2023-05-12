@@ -1410,8 +1410,8 @@ class DashboardService {
         }
     }
 
-    public function persistDailyDeliveryOrders(EntityManagerInterface $entityManager,
-                                               Dashboard\Component $component): void {
+    public function persistDailyDeliveryOrders(EntityManagerInterface   $entityManager,
+                                               Dashboard\Component      $component): void {
         $config = $component->getConfig();
         $deliveryOrderStatusesFilter = $config['deliveryOrderStatuses'] ?? [];
         $deliveryOrderTypesFilter = $config['deliveryOrderTypes'] ?? [];
@@ -1430,7 +1430,7 @@ class DashboardService {
             'treatmentDate'   => "de traitement",
             default           => "date attendue",
         };
-        $hint = "Nombre d'ordres de livraison ayant leur $type sur les jours présentés";
+        $hint = "Nombre d'" . mb_strtolower($this->translationService->translate("Ordre", "Livraison", "Ordre de livraison", false)) . " ayant leur $type sur les jours présentés";
 
         $chartData = $this->{$getDailyObjectsStatisticsCallable}(
             $entityManager,

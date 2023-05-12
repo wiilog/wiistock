@@ -9,14 +9,17 @@ use App\Entity\Cart;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
+use App\Entity\Livraison;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
@@ -130,7 +133,7 @@ class TrackingMovementService extends AbstractController
                 $data ['from'] = $movement->getDispatch()->getNumber();
             } else if ($movement->getArrivage()) {
                 $data ['entityPath'] = 'arrivage_show';
-                $data ['fromLabel'] = $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Arrivage', false);
+                $data ['fromLabel'] = $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivage UL', false);
                 $data ['entityId'] = $movement->getArrivage()->getId();
                 $data ['from'] = $movement->getArrivage()->getNumeroArrivage();
             } else if ($movement->getReception()) {
@@ -150,9 +153,14 @@ class TrackingMovementService extends AbstractController
                 $data ['from'] = $movement->getPreparation()->getNumero();
             } else if ($movement->getDelivery()) {
                 $data ['entityPath'] = 'livraison_show';
-                $data ['fromLabel'] = 'Livraison';
+                $data ['fromLabel'] = $this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false);
                 $data ['entityId'] = $movement->getDelivery()->getId();
                 $data ['from'] = $movement->getDelivery()->getNumero();
+            } else if ($movement->getDeliveryRequest()) {
+                $data ['entityPath'] = 'demande_show';
+                $data ['fromLabel'] = $this->translation->translate("Demande", "Livraison", "Demande de livraison", false);
+                $data ['entityId'] = $movement->getDeliveryRequest()->getId();
+                $data ['from'] = $movement->getDeliveryRequest()->getNumero();
             }
         }
         return $data;
@@ -354,7 +362,6 @@ class TrackingMovementService extends AbstractController
         $removeFromGroup = $options['removeFromGroup'] ?? false;
 
         $pack = $this->packService->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
-
         $tracking = new TrackingMovement();
         $tracking
             ->setQuantity($quantity)
@@ -457,8 +464,16 @@ class TrackingMovementService extends AbstractController
         if (isset($from)) {
             if ($from instanceof Reception) {
                 $tracking->setReception($from);
+            } else if ($from instanceof Arrivage) {
+                $tracking->setArrivage($from);
             } else if ($from instanceof Dispatch) {
                 $tracking->setDispatch($from);
+            } else if ($from instanceof Demande) {
+                $tracking->setDeliveryRequest($from);
+            } else if ($from instanceof Preparation) {
+                $tracking->setPreparation($from);
+            } else if ($from instanceof Livraison) {
+                $tracking->setDelivery($from);
             }
         }
 
@@ -626,7 +641,7 @@ class TrackingMovementService extends AbstractController
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Groupe', false),  'name' => 'group'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Quantité', false), 'name' => 'quantity'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Emplacement', false), 'name' => 'location'],
-            ['title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false), 'name' => 'type'],
+            ['title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false), 'name' => 'type'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur', false), 'name' => 'operator'],
         ];
 
@@ -664,7 +679,7 @@ class TrackingMovementService extends AbstractController
         $attachementName = $attachement[$movement['id']] ?? ' ' ;
 
         if(!empty($movement['numeroArrivage'])) {
-           $origine =  $this->translation->translate("Traçabilité", "Flux - Arrivages", "Divers", "Arrivage", false) . '-' . $movement['numeroArrivage'];
+           $origine =  $this->translation->translate("Traçabilité", "Arrivages UL", "Divers", "Arrivage UL", false) . '-' . $movement['numeroArrivage'];
         }
         if(!empty($movement['receptionNumber'])) {
             $origine = $this->translation->translate("Ordre", "Réceptions", "Reception", false) . '-' . $movement['receptionNumber'];

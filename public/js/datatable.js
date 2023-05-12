@@ -316,6 +316,10 @@ function initDataTable($table, options) {
             column.name = column.data;
         }
 
+        if(column.required) {
+            column.title += '*';
+        }
+
         if (config.order && Array.isArray(config.order)) {
             const newOrder = [];
             for (let [name, order] of config.order) {
@@ -399,7 +403,7 @@ function initDataTable($table, options) {
 
     datatableToReturn = $table
         .on('error.dt', function (e, settings, techNote, message) {
-            console.log('An error has been reported by DataTables: ', message, e, $table.attr('id'));
+            console.error('An error has been reported by DataTables: ', message, e, $table.attr('id'));
         })
         .DataTable(Object.assign({
             fixedColumns: {

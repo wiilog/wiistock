@@ -17,6 +17,7 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Helper\FormatHelper;
 use App\Service\StringService;
+use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -215,11 +216,12 @@ class HistoryController extends AbstractController
     }
 
     #[Route("/{round}/round-transport-history-api", name: "round_transport_history_api", options: ['expose' => true], methods: "GET")]
-    public function roundTransportListApi(TransportRound $round): JsonResponse {
+    public function roundTransportListApi(TransportRound        $round,
+                                          TranslationService    $translation): JsonResponse {
         $currentLine = $round->getCurrentOnGoingLine();
 
         $timelineConfig = $round->getTransportRoundLines()
-            ->map(function(TransportRoundLine $line) use ($currentLine) {
+            ->map(function(TransportRoundLine $line) use ($currentLine, $translation) {
                 $order = $line->getOrder();
                 $request = $order?->getRequest();
                 return [
@@ -227,7 +229,7 @@ class HistoryController extends AbstractController
                     'link' => $order
                         ? $this->generateUrl('transport_order_show', ['transport' => $order->getId()])
                         : null,
-                    'hint' => $request instanceof TransportCollectRequest ? 'Collecte' : 'Livraison',
+                    'hint' => $request instanceof TransportCollectRequest ? 'Collecte' : $translation->translate("Demande", "Livraison", "Livraison", false),
                     'emergency' => $order?->hasRejectedPacks() || $order?->isRejected(),
                     'cancelled' => $order?->isCancelled(),
                     'estimated' => $line->getEstimatedAt(),

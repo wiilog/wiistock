@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\Arrivage;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Setting;
@@ -37,13 +38,13 @@ class UrgenceService
         $this->security = $security;
     }
 
-    public function getDataForDatatable($params = null)
+    public function getDataForDatatable($params = null, $filters = [])
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
-		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_URGENCES, $this->security->getUser());
+		$filters = array_merge($filters, $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_URGENCES, $this->security->getUser()));
 
-		$queryResult = $urgenceRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $urgenceRepository->findByParamsAndFilters($params, $filters);
 
         $urgenceArray = $queryResult['data'];
 
@@ -77,43 +78,60 @@ class UrgenceService
             'postNb' => $urgence->getPostNb() ?? '',
             'actions' => $this->templating->render('urgence/datatableUrgenceRow.html.twig', [
                 'urgence' => $urgence
-            ])
+            ]),
+            'type' => $urgence->getType(),
         ];
     }
 
-    public function updateUrgence(Urgence $urgence, $data): Urgence {
-        $user = $this->security->getUser();
-        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'Y-m-d\TH:i';
-        $dateStart = DateTime::createFromFormat($format, $data['dateStart']);
-        $dateEnd = DateTime::createFromFormat($format, $data['dateEnd']);
+    public function updateUrgence(EntityManagerInterface $entityManager,
+                                  Urgence                $emergency,
+                                  array                  $data,
+                                  FormatService          $formatService): Urgence {
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
-        $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
-        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
-        $transporteurRepository = $this->entityManager->getRepository(Transporteur::class);
+        $dateStart = $formatService->parseDatetime($data['dateStart']);
+        $dateEnd = $formatService->parseDatetime($data['dateEnd']);
 
-        $buyer = isset($data['acheteur'])
-            ? $utilisateurRepository->find($data['acheteur'])
-            : null;
-
-        $provider = isset($data['provider'])
-            ? $fournisseurRepository->find($data['provider'])
-            : null;
-
-        $carrier = isset($data['carrier'])
-            ? $transporteurRepository->find($data['carrier'])
-            : null;
-
-        $urgence
-            ->setPostNb($data['postNb'])
-            ->setBuyer($buyer)
-            ->setProvider($provider)
-            ->setCarrier($carrier)
-            ->setTrackingNb($data['trackingNb'])
-            ->setCommande($data['commande'])
+        $emergency
             ->setDateStart($dateStart)
             ->setDateEnd($dateEnd);
 
-        return $urgence;
+        // array_key_exists() needed if creation fieldParams config != edit fieldParams config
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_BUYER, $data)) {
+            $buyer = $data[FieldsParam::FIELD_CODE_EMERGENCY_BUYER] ? $utilisateurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_BUYER]) : null;
+            $emergency->setBuyer($buyer);
+        }
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER, $data)) {
+            $provider = $data[FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER] ? $fournisseurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER]) : null;
+            $emergency->setProvider($provider);
+        }
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_CARRIER, $data)) {
+            $carrier = $data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER] ? $transporteurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER]) : null;
+            $emergency->setCarrier($carrier);
+        }
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER, $data)) {
+            $emergency->setCommande($data[FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER]);
+        }
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER, $data)) {
+            $emergency->setPostNb($data[FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER]);
+        }
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, $data)) {
+            $emergency->setTrackingNb($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER]);
+        }
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_TYPE, $data)) {
+            $emergency->setType($data[FieldsParam::FIELD_CODE_EMERGENCY_TYPE]);
+        }
+
+        return $emergency;
     }
 
     /**

@@ -15,7 +15,7 @@
 {% set statusName = transport.status|format_helper('status') %}
 {% set headerClass = statusName in constant('App\\Entity\\Transport\\TransportRequest::RED_STATUSES') ? 'bg-red-light' : 'bg-green-light' %}
 {% set requestType = transport is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest')
-    ? 'Livraison'
+    ? trans('Demande', 'Livraison', 'Livraison', false)
     : transport is instanceof('App\\Entity\\Transport\\TransportCollectRequest')
         ? 'Collecte'
         : transport is instanceof('App\\Entity\\Transport\\TransportRound')

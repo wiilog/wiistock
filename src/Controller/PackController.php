@@ -287,12 +287,12 @@ class PackController extends AbstractController
                 $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs litiges");
             }
             if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans l\'arrivage {1}', [
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans l\'arrivage UL {1}', [
                     1 => $pack->getArrivage()->getNumeroArrivage()
                 ]);
             }
             if ($pack->getTransportDeliveryOrderPack() ) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans un ordre de livraison');
+                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans un ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)));
             }
             if (!$pack->getChildArticles()->isEmpty()) {
                 $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique contient des articles');

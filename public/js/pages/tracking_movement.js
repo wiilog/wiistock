@@ -174,7 +174,7 @@ function initPageModal(tableMvt) {
                     const pack = $modal.find(`[name="pack"]`).val();
                     const type = $modal.find(`[name="type"] option:selected`).text().trim();
 
-                    if(type !== `prise`) {
+                    if(type !== `prise` || !pack) {
                         return resolve(true);
                     }
 

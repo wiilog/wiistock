@@ -7,7 +7,7 @@ const PAGE_HAND = 'handling';
 const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
-const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_LU_ARRIVAL = 'LUArrival';
 const PAGE_IMPORT = 'import';
 const PAGE_EXPORT = 'export';
 const PAGE_ALERTE = 'alerte';
@@ -1229,7 +1229,7 @@ function onTypeChange($select) {
 
         if ($modal.attr('id') === 'modalNewHandling') {
             $.post(Routing.generate('handling_users_by_type'), {id: type}, function (data) {
-                const $select2 = $('.modal-body select[name=receivers]');
+                const $select2 = $modal.find('select[name=receivers]');
                 $select2.empty().trigger('change');
                 Object.entries(data).forEach(([key, value]) => {
                     let option = new Option(value, key, true, true);

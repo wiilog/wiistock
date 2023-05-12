@@ -54,7 +54,10 @@ class Attachment {
     private ?Handling $handling = null;
 
     #[ORM\OneToOne(mappedBy: 'image', targetEntity: ReferenceArticle::class)]
-    private ?ReferenceArticle $referenceArticle = null;
+    private ?ReferenceArticle $referenceArticleImage = null;
+
+    #[ORM\OneToOne(mappedBy: 'sheet', targetEntity: ReferenceArticle::class)]
+    private ?ReferenceArticle $referenceArticleSheet = null;
 
     #[ORM\OneToOne(mappedBy: 'signature', targetEntity: TransportOrder::class)]
     private ?TransportOrder $transportOrder = null;
@@ -161,12 +164,22 @@ class Attachment {
         return $this;
     }
 
-    public function getReferenceArticle(): ?ReferenceArticle {
-        return $this->referenceArticle;
+    public function getReferenceArticleImage(): ?ReferenceArticle {
+        return $this->referenceArticleImage;
     }
 
-    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self {
-        $this->referenceArticle = $referenceArticle;
+    public function setReferenceArticleImage(?ReferenceArticle $referenceArticle): self {
+        $this->referenceArticleImage = $referenceArticle;
+
+        return $this;
+    }
+
+    public function getReferenceArticleSheet(): ?ReferenceArticle {
+        return $this->referenceArticleSheet;
+    }
+
+    public function setReferenceArticleSheet(?ReferenceArticle $referenceArticle): self {
+        $this->referenceArticleSheet = $referenceArticle;
 
         return $this;
     }

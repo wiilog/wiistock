@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryFrequency;
@@ -13,6 +14,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryBuilderHelper;
@@ -290,13 +292,15 @@ class ArticleRepository extends EntityRepository {
 	public function findActiveArticles(ReferenceArticle $referenceArticle,
                                        ?Emplacement     $targetLocationPicking = null,
                                        ?string          $fieldToOrder = null,
-                                       ?string          $order = null): array
+                                       ?string          $order = null,
+                                       ?Demande         $ignoredDeliveryRequest = null): array
 	{
 	    $queryBuilder = $this->createQueryBuilder('article')
+            ->distinct()
             ->join('article.articleFournisseur', 'articleFournisseur')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->join('article.statut', 'articleStatus')
-            ->where('articleStatus.nom = :activeStatus')
+            ->where('articleStatus.code = :activeStatus')
             ->andWhere('article.quantite IS NOT NULL')
             ->andWhere('article.quantite > 0')
             ->andWhere('referenceArticle = :refArticle')
@@ -307,6 +311,22 @@ class ArticleRepository extends EntityRepository {
 	        $queryBuilder
                 ->addOrderBy('IF(article.emplacement = :targetLocationPicking, 1, 0)', Criteria::DESC)
                 ->setParameter('targetLocationPicking', $targetLocationPicking);
+        }
+
+        if($ignoredDeliveryRequest){
+            $queryHasResult = $this->createQueryBuilder("article_has_request")
+                ->select('COUNT(article_has_request)')
+                ->join("article_has_request.deliveryRequestLines", "lines")
+                ->join("lines.request", "deliveryRequest")
+                ->andWhere("deliveryRequest = :ignoredDeliveryRequest")
+                ->andWhere("article_has_request.id = article.id")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
+            $queryBuilder
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('ignoredDeliveryRequest', $ignoredDeliveryRequest);
         }
 
 	    if ($order && $fieldToOrder) {
@@ -708,13 +728,13 @@ class ArticleRepository extends EntityRepository {
     public function getByLivraisonsIds($livraisonsIds)
     {
         return $this->createQueryBuilder('article')
-            ->select('article.reference AS reference')
-            ->addSelect('join_location.label AS location')
+            ->select('join_location.label AS location')
+            ->addSelect('join_ref_article.reference AS reference')
             ->addSelect('article.label AS label')
             ->addSelect('join_preparationOrderLines.quantityToPick AS quantity')
             ->addSelect('0 as is_ref')
             ->addSelect('join_delivery.id AS id_livraison')
-            ->addSelect('article.barCode AS barCode')
+            ->addSelect('article.barCode AS barcode')
             ->addSelect('join_targetLocationPicking.label AS targetLocationPicking')
             ->addSelect('join_currentLogisticUnit.id AS currentLogisticUnitId')
             ->addSelect('join_currentLogisticUnit.code AS currentLogisticUnitCode')
@@ -724,6 +744,8 @@ class ArticleRepository extends EntityRepository {
             ->join('article.preparationOrderLines', 'join_preparationOrderLines')
             ->join('join_preparationOrderLines.preparation', 'join_preparation')
             ->join('join_preparation.livraison', 'join_delivery')
+            ->join('article.articleFournisseur', 'join_article_supplier')
+            ->join('join_article_supplier.referenceArticle', 'join_ref_article')
             ->leftJoin('join_preparationOrderLines.targetLocationPicking', 'join_targetLocationPicking')
             ->leftJoin('article.currentLogisticUnit', 'join_currentLogisticUnit')
             ->leftJoin('join_currentLogisticUnit.lastDrop', 'join_lastDrop')
@@ -1318,6 +1340,25 @@ class ArticleRepository extends EntityRepository {
             ->toIterable();
     }
 
+    public function countForRefOnLocation(ReferenceArticle $referenceArticle, Emplacement $location) {
+        return $this->createQueryBuilder('article')
+            ->select('COUNT(article.quantite) as total')
+            ->andWhere('reference_article = :reference_article')
+            ->andWhere('emplacement = :location')
+            ->andWhere('statut.code = :active')
+            ->join('article.articleFournisseur', 'article_fournisseur')
+            ->join('article_fournisseur.referenceArticle', 'reference_article')
+            ->join('article.emplacement', 'emplacement')
+            ->join('article.statut', 'statut')
+            ->setParameters([
+                'reference_article' => $referenceArticle,
+                'location' => $location,
+                'active' => Article::STATUT_ACTIF
+            ])
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function getArticlesByDisputeId(int $disputeId): array {
         return $this->createQueryBuilder('article')
             ->select('article.barCode AS barcode')
@@ -1327,7 +1368,8 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('join_supplier.nom AS supplier')
             ->leftJoin('article.disputes', 'join_disputes')
             ->leftJoin('article.receptionReferenceArticle', 'join_receptionReferenceArticle')
-            ->leftJoin('join_receptionReferenceArticle.reception', 'join_reception')
+            ->leftJoin('join_receptionReferenceArticle.receptionLine', 'join_receptionLine')
+            ->leftJoin('join_receptionLine.reception', 'join_reception')
             ->leftJoin('join_reception.fournisseur', 'join_supplier')
             ->where('join_disputes.id = :disputeId')
             ->setParameter('disputeId', $disputeId)

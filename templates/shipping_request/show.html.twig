@@ -1,0 +1,154 @@
+{% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %}Demande | {{ trans('Expédition', 'Général', 'Expédition', false) }} | Détails{% endblock %}
+
+{% block title_tooltip %}Demande | Expédition | Détails{% endblock %}
+
+{% block page_filter %}
+
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('shipping-request-index') }}
+    {{ encore_entry_link_tags('shipping-request-show') }}
+{% endblock %}
+
+{% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')) %}
+{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+
+{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+
+{% import "shipping_request/macro.html.twig" as macro %}
+
+{% block page_content %}
+    {{ form.input('shippingId', '', false, shipping.id, {
+        type: 'hidden'
+    }) }}
+    <div class="mb-4 ra-container d-flex justify-content-center align-content-center">
+        <div class="row wii-column w-100">
+            <div class="col-md-4 col-12">
+                <div class="wii-box">
+                    <div class="d-flex align-items-center mr-3">
+                        <div class="mx-2">
+                            <div class="dropdown dropright">
+                                <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
+                                </div>
+                                <div class="dropdown-menu dropdown-follow-gt pointer">
+                                    {% if hasRightEdit %}
+                                        <a data-id='{{ shipping.id }}'
+                                           data-target='#modalEditDispatch'
+                                           data-toggle='modal'
+                                           onclick=""
+                                           class="dropdown-item pointer">
+                                            <i class="fa fa-pen mr-2"></i>
+                                            {{ trans('Général', null, 'Modale', 'Modifier') }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightDelete %}
+                                        <a href="" data-id='{{ shipping.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
+                                           class="dropdown-item d-flex align-items-center">
+                                            <span class="wii-icon wii-icon-trash-black mr-2"></span>
+                                            {{ trans('Général', null, 'Modale', 'Supprimer') }}
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex py-2 w-100 justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-column">
+                                    <span class="wii-title">{{ trans('Demande', 'Expédition', null, 'Expédition') }}</span>
+                                    <span class="wii-small-text">
+                                    {{ shipping.number }}
+                                </span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col justify-content-end text-right">
+                                <p class="wii-field-name">{{ shipping.createdBy.username }}</p>
+                                <p class="wii-small-text">
+                                    {% for phoneNumber in shipping.requesterPhoneNumbers %}
+                                        {{ phoneNumber }}
+                                    {% endfor %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content bordered p-0">
+                        <div class="content history-container p-0">
+                            <div class="d-flex align-items-center justify-content-center p-3">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <span class="ml-3">Génération de l'historique en cours</span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="wii-section-title py-1">
+                        <i class="wii-icon wii-icon-info wii-icon-15px-primary mr-2"></i>
+                        Informations
+                    </div>
+                    <div class="content">
+                        <div class="row">
+                            {{ macro.subItem(null, "N° commande client", shipping.customerOrderNumber) }}
+                        </div>
+                        <div class="row">
+                            {{ macro.subItem(null, "Livraison à titre gracieux", shipping.freeDelivery == 1 ? 'Oui' : 'Non') }}
+                            {{ macro.subItem(null, "Article(s) conforme(s)",  shipping.compliantArticles == 1 ?'Oui' : 'Non') }}
+                        </div>
+                    </div>
+                    <div class="wii-section-title py-1">
+                        <i class="wii-icon wii-icon-user wii-icon-15px-primary mr-2"></i>
+                        Destinataire
+                    </div>
+                    <div class="content">
+                        <div class="row">
+                            {{ macro.subItem("user", "Client", shipping.customerRecipient) }}
+                            {{ macro.subItem("phone", "Téléphone", shipping.customerPhone) }}
+                            {{ macro.subItem("client", "À l'attention de", shipping.customerName) }}
+                            {{ macro.subItem(null, "Adresse de livraison", shipping.customerAddress, asset('svg/location-blue.svg')) }}
+                        </div>
+                    </div>
+                    <div class="wii-section-title py-1">
+                        <i class="wii-icon wii-icon-delivery wii-icon-15px-primary mr-2"></i>
+                        Expédition
+                    </div>
+                    <div class="content">
+                        <div class="row">
+                            {{ macro.subItem(null, "Date de livraison souhaitée", shipping.plannedAt|date("d/m/Y")) }}
+                            {{ macro.subItem(null, "Envoie", shipping.shipment) }}
+                        </div>
+                        <div class="row">
+                            {{ macro.subItem(null, "Port", shipping.carrying) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="content comment-container p-3">
+                    <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
+                    {% if shipping.comment != '<p><br></p>' %}
+                        <div class="mt-2 wii-body-text text-break">
+                            {{ shipping.comment | raw }}
+                        </div>
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+
+            </div>
+            <div class="transport-header col-md-8 col-12">
+                <div class="wii-box">
+                    {{ detailsTransportConfig|raw }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('shipping-request-index') }}
+    {{ encore_entry_script_tags('shipping-request-show') }}
+{% endblock %}

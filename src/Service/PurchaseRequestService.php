@@ -3,6 +3,7 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\PurchaseRequest;
@@ -17,6 +18,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 class PurchaseRequestService
@@ -168,23 +170,29 @@ class PurchaseRequestService
 
     public function createPurchaseRequestLine(?ReferenceArticle $reference,
                                               ?int              $requestedQuantity,
-                                                                $options = []): PurchaseRequestLine
+                                              array             $options = []): PurchaseRequestLine
     {
         $supplier = $options["supplier"] ?? null;
         $purchaseRequest = $options["purchaseRequest"] ?? null;
+        $location = $options["location"] ?? null;
+
         $purchaseLine = new PurchaseRequestLine();
         $purchaseLine
             ->setReference($reference)
             ->setRequestedQuantity($requestedQuantity)
             ->setSupplier($supplier)
+            ->setLocation($location)
             ->setPurchaseRequest($purchaseRequest);
 
         return $purchaseLine;
     }
 
-    public function sendMailsAccordingToStatus(PurchaseRequest $purchaseRequest, array $options = []) {
+    public function sendMailsAccordingToStatus(EntityManagerInterface $entityManager,
+                                               PurchaseRequest        $purchaseRequest,
+                                               array                  $options = []): void {
         $customSubject = $options['customSubject'] ?? null;
 
+        $articleRepository = $entityManager->getRepository(Article::class);
 
         /** @var Statut $status */
         $status = $purchaseRequest->getStatus();
@@ -215,12 +223,23 @@ class PurchaseRequestService
                     ? 'Une demande d\'achat vous concerne'
                     : 'Changement de statut d\'une demande d\'achat vous concernant');
 
+            $refsAndQuantities = Stream::from($purchaseRequest->getPurchaseRequestLines())
+                ->keymap(function(PurchaseRequestLine $line) use ($articleRepository) {
+                    $key = $line->getId();
+                    $value = $line->getReference()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $line->getLocation()
+                        ? $articleRepository->countForRefOnLocation($line->getReference(), $line->getLocation())
+                        : $line->getReference()->getQuantiteStock();
+                    return [$key, $value];
+                })
+                ->toArray();
+
             if (isset($requester)) {
                 $this->mailerService->sendMail(
                     'FOLLOW GT // ' . $subject,
                     $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
                         'title' => $title,
                         'purchaseRequest' => $purchaseRequest,
+                        'refsAndQuantities' => $refsAndQuantities
                     ]),
                     $mail
                 );

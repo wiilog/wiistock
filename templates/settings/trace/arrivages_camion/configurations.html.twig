@@ -13,36 +13,40 @@
         <div class="col-12 my-1">
             <label class="w-100">
                 <span class="d-inline-flex align-items-center field-label wii-field-name">Paramétrage du retard des numéros de tracking transporteur</span>
-                <div class="mt-1">
+                <div class="mt-1 d-flex align-items-center">
                     {% set param = 'TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_START' %}
                     {% set paramValue = setting_value(param) %}
                     {% set date = paramValue ? paramValue|date('H:i') : null %}
                     Créé avant {{ form.input(setting(param), null, false, paramValue ,{
                         type: 'time',
-                        labelClass: 'w-auto start',
+                        width: 'w-auto mx-1',
+                        labelWidth: 'w-auto start',
                     }) }}
                     {% set param = 'TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END' %}
                     {% set paramValue = setting_value(param) %}
                     {% set date = paramValue ? paramValue|date('H:i') : null %}
                     à traiter avant {{ form.input(setting(param), null, false, paramValue ,{
                         type: 'time',
-                        labelClass: 'w-auto',
+                        labelWidth: 'w-auto',
+                        width: 'w-auto mx-1',
                     }) }}
                 </div>
-                <div class="mt-1">
+                <div class="mt-1 d-flex align-items-center">
                     {% set param = 'TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START' %}
                     {% set paramValue = setting_value(param) %}
                     {% set date = paramValue ? paramValue|date('H:i') : null %}
                     Créé apres {{ form.input(setting(param), null, false, paramValue ,{
                         type: 'time',
-                        labelClass: 'w-auto start',
+                        width: 'w-auto mx-1',
+                        labelWidth: 'w-auto start',
                     }) }}
                     {% set param = 'TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END' %}
                     {% set paramValue = setting_value(param) %}
                     {% set date = paramValue ? paramValue|date('H:i') : null %}
                     à traiter avant {{ form.input(setting(param), null, false, paramValue ,{
                         type: 'time',
-                        labelClass: 'w-auto',
+                        width: 'w-auto mx-1',
+                        labelWidth: 'w-auto',
                     }) }}
                 </div>
             </label>
