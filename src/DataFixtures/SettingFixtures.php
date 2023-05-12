@@ -322,7 +322,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM => [
                 'default' => null,
-            ]
+            ],
             Setting::RECEIVER_EQUALS_REQUESTER => [
                 'default' => false,
             ],
