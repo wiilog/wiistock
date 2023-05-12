@@ -358,6 +358,7 @@ class SettingsService {
             $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
             $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
             $check = $request->request->get('createMvt');
+            $settingRepository = $this->manager->getRepository(Setting::class);
 
             if (!$check) {
                 if ($defaultLocationUL !== null) {
@@ -368,10 +369,10 @@ class SettingsService {
                 }
             }
 
-            $settingUL = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL]);
+            $settingUL = $settingRepository->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL]);
             $settingUL->setValue($defaultLocationUL);
 
-            $settingReception = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM]);
+            $settingReception = $settingRepository->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM]);
             $settingReception->setValue($defaultLocationReception);
 
             $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL";

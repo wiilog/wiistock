@@ -345,7 +345,6 @@ export default class Select2 {
                 text: part
             });
         }
-        console.log({ term: parts.join(delimiter) });
         return { term: parts.join(delimiter) }; // Rejoin unmatched tokens
     }
 }

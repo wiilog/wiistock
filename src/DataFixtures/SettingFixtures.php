@@ -314,6 +314,12 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::RFID_PREFIX => [],
             Setting::RFID_KPI_MIN => [],
             Setting::RFID_KPI_MAX => [],
+            Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL => [
+                'default' => null,
+            ],
+            Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM => [
+                'default' => null,
+            ]
         ];
 
         $appClient = $this->specificService->getAppClient();
