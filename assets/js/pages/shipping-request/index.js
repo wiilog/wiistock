@@ -2,6 +2,8 @@ import {GET} from "@app/ajax";
 
 let tableShippings;
 
+global.validateShippingRequest = validateShippingRequest;
+
 $(function() {
     initTableShippings().then((table) => {
         tableShippings = table;
@@ -46,4 +48,15 @@ function initTableShippings() {
 
         return initDataTable('tableShippings', tableShippingsConfig);
     }
+}
+
+function validateShippingRequest(shipping_request_id){
+    let id = shipping_request_id;
+    AJAX.route(`GET`, `shipping_request_validation`, {id})
+        .json()
+        .then((res) => {
+            if (res.success) {
+                //location.reload()
+            }
+        });
 }
