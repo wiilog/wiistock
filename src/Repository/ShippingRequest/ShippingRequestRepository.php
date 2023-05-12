@@ -15,7 +15,6 @@ class ShippingRequestRepository extends EntityRepository {
 
         $total = QueryBuilderHelper::count($qb, 'shipping_request');
         //filtres sup
-        dump($filters);
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statut':
