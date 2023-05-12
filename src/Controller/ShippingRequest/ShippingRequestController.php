@@ -41,27 +41,27 @@ class ShippingRequestController extends AbstractController {
 
         $dateChoice = [
             [
-                'name' => 'creationDate',
+                'name' => 'createdAt',
                 'label' => $translationService->translate('Général', null, 'Zone liste', 'Date de création'),
             ],
             [
-                'name' => 'caredDate',
+                'name' => 'requestCaredAt',
                 'label' => $translationService->translate('Demande', 'Expédition', 'Date de prise en charge souhaitée'),
             ],
             [
-                'name' => 'validationDate',
+                'name' => 'validatedAt',
                 'label' => $translationService->translate('Demande', 'Expédition', 'Date de validation'),
             ],
             [
-                'name' => 'planificationDate',
+                'name' => 'plannedAt',
                 'label' => $translationService->translate('Demande', 'Expédition', 'Date de planification'),
             ],
             [
-                'name' => 'pickedDate',
+                'name' => 'expectedPickedAt',
                 'label' => $translationService->translate('Demande', 'Expédition', 'Date d\'enlèvement prévu'),
             ],
             [
-                'name' => 'expeditionDate',
+                'name' => 'treatedAt',
                 'label' => $translationService->translate('Demande', 'Expédition', 'Date d\'expédition'),
             ],
         ];
