@@ -275,6 +275,9 @@ class Import {
     #[ORM\Column(type: 'boolean', nullable: false)]
     private ?bool $eraseData = false;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $recipient = null;
+
     public function __construct() {
         $this->createdAt = new WiiDateTime();
         $this->mouvements = new ArrayCollection();
@@ -470,6 +473,15 @@ class Import {
 
     public function setEraseData(bool $eraseData): self {
         $this->eraseData = $eraseData;
+        return $this;
+    }
+
+    public function getRecipient(): ?string {
+        return $this->recipient;
+    }
+
+    public function setRecipient(?string $recipient): self {
+        $this->recipient = $recipient;
         return $this;
     }
 
