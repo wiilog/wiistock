@@ -42,6 +42,8 @@ class ShippingRequest extends StatusHistoryContainer {
     public const STATUS_SCHEDULED = "Planifiée";
     public const STATUS_SHIPPED = "Expédiée";
 
+    public const CATEGORIE = 'expedition';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]

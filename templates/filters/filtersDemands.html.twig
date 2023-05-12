@@ -24,17 +24,19 @@
     {% endif %}
 
     {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder: (page == 'PAGE_HAND'
+        placeholder: (page in ['PAGE_HAND', 'PAGE_SHIPPING']
             ? trans('Demande', 'Général', 'Demandeurs', false)
             : trans('Général', null, 'Zone filtre', 'Utilisateurs', false))
     } %}
 
-    {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder: (page == 'PAGE_HAND'
-            ? trans('Demande', 'Général', 'Destinataires', false)
-            : trans('Général', null, 'Zone filtre', 'Destinataires', false)),
-        name: constant('App\\Entity\\FiltreSup::FIELD_RECEIVERS')
-    } %}
+    {% if page != 'PAGE_SHIPPING' %}
+        {% include 'filters/filter_item/filterUser.html.twig' with {
+            placeholder: (page == 'PAGE_HAND'
+                ? trans('Demande', 'Général', 'Destinataires', false)
+                : trans('Général', null, 'Zone filtre', 'Destinataires', false)),
+            name: constant('App\\Entity\\FiltreSup::FIELD_RECEIVERS')
+        } %}
+    {% endif %}
 
     {% if page == 'PAGE_HAND' %}
         {% include 'filters/filter_item/filterSubject.html.twig' %}
@@ -62,4 +64,17 @@
             {% include 'filters/filter_item/filterProject.html.twig' %}
         {% endif %}
     {% endif %}
+
+    {% if page == 'PAGE_SHIPPING' %}
+        {% include 'filters/filter_item/filterBasicString.html.twig' with {
+            name: 'customerOrderNumber',
+            placeholder: 'N° commande client',
+        } %}
+
+        {% include 'filters/filter_item/filterCarrier.html.twig' with {
+            carriers : carriersForFilter,
+        } %}
+
+    {% endif %}
+
 {% endblock %}
