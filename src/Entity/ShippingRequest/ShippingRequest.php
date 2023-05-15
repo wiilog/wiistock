@@ -42,6 +42,7 @@ class ShippingRequest extends StatusHistoryContainer {
     public const STATUS_SCHEDULED = "Planifiée";
     public const STATUS_SHIPPED = "Expédiée";
 
+    public const CATEGORIE = 'expedition';
     public const NUMBER_PREFIX =  "DEX";
 
     #[ORM\Id]
@@ -153,6 +154,7 @@ class ShippingRequest extends StatusHistoryContainer {
     public function __construct() {
         $this->requesters = new ArrayCollection();
         $this->expectedLines = new ArrayCollection();
+        $this->lines = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
         $this->packLines = new ArrayCollection();
     }

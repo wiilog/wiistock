@@ -241,9 +241,23 @@
     </label>
 {% endmacro %}
 
+{% macro hidden(name, value, options = {}) %}
+    {% set dataInput = options.data ?? true %}
+    {% set noClear = options.noClear ?? false %}
+    <input type="hidden"
+           class="form-control {{ dataInput ? 'data' }} {{ noClear ? 'no-clear' }} {{ options.inputClass ?? '' }}"
+           value="{{ value }}"
+           {% for attribute in options.additionalAttributes ?? [] %}
+               {{ attribute.name }}="{{ attribute.value ?? '' }}"
+           {% endfor %}
+           {{ _self.common_attributes(name, options) }}
+           {{ _self.multiple_key(options) }}>
+{% endmacro %}
+
 {% macro input(name, label, required, value = '', options = {}) %}
     {% set inline = options.inline ?? false %}
     {% set dataInput = options.data ?? true %}
+    {% set noClear = options.noClear ?? false %}
     {% set type = options.type ?? 'text' %}
     {% if type == 'fax' %}
         {% set type = 'tel' %}
@@ -257,7 +271,7 @@
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
         <input type="{{ type }}"
                {{ fax ?? false ? 'data-fax' }}
-               class="form-control {{ dataInput ? 'data' }} {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }} {{ options.inputClass ?? '' }} {{ options.width ?? 'w-100' }}"
+               class="form-control {{ dataInput ? 'data' }} {{ noClear ? 'no-clear' }} {{ required ? 'needed' }} {{ options.inputClass ?? '' }} {{ options.width ?? 'w-100' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
                {% if options.autocompleteOff is defined and options.autocompleteOff %}
@@ -442,6 +456,8 @@
         {{ _self.select(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
     {% elseif macroName == 'input' %}
         {{ _self.input(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'hidden' %}
+        {{ _self.hidden(macroParams[0] ?? null, macroParams[1] ?? null, macroParams[2] ?? null) }}
     {% elseif macroName == 'color' %}
         {{ _self.color(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
     {% elseif macroName == 'textarea' %}
