@@ -20,6 +20,7 @@
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+{% set hasRightGenerateDeliverySlip = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DELIVERY_SLIP')) %}
 
 {% import "shipping_request/macro.html.twig" as macro %}
 
@@ -53,6 +54,13 @@
                                            class="dropdown-item d-flex align-items-center">
                                             <span class="wii-icon wii-icon-trash-black mr-2"></span>
                                             {{ trans('Général', null, 'Modale', 'Supprimer') }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightGenerateDeliverySlip %}
+                                        <a class="dropdown-item d-flex align-items-center"
+                                            onclick="generateDeliverySlip($(this), {{ shipping.id }})">
+                                            <span class="fa fa-file mr-2"></span>
+                                            {{ trans('Général', null, 'Modale', 'Générer un bordereau de livraison') }}
                                         </a>
                                     {% endif %}
                                 </div>

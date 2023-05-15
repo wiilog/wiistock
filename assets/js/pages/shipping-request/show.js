@@ -11,3 +11,11 @@ function refreshTransportHeader(shippingId){
             $('.transport-header').empty().append(detailsTransportConfig);
         });
 }
+
+function generateDeliverySlip($button, shippingId) {
+    AJAX.route('POST', 'post_delivery_slip', {
+        shippingRequest: shippingId
+    });
+    return shippingId;
+}
+

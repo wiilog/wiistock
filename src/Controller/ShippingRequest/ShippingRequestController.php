@@ -94,4 +94,10 @@ class ShippingRequestController extends AbstractController {
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
         ]);
     }
+
+    #[Route("/{shippingRequest}/delivery-slip", name:"post_delivery_slip", options:["expose"=>true], methods:['GET, POST'], condition: "request.isXmlHttpRequest()")]
+    public function postDeliverySlip(ShippingRequest        $shippingRequest,
+                                     ShippingRequestService $shippingRequestService): Response {
+        return new JsonResponse();
+    }
 }
