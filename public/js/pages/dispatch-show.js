@@ -4,7 +4,9 @@ $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
-    loadDispatchReferenceArticle();
+    if(!$('#packTable').exists()) {
+        loadDispatchReferenceArticle();
+    }
     getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, isEdit);
 
@@ -365,7 +367,7 @@ function initializePacksTable(dispatchId, isEdit) {
         serverSide: false,
         ajax: {
             type: "GET",
-            url: Routing.generate('dispatch_pack_api', {dispatch: dispatchId}, true),
+            url: Routing.generate('dispatch_editable_logistic_units_api', {dispatch: dispatchId}, true),
         },
         rowConfig: {
             needsRowClickAction: true,
@@ -634,7 +636,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
     wrapLoadingOnActionButton(
         $logisticUnitsContainer,
         () => (
-            AJAX.route('GET', 'dispatch_packs_api', params)
+            AJAX.route('GET', 'dispatch_reference_in_logistic_units_api', params)
                 .json()
                 .then(data => {
                     $logisticUnitsContainer.html(data.html);
