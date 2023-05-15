@@ -80,12 +80,3 @@ function initTableShippings() {
     }
 }
 
-function validateShippingRequest(shipping_request_id){
-    AJAX.route(`GET`, `shipping_request_validation`, {id:shipping_request_id})
-        .json()
-        .then((res) => {
-            if (res.success) {
-                location.reload()
-            }
-        });
-}

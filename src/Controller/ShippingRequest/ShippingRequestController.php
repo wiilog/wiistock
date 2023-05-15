@@ -102,12 +102,12 @@ class ShippingRequestController extends AbstractController {
         return $this->json($service->getDataForDatatable( $entityManager, $request));
     }
 
-    #[Route("/voir/{id}", name:"shipping_request_show", options:["expose"=>true])]
+    #[Route("/voir/{id}", name:"shipping_request_show", options: ["expose" => true])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function showPage(Request                $request,
-                             ShippingRequest        $shippingRequest,
-                             ShippingRequestService $shippingRequestService,
-                             EntityManagerInterface $entityManager): Response {
+    public function show(Request                $request,
+                         ShippingRequest        $shippingRequest,
+                         ShippingRequestService $shippingRequestService,
+                         EntityManagerInterface $entityManager): Response {
 
 
         return $this->render('shipping_request/show.html.twig', [
@@ -140,11 +140,11 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/new", name: "shipping_request_new", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::CREATE_SHIPPING], mode: HasPermission::IN_JSON)]
-    public function new(   Request                $request,
-                           EntityManagerInterface $entityManager,
-                           ShippingRequestService $shippingRequestService,
-                           UniqueNumberService    $uniqueNumberService,
-                           StatusHistoryService   $statusHistoryService): JsonResponse {
+    public function new(Request                $request,
+                        EntityManagerInterface $entityManager,
+                        ShippingRequestService $shippingRequestService,
+                        UniqueNumberService    $uniqueNumberService,
+                        StatusHistoryService   $statusHistoryService): JsonResponse {
         $data = $request->request;
 
         $statusRepository = $entityManager->getRepository(Statut::class);

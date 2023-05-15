@@ -81,6 +81,10 @@
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_PURCHASE_REQUESTS'))
                         ) %}
+                    {% set hasShippingRequestRights = (
+                        hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_SHIPPING'))
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING'))
+                        ) %}
                     <div class="col-auto pr-0 mr-0">
                         <a class="header-icon cart" href="{{ path('cart') }}">
                             {% set referencesQuantity = app.user.cart.references|length %}
@@ -109,7 +113,9 @@
                         or hasDispatchRights
                         or hasTransferRights
                         or hasPurchaseRequestRights
-                        or hasTransportRights %}
+                        or hasTransportRights
+                        or hasShippingRequestRights
+                    %}
                         <div class="col-auto dropdown">
                             <button class="quick-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="icon"></span>
@@ -188,6 +194,16 @@
                                        href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u">
                                         <span class="wii-icon wii-icon-add quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Créer un article</span>
+                                    </a>
+                                {% endif %}
+                                {% if hasShippingRequestRights %}
+                                    {% set isCurrentPage = (app.request.attributes.get('_route') == 'shipping_request_index') %}
+                                    <a class="d-flex align-items-center"
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('shipping_request_index', {'open-modal': 'new'}) }}"
+                                       title="Achat">
+                                        <span class="wii-icon wii-icon-menu-expedition quick-menu-icon mx-2"></span>
+                                        <span class="flex-fill align-self-center">Expédition</span>
                                     </a>
                                 {% endif %}
                             </div>
