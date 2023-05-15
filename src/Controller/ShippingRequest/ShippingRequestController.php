@@ -9,9 +9,11 @@ use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
+use App\Service\FormatService;
 use App\Exceptions\FormException;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
@@ -104,14 +106,21 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/voir/{id}", name:"shipping_request_show", options: ["expose" => true])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function show(Request                $request,
-                         ShippingRequest        $shippingRequest,
+    public function show(ShippingRequest        $shippingRequest,
                          ShippingRequestService $shippingRequestService,
                          EntityManagerInterface $entityManager): Response {
+        $transporteurs = $this->getFormatter()
+            ->carriers($entityManager->getRepository(Transporteur::class)->findAll());
 
+        if (!empty($transporteurs)) {
+            $transporteurs = Stream::explode(",", $transporteurs)->toArray();
+        } else {
+            $transporteurs = [];
+        }
 
         return $this->render('shipping_request/show.html.twig', [
-            'shipping' => $shippingRequest,
+            'shipping'=> $shippingRequest,
+            'transporteurs' => $transporteurs,
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
         ]);
     }
@@ -199,6 +208,52 @@ class ShippingRequestController extends AbstractController {
         } else {
             throw new FormException();
         }
+    }
+
+    #[Route("/check_expected_lines_data/{id}", name: 'check_expected_lines_data', options: ["expose" => true], methods: ['GET'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function checkExpectedLinesData(ShippingRequest $shippingRequest,): JsonResponse
+    {
+
+        $expectedLines = $shippingRequest->getExpectedLines();
+
+        if ($expectedLines->count() <= 0) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'Veuillez ajouter au moins une référence.',
+            ]);
+        }
+
+        /** @var ShippingRequestExpectedLine $expectedLine */
+        foreach ($expectedLines as $expectedLine) {
+            $referenceArticle = $expectedLine->getReferenceArticle();
+
+            //FDS & codeOnu & classeProduct needed if it's dangerousGoods
+            if ($referenceArticle->isDangerousGoods()
+                && (!$referenceArticle->getSheet()
+                    || !$referenceArticle->getOnuCode()
+                    || !$referenceArticle->getProductClass())) {
+
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
+                ]);
+            }
+
+            //codeNdp needed if shipment is international
+            if ($shippingRequest->getShipment() === ShippingRequest::SHIPMENT_INTERNATIONAL
+                && !$referenceArticle->getNdpCode()) {
+
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
+                ]);
+            }
+        }
+
+        return $this->json([
+            'success' => true,
+        ]);
     }
 
     #[Route("/validateShippingRequest/{id}", name:'shipping_request_validation', options:["expose"=>true], methods: ['GET'])]

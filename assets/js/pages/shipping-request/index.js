@@ -3,7 +3,6 @@ import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 let tableShippings;
 
-global.validateShippingRequest = validateShippingRequest;
 
 $(function() {
     Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
@@ -79,4 +78,3 @@ function initTableShippings() {
         return initDataTable('tableShippings', tableShippingsConfig);
     }
 }
-
