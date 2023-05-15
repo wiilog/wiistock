@@ -2105,11 +2105,21 @@ class ImportService
             $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
             $location = $emplacementRepository->findOneBy(['label' => $data['emplacement']]);
             if (empty($location)) {
+                // check if we already try to get standard Zone in cache memory, only one iterate by import file
+                if (!array_key_exists('defaultZoneLocation', $this->cache)) {
+                    $zoneRepository = $this->entityManager->getRepository(Zone::class);
+                    $this->cache['defaultZoneLocation'] = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
+                }
+                $defaultZoneLocation = $this->cache['defaultZoneLocation'];
+                if (empty($defaultZoneLocation)) {
+                    $this->throwError('Erreur lors de la création de l\'emplacement : ' . $data['emplacement'] . '. La zone ' . Zone::ACTIVITY_STANDARD_ZONE_NAME . ' n\'est pas définie.');
+                }
                 $location = new Emplacement();
                 $location
                     ->setLabel($data['emplacement'])
                     ->setIsActive(true)
-                    ->setIsDeliveryPoint(false);
+                    ->setIsDeliveryPoint(false)
+                    ->setZone($defaultZoneLocation);
 
                 $this->entityManager->persist($location);
             }
