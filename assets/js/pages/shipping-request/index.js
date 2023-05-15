@@ -3,6 +3,7 @@ import {GET} from "@app/ajax";
 let tableShippings;
 
 global.validateShippingRequest = validateShippingRequest;
+global.deleteShippingRequest = deleteShippingRequest;
 
 $(function() {
     Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
@@ -81,6 +82,21 @@ function validateShippingRequest(shipping_request_id){
         .then((res) => {
             if (res.success) {
                 location.reload()
+            }
+        });
+}
+
+function deleteShippingRequest($event){
+    const shipping_request_id = $event.data('id');
+
+    AJAX.route(`DELETE`, `delete_shipping_request`, {id:shipping_request_id})
+        .json()
+        .then((res) => {
+            if (!res.success && !res.msg) {
+                showBSAlert('Une erreur est survenue lors de la suppression.', 'danger');
+            }
+            if(res.success){
+                //window.location.href = Routing.generate('shipping_request_index');
             }
         });
 }
