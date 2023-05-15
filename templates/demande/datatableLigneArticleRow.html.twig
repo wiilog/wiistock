@@ -7,8 +7,11 @@
                 </div>
             </div>
         {% endif %}
-        <span class="wii-icon wii-icon-trash-black mr-2" onclick="deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ id }}'
-              data-name='{{ name }}' data-target='#modalDeleteArticle' data-toggle='modal'></span>
+        <span class="wii-icon wii-icon-trash"
+              onclick="deleteRowDemande($(this))"
+              data-id='{{ id }}'
+              data-name='{{ name }}'>
+        </span>
     {% else %}
         {% set path = refArticleId is defined ? path('reference_article_show_page', {id: refArticleId}) : path('article_show_page', {id: articleId}) %}
         <div class="d-none">
