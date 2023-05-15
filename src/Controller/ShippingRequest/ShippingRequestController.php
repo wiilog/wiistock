@@ -128,20 +128,10 @@ class ShippingRequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function showPage(ShippingRequest        $shippingRequest,
                              ShippingRequestService $shippingRequestService,
-                             EntityManagerInterface $entityManager,
-                             FormatService          $formatService ): Response {
-
-        $transporteurs = $formatService->carriers($entityManager->getRepository(Transporteur::class)->findAll());
-
-        if (!empty($transporteurs)) {
-            $transporteurs = Stream::explode(",", $transporteurs)->toArray();
-        } else {
-            $transporteurs = [];
-        }
+                             EntityManagerInterface $entityManager): Response {
 
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
-            'transporteurs' => $transporteurs,
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
         ]);
     }

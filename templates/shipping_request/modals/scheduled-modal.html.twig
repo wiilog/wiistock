@@ -1,4 +1,4 @@
-{% import 'form.html.twig' as macro %}
+{% import 'form.html.twig' as form %}
 
 <div class="modal fade" role="dialog" id="modalScheduledShippingRequest" data-modal-type="new">
     <div class="modal-dialog modal-lg" role="document">
@@ -15,13 +15,13 @@
                     </div>
                     <div class="row my-3">
                         <div class="form-group col-md-6 col-12">
-                            {{ macro.input("packCount", "Nombre de colis", false, '', {
+                            {{ form.input("packCount", "Nombre de colis", false, '', {
                                 type: 'number',
                                 min: 0,
                             }) }}
                         </div>
                         <div class="form-group col-md-6 col-12">
-                            {{ macro.input("grossWeight", "Poids brut (Kg)", false,'', {
+                            {{ form.input("grossWeight", "Poids brut (Kg)", false,'', {
                                 type: 'number',
                                 min: 0,
                                 step: 0.1,
@@ -37,13 +37,15 @@
                     </div>
                     <div class="row my-3">
                         <div class="form-group col-md-6 col-12">
-                            {{ macro.select("transporteur", "Nom transporteur", false, {items:transporteurs}) }}
+                            {{ form.select("carrier", "Nom transporteur", false, {
+                                type: 'carrier',
+                            }) }}
                         </div>
                         <div class="form-group col-md-6 col-12">
-                            {{ macro.input("trackingNumber", "Numéro de tracking", false) }}
+                            {{ form.input("trackingNumber", "Numéro de tracking", false) }}
                         </div>
                         <div class="form-group col-md-6 col-12">
-                            {{ macro.input("expectedPicketAt", "Date d'enlèvement", false,'', {type:'date'} ) }}
+                            {{ form.input("expectedPicketAt", "Date d'enlèvement", false,'', {type:'date'} ) }}
                         </div>
                     </div>
                 </div>
