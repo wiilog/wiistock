@@ -53,7 +53,7 @@ use App\Repository\TrackingMovementRepository;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
-use App\Service\DemandeLivraisonService;
+use App\Service\DeliveryRequestService;
 use App\Service\DispatchService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
@@ -1592,7 +1592,7 @@ class MobileController extends AbstractApiController
      */
     public function validateManualDL(Request                    $request,
                                      EntityManagerInterface     $entityManager,
-                                     DemandeLivraisonService    $demandeLivraisonService,
+                                     DeliveryRequestService     $demandeLivraisonService,
                                      LivraisonsManagerService   $livraisonsManagerService,
                                      MouvementStockService      $mouvementStockService,
                                      FreeFieldService           $freeFieldService,
@@ -1712,10 +1712,10 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function checkAndValidateDL(Request $request,
+    public function checkAndValidateDL(Request                $request,
                                        EntityManagerInterface $entityManager,
-                                       DemandeLivraisonService $demandeLivraisonService,
-                                       FreeFieldService $champLibreService): Response
+                                       DeliveryRequestService $demandeLivraisonService,
+                                       FreeFieldService       $champLibreService): Response
     {
         $nomadUser = $this->getUser();
 

@@ -13,7 +13,7 @@ class Project {
     #[ORM\Column(type: "integer")]
     private ?int $id = null;
 
-    #[ORM\Column(type: "string", length: 15, unique: true)]
+    #[ORM\Column(type: "string", length: 255, unique: true)]
     private ?string $code = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
