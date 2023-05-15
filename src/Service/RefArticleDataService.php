@@ -21,6 +21,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
@@ -137,7 +138,7 @@ class RefArticleDataService
     public TranslationService $translationService;
 
     #[Required]
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -676,9 +677,8 @@ class RefArticleDataService
                                           EntityManagerInterface $entityManager,
                                           Demande                $demande,
                                                                  $editRef = true,
-                                                                 $fromCart = false)
-    {
-        $resp = true;
+                                                                 $fromCart = false) {
+        $resp = [];
         $articleRepository = $entityManager->getRepository(Article::class);
         $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
 
@@ -707,9 +707,10 @@ class RefArticleDataService
             if (!$fromNomade && $editRef) {
                 $this->editRefArticle($entityManager, $referenceArticle, $data, $user);
             }
-        } else if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-            if ($fromNomade || $loggedUserRole->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE || $fromCart) {
-                if ($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+            $resp['type'] = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
+        } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+            if($fromNomade || $loggedUserRole->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE || $fromCart) {
+                if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $line = new DeliveryRequestReferenceLine();
                     $line
                         ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
@@ -730,11 +731,21 @@ class RefArticleDataService
                 ]);
 
                 $entityManager->persist($line);
-
-                $resp = 'article';
+                $resp['type'] = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
+                $resp['article'] = true;
             }
+            $resp['success'] = true;
         } else {
-            $resp = false;
+            $resp['success'] = false;
+        }
+        if (isset($line)) {
+            $projectRepository = $entityManager->getRepository(Project::class);
+            $project = ($data['project'] ?? null) ? $projectRepository->find($data['project']) : null;
+            $line
+                ->setComment($data['comment'] ?? null)
+                ->setProject($project);
+
+            $resp['line'] = $line;
         }
         return $resp;
     }

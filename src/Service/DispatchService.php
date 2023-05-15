@@ -1378,7 +1378,7 @@ class DispatchService {
             if($groupedSignatureStatus->getGroupedSignatureType() === Dispatch::DROP){
                 $locationId = $locationData['to'];
             } else {
-                throw new FormException("Le statut sélectionné ne correspond pas à un processus de livraison.");
+                throw new FormException("Le statut sélectionné ne correspond pas à un processus de " . mb_strtolower($this->translationService->translate("Demande", "Livraison", "Demande de livraison", false)) . ".");
             }
         }
         $location = $locationRepository->find($locationId);

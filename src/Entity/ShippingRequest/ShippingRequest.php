@@ -42,12 +42,14 @@ class ShippingRequest extends StatusHistoryContainer {
     public const STATUS_SCHEDULED = "Planifiée";
     public const STATUS_SHIPPED = "Expédiée";
 
+    public const CATEGORIE = 'expedition';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, unique: true, nullable: false)]
     private ?string $number = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]

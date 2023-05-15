@@ -14,6 +14,53 @@ class ShippingRequestRepository extends EntityRepository {
         $qb = $this->createQueryBuilder("shipping_request");
 
         $total = QueryBuilderHelper::count($qb, 'shipping_request');
+        //filtres sup
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'statut':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('shipping_request.status', 'filter_status')
+                        ->andWhere('filter_status.id IN (:statut)')
+                        ->setParameter('statut', $value);
+                    break;
+                case 'customerOrderNumber':
+                    $qb
+                        ->andWhere('shipping_request.customerOrderNumber LIKE :customerOrderNumber')
+                        ->setParameter('customerOrderNumber', '%' . $filter['value'] . '%');
+                    break;
+                case 'carriers':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('shipping_request.carrier', 'carrier')
+                        ->andWhere('carrier.id IN (:carrierId)')
+                        ->setParameter('carrierId', $value);
+                    break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('shipping_request.requesters', 'filter_requester')
+                        ->andWhere("filter_requester.id in (:filter_requester_username_value)")
+                        ->setParameter('filter_requester_username_value', $value);
+                    break;
+                case 'date-choice':
+                    $chosenDate = $filter['value'];
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('shipping_request.' . $chosenDate . ' >= :filter_dateMin_value' )
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . ' 00:00:00');
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('shipping_request.' . $chosenDate . ' <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . ' 23:59:59');
+                                break;
+                        }
+                    }
+                    break;
+            }
+        }
+
 
         //Filter search
         if (!empty($params)) {
@@ -21,6 +68,7 @@ class ShippingRequestRepository extends EntityRepository {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
+                        "number" => "shipping_request.number LIKE :search_value",
                         "trackingNumber" => "shipping_request.trackingNumber LIKE :search_value",
                         "status" => "search_status.code LIKE :search_value",
                         "createdAt" => "DATE_FORMAT(shipping_request.createdAt, '%d/%m/%Y') LIKE :search_value",
@@ -107,6 +155,9 @@ class ShippingRequestRepository extends EntityRepository {
                 }
             }
         }
+
+        // counts the filtered elements
+        $filtered = QueryBuilderHelper::count($qb, 'shipping_request');
 
         if (!empty($params)) {
             if ($params->getInt('start')) {

@@ -53,7 +53,7 @@ use App\Repository\TrackingMovementRepository;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
-use App\Service\DemandeLivraisonService;
+use App\Service\DeliveryRequestService;
 use App\Service\DispatchService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
@@ -76,6 +76,7 @@ use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
 use App\Service\TransferOrderService;
+use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
@@ -979,7 +980,9 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function beginLivraison(Request $request, EntityManagerInterface $entityManager)
+    public function beginLivraison(Request                  $request,
+                                   EntityManagerInterface   $entityManager,
+                                   TranslationService       $translation)
     {
         $nomadUser = $this->getUser();
 
@@ -1000,7 +1003,7 @@ class MobileController extends AbstractApiController
             $data['success'] = true;
         } else {
             $data['success'] = false;
-            $data['msg'] = "Cette livraison a déjà été prise en charge par un opérateur.";
+            $data['msg'] = "Cette " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . " a déjà été prise en charge par un opérateur.";
         }
 
         return new JsonResponse($data);
@@ -1144,10 +1147,11 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function finishLivraison(Request $request,
-                                    ExceptionLoggerService $exceptionLoggerService,
-                                    EntityManagerInterface $entityManager,
-                                    LivraisonsManagerService $livraisonsManager)
+    public function finishLivraison(Request                     $request,
+                                    ExceptionLoggerService      $exceptionLoggerService,
+                                    EntityManagerInterface      $entityManager,
+                                    LivraisonsManagerService    $livraisonsManager,
+                                    TranslationService          $translation)
     {
         $nomadUser = $this->getUser();
 
@@ -1189,7 +1193,7 @@ class MobileController extends AbstractApiController
 
                     $message = match ($throwable->getMessage()) {
                         LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION => "L'emplacement que vous avez sélectionné n'existe plus.",
-                        LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN => "La livraison a déjà été commencée",
+                        LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN => "La " . mb_strtolower($translation->translate("Ordre", "Livraison", "Livraison", false)) . " a déjà été commencée",
                         default => false,
                     };
 
@@ -1588,7 +1592,7 @@ class MobileController extends AbstractApiController
      */
     public function validateManualDL(Request                    $request,
                                      EntityManagerInterface     $entityManager,
-                                     DemandeLivraisonService    $demandeLivraisonService,
+                                     DeliveryRequestService     $demandeLivraisonService,
                                      LivraisonsManagerService   $livraisonsManagerService,
                                      MouvementStockService      $mouvementStockService,
                                      FreeFieldService           $freeFieldService,
@@ -1708,10 +1712,10 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function checkAndValidateDL(Request $request,
+    public function checkAndValidateDL(Request                $request,
                                        EntityManagerInterface $entityManager,
-                                       DemandeLivraisonService $demandeLivraisonService,
-                                       FreeFieldService $champLibreService): Response
+                                       DeliveryRequestService $demandeLivraisonService,
+                                       FreeFieldService       $champLibreService): Response
     {
         $nomadUser = $this->getUser();
 
@@ -1990,7 +1994,12 @@ class MobileController extends AbstractApiController
         if ($article) {
             throw new FormException("Tag RFID déjà existant en base.");
         }
-        $type = $typeRepository->find($request->request->get('type'));
+
+        $typeStr = $request->request->get('type');
+        $type = $typeStr
+            ? $typeRepository->find($typeStr)
+            : null;
+
         $statut = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
 
         $fromMatrix = $request->request->getBoolean('fromMatrix');
@@ -2110,7 +2119,7 @@ class MobileController extends AbstractApiController
         $entityManager->persist($stockMovement);
 
         $trackingMovement = $trackingMovementService->createTrackingMovement(
-            $article,
+            $article->getTrackingPack() ?: $article->getBarCode(),
             $article->getEmplacement(),
             $this->getUser(),
             $now,
@@ -2528,9 +2537,10 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function treatAnomalies(Request $request,
-                                   InventoryService $inventoryService,
-                                   ExceptionLoggerService $exceptionLoggerService)
+    public function treatAnomalies(Request                  $request,
+                                   InventoryService         $inventoryService,
+                                   ExceptionLoggerService   $exceptionLoggerService,
+                                   TranslationService       $translation)
     {
 
         $nomadUser = $this->getUser();
@@ -2568,7 +2578,7 @@ class MobileController extends AbstractApiController
         $data['errors'] = $errors;
         $data['data']['status'] = ($numberOfRowsInserted === 0)
             ? ($anomalies > 0
-                ? 'Une ou plusieus erreurs, des ordres de livraison sont en cours pour ces articles ou ils ne sont pas disponibles, veuillez recharger vos données'
+                ? 'Une ou plusieus erreurs, des ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)) . ' sont en cours pour ces articles ou ils ne sont pas disponibles, veuillez recharger vos données'
                 : "Aucune anomalie d'inventaire à synchroniser.")
             : ($numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s);
 
@@ -3493,7 +3503,7 @@ class MobileController extends AbstractApiController
             ->setLocationTo($dropLocation)
             ->setCarrierTrackingNumber($request->request->get('carrierTrackingNumber'))
             ->setCommentaire($request->request->get('comment'))
-            ->setEmergency($request->request->getBoolean('emergency'))
+            ->setEmergency($request->request->get('emergency'))
             ->setEmails($emails);
 
         if($receiver) {
@@ -3844,9 +3854,9 @@ class MobileController extends AbstractApiController
      * @Wii\RestVersionChecked()
      */
     public function finishTruckArrival(Request                $request,
-                                     EntityManagerInterface $entityManager,
-                                     UniqueNumberService $uniqueNumberService,
-                                     KernelInterface $kernel): Response {
+                                       EntityManagerInterface $entityManager,
+                                       UniqueNumberService    $uniqueNumberService,
+                                       KernelInterface        $kernel): Response {
         $data = $request->request;
 
         $carrierRepository = $entityManager->getRepository(Transporteur::class);

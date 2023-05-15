@@ -228,7 +228,7 @@ class ImportService
     public ReceptionService $receptionService;
 
     #[Required]
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     #[Required]
     public ArticleFournisseurService $articleFournisseurService;
@@ -1386,7 +1386,7 @@ class ImportService
             $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw, false, true)->toArray();
             if(!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
-                $this->throwError("Les types de demandes de livraison suivants sont invalides : $invalidTypesStr");
+                $this->throwError("Les types de " . mb_strtolower($this->translationService->translate("Demande", "Livraison", "Demande de livraison", false)) . " suivants sont invalides : $invalidTypesStr");
             }
 
             foreach ($user->getDeliveryTypes() as $type) {
@@ -1668,7 +1668,8 @@ class ImportService
                             ->setPickedQuantity($line->getPickedQuantity())
                             ->setQuantityToPick($line->getQuantityToPick())
                             ->setReference($articleReference)
-                            ->setTargetLocationPicking($targetLocationPicking);
+                            ->setTargetLocationPicking($targetLocationPicking)
+                            ->setDeliveryRequestReferenceLine($line);
                         $this->entityManager->persist($lignesArticlePreparation);
                         if ($articleReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                             $articleReference->setQuantiteReservee(($articleReference->getQuantiteReservee() ?? 0) + $line->getQuantityToPick());
@@ -1799,7 +1800,7 @@ class ImportService
 
             $diff = Stream::diff($elements, $allowedDeliveryTypesLabels, true);
             if (!$diff->isEmpty()) {
-                $this->throwError("Les types de demandes de livraison suivants n'existent pas : {$diff->join(", ")}");
+                $this->throwError("Les types de " . mb_strtolower($this->translationService->translate("Demande", "Livraison", "Demande de livraison", false)) . " suivants n'existent pas : {$diff->join(", ")}");
             } else {
                 $location->setAllowedDeliveryTypes($typeRepository->findBy(['label' => $elements]));
             }
@@ -1874,8 +1875,8 @@ class ImportService
         $project = $projectAlreadyExists ?? new Project();
 
         if (!$projectAlreadyExists && isset($data['code'])) {
-            if ((strlen($data['code'])) > 15) {
-                $this->throwError("La valeur saisie pour le code ne doit pas dépasser 15 caractères");
+            if ((strlen($data['code'])) > ProjectService::MAX_LENGTH_CODE_PROJECT) {
+                $this->throwError("La valeur saisie pour le code ne doit pas dépasser ". ProjectService::MAX_LENGTH_CODE_PROJECT ." caractères");
             } else {
                 $project->setCode($data['code']);
             }

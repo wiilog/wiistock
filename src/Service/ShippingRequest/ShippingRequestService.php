@@ -3,23 +3,25 @@
 namespace App\Service\ShippingRequest;
 
 use App\Entity\Article;
+use App\Entity\FiltreSup;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\ShippingRequest\ShippingRequestPack;
+use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\FormatService;
+use App\Service\FormatService;
 use App\Service\VisibleColumnService;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
+use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class ShippingRequestService {
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
 
     #[Required]
     public VisibleColumnService $visibleColumnService;
@@ -28,14 +30,21 @@ class ShippingRequestService {
     public Security $security;
 
     #[Required]
-    public CSVExportService $CSVExportService;
+    public FormatService $formatService;
 
     #[Required]
-    public FormatService $formatService;
+    public Twig_Environment $templating;
+
+    #[Required]
+    public RouterInterface $router;
+
+    #[Required]
+    public CSVExportService $CSVExportService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
         $columns = [
+            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Numéro', 'name' => 'number'],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Date de création', 'name' => 'createdAt'],
@@ -46,8 +55,8 @@ class ShippingRequestService {
             ['title' => 'Date d\'expédition', 'name' => 'treatedAt'],
             ['title' => 'Demandeur', 'name' => 'requesters'],
             ['title' => 'N° commande client', 'name' => 'customerOrderNumber'],
-            ['title' => 'Transporteur', 'name' => 'freeDelivery'],
-            ['title' => 'Transporteur', 'name' => 'compliantArticles'],
+            ['title' => 'Livraison à titre gracieux', 'name' => 'freeDelivery'],
+            ['title' => 'Articles conformes', 'name' => 'compliantArticles'],
             ['title' => 'Client', 'name' => 'customerName'],
             ['title' => 'A l\'attention de', 'name' => 'customerRecipient'],
             ['title' => 'Téléphone', 'name' => 'customerPhone'],
@@ -63,12 +72,14 @@ class ShippingRequestService {
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 
-    public function getDataForDatatable(Request $request) : array{
-        $shippingRepository = $this->entityManager->getRepository(ShippingRequest::class);
+    public function getDataForDatatable(Request $request, EntityManager $entityManager) : array {
+        $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_SHIPPING, $this->security->getUser());
 
         $queryResult = $shippingRepository->findByParamsAndFilters(
             $request->request,
-            [],
+            $filters,
             $this->visibleColumnService,
             [
                 'user' => $this->security->getUser(),
@@ -91,34 +102,54 @@ class ShippingRequestService {
 
     public function dataRowShipping(ShippingRequest $shipping): array
     {
+        $url = $this->router->generate('shipping_show_page', [
+            "id" => $shipping->getId()
+        ]);
+
+        $formatService = $this->formatService;
+
         $row = [
+            "actions" => $this->templating->render('shipping_request/actions.html.twig', [
+                'url' => $url,
+            ]),
             "number" => $shipping->getNumber(),
-            "status" => $shipping->getStatus()->getCode(),
-            "createdAt" => $shipping->getCreatedAt()->format("d/m/Y H:i"),
-            "requestCaredAt" => $shipping->getRequestCaredAt()->format("d/m/Y H:i"),
-            "validatedAt" => $shipping->getValidatedAt()->format("d/m/Y H:i"),
-            "plannedAt" => $shipping->getPlannedAt()->format("d/m/Y H:i"),
-            "expectedPickedAt" => $shipping->getExpectedPickedAt()->format("d/m/Y H:i"),
-            "treatedAt" => $shipping->getTreatedAt()->format("d/m/Y H:i"),
-            "requesters" => implode(",", Stream::from($shipping->getRequesters())
-                ->map(fn(Utilisateur $requester) => $requester->getUsername())
-                ->toArray()),
+            "status" => $formatService->status($shipping->getStatus()),
+            "createdAt" => $formatService->datetime($shipping->getCreatedAt()),
+            "requestCaredAt" => $formatService->datetime($shipping->getRequestCaredAt()),
+            "validatedAt" => $formatService->datetime($shipping->getValidatedAt()),
+            "plannedAt" => $formatService->datetime($shipping->getPlannedAt()),
+            "expectedPickedAt" => $formatService->datetime($shipping->getExpectedPickedAt()),
+            "treatedAt" => $formatService->datetime($shipping->getTreatedAt()),
+            "requesters" => $formatService->users($shipping->getRequesters()),
             "customerOrderNumber" => $shipping->getCustomerOrderNumber(),
-            "freeDelivery" => $shipping->isFreeDelivery() ? 'Oui' : 'Non',
-            "compliantArticles" => $shipping->isCompliantArticles() ? 'Oui' : 'Non',
+            "freeDelivery" => $formatService->bool($shipping->isFreeDelivery()),
+            "compliantArticles" => $formatService->bool($shipping->isCompliantArticles()),
             "customerName" => $shipping->getCustomerName(),
             "customerRecipient" => $shipping->getCustomerRecipient(),
             "customerPhone" => $shipping->getCustomerPhone(),
             "customerAddress" => $shipping->getCustomerAddress(),
-            "carrier" => $shipping->getCarrier() ? $shipping->getCarrier()->getLabel() : '',
+            "carrier" => $formatService->carrier($shipping->getCarrier()),
             "trackingNumber" => $shipping->getTrackingNumber(),
-            "shipment" => $shipping->getShipment(),
-            "carrying" => $shipping->getCarrying(),
+            "shipment" => ShippingRequest::SHIPMENT_LABELS[$shipping->getShipment()] ?? '',
+            "carrying" => ShippingRequest::CARRYING_LABELS[$shipping->getCarrying()] ?? '',
             "comment" => $shipping->getComment(),
             "grossWeight" => $shipping->getGrossWeight(),
         ];
 
         return $row;
+    }
+
+    public function createHeaderTransportDetailsConfig(ShippingRequest $shippingRequest){
+        return $this->templating->render('shipping_request/show-transport-header.html.twig', [
+            'shipping' => $shippingRequest,
+            'packsCount' => $shippingRequest->getPackCount(),
+            'totalValue' => Stream::from($shippingRequest->getExpectedLines())
+                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getPrice())
+                ->sum(),
+            'netWeight' => Stream::from($shippingRequest->getExpectedLines())
+                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
+                ->sum(),
+        ]);
     }
 
     public function putShippingRequestLine($output, ShippingRequest $shippingRequest, ShippingRequestPack|ShippingRequestExpectedLine $line, Article $article = null): void {

@@ -50,6 +50,9 @@ class DataExportService
     #[Required]
     public ShippingRequestService $shippingRequestService;
 
+    #[Required]
+    public TranslationService $translation;
+
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
             'reference',
@@ -102,7 +105,7 @@ class DataExportService
             'date d\'entrée en stock',
             'date de péremption',
             'groupe de visibilité',
-            'projet',
+            mb_strtolower($this->translation->translate('Référentiel', 'Projet', 'Projet', false)),
             'prix unitaire',
             'numéro de commande',
             'numéro de bon de livraison',

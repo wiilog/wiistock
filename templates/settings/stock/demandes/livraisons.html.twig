@@ -59,6 +59,26 @@
     <div class="col-12 my-1">
         {{ form.checkbox(setting('DELIVERY_REQUEST_ADD_UL'), "Ajout d'unité logistique", false, setting_value('DELIVERY_REQUEST_ADD_UL')) }}
     </div>
+    <div class="col-12 row mt-2">
+        <div class="col-6 my-1">
+            {{ form.input(
+                setting('DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT'),
+                "Préremplire le champ commentaire de la ligne si le code projet de la référence est défini avec :",
+                false,
+                setting_value('DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT'), {
+                    tooltip: "Ajoutez @Destinataire pour afficher le destinataire de la demande de livraison et @Projet pour afficher le projet de la référence",
+                }) }}
+        </div>
+        <div class="col-6 my-1">
+            {{ form.input(
+                setting('DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT'),
+                "Préremplire le champ commentaire de la ligne si le code projet de la référence n’est pas défini avec :",
+                false,
+                setting_value('DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT'), {
+                    tooltip: "Ajoutez @Destinataire pour afficher le destinataire de la demande de livraison",
+                }) }}
+        </div>
+    </div>
 </div>
 
 <input type="hidden" value="{{ setting_value('DEFAULT_LOCATION_LIVRAISON') }}" name="{{ setting('DEFAULT_LOCATION_LIVRAISON') }}">

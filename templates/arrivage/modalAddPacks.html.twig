@@ -11,11 +11,11 @@
                     <div class="row">
                         <div class="col-auto m-1 pr-0">
                             <div class="form-group">
-                                <label class="wii-field-name">Projet</label>
+                                <label class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</label>
                                 <select class="form-control data cursor-default filter-input"
                                         name="project"
                                         id="project">
-                                    <option selected value="">Choisir un projet ...</option>
+                                    <option selected value="">Choisir un {{ trans('Référentiel', 'Projet', "Projet", false) | lower }} ...</option>
                                     {% for project in projects | sort((a, b) => a.code <=> b.code) %}
                                         <option value="{{ project.id }}">{{ project.code }}</option>
                                     {% endfor %}

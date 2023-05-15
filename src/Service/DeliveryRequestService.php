@@ -23,10 +23,10 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\Security\Core\Security;
@@ -37,8 +37,11 @@ use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
-class DemandeLivraisonService
+class DeliveryRequestService
 {
+    #[Required]
+    public FormService $formService;
+
     #[Required]
     public Twig_Environment $templating;
 
@@ -96,7 +99,12 @@ class DemandeLivraisonService
     #[Required]
     public TrackingMovementService $trackingMovementService;
 
+    #[Required]
+    public ArticleDataService $articleDataService;
+
     private ?array $freeFieldsConfig = null;
+
+    private array $cache = [];
 
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null, Utilisateur $user)
     {
@@ -167,15 +175,15 @@ class DemandeLivraisonService
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $demande->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
 
         return $row;
     }
 
-    public function parseRequestForCard(Demande     $demande,
-                                        DateService $dateService,
-                                        array       $averageRequestTimesByType): array
+    public function parseRequestForCard(Demande             $demande,
+                                        DateService         $dateService,
+                                        array               $averageRequestTimesByType): array
     {
 
         $requestStatus = $demande->getStatut()?->getCode();
@@ -240,7 +248,7 @@ class DemandeLivraisonService
 
         return [
             'href' => $href ?? null,
-            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)),
             'estimatedFinishTime' => $deliveryDateEstimated,
             'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
@@ -308,6 +316,8 @@ class DemandeLivraisonService
 
         $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? '');
 
+        $visibleColumns = $utilisateur->getVisibleColumns()[Demande::VISIBLE_COLUMNS_SHOW_FIELD] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
+
         $demande = new Demande();
         $demande
             ->setStatut($statut)
@@ -320,7 +330,8 @@ class DemandeLivraisonService
             ->setNumero($number)
             ->setManual($isManual)
             ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
-            ->setReceiver($receiver);
+            ->setReceiver($receiver)
+            ->setVisibleColumns($visibleColumns);
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 
@@ -347,7 +358,8 @@ class DemandeLivraisonService
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settings = $entityManager->getRepository(Setting::class);
-        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $settingNeedPlanningValidation = $settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $settingMangeDeliveriesWithoutStockQuantity = $settings->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         if ($fromNomade) {
             $demande = $this->newDemande($demandeArray, $entityManager, $champLibreService, $fromNomade);
@@ -419,15 +431,21 @@ class DemandeLivraisonService
             /** @var DeliveryRequestReferenceLine $line */
             foreach ($demande->getReferenceLines() as $line) {
                 $articleRef = $line->getReference();
-                if ($line->getQuantityToPick() > $articleRef->getQuantiteDisponible()) {
+                //verification des quantités dispo si ref est gérée par reference OU le paramétrage "ne pas gérer les quantités en stock" n'est pas coché
+                $checkQuantity = (
+                    $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                    || !$settingMangeDeliveriesWithoutStockQuantity
+                );
+
+                if ($checkQuantity && $line->getQuantityToPick() > $articleRef->getQuantiteDisponible()) {
                     $response['success'] = false;
                     $response['nomadMessage'] = "Erreur de quantité sur l'article : " . $articleRef->getBarCode();
                     $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
                 }
             }
-            if ($response['success'] || (!$needsQuantitiesCheck && !$fromNomade)) {
+            if ($response['success'] || ($settingNeedPlanningValidation && !$fromNomade)) {
                 $entityManager->persist($demande);
-                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade, $simple, $flush, $needsQuantitiesCheck);
+                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade, $simple, $flush, $settingNeedPlanningValidation);
             }
         } else {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
@@ -435,24 +453,25 @@ class DemandeLivraisonService
                 'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
-            $response['msg'] = 'Votre demande de livraison a bien été validée';
+            $response['msg'] = 'Votre ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' a bien été validée';
             $response['demande'] = $demande;
         }
         return $response;
     }
 
     public function validateDLAfterCheck(EntityManagerInterface $entityManager,
-                                         Demande $demande,
-                                         bool $fromNomade = false,
-                                         bool $simpleValidation = false,
-                                         bool $flush = true,
-                                         bool $needsQuantitiesCheck = true,
-                                         array $options = []): array
+                                         Demande                $demande,
+                                         bool                   $fromNomade = false,
+                                         bool                   $simpleValidation = false,
+                                         bool                   $flush = true,
+                                         bool                   $settingNeedPlanningValidation = true,
+                                         array                  $options = []): array
     {
         $response = [];
         $response['success'] = true;
         $response['msg'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $date = new DateTime('now');
 
@@ -471,7 +490,7 @@ class DemandeLivraisonService
 
         $preparationStatus = $statutRepository->findOneByCategorieNameAndStatutCode(
             Preparation::CATEGORIE,
-            $needsQuantitiesCheck ? Preparation::STATUT_A_TRAITER : Preparation::STATUT_VALIDATED,
+            !$settingNeedPlanningValidation ? Preparation::STATUT_A_TRAITER : Preparation::STATUT_VALIDATED,
         );
 
         $preparation->setStatut($preparationStatus);
@@ -483,18 +502,19 @@ class DemandeLivraisonService
         $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $demande->setStatut($statutD);
 
-        if (!$needsQuantitiesCheck) {
+        if ($settingNeedPlanningValidation) {
             $preparation->setPlanned(true);
         }
         $refArticleToUpdateQuantities = [];
-        $this->persistPreparationLine($entityManager, $preparation, $needsQuantitiesCheck, $refArticleToUpdateQuantities, $date);
+        $this->persistPreparationLine($entityManager, $preparation, !$settingNeedPlanningValidation, $refArticleToUpdateQuantities, $date);
 
         $sendNotification = $options['sendNotification']??true;
         try {
             if ($flush) $entityManager->flush();
             if ($demande->getType()->isNotificationsEnabled()
                 && !$demande->isManual()
-                && $sendNotification) {
+                && $sendNotification
+                && !$settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION)) {
                 $this->notificationService->toTreat($preparation);
             }
         } /** @noinspection PhpRedundantCatchClauseInspection */
@@ -503,7 +523,7 @@ class DemandeLivraisonService
             $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
             return $response;
         }
-        if ($needsQuantitiesCheck) {
+        if (!$settingNeedPlanningValidation) {
             foreach ($refArticleToUpdateQuantities as $refArticle) {
                 $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
             }
@@ -523,7 +543,7 @@ class DemandeLivraisonService
                 'FOLLOW GT // Validation d\'une demande vous concernant',
                 $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
-                    'title' => 'La demande de livraison ' . $demande->getNumero() . ' de type '
+                    'title' => 'La '  . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '
                         . $demande->getType()->getLabel()
                         . ' a bien été validée le '
                         . $nowDate->format('d/m/Y \à H:i')
@@ -542,7 +562,7 @@ class DemandeLivraisonService
                 'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
-            $response['msg'] = 'Votre demande de livraison a bien été validée';
+            $response['msg'] = 'Votre ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' a bien été validée';
             $response['demande'] = $demande;
         }
 
@@ -609,7 +629,7 @@ class DemandeLivraisonService
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
             ],
             [
-                'label' => 'Projet',
+                'label' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false),
                 'value' => $this->formatService->project($demande?->getProject()) ?? '',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
@@ -706,7 +726,7 @@ class DemandeLivraisonService
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Type', 'name' => 'type'],
             ['title' => 'Date attendue', 'name' => 'expectedAt'],
-            ['title' => 'Projet', 'name' => 'project'],
+            ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'name' => 'project'],
             ['title' => 'Destination', 'name' => 'destination'],
             ['title' => 'Commentaire', 'name' => 'comment', 'orderable' => false],
         ];
@@ -742,7 +762,8 @@ class DemandeLivraisonService
                     ->setQuantityToPick($article->getQuantite())
                     ->setArticle($article)
                     ->setAutoGenerated(true)
-                    ->setPreparation($preparation);
+                    ->setPreparation($preparation)
+                    ->setDeliveryRequestReferenceLine($referenceLine);
                 $entityManager->persist($articleLine);
 
                 $stockMovement = $this->stockMovementService->createMouvementStock(
@@ -870,7 +891,8 @@ class DemandeLivraisonService
                     ->setQuantityToPick($requestReferenceLine->getQuantityToPick())
                     ->setTargetLocationPicking($requestReferenceLine->getTargetLocationPicking())
                     ->setReference($referenceArticle)
-                    ->setPreparation($preparation);
+                    ->setPreparation($preparation)
+                    ->setDeliveryRequestReferenceLine($requestReferenceLine);
                 $entityManager->persist($lignesArticlePreparation);
                 if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE && $needsQuantitiesCheck) {
                     $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $requestReferenceLine->getQuantityToPick());
@@ -887,4 +909,198 @@ class DemandeLivraisonService
         }
     }
 
+    public function getVisibleColumnsTableArticleConfig(EntityManagerInterface $entityManager,
+                                                        Demande $request,
+                                                        bool $editMode = false): array {
+        $columnsVisible = $request->getVisibleColumns();
+        if ($columnsVisible === null) {
+            $request->setVisibleColumns(Demande::DEFAULT_VISIBLE_COLUMNS);
+            $entityManager->flush();
+            $columnsVisible = $request->getVisibleColumns();
+        }
+
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
+        $isProjectRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
+        $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
+        $isCommentRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
+        $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+
+        $columns = [
+            ["name" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ["name" => "error", 'alwaysVisible' => true, 'orderable' => false, 'removeColumn' => $editMode, 'class' => 'noVis', 'forceHidden' => true],
+            ['title' => 'Référence', 'required' => $editMode, 'name' => 'reference', 'alwaysVisible' => true],
+            ['title' => 'Code barre', 'name' => 'barcode', 'alwaysVisible' => false],
+            ['title' => 'Libellé', 'name' => 'label', 'alwaysVisible' => false],
+            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'removeColumn' => !$editMode, 'alwaysVisible' => true],
+            ['title' => 'Quantité', 'required' => $editMode, 'name' => 'quantityToPick', 'alwaysVisible' => true],
+            ['title' => 'Emplacement', 'name' => 'location', 'alwaysVisible' => false],
+
+            // TODO WIIS-9646
+            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => !$isTargetLocationPickingDisplayed],
+            ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'required' => $editMode && $isProjectRequired, 'name' => 'project', 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed, 'data' => 'project'],
+            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'name' => 'comment', 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
+        ];
+
+        $columns = Stream::from($columns)
+            ->filter(fn (array $column) => !($column['removeColumn'] ?? false)) // display column if removeColumn not defined
+            ->map(function (array $column) {
+                unset($column['removeColumn']);
+                return $column;
+            })
+            ->values();
+
+        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+    }
+
+    public function editatableLineForm(EntityManagerInterface                                       $entityManager,
+                                       Demande                                                      $deliveryRequest,
+                                       Utilisateur                                                  $currentUser,
+                                       DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $line = null): array {
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+
+        $this->cache['subLineFieldsParams'] = $this->cache['subLineFieldsParams']
+            ?? $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $subLineFieldsParams = $this->cache['subLineFieldsParams'];
+
+        $commentParam = $subLineFieldsParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT] ?? [];
+        $isCommentRequired = $commentParam['required'] ?? false;
+
+        $projectParam = $subLineFieldsParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT] ?? [];
+        $isProjectRequired = $projectParam['required'] ?? false;
+        $isProjectDisplayedUnderCondition = $projectParam['displayedUnderCondition'] ?? false;
+        $projectConditionFixedField = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedField'] ?? null : null;
+        $projectConditionFixedValue = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedFieldValue'] ?? [] : [];
+
+        $userRole = $currentUser->getRole()->getQuantityType();
+
+        if (isset($line)) {
+            $lineType = match (true) {
+                $line instanceof DeliveryRequestArticleLine => 'article',
+                $line instanceof DeliveryRequestReferenceLine => 'reference',
+                default => null,
+            };
+            $actionType = "data-name='$lineType'";
+            $actionId = 'data-id="' . $line->getId() . '"';
+            $referenceArticle = match (true) {
+                $line instanceof DeliveryRequestArticleLine => $line->getArticle()->getReferenceArticle(),
+                $line instanceof DeliveryRequestReferenceLine => $line->getReference(),
+                default => '',
+            };
+            $referenceColumn = Stream::from([
+                $referenceArticle?->getReference() ?: '',
+                $this->formService->macro("hidden", "lineId", $line->getId()),
+                $this->formService->macro("hidden", "type", $lineType),
+            ])->join('');
+            $labelColumn = match (true) {
+                $line instanceof DeliveryRequestArticleLine => $line->getArticle()->getLabel(),
+                $line instanceof DeliveryRequestReferenceLine => $line->getReference()->getLibelle(),
+                default => '',
+            };
+            $locationColumn = match (true) {
+                $line instanceof DeliveryRequestArticleLine => $this->formatService->location($line->getArticle()->getEmplacement()),
+                $line instanceof DeliveryRequestReferenceLine => $line->getReference()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                    ? $this->formatService->location($line->getReference()->getEmplacement())
+                    : null,
+                default => '',
+            };
+            $barcodeColumn = match (true) {
+                $line instanceof DeliveryRequestArticleLine => $line->getArticle()->getBarCode() ?: '',
+                $line instanceof DeliveryRequestReferenceLine => $line->getReference()->getBarCode() ?: '',
+                default => '',
+            };
+
+            if ($userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE
+                && $line instanceof DeliveryRequestArticleLine) {
+                $referenceId = $referenceArticle->getId();
+                $this->cache['articles'][$referenceId] = $this->cache['articles'][$referenceId]
+                    ?? Stream::from($this->articleDataService->findAndSortActiveArticlesByRefArticle($referenceArticle, $entityManager))
+                        ->keymap(fn(Article $article) => [$article->getId(), $article->getBarCode()])
+                        ->toArray();
+                $articleItems = $this->cache['articles'][$referenceId];
+                $articleId = $line->getArticle()->getId();
+            }
+
+            $projectColumnSelect = !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($referenceArticle->getType()?->getId(), $projectConditionFixedValue));
+            $projectItems = $line->getProject()
+                ? [
+                    'text' => $this->formatService->project($line->getProject()),
+                    'selected' => true,
+                    'value' => $line->getProject()?->getId(),
+                ]
+                : [];
+            $targetLocationPickingItems = [
+                $line->getTargetLocationPicking()?->getId() => $this->formatService->location($line->getTargetLocationPicking()),
+            ];
+        }
+        else {
+            $actionType = '';
+            $actionId = '';
+            $referenceColumn = Stream::from([
+                $this->formService->macro("select", "reference", null, true, [
+                    "type" => "reference",
+                    "additionalAttributes" => [
+                        ["name" => "data-other-params"],
+                        ["name" => "data-other-params-ignored-delivery-request", "value" => $deliveryRequest->getId()],
+                        ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
+                    ],
+                    "onChange" => 'onChangeFillComment($(this))',
+                ]),
+                $this->formService->macro("hidden", "lineId"),
+                $this->formService->macro("hidden", "type"),
+                $this->formService->macro("hidden", "referenceId"),
+                "<span class='article-reference'></span>",
+            ])->join('');
+            $labelColumn = '<span class="article-label"></span>';
+            $locationColumn = '<span class="article-location"></span>';
+            $barcodeColumn = '<span class="article-barcode"></span>';
+            $projectColumnSelect = true;
+        }
+
+        return [
+            "actions" => "
+                <span class='d-flex justify-content-start align-items-center delete-row'
+                      onclick='deleteRowDemande($(this))'
+                      $actionType
+                      $actionId>
+                    <span class='wii-icon wii-icon-trash'></span>
+                </span>
+            ",
+            'reference' => $referenceColumn,
+            "label" => $labelColumn,
+            "quantityToPick" => $this->formService->macro("input", "quantity-to-pick", null, true, $line?->getQuantityToPick(), [
+                "type" => "number",
+                "min" => 1,
+                "onChange" => 'onChangeFillComment($(this))',
+            ]),
+            "project" => $projectColumnSelect
+                ? $this->formService->macro("select", "project", null, $isProjectRequired, [
+                    "type" => "project",
+                    "onChange" => "onChangeFillComment($(this))",
+                    "items" => $projectItems ?? []
+                ])
+                : $this->formatService->project($line?->getProject()),
+            "comment" => $this->formService->macro("textarea", "comment", null, $isCommentRequired, $line?->getComment(), [
+                "type" => "text",
+                "style" => "height: 36px"
+            ]),
+            "location" => $locationColumn,
+            "barcode" => $barcodeColumn,
+            "article" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $line instanceof DeliveryRequestArticleLine
+                ? $this->formService->macro("select", "article", null, true, [
+                    "items" => $articleItems ?? [],
+                    "value" => $articleId ?? null,
+                    "onChange" => 'onChangeFillComment($(this))',
+                ])
+                : ($line instanceof DeliveryRequestArticleLine ? $line->getArticle()->getBarCode() : ''),
+            "targetLocationPicking" => $userRole === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                ? $this->formService->macro("select", "targetLocationPicking", null, false, [
+                    "type" => "location",
+                    "items" => $targetLocationPickingItems ?? []
+                ])
+                : $this->formatService->location($line?->getTargetLocationPicking()),
+        ];
+    }
 }

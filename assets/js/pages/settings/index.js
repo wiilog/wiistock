@@ -36,8 +36,9 @@ global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
-global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
+global.changeSettingsAssoBR = changeSettingsAssoBR;
 global.changeReceiverInput = changeReceiverInput;
+global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -1251,6 +1252,16 @@ function initializeArticleNativeCountriesTable() {
     });
 }
 
+function changeSettingsAssoBR($checkbox) {
+    const check = $checkbox.is(':checked');
+    if (!check) {
+        $checkbox.parent('.wii-checkbox').next().addClass('d-none');
+        $checkbox.parent('.wii-checkbox').next().find('select').val(null).change();
+    } else {
+        $checkbox.parent('.wii-checkbox').next().removeClass('d-none');
+    }
+}
+
 function initializeEmergenciesFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-emergencies-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `urgence`}),
@@ -1281,7 +1292,7 @@ function changeDisplayRefArticleTable($checkbox) {
     const $conditionFixedField = $checkbox.closest('tr').find('select[name=conditionFixedField]');
     const $conditionFixedFieldValueDiv = $checkbox.closest('tr').find('.conditionFixedFieldValueDiv');
     const $required = $checkbox.closest('tr').find('input[name=required]');
-
+    const alwaysDisabledDisplayedUnderConditionFields = JSON.parse($('[name=disabledDisplayedUnderConditionFields]').val());
     if (!check) {
         if ($checkbox[0].name === "displayed") {
             $displayedUnderCondition.attr('disabled', true);
@@ -1295,7 +1306,7 @@ function changeDisplayRefArticleTable($checkbox) {
             $conditionFixedFieldValueDiv.addClass("d-none");
         }
     } else {
-        if ($checkbox[0].name === "displayed") {
+        if ($checkbox[0].name === "displayed" && !alwaysDisabledDisplayedUnderConditionFields.includes($checkbox.attr('id'))) {
             $displayedUnderCondition.attr('disabled', false);
             $required.attr('disabled', false);
             if ($displayedUnderCondition.is(':checked')) {

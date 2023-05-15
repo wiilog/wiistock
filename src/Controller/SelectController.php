@@ -245,6 +245,8 @@ class SelectController extends AbstractController {
             'needsOnlyMobileSyncReference' => $request->query->getBoolean('needs-mobile-sync'),
             'type-quantity' => $request->query->get('type-quantity'),
             'status' => $request->query->get('status'),
+            'ignoredDeliveryRequest' => $request->query->get('ignored-delivery-request'),
+            'minQuantity'  => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
         ];
 
         $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options);
@@ -686,7 +688,7 @@ class SelectController extends AbstractController {
      */
     public function deliveryLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_PROJECT);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
         $results = $entityManager->getRepository(Pack::class)->getForSelectFromDelivery(
             $request->query->get("term"),

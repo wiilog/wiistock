@@ -8,7 +8,7 @@ use App\Repository\DeliveryRequest\DeliveryRequestReferenceLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DeliveryRequestReferenceLineRepository::class)]
-class DeliveryRequestReferenceLine {
+class DeliveryRequestReferenceLine extends DeliveryRequestLine {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -108,5 +108,4 @@ class DeliveryRequestReferenceLine {
 
         return $this;
     }
-
 }

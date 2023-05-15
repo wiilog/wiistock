@@ -56,6 +56,9 @@ class ArticleDataService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public TranslationService $translation;
+
     private $visibleColumnService;
 
     private ?array $freeFieldsConfig = null;
@@ -108,9 +111,6 @@ class ArticleDataService
                 ]),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-            $articleRepository = $this->entityManager->getRepository(Article::class);
-
-            $articles = $articleRepository->findActiveArticles($refArticle);
             $role = $user->getRole();
 
             $availableQuantity = $refArticle->getQuantiteDisponible();
@@ -122,30 +122,7 @@ class ArticleDataService
                     ])];
             } else {
                 $management = $refArticle->getStockManagement();
-                if ($management) {
-                    $articles = Stream::from($articles)
-                        ->sort(function (Article $article1, Article $article2) use ($management) {
-                            $datesToCompare = [];
-                            if ($management === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
-                                $datesToCompare[0] = $article1->getStockEntryDate() ? $article1->getStockEntryDate()->format('Y-m-d') : null;
-                                $datesToCompare[1] = $article2->getStockEntryDate() ? $article2->getStockEntryDate()->format('Y-m-d') : null;
-                            } else if ($management === ReferenceArticle::STOCK_MANAGEMENT_FEFO) {
-                                $datesToCompare[0] = $article1->getExpiryDate() ? $article1->getExpiryDate()->format('Y-m-d') : null;
-                                $datesToCompare[1] = $article2->getExpiryDate() ? $article2->getExpiryDate()->format('Y-m-d') : null;
-                            }
-                            if ($datesToCompare[0] && $datesToCompare[1]) {
-                                if (strtotime($datesToCompare[0]) === strtotime($datesToCompare[1])) {
-                                    return 0;
-                                }
-                                return strtotime($datesToCompare[0]) < strtotime($datesToCompare[1]) ? -1 : 1;
-                            } else if ($datesToCompare[0]) {
-                                return -1;
-                            } else if ($datesToCompare[1]) {
-                                return 1;
-                            }
-                            return 0;
-                        })->toArray();
-                }
+                $articles = $this->findAndSortActiveArticlesByRefArticle($refArticle, $this->entityManager);
 
                 $articleIdsInRequest = $request->getArticleLines()
                     ->map(fn (DeliveryRequestArticleLine $line) => $line->getArticle()->getId())
@@ -157,15 +134,45 @@ class ArticleDataService
                         'preselect' => isset($management),
                         'maximum' => $availableQuantity,
                         'deliveryRequest' => $request,
-                        'articleIdsInRequest' => $articleIdsInRequest
+                        'articleIdsInRequest' => $articleIdsInRequest,
                     ])
                 ];
             }
         } else {
-            $data = false; //TODO gérer erreur retour
+            $data = false;
         }
 
         return $data;
+    }
+
+    public function findAndSortActiveArticlesByRefArticle(ReferenceArticle $refArticle, EntityManagerInterface $entityManager, ?Demande $demande = null){
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $articles = $articleRepository->findActiveArticles($refArticle, null, null, null, $demande);
+        $management = $refArticle->getStockManagement();
+        return $management
+            ? Stream::from($articles)
+                ->sort(function (Article $article1, Article $article2) use ($management) {
+                    $datesToCompare = [];
+                    if ($management === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
+                        $datesToCompare[0] = $article1->getStockEntryDate()?->format('Y-m-d');
+                        $datesToCompare[1] = $article2->getStockEntryDate()?->format('Y-m-d');
+                    } else if ($management === ReferenceArticle::STOCK_MANAGEMENT_FEFO) {
+                        $datesToCompare[0] = $article1->getExpiryDate()?->format('Y-m-d');
+                        $datesToCompare[1] = $article2->getExpiryDate()?->format('Y-m-d');
+                    }
+                    if ($datesToCompare[0] && $datesToCompare[1]) {
+                        if (strtotime($datesToCompare[0]) === strtotime($datesToCompare[1])) {
+                            return 0;
+                        }
+                        return strtotime($datesToCompare[0]) < strtotime($datesToCompare[1]) ? -1 : 1;
+                    } else if ($datesToCompare[0]) {
+                        return -1;
+                    } else if ($datesToCompare[1]) {
+                        return 1;
+                    }
+                    return 0;
+                })->toArray()
+            : $articles ;
     }
 
     public function getViewEditArticle($article,
@@ -632,7 +639,7 @@ class ArticleDataService
             ["title" => "Date d'entrée en stock", "name" => "stockEntryDate", 'searchable' => true],
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
-            ["title" => "Projet", "name" => "project", 'searchable' => true],
+            ["title" => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), "name" => "project", 'searchable' => true],
             ["title" => "Tag RFID", "name" => "RFIDtag", 'searchable' => true],
             ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
             ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],

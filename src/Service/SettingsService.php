@@ -37,6 +37,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\IOT\AlertTemplateService;
 use DateTime;
@@ -134,6 +135,19 @@ class SettingsService {
                 throw new RuntimeException('Il est nécessaire que les heures de début soient antérieures aux heures de fin.');
             }
         }
+
+        $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
+        $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
+
+        if ($request->request->get('createMvt')) {
+            if ($defaultLocationUL === null) {
+                throw new RuntimeException("Vous devez sélectionner un emplacement de dépose UL par défaut.");
+            }
+            if ($defaultLocationReception === null) {
+                throw new RuntimeException("Vous devez sélectionner un emplacement de dépose Réception par défaut.");
+            }
+        }
+
 
         $settingNames = array_merge(
             array_keys($request->request->all()),
@@ -315,6 +329,31 @@ class SettingsService {
             }
 
             $updated[] = "temperatureRanges";
+        }
+
+        if ($request->request->has('createMvt')) {
+            $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
+            $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
+            $check = $request->request->get('createMvt');
+            $settingRepository = $this->manager->getRepository(Setting::class);
+
+            if (!$check) {
+                if ($defaultLocationUL !== null) {
+                    $defaultLocationUL = null;
+                }
+                if ($defaultLocationReception !== null) {
+                    $defaultLocationReception = null;
+                }
+            }
+
+            $settingUL = $settingRepository->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL]);
+            $settingUL->setValue($defaultLocationUL);
+
+            $settingReception = $settingRepository->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM]);
+            $settingReception->setValue($defaultLocationReception);
+
+            $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL";
+            $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
         }
     }
 
@@ -795,10 +834,18 @@ class SettingsService {
                         ->setConditionFixedField(SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD)
                         ->setRequired($item["required"] ?? null);
 
-                    if (isset($item["displayedUnderCondition"])) {
-                        $fieldsParam->setDisplayedUnderCondition($item["displayedUnderCondition"]);
-                        $fieldsParam->setConditionFixedFieldValue(isset($item["conditionFixedFieldValue"]) ?? $item["conditionFixedFieldValue"] !== "" ? explode(',', $item["conditionFixedFieldValue"]) : []);
+                    $displayedUnderCondition = $item["displayedUnderCondition"] ?? false;
+                    $conditionFixedFieldValue = Stream::explode(",", $item["conditionFixedFieldValue"] ?? "")
+                        ->filter()
+                        ->toArray();
+
+                    if ($displayedUnderCondition && empty($conditionFixedFieldValue)) {
+                        throw new FormException("Vous devez saisir la colonne valeur");
                     }
+
+                    $fieldsParam
+                        ->setDisplayedUnderCondition($displayedUnderCondition)
+                        ->setConditionFixedFieldValue($conditionFixedFieldValue);
                 }
             }
         }

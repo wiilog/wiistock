@@ -7,8 +7,8 @@
 {% if transportDeliveryRequestLines is not empty and transportDeliveryRequestLines %}
     {% if both %}
         <div class="d-flex align-items-center ml-3 py-2">
-            <img src="{{ asset('svg/delivery.svg') }}" alt="Icône livraison" width="25px" height="25px">
-            <span class="ml-2">Livraison</span>
+            <img src="{{ asset('svg/delivery.svg') }}" alt="Icône {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}" width="25px" height="25px">
+            <span class="ml-2">{{ trans('Demande', 'Livraison', 'Livraison', false) }}</span>
         </div>
     {% endif %}
     {% for line in transportDeliveryRequestLines %}

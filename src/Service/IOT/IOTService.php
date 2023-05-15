@@ -36,7 +36,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\IOT\SensorMessageRepository;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
-use App\Service\DemandeLivraisonService;
+use App\Service\DeliveryRequestService;
 use App\Service\HttpService;
 use App\Service\MailerService;
 use App\Service\NotificationService;
@@ -96,7 +96,7 @@ class IOTService
     ];
 
     /** @Required */
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     /** @Required */
     public UniqueNumberService $uniqueNumberService;
