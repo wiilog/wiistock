@@ -2112,7 +2112,7 @@ class ImportService
                 }
                 $defaultZoneLocation = $this->cache['defaultZoneLocation'];
                 if (empty($defaultZoneLocation)) {
-                    $this->throwError('Erreur lors de la creation de l\'emplacement : ' . $data['emplacement'] . '. La zone ' . Zone::ACTIVITY_STANDARD_ZONE_NAME . ' n\'est pas définie.');
+                    $this->throwError('Erreur lors de la création de l\'emplacement : ' . $data['emplacement'] . '. La zone ' . Zone::ACTIVITY_STANDARD_ZONE_NAME . ' n\'est pas définie.');
                 }
                 $location = new Emplacement();
                 $location
