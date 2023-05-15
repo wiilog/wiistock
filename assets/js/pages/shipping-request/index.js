@@ -2,6 +2,8 @@ import {GET} from "@app/ajax";
 
 let tableShippings;
 
+global.validateShippingRequest = validateShippingRequest;
+
 $(function() {
     Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
     initDateTimePicker('#dateMin, #dateMax');
@@ -71,4 +73,14 @@ function initTableShippings() {
 
         return initDataTable('tableShippings', tableShippingsConfig);
     }
+}
+
+function validateShippingRequest(shipping_request_id){
+    AJAX.route(`GET`, `shipping_request_validation`, {id:shipping_request_id})
+        .json()
+        .then((res) => {
+            if (res.success) {
+                location.reload()
+            }
+        });
 }
