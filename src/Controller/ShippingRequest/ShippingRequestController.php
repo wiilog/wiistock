@@ -145,7 +145,7 @@ class ShippingRequestController extends AbstractController {
                            ShippingRequestService $shippingRequestService,
                            UniqueNumberService    $uniqueNumberService,
                            StatusHistoryService   $statusHistoryService): JsonResponse {
-        $data = $request->request->all();
+        $data = $request->request;
 
         $statusRepository = $entityManager->getRepository(Statut::class);
         $shippingRequest = new ShippingRequest();
@@ -180,16 +180,16 @@ class ShippingRequestController extends AbstractController {
     public function edit(Request                $request,
                                EntityManagerInterface $entityManager,
                                ShippingRequestService $shippingRequestService): JsonResponse {
-        $data = $request->request->all();
-
-        if($shippingRequestId = $data['shippingRequestId'] ?? false) {
+        $data = $request->request;
+        $shippingRequestId = $request->get('shippingRequestId');
+        if ($shippingRequestId) {
             $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
             $shippingRequest = $shippingRequestRepository->find($shippingRequestId);
         } else {
             throw new FormException('La demande d\'expédition n\'a pas été trouvée.');
         }
-
-        if($shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data)){
+        $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+        if($success){
             $entityManager->flush();
             return $this->json([
                 'success' => true,

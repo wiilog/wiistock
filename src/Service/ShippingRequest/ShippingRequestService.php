@@ -12,6 +12,7 @@ use App\Service\FormatService;
 use App\Service\VisibleColumnService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -99,7 +100,7 @@ class ShippingRequestService {
     {
         $formatService = $this->formatService;
 
-        $url = $this->router->generate('shipping_show_page', [
+        $url = $this->router->generate('shipping_request_show', [
             "id" => $shipping->getId()
         ]);
         $row = [
@@ -146,7 +147,7 @@ class ShippingRequestService {
         ]);
     }
 
-    public function updateShippingRequest(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, $data): bool {
+    public function updateShippingRequest(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, InputBag $data): bool {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $requiredFields= [
@@ -162,44 +163,43 @@ class ShippingRequestService {
         ];
 
         foreach ($requiredFields as $requiredField) {
-            if (empty($data[$requiredField])) {
+            if (!$data->has($requiredField) && !empty($data->get($requiredField))) {
                 throw new FormException("Une erreur est survenue un champ requis est manquant");
             }
         }
-
-        $requestersIds = Stream::from(explode(',', $data['requesters'] ?? ''))->filter();
+        $requestersIds = Stream::explode(',', $data->get('requesters'))->filter();
         if (count($requestersIds) > 0) {
-            $requesters = new ArrayCollection(
-                $requestersIds
-                    ->map(fn($requesterId) => $userRepository->find($requesterId))
-                    ->toArray());
-            $shippingRequest->setRequesters($requesters);
+            $requesters = $requestersIds
+                ->map(fn($requesterId) => $userRepository->findOneBy(['id' => $requesterId]))
+                ->filter()
+                ->toArray();
         } else {
             throw new FormException("Vous devez sélectionner au moins un demandeur");
         }
 
-        $carrierId = $data['carrier'] ?? '';
+        $carrierId = $data->get('carrier');
         if ($carrierId) {
             $carrier = $carrierRepository->find($carrierId);
-            $shippingRequest->setCarrier($carrier);
+
         } else {
             throw new FormException("Vous devez sélectionner un transporteur");
         }
 
         $shippingRequest
-            ->setRequesterPhoneNumbers(explode(',', $data['requesterPhoneNumbers'] ?? ''))
-            ->setCustomerOrderNumber($data['customerOrderNumber'] ?? '')
-            ->setFreeDelivery(boolval($data['freeDelivery'] ?? false))
-            ->setCompliantArticles(boolval($data['compliantArticles'] ?? false))
-            ->setCustomerName($data['customerName'] ?? '')
-            ->setCustomerPhone($data['customerPhone'] ?? '')
-            ->setCustomerRecipient($data['customerRecipient'] ?? '')
-            ->setCustomerAddress($data['customerAddress'] ?? '')
-            ->setRequestCaredAt($this->formatService->parseDatetime($data['requestCaredAt'] ?? '', ))
-            ->setShipment($data['shipment'] ?? '')
-            ->setCarrying($data['carrying'] ?? '')
-            ->setComment($data['comment'] ?? '');
-
+            ->setRequesterPhoneNumbers(explode(',', $data->get('requesterPhoneNumbers')))
+            ->setCustomerOrderNumber($data->get('customerOrderNumber'))
+            ->setFreeDelivery($data->getBoolean('freeDelivery'))
+            ->setCompliantArticles($data->getBoolean('compliantArticles'))
+            ->setCustomerName($data->get('customerName'))
+            ->setCustomerPhone($data->get('customerPhone'))
+            ->setCustomerRecipient($data->get('customerRecipient'))
+            ->setCustomerAddress($data->get('customerAddress'))
+            ->setRequestCaredAt($this->formatService->parseDatetime($data->get('requestCaredAt')))
+            ->setShipment($data->get('shipment'))
+            ->setCarrying($data->get('carrying'))
+            ->setComment($data->get('comment'))
+            ->setRequesters($requesters)
+            ->setCarrier($carrier);
         return true;
     }
 }

@@ -12,7 +12,7 @@
         Informations
     </div>
     <div class="row">
-        <div class="col-6 mt-2">
+        <div class="col-12 col-md-4  mt-2">
             {{ form.select('requesters', 'Demandeur(s)', true, {
                 type: 'user',
                 multiple: true,
@@ -40,7 +40,7 @@
                     }],
                 }) }}
         </div>
-        <div class="col-6 mt-2">
+        <div class="col-12 col-md-4 mt-2">
             {{ form.select('requesterPhoneNumbers', 'Téléphone', true, {
                 type: null,
                 multiple: true,
@@ -53,15 +53,15 @@
             }) }}
 
         </div>
-        <div class="col-6 mt-2">
+        <div class="col-12 col-md-4 mt-2">
             {{ form.input('customerOrderNumber', 'N° commande client', true, shipping.customerOrderNumber,{}) }}
         </div>
     </div>
     <div class="row">
-        <div class="col-6 my-3">
+        <div class="col-12 col-md-4 my-3">
             {{ form.checkbox('freeDelivery', 'Livraison à titre gracieux', false, shipping.freeDelivery, {}) }}
         </div>
-        <div class="col-6 my-3">
+        <div class="col-12 col-md-4 my-3">
             {{ form.checkbox('compliantArticles', 'Article(s) conforme(s)', false, shipping.compliantArticles, {}) }}
         </div>
     </div>
@@ -69,7 +69,7 @@
         Destinataire
     </div>
     <div class="row">
-        <div class="col-6 mt-2">
+        <div class="col-12 col-md-4 mt-2">
             {{ form.select('customerName', 'Client', true, {
                 type: 'customers',
                 items: [],
@@ -83,13 +83,13 @@
                 }] : [],
             }) }}
         </div>
-        <div class="col-6 mt-2">
+        <div class="col-12 col-md-4 mt-2">
             {{ form.input('customerPhone', 'Téléphone', true, shipping.customerPhone,{}) }}
         </div>
-        <div class="col-6 mt-2">
+        <div class="col-12 col-md-4 mt-2">
             {{ form.input('customerRecipient', 'A l\'attention de', false, shipping.customerRecipient,{}) }}
         </div>
-        <div class="col-12 mt-2">
+        <div class="col-12 col-md-8 mt-2">
             {{ form.input('customerAddress', 'Adresse de livraison', true, shipping.customerAddress,{
                 type: 'textarea',
             }) }}
@@ -99,12 +99,12 @@
         Expédition
     </div>
     <div class="row">
-        <div class="col-6 mt-2">
+        <div class="col-12 col-md-4 mt-2">
             {{ form.input('requestCaredAt', 'Date de prise en charge souhaitée', true, shipping.requestCaredAt|date('Y-m-d'), {
                 type: 'date',
             }) }}
         </div>
-        <div class="col-6 mt-2">
+        <div class="col-12 col-md-4 mt-2">
             {{ form.select('carrier', 'Transporteur', true, {
                 type: 'carrier',
                 items: shipping.carrier ? [{
@@ -114,19 +114,19 @@
                 }] : [],
             }) }}
         </div>
-        <div class="col-6 mt-2">
-            {% set shipmentOptions = constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_LABELS')|map((v, k) => ({
-                value: k,
-                label: v,
-                checked: shipping.id ? shipping.shipment : k == constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_NATIONAL')
+        <div class="col-12 col-md-4 mt-2">
+            {% set shipmentOptions = constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_LABELS')|map((value, key) => ({
+                value: key,
+                label: value,
+                checked: shipping.id ? shipping.shipment : key == constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_NATIONAL')
             })) %}
             {{ form.switch('shipment', 'Envoi', false, shipmentOptions ) }}
         </div>
-        <div class="col-6 mt-2">
-            {% set carrying = constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_LABELS')|map((v, k) => ({
-                value: k,
-                label: v,
-                checked: shipping.id ? shipping.carrying : k == constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_OWED')
+        <div class="col-12 col-md-4v mt-2">
+            {% set carrying = constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_LABELS')|map((value, key) => ({
+                value: key,
+                label: value,
+                checked: shipping.id ? shipping.carrying : key == constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_OWED')
             })) %}
             {{ form.switch('carrying', 'Port', false, carrying ) }}
         </div>
@@ -135,7 +135,7 @@
         Autre
     </div>
     <div class="row">
-        <div class="col-8 mt-2">
+        <div class="col-12 col-md-8 mt-2">
             {{ form.wysiwyg('comment', 'Commentaire', false, shipping.comment) }}
         </div>
     </div>

@@ -1,19 +1,20 @@
-<div class="modal fade" id="modalNewShippingRequest" data-modal-type="new" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+<div class="modal fade" id="modalEditShippingRequest" data-modal-type="new" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: 'Créer une demande d\'expédition'
+                title: 'Modifier une demande d\'expédition'
             } %}
 
             <div class="modal-body modal-input container-fluid pt-0">
                 {% include 'shipping_request/form.html.twig' with {
+                    shipping
                 } %}
             </div>
 
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Valider la demande d\'expédition'), type: 'submit'}
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
                 ],
             } %}
         </div>

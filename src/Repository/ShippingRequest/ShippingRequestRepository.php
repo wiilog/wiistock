@@ -189,7 +189,7 @@ class ShippingRequestRepository extends EntityRepository {
     {
         $result = $this->createQueryBuilder('shipping_request')
             ->select('shipping_request.number')
-            ->where('shipping_request.number LIKE :value')
+            ->andWhere('shipping_request.number LIKE :value')
             ->orderBy('shipping_request.createdAt', 'DESC')
             ->addOrderBy('shipping_request.number', 'DESC')
             ->setParameter('value', ShippingRequest::NUMBER_PREFIX . '-' . $date . '%')

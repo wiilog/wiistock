@@ -74,7 +74,7 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::STRING)]
     private ?string $customerPhone = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $customerRecipient = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -257,8 +257,8 @@ class ShippingRequest extends StatusHistoryContainer {
         return $this->requesters;
     }
 
-    public function setRequesters(Collection $requesters): self {
-        $this->requesters = $requesters;
+    public function setRequesters(?array $requesters): self {
+        $this->requesters = new ArrayCollection($requesters);
         return $this;
     }
 
