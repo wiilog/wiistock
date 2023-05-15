@@ -437,11 +437,30 @@ class DispatchService {
                 ? 'Acheminement {1} traité partiellement le {2}'
                 : 'Acheminement {1} traité le {2}';
 
-            $customGroupedSignatureTitle = $status->getGroupedSignatureType() === Dispatch::DROP ? 'Bon de livraison' : "Bon d'enlèvement";
+            $customGroupedSignatureTitle =
+                $status->getGroupedSignatureType() === Dispatch::DROP
+                    ? 'Bon de livraison'
+                    : "Bon d'enlèvement";
+
+            $groupedSignatureNumber =
+                $dispatch->getNumber()
+                . '_'
+                . (
+                $status->getGroupedSignatureType() === Dispatch::DROP
+                    ? 'LIV'
+                    : "ENL"
+                )
+                . '_'
+                . $this->formatService->location($dispatch->getLocationTo())
+                . '_'
+                . $this->formatService->location($dispatch->getLocationFrom())
+                . '_'
+                . (new DateTime())->format('Ymd')
+            ;
             // Attention!! return traduction parameters to give to translationService::translate
             $title = fn(string $slug) => (
                 $fromGroupedSignature
-                ? ['Demande', 'Acheminements', 'Emails', "$customGroupedSignatureTitle généré pour l'acheminement {1} au statut {2} le {3}", [
+                ? ['Demande', 'Acheminements', 'Emails', "$customGroupedSignatureTitle $groupedSignatureNumber généré pour l'acheminement {1} au statut {2} le {3}", [
                     1 => $dispatch->getNumber(),
                     2 => $this->formatService->status($status),
                     3 => $this->formatService->datetime($validationDate)
@@ -1096,7 +1115,21 @@ class DispatchService {
                                                        ?Utilisateur $signatory = null): Attachment {
 
         $status = $dispatch->getStatut();
-        $customGroupedSignatureTitle = $status->getGroupedSignatureType() === Dispatch::DROP ? 'Bon de livraison' : "Bon d'enlèvement";
+        $customGroupedSignatureTitle =
+            $dispatch->getNumber()
+            . '_'
+            . (
+                $status->getGroupedSignatureType() === Dispatch::DROP
+                    ? 'LIV'
+                    : "ENL"
+            )
+            . '_'
+            . $this->formatService->location($dispatch->getLocationTo())
+            . '_'
+            . $this->formatService->location($dispatch->getLocationFrom())
+            . '_'
+            . (new DateTime())->format('Ymd')
+        ;
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -1121,8 +1154,8 @@ class DispatchService {
             "numtracktransach" => $dispatch->getCarrierTrackingNumber() ?: '',
             "demandeurach" => $this->formatService->user($dispatch->getRequester()),
             "materielhorsformatref" => $referenceArticlesStream->count() === 1
-                ? $this->formatService->bool($referenceArticlesStream->first()->getReferenceArticle()->getDescription()['outFormatEquipment'] ?? null)
-                : '',
+                ? $this->formatService->bool($referenceArticlesStream->first()->getReferenceArticle()->getDescription()['outFormatEquipment'] ?? null, 'Non')
+                : 'Non',
             "destinatairesach" => $this->formatService->users($dispatch->getReceivers()),
             "signataireach" => $this->formatService->user($signatory),
             "numprojetach" => $dispatch->getProjectNumber() ?: '',
@@ -1131,7 +1164,7 @@ class DispatchService {
             "date2ach" => $this->formatService->date($dispatch->getEndDate()),
             "urgenceach" => $dispatch->getEmergency() ?? 'Non',
             // keep line breaking in docx
-            "commentaireach" => $this->formatService->html(str_replace("<br/>", "\n", $dispatch->getCommentaire())),
+            "commentaireach" => $this->formatService->html(str_replace("<br/>", "\n", $dispatch->getCommentaire()), '-'),
             "datestatutach" => $this->formatService->datetime($dispatch->getTreatmentDate()),
         ];
 
@@ -1155,9 +1188,11 @@ class DispatchService {
                     "adrref" => $dispatchReferenceArticle->isADR() ? 'Oui' : 'Non' ,
                     "documentsref" => $description['associatedDocumentTypes'] ?? '',
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
-                    "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null),
+                    "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null, "Non"),
                     // keep line breaking in docx
-                    "commentaireref" => $this->formatService->html(str_replace("<br/>", "\n", $dispatchReferenceArticle->getComment())),
+                    "commentaireref" => $dispatchReferenceArticle->getCleanedComment() ?
+                        $this->formatService->html(str_replace("<br/>", "\n", $dispatchReferenceArticle->getComment()), '-')
+                        : '-',
                 ];
             })
             ->toArray();
@@ -1175,14 +1210,12 @@ class DispatchService {
         $this->PDFGeneratorService->generateFromDocx($docxPath, $reportOutdir);
         unlink($docxPath);
 
-        $title = "$customGroupedSignatureTitle - {$dispatch->getNumber()}";
-
         $reportAttachment = new Attachment();
         $reportAttachment
             ->setDispatch($dispatch)
             ->setFileName($nakedFileName . '.pdf')
             ->setFullPath('/uploads/attachements/' . $nakedFileName . '.pdf')
-            ->setOriginalName($title . '.pdf');
+            ->setOriginalName($customGroupedSignatureTitle . '.pdf');
 
         $entityManager->persist($reportAttachment);
         $entityManager->flush();
