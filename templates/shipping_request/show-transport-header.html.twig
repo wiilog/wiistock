@@ -18,8 +18,8 @@
                     </button>
                 {% elseif shipping.status.code == constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_TO_TREAT') and hasRightDisplayScheduleButton %}
                     <button type="button"
+                            onclick="openScheduledShippingRequestModal($(this))"
                             data-id='{{ shipping.id }}'
-                            onclick=""
                             class="btn btn-primary align-items-center justify-content-center split-button mr-0">
                         <span class="wii-icon wii-icon-calendar mr-2"></span>
                         Planifier

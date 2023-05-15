@@ -3,6 +3,7 @@ import {GET} from "@app/ajax";
 let tableShippings;
 
 global.validateShippingRequest = validateShippingRequest;
+global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
 
 $(function() {
     Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
@@ -33,6 +34,7 @@ $(function() {
     initTableShippings().then((table) => {
         tableShippings = table;
     });
+    initScheduledShippingRequestForm();
 })
 
 function initTableShippings() {
@@ -81,6 +83,28 @@ function validateShippingRequest(shipping_request_id){
         .then((res) => {
             if (res.success) {
                 location.reload()
+            }
+        });
+}
+
+function initScheduledShippingRequestForm(){
+    let $modalScheduledShippingRequest = $('#modalScheduledShippingRequest');
+    Form.create($modalScheduledShippingRequest).onSubmit((data, form) => {
+        $modalScheduledShippingRequest.modal('hide');
+        openPackingPack(data);
+    });
+}
+function openPackingPack(dataShippingRequestForm){
+    //todo WIIS-9591
+}
+
+function openScheduledShippingRequestModal($button){
+    const id = $button.data('id')
+    AJAX.route(`GET`, `check_expected_lines_data`, {id})
+        .json()
+        .then((res) => {
+            if (res.success) {
+                $('#modalScheduledShippingRequest').modal('show');
             }
         });
 }
