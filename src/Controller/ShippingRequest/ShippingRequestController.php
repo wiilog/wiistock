@@ -120,27 +120,25 @@ class ShippingRequestController extends AbstractController {
             $referenceArticle = $expectedLine->getReferenceArticle();
 
             //FDS & codeOnu & classeProduct needed if it's dangerousGoods
-            if ($referenceArticle->isDangerousGoods()) {
-                if (!$referenceArticle->getSheet()
+            if ($referenceArticle->isDangerousGoods()
+                && (!$referenceArticle->getSheet()
                     || !$referenceArticle->getOnuCode()
-                    || !$referenceArticle->getProductClass()) {
+                    || !$referenceArticle->getProductClass())) {
 
-                    return $this->json([
-                        'success' => false,
-                        'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
-                    ]);
-                }
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
+                ]);
             }
 
             //codeNdp needed if shipment is international
-            if ($shippingRequest->getShipment() === ShippingRequest::SHIPMENT_INTERNATIONAL) {
-                if (!$referenceArticle->getNdpCode()) {
+            if ($shippingRequest->getShipment() === ShippingRequest::SHIPMENT_INTERNATIONAL
+                && !$referenceArticle->getNdpCode()) {
 
-                    return $this->json([
-                        'success' => false,
-                        'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
-                    ]);
-                }
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
+                ]);
             }
         }
 
