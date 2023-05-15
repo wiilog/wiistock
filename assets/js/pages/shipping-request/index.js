@@ -2,7 +2,34 @@ import {GET} from "@app/ajax";
 
 let tableShippings;
 
+global.validateShippingRequest = validateShippingRequest;
+
 $(function() {
+    Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
+    initDateTimePicker('#dateMin, #dateMax');
+
+    let params = GetRequestQuery();
+    // applique les filtres si pré-remplis
+    let val = $('#filterStatus').val();
+
+    if (params.date || val && val.length > 0) {
+        if(val && val.length > 0) {
+            let valuesStr = val.split(',');
+            let valuesInt = [];
+            valuesStr.forEach((value) => {
+                valuesInt.push(parseInt(value));
+            })
+            $('#statut').val(valuesInt).select2();
+        }
+    } else {
+        // sinon, filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_SHIPPING);
+        $.post(path, params, function (data) {
+            displayFiltersSup(data, true);
+        }, 'json');
+    }
+
     initTableShippings().then((table) => {
         tableShippings = table;
     });
@@ -46,4 +73,14 @@ function initTableShippings() {
 
         return initDataTable('tableShippings', tableShippingsConfig);
     }
+}
+
+function validateShippingRequest(shipping_request_id){
+    AJAX.route(`GET`, `shipping_request_validation`, {id:shipping_request_id})
+        .json()
+        .then((res) => {
+            if (res.success) {
+                location.reload()
+            }
+        });
 }
