@@ -13,9 +13,12 @@ use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
+use App\Service\FormatService;
+use App\Exceptions\FormException;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
+use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -80,6 +83,7 @@ class ShippingRequestController extends AbstractController {
             "statuses" => $statutRepository->findByCategorieName(ShippingRequest::CATEGORIE, 'displayOrder'),
             "dateChoices" =>$dateChoice,
             "carriersForFilter" => $carrierRepository->findAll(),
+            "shipping" => new ShippingRequest(),
         ]);
     }
 
@@ -97,7 +101,17 @@ class ShippingRequestController extends AbstractController {
     public function api(Request                $request,
                         ShippingRequestService $service,
                         EntityManagerInterface $entityManager) {
-        return $this->json($service->getDataForDatatable($request, $entityManager));
+        return $this->json($service->getDataForDatatable( $entityManager, $request));
+    }
+
+    #[Route("/voir/{id}", name:"shipping_request_show", options: ["expose" => true])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function show(ShippingRequest        $shippingRequest,
+                         ShippingRequestService $shippingRequestService): Response {
+        return $this->render('shipping_request/show.html.twig', [
+            'shipping'=> $shippingRequest,
+            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+        ]);
     }
 
     #[Route("/colonne-visible", name: "save_column_visible_for_shipping_request", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
@@ -122,16 +136,70 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/voir/{id}", name:"shipping_show_page", options:["expose"=>true])]
-    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function showPage(ShippingRequest        $shippingRequest,
-                             ShippingRequestService $shippingRequestService,
-                             EntityManagerInterface $entityManager): Response {
+    #[Route("/new", name: "shipping_request_new", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::CREATE_SHIPPING], mode: HasPermission::IN_JSON)]
+    public function new(Request                $request,
+                        EntityManagerInterface $entityManager,
+                        ShippingRequestService $shippingRequestService,
+                        UniqueNumberService    $uniqueNumberService,
+                        StatusHistoryService   $statusHistoryService): JsonResponse {
+        $data = $request->request;
+        $now = new \DateTime('now');
 
-        return $this->render('shipping_request/show.html.twig', [
-            'shipping'=> $shippingRequest,
-            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
-        ]);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $shippingRequest = new ShippingRequest();
+        $shippingRequest
+            ->setNumber($uniqueNumberService->create($entityManager, ShippingRequest::NUMBER_PREFIX, ShippingRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT))
+            ->setCreatedAt($now)
+            ->setCreatedBy($this->getUser());
+
+        $statusHistoryService->updateStatus(
+            $entityManager,
+            $shippingRequest,
+            $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::SHIPMENT, ShippingRequest::STATUS_DRAFT),
+            ['setStatus' => true, 'date' => $now],
+        );
+
+        $entityManager->persist($shippingRequest);
+
+        $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+        if($success){
+            $entityManager->flush();
+            return $this->json([
+                'success' => true,
+                'msg' => 'Votre demande d\'expédition a bien été créée.',
+                'shippingRequestId' => $shippingRequest->getId(),
+            ]);
+        } else {
+            throw new FormException();
+        }
+    }
+
+    #[Route("/edit", name: "shipping_request_edit", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::CREATE_SHIPPING], mode: HasPermission::IN_JSON)]
+    public function edit(Request                $request,
+                         EntityManagerInterface $entityManager,
+                         ShippingRequestService $shippingRequestService): JsonResponse {
+        $data = $request->request;
+        $shippingRequestId = $request->get('shippingRequestId');
+        if ($shippingRequestId) {
+            $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
+            $shippingRequest = $shippingRequestRepository->find($shippingRequestId);
+        } else {
+            throw new FormException('La demande d\'expédition n\'a pas été trouvée.');
+        }
+
+        $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+        if($success){
+            $entityManager->flush();
+            return $this->json([
+                'success' => true,
+                'msg' => 'Votre demande d\'expédition a bien été enregistrée',
+                'shippingRequestId' => $shippingRequest->getId(),
+            ]);
+        } else {
+            throw new FormException();
+        }
     }
 
     #[Route("/check_expected_lines_data/{id}", name: 'check_expected_lines_data', options: ["expose" => true], methods: ['GET'])]
@@ -231,12 +299,25 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/get-transport-header-config/{id}", name:"get_transport_header_config", methods: ['GET', 'POST'], options:["expose"=>true])]
+    #[Route("/get-transport-header-config/{id}", name: "get_transport_header_config", options: ["expose"=>true], methods: ['GET', 'POST'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function getTransportHeaderConfig(ShippingRequest        $shippingRequest,
                                              ShippingRequestService $shippingRequestService): Response {
         return $this->json([
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+        ]);
+    }
+
+    #[Route(["/form/{id}", "/form"], name: "shipping_request_form", options: ["expose" => true], methods: ['GET'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function getForm(?ShippingRequest $shippingRequest): Response {
+        $shippingRequest = $shippingRequest ?? new ShippingRequest();
+
+        return $this->json([
+            'success' => true,
+            'html' => $this->renderView('shipping_request/form.html.twig', [
+                'shipping' => $shippingRequest,
+            ]),
         ]);
     }
 }
