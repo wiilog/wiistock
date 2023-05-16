@@ -1,4 +1,5 @@
-import {GET} from "@app/ajax";
+import {GET, POST} from "@app/ajax";
+import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 let tableShippings;
 
@@ -32,8 +33,11 @@ $(function() {
     initTableShippings().then((table) => {
         tableShippings = table;
     });
-    initScheduledShippingRequestForm();
+    initModalFormShippingRequest($('#modalNewShippingRequest'), 'shipping_request_new', (data) => {
+        window.location.href = Routing.generate('shipping_request_show', {id: data.shippingRequestId});
+    });
 })
+
 
 function initTableShippings() {
     let initialVisible = $(`#tableShippings`).data(`initial-visible`);
@@ -55,7 +59,7 @@ function initTableShippings() {
             paging: true,
             ajax: {
                 url: Routing.generate('shipping_request_api', true),
-                type: "GET",
+                type: GET,
             },
             rowConfig: {
                 needsRowClickAction: true,
