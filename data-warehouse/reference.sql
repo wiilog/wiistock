@@ -52,7 +52,11 @@ SELECT reference_article.id,
        IF(JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."associatedDocumentTypes"')) = '',
           null,
           JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."associatedDocumentTypes"')))
-                                                                                                    AS types_documents_associes
+                                                                                                    AS types_documents_associes,
+       IF(reference_article.dangerous_goods = 1, 'oui', 'non')                                      AS marchandise_dangeureuse,
+       reference_article.onu_code                                                                   AS code_onu,
+       reference_article.product_class                                                              AS classe_produit,
+       reference_article.ndp_code                                                                   AS code_ndp
 
 FROM reference_article
 

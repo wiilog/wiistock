@@ -139,6 +139,7 @@ class ShippingRequest extends StatusHistoryContainer {
     private ?Utilisateur $treatedBy = null;
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
+    #[ORM\JoinTable(name: 'shipping_request_requester')]
     private Collection $requesters;
 
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: ShippingRequestExpectedLine::class)]
