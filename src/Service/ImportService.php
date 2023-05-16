@@ -1720,7 +1720,7 @@ class ImportService
         $location = $locationRepository->findOneBy(['label' => $data['name']]);
 
         if (!$location) {
-            $location = $this->emplacementDataService->createEmplacement($data, $this->entityManager);
+            $location = new Emplacement();
             $isNewEntity = true;
         }
 
@@ -2090,15 +2090,12 @@ class ImportService
             $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
             $location = $emplacementRepository->findOneBy(['label' => $data['emplacement']]);
             if (empty($location)) {
-                $location = $this->emplacementDataService->createEmplacement([
-                    "Label" => $data['emplacement'],
+                $location = $this->emplacementDataService->persistLocation([
+                    "label" => $data['emplacement'],
                     "isActive" => true,
                     "isDeliveryPoint" => false,
                 ], $this->entityManager);
-
-                //$this->entityManager->persist($location);
             }
-
             $articleOrRef->setEmplacement($location);
         }
     }

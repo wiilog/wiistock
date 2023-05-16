@@ -41,7 +41,9 @@ class EmplacementDataService {
 
     private array $labeledCacheLocations = [];
 
-    public function createEmplacement(array $data, EntityManagerInterface $entityManager): Emplacement
+    private array $cache = [];
+
+    public function persistLocation(array $data, EntityManagerInterface $entityManager): Emplacement
     {
         $typeRepository = $entityManager->getRepository(Type::class);
         $zoneRepository = $entityManager->getRepository(Zone::class);
@@ -49,7 +51,11 @@ class EmplacementDataService {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        $defaultZone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
+        if (!array_key_exists('defaultZone', $this->cache)) {
+            $this->cache['defaultZone'] =$zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
+        }
+        $defaultZone = $this->cache['defaultZone'];
+
 
         if(!empty($data['zone'])) {
             $zone = $zoneRepository->find($data['zone']) ?? $defaultZone;
@@ -71,32 +77,19 @@ class EmplacementDataService {
         }
 
         $location = (new Emplacement())
-            ->setLabel($data["Label"])
-            ->setDescription($data["Description"] ?? null)
+            ->setLabel($data["label"])
+            ->setDescription($data["description"] ?? null)
             ->setIsActive($data["isActive"] ?? true)
             ->setDateMaxTime($data['dateMaxTime'] ?? null)
             ->setIsDeliveryPoint($data["isDeliveryPoint"] ?? null)
             ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"] ?? false)
-            ->setAllowedDeliveryTypes(isset($data['allowedDeliveryTypes']) ? $typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]) : [])
-            ->setAllowedCollectTypes(isset($data['allowedCollectTypes']) ? $typeRepository->findBy(["id" => $data["allowedCollectTypes"]]) : [])
+            ->setAllowedDeliveryTypes(!empty($data['allowedDeliveryTypes']) ? $typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]) : [])
+            ->setAllowedCollectTypes(!empty($data['allowedCollectTypes']) ? $typeRepository->findBy(["id" => $data["allowedCollectTypes"]]) : [])
+            ->setAllowedNatures(!empty($data['allowed-natures']) ? $naturesRepository->findBy(["id" => $data["allowed-natures"]]) : [])
+            ->setTemperatureRanges(!empty($data['allowedTemperatures']) ? $temperatureRangeRepository->findBy(["id" => $data["allowedTemperatures"]]) : [])
             ->setSignatories($signatories ?? [])
             ->setEmail($data["email"] ?? null)
             ->setZone($zone);
-
-
-        if (!empty($data['allowed-natures'])) {
-            foreach ($data['allowed-natures'] as $allowedNatureId) {
-                $location
-                    ->addAllowedNature($naturesRepository->find($allowedNatureId));
-            }
-        }
-
-        if (!empty($data['allowedTemperatures'])) {
-            foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
-                $location
-                    ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
-            }
-        }
 
         $entityManager->persist($location);
 
@@ -204,8 +197,8 @@ class EmplacementDataService {
         }
 
         if (!$location) {
-            $location = $this->createEmplacement([
-                "Label" => $label,
+            $location = $this->persistLocation([
+                "label" => $label,
             ], $entityManager);
             $entityManager->persist($location);
         }

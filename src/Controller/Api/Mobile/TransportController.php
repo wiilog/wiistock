@@ -772,9 +772,9 @@ class TransportController extends AbstractApiController
         $locationRepository = $manager->getRepository(Emplacement::class);
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
         if (!$patient) {
-            $patient = $emplacementDataService->createEmplacement([
-                "Label" => "Patient",
-                "Description" => "Unités logistiques livrées chez un patient",
+            $patient = $emplacementDataService->persistLocation([
+                "label" => "Patient",
+                "description" => "Unités logistiques livrées chez un patient",
             ], $manager);
         }
 

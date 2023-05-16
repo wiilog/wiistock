@@ -80,7 +80,7 @@ class LocationController extends AbstractController {
     public function new(Request $request, EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService): Response {
         if ($data = json_decode($request->getContent(), true)) {
 
-            $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null);
+            $errorResponse = $this->checkLocationLabel($entityManager, $data["label"] ?? null);
             if ($errorResponse) {
                 return $errorResponse;
             }
@@ -99,7 +99,7 @@ class LocationController extends AbstractController {
                 ]);
             }
 
-            $emplacement = $emplacementDataService->createEmplacement($data, $entityManager);
+            $emplacement = $emplacementDataService->persistLocation($data, $entityManager);
             $entityManager->flush();
 
             $label = $emplacement->getLabel();
@@ -184,7 +184,7 @@ class LocationController extends AbstractController {
             $zoneRepository = $entityManager->getRepository(Zone::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-            $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null, $data['id']);
+            $errorResponse = $this->checkLocationLabel($entityManager, $data["label"] ?? null, $data['id']);
             if ($errorResponse) {
                 return $errorResponse;
             }
@@ -213,8 +213,8 @@ class LocationController extends AbstractController {
             }
             $emplacement = $emplacementRepository->find($data['id']);
             $emplacement
-                ->setLabel($data["Label"])
-                ->setDescription($data["Description"])
+                ->setLabel($data["label"])
+                ->setDescription($data["description"])
                 ->setIsDeliveryPoint($data["isDeliveryPoint"])
                 ->setIsOngoingVisibleOnMobile($data["isOngoingVisibleOnMobile"])
                 ->setDateMaxTime($dateMaxTime)

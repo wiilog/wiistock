@@ -35,9 +35,9 @@ class ImportEmplacementFixtures extends Fixture
             $emplacement = $emplacementRepository->findOneBy(['label' => $label]);
 
             if (empty($emplacement) && !isset($emplacements[$label])) {
-                $emplacement = $this->emplacementDataService->createEmplacement([
-                    "Label" => $label,
-                    "Description" => $description,
+                $emplacement = $this->emplacementDataService->persistLocation([
+                    "label" => $label,
+                    "description" => $description,
                 ], $manager);
 
                 $emplacements[$label] = true;

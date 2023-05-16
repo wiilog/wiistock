@@ -973,6 +973,17 @@ class Emplacement implements PairedEntity {
         return $this;
     }
 
+    public function setTemperatureRanges(?array $temperatureRanges): self {
+        foreach ($this->getTemperatureRanges()->toArray() as $temperature) {
+            $this->removeTemperatureRange($temperature);
+        }
+        $this->temperatureRanges = new ArrayCollection();
+        foreach ($temperatureRanges as $temperatureRange) {
+            $this->addTemperatureRange($temperatureRange);
+        }
+        return $this;
+    }
+
     public function getVehicle(): ?Vehicle
     {
         return $this->vehicle;

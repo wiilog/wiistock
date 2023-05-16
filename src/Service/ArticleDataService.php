@@ -268,7 +268,7 @@ class ArticleDataService
         } else {
             $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
             if (!$location) {
-                $location = $this->emplacementDataService->createEmplacement([
+                $location = $this->emplacementDataService->persistLocation([
                     "Label" => Emplacement::LABEL_A_DETERMINER,
                 ], $entityManager);
             }
