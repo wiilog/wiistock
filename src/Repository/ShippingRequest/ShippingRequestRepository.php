@@ -227,8 +227,13 @@ class ShippingRequestRepository extends EntityRepository {
             ->leftJoin('join_expectedLine.referenceArticle', 'join_expectedLine_RefArticle')
             ->leftJoin('join_expectedLine.lines', 'join_line')
             ->leftJoin('join_line.article', 'join_article')
-            ->groupBy('shipping_request.number, join_packLine.id, join_pack.code, join_packNature.label,
-                join_line.id, join_expectedLine.id, join_expectedLine_RefArticle.reference')
+            ->addGroupBy('shipping_request.number')
+            ->addGroupBy('join_packLine.id')
+            ->addGroupBy('join_pack.code')
+            ->addGroupBy('join_packNature.label')
+            ->addGroupBy('join_line.id')
+            ->addGroupBy('join_expectedLine.id')
+            ->addGroupBy('join_expectedLine_RefArticle.reference')
             ->getQuery()
             ->getResult();
     }
