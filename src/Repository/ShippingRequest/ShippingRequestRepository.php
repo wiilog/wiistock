@@ -198,10 +198,10 @@ class ShippingRequestRepository extends EntityRepository {
         if (!empty($statuses)) {
             $res = $this
                 ->createQueryBuilder('shipping_request')
-                ->select('shipping_request.createdAt AS date')
+                ->select('shipping_request.validatedAt AS date')
                 ->innerJoin('shipping_request.status', 'status')
                 ->andWhere('status IN (:statuses)')
-                ->addOrderBy('shipping_request.createdAt', 'ASC')
+                ->addOrderBy('shipping_request.validatedAt', 'ASC')
                 ->setParameter('statuses', $statuses)
                 ->setMaxResults(1)
                 ->getQuery()

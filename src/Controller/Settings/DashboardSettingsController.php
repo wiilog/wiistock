@@ -257,7 +257,7 @@ class DashboardSettingsController extends AbstractController {
                 ->toArray());
 
             $entityTypes = $typeRepository->findByCategoryLabels($categoryTypes);
-            $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL, Statut::IN_PROGRESS]);
+            $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL, Statut::IN_PROGRESS, Statut::SCHEDULED, Statut::SHIPPED]);
         } else if ($componentType->getMeterKey() === Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS) {
             $entityTypes = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         }
