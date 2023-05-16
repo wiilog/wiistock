@@ -263,7 +263,7 @@ function importTemplateChanged($dataTypeImport = null) {
         USER: {label: 'utilisateurs', url: `${templateDirectory}/modele-import-utilisateurs.csv`},
         DELIVERY: {label: 'livraisons', url: `${templateDirectory}/modele-import-livraisons.csv`},
         LOCATION: {label: 'emplacements', url: `${templateDirectory}/modele-import-emplacements.csv`},
-        CLIENT: {label: 'clients', url: `${templateDirectory}/modele-import-clients.csv`},
+        CUSTOMER: {label: 'clients', url: `${templateDirectory}/modele-import-clients.csv`},
         PROJECT: {label: 'projets', url: `${templateDirectory}/modele-import-projets.csv`},
         REF_LOCATION: {label: 'quantités référence par emplacement', url: `${templateDirectory}/modele-import-reference-emplacement-quantites.csv`},
     };
