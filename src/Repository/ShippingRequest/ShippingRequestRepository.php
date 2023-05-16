@@ -2,6 +2,7 @@
 
 namespace App\Repository\ShippingRequest;
 
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityRepository;
@@ -230,5 +231,18 @@ class ShippingRequestRepository extends EntityRepository {
                 join_line.id, join_expectedLine.id, join_expectedLine_RefArticle.reference')
             ->getQuery()
             ->getResult();
+    }
+
+    public function getLastNumberByDate(string $date): ?string
+    {
+        $result = $this->createQueryBuilder('shipping_request')
+            ->select('shipping_request.number')
+            ->andWhere('shipping_request.number LIKE :value')
+            ->orderBy('shipping_request.createdAt', 'DESC')
+            ->addOrderBy('shipping_request.number', 'DESC')
+            ->setParameter('value', ShippingRequest::NUMBER_PREFIX . '-' . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
     }
 }
