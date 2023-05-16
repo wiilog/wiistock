@@ -7,17 +7,20 @@ use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Language;
+use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
+use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Service\LanguageService;
+use App\Service\FormatService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,13 +33,57 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/", name: "shipping_request_index")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function index(ShippingRequestService $service) {
+    public function index(EntityManagerInterface $entityManager,
+                          ShippingRequestService $service,
+                          TranslationService $translationService): Response {
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+
         $currentUser = $this->getUser();
         $fields = $service->getVisibleColumnsConfig($currentUser);
+
+
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+
+        $dateChoice = [
+            [
+                'name' => 'createdAt',
+                'label' => $translationService->translate('Général', null, 'Zone liste', 'Date de création'),
+            ],
+            [
+                'name' => 'requestCaredAt',
+                'label' => $translationService->translate('Demande', 'Expédition', 'Date de prise en charge souhaitée'),
+            ],
+            [
+                'name' => 'validatedAt',
+                'label' => $translationService->translate('Demande', 'Expédition', 'Date de validation'),
+            ],
+            [
+                'name' => 'plannedAt',
+                'label' => $translationService->translate('Demande', 'Expédition', 'Date de planification'),
+            ],
+            [
+                'name' => 'expectedPickedAt',
+                'label' => $translationService->translate('Demande', 'Expédition', 'Date d\'enlèvement prévu'),
+            ],
+            [
+                'name' => 'treatedAt',
+                'label' => $translationService->translate('Demande', 'Expédition', 'Date d\'expédition'),
+            ],
+        ];
+        foreach ($dateChoice as &$choice) {
+            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser('date-choice_'.$choice['name'], 'expedition', $currentUser);
+        }
+        if (Stream::from($dateChoice)->every(function ($choice) { return !$choice['default']; })) {
+            $dateChoice[0]['default'] = true;
+        }
 
         return $this->render('shipping_request/index.html.twig', [
             "fields" => $fields,
             "initial_visible_columns" => $this->apiColumns($service)->getContent(),
+            "statuses" => $statutRepository->findByCategorieName(ShippingRequest::CATEGORIE, 'displayOrder'),
+            "dateChoices" =>$dateChoice,
+            "carriersForFilter" => $carrierRepository->findAll(),
         ]);
     }
 
@@ -81,15 +128,59 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/voir/{id}", name:"shipping_show_page", options:["expose"=>true])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function showPage(Request                $request,
-                             ShippingRequest        $shippingRequest,
+    public function showPage(ShippingRequest        $shippingRequest,
                              ShippingRequestService $shippingRequestService,
                              EntityManagerInterface $entityManager): Response {
-
 
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+        ]);
+    }
+
+    #[Route("/check_expected_lines_data/{id}", name: 'check_expected_lines_data', options: ["expose" => true], methods: ['GET'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function checkExpectedLinesData(ShippingRequest $shippingRequest,): JsonResponse
+    {
+
+        $expectedLines = $shippingRequest->getExpectedLines();
+
+        if ($expectedLines->count() <= 0) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'Veuillez ajouter au moins une référence.',
+            ]);
+        }
+
+        /** @var ShippingRequestExpectedLine $expectedLine */
+        foreach ($expectedLines as $expectedLine) {
+            $referenceArticle = $expectedLine->getReferenceArticle();
+
+            //FDS & codeOnu & classeProduct needed if it's dangerousGoods
+            if ($referenceArticle->isDangerousGoods()
+                && (!$referenceArticle->getSheet()
+                    || !$referenceArticle->getOnuCode()
+                    || !$referenceArticle->getProductClass())) {
+
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
+                ]);
+            }
+
+            //codeNdp needed if shipment is international
+            if ($shippingRequest->getShipment() === ShippingRequest::SHIPMENT_INTERNATIONAL
+                && !$referenceArticle->getNdpCode()) {
+
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
+                ]);
+            }
+        }
+
+        return $this->json([
+            'success' => true,
         ]);
     }
 

@@ -145,10 +145,12 @@
             </div>
         </div>
     </div>
+
+    {{ include('shipping_request/modals/scheduled-modal.html.twig') }}
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('shipping-request-index') }}
     {{ encore_entry_script_tags('shipping-request-show') }}
 {% endblock %}
