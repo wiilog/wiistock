@@ -330,6 +330,11 @@ class SettingsController extends AbstractController {
                         ],
                     ],
                 ],
+                self::MENU_BR_ASSOCIATION => [
+                    "label" => "Association BR",
+                    "right" => Action::SETTINGS_DISPLAY_BR_ASSOCIATION,
+                    "save" => true,
+                ],
                 self::MENU_MOVEMENTS => [
                     "label" => "Mouvements",
                     "right" => Action::SETTINGS_DISPLAY_MOVEMENT,
@@ -626,6 +631,7 @@ class SettingsController extends AbstractController {
     public const MENU_HANDLINGS = "services";
     public const MENU_REQUEST_TEMPLATES = "modeles_demande";
     public const MENU_TRUCK_ARRIVALS = "arrivages_camion";
+    public const MENU_BR_ASSOCIATION = "association_BR";
     public const MENU_EMERGENCIES = "urgences";
 
     public const MENU_TRANSPORT_REQUESTS = "demande_transport";

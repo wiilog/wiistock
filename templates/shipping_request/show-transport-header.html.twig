@@ -8,23 +8,23 @@
         Transport
         {% if hasRightEdit %}
             <div class="col-auto">
-                {% if shipping.status.draft %}
+                {% if shipping.status.code == constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_DRAFT') %}
                     <button type="button"
                             data-id='{{ shipping.id }}'
-                            onclick=""
+                            onclick="validateShippingRequest({{ shipping.id }})"
                             class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
                         <span class="wii-icon wii-icon-check-white mr-2"></span>
                         Valider l'expédition
                     </button>
-                {% elseif shipping.status.notTreated and hasRightDisplayScheduleButton%}
+                {% elseif shipping.status.code == constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_TO_TREAT') and hasRightDisplayScheduleButton %}
                     <button type="button"
+                            onclick="openScheduledShippingRequestModal($(this))"
                             data-id='{{ shipping.id }}'
-                            onclick=""
                             class="btn btn-primary align-items-center justify-content-center split-button mr-0">
                         <span class="wii-icon wii-icon-calendar mr-2"></span>
                         Planifier
                     </button>
-                {% elseif shipping.status.scheduled %}
+                {% elseif shipping.status.code == constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_SCHEDULED') %}
                     {% if hasRightEditTransportShippingPart %}
                         <button type="button"
                                 data-id='{{ shipping.id }}'

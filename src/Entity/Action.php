@@ -160,6 +160,7 @@ class Action {
     const SETTINGS_DISPLAY_TRUCK_ARRIVALS = 'afficher arrivages camion';
     const SETTINGS_DISPLAY_MOVEMENT = 'afficher mouvements';
     const SETTINGS_DISPLAY_TRACING_HAND = 'afficher services trace';
+    const SETTINGS_DISPLAY_BR_ASSOCIATION = 'afficher association BR';
 
     const SETTINGS_DISPLAY_TRACK_REQUESTS = 'afficher demandes track';
     const SETTINGS_DISPLAY_ROUND = 'afficher tournées';

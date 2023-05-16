@@ -993,135 +993,15 @@ class DemandeController extends AbstractController
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiTableArticleContent(Demande                $request,
                                            DeliveryRequestService $deliveryRequestService,
-                                           EntityManagerInterface $entityManager,
-                                           ArticleDataService     $articleDataService): JsonResponse {
+                                           EntityManagerInterface $entityManager): JsonResponse {
         $user = $this->getUser();
-        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
-        $fieldsParam = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
-
-        $projectParam = $fieldsParam[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT] ?? [];
-        $isProjectRequired = $projectParam['required'] ?? false;
-        $isProjectDisplayedUnderCondition = $projectParam['displayedUnderCondition'] ?? false;
-        $projectConditionFixedField = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedField'] ?? null : null;
-        $projectConditionFixedValue = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedFieldValue'] ?? [] : [];
-
-        $commentParam = $fieldsParam[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT] ?? [];
-        $isCommentRequired = $commentParam['required'] ?? false;
 
         $referencesData = Stream::from($request->getReferenceLines())
-            ->map(function (DeliveryRequestReferenceLine $line) use ($isProjectDisplayedUnderCondition, $projectConditionFixedField, $projectConditionFixedValue, $isProjectRequired, $isCommentRequired) {
-                $reference = $line->getReference();
-                return [
-                    "createRow" => false,
-                    "actions" => '
-                        <span class="d-flex justify-content-start align-items-center delete-row"
-                              data-name="reference"
-                              data-id="' . $line->getId() . '"
-                              onclick="deleteRowDemande($(this))">
-                            <span class="wii-icon wii-icon-trash"></span>
-                        </span>
-                    ',
-                    "reference" => ($reference->getReference() ?: '')
-                        . $this->render('form.html.twig', [
-                            'macroName' => 'input',
-                            'macroParams' => ['lineId', null, true, $line->getId(), ['type' => 'hidden']],
-                        ])->getContent()
-                        . $this->render('form.html.twig', [
-                            'macroName' => 'input',
-                            'macroParams' => ['type', null, true, 'reference', ['type' => 'hidden']],
-                        ])->getContent(),
-                    "label" => $reference->getLibelle() ?: '',
-                    "quantityToPick" => $this->render('form.html.twig', [
-                        'macroName' => 'input',
-                        'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
-                    ])->getContent(),
-                    "location" => $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE ? $this->getFormatter()->location($reference->getEmplacement()) : null,
-                    "barcode" => $reference->getBarcode() ?: '',
-                    "project" => !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($reference->getType()?->getId(), $projectConditionFixedValue))
-                        ? $this->render('form.html.twig', [
-                            'macroName' => 'select',
-                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
-                                'text' => $this->getFormatter()->project($line->getProject()),
-                                'selected' => true,
-                                'value' => $line->getProject()?->getId(),
-                                'onChange' => 'onChangeFillComment($(this))',
-                            ] : [] ]]])->getContent()
-                        : $this->getFormatter()->project($line->getProject()) ?? '',
-                    "comment" =>  $this->render('form.html.twig', [
-                            'macroName' => 'textarea',
-                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment(),['style'=> 'height: 36px']]
-                        ])->getContent(),
-                    "article" => "",
-                    "targetLocationPicking" => "",
-                ];
-            })
+            ->map(fn (DeliveryRequestReferenceLine $line) => $deliveryRequestService->editatableLineForm($entityManager, $request, $user, $line))
             ->toArray();
 
-        $isUserQuantityTypeArticle = $user->getRole()->getQuantityType() == ReferenceArticle::QUANTITY_TYPE_ARTICLE;
         $articlesData = Stream::from($request->getArticleLines())
-            ->map(function (DeliveryRequestArticleLine $line) use ($isUserQuantityTypeArticle, $projectConditionFixedValue, $projectConditionFixedField, $isProjectDisplayedUnderCondition, $isCommentRequired, $isProjectRequired, $entityManager, $request, $user, $articleDataService) {
-                $article = $line->getArticle();
-                return [
-                    "createRow" => false,
-                    "actions" => '
-                        <span class="d-flex justify-content-start align-items-center delete-row"
-                              data-name="article"
-                              data-id="' . $line->getId() . '"
-                              onclick="deleteRowDemande($(this))">
-                            <span class="wii-icon wii-icon-trash"></span>
-                            </span>
-                        ',
-                    "reference" =>
-                        ($article->getReferenceArticle()->getReference() ?: '')
-                        . $this->render('form.html.twig', [
-                            'macroName' => 'input',
-                            'macroParams' => ['lineId', null, true, $line->getId(), ['type' => 'hidden']],
-                        ])->getContent()
-                        . $this->render('form.html.twig', [
-                            'macroName' => 'input',
-                            'macroParams' => ['type', null, true, 'article', ['type' => 'hidden']],
-                        ])->getContent(),
-                    "label" => $article->getLabel() ?: '',
-                    "quantityToPick" => $this->render('form.html.twig', [
-                        'macroName' => 'input',
-                        'macroParams' => ['quantity-to-pick', null, true, $line->getQuantityToPick(), ['type' => 'number', 'min' => 1]],
-                    ])->getContent(),
-                    "location" => $this->getFormatter()->location($article->getEmplacement()),
-                    "barcode" => $article->getBarcode() ?: '',
-                    "project" => !$isProjectDisplayedUnderCondition || ($projectConditionFixedField === "Type Reference" && in_array($article->getReferenceArticle()->getType()?->getId(), $projectConditionFixedValue))
-                        ? $this->render('form.html.twig', [
-                            'macroName' => 'select',
-                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, null, $isProjectRequired, ['type' => 'project', 'items' => $line->getProject() ? [
-                                'text' => $this->getFormatter()->project($line->getProject()),
-                                'selected' => true,
-                                'value' => $line->getProject()?->getId(),
-                                'onChange' => 'onChangeFillComment($(this))',
-                            ] : []]]])->getContent()
-                        : $this->getFormatter()->project($line->getProject()) ?? '',
-                    "comment" => $this->render('form.html.twig', [
-                            'macroName' => 'textarea',
-                            'macroParams' => [SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, null, $isCommentRequired, $line->getComment(), ['style'=> 'height: 36px']]
-                        ])->getContent(),
-                    "article" => $isUserQuantityTypeArticle
-                        ? $this->render('form.html.twig', [
-                            'macroName' => 'select',
-                            'macroParams' => ['article', null, false, [
-                                'items' => Stream::from($articleDataService->findAndSortActiveArticlesByRefArticle($article->getReferenceArticle(), $article->getReferenceArticle()->getStockManagement(), $entityManager))
-                                    ->keymap(fn (Article $article) => [$article->getId(), $article->getBarCode()])
-                                    ->toArray(),
-                                'value' => $article->getId(),
-                                'onChange' => 'onChangeFillComment($(this))',
-                            ]]])->getContent()
-                        : $article->getLabel(),
-                    "targetLocationPicking" => !$isUserQuantityTypeArticle
-                        ? $this->render('form.html.twig', [
-                            'macroName' => 'select',
-                            'macroParams' => ['targetLocationPicking', null, false, ['type' => 'location', 'items' => [
-                                $line->getTargetLocationPicking()?->getId() => $this->getFormatter()->location($line->getTargetLocationPicking()),
-                            ]]]])->getContent()
-                        : $this->getFormatter()->location($line->getTargetLocationPicking()),
-                ];
-            })
+            ->map(fn (DeliveryRequestArticleLine $line) => $deliveryRequestService->editatableLineForm($entityManager, $request, $user, $line))
             ->toArray();
 
         $data = array_merge($referencesData, $articlesData);
@@ -1204,7 +1084,7 @@ class DemandeController extends AbstractController
     #[Route("/api/articles-by-reference/{request}/{referenceArticle}", name: "api_articles-by-reference", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiArticlesByReference(Demande $request, ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager, ArticleDataService $articleDataService): JsonResponse {
-        $articles = $articleDataService->findAndSortActiveArticlesByRefArticle($referenceArticle, $referenceArticle->getStockManagement(), $entityManager, $request);
+        $articles = $articleDataService->findAndSortActiveArticlesByRefArticle($referenceArticle, $entityManager, $request);
         return $this->json([
             "success" => true,
             "data" => Stream::from($articles)
