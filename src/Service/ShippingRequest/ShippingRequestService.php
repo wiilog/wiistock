@@ -7,6 +7,7 @@ use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
+use App\Service\CSVExportService;
 use App\Exceptions\FormException;
 use App\Service\FormatService;
 use App\Service\VisibleColumnService;
@@ -36,6 +37,9 @@ class ShippingRequestService {
 
     #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public CSVExportService $CSVExportService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -145,6 +149,50 @@ class ShippingRequestService {
                 ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
                 ->sum(),
         ]);
+    }
+
+    public function putShippingRequestLine($output, array $shippingRequestData): void {
+        $line = [
+            $shippingRequestData['number'],
+            $shippingRequestData['statusCode'],
+            $this->formatService->datetime($shippingRequestData['createdAt']),
+            $this->formatService->datetime($shippingRequestData['validatedAt']),
+            $this->formatService->datetime($shippingRequestData['plannedAt']),
+            $this->formatService->datetime($shippingRequestData['expectedPickedAt']),
+            $this->formatService->datetime($shippingRequestData['treatedAt']),
+            $this->formatService->datetime($shippingRequestData['requestCaredAt']),
+            $shippingRequestData['requesterNames'],
+            $shippingRequestData['customerOrderNumber'],
+            $this->formatService->bool($shippingRequestData['freeDelivery']),
+            $this->formatService->bool($shippingRequestData['compliantArticles']),
+            $shippingRequestData['customerName'],
+            $shippingRequestData['customerRecipient'],
+            $shippingRequestData['customerPhone'],
+            $shippingRequestData['customerAddress'],
+            $shippingRequestData['packCode'],
+            $shippingRequestData['nature'],
+            $shippingRequestData['refArticle'],
+            $shippingRequestData['refArticleLibelle'],
+            $shippingRequestData['article'],
+            $shippingRequestData['articleQuantity'],
+            $shippingRequestData['price'],
+            $shippingRequestData['weight'],
+            $shippingRequestData['totalAmount'],
+            $this->formatService->bool($shippingRequestData['dangerous_goods']),
+            $shippingRequestData['onu_code'],
+            $shippingRequestData['product_class'],
+            $shippingRequestData['ndp_code'],
+            $shippingRequestData['shipment'],
+            $shippingRequestData['carrying'],
+            $shippingRequestData['nbPacks'],
+            $shippingRequestData['size'],
+            $shippingRequestData['totalWeight'],
+            $shippingRequestData['grossWeight'],
+            $shippingRequestData['totalSum'],
+            $shippingRequestData['carrierName'],
+        ];
+
+        $this->CSVExportService->putLine($output, $line);
     }
 
     public function updateShippingRequest(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, InputBag $data): bool {

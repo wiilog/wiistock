@@ -15,11 +15,14 @@ use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Service\FormatService;
 use App\Exceptions\FormException;
+use App\Service\CSVExportService;
+use App\Service\DataExportService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -305,6 +308,23 @@ class ShippingRequestController extends AbstractController {
         return $this->json([
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
         ]);
+    }
+
+    #[Route("/csv", name: "get_shipping_requests_csv", options: ["expose" => true], methods: ['GET'])]
+    public function exportShippingRequests(EntityManagerInterface $entityManager,
+                                           CSVExportService       $csvService,
+                                           DataExportService      $dataExportService) {
+        $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
+
+        $csvHeader = $dataExportService->createShippingRequestHeader();
+
+        $today = new DateTime();
+        $today = $today->format("d-m-Y-H-i-s");
+        $shippingRequestsIterator = $shippingRepository->iterateShippingRequests();
+
+        return $csvService->streamResponse(function ($output) use ($dataExportService, $shippingRequestsIterator) {
+            $dataExportService->exportShippingRequests($shippingRequestsIterator, $output);
+        }, "export-expeditions_$today.csv", $csvHeader);
     }
 
     #[Route(["/form/{id}", "/form"], name: "shipping_request_form", options: ["expose" => true], methods: ['GET'])]
