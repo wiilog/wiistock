@@ -49,7 +49,22 @@
         </div>
     </div>
 
-    {% include "shipping_request/new.html.twig" %}
+    {% include "utils/modal/empty-modal.html.twig" with {
+        id: "modalNewShippingRequest",
+        size: 'modal-xl',
+        additionalAttributes: {
+            'data-modal-type': 'new',
+        },
+        header: {
+            title: 'Créer une demande d\'expédition'
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Valider la demande d\'expédition'), type: 'submit'}
+            ],
+        },
+    } %}
 
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,

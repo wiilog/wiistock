@@ -306,12 +306,26 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/get-transport-header-config/{id}", name:"get_transport_header_config", methods: ['GET', 'POST'], options:["expose"=>true])]
+    #[Route("/get-transport-header-config/{id}", name: "get_transport_header_config", options: ["expose"=>true], methods: ['GET', 'POST'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function getTransportHeaderConfig(ShippingRequest        $shippingRequest,
                                              ShippingRequestService $shippingRequestService): Response {
         return $this->json([
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+        ]);
+    }
+
+    #[Route(["/form/{id}", "/form"], name: "shipping_request_form", options: ["expose"=>true], methods: ['GET'])]
+
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function getForm(?ShippingRequest        $shippingRequest): Response {
+        $shippingRequest = $shippingRequest ?? new ShippingRequest();
+
+        return $this->json([
+            'success' => true,
+            'html' => $this->renderView('shipping_request/form.html.twig', [
+                'shipping' => $shippingRequest,
+            ]),
         ]);
     }
 }

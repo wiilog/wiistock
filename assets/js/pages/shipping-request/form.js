@@ -11,9 +11,7 @@ export function initModalFormShippingRequest($modal, submitRoute, onSuccess) {
             }
         }})
         .onOpen(() => {
-            // TODO doesn't work
-            // pre-filling phone select according to the applicant{
-            $requesters.trigger('change');
+            Modal.load('shipping_request_form', {id: $modal.data('shipping-request-id') || ''}, $modal, $modal.find('.modal-body'));
         })
         .on('change', '[name=customerName]', (event) => {
             const $customers = $(event.target)

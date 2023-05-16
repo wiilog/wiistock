@@ -143,9 +143,22 @@
         </div>
     </div>
 
-    {% include "shipping_request/edit.html.twig" with {
-        shipping
-    }%}
+    {% include "utils/modal/empty-modal.html.twig" with {
+        id: "modalEditShippingRequest",
+        size: 'modal-xl',
+        additionalAttributes: {
+            'data-shipping-request-id': shipping.id,
+        },
+        header: {
+            title: 'Modifier une demande d\'expédition'
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+            ],
+        },
+    } %}
 
     {% include "shipping_request/modals/scheduled-modal.html.twig" %}
 
