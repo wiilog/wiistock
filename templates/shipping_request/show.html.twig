@@ -1,9 +1,9 @@
 {% extends 'layout.html.twig' %}
 {% import 'form.html.twig' as form %}
 
-{% block title %}Demande | {{ trans('Expédition', 'Général', 'Expédition', false) }} | Détails{% endblock %}
+{% block title %}Demande | {{ trans('Demande', 'Expédition', 'Expédition', false) }} | Détails{% endblock %}
 
-{% block title_tooltip %}Demande | Expédition | Détails{% endblock %}
+{% block title_tooltip %}Demande | {{ trans('Demande', 'Expédition', 'Expédition', false) }} | Détails{% endblock %}
 
 {% block page_filter %}
 
@@ -61,7 +61,7 @@
                         <div class="d-flex py-2 w-100 justify-content-between">
                             <div class="d-flex align-items-center">
                                 <div class="d-flex flex-column">
-                                    <span class="wii-title">{{ trans('Demande', 'Expédition', null, 'Expédition') }}</span>
+                                    <span class="wii-title">{{ trans('Demande', 'Expédition', 'Expédition') }}</span>
                                     <span class="wii-small-text">
                                     {{ shipping.number }}
                                 </span>
@@ -114,7 +114,7 @@
                     </div>
                     <div class="wii-section-title py-1">
                         <i class="wii-icon wii-icon-delivery wii-icon-15px-primary mr-2"></i>
-                        Expédition
+                        {{ trans('Demande', 'Expédition', 'Expédition', false) }}
                     </div>
                     <div class="content">
                         <div class="row">
