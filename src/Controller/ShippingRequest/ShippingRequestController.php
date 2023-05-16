@@ -107,20 +107,9 @@ class ShippingRequestController extends AbstractController {
     #[Route("/voir/{id}", name:"shipping_request_show", options: ["expose" => true])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function show(ShippingRequest        $shippingRequest,
-                         ShippingRequestService $shippingRequestService,
-                         EntityManagerInterface $entityManager): Response {
-        $transporteurs = $this->getFormatter()
-            ->carriers($entityManager->getRepository(Transporteur::class)->findAll());
-
-        if (!empty($transporteurs)) {
-            $transporteurs = Stream::explode(",", $transporteurs)->toArray();
-        } else {
-            $transporteurs = [];
-        }
-
+                         ShippingRequestService $shippingRequestService): Response {
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
-            'transporteurs' => $transporteurs,
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
         ]);
     }
