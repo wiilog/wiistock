@@ -8,7 +8,6 @@ use App\Entity\Action;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
@@ -148,8 +147,7 @@ class ShippingRequestController extends AbstractController {
     }
 
     #[Route("/csv", name: "get_shipping_requests_csv", options: ["expose" => true], methods: ['GET'])]
-    public function exportShippingRequests(Request                $request,
-                                           EntityManagerInterface $entityManager,
+    public function exportShippingRequests(EntityManagerInterface $entityManager,
                                            CSVExportService       $csvService,
                                            DataExportService      $dataExportService) {
         $shippingRepository = $entityManager->getRepository(ShippingRequest::class);

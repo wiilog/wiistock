@@ -2,15 +2,11 @@
 
 namespace App\Service\ShippingRequest;
 
-use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
-use App\Entity\ShippingRequest\ShippingRequestPack;
-use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
-use App\Service\FormatService;
 use App\Service\FormatService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManager;
@@ -152,54 +148,45 @@ class ShippingRequestService {
         ]);
     }
 
-    public function putShippingRequestLine($output, ShippingRequest $shippingRequest, ShippingRequestPack|ShippingRequestExpectedLine $line, Article $article = null): void {
-        $isPacked = isset($article) && $line instanceof ShippingRequestPack;
-        if ($isPacked) {
-            $expectedLine =$shippingRequest->getExpectedLine($article->getReferenceArticle());
-        }
-
+    public function putShippingRequestLine($output, array $shippingRequestData): void {
         $line = [
-            $shippingRequest->getNumber(),
-            $shippingRequest->getStatus()->getCode(),
-            $shippingRequest->getCreatedAt()->format("d/m/Y H:i"),
-            $shippingRequest->getValidatedAt()->format("d/m/Y H:i"),
-            $shippingRequest->getPlannedAt()->format("d/m/Y H:i"),
-            $shippingRequest->getExpectedPickedAt()->format("d/m/Y H:i"),
-            $shippingRequest->getTreatedAt()->format("d/m/Y H:i"),
-            $shippingRequest->getRequestCaredAt()->format("d/m/Y H:i"),
-            implode(",", Stream::from($shippingRequest->getRequesters())
-                ->map(fn(Utilisateur $requester) => $requester->getUsername())
-                ->toArray()),
-            $shippingRequest->getCustomerOrderNumber(),
-            $this->formatService->bool($shippingRequest->isFreeDelivery()),
-            $this->formatService->bool($shippingRequest->isCompliantArticles()),
-            $shippingRequest->getCustomerName(),
-            $shippingRequest->getCustomerRecipient(),
-            $shippingRequest->getCustomerPhone(),
-            $shippingRequest->getCustomerAddress(),
-
-            $isPacked ? $line->getPack()->getCode() : '',
-            $isPacked ? $line->getPack()->getNature()->getLabel() : '',
-            $isPacked ? '' : $line->getReferenceArticle()->getReference(),
-            $isPacked ? '' : $line->getReferenceArticle()->getLibelle(),
-            $isPacked ? $article->getLabel() : '',
-            $isPacked ? $article->getQuantite() : '',
-            $isPacked ? $expectedLine->getPrice() : $line->getPrice(),
-            $isPacked ? $expectedLine->getWeight() : $line->getWeight(),
-            $isPacked ? $article->getQuantite()*$expectedLine->getPrice() : '',
-            $isPacked ? $this->formatService->bool($expectedLine->getReferenceArticle()->isDangerousGoods()) : $this->formatService->bool($line->getReferenceArticle()->isDangerousGoods()),
-            //FDS
-            $isPacked ? $expectedLine->getReferenceArticle()->getOnuCode() : $line->getReferenceArticle()->getOnuCode(),
-            $isPacked ? $expectedLine->getReferenceArticle()->getProductClass() : $line->getReferenceArticle()->getProductClass(),
-            $isPacked ? $expectedLine->getReferenceArticle()->getNdpCode() : $line->getReferenceArticle()->getNdpCode(),
-            $shippingRequest->getShipment(),
-            $shippingRequest->getCarrying(),
-            //nb colis = nombre de packLines
-            //size
-            //somme des poids net
-            //grossWeight
-            //somme des prix unitaires
-            //nom transporteur
+            $shippingRequestData['number'],
+            $shippingRequestData['statusCode'],
+            $shippingRequestData['createdAt']->format("d/m/Y H:i"),
+            $shippingRequestData['validatedAt']->format("d/m/Y H:i"),
+            $shippingRequestData['plannedAt']->format("d/m/Y H:i"),
+            $shippingRequestData['expectedPickedAt']->format("d/m/Y H:i"),
+            $shippingRequestData['treatedAt']->format("d/m/Y H:i"),
+            $shippingRequestData['requestCaredAt']->format("d/m/Y H:i"),
+            $shippingRequestData['requesterNames'],
+            $shippingRequestData['customerOrderNumber'],
+            $this->formatService->bool($shippingRequestData['freeDelivery']),
+            $this->formatService->bool($shippingRequestData['compliantArticles']),
+            $shippingRequestData['customerName'],
+            $shippingRequestData['customerRecipient'],
+            $shippingRequestData['customerPhone'],
+            $shippingRequestData['customerAddress'],
+            $shippingRequestData['packCode'],
+            $shippingRequestData['nature'],
+            $shippingRequestData['refArticle'],
+            $shippingRequestData['refArticleLibelle'],
+            $shippingRequestData['article'],
+            $shippingRequestData['articleQuantity'],
+            $shippingRequestData['price'],
+            $shippingRequestData['weight'],
+            $shippingRequestData['totalAmount'],
+            $this->formatService->bool($shippingRequestData['dangerous_goods']),
+            $shippingRequestData['onu_code'],
+            $shippingRequestData['product_class'],
+            $shippingRequestData['ndp_code'],
+            $shippingRequestData['shipment'],
+            $shippingRequestData['carrying'],
+            $shippingRequestData['nbPacks'],
+            $shippingRequestData['size'],
+            $shippingRequestData['totalWeight'],
+            $shippingRequestData['grossWeight'],
+            $shippingRequestData['totalSum'],
+            $shippingRequestData['carrierName'],
         ];
 
         $this->CSVExportService->putLine($output, $line);

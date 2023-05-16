@@ -24,14 +24,14 @@ class ShippingRequestPack {
     #[ORM\OneToOne(inversedBy: 'shippingRequestPack', targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
-    #[ORM\OneToMany(mappedBy: 'shippingRequestPack', targetEntity: ShippingRequestLine::class)]
+    #[ORM\OneToMany(mappedBy: 'shippingPack', targetEntity: ShippingRequestLine::class)]
     private Collection $lines;
 
     #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'packLines')]
     private ?ShippingRequest $request = null;
 
     public function __construct() {
-        $this->shippingRequestLines = new ArrayCollection();
+        $this->lines = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -80,10 +80,10 @@ class ShippingRequestPack {
 
     public function setRequest(?ShippingRequest $request): self {
         if($this->request && $this->request !== $request) {
-            $this->request->removeLine($this);
+            $this->request->removePackLine($this);
         }
         $this->request = $request;
-        $request?->addLine($this);
+        $request?->addPackLine($this);
 
         return $this;
     }
@@ -91,37 +91,37 @@ class ShippingRequestPack {
     /**
      * @return Collection<int, Article>
      */
-    public function getShippingRequestLines(): Collection {
-        return $this->shippingRequestLines;
+    public function getLines(): Collection {
+        return $this->lines;
     }
 
-    public function addShippingRequestLine(ShippingRequestLine $shippingRequestLine): self {
-        if (!$this->shippingRequestLines->contains($shippingRequestLine)) {
-            $this->shippingRequestLines[] = $shippingRequestLine;
-            $shippingRequestLine->setShippingRequestPack($this);
+    public function addLine(ShippingRequestLine $line): self {
+        if (!$this->lines->contains($line)) {
+            $this->lines[] = $line;
+            $line->setShippingPack($this);
         }
 
         return $this;
     }
 
-    public function removeShippingRequestLine(ShippingRequestLine $shippingRequestLine): self {
-        if ($this->shippingRequestLines->removeElement($shippingRequestLine)) {
-            if ($shippingRequestLine->getShippingRequestPack() === $this) {
-                $shippingRequestLine->setShippingRequestPack(null);
+    public function removeLine(ShippingRequestLine $line): self {
+        if ($this->lines->removeElement($line)) {
+            if ($line->getShippingPack() === $this) {
+                $line->setShippingPack(null);
             }
         }
 
         return $this;
     }
 
-    public function setShippingRequestLines(?iterable $shippingRequestLines): self {
-        foreach($this->getShippingRequestLines()->toArray() as $shippingRequestLine) {
-            $this->removeShippingRequestLine($shippingRequestLine);
+    public function setLines(?iterable $lines): self {
+        foreach($this->getLines()->toArray() as $line) {
+            $this->removeLine($line);
         }
 
-        $this->shippingRequestLines = new ArrayCollection();
-        foreach($shippingRequestLines ?? [] as $shippingRequestLine) {
-            $this->addShippingRequestLine($shippingRequestLine);
+        $this->lines = new ArrayCollection();
+        foreach($lines ?? [] as $line) {
+            $this->addLine($line);
         }
 
         return $this;

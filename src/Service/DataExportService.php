@@ -166,7 +166,6 @@ class DataExportService
             "Poids nets (kg)",
             "Montant total",
             "Marchandise dangereuse",
-            "FDS",
             "Code ONU",
             "Classe produit",
             "Code NDP",
@@ -280,19 +279,8 @@ class DataExportService
 
     public function exportShippingRequests(iterable $data,
                                            mixed $output) {
-        /** @var ShippingRequest $shippingRequest */
-        foreach ($data as $shippingRequest) {
-            if ($shippingRequest->getLines()->count() > 0) {
-                foreach ($shippingRequest->getLines() as $line) {
-                    foreach ($line->getArticles() as $article) {
-                        $this->shippingRequestService->putShippingRequestLine($output, $shippingRequest, $line, $article);
-                    }
-                }
-            } else {
-                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
-                    $this->shippingRequestService->putShippingRequestLine($output, $shippingRequest, $expectedLine);
-                }
-            }
+        foreach ($data as $shippingRequestData) {
+            $this->shippingRequestService->putShippingRequestLine($output, $shippingRequestData);
         }
     }
 
