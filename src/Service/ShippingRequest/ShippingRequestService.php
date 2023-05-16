@@ -167,21 +167,21 @@ class ShippingRequestService {
                 throw new FormException("Une erreur est survenue un champ requis est manquant");
             }
         }
-        $requestersIds = Stream::explode(',', $data->get('requesters'))->filter();
-        if (count($requestersIds) > 0) {
-            $requesters = $requestersIds
-                ->map(fn($requesterId) => $userRepository->findOneBy(['id' => $requesterId]))
-                ->filter()
-                ->toArray();
-        } else {
+
+        $requestersIds = Stream::explode(',', $data->get('requesters'))
+            ->filter()
+            ->toArray();
+        $requesters = $userRepository->findBy(['id' => $requestersIds]);
+
+        if (empty($requesters)) {
             throw new FormException("Vous devez sélectionner au moins un demandeur");
         }
 
         $carrierId = $data->get('carrier');
-        if ($carrierId) {
-            $carrier = $carrierRepository->find($carrierId);
-
-        } else {
+        $carrier = $carrierId
+            ? $carrierRepository->find($carrierId)
+            : null;
+        if (!$carrier) {
             throw new FormException("Vous devez sélectionner un transporteur");
         }
 

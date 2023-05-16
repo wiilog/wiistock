@@ -2,8 +2,7 @@ import {POST} from "@app/ajax";
 import Form from "@app/form";
 
 export function initModalFormShippingRequest($modal, submitRoute, onSuccess) {
-    const $requesters = $modal.find('[name=requesters]');
-    const form = Form
+    Form
         .create($modal)
         .submitTo(POST, submitRoute, {success: (data) => {
             if(data.success) {
@@ -22,14 +21,16 @@ export function initModalFormShippingRequest($modal, submitRoute, onSuccess) {
             $modal.find('[name=customerAddress]').val(customer?.address);
         });
 
-    $requesters
-        .on('select2:select', (event) => {
+    $modal
+        .off('select2:select.form')
+        .off('select2:unselect.form')
+        .on('select2:select', '[name=requesters]', (event) => {
             const {data} = event.params;
             if (data) {
                 addPhoneNumber($modal, data);
             }
         })
-        .on('select2:unselect', (event) => {
+        .on('select2:unselect', '[name=requesters]', (event) => {
             const {data} = event.params;
             if (data) {
                 removePhoneNumber($modal, data);

@@ -155,24 +155,26 @@ class ShippingRequestController extends AbstractController {
                         UniqueNumberService    $uniqueNumberService,
                         StatusHistoryService   $statusHistoryService): JsonResponse {
         $data = $request->request;
+        $now = new \DateTime('now');
 
         $statusRepository = $entityManager->getRepository(Statut::class);
         $shippingRequest = new ShippingRequest();
         $shippingRequest
             ->setNumber($uniqueNumberService->create($entityManager, ShippingRequest::NUMBER_PREFIX, ShippingRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT))
-            ->setCreatedAt(new \DateTime('now'))
+            ->setCreatedAt($now)
             ->setCreatedBy($this->getUser());
 
         $statusHistoryService->updateStatus(
             $entityManager,
             $shippingRequest,
             $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::SHIPMENT, ShippingRequest::STATUS_DRAFT),
-            ['setStatus' => true],
+            ['setStatus' => true, 'date' => $now],
         );
 
         $entityManager->persist($shippingRequest);
 
-        if($shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data)){
+        $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+        if($success){
             $entityManager->flush();
             return $this->json([
                 'success' => true,
@@ -187,8 +189,8 @@ class ShippingRequestController extends AbstractController {
     #[Route("/edit", name: "shipping_request_edit", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::CREATE_SHIPPING], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
-                               EntityManagerInterface $entityManager,
-                               ShippingRequestService $shippingRequestService): JsonResponse {
+                         EntityManagerInterface $entityManager,
+                         ShippingRequestService $shippingRequestService): JsonResponse {
         $data = $request->request;
         $shippingRequestId = $request->get('shippingRequestId');
         if ($shippingRequestId) {
@@ -197,6 +199,7 @@ class ShippingRequestController extends AbstractController {
         } else {
             throw new FormException('La demande d\'expédition n\'a pas été trouvée.');
         }
+
         $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
         if($success){
             $entityManager->flush();
@@ -315,10 +318,9 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route(["/form/{id}", "/form"], name: "shipping_request_form", options: ["expose"=>true], methods: ['GET'])]
-
+    #[Route(["/form/{id}", "/form"], name: "shipping_request_form", options: ["expose" => true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function getForm(?ShippingRequest        $shippingRequest): Response {
+    public function getForm(?ShippingRequest $shippingRequest): Response {
         $shippingRequest = $shippingRequest ?? new ShippingRequest();
 
         return $this->json([
