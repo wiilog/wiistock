@@ -118,7 +118,7 @@
                     </div>
                     <div class="content">
                         <div class="row">
-                            {{ macro.subItem(null, "Date de livraison souhaitée", shipping.plannedAt|date("d/m/Y")) }}
+                            {{ macro.subItem(null, 'Date de prise en charge souhaitée', shipping.plannedAt|date("d/m/Y")) }}
                             {{ macro.subItem(null, "Envoi", constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_LABELS')[shipping.shipment]) }}
                         </div>
                         <div class="row">
