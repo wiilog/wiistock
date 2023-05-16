@@ -211,6 +211,11 @@ class DashboardSettingsController extends AbstractController {
                         'categoryType' => CategoryType::TRANSFER_REQUEST,
                         'categoryStatus' => CategorieStatut::TRANSFER_REQUEST,
                         'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER
+                    ],
+                    'Expédition' => [
+                        'categoryType' => CategoryType::SHIPPING_REQUEST,
+                        'categoryStatus' => CategorieStatut::SHIPMENT,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING
                     ]
                 ];
             }
