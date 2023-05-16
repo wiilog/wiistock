@@ -32,7 +32,6 @@ $(function() {
     initTableShippings().then((table) => {
         tableShippings = table;
     });
-    initScheduledShippingRequestForm();
 })
 
 function initTableShippings() {

@@ -122,9 +122,6 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::STRING)]
     private ?string $trackingNumber = null;
 
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $packCount = null;
-
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Statut $status = null;
@@ -499,15 +496,6 @@ class ShippingRequest extends StatusHistoryContainer {
 
     public function setNumber(?string $number): self {
         $this->number = $number;
-        return $this;
-    }
-
-    public function getPackCount(): ?int {
-        return $this->packCount;
-    }
-
-    public function setPackCount(?int $packCount): self {
-        $this->packCount = $packCount;
         return $this;
     }
 }
