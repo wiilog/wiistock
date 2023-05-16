@@ -1,35 +1,62 @@
 import {POST} from "@app/ajax";
+import Form from "@app/form";
 
-export function initModalFormShippingRequest($modal, submitRoute, onSuccess)  {
-    const $requestersSelect = $modal.find('[name=requesters]')
-    const $customersSelect = $modal.find('[name=customerName]')
+export function initModalFormShippingRequest($modal, submitRoute, onSuccess) {
+    const $requesters = $modal.find('[name=requesters]');
     const form = Form
         .create($modal)
         .submitTo(POST, submitRoute, {success: (data) => {
-                if(data.success) {
-                    onSuccess(data);
-                }
-            }})
-        .onOpen(()=>{
-            // pre-filling phone select according to the applicant
-            $requestersSelect.trigger('change');
+            if(data.success) {
+                onSuccess(data);
+            }
+        }})
+        .onOpen(() => {
+            // TODO doesn't work
+            // pre-filling phone select according to the applicant{
+            $requesters.trigger('change');
         })
-        .on('change', $requestersSelect, () => {
-            const $requesterPhoneInput = $('[name=requesterPhoneNumbers]')
-            const requestersData = $requestersSelect.select2('data');
-            $requesterPhoneInput.find('[data-from-user=1]').remove();
-            Object.entries(requestersData).forEach(([key, value]) => {
-                const phone = value.phone || $(value.element).data('phone');
-                if (phone) {
-                    $requesterPhoneInput.append($('<option>', {value: phone, 'data-from-user': 1, selected: true}).text(phone));
-                }
-            })
-        })
-        .on('change', $customersSelect, () => {
+        .on('change', '[name=customerName]', (event) => {
+            const $customers = $(event.target)
             // pre-filling customer information according to the customer
-            const customerData = $customersSelect.select2('data');
-            $modal.find('[name=customerPhone]').val(customerData[0]?.phoneNumber);
-            $modal.find('[name=customerRecipient]').val(customerData[0]?.recipient);
-            $modal.find('[name=customerAddress]').val(customerData[0]?.address);
+            const [customer] = $customers.select2('data');
+            $modal.find('[name=customerPhone]').val(customer?.phoneNumber);
+            $modal.find('[name=customerRecipient]').val(customer?.recipient);
+            $modal.find('[name=customerAddress]').val(customer?.address);
         });
+
+    $requesters
+        .on('select2:select', (event) => {
+            const {data} = event.params;
+            if (data) {
+                addPhoneNumber($modal, data);
+            }
+        })
+        .on('select2:unselect', (event) => {
+            const {data} = event.params;
+            if (data) {
+                removePhoneNumber($modal, data);
+            }
+        });
+}
+
+function addPhoneNumber($modal, requesterData) {
+    const $requesterPhoneInput = $modal.find('[name=requesterPhoneNumbers]');
+    const {phone} = requesterData;
+    if (phone) {
+        $requesterPhoneInput.append($('<option>', {
+            value: phone,
+            'data-from-user': 1,
+            selected: true,
+            text: phone,
+        }));
+    }
+}
+
+function removePhoneNumber($modal, requesterData) {
+    const $requesterPhoneInput = $modal.find('[name=requesterPhoneNumbers]');
+    const {phone} = requesterData;
+    if (phone) {
+        $requesterPhoneInput.find(`[value=${phone}]`).remove();
+        $requesterPhoneInput.trigger('change');
+    }
 }

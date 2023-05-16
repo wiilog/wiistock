@@ -45,11 +45,13 @@
                 type: null,
                 multiple: true,
                 editable: true,
-                items: shipping.id ? shipping.requesterPhoneNumbers | map((phoneNumbers) => ({
-                    value: phoneNumbers,
-                    label: phoneNumbers,
-                    selected: true,
-                })): [],
+                items: shipping.id
+                    ? shipping.requesterPhoneNumbers | map((phoneNumbers) => ({
+                        value: phoneNumbers,
+                        label: phoneNumbers,
+                        selected: true,
+                    }))
+                    : [],
             }) }}
 
         </div>
