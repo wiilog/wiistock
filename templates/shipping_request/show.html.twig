@@ -11,8 +11,7 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('shipping-request-index') }}
-    {{ encore_entry_link_tags('shipping-request-show') }}
+    {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
 
 {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')) %}
@@ -147,6 +146,10 @@
     </div>
 
     {{ include('shipping_request/modals/scheduled-modal.html.twig') }}
+
+
+    {{ include('shipping_request/modals/packing.html.twig') }}
+
 
 {% endblock %}
 

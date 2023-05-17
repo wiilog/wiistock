@@ -9,6 +9,7 @@ use App\Entity\Utilisateur;
 use App\Service\FormatService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManager;
+use phpDocumentor\Reflection\Types\Iterable_;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -142,5 +143,21 @@ class ShippingRequestService {
                 ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
                 ->sum(),
         ]);
+    }
+
+    public function formatExpectedLinesForPacking(iterable $expectedLines): array {
+        return Stream::from($expectedLines)
+            ->map(function(ShippingRequestExpectedLine $expectedLine) {
+                return [
+                    'lineId' => $expectedLine->getId(),
+                    'referenceArticleId' => $expectedLine->getReferenceArticle()->getId(),
+                    'label' => $expectedLine->getReferenceArticle()->getLibelle(),
+                    'quantity' => $expectedLine->getQuantity(),
+                    'price' => $expectedLine->getPrice(),
+                    'weight' => $expectedLine->getWeight(),
+                    'totalPrice' => '<span class="total-price"></span>',
+                ];
+            })
+            ->toArray();
     }
 }

@@ -8,6 +8,8 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Nature;
+use App\Entity\Pack;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\Statut;
@@ -20,6 +22,7 @@ use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\Types\Array_;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -129,16 +132,20 @@ class ShippingRequestController extends AbstractController {
     public function showPage(ShippingRequest        $shippingRequest,
                              ShippingRequestService $shippingRequestService,
                              EntityManagerInterface $entityManager): Response {
+        // TODO RECUPERER LE NATURE EN FONCTION DU PARAMETRAGE
+        $packingPackNature = $entityManager->getRepository(Nature::class)->findAll()[0];
 
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
-            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest),
+            'packingPackNature' => $packingPackNature,
         ]);
     }
 
     #[Route("/check_expected_lines_data/{id}", name: 'check_expected_lines_data', options: ["expose" => true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function checkExpectedLinesData(ShippingRequest $shippingRequest,): JsonResponse
+    public function checkExpectedLinesData(ShippingRequest          $shippingRequest,
+                                           ShippingRequestService   $shippingRequestService): JsonResponse
     {
 
         $expectedLines = $shippingRequest->getExpectedLines();
@@ -179,6 +186,7 @@ class ShippingRequestController extends AbstractController {
 
         return $this->json([
             'success' => true,
+            'expectedLines' => $shippingRequestService->formatExpectedLinesForPacking($expectedLines)
         ]);
     }
 

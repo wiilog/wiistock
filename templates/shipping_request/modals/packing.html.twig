@@ -1,0 +1,53 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" role="dialog" id="modalPacking">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: 'Planifier le transport - Colisage US <span name="step"></span>/<span name="packCount"></span>'
+            } %}
+
+            <div class="modal-body flex flex-column">
+            </div>
+
+            <div hidden id="packTemplate">
+                <div class="packing-step" data-step="0">
+                    {# TODO METTRE LE BON ICON POUR DIMENSION #}
+                    {% include('pack/utils/packItemListTemplate.html.twig') with {
+                        header: {
+                            sideLabel: packingPackNature.label,
+                            color: packingPackNature.color,
+                            content: [
+                                {label: 'Unité logistique <span name="modalNumber"></span>', bold: 'label', raw: true},
+                                {label: '<span class="wii-icon wii-icon-size"></span>Dimension (cm)*', value: form.input('size', null, true, null), bold: 'label', raw: true},
+                            ]
+                        },
+                        content: true,
+                    } %}
+                </div>
+            </div>
+            <div hidden id="actionTemplate">
+                {{ form.hidden('lineId') }}
+                {{ form.hidden('referenceArticleId') }}
+                {{ form.checkbox('checked', null, false, false) }}
+            </div>
+            <div hidden id="quantityInputTemplate">
+                {{ form.input('quantity', null, false, null, {
+                    type: 'number',
+                    min: 1,
+                }) }}
+                {{ form.hidden('remainingQuantity', null, false, null) }}
+            </div>
+
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success nextStep', text: 'Suivant', type:'button',data:{"shippingRequestId":shipping.id}},
+                    {classes: 'btn btn-success hidden', text: 'Valider le colisage', type:'submit', data:{"shippingRequestId":shipping.id}},
+                ],
+                hideErrorContainer: true,
+            } %}
+
+        </div>
+    </div>
+</div>
