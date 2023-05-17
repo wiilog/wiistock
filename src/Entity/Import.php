@@ -186,6 +186,7 @@ class Import {
             'articleReference' => 'Référence',
             'requester' => 'Demandeur',
             'signatoryCode' => 'Code Signataire',
+            'recipient' => 'Destinataire',
 
             'targetLocationPicking' => 'Emplacement cible picking',
             'name' => 'Nom',

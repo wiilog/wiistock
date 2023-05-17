@@ -286,19 +286,6 @@ function importTemplateChanged($dataTypeImport = null) {
     else if (valTypeImport === '') {
         $linkToTemplate.append('<div class="col-12">Des fichiers de modèles d\'import sont disponibles. Veuillez sélectionner un type de données à importer.</div>');
     }
-    else if (valTypeImport === 'CUSTOMER') {
-        $linkToTemplate.append('<div class="col-12">Aucun modèle d\'import n\'est disponible pour ce type de données.</div>');
-        const modal = $dataTypeImport.closest('.modal');
-        const recipientRow = $('<div class="row">\n' +
-            '    <div class="form-group col-8">\n' +
-            '        <label class="wii-field-name">Destinataire</label>\n' +
-            '        <input type="text"\n' +
-            '               class="form-control data needed"\n' +
-            '               name="recipient">\n' +
-            '    </div>\n' +
-            '</div>')
-            modal.find('.recipient').html(recipientRow);
-    }
     else {
         $linkToTemplate.append('<div class="col-12">Aucun modèle d\'import n\'est disponible pour ce type de données.</div>');
     }
