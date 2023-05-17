@@ -172,7 +172,7 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $productionDate = null;
 
-    #[ORM\OneToOne(mappedBy: 'article', targetEntity: ShippingRequestLine::class)]
+    #[ORM\OneToOne(mappedBy: 'article', targetEntity: ShippingRequestLine::class, cascade: ['persist'])]
     private ?ShippingRequestLine $shippingRequestLine = null;
 
     public function __construct() {
@@ -591,6 +591,7 @@ class Article implements PairedEntity {
             ? $this->trackingPack->getTrackingMovements()
             : new ArrayCollection();
     }
+
 
     /**
      * @return int|null

@@ -19,6 +19,7 @@ class ShippingRequestLine {
     private ?int $quantity = null;
 
     #[ORM\OneToOne(inversedBy: 'shippingRequestLine', targetEntity: Article::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Article $article = null;
 
     #[ORM\ManyToOne(targetEntity: ShippingRequestPack::class, inversedBy: 'lines')]

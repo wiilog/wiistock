@@ -20,6 +20,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Repository\MouvementStockRepository;
+use App\Service\MouvementStockService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
@@ -145,12 +146,13 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/delete-shipping-request/{id}", name:"delete_shipping_request", options:["expose"=>true], methods: ['DELETE'])]
+    #[Route("/delete-shipping-request/{id}", name: "delete_shipping_request", options: ["expose" => true], methods: ['DELETE'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function deleteShippingRequest(Request                $request,
-                                          ShippingRequest        $shippingRequest,
+    public function deleteShippingRequest(ShippingRequest        $shippingRequest,
                                           EntityManagerInterface $entityManager,
-                                          UserService $userService): Response {
+                                          UserService            $userService,
+                                          MouvementStockService  $mouvementStockService): Response
+    {
 
         $user = $this->getUser();
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
@@ -166,8 +168,8 @@ class ShippingRequestController extends AbstractController {
                 }
 
                 // remove status_history where shipping_request_id equals $shippingRequest.id
-                $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest'=> $shippingRequest->getId()]);
-                foreach ($statusHistoryToRemove as $status){
+                $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
+                foreach ($statusHistoryToRemove as $status) {
                     $entityManager->remove($status);
                 }
 
@@ -180,41 +182,74 @@ class ShippingRequestController extends AbstractController {
             }
             //$entityManager->flush();
             return $this->json([
-                "success"=>true,
+                "success" => true,
             ]);
         }
 
         // remove status scheduled only if user has right and shipping request is scheduled
         if ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SCHEDULED) {
             if ($userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING, $user)) {
+
+                // remove status_history where shipping_request_id equals $shippingRequest.id
+                $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
+                foreach ($statusHistoryToRemove as $status) {
+                    $entityManager->remove($status);
+                }
+
                 /* @var ShippingRequestPack $packLine */
                 foreach ($shippingRequest->getPackLines() as $packLine) {
-                    //todo : pour le pack delete les mouvements
-                    $entityManager->remove($packLine->getPack());
+                    $pack = $packLine->getPack();
 
                     /* @var ShippingRequestLine $requestLine */
-                    foreach ($packLine->getLines() as $requestLine){
-                        $entityManager->remove($requestLine->getArticle());
-                        //todo : pour les articles delete les mouvements
-                        $entityManager->remove($requestLine->getExpectedLine());
+                    foreach ($packLine->getLines() as $requestLine) {
+                        $article = $requestLine->getArticle();
+
+                        // remove mvt track (article)
+                        foreach ($article->getTrackingMovements()->toArray() as $trackingMovement) {
+                            $entityManager->remove($trackingMovement);
+                        }
+                        //remove mvt stock (article)
+                        foreach ($article->getMouvements()->toArray() as $stockMovement) {
+                            $mouvementStockService->manageMouvementStockPreRemove($stockMovement, $entityManager);
+                            $article->removeMouvement($stockMovement);
+                            $entityManager->remove($stockMovement);
+                        }
+
+                        $packLine->removeLine($requestLine);
                         $entityManager->remove($requestLine);
+                        $requestLine->getExpectedLine()->removeLine($requestLine);
                     }
+
+                    // remove mvt track (pack)
+                    foreach ($pack->getTrackingMovements()->toArray() as $trackingMovement) {
+                        $entityManager->remove($trackingMovement);
+                    }
+                    $entityManager->remove($pack); // cascade remove article todo : bien vérif qu'il y a sup de l'article
                     $entityManager->remove($packLine);
                 }
+
+                // remove 'ShippingRequesExpectedtLine'
+                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
+                    $shippingRequest->removeExpectedLine($expectedLine);
+                    $entityManager->remove($expectedLine);
+                }
+
                 $entityManager->remove($shippingRequest);
+                $entityManager->flush();
             } else {
                 return $this->json([
                     'success' => false,
                     'msg' => 'Vous n\'avez pas pas la permission pour supprimer cette expédition (' . ShippingRequest::STATUS_TO_TREAT . ')',
                 ]);
             }
-            $entityManager->flush();
+
             return $this->json([
-                "success"=>true,
+                "success" => true,
             ]);
         }
+
         return $this->json([
-            'success'=>false,
+            'success' => false,
         ]);
     }
 
