@@ -337,6 +337,22 @@ export default class Select2 {
         Select2.destroy($element);
         Select2.init($element);
     }
+
+    static tokenizer(input, selection, callback, delimiter) {
+        let term = input.term;
+        if (term.indexOf(delimiter) < 0)
+            return input;
+
+        let parts = term.split(delimiter);
+        for (let i = 0; i < parts.length; i++) {
+            let part = parts[i].trim();
+            callback({
+                id: part,
+                text: part
+            });
+        }
+        return { term: parts.join(delimiter) }; // Rejoin unmatched tokens
+    }
 }
 
 $(document).ready(() => $(`[data-s2]`).each((id, elem) => {

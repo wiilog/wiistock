@@ -15,6 +15,10 @@
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Libellé
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
                 Code barre {{ trans('Stock', 'Référence', 'référence', false) }}
             </th>
             <th class="th"
@@ -47,6 +51,10 @@
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.articleFournisseur.referenceArticle.libelle }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
                     {{ article.articleFournisseur.referenceArticle.barCode }}
                 </td>
                 <td class="td"
@@ -74,6 +82,10 @@
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
                     {{ line.reference.reference }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ line.reference.libelle }}
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">

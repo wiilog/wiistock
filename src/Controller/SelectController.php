@@ -304,12 +304,14 @@ class SelectController extends AbstractController {
     public function user(Request $request, EntityManagerInterface $manager): Response {
         $addDropzone = $request->query->getBoolean("add-dropzone") ?? false;
         $delivererOnly = $request->query->getBoolean("deliverer-only") ?? false;
+        $withPhoneNumber = $request->query->getBoolean("with-phone-numbers") ?? false;
 
         $results = $manager->getRepository(Utilisateur::class)->getForSelect(
             $request->query->get("term"),
             [
                 "addDropzone" => $addDropzone,
-                "delivererOnly" => $delivererOnly
+                "delivererOnly" => $delivererOnly,
+                "withPhoneNumber" => $withPhoneNumber,
             ]
         );
         return $this->json([
@@ -688,7 +690,7 @@ class SelectController extends AbstractController {
      */
     public function deliveryLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_PROJECT);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
         $results = $entityManager->getRepository(Pack::class)->getForSelectFromDelivery(
             $request->query->get("term"),

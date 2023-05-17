@@ -40,7 +40,7 @@ use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
-use App\Service\DemandeLivraisonService;
+use App\Service\DeliveryRequestService;
 use App\Service\DisputeService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
@@ -1657,7 +1657,7 @@ class ReceptionController extends AbstractController {
                                    MailerService              $mailerService,
                                    TransferRequestService     $transferRequestService,
                                    TransferOrderService       $transferOrderService,
-                                   DemandeLivraisonService    $demandeLivraisonService,
+                                   DeliveryRequestService     $demandeLivraisonService,
                                    TranslationService         $translation,
                                    EntityManagerInterface     $entityManager,
                                    Reception                  $reception,
@@ -1666,8 +1666,8 @@ class ReceptionController extends AbstractController {
                                    TrackingMovementService    $trackingMovementService,
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
-                                   LivraisonsManagerService $livraisonsManagerService,
-                                   ReceptionService $receptionService): Response {
+                                   LivraisonsManagerService   $livraisonsManagerService,
+                                   ReceptionService           $receptionService): Response {
         $now = new DateTime('now');
 
         /** @var Utilisateur $currentUser */
