@@ -1,6 +1,6 @@
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
-
+global.generateDeliverySlip = generateDeliverySlip;
 
 $(function() {
     const shippingId = $('[name=shippingId]').val();
@@ -49,9 +49,13 @@ function openScheduledShippingRequestModal($button){
 }
 
 function generateDeliverySlip($button, shippingId) {
-    AJAX.route('POST', 'post_delivery_slip', {
-        shippingRequest: shippingId
-    });
-    return shippingId;
+    AJAX.route('GET', 'generate_delivery_slip', {
+        shippingRequest: shippingId})
+        .file({
+            success: "Votre bordereau de livraison a bien été imprimé.",
+            error: "Erreur lors de l'impression du bordereau de livraison."
+        })
+        .then(() => window.location.reload());
+
 }
 

@@ -3,13 +3,17 @@
 namespace App\Service\ShippingRequest;
 
 use App\Entity\FiltreSup;
+use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\Utilisateur;
+use App\Service\Document\TemplateDocumentService;
 use App\Service\FormatService;
+use App\Service\PDFGeneratorService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -32,6 +36,15 @@ class ShippingRequestService {
 
     #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public KernelInterface $kernel;
+
+    #[Required]
+    public TemplateDocumentService $wordTemplateDocument;
+
+    #[Required]
+    public PDFGeneratorService $PDFGeneratorService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -143,4 +156,92 @@ class ShippingRequestService {
                 ->sum(),
         ]);
     }
+
+    public function generateNewDeliverySlip(EntityManager   $entityManager,
+                                            ShippingRequest $shippingRequest): array {
+
+        $projectDir = $this->kernel->getProjectDir();
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $deliverySlipTemplatePath = $settingRepository->getOneParamByLabel(Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE)
+            ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE);
+
+        $formatService = $this->formatService;
+
+        $totalValue = Stream::from($shippingRequest->getExpectedLines())
+            ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getPrice())
+            ->sum();
+
+        $netWeight = Stream::from($shippingRequest->getExpectedLines())
+            ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
+            ->sum();
+
+        $variables = [
+            "QRCodeexpe" => $shippingRequest->getNumber() ?? '',
+            "numexpedition" => $shippingRequest->getNumber() ?? '',
+            "demandeurs" => $formatService->users($shippingRequest->getRequesters()) ?? '',
+            "teldemandeur" => '',
+            "numcommandeclient" => $shippingRequest->getCustomerOrderNumber() ?? '',
+            "livraisongracieux" => $formatService->bool($shippingRequest->isFreeDelivery()) ?? '',
+            "articlesconformes" => $formatService->bool($shippingRequest->isCompliantArticles()) ?? '',
+            "client" => $shippingRequest->getCustomerName() ?? '',
+            "destinataire" => $shippingRequest->getCustomerRecipient() ?? '',
+            "teldestinataire" => $shippingRequest->getCustomerPhone() ?? '',
+            "adressedestinataire" => $shippingRequest->getCustomerAddress() ?? '',
+            "datecreation" => $this->formatService->date($shippingRequest->getCreatedAt()) ?? '',
+            "datepriseenchargesouhaitee" => $this->formatService->date($shippingRequest->getRequestCaredAt()) ?? '',
+            "port" => ShippingRequest::CARRYING_LABELS[$shippingRequest->getCarrying()] ?? '',
+            "dateenlevement" => $this->formatService->date($shippingRequest->getExpectedPickedAt()) ?? '',
+            "dateexpedition" => "",
+            "reference" => "",
+            "libelle" => "",
+            "quantite" => "",
+            "prixunitaire" => "",
+            "poidsnet" => "",
+            "montantotal" => "",
+            "matieredangereuse" => "",
+            "FDS" => "",
+            "CodeONU" => "",
+            "CodeNDP" => "",
+            "classeproduit" => "",
+            "poidsnettotal" => $netWeight ?? '',
+            "valeurtotal" => $totalValue ?? '',
+            "dimensioncolis" => "",
+            "nbcolis" => $shippingRequest->getPackCount() ?? '',
+            "poidsbruttotal" => $shippingRequest->getGrossWeight() ?? '',
+            "nomtransporteur" => $formatService->carrier($shippingRequest->getCarrier()) ?? '',
+            "numtracking" => $shippingRequest->getTrackingNumber() ?? '',
+            "specificationtransport" => "",
+            "natureUL" => "",
+            "codeUL" => "",
+            "tableauref" => $shippingRequest->getExpectedLines(),
+        ];
+
+        dump(count($shippingRequest->getExpectedLines()));
+        $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
+            "${projectDir}/public/$deliverySlipTemplatePath",
+            $variables,
+            ["barcodes" => ["QRCodeexpe"],]
+        );
+
+        $nakedFileName = uniqid();
+
+        $deliverySlipOutdir = "{$projectDir}\public\uploads\attachements";
+        $docxPath = "{$deliverySlipOutdir}/{$nakedFileName}.docx";
+        rename($tmpDocxPath, $docxPath);
+
+        $this->PDFGeneratorService->generateFromDocx($docxPath, $deliverySlipOutdir);
+        unlink($docxPath);
+
+        $now = new \DateTime();
+        $name = "BDL - {$shippingRequest->getNumber()} - {$now->format('dmYHis')}";
+
+        return [
+            "file" => "{$deliverySlipOutdir}/{$nakedFileName}.pdf",
+            "name" => $name,
+        ];
+
+    }
+
 }

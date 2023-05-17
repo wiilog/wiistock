@@ -20,9 +20,11 @@ use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -241,9 +243,15 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/{shippingRequest}/delivery-slip", name:"post_delivery_slip", options:["expose"=>true], methods:['GET, POST'], condition: "request.isXmlHttpRequest()")]
-    public function postDeliverySlip(ShippingRequest        $shippingRequest,
-                                     ShippingRequestService $shippingRequestService): Response {
-        return new JsonResponse();
+    #[Route("/delivery-slip/{shippingRequest}", name:"generate_delivery_slip", options:["expose"=>true], methods:['GET', 'POST'], condition: "request.isXmlHttpRequest()")]
+    public function generateDeliverySlip(ShippingRequest        $shippingRequest,
+                                         ShippingRequestService $shippingRequestService,
+                                         EntityManagerInterface $entityManager): Response {
+        $data = $shippingRequestService->generateNewDeliverySlip($entityManager, $shippingRequest);
+
+        $response = new BinaryFileResponse($data['file']);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $data['name']);
+
+        return $response;
     }
 }
