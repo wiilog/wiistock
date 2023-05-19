@@ -29,7 +29,8 @@ class MobileApiService {
         "Emplacement de prise",
         "Emplacement de dépose",
         "Demande",
-        "Ordre"
+        "Ordre",
+        "Livraison"
     ];
 
     public function getDispatchesData(EntityManagerInterface $entityManager,
