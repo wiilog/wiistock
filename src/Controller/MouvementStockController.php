@@ -204,7 +204,7 @@ class MouvementStockController extends AbstractController
                         $trackingMovementService->persistSubEntities($entityManager, $associatedPickTracaMvt);
                         $createdPack = $associatedPickTracaMvt->getPack();
 
-                        if($chosenArticleToMove->getCurrentLogisticUnit()){
+                        if($chosenArticleToMove instanceof Article && $chosenArticleToMove->getCurrentLogisticUnit()){
                             $associatedPickLUTracaMvt = $trackingMovementService->createTrackingMovement(
                                 $chosenArticleToMove->getBarCode(),
                                 $emplacementFrom,
