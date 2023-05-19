@@ -41,9 +41,10 @@
 
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
+                    {classes: 'btn btn-success previous mr-auto', dismiss: false, text: 'Précédent'},
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
                     {classes: 'btn btn-success nextStep', text: 'Suivant', type:'button',data:{"shippingRequestId":shipping.id}},
-                    {classes: 'btn btn-success hidden', text: 'Valider le colisage', type:'submit', data:{"shippingRequestId":shipping.id}},
+                    {classes: 'btn btn-success', text: 'Valider le colisage', type:'submit', data:{"shippingRequestId":shipping.id}},
                 ],
                 hideErrorContainer: true,
             } %}

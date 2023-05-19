@@ -6,6 +6,7 @@ global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
 
 let expectedLines = null;
 let packingData = [];
+let packCount = null;
 
 $(function() {
     const shippingId = $('[name=shippingId]').val();
@@ -35,7 +36,7 @@ function initScheduledShippingRequestForm(){
     let $modalScheduledShippingRequest = $('#modalScheduledShippingRequest');
     Form.create($modalScheduledShippingRequest).onSubmit((data, form) => {
         $modalScheduledShippingRequest.modal('hide');
-        openPackingPack(data, expectedLines);
+        openPackingPack(data, expectedLines, 1);
     });
 }
 
@@ -44,7 +45,11 @@ function openPackingPack(dataShippingRequestForm, expectedLines, step = 1){
     $modal.modal('show');
 
     $modal.find('button.nextStep').on('click', function(){
-        packingNexStep($modal);
+        packingNextStep($modal);
+    })
+
+    $modal.find('button.previous').on('click', function(){
+        packingPreviousStep($modal);
     })
 
     const actionTemplate = $modal.find('#actionTemplate')
@@ -53,40 +58,48 @@ function openPackingPack(dataShippingRequestForm, expectedLines, step = 1){
         return {
             'selected': fillActionTemplate(actionTemplate, expectedLine.referenceArticleId, expectedLine.lineId),
             'label': expectedLine.label,
-            'quantity': expectedLine.quantity === 1 ? 1 : fillQuantityInputTemplate(quantityInputTemplate, expectedLine.quantity, expectedLine.quantity),
+            'quantity': fillQuantityInputTemplate(quantityInputTemplate, expectedLine.quantity),
             'price': expectedLine.price,
             'weight': expectedLine.weight,
             'totalPrice': expectedLine.totalPrice,
         }
     });
 
-    packingAddStep($modal, lines, dataShippingRequestForm.get('packCount'), step);
+    packCount = Number(dataShippingRequestForm.get('packCount'));
+
+    $modal.find('[name=packCount]').html(packCount);
+    packingAddStep($modal, lines, step);
 }
 
 function fillActionTemplate(template, referenceArticleId, lineId){
-    const $template =  $(template)
+    const $template =  $(template).clone()
     $template.find('[name="referenceArticleId"]').val(referenceArticleId);
     $template.find('[name="lineId"]').val(lineId);
     return $template.html()
 }
 
-function fillQuantityInputTemplate(template, quantity, remainingQuantity){
-    const $template =  $(template)
-    $template.find('[name=quantity]').val(quantity);
-    $template.find('[name=quantity]').attr('max', quantity);
-    $template.find('[name=remainingQuantity]').html(remainingQuantity);
+function fillQuantityInputTemplate(template, quantity){
+    const $template =  $(template).clone();
+    const $quantityInput = $template.find('[name=quantity]')
+
+    if (quantity === 1) {
+        $quantityInput.parents().append(quantity);
+        $quantityInput.attr('type', 'hidden');
+    } else {
+
+        $quantityInput.attr('max', quantity);
+    }
+
+    $quantityInput.attr('value',quantity.toString());
+    $template.find('[name=remainingQuantity]').val(quantity);
     return $template.html()
 }
-
-function packingAddStep($modal, data, packCount, step){
-    const packTemplate = $modal.find('#packTemplate').html();
-
-    const $curentStep = $modal.find('.modal-body').append(packTemplate)
-    $curentStep.data('step', step);
+function packingAddStep($modal, data, step){
+    const packTemplate = $modal.find('#packTemplate').clone().html();
+    const $curentStep = $modal.find('.modal-body').append(packTemplate).find('.packing-step:last')
+    $curentStep.attr('data-step', step);
     $modal.find('[name=step]').html(step);
-    $modal.find('[name=packCount]').html(packCount);
-
-    // TODO REMLINE LABEL PACK
+    $modal.find('[name=modalNumber]').html(step);
 
     let tablePackingConfig = {
         processing: true,
@@ -108,18 +121,40 @@ function packingAddStep($modal, data, packCount, step){
             {name: 'totalPrice',data: 'totalPrice', title: 'Montant total', orderable: true},
         ],
     };
-    initDataTable($modal.find('.articles-container table'), tablePackingConfig);
+    const $table = $curentStep.find('.articles-container table').attr('id', 'packingTable' + step)
+    initDataTable($table, tablePackingConfig);
+
+    $modal.find('button.btn.nextStep').attr('hidden', step === packCount);
+    $modal.find('button[type=submit]').attr('hidden', step !== packCount);
+    $modal.find('button.previous').attr('hidden', step === 1);
 }
 
-function packingNexStep($modal){
+function packingNextStep($modal){
     const $lastStep = $modal.find('.modal-body .packing-step:last');
-    const step = $lastStep.data('step');
+    let step = $lastStep.data('step');
     const packForm =  Form.process($lastStep.find('.main-ul-data'));
+    const $stepTable = $lastStep.find('.articles-container table');
+    const $checkValidation =  Form
+        .create($stepTable)
+        .addProcessor((data, errors, $form) => {
+            const $checked = $form.find('[name=checked]:checked');
+            if (!$checked.length) {
+                errors.push({
+                    global: true,
+                    message: 'Veuillez sélectionner au moins une ligne',
+                });
+                data.append('atLeastOneLine', false);
+            } else {
+                data.append('atLeastOneLine', true);
+            }
+        })
+        .process();
 
     const linesForm = []
-    $lastStep.find('.articles-container table tbody tr').each(function (index, tr) {
-        linesForm
-            .push(Form.create($(tr))
+    $stepTable.find('tbody tr').each(function (index, tr) {
+    linesForm
+        .push(Form
+            .create($(tr))
             .addProcessor((data, errors, $form) => {
                 if ($(this).find('[name=checked]').is(':checked') && !$(this).find('[name=quantity]').val()) {
                     errors.push({
@@ -131,20 +166,49 @@ function packingNexStep($modal){
             .process());
     });
 
-    if (!packForm || linesForm.find(element => false)) {
+    // check if there is an error in the step
+    if (!packForm || linesForm.includes(false) || !$checkValidation.get('atLeastOneLine')) {
         return;
     }
+
     packingData[step] = {
         pack: packForm,
         lines: linesForm,
     }
-    packingData[step]['pack'].forEach(function (value, key) {
-      console.log(value, key, 'pack')
-    })
-    packingData[step]['lines'].forEach(function (value, key) {
-      console.log(value, key, 'line')
-    })
 
+    const actionTemplate = $modal.find('#actionTemplate')
+    const quantityInputTemplate = $modal.find('#quantityInputTemplate')
+    const nextStepData = packingData[step]['lines'].map(function (lineFormData) {
+        const expectedLine = expectedLines.find(expectedLine => Number(expectedLine.lineId) === Number(lineFormData.get('lineId')));
+        const quantity = getNextStepQuantity(lineFormData.get('checked'), lineFormData.get('quantity'), lineFormData.get('remainingQuantity'));
+
+        if (quantity !== 0) {
+            return {
+                'selected': fillActionTemplate(actionTemplate, lineFormData.get('referenceArticleId'), lineFormData.get('lineId')),
+                'label': expectedLine.label,
+                'quantity': fillQuantityInputTemplate(quantityInputTemplate, getNextStepQuantity(lineFormData.get('checked'), lineFormData.get('quantity'), lineFormData.get('remainingQuantity'))),
+                'price': expectedLine.price,
+                'weight': expectedLine.weight,
+                'totalPrice': expectedLine.totalPrice,
+            }
+        }
+    }).filter(line => line);
+
+    $lastStep.hide();
+    packingAddStep($modal, nextStepData, step + 1 )
+}
+
+function getNextStepQuantity(checked, quantity, remainingQuantity){
+    return Boolean(Number(checked)) ? Number(remainingQuantity) - Number(quantity) : Number(quantity);
+}
+
+function packingPreviousStep($modal){
+    const $actualStep = $modal.find('.modal-body .packing-step:last');
+    $actualStep.remove();
+
+    const $lastStep = $modal.find('.modal-body .packing-step:last');
+    $lastStep.show();
+    $modal.find('[name=step]').html($lastStep.data('step'));
 }
 
 function openScheduledShippingRequestModal($button){
