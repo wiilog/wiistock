@@ -96,7 +96,7 @@ function deleteShippingRequest($event){
                 showBSAlert('Une erreur est survenue lors de la suppression.', 'danger');
             }
             if(res.success){
-                //window.location.href = Routing.generate('shipping_request_index');
+                window.location.href = Routing.generate('shipping_request_index');
             }
         });
 }

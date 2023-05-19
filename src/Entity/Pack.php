@@ -77,7 +77,6 @@ class Pack implements PairedEntity {
     private Collection $locationClusterRecords;
 
     #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: Article::class)]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Article $article = null;
 
     #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: ReferenceArticle::class)]

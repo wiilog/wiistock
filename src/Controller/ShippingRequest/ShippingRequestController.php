@@ -156,15 +156,24 @@ class ShippingRequestController extends AbstractController {
 
         $user = $this->getUser();
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
-        //todo: statut expédié ?
+
+        $isDraftOrTreat = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT
+            || $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT;
+        $isScheduled = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SCHEDULED;
+
+        //todo : demander plus de détails sur les statuts + droit brouillon ?
+        $hasRightDeleteDraftOrTreat = $userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING, $user);
+        $hasRightDeleteScheduled = $userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING, $user);
+
 
         // remove status to treat only if user has right and shipping request is to treat
-        if ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT) {
-            if ($userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING, $user)) {
+        if ($isDraftOrTreat) {
+            if ($hasRightDeleteDraftOrTreat) {
 
-                /* @var ShippingRequestExpectedLine $expectedLines */
-                foreach ($shippingRequest->getExpectedLines() as $expectedLines) {
-                    $entityManager->remove($expectedLines);
+                // remove 'ShippingRequesExpectedtLine'
+                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
+                    $shippingRequest->removeExpectedLine($expectedLine);
+                    $entityManager->remove($expectedLine);
                 }
 
                 // remove status_history where shipping_request_id equals $shippingRequest.id
@@ -180,15 +189,14 @@ class ShippingRequestController extends AbstractController {
                     'msg' => 'Vous n\'avez pas pas la permission pour supprimer cette expédition (' . ShippingRequest::STATUS_TO_TREAT . ')',
                 ]);
             }
-            //$entityManager->flush();
+            $entityManager->flush();
             return $this->json([
                 "success" => true,
             ]);
         }
-
         // remove status scheduled only if user has right and shipping request is scheduled
-        if ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SCHEDULED) {
-            if ($userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING, $user)) {
+        if ($isScheduled) {
+            if ($hasRightDeleteScheduled) {
 
                 // remove status_history where shipping_request_id equals $shippingRequest.id
                 $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
@@ -215,8 +223,9 @@ class ShippingRequestController extends AbstractController {
                             $entityManager->remove($stockMovement);
                         }
 
+                        $entityManager->remove($requestLine->getArticle());
                         $packLine->removeLine($requestLine);
-                        $entityManager->remove($requestLine);
+                        $entityManager->remove($requestLine); // cascade remove article
                         $requestLine->getExpectedLine()->removeLine($requestLine);
                     }
 
@@ -224,7 +233,8 @@ class ShippingRequestController extends AbstractController {
                     foreach ($pack->getTrackingMovements()->toArray() as $trackingMovement) {
                         $entityManager->remove($trackingMovement);
                     }
-                    $entityManager->remove($pack); // cascade remove article todo : bien vérif qu'il y a sup de l'article
+
+                    $entityManager->remove($pack);
                     $entityManager->remove($packLine);
                 }
 
@@ -235,19 +245,17 @@ class ShippingRequestController extends AbstractController {
                 }
 
                 $entityManager->remove($shippingRequest);
-                $entityManager->flush();
             } else {
                 return $this->json([
                     'success' => false,
                     'msg' => 'Vous n\'avez pas pas la permission pour supprimer cette expédition (' . ShippingRequest::STATUS_TO_TREAT . ')',
                 ]);
             }
-
+            $entityManager->flush();
             return $this->json([
                 "success" => true,
             ]);
         }
-
         return $this->json([
             'success' => false,
         ]);
