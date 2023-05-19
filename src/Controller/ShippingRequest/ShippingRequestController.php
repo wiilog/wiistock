@@ -132,7 +132,7 @@ class ShippingRequestController extends AbstractController {
     public function showPage(ShippingRequest        $shippingRequest,
                              ShippingRequestService $shippingRequestService,
                              EntityManagerInterface $entityManager): Response {
-        // TODO RECUPERER LE NATURE EN FONCTION DU PARAMETRAGE
+        // TODO RECUPERER LA NATURE EN FONCTION DU PARAMETRAGE
         $packingPackNature = $entityManager->getRepository(Nature::class)->findAll()[0];
 
         return $this->render('shipping_request/show.html.twig', [
@@ -206,11 +206,12 @@ class ShippingRequestController extends AbstractController {
             ]);
         }
 
-        $newStatusForShippingRequest = $entityManager->getRepository(Statut::class)
-                                                     ->findOneByCategorieNameAndStatutCode(
-                                                         CategorieStatut::SHIPMENT,
-                                                         ShippingRequest::STATUS_TO_TREAT
-                                                     );
+        $newStatusForShippingRequest = $entityManager
+            ->getRepository(Statut::class)
+            ->findOneByCategorieNameAndStatutCode(
+                CategorieStatut::SHIPMENT,
+                ShippingRequest::STATUS_TO_TREAT
+            );
 
         $shippingRequest
             ->setValidatedAt(new \DateTime())
@@ -240,12 +241,24 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/get-transport-header-config/{id}", name:"get_transport_header_config", methods: ['GET', 'POST'], options:["expose"=>true])]
+    #[Route("/get-header-config/{id}", name: "shipping_request_header_config", options: ["expose"=>true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function getTransportHeaderConfig(ShippingRequest        $shippingRequest,
                                              ShippingRequestService $shippingRequestService): Response {
         return $this->json([
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+        ]);
+    }
+
+    #[Route("/submit-packing/{id}", name: "shipping_request_submit_packing", options: ["expose"=>true], methods: ['POST'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function postSubmitPacking(ShippingRequest        $shippingRequest, Request $request): Response {
+        $data = json_decode($request->getContent(), true);
+
+        dump($data);
+
+        return $this->json([
+            'success' => false,
         ]);
     }
 }
