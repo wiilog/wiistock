@@ -28,8 +28,6 @@ class MobileApiService {
         "Nature",
         "Emplacement de prise",
         "Emplacement de dépose",
-        "Demande",
-        "Ordre",
         "Livraison"
     ];
 
