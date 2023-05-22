@@ -4,7 +4,7 @@
 {% set partialEdit = reference.id and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
 {% set hasRightCreateDraft = (not reference.id or reference.statut.draft) and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_DRAFT_REFERENCE')) %}
 {% set disabled = editable ? '' : 'disabled' %}
-{% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') %}
+{% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') %}
 {% set statuses = {
     'actif': {
         'status': 'active',
