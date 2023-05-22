@@ -2645,6 +2645,7 @@ class MobileController extends AbstractApiController
             ]);
         }
 
+        $emergency = $request->request->get('emergency');
         $dispatch = (new Dispatch())
             ->setNumber($dispatchNumber)
             ->setCreationDate(new DateTime())
@@ -2655,7 +2656,7 @@ class MobileController extends AbstractApiController
             ->setLocationTo($dropLocation)
             ->setCarrierTrackingNumber($request->request->get('carrierTrackingNumber'))
             ->setCommentaire($request->request->get('comment'))
-            ->setEmergency($request->request->getBoolean('emergency'))
+            ->setEmergency(!empty($emergency) ? $emergency : null)
             ->setEmails($emails);
 
         if($receiver) {
