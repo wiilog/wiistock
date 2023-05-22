@@ -8,17 +8,19 @@
     {% set disabled = disabled is defined and disabled %}
     {% set labelTitle = label is defined and label ? label : "Pièces jointes" %}
     {% set name = nameInput is defined and nameInput ? nameInput : null %}
+    {% set dropFrameName = attachmentLineOptions.dropFrameName is defined
+        and attachmentLineOptions.dropFrameName ? attachmentLineOptions.dropFrameName : "" %}
 
     <input type="hidden" name="isAttachmentForm" value="1"/>
     <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
-    <input type="hidden"  name="isSheetFileNeeded" value="{{ required ? 1 : 0 }}"/>
+    <input type="hidden" name="isSheetFileNeeded" value="{{ required ? 1 : 0 }}"/>
 
     {% if not noLabel %}
         <label for="dropfile"
                class="{{ override is not defined or not override ? 'wii-field-name' }} {{ fieldNameClass }} {{ labelTitle }}">{{ trans('Général', null, 'Modale', labelTitle) }}{{ required ? '*' }}</label>
     {% endif %}
     {% if editAttachments %}
-        <div class="dropFrame {{ buttonOnly ? 'button-only p-0' }} justify-content-md-center {{ small ?? false ? 'small-frame' }}"
+        <div class="dropFrame {{ dropFrameName }} {{ buttonOnly ? 'button-only p-0' }} justify-content-md-center {{ small ?? false ? 'small-frame' }}"
              data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
              data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
              ondragenter="dragEnterDiv(event, $(this))"
@@ -49,25 +51,15 @@
     {% endif %}
     <div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
     {% if attachments is defined %}
-        {% if attachments is iterable %}
-            {% if isNew != true %}
-                {% for attachment in attachments %}
-                    {% include 'attachment/attachmentLine.html.twig' with {
-                        attachment: attachment,
-                        canRemove: editAttachments,
-                        icon: icon ?? null,
-                        fullWidth: fullWidth ?? false
-                    } %}
-                {% endfor %}
-            {% endif %}
-        {% else %}
-            {% include 'attachment/attachmentLine.html.twig' with {
-                attachment: attachments,
-                canRemove: editAttachments,
-                icon: icon ?? null,
-                sheetFileClass: "delete-sheet-file",
-                savedSheetFiles:"savedSheetFile"
-            } %}
+        {% if isNew != true %}
+            {% for attachment in attachments %}
+                {% include 'attachment/attachmentLine.html.twig' with {
+                    attachment: attachment,
+                    canRemove: editAttachments,
+                    icon: icon ?? null,
+                    fullWidth: fullWidth ?? false
+                }|merge(attachmentLineOptions ?? {}) %}
+            {% endfor %}
         {% endif %}
     {% endif %}
 </div>
