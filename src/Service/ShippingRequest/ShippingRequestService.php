@@ -2,16 +2,26 @@
 
 namespace App\Service\ShippingRequest;
 
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Nature;
+use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
+use App\Entity\ShippingRequest\ShippingRequestPack;
+use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Exceptions\FormException;
 use App\Service\FormatService;
+use App\Service\PackService;
+use App\Service\TrackingMovementService;
 use App\Service\VisibleColumnService;
+use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\Types\Iterable_;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
@@ -39,6 +49,12 @@ class ShippingRequestService {
 
     #[Required]
     public CSVExportService $CSVExportService;
+
+    #[Required]
+    public PackService $packService;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -264,5 +280,32 @@ class ShippingRequestService {
             ->setRequesters($requesters)
             ->setCarrier($carrier);
         return true;
+    }
+
+    public function createShippingRequestPack(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, int $packNumber, float $size, Emplacement $packLocation, array $options = []) :ShippingRequestPack {
+        // TODO RECUPERER LA NATURE EN FONCTION DU PARAMETRAGE
+        $packNatureId = $entityManager->getRepository(Nature::class)->findAll()[0]->getId();
+
+        $packsCode = str_replace(ShippingRequest::NUMBER_PREFIX.'-', '', $shippingRequest->getNumber());
+        $pack = $this->packService->persistPack($entityManager, $packsCode.$packNumber, 1, $packNatureId);
+        $date =  $options['date'] ?? new DateTime('now');
+        $trackingMovement = $this->trackingMovementService->createTrackingMovement(
+            $pack,
+            $packLocation,
+            $this->security->getUser(),
+            $date,
+            false,
+            null,
+            TrackingMovement::TYPE_DEPOSE
+        );
+        $entityManager->persist($trackingMovement);
+
+        $shippingRequestPack = new ShippingRequestPack();
+        $shippingRequestPack
+            ->setPack($pack)
+            ->setRequest($shippingRequest)
+            ->setSize($size);
+
+        return $shippingRequestPack;
     }
 }

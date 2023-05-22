@@ -5,28 +5,34 @@ namespace App\Controller\ShippingRequest;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\MouvementStock;
 use App\Entity\Nature;
-use App\Entity\Pack;
+use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
+use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
-use App\Service\FormatService;
 use App\Exceptions\FormException;
+use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
+use App\Service\MouvementStockService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
+use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use phpDocumentor\Reflection\Types\Array_;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -351,12 +357,122 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/submit-packing/{id}", name: "shipping_request_submit_packing", options: ["expose"=>true], methods: ['POST'])]
+    #[Route("/submit-packing/{id}", name: "shipping_request_submit_packing", options: ["expose" => true], methods: ['POST'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function postSubmitPacking(ShippingRequest        $shippingRequest, Request $request): Response {
+    public function postSubmitPacking(ShippingRequest         $shippingRequest,
+                                      Request                 $request,
+                                      EntityManagerInterface  $entityManager,
+                                      ShippingRequestService  $shippingRequestService,
+                                      ArticleDataService      $articleDataService,
+                                      TrackingMovementService $trackingMovementService,
+                                      MouvementStockService   $stockMovementService): Response {
         $data = json_decode($request->getContent(), true);
+        if (!count($data)) {
+            throw new FormException("Une Erreur est survenue lors de la récupération des données.");
+        }
 
-        dump($data);
+        $now = new DateTime('now');
+        $ShippingRequestExpectedLineRepository = $entityManager->getRepository(ShippingRequestExpectedLine::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $quantityByExpectedLine = [];
+
+        $packLocationId = $settingRepository->getOneParamByLabel(Setting::SHIPPING_LOCATION_FROM);
+        $packLocation = $locationRepository->find($packLocationId);
+
+        if (!$packLocation) {
+            throw new FormException("L'emplacement d'expédition par défaut n'est pas paramétré");
+        }
+
+        $generatedBarcode = [];
+
+        Stream::from($data)
+            ->each(function ($pack, $index) use (&$generatedBarcode, $stockMovementService, $trackingMovementService, $packLocation, $articleDataService, $now, $shippingRequestService, $shippingRequest, $entityManager, $ShippingRequestExpectedLineRepository, &$quantityByExpectedLine) {
+                if (!count(($pack['lines'] ?? []))) {
+                    throw new FormException('Une Erreur est survenue lors de la récupération des données.');
+                }
+
+                $shippingPack = $shippingRequestService->createShippingRequestPack($entityManager, $shippingRequest, $index + 1, $pack['size'], $packLocation, ['date' => $now]);
+                $entityManager->persist($shippingPack);
+
+                $lines = Stream::from($pack['lines'])
+                    ->each(function ($line) use (&$generatedBarcode, $stockMovementService, $now, $trackingMovementService, $shippingPack, $packLocation, $entityManager, $articleDataService, $ShippingRequestExpectedLineRepository, &$quantityByExpectedLine) {
+                        if (!isset($line['lineId']) || !isset($line['quantity'])) {
+                            throw new FormException();
+                        }
+                        $expectedLineId = $line['lineId'];
+                        $pickedQuantity = $line['quantity'];
+
+                        $requestExpectedLine = $ShippingRequestExpectedLineRepository->find($expectedLineId);
+                        if (!$requestExpectedLine) {
+                            throw new FormException('Une Erreur est survenue lors de la récupération des données.');
+                        }
+
+                        $article = $articleDataService->newArticle(
+                            $entityManager,
+                            [
+                            'statut' => Article::STATUT_EN_TRANSIT,
+                            'refArticle' => $requestExpectedLine->getReferenceArticle(),
+                            'emplacement' => $packLocation,
+                            'quantite' => $pickedQuantity,
+                            'prix' => $requestExpectedLine->getPrice(),
+                            'articleFournisseur' => $requestExpectedLine->getReferenceArticle()->getArticlesFournisseur()->first()->getId(),
+                            'currentLogisticUnit' => $shippingPack->getPack(),
+                            ],
+                            [
+                                'excludeBarcodes' => $generatedBarcode,
+                            ]);
+                        $generatedBarcode[] = $article->getBarCode();
+
+                        $stockMovement = $stockMovementService->createMouvementStock(
+                            $this->getUser(),
+                            null,
+                            $article->getQuantite(),
+                            $article,
+                            MouvementStock::TYPE_ENTREE,
+                            [
+                                'date'=> $now,
+                                'locationTo'=> $packLocation
+                            ]
+                        );
+                        $entityManager->persist($stockMovement);
+
+                        $trackingMovement = $trackingMovementService->createTrackingMovement(
+                            $article->getBarCode(),
+                            $packLocation,
+                            $this->getUser(),
+                            $now,
+                            false,
+                            true,
+                            TrackingMovement::TYPE_DEPOSE,
+                            [
+                                'refOrArticle'=> $article,
+                                'mouvementStock' => $stockMovement,
+                                'logisticUnitParent' => $shippingPack->getPack()
+                            ]
+                        );
+                        $entityManager->persist($trackingMovement);
+
+                        $requestLine = new ShippingRequestLine();
+                        $requestLine
+                            ->setQuantity($pickedQuantity)
+                            ->setArticle($article)
+                            ->setShippingPack($shippingPack)
+                            ->setExpectedLine($requestExpectedLine);
+
+                        $entityManager->persist($requestLine);
+                        $quantityByExpectedLine[$expectedLineId] = ($quantityByExpectedLine[$expectedLineId] ?? 0) + $pickedQuantity;
+                    });
+            });
+
+        Stream::from($shippingRequest->getExpectedLines())
+            ->each(function (ShippingRequestExpectedLine $expectedLine) use ($quantityByExpectedLine) {
+                $expectedLineId = $expectedLine->getId();
+                if (($quantityByExpectedLine[$expectedLineId] ?? 0) !== $expectedLine->getQuantity()) {
+                    throw new FormException('Une Erreur est survenue lors du traitement des données.');
+                }
+            });
+        $entityManager->flush();
 
         return $this->json([
             'success' => false,

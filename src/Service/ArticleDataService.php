@@ -321,7 +321,8 @@ class ArticleDataService
                 ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setBatch($data['batch'] ?? null);
+                ->setBatch($data['batch'] ?? null)
+                ->setCurrentLogisticUnit($data['currentLogisticUnit'] ?? null);
 
             if(isset($data['nativeCountry'])) {
                 $article->setNativeCountry($entityManager->find(NativeCountry::class, $data['nativeCountry']));
@@ -337,7 +338,6 @@ class ArticleDataService
                 $article->setManifacturingDate($data['manufactureDate'] ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null);
             }
 
-            $article->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']));
             $entityManager->persist($article);
         }
 

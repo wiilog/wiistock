@@ -17,6 +17,7 @@ $(function () {
     });
 
     initScheduledShippingRequestForm();
+    initPackingPack($('#modalPacking'))
 });
 
 function refreshTransportHeader(shippingId) {
@@ -43,14 +44,11 @@ function initScheduledShippingRequestForm() {
     let $modalScheduledShippingRequest = $('#modalScheduledShippingRequest');
     Form.create($modalScheduledShippingRequest).onSubmit((data, form) => {
         $modalScheduledShippingRequest.modal('hide');
-        openPackingPack(data, expectedLines, 1);
+        openPackingModal(data, expectedLines, 1);
     });
 }
 
-function openPackingPack(dataShippingRequestForm, expectedLines, step = 1) {
-    const $modal = $('#modalPacking');
-    $modal.modal('show');
-
+function initPackingPack($modal) {
     $modal.find('button.nextStep').on('click', function () {
         packingNextStep($modal);
     })
@@ -58,6 +56,53 @@ function openPackingPack(dataShippingRequestForm, expectedLines, step = 1) {
     $modal.find('button.previous').on('click', function () {
         packingPreviousStep($modal);
     })
+
+    $modal
+        .on('hidden.bs.modal', function () {
+            $modal.find('.modal-body').empty();
+        })
+        .on('click', 'button[type=submit]', function () {
+            if (packingNextStep($modal, true)) {
+                const packing = packingData.map(function (packingPack) {
+                    const lineData = packingPack.lines.map(function (lineFormData) {
+                        let linesData = {}
+                        if (Boolean(Number(lineFormData.get('picked')))) {
+                            lineFormData.forEach(function (value, key) {
+                                linesData[key] = value
+                            })
+                        }
+                        return linesData
+                    }).filter((lineData)=> Object.keys(lineData).length)
+                    const packData = {}
+                    packingPack.pack.forEach(function (value, key) {
+                        packData[key] = value
+                    })
+
+                    return {
+                        lines : lineData,
+                        ... packData
+                    }
+                })
+                wrapLoadingOnActionButton($(this), function (){
+                    const shippingId = $('[name=shippingId]').val();
+                    AJAX
+                        .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
+                        .json(
+                            packing,
+                        )
+                        .then((res) => {
+                            $modal.modal('hide');
+                            refreshTransportHeader(shippingId);
+                        });
+                })
+            }
+        });
+}
+
+function openPackingModal(dataShippingRequestForm, expectedLines, step = 1) {
+    const $modal = $('#modalPacking');
+    $modal.modal('show');
+
     packCount = Number(dataShippingRequestForm.get('packCount'));
     const actionTemplate = $modal.find('#actionTemplate');
     const quantityInputTemplate = $modal.find('#quantityInputTemplate');
@@ -82,47 +127,14 @@ function openPackingPack(dataShippingRequestForm, expectedLines, step = 1) {
         $row.find('span.total-price').html($(this).val() * expectedLines.find(line => Number(line.lineId) === Number(lineId)).price);
     })
 
-    $modal.on('hidden.bs.modal', function () {
-        $modal.find('.modal-body').empty();
-    });
 
-    $modal.off('submit').on('click', 'button[type=submit]', function () {
-        if (packingNextStep($modal, true)) {
-            const packing = packingData.map(function (packingPack) {
-                const lineData = packingPack.lines.map(function (lineFormData) {
-                    let linesData = {}
-                    lineFormData.forEach(function (value, key) {
-                        linesData[key] = value
-                    })
-                    return linesData
-                })
-                const packData = {}
-                packingPack.pack.forEach(function (value, key) {
-                    packData[key] = value
-                })
-
-                return {
-                    line : lineData,
-                    ... packData
-                }
-            })
-            AJAX
-                .route(POST, 'shipping_request_submit_packing', {id: $('[name=shippingId]').val(),})
-                .json(
-                    packing,
-                )
-                .then((res) => {
-                    console.log(res);
-                });
-        }
-    })
 }
 
-function fillActionTemplate(template, referenceArticleId, lineId, checked = false, disabled = false) {
+function fillActionTemplate(template, referenceArticleId, lineId, picked = false, disabled = false) {
     const $template = $(template).clone()
     $template.find('[name="referenceArticleId"]').val(referenceArticleId);
     $template.find('[name="lineId"]').val(lineId);
-    $template.find('[name="checked"]').attr('disabled', disabled).attr('checked', checked);
+    $template.find('[name="picked"]').attr('disabled', disabled).attr('checked', picked);
     return $template.html()
 }
 
@@ -190,8 +202,8 @@ function packingNextStep($modal , finalStep = false) {
     const $checkValidation = Form
         .create($stepTable)
         .addProcessor((data, errors, $form) => {
-            const $checked = $form.find('[name=checked]:checked');
-            if (!$checked.length) {
+            const $picked = $form.find('[name=picked]:checked');
+            if (!$picked.length) {
                 errors.push({
                     global: true,
                     message: 'Veuillez sélectionner au moins une ligne',
@@ -209,7 +221,7 @@ function packingNextStep($modal , finalStep = false) {
             .push(Form
                 .create($(tr))
                 .addProcessor((data, errors, $form) => {
-                    if ($(this).find('[name=checked]').is(':checked') && !$(this).find('[name=quantity]').val()) {
+                    if ($(this).find('[name=picked]').is(':checked') && !$(this).find('[name=quantity]').val()) {
                         errors.push({
                             elements: [$(this).find('[name=quantity]')],
                             global: false,
@@ -233,14 +245,14 @@ function packingNextStep($modal , finalStep = false) {
     const quantityInputTemplate = $modal.find('#quantityInputTemplate')
     const nextStepData = packingData[step-1]['lines'].map(function (lineFormData) {
         const expectedLine = expectedLines.find(expectedLine => Number(expectedLine.lineId) === Number(lineFormData.get('lineId')));
-        const quantity = getNextStepQuantity(lineFormData.get('checked'), lineFormData.get('quantity'), lineFormData.get('remainingQuantity'));
+        const quantity = getNextStepQuantity(lineFormData.get('picked'), lineFormData.get('quantity'), lineFormData.get('remainingQuantity'));
         const nextIsLastStep = (step + 1) === packCount;
 
         if (quantity !== 0) {
             return {
                 'selected': fillActionTemplate(actionTemplate, lineFormData.get('referenceArticleId'), lineFormData.get('lineId'), nextIsLastStep, nextIsLastStep),
                 'label': expectedLine.label,
-                'quantity': fillQuantityInputTemplate(quantityInputTemplate, getNextStepQuantity(lineFormData.get('checked'), lineFormData.get('quantity'), lineFormData.get('remainingQuantity')), nextIsLastStep),
+                'quantity': fillQuantityInputTemplate(quantityInputTemplate, getNextStepQuantity(lineFormData.get('picked'), lineFormData.get('quantity'), lineFormData.get('remainingQuantity')), nextIsLastStep),
                 'price': expectedLine.price,
                 'weight': expectedLine.weight,
                 'totalPrice': expectedLine.totalPrice,
@@ -255,8 +267,8 @@ function packingNextStep($modal , finalStep = false) {
     return true;
 }
 
-function getNextStepQuantity(checked, quantity, remainingQuantity) {
-    return Boolean(Number(checked)) ? Number(remainingQuantity) - Number(quantity) : Number(quantity);
+function getNextStepQuantity(picked, quantity, remainingQuantity) {
+    return Boolean(Number(picked)) ? Number(remainingQuantity) - Number(quantity) : Number(remainingQuantity);
 }
 
 function packingPreviousStep($modal) {
