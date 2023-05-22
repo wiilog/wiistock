@@ -705,14 +705,12 @@ function processFilesForm($modal, data) {
 
     const isInvalidRequiredSheet = (requiredSheetFile && sheetFile.length === 0 && !alreadyExistSheetFile)
     const isInvalidRequired = (required && droppedFiles.length === 0 && $savedFiles.length === 0);
-    let dropFrame;
+    let dropFrame = [];
 
     if(isInvalidRequired){
         dropFrame = [$modal.find('.dropFrame')]
     }else if(isInvalidRequiredSheet){
         dropFrame = [$modal.find('.dropFrameSheet')]
-    }else{
-        dropFrame = []
     }
 
     return {
