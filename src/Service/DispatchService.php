@@ -178,7 +178,7 @@ class DispatchService {
             'nbPacks' => $dispatch->getDispatchPacks()->count(),
             'type' => $this->formatService->type($dispatch->getType()),
             'status' => $this->formatService->status($dispatch->getStatut()),
-            'emergency' => $dispatch->getEmergency() ?? '',
+            'emergency' => $dispatch->getEmergency() ?? 'Non',
             'treatedBy' => $this->formatService->user($dispatch->getTreatedBy()),
             'treatmentDate' => $this->formatService->datetime($dispatch->getTreatmentDate()),
         ];
