@@ -1,5 +1,6 @@
 import Form from "@app/form";
 import AJAX, {GET, POST} from "@app/ajax";
+import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
@@ -9,6 +10,12 @@ let packingData = [];
 let packCount = null;
 
 $(function () {
+    const $modalEdit = $('#modalEditShippingRequest');
+    initModalFormShippingRequest($modalEdit, 'shipping_request_edit', () => {
+        $modalEdit.modal('hide');
+        window.location.reload();
+    });
+
     initScheduledShippingRequestForm();
 });
 

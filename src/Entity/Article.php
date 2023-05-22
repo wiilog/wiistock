@@ -884,11 +884,11 @@ class Article implements PairedEntity {
         return $this;
     }
 
-    public function getShippingRequestLine(): ?ShippingRequestLine {
+    public function getShippingRequestLine(): ?ShippingRequestPack {
         return $this->shippingRequestLine;
     }
 
-    public function setShippingRequestLine(?ShippingRequestLine $line): self {
+    public function setShippingRequestLine(?ShippingRequestPack $line): self {
         if($this->shippingRequestLine && $this->shippingRequestLine->getArticle() !== $this) {
             $oldLine = $this->shippingRequestLine;
             $this->shippingRequestLine = null;
