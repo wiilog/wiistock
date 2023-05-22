@@ -50,27 +50,27 @@ class ShippingRequestController extends AbstractController {
         $dateChoice = [
             [
                 'name' => 'createdAt',
-                'label' => $translationService->translate('Général', null, 'Zone liste', 'Date de création'),
+                'label' => 'Date de création',
             ],
             [
                 'name' => 'requestCaredAt',
-                'label' => $translationService->translate('Demande', 'Expédition', 'Date de prise en charge souhaitée'),
+                'label' => 'Date de prise en charge souhaitée',
             ],
             [
                 'name' => 'validatedAt',
-                'label' => $translationService->translate('Demande', 'Expédition', 'Date de validation'),
+                'label' => 'Date de validation',
             ],
             [
                 'name' => 'plannedAt',
-                'label' => $translationService->translate('Demande', 'Expédition', 'Date de planification'),
+                'label' => 'Date de planification',
             ],
             [
                 'name' => 'expectedPickedAt',
-                'label' => $translationService->translate('Demande', 'Expédition', 'Date d\'enlèvement prévu'),
+                'label' => 'Date d\'enlèvement prévu',
             ],
             [
                 'name' => 'treatedAt',
-                'label' => $translationService->translate('Demande', 'Expédition', 'Date d\'expédition'),
+                'label' => 'Date d\'expédition',
             ],
         ];
         foreach ($dateChoice as &$choice) {
@@ -255,7 +255,8 @@ class ShippingRequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function shippingRequestValidation(ShippingRequest        $shippingRequest,
                                               StatusHistoryService   $statusHistoryService,
-                                              EntityManagerInterface $entityManager): JsonResponse
+                                              EntityManagerInterface $entityManager,
+                                              TranslationService $translationService): JsonResponse
     {
         $currentUser = $this->getUser();
 
@@ -297,7 +298,7 @@ class ShippingRequestController extends AbstractController {
 
         return $this->json([
             "success"=> true,
-            'msg'=> 'La validation de votre demande d\'expédition a bien été prise en compte. ',
+            'msg'=> 'La validation de votre ' . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . ' a bien été prise en compte. ',
         ]);
     }
 
