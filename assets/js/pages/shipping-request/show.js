@@ -60,7 +60,8 @@ function openScheduledShippingRequestModal($button){
 }
 
 function getShippingRequestStatusHistory(shippingRequest) {
-    return $.get(Routing.generate(`shipping_request_status_history_api`, {shippingRequest}, true))
+    return AJAX.route(GET, `shipping_request_status_history_api`, {shippingRequest})
+        .json()
         .then(({template}) => {
             const $statusHistoryContainer = $(`.history-container`);
             $statusHistoryContainer.html(template);
