@@ -157,14 +157,17 @@ class ShippingRequestController extends AbstractController {
         $user = $this->getUser();
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
 
+        // status
         $isDraftOrTreat = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT
             || $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT;
         $isScheduled = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SCHEDULED;
+        $isShipped = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SHIPPED;
 
-        //todo : demander plus de détails sur les statuts + droit brouillon ?
-        $hasRightDeleteDraftOrTreat = $userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING, $user);
+        // right
+        $hasRightDeleteDraftOrTreat = ($userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING, $user)) ||
+                                        ($userService->hasRightFunction(Menu::DEM, Action::DELETE, $user));
         $hasRightDeleteScheduled = $userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING, $user);
-
+        $hasRightDeleteShipped = $userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING);
 
         // remove status to treat only if user has right and shipping request is to treat
         if ($isDraftOrTreat) {
@@ -242,6 +245,10 @@ class ShippingRequestController extends AbstractController {
                 foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
                     $shippingRequest->removeExpectedLine($expectedLine);
                     $entityManager->remove($expectedLine);
+                }
+
+                if($isShipped && $hasRightDeleteShipped){
+                    //todo
                 }
 
                 $entityManager->remove($shippingRequest);
