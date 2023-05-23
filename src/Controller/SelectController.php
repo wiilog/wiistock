@@ -246,6 +246,7 @@ class SelectController extends AbstractController {
             'type-quantity' => $request->query->get('type-quantity'),
             'status' => $request->query->get('status'),
             'ignoredDeliveryRequest' => $request->query->get('ignored-delivery-request'),
+            'ignoredShippingRequest' => $request->query->get('ignored-shipping-request'),
             'minQuantity'  => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
         ];
 

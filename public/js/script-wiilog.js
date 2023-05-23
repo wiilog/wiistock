@@ -1258,3 +1258,7 @@ function registerEasterEgg() {
         count = 0;
     })
 }
+
+function scrollToBottom() {
+    window.scrollTo(0, document.body.scrollHeight);
+}

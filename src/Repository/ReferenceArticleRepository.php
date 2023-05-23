@@ -13,6 +13,7 @@ use App\Entity\Livraison;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -92,12 +93,12 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         if($options['ignoredDeliveryRequest'] ?? false) {
-            $queryHasResult = $this->createQueryBuilder("reference_has_request")
-                ->select('COUNT(reference_has_request)')
-                ->join("reference_has_request.deliveryRequestLines", "lines")
+            $queryHasResult = $this->createQueryBuilder("reference_has_delivery_request")
+                ->select('COUNT(reference_has_delivery_request)')
+                ->join("reference_has_delivery_request.deliveryRequestLines", "lines")
                 ->join("lines.request", "deliveryRequest")
                 ->andWhere("deliveryRequest.id = :deliveryRequestId")
-                ->andWhere("reference_has_request.id = reference.id")
+                ->andWhere("reference_has_delivery_request.id = reference.id")
                 ->setMaxResults(1)
                 ->getQuery()
                 ->getDQL();
@@ -105,6 +106,21 @@ class ReferenceArticleRepository extends EntityRepository {
             $queryBuilder
                 ->andWhere("($queryHasResult) = 0")
                 ->setParameter('deliveryRequestId', $options['ignoredDeliveryRequest']);
+        }
+
+        if($options['ignoredShippingRequest'] ?? false) {
+            $queryHasResult = $this->createQueryBuilder("reference_has_shipping_request")
+                ->select('COUNT(reference_has_shipping_request)')
+                ->join(ShippingRequestExpectedLine::class, "shippingRequestExpectedLine", Join::WITH, 'shippingRequestExpectedLine.referenceArticle = reference')
+                ->join("shippingRequestExpectedLine.request", "shippingRequest")
+                ->andWhere("shippingRequest.id = :shippingRequestId")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
+            $queryBuilder
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('shippingRequestId', $options['ignoredShippingRequest']);
         }
 
         return $queryBuilder

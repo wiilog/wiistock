@@ -21,8 +21,11 @@
 {% import "shipping_request/macro.html.twig" as macro %}
 
 {% block page_content %}
-    {{ form.input('shippingId', '', false, shipping.id, {
-        type: 'hidden'
+    {{ form.hidden('shippingId', shipping.id, {
+        data: false
+    }) }}
+    {{ form.hidden('editableExpectedLineForm', editableExpectedLineForm|json_encode, {
+        data: false
     }) }}
     <div class="mb-4 ra-container d-flex justify-content-center align-content-center">
         <div class="row wii-column w-100">
@@ -135,9 +138,14 @@
                 </div>
 
             </div>
-            <div class="transport-header col-md-8 col-12">
-                <div class="wii-box">
-                    {{ detailsTransportConfig|raw }}
+            <div class="col-md-8 col-12">
+                <div class="d-flex flex-column">
+                    <div class="wii-box transport-header">
+                        {{ detailsTransportConfig|raw }}
+                    </div>
+                    <div class="wii-box mt-3">
+                        <table id="expectedLinesTable" class="table"></table>
+                    </div>
                 </div>
             </div>
         </div>

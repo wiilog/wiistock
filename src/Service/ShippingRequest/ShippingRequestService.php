@@ -105,7 +105,7 @@ class ShippingRequestService {
         $formatService = $this->formatService;
 
         $url = $this->router->generate('shipping_request_show', [
-            "id" => $shipping->getId()
+            "shippingRequest" => $shipping->getId()
         ]);
         $row = [
             "actions" => $this->templating->render('shipping_request/actions.html.twig', [
@@ -139,17 +139,8 @@ class ShippingRequestService {
     }
 
     public function createHeaderTransportDetailsConfig(ShippingRequest $shippingRequest){
-        $packsCount = $shippingRequest->getExpectedLines()->count();
-
         return $this->templating->render('shipping_request/show-transport-header.html.twig', [
             'shipping' => $shippingRequest,
-            'packsCount' => $packsCount,
-            'totalValue' => Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getPrice())
-                ->sum(),
-            'netWeight' => Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
-                ->sum(),
         ]);
     }
 
