@@ -14,7 +14,7 @@
                             onclick="validateShippingRequest({{ shipping.id }})"
                             class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
                         <span class="wii-icon wii-icon-check-white mr-2"></span>
-                        Valider l'expédition
+                        Valider l'{{ trans('Demande', 'Expédition', 'Expédition', false) | lower }}
                     </button>
                 {% elseif shipping.status.code == constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_TO_TREAT') and hasRightDisplayScheduleButton %}
                     <button type="button"
