@@ -3,6 +3,7 @@ import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
+global.shippedShippingRequest = shippedShippingRequest;
 
 $(function() {
     const shippingId = $('[name=shippingId]').val();
@@ -55,4 +56,16 @@ function openScheduledShippingRequestModal($button){
                 $('#modalScheduledShippingRequest').modal('show');
             }
         });
+}
+
+function shippedShippingRequest($button) {
+    wrapLoadingOnActionButton($button, () => (
+        AJAX.route(POST, `shipped_shipping_request`, {id: $button.data('id')})
+            .json()
+            .then((res) => {
+                if (res.success) {
+                    location.reload();
+                }
+            })
+    ));
 }
