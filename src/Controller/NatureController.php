@@ -149,14 +149,14 @@ class NatureController extends AbstractController
 
             $natures = $entityManager->getRepository(Nature::class)->findAll();
 
-            $defaultForDispatch = filter_var($data['defaultForDispatch'] ?? false, FILTER_VALIDATE_BOOLEAN);
-            if($defaultForDispatch) {
-                $isAlreadyDefaultForDispatch = !Stream::from($natures)
-                    ->filter(fn(Nature $nature) => $nature->getDefaultForDispatch())
+            $default = filter_var($data['default'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            if($default) {
+                $isAlreadyDefault = !Stream::from($natures)
+                    ->filter(fn(Nature $nature) => $nature->getDefault())
                     ->isEmpty();
 
-                if(!$isAlreadyDefaultForDispatch) {
-                    $nature->setDefaultForDispatch($defaultForDispatch);
+                if(!$isAlreadyDefault) {
+                    $nature->setDefault($default);
                 } else {
                     return $this->json([
                         'success' => false,
@@ -164,7 +164,7 @@ class NatureController extends AbstractController
                     ]);
                 }
             } else {
-                $nature->setDefaultForDispatch(false);
+                $nature->setDefault(false);
             }
 
             $entityManager->persist($nature);
@@ -298,14 +298,14 @@ class NatureController extends AbstractController
 
             $natures = $natureRepository->findAll();
 
-            $defaultForDispatch = filter_var($data['defaultForDispatch'] ?? false, FILTER_VALIDATE_BOOLEAN);
-            if($defaultForDispatch) {
-                $isAlreadyDefaultForDispatch = !Stream::from($natures)
-                    ->filter(fn(Nature $nature) => $nature->getDefaultForDispatch() && $nature->getId() !== $currentNature->getId())
+            $default = filter_var($data['default'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            if($default) {
+                $isAlreadyDefault = !Stream::from($natures)
+                    ->filter(fn(Nature $nature) => $nature->getDefault() && $nature->getId() !== $currentNature->getId())
                     ->isEmpty();
 
-                if(!$isAlreadyDefaultForDispatch) {
-                    $currentNature->setDefaultForDispatch($defaultForDispatch);
+                if(!$isAlreadyDefault) {
+                    $currentNature->setDefault($default);
                 } else {
                     return $this->json([
                         'success' => false,
@@ -313,7 +313,7 @@ class NatureController extends AbstractController
                     ]);
                 }
             } else {
-                $currentNature->setDefaultForDispatch(false);
+                $currentNature->setDefault(false);
             }
 
             $entityManager->flush();

@@ -193,7 +193,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
                 TransportRound::STATUS_ONGOING,
                 TransportRound::STATUS_FINISHED,
             ],
-            CategorieStatut::SHIPMENT => [
+            CategorieStatut::SHIPPING_REQUEST => [
                 ShippingRequest::STATUS_DRAFT,
                 ShippingRequest::STATUS_TO_TREAT,
                 ShippingRequest::STATUS_SCHEDULED,

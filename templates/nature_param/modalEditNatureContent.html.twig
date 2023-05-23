@@ -72,10 +72,17 @@
 
     <div class="form-group col-12">
         <div class="wii-checkbox pl-0 pointer">
-            {% set checked = nature.defaultForDispatch ? 'checked' %}
+            {% set checked = nature.default ? 'checked' %}
             <label class="pointer d-flex align-items-center wii-field-text">
-                <input class="checkbox data ml-2" type="checkbox" name="defaultForDispatch" {{ checked }}>
-                Nature par défaut (acheminements)
+                <input class="checkbox data ml-2" type="checkbox" name="default" {{ checked }}>
+                Nature par défaut
+                <sup>
+                    <img src="{{ asset('svg/information.svg') }}"
+                          alt="Icône information"
+                          width="10px"
+                          class="has-tooltip"
+                          title="Utilisé dans les acheminements et les expeditions">
+                </sup>
             </label>
         </div>
     </div>

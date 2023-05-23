@@ -65,7 +65,7 @@ class Nature {
     private ?bool $displayed = null;
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 0])]
-    private ?bool $defaultForDispatch = null;
+    private ?bool $default = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $displayedOnForms = null;
@@ -207,12 +207,12 @@ class Nature {
         return $this;
     }
 
-    public function getDefaultForDispatch(): ?bool {
-        return $this->defaultForDispatch;
+    public function getDefault(): ?bool {
+        return $this->default;
     }
 
-    public function setDefaultForDispatch(?bool $defaultForDispatch): self {
-        $this->defaultForDispatch = $defaultForDispatch;
+    public function setDefault(?bool $default): self {
+        $this->default = $default;
 
         return $this;
     }

@@ -3586,7 +3586,7 @@ class MobileController extends AbstractApiController
         $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $defaultNature = $natureRepository->findOneBy(['defaultForDispatch' => true]);
+        $defaultNature = $natureRepository->findOneBy(['default' => true]);
 
         $references = json_decode($request->request->get('references'), true);
         $user = $this->getUser();
