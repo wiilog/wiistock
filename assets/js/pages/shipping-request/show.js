@@ -21,7 +21,7 @@ $(function () {
 });
 
 function refreshTransportHeader(shippingId) {
-    AJAX.route(POST, 'shipping_request_header_config', {
+    AJAX.route(GET, 'shipping_request_header_config', {
         id: shippingId
     })
         .json()
@@ -72,18 +72,18 @@ function initPackingPack($modal) {
                             })
                         }
                         return linesData
-                    }).filter((lineData)=> Object.keys(lineData).length)
+                    }).filter((lineData) => Object.keys(lineData).length)
                     const packData = {}
                     packingPack.pack.forEach(function (value, key) {
                         packData[key] = value
                     })
 
                     return {
-                        lines : lineData,
-                        ... packData
+                        lines: lineData,
+                        ...packData
                     }
                 })
-                wrapLoadingOnActionButton($(this), function (){
+                wrapLoadingOnActionButton($(this), function () {
                     const shippingId = $('[name=shippingId]').val();
                     AJAX
                         .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
@@ -194,7 +194,7 @@ function managePackingModalButtons($modal, step) {
     $modal.find('button.previous').attr('hidden', step === 1);
 }
 
-function packingNextStep($modal , finalStep = false) {
+function packingNextStep($modal, finalStep = false) {
     const $lastStep = $modal.find('.modal-body .packing-step:last');
     let step = $lastStep.data('step');
     const packForm = Form.process($lastStep.find('.main-ul-data'));
@@ -243,7 +243,7 @@ function packingNextStep($modal , finalStep = false) {
 
     const actionTemplate = $modal.find('#actionTemplate')
     const quantityInputTemplate = $modal.find('#quantityInputTemplate')
-    const nextStepData = packingData[step-1]['lines'].map(function (lineFormData) {
+    const nextStepData = packingData[step - 1]['lines'].map(function (lineFormData) {
         const expectedLine = expectedLines.find(expectedLine => Number(expectedLine.lineId) === Number(lineFormData.get('lineId')));
         const quantity = getNextStepQuantity(lineFormData.get('picked'), lineFormData.get('quantity'), lineFormData.get('remainingQuantity'));
         const nextIsLastStep = (step + 1) === packCount;
@@ -260,7 +260,7 @@ function packingNextStep($modal , finalStep = false) {
         }
     }).filter(line => line);
 
-    if(!finalStep) {
+    if (!finalStep) {
         $lastStep.hide();
         packingAddStep($modal, nextStepData, step + 1)
     }

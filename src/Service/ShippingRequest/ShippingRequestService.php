@@ -282,9 +282,9 @@ class ShippingRequestService {
         return true;
     }
 
-    public function createShippingRequestPack(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, int $packNumber, float $size, Emplacement $packLocation, array $options = []) :ShippingRequestPack {
-        // TODO RECUPERER LA NATURE EN FONCTION DU PARAMETRAGE
-        $packNatureId = $entityManager->getRepository(Nature::class)->findAll()[0]->getId();
+    public function createShippingRequestPack(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, int $packNumber, string $size, Emplacement $packLocation, array $options = []) :ShippingRequestPack {
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $packNatureId = ($natureRepository->findOneBy(['default' => true]) ?: $natureRepository->findOneBy([]))->getId();
 
         $packsCode = str_replace(ShippingRequest::NUMBER_PREFIX.'-', '', $shippingRequest->getNumber());
         $pack = $this->packService->persistPack($entityManager, $packsCode.$packNumber, 1, $packNatureId);
