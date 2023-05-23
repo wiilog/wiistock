@@ -18,11 +18,14 @@ use App\Entity\Utilisateur;
 use App\Service\LanguageService;
 use App\Service\FormatService;
 use App\Exceptions\FormException;
+use App\Service\CSVExportService;
+use App\Service\DataExportService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -50,7 +53,7 @@ class ShippingRequestController extends AbstractController {
         $dateChoice = [
             [
                 'name' => 'createdAt',
-                'label' => $translationService->translate('Général', null, 'Zone liste', 'Date de création'),
+                'label' => 'Date de création',
             ],
             [
                 'name' => 'requestCaredAt',
@@ -255,7 +258,8 @@ class ShippingRequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function shippingRequestValidation(ShippingRequest        $shippingRequest,
                                               StatusHistoryService   $statusHistoryService,
-                                              EntityManagerInterface $entityManager): JsonResponse
+                                              EntityManagerInterface $entityManager,
+                                              TranslationService $translationService): JsonResponse
     {
         $currentUser = $this->getUser();
 
@@ -297,7 +301,7 @@ class ShippingRequestController extends AbstractController {
 
         return $this->json([
             "success"=> true,
-            'msg'=> 'La validation de votre demande d\'expédition a bien été prise en compte. ',
+            'msg'=> 'La validation de votre ' . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . ' a bien été prise en compte. ',
         ]);
     }
 
@@ -308,6 +312,23 @@ class ShippingRequestController extends AbstractController {
         return $this->json([
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
         ]);
+    }
+
+    #[Route("/csv", name: "get_shipping_requests_csv", options: ["expose" => true], methods: ['GET'])]
+    public function exportShippingRequests(EntityManagerInterface $entityManager,
+                                           CSVExportService       $csvService,
+                                           DataExportService      $dataExportService) {
+        $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
+
+        $csvHeader = $dataExportService->createShippingRequestHeader();
+
+        $today = new DateTime();
+        $today = $today->format("d-m-Y-H-i-s");
+        $shippingRequestsIterator = $shippingRepository->iterateShippingRequests();
+
+        return $csvService->streamResponse(function ($output) use ($dataExportService, $shippingRequestsIterator) {
+            $dataExportService->exportShippingRequests($shippingRequestsIterator, $output);
+        }, "export-expeditions_$today.csv", $csvHeader);
     }
 
     #[Route("/{shippingRequest}/status-history-api", name: "shipping_request_status_history_api", options: ['expose' => true], methods: "GET")]
