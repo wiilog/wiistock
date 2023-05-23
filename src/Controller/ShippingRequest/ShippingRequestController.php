@@ -6,13 +6,16 @@ use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\Language;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\StatusHistory;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
+use App\Service\LanguageService;
 use App\Service\FormatService;
 use App\Exceptions\FormException;
 use App\Service\CSVExportService;
@@ -326,6 +329,30 @@ class ShippingRequestController extends AbstractController {
         return $csvService->streamResponse(function ($output) use ($dataExportService, $shippingRequestsIterator) {
             $dataExportService->exportShippingRequests($shippingRequestsIterator, $output);
         }, "export-expeditions_$today.csv", $csvHeader);
+    }
+
+    #[Route("/{shippingRequest}/status-history-api", name: "shipping_request_status_history_api", options: ['expose' => true], methods: "GET")]
+    public function statusHistoryApi(ShippingRequest $shippingRequest,
+                                     LanguageService $languageService): JsonResponse {
+        $user = $this->getUser();
+        $statusWorkflow = ShippingRequest::STATUS_WORKFLOW_SHIPPING_REQUEST;
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView('shipping_request/status-history.html.twig', [
+                "userLanguage" => $user->getLanguage(),
+                "defaultLanguage" => $languageService->getDefaultLanguage(),
+                "statusWorkflow" => $statusWorkflow,
+                "statusesHistory" => Stream::from($shippingRequest->getStatusHistory())
+                    ->map(fn(StatusHistory $statusHistory) => [
+                        "status" => $this->getFormatter()->status($statusHistory->getStatus()),
+                        "date" => $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG
+                            ? $this->getFormatter()->longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                            : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user),
+                    ])
+                    ->toArray(),
+                "shippingRequest" => $shippingRequest,
+            ]),
+        ]);
     }
 
     #[Route(["/form/{id}", "/form"], name: "shipping_request_form", options: ["expose" => true], methods: ['GET'])]

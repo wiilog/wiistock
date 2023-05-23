@@ -7,6 +7,7 @@ global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
 $(function() {
     const shippingId = $('[name=shippingId]').val();
 
+
     const $modalEdit = $('#modalEditShippingRequest');
     initModalFormShippingRequest($modalEdit, 'shipping_request_edit', () => {
         $modalEdit.modal('hide');
@@ -14,6 +15,7 @@ $(function() {
     });
 
     initScheduledShippingRequestForm();
+    getShippingRequestStatusHistory(shippingId);
 });
 
 function refreshTransportHeader(shippingId){
@@ -54,5 +56,14 @@ function openScheduledShippingRequestModal($button){
             if (res.success) {
                 $('#modalScheduledShippingRequest').modal('show');
             }
+        });
+}
+
+function getShippingRequestStatusHistory(shippingRequest) {
+    return AJAX.route(GET, `shipping_request_status_history_api`, {shippingRequest})
+        .json()
+        .then(({template}) => {
+            const $statusHistoryContainer = $(`.history-container`);
+            $statusHistoryContainer.html(template);
         });
 }
