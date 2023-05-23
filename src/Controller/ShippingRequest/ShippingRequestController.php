@@ -126,7 +126,7 @@ class ShippingRequestController extends AbstractController {
                          ShippingRequestService $shippingRequestService,
                          EntityManagerInterface $entityManager): Response {
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $packingPackNature = $natureRepository->findOneBy(['default' => true]) ?: $natureRepository->findOneBy([]);
+        $packingPackNature = $natureRepository->findOneBy(['defaultNature' => true]);
 
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
@@ -406,18 +406,18 @@ class ShippingRequestController extends AbstractController {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $quantityByExpectedLine = [];
 
         $packLocationId = $settingRepository->getOneParamByLabel(Setting::SHIPPING_LOCATION_FROM);
-        $packLocation = $locationRepository->find($packLocationId);
+        $packLocation = $packLocationId ? $locationRepository->find($packLocationId) : null;
 
         if (!$packLocation) {
             throw new FormException("L'emplacement d'expédition par défaut n'est pas paramétré");
         }
 
         $generatedBarcode = [];
-
-        Stream::from($data)
+        Stream::from($data['packing'])
             ->each(function ($pack, $index) use (&$generatedBarcode, $stockMovementService, $trackingMovementService, $packLocation, $articleDataService, $now, $shippingRequestService, $shippingRequest, $entityManager, $ShippingRequestExpectedLineRepository, &$quantityByExpectedLine) {
                 if (!count(($pack['lines'] ?? []))) {
                     throw new FormException('Une Erreur est survenue lors de la récupération des données.');
@@ -537,14 +537,19 @@ class ShippingRequestController extends AbstractController {
             ['setStatus' => true, 'date' => $now],
         );
 
+        $scheduleData = $data['scheduleData'] ?? [];
         $shippingRequest
             ->setPlannedBy($this->getUser())
-            ->setPlannedAt($now);
+            ->setPlannedAt($now)
+            ->setGrossWeight($scheduleData['grossWeight'] ?? null)
+            ->setCarrier(isset($scheduleData['carrier']) ? $carrierRepository->find($scheduleData['carrier']) : null)
+            ->setTrackingNumber($scheduleData['trackingNumber'] ?? null)
+            ->setRequestCaredAt(isset($scheduleData['expectedPicketAt']) ? new DateTime($scheduleData['expectedPicketAt']) : null);
 
         $entityManager->flush();
 
         return $this->json([
-            'success' => false,
+            'success' => true,
         ]);
     }
 }

@@ -8,6 +8,7 @@ global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
 let expectedLines = null;
 let packingData = [];
 let packCount = null;
+let scheduledShippingRequestFormData = null;
 
 $(function() {
     const shippingId = $('[name=shippingId]').val();
@@ -87,16 +88,26 @@ function initPackingPack($modal) {
                         ...packData
                     }
                 })
+                let scheduleData = {}
+                scheduledShippingRequestFormData.forEach(function (value, key) {
+                    scheduleData[key] = value
+                });
                 wrapLoadingOnActionButton($(this), function () {
                     const shippingId = $('[name=shippingId]').val();
                     AJAX
                         .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
                         .json(
-                            packing,
+                            {
+                                packing,
+                                scheduleData,
+                            }
                         )
                         .then((res) => {
-                            $modal.modal('hide');
-                            refreshTransportHeader(shippingId);
+                            if (res.success) {
+                                $modal.modal('hide');
+                                refreshTransportHeader(shippingId);
+                                getShippingRequestStatusHistory(shippingId);
+                            }
                         });
                 })
             }
@@ -104,6 +115,7 @@ function initPackingPack($modal) {
 }
 
 function openPackingModal(dataShippingRequestForm, expectedLines, step = 1) {
+    scheduledShippingRequestFormData = dataShippingRequestForm;
     const $modal = $('#modalPacking');
     $modal.modal('show');
 
@@ -130,8 +142,6 @@ function openPackingModal(dataShippingRequestForm, expectedLines, step = 1) {
         const lineId = $row.find('[name=lineId]').val();
         $row.find('span.total-price').html($(this).val() * expectedLines.find(line => Number(line.lineId) === Number(lineId)).price);
     })
-
-
 }
 
 function fillActionTemplate(template, referenceArticleId, lineId, picked = false, disabled = false) {
@@ -163,7 +173,7 @@ async function packingAddStep($modal, data, step) {
     const $curentStep = $modal.find('.modal-body').append(packTemplate).find('.packing-step:last')
     $curentStep.attr('data-step', step);
     $modal.find('[name=step]').html(step);
-    $modal.find('[name=modalNumber]').html(step);
+    $curentStep.find('[name=modalNumber]').html(step);
 
     let tablePackingConfig = {
         processing: true,

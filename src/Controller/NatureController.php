@@ -152,11 +152,11 @@ class NatureController extends AbstractController
             $default = filter_var($data['default'] ?? false, FILTER_VALIDATE_BOOLEAN);
             if($default) {
                 $isAlreadyDefault = !Stream::from($natures)
-                    ->filter(fn(Nature $nature) => $nature->getDefault())
+                    ->filter(fn(Nature $nature) => $nature->getDefaultNature())
                     ->isEmpty();
 
                 if(!$isAlreadyDefault) {
-                    $nature->setDefault($default);
+                    $nature->setDefaultNature($default);
                 } else {
                     return $this->json([
                         'success' => false,
@@ -164,7 +164,7 @@ class NatureController extends AbstractController
                     ]);
                 }
             } else {
-                $nature->setDefault(false);
+                $nature->setDefaultNature(false);
             }
 
             $entityManager->persist($nature);
@@ -301,11 +301,11 @@ class NatureController extends AbstractController
             $default = filter_var($data['default'] ?? false, FILTER_VALIDATE_BOOLEAN);
             if($default) {
                 $isAlreadyDefault = !Stream::from($natures)
-                    ->filter(fn(Nature $nature) => $nature->getDefault() && $nature->getId() !== $currentNature->getId())
+                    ->filter(fn(Nature $nature) => $nature->getDefaultNature() && $nature->getId() !== $currentNature->getId())
                     ->isEmpty();
 
                 if(!$isAlreadyDefault) {
-                    $currentNature->setDefault($default);
+                    $currentNature->setDefaultNature($default);
                 } else {
                     return $this->json([
                         'success' => false,
@@ -313,7 +313,7 @@ class NatureController extends AbstractController
                     ]);
                 }
             } else {
-                $currentNature->setDefault(false);
+                $currentNature->setDefaultNature(false);
             }
 
             $entityManager->flush();

@@ -286,7 +286,10 @@ class ShippingRequestService {
 
     public function createShippingRequestPack(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, int $packNumber, string $size, Emplacement $packLocation, array $options = []) :ShippingRequestPack {
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $packNatureId = ($natureRepository->findOneBy(['default' => true]) ?: $natureRepository->findOneBy([]))->getId();
+        $packNatureId = $natureRepository->findOneBy(['defaultNature' => true]);
+        if(!$packNatureId) {
+            throw new FormException("Aucune nature n'est définie comme nature par défaut.");
+        }
 
         $packsCode = str_replace(ShippingRequest::NUMBER_PREFIX.'-', '', $shippingRequest->getNumber());
         $pack = $this->packService->persistPack($entityManager, $packsCode.$packNumber, 1, $packNatureId);
