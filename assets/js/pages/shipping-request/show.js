@@ -9,7 +9,10 @@ let expectedLines = null;
 let packingData = [];
 let packCount = null;
 
-$(function () {
+$(function() {
+    const shippingId = $('[name=shippingId]').val();
+
+
     const $modalEdit = $('#modalEditShippingRequest');
     initModalFormShippingRequest($modalEdit, 'shipping_request_edit', () => {
         $modalEdit.modal('hide');
@@ -18,6 +21,7 @@ $(function () {
 
     initScheduledShippingRequestForm();
     initPackingPack($('#modalPacking'))
+    getShippingRequestStatusHistory(shippingId);
 });
 
 function refreshTransportHeader(shippingId) {
@@ -291,5 +295,14 @@ function openScheduledShippingRequestModal($button) {
                 $('#modalScheduledShippingRequest').modal('show');
                 expectedLines = res.expectedLines;
             }
+        });
+}
+
+function getShippingRequestStatusHistory(shippingRequest) {
+    return AJAX.route(GET, `shipping_request_status_history_api`, {shippingRequest})
+        .json()
+        .then(({template}) => {
+            const $statusHistoryContainer = $(`.history-container`);
+            $statusHistoryContainer.html(template);
         });
 }
