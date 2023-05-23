@@ -1,9 +1,9 @@
 {% extends 'layout.html.twig' %}
 {% import 'form.html.twig' as form %}
 
-{% block title %}Demande | {{ trans('Expédition', 'Général', 'Expédition', false) }} | Détails{% endblock %}
+{% block title %}Demande | {{ trans('Demande', 'Expédition', 'Expédition', false) }} | Détails{% endblock %}
 
-{% block title_tooltip %}Demande | Expédition | Détails{% endblock %}
+{% block title_tooltip %}Demande | {{ trans('Demande', 'Expédition', 'Expédition', false) }} | Détails{% endblock %}
 
 {% block page_filter %}
 
@@ -14,9 +14,6 @@
     {{ encore_entry_link_tags('shipping-request-index') }}
     {{ encore_entry_link_tags('shipping-request-show') }}
 {% endblock %}
-
-{% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')) %}
-{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
@@ -40,7 +37,7 @@
                                 <div class="dropdown-menu dropdown-follow-gt pointer">
                                     {% if hasRightEdit %}
                                         <a data-id='{{ shipping.id }}'
-                                           data-target='#modalEditDispatch'
+                                           data-target='#modalEditShippingRequest'
                                            data-toggle='modal'
                                            onclick=""
                                            class="dropdown-item pointer">
@@ -61,7 +58,7 @@
                         <div class="d-flex py-2 w-100 justify-content-between">
                             <div class="d-flex align-items-center">
                                 <div class="d-flex flex-column">
-                                    <span class="wii-title">{{ trans('Demande', 'Expédition', null, 'Expédition') }}</span>
+                                    <span class="wii-title">{{ trans('Demande', 'Expédition', 'Expédition') }}</span>
                                     <span class="wii-small-text">
                                     {{ shipping.number }}
                                 </span>
@@ -114,7 +111,7 @@
                     </div>
                     <div class="wii-section-title py-1">
                         <i class="wii-icon wii-icon-delivery wii-icon-15px-primary mr-2"></i>
-                        Expédition
+                        {{ trans('Demande', 'Expédition', 'Expédition', false) }}
                     </div>
                     <div class="content">
                         <div class="row">
@@ -146,7 +143,24 @@
         </div>
     </div>
 
-    {{ include('shipping_request/modals/scheduled-modal.html.twig') }}
+    {% include "utils/modal/empty-modal.html.twig" with {
+        id: "modalEditShippingRequest",
+        size: 'modal-xl',
+        additionalAttributes: {
+            'data-shipping-request-id': shipping.id,
+        },
+        header: {
+            title: 'Modifier une demande d\'expédition'
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+            ],
+        },
+    } %}
+
+    {% include "shipping_request/modals/scheduled-modal.html.twig" %}
 
 {% endblock %}
 

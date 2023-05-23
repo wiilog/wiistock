@@ -5,10 +5,15 @@ namespace App\Service\ShippingRequest;
 use App\Entity\FiltreSup;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
+use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
+use App\Service\CSVExportService;
+use App\Exceptions\FormException;
 use App\Service\FormatService;
 use App\Service\VisibleColumnService;
-use Doctrine\ORM\EntityManager;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -32,6 +37,9 @@ class ShippingRequestService {
 
     #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public CSVExportService $CSVExportService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -64,7 +72,7 @@ class ShippingRequestService {
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 
-    public function getDataForDatatable(Request $request, EntityManager $entityManager) : array {
+    public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) : array{
         $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_SHIPPING, $this->security->getUser());
@@ -94,12 +102,11 @@ class ShippingRequestService {
 
     public function dataRowShipping(ShippingRequest $shipping): array
     {
-        $url = $this->router->generate('shipping_show_page', [
-            "id" => $shipping->getId()
-        ]);
-
         $formatService = $this->formatService;
 
+        $url = $this->router->generate('shipping_request_show', [
+            "id" => $shipping->getId()
+        ]);
         $row = [
             "actions" => $this->templating->render('shipping_request/actions.html.twig', [
                 'url' => $url,
@@ -142,5 +149,105 @@ class ShippingRequestService {
                 ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
                 ->sum(),
         ]);
+    }
+
+    public function putShippingRequestLine($output, array $shippingRequestData): void {
+        $line = [
+            $shippingRequestData['number'],
+            $shippingRequestData['statusCode'],
+            $this->formatService->datetime($shippingRequestData['createdAt']),
+            $this->formatService->datetime($shippingRequestData['validatedAt']),
+            $this->formatService->datetime($shippingRequestData['plannedAt']),
+            $this->formatService->datetime($shippingRequestData['expectedPickedAt']),
+            $this->formatService->datetime($shippingRequestData['treatedAt']),
+            $this->formatService->datetime($shippingRequestData['requestCaredAt']),
+            $shippingRequestData['requesterNames'],
+            $shippingRequestData['customerOrderNumber'],
+            $this->formatService->bool($shippingRequestData['freeDelivery']),
+            $this->formatService->bool($shippingRequestData['compliantArticles']),
+            $shippingRequestData['customerName'],
+            $shippingRequestData['customerRecipient'],
+            $shippingRequestData['customerPhone'],
+            $shippingRequestData['customerAddress'],
+            $shippingRequestData['packCode'],
+            $shippingRequestData['nature'],
+            $shippingRequestData['refArticle'],
+            $shippingRequestData['refArticleLibelle'],
+            $shippingRequestData['article'],
+            $shippingRequestData['articleQuantity'],
+            $shippingRequestData['price'],
+            $shippingRequestData['weight'],
+            $shippingRequestData['totalAmount'],
+            $this->formatService->bool($shippingRequestData['dangerous_goods']),
+            $shippingRequestData['onu_code'],
+            $shippingRequestData['product_class'],
+            $shippingRequestData['ndp_code'],
+            $shippingRequestData['shipment'],
+            $shippingRequestData['carrying'],
+            $shippingRequestData['nbPacks'],
+            $shippingRequestData['size'],
+            $shippingRequestData['totalWeight'],
+            $shippingRequestData['grossWeight'],
+            $shippingRequestData['totalSum'],
+            $shippingRequestData['carrierName'],
+        ];
+
+        $this->CSVExportService->putLine($output, $line);
+    }
+
+    public function updateShippingRequest(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, InputBag $data): bool {
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $requiredFields= [
+            'requesters',
+            'requesterPhoneNumbers',
+            'customerOrderNumber',
+            'customerName',
+            'customerAddress',
+            'customerPhone',
+            'requestCaredAt',
+            'shipment',
+            'carrying',
+        ];
+
+        foreach ($requiredFields as $requiredField) {
+            if (!$data->has($requiredField) && !empty($data->get($requiredField))) {
+                throw new FormException("Une erreur est survenue un champ requis est manquant");
+            }
+        }
+
+        $requestersIds = Stream::explode(',', $data->get('requesters'))
+            ->filter()
+            ->toArray();
+        $requesters = $userRepository->findBy(['id' => $requestersIds]);
+
+        if (empty($requesters)) {
+            throw new FormException("Vous devez sélectionner au moins un demandeur");
+        }
+
+        $carrierId = $data->get('carrier');
+        $carrier = $carrierId
+            ? $carrierRepository->find($carrierId)
+            : null;
+        if (!$carrier) {
+            throw new FormException("Vous devez sélectionner un transporteur");
+        }
+
+        $shippingRequest
+            ->setRequesterPhoneNumbers(explode(',', $data->get('requesterPhoneNumbers')))
+            ->setCustomerOrderNumber($data->get('customerOrderNumber'))
+            ->setFreeDelivery($data->getBoolean('freeDelivery'))
+            ->setCompliantArticles($data->getBoolean('compliantArticles'))
+            ->setCustomerName($data->get('customerName'))
+            ->setCustomerPhone($data->get('customerPhone'))
+            ->setCustomerRecipient($data->get('customerRecipient'))
+            ->setCustomerAddress($data->get('customerAddress'))
+            ->setRequestCaredAt($this->formatService->parseDatetime($data->get('requestCaredAt')))
+            ->setShipment($data->get('shipment'))
+            ->setCarrying($data->get('carrying'))
+            ->setComment($data->get('comment'))
+            ->setRequesters($requesters)
+            ->setCarrier($carrier);
+        return true;
     }
 }
