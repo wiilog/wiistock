@@ -510,6 +510,9 @@ class ShippingRequestController extends AbstractController {
             ['setStatus' => true, 'date' => $now],
         );
 
+        $shippingRequest
+            ->setPlannedBy($this->getUser())
+            ->setPlannedAt($now);
 
         $entityManager->flush();
 
