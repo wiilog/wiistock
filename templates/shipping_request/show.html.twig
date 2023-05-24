@@ -2,6 +2,7 @@
 {% import 'form.html.twig' as form %}
 
 {% block title %}Demande | {{ trans('Demande', 'Expédition', 'Expédition', false) }} | Détails{% endblock %}
+{% block titleLink path('shipping_request_index') %}
 
 {% block title_tooltip %}Demande | {{ trans('Demande', 'Expédition', 'Expédition', false) }} | Détails{% endblock %}
 
@@ -11,8 +12,7 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('shipping-request-index') }}
-    {{ encore_entry_link_tags('shipping-request-show') }}
+    {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
@@ -161,6 +161,7 @@
     } %}
 
     {% include "shipping_request/modals/scheduled-modal.html.twig" %}
+    {% include "shipping_request/modals/packing.html.twig" %}
 
 {% endblock %}
 
