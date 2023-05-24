@@ -2,12 +2,16 @@
 
 namespace App\Service\ShippingRequest;
 
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Exceptions\FormException;
 use App\Service\FormService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class ShippingRequestExpectedLineService {
@@ -15,12 +19,17 @@ class ShippingRequestExpectedLineService {
     #[Required]
     public FormService $formService;
 
+    #[Required]
+    public RouterInterface $router;
+
+    #[Required]
+    public UserService $userService;
+
     public function editatableLineForm(ShippingRequest|null             $shippingRequest,
                                        ShippingRequestExpectedLine|null $line = null): array {
         if (isset($line)) {
             $referenceColumn = ($line->getReferenceArticle()?->getReference() ?: '') .
-                $this->formService->macro('hidden', 'lineId', $line->getId())
-            ;
+                $this->formService->macro('hidden', 'lineId', $line->getId());
             $labelColumn = $line->getReferenceArticle()?->getLibelle();
         }
         else {
@@ -42,6 +51,8 @@ class ShippingRequestExpectedLineService {
             : '';
 
         $actionId = 'data-id="' . ($line?->getId() ?: '') . '"';
+        $editUrl = $line ? $this->router->generate('reference_article_edit_page', ['reference' => $line->getReferenceArticle()?->getId()]) : '';
+        $hasRightToEdit = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
 
         return [
             "actions" => "
@@ -50,6 +61,10 @@ class ShippingRequestExpectedLineService {
                     <span class='wii-icon wii-icon-trash'></span>
                 </span>
             ",
+            "information" => "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px".($line?->getReferenceArticle()->isDangerousGoods() ? "" : " d-none")."'></i>",
+            "editAction" => $hasRightToEdit
+                ? ("<a title='Ajouter une FDS' class='editAction ".($line ? "" : "d-none")."' href='$editUrl' target='_blank'><button class='btn btn-primary px-2'><i class='wii-icon wii-icon-edit-form'></i></button></a>")
+                : "",
             "reference" => $referenceColumn,
             "label" => $labelColumn,
             "quantity" => $this->formService->macro("input", "quantity", null, true, $line?->getQuantity(), [
