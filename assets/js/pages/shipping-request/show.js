@@ -35,7 +35,7 @@ $(function() {
     });
 });
 
-function refreshTransportHeader(shippingId){
+function refreshTransportHeader(){
     AJAX.route(GET, 'shipping_request_header_config', {
         id: shippingId
     })
@@ -50,7 +50,7 @@ function validateShippingRequest(shipping_request_id) {
         .json()
         .then((res) => {
             if (res.success) {
-                location.reload()
+                updatePage();
             }
         });
 }
@@ -139,9 +139,7 @@ function initPackingPack($modal) {
                         .then((res) => {
                             if (res.success) {
                                 $modal.modal('hide');
-                                refreshTransportHeader(shippingId);
-                                getShippingRequestStatusHistory(shippingId);
-                                updateDetails()
+                                updatePage();
                             }
                         });
                 })
@@ -617,6 +615,7 @@ function initDetailsScheduled($container) {
         let $table = $(this);
 
         const columns = [
+            {name: 'actions', data: 'actions', title: '', orderable: false},
             {name: 'reference', data: 'reference', title: 'Référence', orderable: true},
             {name: 'label', data: 'label', title: 'Libellé', orderable: true},
             {name: 'quantity', data: 'quantity', title: 'Quantité', orderable: true},
@@ -642,3 +641,8 @@ function initDetailsScheduled($container) {
     });
 }
 
+function updatePage() {
+    getShippingRequestStatusHistory();
+    updateDetails();
+    refreshTransportHeader();
+}

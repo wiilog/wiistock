@@ -2,8 +2,11 @@
 
 namespace App\Service\ShippingRequest;
 
+use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Menu;
 use App\Entity\Role;
 use App\Entity\Nature;
 use App\Entity\Setting;
@@ -20,15 +23,12 @@ use App\Service\FormatService;
 use App\Service\MailerService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
+use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use phpDocumentor\Reflection\Types\Iterable_;
-use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -63,6 +63,9 @@ class ShippingRequestService {
 
     #[Required]
     public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public UserService $userService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -392,8 +395,32 @@ class ShippingRequestService {
                     ->map(function (ShippingRequestLine $shippingRequestLine) {
                         $expectedLine = $shippingRequestLine->getExpectedLine();
                         $reference = $expectedLine->getReferenceArticle();
+
+                        $actions = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+                            'actions' => [
+                                [
+                                    'hasRight' => $this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI) && $shippingRequestLine->getArticleOrReference() instanceof Article,
+                                    'title' => 'Voir l\'aticle',
+                                    'icon' => 'fa fa-eye',
+                                    'attributes' => [
+                                        'onclick' => "window.location.href = '{$this->router->generate('article_show_page', ['id' => $shippingRequestLine->getArticleOrReference() instanceof Article ? $shippingRequestLine->getArticleOrReference()->getId() : null])}'",
+                                    ]
+                                ],
+                                [
+                                    'hasRight' =>$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE),
+                                    'title' => 'Voir la référence',
+                                    'icon' => 'fa fa-eye',
+                                    'attributes' => [
+                                        'onclick' => "window.location.href = '{$this->router->generate('reference_article_show_page', ['id' => $reference->getId()])}'",
+                                    ]
+                                ],
+
+                            ],
+                        ]);
+
                         return [
-                            'reference' => $reference->getLibelle(),
+                            'actions' => $actions,
+                            'reference' => $reference->getLibelle().($reference->isDangerousGoods() ? "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px'></i>" : ''),
                             'label' => $reference->getLibelle(),
                             'quantity' => $shippingRequestLine->getQuantity(),
                             'price' => $expectedLine->getPrice(),
