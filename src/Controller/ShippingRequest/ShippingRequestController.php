@@ -561,7 +561,6 @@ class ShippingRequestController extends AbstractController {
     public function getDetails(ShippingRequest         $shippingRequest,
                                       Request                 $request,
                                       ShippingRequestService  $shippingRequestService): Response{
-        //TODO strtolower ???
         switch (strtolower($shippingRequest->getStatus()->getCode())) {
             case strtolower(ShippingRequest::STATUS_DRAFT):
                 $html = $this->renderView('shipping_request/details/draft.html.twig', [
