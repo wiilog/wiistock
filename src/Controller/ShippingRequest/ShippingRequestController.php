@@ -597,7 +597,7 @@ class ShippingRequestController extends AbstractController {
                         $entityManager->persist($trackingMovementDrop);
 
                         if(isset($article)) {
-                            $trackingMovement = $trackingMovementService->createTrackingMovement(
+                            $trackingMovementDropLogisticUnit = $trackingMovementService->createTrackingMovement(
                                 $trackingMovementDrop->getPack(),
                                 $packLocation,
                                 $this->getUser(),
@@ -611,8 +611,8 @@ class ShippingRequestController extends AbstractController {
                                     'logisticUnitParent' => $shippingPack->getPack()
                                 ]
                             );
-                            $entityManager->persist($trackingMovement);
-
+                            $entityManager->persist($trackingMovementDropLogisticUnit);
+                            $trackingMovementDrop->setMainMovement($trackingMovementDropLogisticUnit);
                         }
 
                         $requestLine = new ShippingRequestLine();
@@ -747,11 +747,12 @@ class ShippingRequestController extends AbstractController {
 
             /** @var ShippingRequestPack $packLines */
             foreach ($shippingRequest->getPackLines() as $packLines) {
+                $logisticUnitParent = $packLines->getPack();
 
                 // mvt prise UL
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
-                    $packLines->getPack(),
-                    $packLines->getPack()->getLastDrop()->getEmplacement(),
+                    $logisticUnitParent,
+                    $logisticUnitParent->getLastDrop()->getEmplacement(),
                     $user,
                     $dateNow,
                     false,
@@ -762,7 +763,7 @@ class ShippingRequestController extends AbstractController {
 
                 // mvt depose UL
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
-                    $packLines->getPack(),
+                    $logisticUnitParent,
                     $shippingLocationTo,
                     $user,
                     $dateNow,
@@ -801,6 +802,7 @@ class ShippingRequestController extends AbstractController {
                         [
                             'mouvementStock' => $newMouvementStock,
                             "quantity" => $shippingRequestLine->getQuantity(),
+                            "logisticUnitParent" => $logisticUnitParent,
                         ]
                     );
                     $entityManager->persist($trackingMovement);
@@ -817,6 +819,7 @@ class ShippingRequestController extends AbstractController {
                         [
                             'mouvementStock' => $newMouvementStock,
                             "quantity" => $shippingRequestLine->getQuantity(),
+                            "logisticUnitParent" => $logisticUnitParent,
                         ]
                     );
                     $entityManager->persist($trackingMovement);

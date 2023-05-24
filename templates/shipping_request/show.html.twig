@@ -122,7 +122,7 @@
                             {{ macro.subItem(null, "Envoi", constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_LABELS')[shipping.shipment]) }}
                         </div>
                         <div class="row">
-                            {{ macro.subItem(null, "Port", shipping.carrying) }}
+                            {{ macro.subItem(null, "Port", constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_LABELS')[shipping.carrying]) }}
                         </div>
                     </div>
                 </div>
