@@ -339,7 +339,32 @@ function updateDetails() {
 function initDetailsScheduled($container) {
     $container.find('.logistic-unit-wrapper .articles-container .table').each(function () {
             let $table = $(this);
-            console.log($table);
+
+            const columns = [
+                {name: 'reference', data: 'reference', title: 'Référence', orderable: true},
+                {name: 'label', data: 'label', title: 'Libellé', orderable: true},
+                {name: 'quantity', data: 'quantity', title: 'Quantité', orderable: true},
+                {name: 'price', data: 'price', title: 'Prix unitaire (€)', orderable: true},
+                {name: 'weight', data: 'weight', title: 'Poid net (kg)', orderable: true},
+                {name: 'totalPrice', data: 'totalPrice', title: 'Montant total', orderable: true},
+            ];
+
+            initDataTable($table, {
+                serverSide: false,
+                ordering: true,
+                paging: false,
+                searching: false,
+                processing: true,
+                order: [['reference', "desc"]],
+                columns,
+                rowConfig: {},
+                domConfig: {
+                    removeInfo: true,
+                },
+                drawConfig: {},
+            });
+
+
         }
     )
 }
