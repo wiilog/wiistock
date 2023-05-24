@@ -954,6 +954,11 @@ label.required:after {
     height: 17px;
 }
 
+.wii-icon-dangerous-goods {
+    display: inline-block;
+    background: $danger;
+}
+
 .wii-icon-check-black {
     display: inline-block;
     background: $black;
@@ -967,7 +972,7 @@ label.required:after {
     }
 }
 
-.wii-icon-new-article {
+.wii-icon-new-article, .wii-icon-edit-form {
     display: block;
     background-color: $white;
     width: 18px;
