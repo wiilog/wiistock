@@ -38,6 +38,7 @@ use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Google\Service\Compute\Reference;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -272,10 +273,11 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/delete-shipping-request/{id}", name: "delete_shipping_request", options: ["expose" => true], methods: ['DELETE'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function deleteShippingRequest(ShippingRequest        $shippingRequest,
-                                          EntityManagerInterface $entityManager,
-                                          UserService            $userService,
-                                          MouvementStockService  $mouvementStockService): Response
+    public function deleteShippingRequest(ShippingRequest         $shippingRequest,
+                                          EntityManagerInterface  $entityManager,
+                                          UserService             $userService,
+                                          MouvementStockService   $mouvementStockService,
+                                          TrackingMovementService $trackingMovementService): Response
     {
 
         $user = $this->getUser();
@@ -289,7 +291,7 @@ class ShippingRequestController extends AbstractController {
 
         // right
         $hasRightDeleteDraftOrTreat = ($userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING, $user)) ||
-                                        ($userService->hasRightFunction(Menu::DEM, Action::DELETE, $user));
+            ($userService->hasRightFunction(Menu::DEM, Action::DELETE, $user));
         $hasRightDeleteScheduled = $userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING, $user);
         $hasRightDeleteShipped = $userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING);
 
@@ -303,7 +305,7 @@ class ShippingRequestController extends AbstractController {
                     $entityManager->remove($expectedLine);
                 }
 
-                // remove status_history where shipping_request_id equals $shippingRequest.id
+                // remove status_history
                 $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
                 foreach ($statusHistoryToRemove as $status) {
                     $entityManager->remove($status);
@@ -320,12 +322,11 @@ class ShippingRequestController extends AbstractController {
             return $this->json([
                 "success" => true,
             ]);
-        }
-        // remove status scheduled only if user has right and shipping request is scheduled
-        if ($isScheduled) {
+        } // remove status scheduled only if user has right and shipping request is scheduled
+        else if ($isScheduled) {
             if ($hasRightDeleteScheduled) {
 
-                // remove status_history where shipping_request_id equals $shippingRequest.id
+                // remove status_history
                 $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
                 foreach ($statusHistoryToRemove as $status) {
                     $entityManager->remove($status);
@@ -333,35 +334,66 @@ class ShippingRequestController extends AbstractController {
 
                 /* @var ShippingRequestPack $packLine */
                 foreach ($shippingRequest->getPackLines() as $packLine) {
-                    $pack = $packLine->getPack();
+
+                    $parentpack = $packLine->getPack();
 
                     /* @var ShippingRequestLine $requestLine */
                     foreach ($packLine->getLines() as $requestLine) {
-                        $article = $requestLine->getArticle();
 
-                        // remove mvt track (article)
-                        foreach ($article->getTrackingMovements()->toArray() as $trackingMovement) {
-                            $entityManager->remove($trackingMovement);
-                        }
-                        //remove mvt stock (article)
-                        foreach ($article->getMouvements()->toArray() as $stockMovement) {
-                            $mouvementStockService->manageMouvementStockPreRemove($stockMovement, $entityManager);
-                            $article->removeMouvement($stockMovement);
-                            $entityManager->remove($stockMovement);
+                        $articleOrReference = $requestLine->getArticleOrReference();
+                        if ($articleOrReference instanceof Article) {
+
+                            // remove mvt track (article)
+                            foreach ($articleOrReference->getTrackingMovements() as $trackingMovement) {
+                                $entityManager->remove($trackingMovement);
+                            }
+
+                            //remove mvt stock (article)
+                            foreach ($articleOrReference->getMouvements() as $stockMovement) {
+                                $mouvementStockService->manageMouvementStockPreRemove($stockMovement, $entityManager);
+                                $articleOrReference->removeMouvement($stockMovement);
+                                $entityManager->remove($stockMovement);
+                            }
+                        } else if ($articleOrReference instanceof ReferenceArticle) {
+
+                            $newStock = $articleOrReference->getQuantiteStock() - $requestLine->getQuantity();
+                            $articleOrReference->setQuantiteStock($newStock);
+
+                            //create mvt sortie
+                            $mouvementStockService->createMouvementStock(
+                                $this->getUser(),
+                                $articleOrReference->getEmplacement(),
+                                $requestLine->getQuantity(),
+                                $articleOrReference,
+                                MouvementStock::TYPE_SORTIE,
+                            );
                         }
 
-                        $entityManager->remove($requestLine->getArticle());
+                        // remove mvt track before deleting trackingPack
+                        foreach ($articleOrReference->getTrackingPack()->getTrackingMovements() as $trackingPackMovement) {
+                            $entityManager->remove($trackingPackMovement);
+                            $articleOrReference->getTrackingPack()->removeTrackingMovement($trackingPackMovement);
+                        }
+
+                        dump($articleOrReference);
+
+                        if ($articleOrReference instanceof Article) {
+                            $entityManager->remove($articleOrReference); // remove trackingPack cascade
+                            $articleOrReference->setTrackingPack(null);
+                        }
+
                         $packLine->removeLine($requestLine);
-                        $entityManager->remove($requestLine); // cascade remove article
+                        $entityManager->remove($requestLine);
                         $requestLine->getExpectedLine()->removeLine($requestLine);
                     }
 
                     // remove mvt track (pack)
-                    foreach ($pack->getTrackingMovements()->toArray() as $trackingMovement) {
+                    foreach ($parentpack->getTrackingMovements()->toArray() as $trackingMovement) {
                         $entityManager->remove($trackingMovement);
                     }
 
-                    $entityManager->remove($pack);
+                    dump($parentpack);
+                    $entityManager->remove($parentpack); // cascade remove article
                     $entityManager->remove($packLine);
                 }
 
@@ -371,8 +403,8 @@ class ShippingRequestController extends AbstractController {
                     $entityManager->remove($expectedLine);
                 }
 
-                if($isShipped && $hasRightDeleteShipped){
-                    //todo
+                if ($isShipped && $hasRightDeleteShipped) {
+                    //todo del mvt stock & track?????
                 }
 
                 $entityManager->remove($shippingRequest);
@@ -389,8 +421,11 @@ class ShippingRequestController extends AbstractController {
         }
         return $this->json([
             'success' => false,
+            'Cette expédition ne peux pas être supprimer.'
         ]);
     }
+
+
 
     #[Route("/validateShippingRequest/{id}", name:'shipping_request_validation', options:["expose"=>true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
