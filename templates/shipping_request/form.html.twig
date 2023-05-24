@@ -82,11 +82,13 @@
                 labelOptions: {
                     class: 'm-0',
                 },
-                items: shipping.customerName ? [{
-                    value: shipping.customerName,
-                    label: shipping.customerName,
-                    selected: true,
-                }] : [],
+                items: shipping.customerName
+                    ? [{
+                        value: shipping.customerName,
+                        label: shipping.customerName,
+                        selected: true,
+                    }]
+                    : [],
             }) }}
         </div>
         <div class="col-12 col-md-4 mt-2">

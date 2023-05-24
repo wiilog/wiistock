@@ -11,9 +11,9 @@ use App\Entity\Language;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\ReferenceArticle;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
-use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
@@ -28,6 +28,8 @@ use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
+use App\Service\FormService;
+use App\Service\ShippingRequest\ShippingRequestExpectedLineService;
 use App\Service\MouvementStockService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
@@ -120,18 +122,20 @@ class ShippingRequestController extends AbstractController {
         return $this->json($service->getDataForDatatable( $entityManager, $request));
     }
 
-    #[Route("/voir/{id}", name:"shipping_request_show", options: ["expose" => true])]
+    #[Route("/{shippingRequest}/voir", name:"shipping_request_show", options: ["expose" => true])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function show(ShippingRequest        $shippingRequest,
-                         ShippingRequestService $shippingRequestService,
-                         EntityManagerInterface $entityManager): Response {
+    public function show(ShippingRequest                    $shippingRequest,
+                         ShippingRequestExpectedLineService $expectedLineService,
+                         ShippingRequestService             $shippingRequestService,
+                         EntityManagerInterface             $entityManager): Response {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $packingPackNature = $natureRepository->findOneBy(['defaultNature' => true]);
 
         return $this->render('shipping_request/show.html.twig', [
             'shipping'=> $shippingRequest,
             'packingPackNature' => $packingPackNature,
-            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest)
+            'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest),
+            'editableExpectedLineForm' => $expectedLineService->editatableLineForm($shippingRequest),
         ]);
     }
 
@@ -154,6 +158,25 @@ class ShippingRequestController extends AbstractController {
         return $this->json([
             'success' => true,
             'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
+        ]);
+    }
+
+    #[Route("/{request}/expected-lines-api", name: "api_shipping_request_expected_lines", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING], mode: HasPermission::IN_JSON)]
+    public function apiShippingRequestExpectedLines(ShippingRequest                    $request,
+                                                    FormService                        $formService,
+                                                    ShippingRequestExpectedLineService $expectedLineService): JsonResponse {
+        $data = Stream::from($request->getExpectedLines())
+            ->map(fn (ShippingRequestExpectedLine $line) => $expectedLineService->editatableLineForm($request, $line))
+            ->values();
+
+        $emptyForm = $expectedLineService->editatableLineForm($request);
+
+        $data[] = $emptyForm;
+        $data[] = $formService->editableAddRow($emptyForm);
+
+        return $this->json([
+            "data" => $data,
         ]);
     }
 
@@ -194,6 +217,84 @@ class ShippingRequestController extends AbstractController {
         } else {
             throw new FormException();
         }
+    }
+
+    #[Route("/{shippingRequest}/submit-expected-lines", name: "shipping_request_submit_changes_expected_lines", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function submitExpectedLines(ShippingRequest                    $shippingRequest,
+                                        Request                            $request,
+                                        ShippingRequestExpectedLineService $expectedLineService,
+                                        ShippingRequestService             $shippingRequestService,
+                                        EntityManagerInterface             $entityManager): JsonResponse {
+        if ($data = json_decode($request->getContent(), true)) {
+            $lineId = $data['lineId'] ?? null;
+            if ($lineId) {
+                $lineRepository = $entityManager->getRepository(ShippingRequestExpectedLine::class);
+                $line = $lineRepository->find($lineId);
+                $created = false;
+            }
+            else if ($data['referenceArticle'] ?? null) {
+                // creation
+                $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+                $referenceArticle = $referenceArticleRepository->find($data['referenceArticle']);
+
+                if (!$referenceArticle) {
+                    throw new FormException('Formulaire invalide');
+                }
+
+                $line = $expectedLineService->persist($entityManager, [
+                    'referenceArticle' => $referenceArticle,
+                    'request' => $shippingRequest
+                ]);
+
+                $created = true;
+            }
+            else {
+                throw new FormException('Formulaire invalide');
+            }
+
+            $line
+                ->setQuantity($data['quantity'] ?? null)
+                ->setPrice($data['price'] ?? null)
+                ->setWeight($data['weight'] ?? null);
+
+            $shippingRequestService->updateNetWeight($shippingRequest);
+            $shippingRequestService->updateTotalValue($shippingRequest);
+
+            $entityManager->flush();
+
+            $resp = [
+                'success' => true,
+                'created' => $created,
+                'lineId' => $lineId
+            ];
+        }
+        return new JsonResponse(
+            $resp ?? ['success' => false, 'created' => false]
+        );
+    }
+
+    #[Route("/expected-line/{line}", name: "shipping_request_expected_line_delete", options: ["expose" => true], methods: ["DELETE"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function removeExpectedLine(EntityManagerInterface      $entityManager,
+                                       ShippingRequestService      $shippingRequestService,
+                                       ShippingRequestExpectedLine $line): Response {
+
+        if ($line->getRequest()?->getStatus()?->getCode() === ShippingRequest::STATUS_DRAFT) {
+            $shippingRequest = $line->getRequest();
+            $shippingRequest->removeExpectedLine($line);
+            $entityManager->remove($line);
+
+            $shippingRequestService->updateNetWeight($shippingRequest);
+            $shippingRequestService->updateTotalValue($shippingRequest);
+
+            $entityManager->flush();
+        }
+
+        return $this->json([
+            'success' => true,
+            'msg' => "La ligne a bien été retirée."
+        ]);
     }
 
     #[Route("/edit", name: "shipping_request_edit", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]

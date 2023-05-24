@@ -548,10 +548,6 @@ function saveArticleLine(requestId, $row) {
     }
 }
 
-function scrollToBottom() {
-    window.scrollTo(0, document.body.scrollHeight);
-}
-
 function addArticleRow(table, $button) {
     const $table = $button.closest('table');
     if (Form.process($table)) {
