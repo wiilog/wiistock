@@ -4,8 +4,6 @@
 {% set hasRightDisplayShipButton = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_SHIP_BUTTON')) %}
 {% set hasRightEditTransportShippingPart = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_TRANSPORT_SHIPPING_PART')) %}
 {% set packsCount = shipping.packLines.count %}
-{% set totalValue = shipping.expectedLines|reduce((total, expectedLine) => total + expectedLine.price) %} {# sum #}
-{% set netWeight = shipping.expectedLines|reduce((total, expectedLine) => total + expectedLine.weight) %} {# sum #}
 
 <div class="header wii-title justify-content-between align-items-center {{ not hasRightEdit ? 'd-flex' : 'row no-gutters py-2' }}">
     Transport
@@ -76,13 +74,13 @@
                     <div class="col-12 col-md-6 d-flex mb-2">
                         <label class="box-item ml-3">
                             <span class="wii-field-name">Valeur totale</span>
-                            <span class="wii-body-text">{{ totalValue > 0 ? totalValue : '-' }}</span>
+                            <span class="wii-body-text">{{ shipping.totalValue > 0 ? shipping.totalValue : '-' }}</span>
                         </label>
                     </div>
                     <div class="col-12 col-md-6 d-flex mb-2">
                         <label class="box-item ml-3">
                             <span class="wii-field-name">Poids net (kg)</span>
-                            <span class="wii-body-text">{{ netWeight > 0 ? netWeight : '-' }}</span>
+                            <span class="wii-body-text">{{ shipping.netWeight > 0 ? shipping.netWeight : '-' }}</span>
                         </label>
                     </div>
                 </div>

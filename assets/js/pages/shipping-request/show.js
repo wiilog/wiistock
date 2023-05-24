@@ -199,8 +199,6 @@ function initShippingRequestExpectedLine() {
         const $reference = $(event.target);
         const [reference] = $reference.select2('data');
 
-        console.log(reference);
-
         const $row = $reference.closest('tr');
         const $labelWrapper = $row.find('.label-wrapper');
         $labelWrapper.text(reference?.label || '');
@@ -220,10 +218,14 @@ function initShippingRequestExpectedLine() {
                     ]
                 })
             );
-            $row.find('.editAction').removeClass('d-none').attr('href', Routing.generate('reference_article_edit_page', {reference: reference.id}));
+            $row.find('.editAction')
+                .removeClass('d-none')
+                .attr('href', Routing.generate('reference_article_edit_page', {reference: reference.id}));
 
             if (reference.dangerous) {
-                $row.find('.dangerous').removeClass('d-none');
+                $row
+                    .find('.dangerous')
+                    .removeClass('d-none');
             }
         }
 

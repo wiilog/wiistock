@@ -36,7 +36,9 @@ class ShippingRequestExpectedLineService {
             $referenceColumn = $this->formService->macro("select", "referenceArticle", null, true, [
                 "type" => "reference",
                 "minLength" => 0,
+                "error" => "global",
                 "additionalAttributes" => [
+                    ["name" => "data-field-label", 'value' => "Référence"],
                     ["name" => "data-other-params"],
                     ["name" => "data-other-params-ignored-shipping-request", "value" => $shippingRequest?->getId()],
                     ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
@@ -63,7 +65,14 @@ class ShippingRequestExpectedLineService {
             ",
             "information" => "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px".($line?->getReferenceArticle()->isDangerousGoods() ? "" : " d-none")."'></i>",
             "editAction" => $hasRightToEdit
-                ? ("<a title='Ajouter une FDS' class='editAction ".($line ? "" : "d-none")."' href='$editUrl' target='_blank'><button class='btn btn-primary px-2'><i class='wii-icon wii-icon-edit-form'></i></button></a>")
+                ? (
+                    "<a title='Ajouter une FDS'
+                        class='editAction btn btn-primary px-2 " . ($line ? "" : "d-none") . "'
+                        href='$editUrl'
+                        target='_blank'>
+                            <i class='wii-icon wii-icon-edit-form'></i>
+                     </a>"
+                )
                 : "",
             "reference" => $referenceColumn,
             "label" => $labelColumn,
@@ -71,14 +80,26 @@ class ShippingRequestExpectedLineService {
                 "type" => "number",
                 "min" => 1,
                 "step" => 1,
+                "error" => "global",
+                "additionalAttributes" => [
+                    ["name" => "data-field-label", 'value' => "Quantité"],
+                ],
             ]),
             "price" => $this->formService->macro("input", "price", null, true, $line?->getPrice(), [
                 "type" => "number",
                 "min" => 0,
+                "error" => "global",
+                "additionalAttributes" => [
+                    ["name" => "data-field-label", 'value' => "Prix unitaire"],
+                ],
             ]),
             "weight" => $this->formService->macro("input", "weight", null, true, $line?->getWeight(), [
                 "type" => "number",
                 "min" => 0,
+                "error" => "global",
+                "additionalAttributes" => [
+                    ["name" => "data-field-label", 'value' => "Poids net"],
+                ],
             ]),
             "total" => '<span class="total-wrapper">' . $total . '</span>',
         ];

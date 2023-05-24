@@ -209,6 +209,7 @@ class ShippingRequestController extends AbstractController {
     public function submitExpectedLines(ShippingRequest                    $shippingRequest,
                                         Request                            $request,
                                         ShippingRequestExpectedLineService $expectedLineService,
+                                        ShippingRequestService             $shippingRequestService,
                                         EntityManagerInterface             $entityManager): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $lineId = $data['lineId'] ?? null;
@@ -242,6 +243,9 @@ class ShippingRequestController extends AbstractController {
                 ->setPrice($data['price'] ?? null)
                 ->setWeight($data['weight'] ?? null);
 
+            $shippingRequestService->updateNetWeight($shippingRequest);
+            $shippingRequestService->updateTotalValue($shippingRequest);
+
             $entityManager->flush();
 
             $resp = [
@@ -257,11 +261,18 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/expected-line/{line}", name: "shipping_request_expected_line_delete", options: ["expose" => true], methods: ["DELETE"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function removeLine(EntityManagerInterface      $entityManager,
-                               ShippingRequestExpectedLine $line): Response {
+    public function removeExpectedLine(EntityManagerInterface      $entityManager,
+                                       ShippingRequestService      $shippingRequestService,
+                                       ShippingRequestExpectedLine $line): Response {
 
         if ($line->getRequest()?->getStatus()?->getCode() === ShippingRequest::STATUS_DRAFT) {
+            $shippingRequest = $line->getRequest();
+            $shippingRequest->removeExpectedLine($line);
             $entityManager->remove($line);
+
+            $shippingRequestService->updateNetWeight($shippingRequest);
+            $shippingRequestService->updateTotalValue($shippingRequest);
+
             $entityManager->flush();
         }
 

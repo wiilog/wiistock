@@ -243,4 +243,20 @@ class ShippingRequestService {
             ->setCarrier($carrier);
         return true;
     }
+
+    public function updateNetWeight(ShippingRequest $shippingRequest): void {
+        $shippingRequest->setNetWeight(
+            Stream::from($shippingRequest->getExpectedLines())
+                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getWeight() ? $line->getQuantity() * $line->getWeight() : 0)
+                ->sum()
+        );
+    }
+
+    public function updateTotalValue(ShippingRequest $shippingRequest): void {
+        $shippingRequest->setTotalValue(
+            Stream::from($shippingRequest->getExpectedLines())
+                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getPrice() ? $line->getQuantity() * $line->getWeight() : 0)
+                ->sum()
+        );
+    }
 }
