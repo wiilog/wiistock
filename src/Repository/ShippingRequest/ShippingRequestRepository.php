@@ -2,10 +2,13 @@
 
 namespace App\Repository\ShippingRequest;
 
+use App\Entity\Statut;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\InputBag;
 
 class ShippingRequestRepository extends EntityRepository {
@@ -249,5 +252,31 @@ class ShippingRequestRepository extends EntityRepository {
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
+    }
+
+    /**
+     * @param array $types
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('shipping_request')
+                ->select('shipping_request.validatedAt AS date')
+                ->innerJoin('shipping_request.status', 'status')
+                ->andWhere('status IN (:statuses)')
+                ->addOrderBy('shipping_request.validatedAt', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
     }
 }
