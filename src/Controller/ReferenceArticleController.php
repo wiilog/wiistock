@@ -642,7 +642,7 @@ class ReferenceArticleController extends AbstractController
             $locations = Stream::from($reference->getStorageRules())
                 ->map(function (StorageRule $rule) use ($articleRepository, $reference) {
                     $location = $rule->getLocation();
-                    $quantity = $articleRepository->countForRefOnLocation($reference, $location);
+                    $quantity = $articleRepository->quantityForRefOnLocation($reference, $location);
 
                     return [
                         'location' => [
