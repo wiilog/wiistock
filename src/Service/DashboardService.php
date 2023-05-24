@@ -25,6 +25,7 @@ use App\Entity\Nature;
 use App\Entity\ReceiptAssociation;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
@@ -1045,6 +1046,7 @@ class DashboardService {
             Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH => Dispatch::class,
             Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT => Collecte::class,
             Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER => TransferRequest::class,
+            Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING => ShippingRequest::class,
             Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT => OrdreCollecte::class,
             Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY => Livraison::class,
             Dashboard\ComponentType::ORDERS_TO_TREAT_PREPARATION => Preparation::class,
@@ -1061,6 +1063,10 @@ class DashboardService {
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER:
                     $count = QueryBuilderHelper::countByStatusesAndTypes($entityManager, $entityToClass[$config['entity']], $entityTypes, $entityStatuses);
+                    break;
+                case Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING:
+                    $result = QueryBuilderHelper::countByStatuses($entityManager, $entityToClass[$config['entity']], $entityStatuses);
+                    $count = $result[0]['count'] ?? $result;
                     break;
                 case Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY:

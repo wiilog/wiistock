@@ -1,0 +1,161 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <div>Numéro de la demande : <strong>{{ shippingRequest.number }}></strong></div>
+    <div>Date de création : <strong>{{ shippingRequest.createdAt|date('d/m/Y H:i') }}</strong></div>
+    <div>Demandeur(s) : <strong>{{ shippingRequest.requesters|map((requester) => requester.username)|join(', ') }}</strong></div>
+    <div>Destinataire : <strong>{{ shippingRequest.customerName }}</strong></div>
+    <div>Date de prise en charge souhaitée : <strong>{{ shippingRequest.requestCaredAt|date('d/m/Y H:i') }}</strong></div>
+    {% if isShipped %}
+        <div>Enlèvement prévue le : <strong>{{ shippingRequest.expectedPickedAt|date('d/m/Y H:i') }}</strong></div>
+        <div>Confirmation d'expédition le : <strong>{{ shippingRequest.treatedAt|date('d/m/Y H:i') }}</strong></div>
+    {% endif %}
+    <br>
+    <br>
+
+    <h3>Transport</h3>
+    <div>Transporteur : <strong>{{ shippingRequest.carrier ? shippingRequest.carrier.label : '-' }}</strong></div>
+    {% if isToTreat %}
+        <div>Envoi : <strong>{{ shippingRequest.shipment }}</strong></div>
+    {% elseif isShipped %}
+        <div>Numéro de tracking : <strong>{{ shippingRequest.trackingNumber }}</strong></div>
+    {% endif %}
+    <br>
+    <br>
+
+    {% if isToTreat %}
+        <h3>Produit(s) à expédier</h3>
+        <table class="table"
+               style="border: 1px solid black; border-collapse: collapse;">
+            <thead>
+            <tr>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Référence
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Libellé
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Quantité
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Prix (€)
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Poids net (kg)
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Montant total (€)
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for line in shippingRequest.expectedLines %}
+                <tr>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ line.referenceArticle.reference }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ line.referenceArticle.libelle }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ line.quantity }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ line.price }}
+                    </td>
+                    <td class="th"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        {{ line.weight }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ line.price * line.quantity }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% elseif isShipped %}
+        {% for packLine in shippingRequest.packLines %}
+            <div style="width: 100%; background-color: #CBCBCB;padding: 15px">
+                <span style="margin-right: 15px;">Unité logistique : <strong>{{ packLine.pack.code }}</strong></span>
+                <span>Dimension (cm) : <strong>{{ packLine.size }}</strong></span>
+            </div>
+            <table class="table"
+                   style="border: 1px solid black; border-collapse: collapse;">
+                <thead>
+                <tr>
+                    <th class="th"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        Référence
+                    </th>
+                    <th class="th"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        Libellé
+                    </th>
+                    <th class="th"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        Quantité
+                    </th>
+                    <th class="th"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        Prix (€)
+                    </th>
+                    <th class="th"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        Poids net (kg)
+                    </th>
+                    <th class="th"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        Montant total (€)
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for line in packLine.lines %}
+                    <tr>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ line.expectedLine.referenceArticle.reference }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ line.expectedLine.referenceArticle.libelle }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ line.expectedLine.quantity }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ line.expectedLine.price }}
+                        </td>
+                        <td class="th"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ line.expectedLine.weight }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ line.expectedLine.price * line.expectedLine.quantity }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% endif %}
+    <br>
+    <br>
+
+{% endblock %}

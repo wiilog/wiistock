@@ -2,19 +2,31 @@
 
 namespace App\Service\ShippingRequest;
 
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Role;
+use App\Entity\Nature;
+use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
+use App\Entity\ShippingRequest\ShippingRequestPack;
+use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Exceptions\FormException;
 use App\Service\FormatService;
+use App\Service\MailerService;
+use App\Service\PackService;
+use App\Service\TrackingMovementService;
 use App\Service\VisibleColumnService;
-use Doctrine\Common\Collections\ArrayCollection;
+use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\Types\Iterable_;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -39,7 +51,16 @@ class ShippingRequestService {
     public RouterInterface $router;
 
     #[Required]
+    public MailerService $mailerService;
+
+    #[Required]
     public CSVExportService $CSVExportService;
+
+    #[Required]
+    public PackService $packService;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -142,6 +163,76 @@ class ShippingRequestService {
         return $this->templating->render('shipping_request/show-transport-header.html.twig', [
             'shipping' => $shippingRequest,
         ]);
+    }
+
+    public function sendMailForStatus(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest)
+    {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
+
+        $to = [];
+        $mailTitle = '';
+        //Validation
+        if($shippingRequest->isToTreat()) {
+            $mailTitle = "FOLLOW GT // Création d'une demande d'expédition";
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_REQUESTER)){
+                $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
+            }
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES)){
+                $rolesToSendMail = $roleRepository->findBy(['id' => Stream::explode(',',$settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))->toArray()]);
+                $to = array_merge(
+                    $to,
+                    $userRepository->findBy(["role" => $rolesToSendMail]),
+                );
+            }
+        }
+
+        //Planification
+        if($shippingRequest->isShipped()) {
+            $mailTitle = "FOLLOW GT // Demande d'expédition effectuée";
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_REQUESTER)){
+                $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
+            }
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES)){
+                $rolesToSendMail = $roleRepository->findBy(['id' => Stream::explode(',',$settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))->toArray()]);
+                $to = array_merge(
+                    $to,
+                    $userRepository->findBy(["role" => $rolesToSendMail]),
+                );
+            }
+        }
+
+        $this->mailerService->sendMail(
+            $mailTitle,
+            [
+                "name" => "mails/contents/mailShippingRequest.html.twig",
+                "context" => [
+                    "title" => "Une demande d'expédition a été créée",
+                    "shippingRequest" => $shippingRequest,
+                    "isToTreat" => $shippingRequest->isToTreat(),
+                    "isShipped" => $shippingRequest->isShipped(),
+                ]
+            ],
+            $to
+        );
+
+    }
+
+    public function formatExpectedLinesForPacking(iterable $expectedLines): array {
+        return Stream::from($expectedLines)
+            ->map(function(ShippingRequestExpectedLine $expectedLine) {
+                return [
+                    'lineId' => $expectedLine->getId(),
+                    'referenceArticleId' => $expectedLine->getReferenceArticle()->getId(),
+                    'label' => $expectedLine->getReferenceArticle()->getLibelle(),
+                    'quantity' => $expectedLine->getQuantity(),
+                    'price' => $expectedLine->getPrice(),
+                    'weight' => $expectedLine->getWeight(),
+                    'totalPrice' => '<span class="total-price"></span>',
+                ];
+            })
+            ->toArray();
     }
 
     public function putShippingRequestLine($output, array $shippingRequestData): void {
@@ -258,5 +349,35 @@ class ShippingRequestService {
                 ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getPrice() ? $line->getQuantity() * $line->getWeight() : 0)
                 ->sum()
         );
+    }
+
+    public function createShippingRequestPack(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, int $packNumber, string $size, Emplacement $packLocation, array $options = []) :ShippingRequestPack {
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $packNatureId = $natureRepository->findOneBy(['defaultNature' => true]);
+        if(!$packNatureId) {
+            throw new FormException("Aucune nature n'est définie comme nature par défaut.");
+        }
+
+        $packsCode = str_replace(ShippingRequest::NUMBER_PREFIX.'-', '', $shippingRequest->getNumber());
+        $pack = $this->packService->persistPack($entityManager, $packsCode.$packNumber, 1, $packNatureId);
+        $date =  $options['date'] ?? new DateTime('now');
+        $trackingMovement = $this->trackingMovementService->createTrackingMovement(
+            $pack,
+            $packLocation,
+            $this->security->getUser(),
+            $date,
+            false,
+            null,
+            TrackingMovement::TYPE_DEPOSE
+        );
+        $entityManager->persist($trackingMovement);
+
+        $shippingRequestPack = new ShippingRequestPack();
+        $shippingRequestPack
+            ->setPack($pack)
+            ->setRequest($shippingRequest)
+            ->setSize($size);
+
+        return $shippingRequestPack;
     }
 }

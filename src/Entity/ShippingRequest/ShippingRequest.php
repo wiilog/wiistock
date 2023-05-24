@@ -527,4 +527,20 @@ class ShippingRequest extends StatusHistoryContainer {
     }
 
 
+
+    public function isDraft(): ?bool {
+        return $this->status->getCode() === self::STATUS_DRAFT;
+    }
+
+    public function isToTreat(): ?bool {
+        return $this->status->getCode() === self::STATUS_TO_TREAT;
+    }
+
+    public function isScheduled(): ?bool {
+        return $this->status->getCode() === self::STATUS_SCHEDULED;
+    }
+
+    public function isShipped(): ?bool {
+        return $this->status->getCode() === self::STATUS_SHIPPED;
+    }
 }

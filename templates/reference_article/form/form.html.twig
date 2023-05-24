@@ -80,7 +80,7 @@
                                     class="form-control data d-block type needed"
                                     onchange="typeChoice($(this), $(this).closest('.wii-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.wii-form').find('.free-fields-container'))">
                                 {% for type in types %}
-                                    <option value="{{ type.id }}">
+                                    <option value="{{ type.id }}" {{ shippingSettingsDefaultValues is defined and shippingSettingsDefaultValues.type is defined and shippingSettingsDefaultValues.type == type.id ? 'selected' : '' }}>
                                         {{ type.label }}
                                     </option>
                                 {% endfor %}
@@ -610,7 +610,12 @@
                                 </div>
                             {% endfor %}
                         {% else %}
-                            {{ macros.supplier_article_line(reference, null, true) }}
+                            {{ macros.supplier_article_line(reference, null, true, 0, false, {
+                                supplier: shippingSettingsDefaultValues is defined and shippingSettingsDefaultValues is not empty ? shippingSettingsDefaultValues.supplier : '',
+                                supplierCode: shippingSettingsDefaultValues is defined and shippingSettingsDefaultValues is not empty ? shippingSettingsDefaultValues.supplierCode : '',
+                                refArticleSupplierEqualsReference: shippingSettingsDefaultValues is defined and shippingSettingsDefaultValues is not empty ? shippingSettingsDefaultValues.refArticleSupplierEqualsReference : false,
+                                draftDefaultReference: draftDefaultReference,
+                            }) }}
                         {% endif %}
                     </div>
                     <div class="d-flex justify-content-end add-supplier-article mt-3">
