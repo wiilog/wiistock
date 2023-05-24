@@ -16,6 +16,7 @@ use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\StatusHistory;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\ShippingRequest\ShippingRequestLine;
@@ -564,21 +565,21 @@ class ShippingRequestController extends AbstractController {
         $user = $this->getUser();
         $dateNow = new DateTime('now');
 
-        //repository
+        // repository
         $statusRepository = $entityManager->getRepository(Statut::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-        //location
+        // location
         $shippingLocationFromId = $settingRepository->getOneParamByLabel(Setting::SHIPPING_LOCATION_FROM);
-        $shippingLocationFrom = $emplacementRepository->findOneBy(['id'=>$shippingLocationFromId]);
+        $shippingLocationFrom = $emplacementRepository->findOneBy(['id' => $shippingLocationFromId]);
         $shippingLocationToId = $settingRepository->getOneParamByLabel(Setting::SHIPPING_LOCATION_TO);
-        $shippingLocationTo = $emplacementRepository->findOneBy(['id'=>$shippingLocationToId]);
+        $shippingLocationTo = $emplacementRepository->findOneBy(['id' => $shippingLocationToId]);
 
 
-        //status
+        // new status
         $newStatusForShippingRequest = $statusRepository->findOneByCategorieNameAndStatutCode(
-            CategorieStatut::SHIPMENT,
+            CategorieStatut::SHIPPING_REQUEST,
             ShippingRequest::STATUS_SHIPPED);
 
         $consumeStatusForArticles = $statusRepository->findOneByCategorieNameAndStatutCode(
@@ -586,11 +587,11 @@ class ShippingRequestController extends AbstractController {
             Article::STATUT_INACTIF
         );
 
-        //block process if "emplacement d'expé pas rempli"
+        // block process if paramètre "Emplacements par défaut" vide
         if (!$shippingLocationFromId || !$shippingLocationToId) {
             return $this->json([
                 'success' => false,
-                'msg' => 'Veuillez remplir le paramètre "Emplacements par défaut.',
+                'msg' => 'Veuillez remplir le paramètre "Emplacements par défaut".',
             ]);
         }
 
@@ -611,7 +612,7 @@ class ShippingRequestController extends AbstractController {
             /** @var ShippingRequestPack $packLines */
             foreach ($shippingRequest->getPackLines() as $packLines) {
 
-                //mvt prise UL
+                // mvt prise UL
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
                     $packLines->getPack(),
                     $packLines->getPack()->getLastDrop()->getEmplacement(),
@@ -623,7 +624,7 @@ class ShippingRequestController extends AbstractController {
                 );
                 $entityManager->persist($trackingMovement);
 
-                //mvt depose UL
+                // mvt depose UL
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
                     $packLines->getPack(),
                     $shippingLocationTo,
@@ -637,25 +638,26 @@ class ShippingRequestController extends AbstractController {
 
                 /** @var ShippingRequestLine $shippingRequestLine */
                 foreach ($packLines->getLines() as $shippingRequestLine) {
-                    $article = $shippingRequestLine->getArticle();
+                    $articleOrReference = $shippingRequestLine->getArticleOrReference();
 
-                    $article->setStatut($consumeStatusForArticles);
+                    $articleOrReference->setStatut($consumeStatusForArticles);
 
-                    // mvt stock
+                    // mvt sortie stock
                     $newMouvementStock = $mouvementStockService->createMouvementStock(
                         $user,
                         $shippingLocationFrom,
                         $shippingRequestLine->getQuantity(),
-                        $article,
-                        MouvementStock::TYPE_SORTIE,
+                        $articleOrReference,
+                        MouvementStock::TYPE_TRANSFER,
                         [
                             "locationTo" => $shippingLocationTo,
+                            'date' => $dateNow
                         ]);
                     $entityManager->persist($newMouvementStock);
 
-                    //mvt prise article
+                    // mvt prise article
                     $trackingMovement = $trackingMovementService->createTrackingMovement(
-                        $article->getBarCode(),
+                        $articleOrReference->getBarCode(),
                         $shippingLocationFrom,
                         $user,
                         $dateNow,
@@ -670,8 +672,8 @@ class ShippingRequestController extends AbstractController {
 
                     // mvt depose article
                     $trackingMovement = $trackingMovementService->createTrackingMovement(
-                        $article->getBarCode(),
-                        $shippingLocationFrom,
+                        $articleOrReference->getBarCode(),
+                        $shippingLocationTo,
                         $user,
                         $dateNow,
                         false,
@@ -682,6 +684,20 @@ class ShippingRequestController extends AbstractController {
                         ]
                     );
                     $entityManager->persist($trackingMovement);
+
+                    // rmv qte & mvt sortie stock
+                    if ($articleOrReference instanceof ReferenceArticle) {
+                        $newQuantity = $articleOrReference->getQuantiteStock() - $shippingRequestLine->getQuantity();
+                        $articleOrReference->setQuantiteStock($newQuantity);
+
+                        $newMouvementStock = $mouvementStockService->createMouvementStock(
+                            $user,
+                            $shippingLocationFrom,
+                            $shippingRequestLine->getQuantity(),
+                            $articleOrReference,
+                            MouvementStock::TYPE_SORTIE);
+                        $entityManager->persist($newMouvementStock);
+                    }
                 }
             }
             // Check that the status has been updated
