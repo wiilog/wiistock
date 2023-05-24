@@ -1325,3 +1325,7 @@ function loadAndDisplayInfos($select, name) {
         $(this).parent().css('border-color', '');
     });
 }
+
+function scrollToBottom() {
+    window.scrollTo(0, document.body.scrollHeight);
+}
