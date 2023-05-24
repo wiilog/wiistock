@@ -120,6 +120,14 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $grossWeight = null;
 
+    /* Sum of line prices, calculated on line adding or removing */
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $totalValue = null;
+
+    /* Sum of line net weight, calculated on line adding or removing */
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $netWeight = null;
+
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $trackingNumber = null;
 
@@ -499,6 +507,26 @@ class ShippingRequest extends StatusHistoryContainer {
         $this->number = $number;
         return $this;
     }
+
+    public function getTotalValue(): ?float {
+        return $this->totalValue;
+    }
+
+    public function setTotalValue(?float $totalValue): self {
+        $this->totalValue = $totalValue;
+        return $this;
+    }
+
+    public function getNetWeight(): ?float {
+        return $this->netWeight;
+    }
+
+    public function setNetWeight(?float $netWeight): self {
+        $this->netWeight = $netWeight;
+        return $this;
+    }
+
+
 
     public function isDraft(): ?bool {
         return $this->status->getCode() === self::STATUS_DRAFT;
