@@ -9,6 +9,7 @@ use App\Entity\Nature;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
+use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
@@ -24,6 +25,7 @@ use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use phpDocumentor\Reflection\Types\Iterable_;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\Mailer;
@@ -379,5 +381,39 @@ class ShippingRequestService {
             ->setSize($size);
 
         return $shippingRequestPack;
+    }
+
+
+    public function getDataForScheduledRequest(ShippingRequest $shippingRequest): array {
+        return Stream::from($shippingRequest->getPackLines())
+            ->map(function(ShippingRequestPack $shippingRequestPack) {
+                $pack = $shippingRequestPack->getPack();
+                $referenceData = Stream::from($shippingRequestPack->getLines())
+                    ->map(function (ShippingRequestLine $shippingRequestLine) {
+                        $expectedLine = $shippingRequestLine->getExpectedLine();
+                        $reference = $expectedLine->getReferenceArticle();
+                        return [
+                            'reference' => $reference->getLibelle(),
+                            'label' => $reference->getLibelle(),
+                            'quantity' => $shippingRequestLine->getQuantity(),
+                            'price' => $expectedLine->getPrice(),
+                            'weight' => $expectedLine->getWeight(),
+                            'totalPrice' => $shippingRequestLine->getQuantity() * $expectedLine->getPrice(),
+                        ];
+                    })
+                    ->toArray();
+
+                return [
+                    'pack' => [
+                        'nature' => $this->formatService->nature($pack->getNature()),
+                        'code' => $pack->getCode() ?? null,
+                        'size' => $shippingRequestPack->getSize(),
+                        'location' => $this->formatService->location($pack->getLastDrop()?->getEmplacement()),
+                        'color' => $pack?->getNature()?->getColor() ?? null,
+                    ],
+                    'references' => $referenceData,
+                ];
+            })
+            ->toArray();
     }
 }

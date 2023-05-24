@@ -5,8 +5,6 @@ import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
-global.deleteExpectedLine = deleteExpectedLine;
-let shippingId;
 
 let expectedLines = null;
 let packingData = [];
@@ -16,7 +14,6 @@ let scheduledShippingRequestFormData = null;
 $(function() {
     shippingId = $('[name=shippingId]').val();
 
-
     const $modalEdit = $('#modalEditShippingRequest');
     initModalFormShippingRequest($modalEdit, 'shipping_request_edit', () => {
         $modalEdit.modal('hide');
@@ -25,8 +22,13 @@ $(function() {
 
     initScheduledShippingRequestForm();
     initPackingPack($('#modalPacking'))
-    initShippingRequestExpectedLine();
-    getShippingRequestStatusHistory();
+    getShippingRequestStatusHistory(shippingId);
+    updateDetails();
+
+    $(document).arrive('.schedule-details', function () {
+        initDetailsScheduled($(this));
+    });
+
 });
 
 function refreshTransportHeader(shippingId){
@@ -136,6 +138,7 @@ function initPackingPack($modal) {
                                 $modal.modal('hide');
                                 refreshTransportHeader(shippingId);
                                 getShippingRequestStatusHistory(shippingId);
+                                updateDetails()
                             }
                         });
                 })
@@ -597,3 +600,49 @@ function getShippingRequestStatusHistory() {
             $statusHistoryContainer.html(template);
         });
 }
+
+function updateDetails() {
+    // TODO DEGAGER LE CODE CI DESSOUS
+    const shippingId = $('[name=shippingId]').val();
+
+    AJAX
+        .route(GET, `shipping_request_get_details`, {id: shippingId})
+        .json()
+        .then(({html}) => {
+            $('.details-container').html(html);
+        });
+}
+
+function initDetailsScheduled($container) {
+    $container.find('.logistic-unit-wrapper .articles-container .table').each(function () {
+            let $table = $(this);
+
+            const columns = [
+                {name: 'reference', data: 'reference', title: 'Référence', orderable: true},
+                {name: 'label', data: 'label', title: 'Libellé', orderable: true},
+                {name: 'quantity', data: 'quantity', title: 'Quantité', orderable: true},
+                {name: 'price', data: 'price', title: 'Prix unitaire (€)', orderable: true},
+                {name: 'weight', data: 'weight', title: 'Poid net (kg)', orderable: true},
+                {name: 'totalPrice', data: 'totalPrice', title: 'Montant total', orderable: true},
+            ];
+
+            initDataTable($table, {
+                serverSide: false,
+                ordering: true,
+                paging: false,
+                searching: false,
+                processing: true,
+                order: [['reference', "desc"]],
+                columns,
+                rowConfig: {},
+                domConfig: {
+                    removeInfo: true,
+                },
+                drawConfig: {},
+            });
+
+
+        }
+    )
+}
+
