@@ -16,6 +16,7 @@ use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\StatusHistory;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\ShippingRequest\ShippingRequestLine;
@@ -373,13 +374,13 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/validate-shipping-request/{id}", name:'shipping_request_validation', options:["expose"=>true], methods: ['GET'])]
+    #[Route("/validate-shipping-request/{shippingRequest}", name:'shipping_request_validation', options:["expose"=>true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function shippingRequestValidation(ShippingRequest        $shippingRequest,
                                               StatusHistoryService   $statusHistoryService,
                                               ShippingRequestService $shippingRequestService,
                                               EntityManagerInterface $entityManager,
-                                              TranslationService $translationService): JsonResponse
+                                              TranslationService     $translationService): JsonResponse
     {
         $currentUser = $this->getUser();
 
@@ -527,7 +528,7 @@ class ShippingRequestController extends AbstractController {
                     throw new FormException('Une Erreur est survenue lors de la récupération des données.');
                 }
 
-                $shippingPack = $shippingRequestService->createShippingRequestPack($entityManager, $shippingRequest, $index + 1, $pack['size'], $packLocation, ['date' => $now]);
+                $shippingPack = $shippingRequestService->createShippingRequestPack($entityManager, $shippingRequest, $index + 1, $pack['size'] ?? null, $packLocation, ['date' => $now]);
                 $entityManager->persist($shippingPack);
 
                 Stream::from($pack['lines'])
@@ -687,6 +688,166 @@ class ShippingRequestController extends AbstractController {
         return new JsonResponse([
             'success' => true,
             'html' => $html,
+        ]);
+    }
+
+    #[Route("/treat-shipping-request-shipping/{shippingRequest}", name: "treat_shipping_request", options: ["expose" => true])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function treatShippingRequest(ShippingRequest         $shippingRequest,
+                                         StatusHistoryService    $statusHistoryService,
+                                         EntityManagerInterface  $entityManager,
+                                         MouvementStockService   $mouvementStockService,
+                                         TrackingMovementService $trackingMovementService): JsonResponse
+    {
+        $user = $this->getUser();
+        $dateNow = new DateTime('now');
+
+        // repository
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+
+        // location
+        $shippingLocationFromId = $settingRepository->getOneParamByLabel(Setting::SHIPPING_LOCATION_FROM);
+        $shippingLocationFrom = $emplacementRepository->findOneBy(['id' => $shippingLocationFromId]);
+        $shippingLocationToId = $settingRepository->getOneParamByLabel(Setting::SHIPPING_LOCATION_TO);
+        $shippingLocationTo = $emplacementRepository->findOneBy(['id' => $shippingLocationToId]);
+
+        // new status
+        $shippedStatus = $statusRepository->findOneByCategorieNameAndStatutCode(
+            CategorieStatut::SHIPPING_REQUEST,
+            ShippingRequest::STATUS_SHIPPED
+        );
+
+        $consumeStatusForArticles = $statusRepository->findOneByCategorieNameAndStatutCode(
+            CategorieStatut::ARTICLE,
+            Article::STATUT_INACTIF
+        );
+
+        // block process if paramètre "Emplacements par défaut" vide
+        if (!$shippingLocationFromId || !$shippingLocationToId) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'Veuillez remplir la section "Emplacements par défaut" dans le paramétrage des expéditions.',
+            ]);
+        }
+
+        $shippingRequest
+            ->setTreatedAt($dateNow)
+            ->setTreatedBy($user);
+
+        // update status & create mvt stock / track
+        if ($shippingRequest->getStatus()->getCode() === $shippingRequest::STATUS_SCHEDULED) {
+            $statusHistoryService->updateStatus(
+                $entityManager,
+                $shippingRequest,
+                $shippedStatus,
+                ['setStatus' => true]
+            );
+
+            /** @var ShippingRequestPack $packLines */
+            foreach ($shippingRequest->getPackLines() as $packLines) {
+
+                // mvt prise UL
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $packLines->getPack(),
+                    $packLines->getPack()->getLastDrop()->getEmplacement(),
+                    $user,
+                    $dateNow,
+                    false,
+                    false,
+                    TrackingMovement::TYPE_PRISE,
+                );
+                $entityManager->persist($trackingMovement);
+
+                // mvt depose UL
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $packLines->getPack(),
+                    $shippingLocationTo,
+                    $user,
+                    $dateNow,
+                    false,
+                    false,
+                    TrackingMovement::TYPE_DEPOSE,
+                );
+                $entityManager->persist($trackingMovement);
+
+                /** @var ShippingRequestLine $shippingRequestLine */
+                foreach ($packLines->getLines() as $shippingRequestLine) {
+                    $articleOrReference = $shippingRequestLine->getArticleOrReference();
+
+                    $newMouvementStock = $mouvementStockService->createMouvementStock(
+                        $user,
+                        $shippingLocationFrom,
+                        $shippingRequestLine->getQuantity(),
+                        $articleOrReference,
+                        MouvementStock::TYPE_SORTIE,
+                        [
+                            "locationTo" => $shippingLocationTo,
+                            'date' => $dateNow
+                        ]
+                    );
+                    $entityManager->persist($newMouvementStock);
+
+                    // mvt prise article
+                    $trackingMovement = $trackingMovementService->createTrackingMovement(
+                        $articleOrReference->getTrackingPack() ?: $articleOrReference->getBarCode(),
+                        $shippingLocationFrom,
+                        $user,
+                        $dateNow,
+                        false,
+                        false,
+                        TrackingMovement::TYPE_PRISE,
+                        [
+                            'mouvementStock' => $newMouvementStock,
+                            "quantity" => $shippingRequestLine->getQuantity(),
+                        ]
+                    );
+                    $entityManager->persist($trackingMovement);
+
+                    // mvt depose article
+                    $trackingMovement = $trackingMovementService->createTrackingMovement(
+                        $articleOrReference->getTrackingPack() ?: $articleOrReference->getBarCode(),
+                        $shippingLocationTo,
+                        $user,
+                        $dateNow,
+                        false,
+                        false,
+                        TrackingMovement::TYPE_DEPOSE,
+                        [
+                            'mouvementStock' => $newMouvementStock,
+                            "quantity" => $shippingRequestLine->getQuantity(),
+                        ]
+                    );
+                    $entityManager->persist($trackingMovement);
+
+                    // rmv qte & mvt sortie stock
+                    if ($articleOrReference instanceof ReferenceArticle) {
+                        $newStockQuantity = $articleOrReference->getQuantiteStock() - $shippingRequestLine->getQuantity();
+                        $newReservedQuantity = $articleOrReference->getQuantiteReservee() - $shippingRequestLine->getQuantity();
+                        $articleOrReference
+                            ->setQuantiteStock($newStockQuantity)
+                            ->setQuantiteReservee($newReservedQuantity);
+                    }
+                    else { // if ($articleOrReference instanceof Article)
+                        $articleOrReference->setStatut($consumeStatusForArticles);
+                    }
+                }
+            }
+            // Check that the status has been updated
+            if ($shippingRequest->getStatus() !== $shippedStatus) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Une erreur est survenue lors du changement de statut.',
+                ]);
+            }
+        }
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => "La demande d'expédition a été expédiée."
         ]);
     }
 }

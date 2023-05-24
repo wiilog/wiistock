@@ -5,6 +5,8 @@ import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
+global.treatShippingRequest = treatShippingRequest;
+global.deleteExpectedLine = deleteExpectedLine;
 
 let expectedLines = null;
 let packingData = [];
@@ -45,14 +47,16 @@ function refreshTransportHeader(){
         });
 }
 
-function validateShippingRequest(shipping_request_id) {
-    AJAX.route(GET, `shipping_request_validation`, {id: shipping_request_id})
-        .json()
-        .then((res) => {
-            if (res.success) {
-                updatePage();
-            }
-        });
+function validateShippingRequest($button) {
+    wrapLoadingOnActionButton($button, () => (
+        AJAX.route(GET, `shipping_request_validation`, {shippingRequest: shippingId})
+            .json()
+            .then((res) => {
+                if (res.success) {
+                    updatePage();
+                }
+            })
+    ));
 }
 
 function initScheduledShippingRequestForm() {
@@ -186,11 +190,12 @@ function fillActionTemplate(template, referenceArticleId, lineId, picked = false
 }
 
 function fillQuantityInputTemplate(template, quantity, isLastStep) {
+
     const $template = $(template).clone();
     const $quantityInput = $template.find('[name=quantity]')
 
     if (quantity === 1 || isLastStep) {
-        $quantityInput.parents().append(quantity);
+        $quantityInput.parent().append(quantity);
         $quantityInput.attr('type', 'hidden');
     } else {
         $quantityInput.attr('max', quantity);
@@ -639,6 +644,19 @@ function initDetailsScheduled($container) {
             drawConfig: {},
         });
     });
+}
+
+
+function treatShippingRequest($button) {
+    wrapLoadingOnActionButton($button, () => (
+        AJAX.route(POST, `treat_shipping_request`, {shippingRequest: shippingId})
+            .json()
+            .then((res) => {
+                if (res.success) {
+                    updatePage();
+                }
+            })
+    ));
 }
 
 function updatePage() {

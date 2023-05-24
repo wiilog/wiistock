@@ -356,7 +356,7 @@ class ShippingRequestService {
         );
     }
 
-    public function createShippingRequestPack(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, int $packNumber, string $size, Emplacement $packLocation, array $options = []) :ShippingRequestPack {
+    public function createShippingRequestPack(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, int $packNumber, ?string $size, Emplacement $packLocation, array $options = []) :ShippingRequestPack {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $packNatureId = $natureRepository->findOneBy(['defaultNature' => true]);
         if(!$packNatureId) {
