@@ -1,7 +1,7 @@
 <div class="header wii-title justify-content-between align-items-center row no-gutters py-2">
     Produits à expédier
 </div>
-<div class="p-3">
+<div class="p-3 schedule-details">
     {% for line in lines %}
         {% set pack = line.pack ?? null %}
         {% include 'pack/utils/packItemListTemplate.html.twig' with {
@@ -19,5 +19,3 @@
         } %}
     {% endfor %}
 </div>
-
-{{ encore_entry_script_tags('shipping-request-details-scheduled') }}

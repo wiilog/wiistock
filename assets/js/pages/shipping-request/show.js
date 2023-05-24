@@ -4,6 +4,7 @@ import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
+global.initDetailsScheduled = initDetailsScheduled;
 
 let expectedLines = null;
 let packingData = [];
@@ -12,7 +13,6 @@ let scheduledShippingRequestFormData = null;
 
 $(function() {
     const shippingId = $('[name=shippingId]').val();
-
 
     const $modalEdit = $('#modalEditShippingRequest');
     initModalFormShippingRequest($modalEdit, 'shipping_request_edit', () => {
@@ -24,6 +24,11 @@ $(function() {
     initPackingPack($('#modalPacking'))
     getShippingRequestStatusHistory(shippingId);
     updateDetails();
+
+    $(document).arrive('.schedule-details', function () {
+        initDetailsScheduled($(this));
+    });
+
 });
 
 function refreshTransportHeader(shippingId) {
@@ -329,5 +334,13 @@ function updateDetails() {
         .then(({html}) => {
             $('.details-container').html(html);
         });
+}
+
+function initDetailsScheduled($container) {
+    $container.find('.logistic-unit-wrapper .articles-container .table').each(function () {
+            let $table = $(this);
+            console.log($table);
+        }
+    )
 }
 
