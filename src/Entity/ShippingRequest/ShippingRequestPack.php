@@ -18,7 +18,7 @@ class ShippingRequestPack {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $size = null;
 
     #[ORM\OneToOne(inversedBy: 'shippingRequestPack', targetEntity: Pack::class)]
