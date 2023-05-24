@@ -51,6 +51,9 @@ Encore
     .addEntry('delivery-request-show', './assets/js/pages/delivery-request/show.js')
     .addEntry('shipping-request-index', './assets/js/pages/shipping-request/index.js')
     .addEntry('shipping-request-show', './assets/js/pages/shipping-request/show.js')
+    .addEntry('shipping-request-details-scheduled', './assets/js/pages/shipping-request/details/scheduled.js')
+    .addEntry('shipping-request-details-draft', './assets/js/pages/shipping-request/details/draft.js')
+    .addEntry('shipping-request-details-to-treat', './assets/js/pages/shipping-request/details/to-treat.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

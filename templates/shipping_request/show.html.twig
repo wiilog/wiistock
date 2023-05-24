@@ -135,9 +135,17 @@
                 </div>
 
             </div>
-            <div class="transport-header col-md-8 col-12">
-                <div class="wii-box">
-                    {{ detailsTransportConfig|raw }}
+            <div class="col-md-8 col-12">
+                <div class="d-flex flex-column">
+                    <div class="wii-box transport-header">
+                        {{ detailsTransportConfig|raw }}
+                    </div>
+                    <div class="wii-box mt-3 details-container">
+                        <div class="d-flex align-items-center justify-content-center p-3">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération du detail en cours</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

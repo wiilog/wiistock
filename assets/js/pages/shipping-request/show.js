@@ -23,6 +23,7 @@ $(function() {
     initScheduledShippingRequestForm();
     initPackingPack($('#modalPacking'))
     getShippingRequestStatusHistory(shippingId);
+    updateDetails();
 });
 
 function refreshTransportHeader(shippingId) {
@@ -107,6 +108,7 @@ function initPackingPack($modal) {
                                 $modal.modal('hide');
                                 refreshTransportHeader(shippingId);
                                 getShippingRequestStatusHistory(shippingId);
+                                updateDetails()
                             }
                         });
                 })
@@ -316,3 +318,16 @@ function getShippingRequestStatusHistory(shippingRequest) {
             $statusHistoryContainer.html(template);
         });
 }
+
+function updateDetails() {
+    // TODO DEGAGER LE CODE CI DESSOUS
+    const shippingId = $('[name=shippingId]').val();
+
+    AJAX
+        .route(GET, `shipping_request_get_details`, {id: shippingId})
+        .json()
+        .then(({html}) => {
+            $('.details-container').html(html);
+        });
+}
+

@@ -37,6 +37,7 @@ use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use mysql_xdevapi\Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -552,6 +553,40 @@ class ShippingRequestController extends AbstractController {
 
         return $this->json([
             'success' => true,
+        ]);
+    }
+
+    #[Route("/details/{id}", name: "shipping_request_get_details", options: ["expose" => true], methods: ['GET'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function getDetails(ShippingRequest         $shippingRequest,
+                                      Request                 $request,
+                                      ShippingRequestService  $shippingRequestService): Response{
+        //TODO strtolower ???
+        switch (strtolower($shippingRequest->getStatus()->getCode())) {
+            case strtolower(ShippingRequest::STATUS_DRAFT):
+                $html = $this->renderView('shipping_request/details/draft.html.twig', [
+                    'shippingRequest' => $shippingRequest,
+                ]);
+                break;
+            case strtolower(ShippingRequest::STATUS_TO_TREAT):
+                $html = $this->renderView('shipping_request/details/to_treat.html.twig', [
+                    'shippingRequest' => $shippingRequest,
+                ]);
+                break;
+            case strtolower(ShippingRequest::STATUS_SCHEDULED):
+            case strtolower(ShippingRequest::STATUS_SHIPPED):
+                $html = $this->renderView('shipping_request/details/scheduled.html.twig', [
+                    'shippingRequest' => $shippingRequest,
+                    'lines' => $shippingRequestService->getDataForScheduledRequest($shippingRequest),
+                ]);
+                break;
+            default:
+                throw new Exception('Une erreur est survenue lors de la récupération des données.');
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'html' => $html,
         ]);
     }
 }
