@@ -52,6 +52,10 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 ->andWhere("user.deliverer = true");
         }
 
+        if(isset($options['withPhoneNumber']) && $options['withPhoneNumber']) {
+            $qb->addSelect("user.phone AS phone");
+        }
+
         return $qb
             ->andWhere("user.username LIKE :term")
             ->andWhere('user.status = 1')

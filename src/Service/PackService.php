@@ -72,6 +72,9 @@ class PackService {
     #[Required]
     public ReceptionLineService $receptionLineService;
 
+    #[Required]
+    public UniqueNumberService $uniqueNumberService;
+
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);

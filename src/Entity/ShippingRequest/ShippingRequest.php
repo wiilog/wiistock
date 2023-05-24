@@ -42,7 +42,15 @@ class ShippingRequest extends StatusHistoryContainer {
     public const STATUS_SCHEDULED = "Planifiée";
     public const STATUS_SHIPPED = "Expédiée";
 
+    public const STATUS_WORKFLOW_SHIPPING_REQUEST = [
+        ShippingRequest::STATUS_DRAFT,
+        ShippingRequest::STATUS_TO_TREAT,
+        ShippingRequest::STATUS_SCHEDULED,
+        ShippingRequest::STATUS_SHIPPED,
+    ];
+
     public const CATEGORIE = 'expedition';
+    public const NUMBER_PREFIX =  "DEX";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -73,7 +81,7 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::STRING)]
     private ?string $customerPhone = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $customerRecipient = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -88,19 +96,19 @@ class ShippingRequest extends StatusHistoryContainer {
     /**
      * "Date d'enlèvement"
      */
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $expectedPickedAt = null;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $comment = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $validatedAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $plannedAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $treatedAt = null;
 
     #[ORM\Column(type: Types::STRING)]
@@ -109,14 +117,11 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::STRING)]
     private ?string $carrying = null;
 
-    #[ORM\Column(type: Types::FLOAT)]
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $grossWeight = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $trackingNumber = null;
-
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $packCount = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -153,6 +158,7 @@ class ShippingRequest extends StatusHistoryContainer {
     public function __construct() {
         $this->requesters = new ArrayCollection();
         $this->expectedLines = new ArrayCollection();
+        $this->lines = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
         $this->packLines = new ArrayCollection();
     }
@@ -255,8 +261,8 @@ class ShippingRequest extends StatusHistoryContainer {
         return $this->requesters;
     }
 
-    public function setRequesters(Collection $requesters): self {
-        $this->requesters = $requesters;
+    public function setRequesters(?array $requesters): self {
+        $this->requesters = new ArrayCollection($requesters);
         return $this;
     }
 
@@ -491,15 +497,6 @@ class ShippingRequest extends StatusHistoryContainer {
 
     public function setNumber(?string $number): self {
         $this->number = $number;
-        return $this;
-    }
-
-    public function getPackCount(): ?int {
-        return $this->packCount;
-    }
-
-    public function setPackCount(?int $packCount): self {
-        $this->packCount = $packCount;
         return $this;
     }
 

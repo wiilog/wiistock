@@ -19,7 +19,7 @@ class Customer
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $address = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $recipient = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
