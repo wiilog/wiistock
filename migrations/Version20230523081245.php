@@ -32,7 +32,7 @@ final class Version20230523081245 extends AbstractMigration
         ];
 
         $categorieStatusId = $this->connection
-            ->executeQuery("SELECT id FROM categorie_statut WHERE nom = '" . CategorieStatut::SHIPMENT . "'")
+            ->executeQuery("SELECT id FROM categorie_statut WHERE nom = '" . CategorieStatut::SHIPPING_REQUEST . "'")
             ->fetchFirstColumn();
 
         foreach ($statutStates as $state => $statutName){

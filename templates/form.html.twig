@@ -106,9 +106,8 @@
     {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
     {% set checkboxClass = isSlider ? 'switch' : 'wii-checkbox' %}
     {% set containerTag = isSlider ? 'label' : 'div' %}
-    <{{ containerTag }} class="{{ checkboxClass }}
-    data-name="{{ name }}"
-    {{ options.containerClass ?? '' }}">
+    <{{ containerTag }} class="{{ checkboxClass }} {{ options.containerClass ?? '' }}"
+    data-name="{{ name }}">
     <input type="checkbox"
            id="{{ id }}"
            class="checkbox data {{ options.inputClass ?? '' }}"

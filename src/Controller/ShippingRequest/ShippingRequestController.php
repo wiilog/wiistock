@@ -271,10 +271,11 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/validateShippingRequest/{id}", name:'shipping_request_validation', options:["expose"=>true], methods: ['GET'])]
+    #[Route("/validate-shipping-request/{id}", name:'shipping_request_validation', options:["expose"=>true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function shippingRequestValidation(ShippingRequest        $shippingRequest,
                                               StatusHistoryService   $statusHistoryService,
+                                              ShippingRequestService $shippingRequestService,
                                               EntityManagerInterface $entityManager,
                                               TranslationService $translationService): JsonResponse
     {
@@ -297,8 +298,7 @@ class ShippingRequestController extends AbstractController {
 
         $shippingRequest
             ->setValidatedAt(new \DateTime())
-            ->setValidatedBy($currentUser)
-        ;
+            ->setValidatedBy($currentUser);
 
         $statusHistoryService->updateStatus(
             $entityManager,
@@ -314,6 +314,8 @@ class ShippingRequestController extends AbstractController {
                 'msg'=> 'Une erreur est survenue lors du changement de statut.',
             ]);
         }
+
+        $shippingRequestService->sendMailForStatus($entityManager, $shippingRequest);
 
         $entityManager->flush();
 

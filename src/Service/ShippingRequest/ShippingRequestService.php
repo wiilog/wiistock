@@ -4,6 +4,7 @@ namespace App\Service\ShippingRequest;
 
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Role;
 use App\Entity\Nature;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
@@ -15,6 +16,7 @@ use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Exceptions\FormException;
 use App\Service\FormatService;
+use App\Service\MailerService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
 use App\Service\VisibleColumnService;
@@ -24,6 +26,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use phpDocumentor\Reflection\Types\Iterable_;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -46,6 +49,9 @@ class ShippingRequestService {
 
     #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public MailerService $mailerService;
 
     #[Required]
     public CSVExportService $CSVExportService;
@@ -166,6 +172,60 @@ class ShippingRequestService {
                 ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
                 ->sum(),
         ]);
+    }
+
+    public function sendMailForStatus(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest)
+    {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
+
+        $to = [];
+        $mailTitle = '';
+        //Validation
+        if($shippingRequest->isToTreat()) {
+            $mailTitle = "FOLLOW GT // Création d'une demande d'expédition";
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_REQUESTER)){
+                $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
+            }
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES)){
+                $rolesToSendMail = $roleRepository->findBy(['id' => Stream::explode(',',$settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))->toArray()]);
+                $to = array_merge(
+                    $to,
+                    $userRepository->findBy(["role" => $rolesToSendMail]),
+                );
+            }
+        }
+
+        //Planification
+        if($shippingRequest->isShipped()) {
+            $mailTitle = "FOLLOW GT // Demande d'expédition effectuée";
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_REQUESTER)){
+                $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
+            }
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES)){
+                $rolesToSendMail = $roleRepository->findBy(['id' => Stream::explode(',',$settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))->toArray()]);
+                $to = array_merge(
+                    $to,
+                    $userRepository->findBy(["role" => $rolesToSendMail]),
+                );
+            }
+        }
+
+        $this->mailerService->sendMail(
+            $mailTitle,
+            [
+                "name" => "mails/contents/mailShippingRequest.html.twig",
+                "context" => [
+                    "title" => "Une demande d'expédition a été créée",
+                    "shippingRequest" => $shippingRequest,
+                    "isToTreat" => $shippingRequest->isToTreat(),
+                    "isShipped" => $shippingRequest->isShipped(),
+                ]
+            ],
+            $to
+        );
+
     }
 
     public function formatExpectedLinesForPacking(iterable $expectedLines): array {
