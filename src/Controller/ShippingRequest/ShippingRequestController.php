@@ -544,7 +544,7 @@ class ShippingRequestController extends AbstractController {
             ->setGrossWeight($scheduleData['grossWeight'] ?? null)
             ->setCarrier(isset($scheduleData['carrier']) ? $carrierRepository->find($scheduleData['carrier']) : null)
             ->setTrackingNumber($scheduleData['trackingNumber'] ?? null)
-            ->setRequestCaredAt(isset($scheduleData['expectedPicketAt']) ? new DateTime($scheduleData['expectedPicketAt']) : null);
+            ->setExpectedPickedAt(isset($scheduleData['expectedPicketAt']) ? new DateTime($scheduleData['expectedPicketAt']) : null);
 
         $entityManager->flush();
 
