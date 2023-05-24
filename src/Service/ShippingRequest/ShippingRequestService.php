@@ -39,9 +39,6 @@ class ShippingRequestService {
     public RouterInterface $router;
 
     #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
     public MailerService $mailerService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
@@ -155,16 +152,16 @@ class ShippingRequestService {
         ]);
     }
 
-    public function sendMailForStatus(ShippingRequest $shippingRequest)
+    public function sendMailForStatus(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest)
     {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
-        $roleRepository = $this->entityManager->getRepository(Role::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
 
         $to = [];
         $mailTitle = '';
         //Validation
-        if($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT) {
+        if($shippingRequest->isToTreat()) {
             $mailTitle = "FOLLOW GT // Création d'une demande d'expédition";
             if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
@@ -179,7 +176,7 @@ class ShippingRequestService {
         }
 
         //Planification
-        if($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SHIPPED) {
+        if($shippingRequest->isShipped()) {
             $mailTitle = "FOLLOW GT // Demande d'expédition effectuée";
             if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
@@ -193,7 +190,6 @@ class ShippingRequestService {
             }
         }
 
-        dump($shippingRequest->getPackLines()->toArray());
         $this->mailerService->sendMail(
             $mailTitle,
             [

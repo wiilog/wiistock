@@ -178,7 +178,7 @@ class ShippingRequestController extends AbstractController {
             ]);
         }
 
-        $shippingRequestService->sendMailForStatus($shippingRequest);
+        $shippingRequestService->sendMailForStatus($entityManager, $shippingRequest);
 
         $entityManager->flush();
 
