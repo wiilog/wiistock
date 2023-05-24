@@ -18,8 +18,8 @@ class ShippingRequestPack {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::FLOAT)]
-    private ?float $size = null;
+    #[ORM\Column(type: Types::STRING)]
+    private ?string $size = null;
 
     #[ORM\OneToOne(inversedBy: 'shippingRequestPack', targetEntity: Pack::class)]
     private ?Pack $pack = null;
@@ -65,11 +65,11 @@ class ShippingRequestPack {
         return $this;
     }
 
-    public function getSize(): ?float {
+    public function getSize(): ?string {
         return $this->size;
     }
 
-    public function setSize(?float $size): self {
+    public function setSize(?string $size): self {
         $this->size = $size;
         return $this;
     }

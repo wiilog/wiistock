@@ -696,7 +696,7 @@ class DispatchService {
             $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
             $natureRepository = $this->entityManager->getRepository(Nature::class);
             $this->natures = $natureRepository->findAll();
-            $this->defaultNature = $natureRepository->findOneBy(["defaultForDispatch" => true]);
+            $this->defaultNature = $natureRepository->findOneBy(["defaultNature" => true]);
          }
 
         if($dispatchPack) {

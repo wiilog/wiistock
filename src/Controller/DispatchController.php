@@ -1751,7 +1751,7 @@ class DispatchController extends AbstractController {
                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $defaultNature = $natureRepository->findOneBy(['defaultForDispatch' => true]);
+        $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
 
         $html = $this->renderView('dispatch/modalAddLogisticUnitContent.html.twig', [
             'dispatch' => $dispatch,
