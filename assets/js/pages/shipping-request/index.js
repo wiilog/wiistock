@@ -1,8 +1,8 @@
-import {GET} from "@app/ajax";
+import {GET, POST} from "@app/ajax";
+import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 let tableShippings;
 
-global.validateShippingRequest = validateShippingRequest;
 
 $(function() {
     Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
@@ -33,7 +33,11 @@ $(function() {
     initTableShippings().then((table) => {
         tableShippings = table;
     });
+    initModalFormShippingRequest($('#modalNewShippingRequest'), 'shipping_request_new', (data) => {
+        window.location.href = Routing.generate('shipping_request_show', {shippingRequest: data.shippingRequestId});
+    });
 })
+
 
 function initTableShippings() {
     let initialVisible = $(`#tableShippings`).data(`initial-visible`);
@@ -55,7 +59,7 @@ function initTableShippings() {
             paging: true,
             ajax: {
                 url: Routing.generate('shipping_request_api', true),
-                type: "GET",
+                type: GET,
             },
             rowConfig: {
                 needsRowClickAction: true,
@@ -73,14 +77,4 @@ function initTableShippings() {
 
         return initDataTable('tableShippings', tableShippingsConfig);
     }
-}
-
-function validateShippingRequest(shipping_request_id){
-    AJAX.route(`GET`, `shipping_request_validation`, {id:shipping_request_id})
-        .json()
-        .then((res) => {
-            if (res.success) {
-                location.reload()
-            }
-        });
 }

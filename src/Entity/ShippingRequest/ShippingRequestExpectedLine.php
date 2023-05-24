@@ -3,9 +3,7 @@
 namespace App\Entity\ShippingRequest;
 
 use App\Entity\ReferenceArticle;
-use App\Entity\Utilisateur;
 use App\Repository\ShippingRequest\ShippingRequestExpectedLineRepository;
-use App\Repository\ShippingRequest\ShippingRequestPackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

@@ -6,7 +6,7 @@
                 <div class="header d-flex p-0 flex-wrap">
                     {% for menu, menuData in menus %}
                         {% set isDL = constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] is defined
-                            and constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] == menu %}
+                            and menu in constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] %}
                         {% set onChangeCall = isDL
                             ? "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'), {'hideClass': 'menu-translation', 'hiddenElement': $('.language-choice-menu')})"
                             : "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'))" %}

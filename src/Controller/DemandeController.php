@@ -26,6 +26,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
+use App\Service\FormService;
 use App\Service\RefArticleDataService;
 use App\Service\DeliveryRequestService;
 use App\Service\FreeFieldService;
@@ -549,6 +550,7 @@ class DemandeController extends AbstractController
     }
 
     /**
+     *
      * @Route("/{lineId}", name="delivery_request_remove_article", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
@@ -992,6 +994,7 @@ class DemandeController extends AbstractController
     #[Route("/api/table-article-content/{request}", name: "api_table_articles_content", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiTableArticleContent(Demande                $request,
+                                           FormService            $formService,
                                            DeliveryRequestService $deliveryRequestService,
                                            EntityManagerInterface $entityManager): JsonResponse {
         $user = $this->getUser();
@@ -1006,21 +1009,10 @@ class DemandeController extends AbstractController
 
         $data = array_merge($referencesData, $articlesData);
 
-        $data[] = $deliveryRequestService->editatableLineForm($entityManager, $request, $user);
+        $emptyForm = $deliveryRequestService->editatableLineForm($entityManager, $request, $user);
 
-        $data[] = [
-            "createRow" => true,
-            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
-            "reference" => "",
-            "label" => "",
-            "quantityToPick" => "",
-            "project" => "",
-            "comment" => "",
-            "barcode" => "",
-            "location" => "",
-            "article" => "",
-            "targetLocationPicking" => "",
-        ];
+        $data[] = $emptyForm;
+        $data[] = $formService->editableAddRow($emptyForm);
 
         return $this->json([
             "data" => $data,

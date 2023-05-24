@@ -23,7 +23,7 @@ class TranslationCategory {
     ];
 
     public const NONE_MULTILINGUE_MENU = [
-        "Demande" => "Livraison",
+        "Demande" => ["Livraison", "Expédition"],
     ];
 
     #[Id]

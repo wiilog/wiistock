@@ -2882,6 +2882,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ["fr" => "Demande de livraison"]
                 ]
             ],
+            "Expédition" => [
+                "content" => [
+                    ["fr" => "Expédition"],
+                    ["fr" => "Demande d'expédition"]
+                ]
+            ],
         ],
         "Ordre" => [
             "Réceptions" => [
