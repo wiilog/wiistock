@@ -140,6 +140,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin("reference.type", "type")
             ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
+            ->setMaxResults(100)
             ->getQuery()
             ->getArrayResult();
     }

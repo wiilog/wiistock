@@ -40,12 +40,14 @@ class FormService {
 
 
     public function editableAddRow(array $form): array {
-        $row = Stream::from($form)
+        return Stream::from($form)
             ->keymap(fn($_, $key) => [$key, ""])
+            ->set("createRow", true)
+            ->set("actions", "
+                <span class='d-flex justify-content-start align-items-center add-row'>
+                    <span class='wii-icon wii-icon-plus'></span>
+                </span>
+            ")
             ->toArray();
-
-        $row["createRow"] = true;
-        $row["actions"] = "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>";
-        return $row;
     }
 }

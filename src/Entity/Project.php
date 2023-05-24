@@ -14,7 +14,7 @@ class Project {
     private ?int $id = null;
 
     #[ORM\Column(type: "string", length: 255, unique: true)]
-     private ?string $code = null;
+    private ?string $code = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $description = null;

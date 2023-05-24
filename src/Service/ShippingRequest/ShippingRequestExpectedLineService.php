@@ -2,30 +2,13 @@
 
 namespace App\Service\ShippingRequest;
 
-use App\Entity\Article;
-use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
-use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
-use App\Entity\DeliveryRequest\Demande;
-use App\Entity\FiltreSup;
 use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
-use App\Entity\SubLineFieldsParam;
-use App\Entity\Transporteur;
-use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Service\FormatService;
 use App\Service\FormService;
-use App\Service\VisibleColumnService;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
-use Twig\Environment as Twig_Environment;
-use WiiCommon\Helper\Stream;
 
 class ShippingRequestExpectedLineService {
 
@@ -34,9 +17,6 @@ class ShippingRequestExpectedLineService {
 
     public function editatableLineForm(ShippingRequest|null             $shippingRequest,
                                        ShippingRequestExpectedLine|null $line = null): array {
-
-
-
         if (isset($line)) {
             $referenceColumn = ($line->getReferenceArticle()?->getReference() ?: '') .
                 $this->formService->macro('hidden', 'lineId', $line->getId())
@@ -46,10 +26,12 @@ class ShippingRequestExpectedLineService {
         else {
             $referenceColumn = $this->formService->macro("select", "referenceArticle", null, true, [
                 "type" => "reference",
+                "minLength" => 0,
                 "additionalAttributes" => [
                     ["name" => "data-other-params"],
                     ["name" => "data-other-params-ignored-shipping-request", "value" => $shippingRequest?->getId()],
                     ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
+                    ["name" => "data-other-params-new-item", "value" => 1],
                 ],
             ]);
             $labelColumn = '<span class="label-wrapper"></span>';

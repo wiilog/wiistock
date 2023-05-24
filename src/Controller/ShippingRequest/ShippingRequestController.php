@@ -264,12 +264,15 @@ class ShippingRequestController extends AbstractController {
         );
     }
 
-    #[Route("/{line}", name: "shipping_request_expected_line_delete", options: ["expose" => true], methods: ["DELETE"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/expected-line/{line}", name: "shipping_request_expected_line_delete", options: ["expose" => true], methods: ["DELETE"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function removeLine(EntityManagerInterface      $entityManager,
                                ShippingRequestExpectedLine $line): Response {
-        $entityManager->remove($line);
-        $entityManager->flush();
+
+        if ($line->getRequest()?->getStatus()?->getCode() === ShippingRequest::STATUS_DRAFT) {
+            $entityManager->remove($line);
+            $entityManager->flush();
+        }
 
         return $this->json([
             'success' => true,

@@ -250,10 +250,20 @@ class SelectController extends AbstractController {
             'minQuantity'  => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
         ];
 
-        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options);
+        $results = Stream::from($referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options));
+
+        $addNewItem = $request->query->getBoolean('new-item');
+        if ($addNewItem) {
+            $results
+                ->unshift([
+                    "id" => "redirect-url",
+                    "url" => $this->generateUrl('reference_article_new_page', ['shipping' => true]),
+                    "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle Référence</b></div>",
+                ]);
+        }
 
         return $this->json([
-            "results" => $results,
+            "results" => $results->toArray(),
         ]);
     }
 

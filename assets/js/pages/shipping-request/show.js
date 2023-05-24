@@ -57,7 +57,7 @@ function deleteExpectedLine($button, table) {
     if (lineId) {
         Modal.confirm({
             ajax: {
-                method: 'DELETE',
+                method: AJAX.DELETE,
                 route: 'shipping_request_expected_line_delete',
                 params: { line: lineId },
             },
@@ -181,8 +181,6 @@ function initShippingRequestExpectedLine() {
         },
     });
 
-    // editableTableArticles = table;
-
     scrollToBottom();
     $table.on(`keydown`, `[name="quantity"]`, function (event) {
         if (event.key === `.` || event.key === `,` || event.key === `-` || event.key === `+` || event.key === `e`) {
@@ -208,8 +206,13 @@ function initShippingRequestExpectedLine() {
             $reference.replaceWith(
                 $('<span/>', {
                     html: [
-                        `<span>${reference.text}</span>`,
-                        `<input type="hidden" class="data" value="${reference.id}" name="referenceArticle"/>`
+                        $('<span/>', {text: reference.text}),
+                        $('<input/>', {
+                            type: 'hidden',
+                            class: 'data',
+                            value: reference.id,
+                            name: 'referenceArticle',
+                        }),
                     ]
                 })
             );
