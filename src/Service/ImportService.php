@@ -185,6 +185,7 @@ class ImportService
         Import::ENTITY_CUSTOMER => [
             "name",
             "address",
+            "recipient",
             "phone",
             "email",
             "fax",
@@ -1512,6 +1513,10 @@ class ImportService
 
         if (isset($data['address'])) {
             $customer->setAddress($data['address']);
+        }
+
+        if (isset($data['recipient'])) {
+            $customer->setRecipient($data['recipient']);
         }
 
         if (isset($data['phone'])) {

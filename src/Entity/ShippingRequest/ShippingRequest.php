@@ -42,6 +42,13 @@ class ShippingRequest extends StatusHistoryContainer {
     public const STATUS_SCHEDULED = "Planifiée";
     public const STATUS_SHIPPED = "Expédiée";
 
+    public const STATUS_WORKFLOW_SHIPPING_REQUEST = [
+        ShippingRequest::STATUS_DRAFT,
+        ShippingRequest::STATUS_TO_TREAT,
+        ShippingRequest::STATUS_SCHEDULED,
+        ShippingRequest::STATUS_SHIPPED,
+    ];
+
     public const CATEGORIE = 'expedition';
     public const NUMBER_PREFIX =  "DEX";
 
@@ -115,9 +122,6 @@ class ShippingRequest extends StatusHistoryContainer {
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $trackingNumber = null;
-
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $packCount = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -493,15 +497,6 @@ class ShippingRequest extends StatusHistoryContainer {
 
     public function setNumber(?string $number): self {
         $this->number = $number;
-        return $this;
-    }
-
-    public function getPackCount(): ?int {
-        return $this->packCount;
-    }
-
-    public function setPackCount(?int $packCount): self {
-        $this->packCount = $packCount;
         return $this;
     }
 }
