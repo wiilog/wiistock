@@ -30,6 +30,9 @@ $(function() {
         initDetailsScheduled($(this));
     });
 
+    $(document).arrive('#expectedLinesTable', function () {
+        initShippingRequestExpectedLine($(this));
+    });
 });
 
 function refreshTransportHeader(shippingId){
@@ -340,8 +343,7 @@ function openScheduledShippingRequestModal($button){
         });
 }
 
-function initShippingRequestExpectedLine() {
-    const $table = $('#expectedLinesTable');
+function initShippingRequestExpectedLine($table) {
 
     const table = initDataTable($table, {
         serverSide: false,
