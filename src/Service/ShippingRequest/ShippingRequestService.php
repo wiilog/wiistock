@@ -210,16 +210,16 @@ class ShippingRequestService {
 
         if ($shippingRequestStatus == ShippingRequest::STATUS_TO_TREAT) {
             $variables["reference"] = $shippingRequest->getExpectedLines()
-                ->map(function (ShippingRequestExpectedLine $line) {
-                    $reference = $line->getReferenceArticle();
+                ->map(function (ShippingRequestExpectedLine $shippingRequestExpectedLine) {
+                    $reference = $shippingRequestExpectedLine->getReferenceArticle();
                     $price = $reference->getPrixUnitaire();
-                    $quantity = $line->getQuantity();
+                    $quantity = $shippingRequestExpectedLine->getQuantity();
                     $totalPrice = $price * $quantity;
                     return [
                         "reference" => $reference->getReference() ?? "",
-                        "quantite" => $line->getQuantity() ?? "",
-                        "prixunitaire" => $reference->getPrixUnitaire() ?? "",
-                        "poidsnet" => $line->getWeight() ?? "",
+                        "quantite" => $quantity ?? "",
+                        "prixunitaire" => $price ?? "",
+                        "poidsnet" => $shippingRequestExpectedLine->getWeight() ?? "",
                         "montantotal" => $totalPrice ?? "",
                         "matieredangereuse" => $this->formatService->bool($reference->isDangerousGoods()) ?? "",
                         "FDS" => $reference->getSheet() ? $reference->getSheet()->getFileName() : "",
@@ -238,24 +238,40 @@ class ShippingRequestService {
                 ->map(fn(ShippingRequestExpectedLine $line) => $line->getReferenceArticle()->getPrixUnitaire() * $line->getQuantity())
                 ->sum();
 
-        } else if ($shippingRequestStatus == ShippingRequest::STATUS_SCHEDULED) {
+        } else {
 
             $packLines = Stream::from($shippingRequest->getPackLines()->toArray())
                 ->map(fn(ShippingRequestPack $shippingRequestPack) => $shippingRequestPack->getLines())
                 ->toArray();
 
-            $articlesOrReference = [];
             foreach ($packLines as $lines) {
-                $articlesOrReference[] = Stream::from($lines)
-                    ->map(fn(ShippingRequestLine $shippingRequestLine) => $shippingRequestLine->getArticle())
-                    ->toArray();
-            }
+                $variables["reference"][] = array_merge(
+                    ...Stream::from($lines)
+                    ->map(function(ShippingRequestLine $shippingRequestLine) {
+                        $article = $shippingRequestLine->getArticle();
+                        $price = $article->getPrixUnitaire();
+                        $quantity = $shippingRequestLine->getQuantity();
+                        $totalPrice = $price * $quantity;
 
-            dump($articlesOrReference);
+                        return [
+                            "reference" => $article->getReference() ?? "",
+                            "quantite" => $quantity ?? "",
+                            "prixunitaire" => $price ?? "",
+                            "poidsnet" => $shippingRequestLine->getExpectedLine()->getWeight() ?? "",
+                            "montantotal" => $totalPrice ?? "",
+                            "matieredangereuse" => $this->formatService->bool($article->getReferenceArticle()->isDangerousGoods()) ?? "",
+                            "FDS" => $article->getReferenceArticle()->getSheet() ? $article->getReferenceArticle()->getSheet()->getFileName() : "",
+                            "CodeONU" => $article->getReferenceArticle()->getOnuCode() ?? "",
+                            "classeproduit" => $article->getReferenceArticle()->getProductClass() ?? "",
+                            "CodeNDP" => $article->getReferenceArticle()->getNdpCode() ?? "",
+                        ];
+                    })
+                );
+            }
         }
 
-        $variables["poidsnettotal"] = $totalNetWeight;
-        $variables["valeurtotal"] = $totalNetWorth;
+        $variables["poidsnettotal"] = $totalNetWeight ?? "";
+        $variables["valeurtotal"] = $totalNetWorth ?? "";
 
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "${projectDir}/public/$deliverySlipTemplatePath",
