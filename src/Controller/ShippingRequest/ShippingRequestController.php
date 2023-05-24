@@ -5,6 +5,7 @@ namespace App\Controller\ShippingRequest;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -25,6 +26,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -243,14 +245,29 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/delivery-slip/{shippingRequest}", name:"generate_delivery_slip", options:["expose"=>true], methods:['GET', 'POST'], condition: "request.isXmlHttpRequest()")]
-    public function generateDeliverySlip(ShippingRequest        $shippingRequest,
-                                         ShippingRequestService $shippingRequestService,
-                                         EntityManagerInterface $entityManager): Response {
-        $data = $shippingRequestService->generateNewDeliverySlip($entityManager, $shippingRequest);
+    #[Route("/{shippingRequest}/delivery-slip", name: "post_delivery_slip", options: ["expose"=>true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    public function postDeliverySlip(EntityManagerInterface $entityManager,
+                                     ShippingRequest        $shippingRequest,
+                                     ShippingRequestService $shippingRequestService): JsonResponse {
+        $deliverySlipAttachment = $shippingRequestService->persistNewDeliverySlipAttachment($entityManager, $shippingRequest);
+        $entityManager->flush();
 
-        $response = new BinaryFileResponse($data['file']);
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $data['name']);
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le téléchargement de votre bordereau de livraison va commencer...',
+            'attachmentId' => $deliverySlipAttachment->getId(),
+        ]);
+    }
+
+
+    #[Route("/{shippingRequest}/delivery-slip/{attachment}", name:"print_delivery_slip", options:["expose"=>true], methods:['GET'], condition: "request.isXmlHttpRequest()")]
+    public function printDeliverySlip(ShippingRequest           $shippingRequest,
+                                      ShippingRequestService    $shippingRequestService,
+                                      Attachment                $attachment,
+                                      KernelInterface           $kernel): Response {
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '\public\uploads\attachements\\' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$attachment->getOriginalName());
 
         return $response;
     }

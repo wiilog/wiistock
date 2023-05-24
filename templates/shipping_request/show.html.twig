@@ -58,7 +58,7 @@
                                     {% endif %}
                                     {% if hasRightGenerateDeliverySlip %}
                                         <a class="dropdown-item d-flex align-items-center"
-                                            onclick="generateDeliverySlip($(this), {{ shipping.id }})">
+                                            onclick="generateDeliverySlip({{ shipping.id }})">
                                             <span class="fa fa-file mr-2"></span>
                                             {{ trans('Général', null, 'Modale', 'Générer un bordereau de livraison') }}
                                         </a>

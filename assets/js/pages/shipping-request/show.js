@@ -48,14 +48,21 @@ function openScheduledShippingRequestModal($button){
         });
 }
 
-function generateDeliverySlip($button, shippingId) {
-    AJAX.route('GET', 'generate_delivery_slip', {
-        shippingRequest: shippingId})
-        .file({
-            success: "Votre bordereau de livraison a bien été imprimé.",
-            error: "Erreur lors de l'impression du bordereau de livraison."
+function generateDeliverySlip(shippingRequestId) {
+    AJAX.route('POST', 'post_delivery_slip', {shippingRequest: shippingRequestId})
+        .json()
+        .then(({attachmentId}) => {
+            console.log(attachmentId);
+            AJAX.route('GET', 'print_delivery_slip', {
+                shippingRequest: shippingRequestId,
+                attachment: attachmentId,
+            })
+                .file({
+                    success: "Votre bordereau de livraison a bien été imprimé.",
+                    error: "Erreur lors de l'impression du bordereau de livraison."
+                })
+                .then(() => window.location.reload())
         })
-        .then(() => window.location.reload());
 
 }
 

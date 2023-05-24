@@ -465,7 +465,6 @@ class Setting {
                 "dateenlevement" => "date d'enlèvement planifiée des produits de la demande d'expédition",
                 "dateexpedition" => "date de confirmation de l'expédition des produits",
                 "reference" => "référence à expédier",
-                "libelle" => "libellé de la référence à expédier",
                 "quantite" => "quantité de la référence à expédier",
                 "prixunitaire" => "prix unitaire de la référence à expédier",
                 "poidsnet" => "poids net de la référence à expédier",
@@ -482,10 +481,6 @@ class Setting {
                 "poidsbruttotal" => "poids brut total des colis à expédier sur la demande",
                 "nomtransporteur" => "nom du transporteur choisit pour la demande d'expédition",
                 "numtracking" => "numéro de tracking communiqué par le transporteur pour la demande d'expédition",
-                "specificationtransport" => "spécification du transport",
-                "natureUL" => "nature des unités logistiques expédiées",
-                "codeUL" => "code des unités logistiques expédiées",
-                "tableauref" => "tableau des références expédiées dans l'UL. Il contient les colonnes : référence, libellée, quantité, poids",
             ],
         ],
     ];
