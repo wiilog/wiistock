@@ -86,7 +86,6 @@ class ArticleController extends AbstractController
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $currentUser);
-
         return $this->render('article/index.html.twig', [
             "fields" => $articleDataService->getColumnVisibleConfig($entityManager, $currentUser),
             "searches" => $currentUser->getRechercheForArticle(),

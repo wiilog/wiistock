@@ -25,6 +25,7 @@ class MailerService
 
     #[Required]
     public TranslationService $translationService;
+testexitcode;
 
     #[Required]
     public KernelInterface $kernel;
