@@ -116,7 +116,7 @@ class ShippingRequestController extends AbstractController {
         return new JsonResponse($columns);
     }
 
-    #[Route("/api", name: "shipping_request_api", options: ["expose" => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "shipping_request_api", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING], mode: HasPermission::IN_JSON)]
     public function api(Request                $request,
                         ShippingRequestService $service,

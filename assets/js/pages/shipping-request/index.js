@@ -59,7 +59,7 @@ function initTableShippings() {
             paging: true,
             ajax: {
                 url: Routing.generate('shipping_request_api', true),
-                type: GET,
+                type: POST,
             },
             rowConfig: {
                 needsRowClickAction: true,
