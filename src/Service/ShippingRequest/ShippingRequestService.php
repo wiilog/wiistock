@@ -75,6 +75,9 @@ class ShippingRequestService {
     #[Required]
     public TranslationService $translationService;
 
+    #[Required]
+    public MouvementStockService $mouvementStockService;
+
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
         $columns = [
@@ -381,7 +384,11 @@ class ShippingRequestService {
             $date,
             false,
             null,
-            TrackingMovement::TYPE_DEPOSE
+            TrackingMovement::TYPE_DEPOSE,
+            [
+                'from'=>$shippingRequest,
+                'shippingRequest'=>$shippingRequest
+            ]
         );
         $entityManager->persist($trackingMovement);
 
@@ -453,8 +460,8 @@ class ShippingRequestService {
     }
 
     public function deletePacking(EntityManagerInterface $entityManager,
-                                  ShippingRequest $shippingRequest,
-                                   MouvementStockService $mouvementStockService){
+                                  ShippingRequest        $shippingRequest):void
+    {
 
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
 
@@ -463,85 +470,59 @@ class ShippingRequestService {
         foreach ($statusHistoryToRemove as $status) {
             $entityManager->remove($status);
         }
+        dump($shippingRequest->getTrackingMovements(), $shippingRequest->getStockMovements());
+
+        // remove track mvt
+        Stream::from($shippingRequest->getTrackingMovements())
+            ->each(function (TrackingMovement $trackingMovement) use ($entityManager, $shippingRequest) {
+                $entityManager->remove($trackingMovement);
+                $shippingRequest->removeTrackingMovement($trackingMovement);
+            });
+
+        // remove stock mvt
+        Stream::from($shippingRequest->getStockMovements())
+            ->each(function (MouvementStock $mouvementStock) use ($entityManager, $shippingRequest) {
+                $this->mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
+                $entityManager->remove($mouvementStock);
+                $shippingRequest->removeStockMovement($mouvementStock);
+            });
 
         /* @var ShippingRequestPack $packLine */
         foreach ($shippingRequest->getPackLines() as $packLine) {
-            dump("pass");
-            $parentpack = $packLine->getPack();
+
+            $pack = $packLine->getPack();
 
             /* @var ShippingRequestLine $requestLine */
             foreach ($packLine->getLines() as $requestLine) {
-                dump("pass2");
 
                 $articleOrReference = $requestLine->getArticleOrReference();
-                if($articleOrReference instanceof Article){
 
-                    // remove mvt track (article)
-                    foreach ($articleOrReference->getTrackingMovements() as $trackingMovement) {
-                        $entityManager->remove($trackingMovement);
-                    }
+                if ($articleOrReference instanceof Article) {
 
-                    //remove mvt stock (article)
-                    foreach ($articleOrReference->getMouvements() as $stockMovement) {
-                        $mouvementStockService->manageMouvementStockPreRemove($stockMovement, $entityManager);
-                        $articleOrReference->removeMouvement($stockMovement);
-                        $entityManager->remove($stockMovement);
-                    }
-                }
-                else if($articleOrReference instanceof ReferenceArticle){
+                    $articleOrReference->setTrackingPack(null);
+                    $entityManager->remove($articleOrReference);
+
+                } else if ($articleOrReference instanceof ReferenceArticle) {
 
                     $newStock = $articleOrReference->getQuantiteStock() - $requestLine->getQuantity();
                     $articleOrReference->setQuantiteStock($newStock);
-
-                    //create mvt sortie
-                    $mouvementStockService->createMouvementStock(
-                        $this->security->getUser(),
-                        $articleOrReference->getEmplacement(),
-                        $requestLine->getQuantity(),
-                        $articleOrReference,
-                        MouvementStock::TYPE_SORTIE,
-                    );
                 }
 
-                // remove mvt track before deleting trackingPack
-                foreach ($articleOrReference->getTrackingPack()->getTrackingMovements() as $trackingPackMovement){
-                    $entityManager->remove($trackingPackMovement);
-                    $articleOrReference->getTrackingPack()->removeTrackingMovement($trackingPackMovement);
-                }
-
-                //todo : check remove trackingPack
-                //$entityManager->remove($articleOrReference->getTrackingPack());
-                dump($articleOrReference);
-
-                if($articleOrReference instanceof Article){
-                    $entityManager->remove($articleOrReference);
-                }
-
-                $packLine->removeLine($requestLine);
-                $entityManager->remove($requestLine);
                 $requestLine->getExpectedLine()->removeLine($requestLine);
+                $entityManager->remove($requestLine);
+                $packLine->removeLine($requestLine);
             }
 
-            // remove mvt track (pack)
-            foreach ($parentpack->getTrackingMovements()->toArray() as $trackingMovement) {
-                $entityManager->remove($trackingMovement);
-            }
-
-            dump($parentpack->getId());
-            $entityManager->remove($parentpack); // cascade remove article
-            //todo : check remove articleOrRef
+            $entityManager->remove($pack);
             $entityManager->remove($packLine);
         }
 
-        // remove 'ShippingRequesExpectedtLine'
+        // remove ShippingRequesExpectedtLine
         foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
-            $shippingRequest->removeExpectedLine($expectedLine);
-            $entityManager->remove($expectedLine);
-        }
 
-        /*if($isShipped && $hasRightDeleteShipped){
-            //todo del mvt stock & track?????
-        }*/
+            $entityManager->remove($expectedLine);
+            $shippingRequest->removeExpectedLine($expectedLine);
+        }
 
         $entityManager->remove($shippingRequest);
     }

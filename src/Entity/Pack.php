@@ -118,7 +118,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'boolean')]
     private ?bool $articleContainer = false;
 
-    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class)]
+    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class, cascade: ['persist'])]
     private ?ShippingRequestPack $shippingRequestPack = null;
 
     public function __construct() {

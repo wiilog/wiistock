@@ -64,14 +64,15 @@ function validateShippingRequest($button) {
 
 function deleteShippingRequest($event){
     const shipping_request_id = $event.data('id');
-
-    AJAX.route(`DELETE`, `delete_shipping_request`, {id:shipping_request_id})
-        .json()
-        .then((res) => {
-            if(res.success){
-                window.location.href = Routing.generate('shipping_request_index');
-            }
-        });
+    wrapLoadingOnActionButton($(".row.wii-column.w-100"), function () {
+        AJAX.route(`DELETE`, `delete_shipping_request`, {id: shipping_request_id})
+            .json()
+            .then((res) => {
+                if (res.success) {
+                    window.location.href = Routing.generate('shipping_request_index');
+                }
+            });
+    });
 }
 
 

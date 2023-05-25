@@ -149,7 +149,7 @@ class Article implements PairedEntity {
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'articles')]
     private ?Collection $carts;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "childArticles")]
+    #[ORM\ManyToOne(targetEntity: Pack::class, cascade: ['persist'], inversedBy: "childArticles")]
     private ?Pack $currentLogisticUnit = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
