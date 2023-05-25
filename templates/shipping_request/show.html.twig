@@ -106,9 +106,9 @@
                     </div>
                     <div class="content">
                         <div class="row">
-                            {{ macro.subItem("user", "Client", shipping.customerName) }}
+                            {{ macro.subItem("client", "Client", shipping.customerName) }}
                             {{ macro.subItem("phone", "Téléphone", shipping.customerPhone) }}
-                            {{ macro.subItem("client", "À l'attention de", shipping.customerRecipient) }}
+                            {{ macro.subItem("user", "À l'attention de", shipping.customerRecipient) }}
                             {{ macro.subItem(null, "Adresse de livraison", shipping.customerAddress, asset('svg/location-blue.svg')) }}
                         </div>
                     </div>

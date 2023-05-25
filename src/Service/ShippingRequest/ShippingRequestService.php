@@ -423,7 +423,7 @@ class ShippingRequestService {
 
                         return [
                             'actions' => $actions,
-                            'reference' => $reference->getLibelle().($reference->isDangerousGoods() ? "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px'></i>" : ''),
+                            'reference' => '<div class="d-flex align-items-center">' . $reference->getLibelle() . ($reference->isDangerousGoods() ? "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
                             'label' => $reference->getLibelle(),
                             'quantity' => $shippingRequestLine->getQuantity(),
                             'price' => $expectedLine->getPrice(),
