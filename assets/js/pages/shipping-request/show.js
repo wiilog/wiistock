@@ -56,9 +56,7 @@ function validateShippingRequest($button) {
         AJAX.route(GET, `shipping_request_validation`, {shippingRequest: shippingId})
             .json()
             .then((res) => {
-                if (res.success) {
-                    updatePage();
-                }
+                updatePage();
             })
     ));
 }
@@ -145,9 +143,10 @@ function initPackingPack($modal) {
                             }
                         )
                         .then((res) => {
+                            updatePage();
                             if (res.success) {
                                 $modal.modal('hide');
-                                updatePage();
+
                             }
                         });
                 })
@@ -683,9 +682,7 @@ function treatShippingRequest($button) {
         AJAX.route(POST, `treat_shipping_request`, {shippingRequest: shippingId})
             .json()
             .then((res) => {
-                if (res.success) {
-                    updatePage();
-                }
+                updatePage();
             })
     ));
 }
