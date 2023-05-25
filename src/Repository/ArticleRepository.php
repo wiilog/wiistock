@@ -1340,9 +1340,9 @@ class ArticleRepository extends EntityRepository {
             ->toIterable();
     }
 
-    public function countForRefOnLocation(ReferenceArticle $referenceArticle, Emplacement $location) {
+    public function quantityForRefOnLocation(ReferenceArticle $referenceArticle, Emplacement $location) {
         return $this->createQueryBuilder('article')
-            ->select('COUNT(article.quantite) as total')
+            ->select('SUM(article.quantite) as total')
             ->andWhere('reference_article = :reference_article')
             ->andWhere('emplacement = :location')
             ->andWhere('statut.code = :active')

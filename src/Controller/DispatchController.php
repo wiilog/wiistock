@@ -609,6 +609,7 @@ class DispatchController extends AbstractController {
                 }
             }
         }
+        $emergency = $post->get('emergency');
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
@@ -617,7 +618,7 @@ class DispatchController extends AbstractController {
             ->setCarrierTrackingNumber($transporterTrackingNumber)
             ->setCommandNumber($commandNumber)
             ->setRequester($requester)
-            ->setEmergency($post->get('emergency') ?? null)
+            ->setEmergency(!empty($emergency) ? $emergency : null)
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)

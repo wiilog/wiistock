@@ -120,7 +120,7 @@ class ShippingRequestController extends AbstractController {
         return new JsonResponse($columns);
     }
 
-    #[Route("/api", name: "shipping_request_api", options: ["expose" => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "shipping_request_api", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING], mode: HasPermission::IN_JSON)]
     public function api(Request                $request,
                         ShippingRequestService $service,
@@ -388,6 +388,13 @@ class ShippingRequestController extends AbstractController {
     {
         $currentUser = $this->getUser();
 
+        if ($shippingRequest->getStatus()->getCode() !== ShippingRequest::STATUS_DRAFT) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'La demande d\'expédition n\'est pas en brouillon.'
+            ]);
+        }
+
         // shippingRequest need at least 1 expectedLines (ref)
         if($shippingRequest->getExpectedLines()->count() <= 0){
             return $this->json([
@@ -505,6 +512,13 @@ class ShippingRequestController extends AbstractController {
                                       TrackingMovementService $trackingMovementService,
                                       MouvementStockService   $stockMovementService,
                                       StatusHistoryService    $statusHistoryService): Response {
+        if (!in_array($shippingRequest->getStatus()->getCode(), [ShippingRequest::STATUS_TO_TREAT, ShippingRequest::STATUS_SCHEDULED])) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'Cette demande d\'expedition n\'a pas le bon statut.',
+            ]);
+        }
+
         $data = json_decode($request->getContent(), true);
         if (!count($data)) {
             throw new FormException("Une Erreur est survenue lors de la récupération des données.");
@@ -664,9 +678,10 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/details/{id}", name: "shipping_request_get_details", options: ["expose" => true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function getDetails(ShippingRequest         $shippingRequest,
-                                      Request                 $request,
-                                      ShippingRequestService  $shippingRequestService): Response{
+    public function getDetails(ShippingRequest                    $shippingRequest,
+                               ShippingRequestService             $shippingRequestService,
+                               ShippingRequestExpectedLineService $shippingRequestExpectedLineService): Response
+    {
         switch (strtolower($shippingRequest->getStatus()->getCode())) {
             case strtolower(ShippingRequest::STATUS_DRAFT):
                 $html = $this->renderView('shipping_request/details/draft.html.twig', [
@@ -676,6 +691,7 @@ class ShippingRequestController extends AbstractController {
             case strtolower(ShippingRequest::STATUS_TO_TREAT):
                 $html = $this->renderView('shipping_request/details/to_treat.html.twig', [
                     'shippingRequest' => $shippingRequest,
+                    'expectedLines' => $shippingRequestExpectedLineService->getDataForDetailsTable($shippingRequest),
                 ]);
                 break;
             case strtolower(ShippingRequest::STATUS_SCHEDULED):
@@ -701,8 +717,17 @@ class ShippingRequestController extends AbstractController {
                                          StatusHistoryService    $statusHistoryService,
                                          EntityManagerInterface  $entityManager,
                                          MouvementStockService   $mouvementStockService,
-                                         TrackingMovementService $trackingMovementService): JsonResponse
+                                         TrackingMovementService $trackingMovementService,
+                                         ShippingRequestService  $shippingRequestService): JsonResponse
     {
+        if($shippingRequest->getStatus()->getCode() !== ShippingRequest::STATUS_TO_TREAT) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'Cette demande de livraison n\'a pas le statut "'.ShippingRequest::STATUS_TO_TREAT.'".',
+            ]);
+        }
+
+
         $user = $this->getUser();
         $dateNow = new DateTime('now');
 
@@ -850,6 +875,7 @@ class ShippingRequestController extends AbstractController {
             }
         }
 
+        $shippingRequestService->sendMailForStatus($entityManager, $shippingRequest);
         $entityManager->flush();
 
         return $this->json([

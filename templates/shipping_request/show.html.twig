@@ -76,7 +76,7 @@
                                 </div>
                             </div>
                             <div class="flex flex-col justify-content-end text-right">
-                                <p class="wii-field-name">{{ shipping.createdBy.username }}</p>
+                                <p class="wii-field-name">{{ shipping.requesters|map(requester => requester.username)|join(', ')  }}</p>
                                 <p class="wii-small-text">
                                     {% for phoneNumber in shipping.requesterPhoneNumbers %}
                                         {{ phoneNumber }}
@@ -114,9 +114,9 @@
                     </div>
                     <div class="content">
                         <div class="row">
-                            {{ macro.subItem("user", "Client", shipping.customerRecipient) }}
+                            {{ macro.subItem("user", "Client", shipping.customerName) }}
                             {{ macro.subItem("phone", "Téléphone", shipping.customerPhone) }}
-                            {{ macro.subItem("client", "À l'attention de", shipping.customerName) }}
+                            {{ macro.subItem("client", "À l'attention de", shipping.customerRecipient) }}
                             {{ macro.subItem(null, "Adresse de livraison", shipping.customerAddress, asset('svg/location-blue.svg')) }}
                         </div>
                     </div>
@@ -126,7 +126,7 @@
                     </div>
                     <div class="content">
                         <div class="row">
-                            {{ macro.subItem(null, 'Date de prise en charge souhaitée', shipping.plannedAt|date("d/m/Y")) }}
+                            {{ macro.subItem(null, 'Date de prise en charge souhaitée', shipping.requestCaredAt|date("d/m/Y")) }}
                             {{ macro.subItem(null, "Envoi", constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_LABELS')[shipping.shipment]) }}
                         </div>
                         <div class="row">

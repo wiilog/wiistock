@@ -33,8 +33,12 @@ $(function() {
         initDetailsScheduled($(this));
     });
 
-    $(document).arrive('#expectedLinesTable', function () {
+    $(document).arrive('#expectedLinesEditableTable', function () {
         initShippingRequestExpectedLine($(this));
+    });
+
+    $(document).arrive('#expectedLinesTable', function () {
+        initDetailsToTreat($(this));
     });
 });
 
@@ -53,9 +57,7 @@ function validateShippingRequest($button) {
         AJAX.route(GET, `shipping_request_validation`, {shippingRequest: shippingId})
             .json()
             .then((res) => {
-                if (res.success) {
-                    updatePage();
-                }
+                updatePage();
             })
     ));
 }
@@ -142,9 +144,10 @@ function initPackingPack($modal) {
                             }
                         )
                         .then((res) => {
+                            updatePage();
                             if (res.success) {
                                 $modal.modal('hide');
-                                updatePage();
+
                             }
                         });
                 })
@@ -647,15 +650,40 @@ function initDetailsScheduled($container) {
     });
 }
 
+function initDetailsToTreat($table) {
+    const columns = [
+        {name: 'actions', data: 'actions', title: '', orderable: false},
+        {name: 'reference', data: 'reference', title: 'Référence', orderable: true},
+        {name: 'label', data: 'label', title: 'Libellé', orderable: true},
+        {name: 'quantity', data: 'quantity', title: 'Quantité', orderable: true},
+        {name: 'price', data: 'price', title: 'Prix unitaire (€)', orderable: true},
+        {name: 'weight', data: 'weight', title: 'Poids net (kg)', orderable: true},
+        {name: 'total', data: 'total', title: 'Montant total', orderable: true},
+    ];
+
+    initDataTable($table, {
+        serverSide: false,
+        ordering: true,
+        paging: false,
+        searching: false,
+        processing: true,
+        order: [['reference', "desc"]],
+        columns,
+        rowConfig: {},
+        domConfig: {
+            removeInfo: true,
+        },
+        drawConfig: {},
+    });
+}
+
 
 function treatShippingRequest($button) {
     wrapLoadingOnActionButton($button, () => (
         AJAX.route(POST, `treat_shipping_request`, {shippingRequest: shippingId})
             .json()
             .then((res) => {
-                if (res.success) {
-                    updatePage();
-                }
+                updatePage();
             })
     ));
 }

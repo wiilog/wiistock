@@ -13,6 +13,8 @@ use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
+use Twig\Environment as Twig_Environment;
 
 class ShippingRequestExpectedLineService {
 
@@ -24,6 +26,9 @@ class ShippingRequestExpectedLineService {
 
     #[Required]
     public UserService $userService;
+
+    #[Required]
+    public Twig_Environment $templating;
 
     public function editatableLineForm(ShippingRequest|null             $shippingRequest,
                                        ShippingRequestExpectedLine|null $line = null): array {
@@ -63,7 +68,7 @@ class ShippingRequestExpectedLineService {
                     <span class='wii-icon wii-icon-trash'></span>
                 </span>
             ",
-            "information" => "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px".($line?->getReferenceArticle()->isDangerousGoods() ? "" : " d-none")."'></i>",
+            "information" => "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px".($line?->getReferenceArticle()->isDangerousGoods() ? "" : " d-none")."'></i>",
             "editAction" => $hasRightToEdit
                 ? (
                     "<a title='Ajouter une FDS'
@@ -130,5 +135,35 @@ class ShippingRequestExpectedLineService {
 
         $entityManager->persist($line);
         return $line;
+    }
+
+    public function getDataForDetailsTable($shippingRequest): array {
+        return Stream::from($shippingRequest->getExpectedLines())
+            ->map(function (ShippingRequestExpectedLine $expectedLine) {
+                $reference = $expectedLine->getReferenceArticle();
+                $actions = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+                    'actions' => [
+                        [
+                            'hasRight' => $this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE),
+                            'title' => 'Voir la référence',
+                            'icon' => 'fa fa-eye',
+                            'attributes' => [
+                                'onclick' => "window.location.href = '{$this->router->generate('reference_article_show_page', ['id' => $reference->getId()])}'",
+                            ]
+                        ],
+
+                    ],
+                ]);
+                return [
+                    'actions' => $actions,
+                    'reference' => $reference->getReference() . ($reference->isDangerousGoods() ? "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px'></i>" : ''),
+                    'label' => $reference->getLibelle(),
+                    'quantity' => $expectedLine->getQuantity(),
+                    'price' => $expectedLine->getPrice(),
+                    'weight' => $expectedLine->getWeight(),
+                    'total' => $expectedLine->getQuantity() * $expectedLine->getPrice(),
+                ];
+            })
+            ->toArray();
     }
 }
