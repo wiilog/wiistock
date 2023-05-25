@@ -4,6 +4,7 @@ namespace App\Service\ShippingRequest;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Customer;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -294,6 +295,7 @@ class ShippingRequestService {
     public function updateShippingRequest(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, InputBag $data): bool {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $customerRepository = $entityManager->getRepository(Customer::class);
         $requiredFields= [
             'requesters',
             'requesterPhoneNumbers',
@@ -326,15 +328,34 @@ class ShippingRequestService {
             ? $carrierRepository->find($carrierId)
             : null;
 
+        $customerName = $data->get('customerName');
+        $customer = $customerName
+            ? $customerRepository->findBy(['name' => $customerName])
+            : null;
+
+        $customerPhone = $data->get('customerPhone');
+        $customerRecipient = $data->get('customerRecipient');
+        $customerAddress = $data->get('customerAddress');
+
+        if(!$customer){
+            $newCustomer = (new Customer())
+                ->setName($customerName)
+                ->setPhoneNumber($customerPhone)
+                ->setRecipient($customerRecipient)
+                ->setAddress($customerAddress);
+
+            $entityManager->persist($newCustomer);
+        }
+
         $shippingRequest
             ->setRequesterPhoneNumbers(explode(',', $data->get('requesterPhoneNumbers')))
             ->setCustomerOrderNumber($data->get('customerOrderNumber'))
             ->setFreeDelivery($data->getBoolean('freeDelivery'))
             ->setCompliantArticles($data->getBoolean('compliantArticles'))
-            ->setCustomerName($data->get('customerName'))
-            ->setCustomerPhone($data->get('customerPhone'))
-            ->setCustomerRecipient($data->get('customerRecipient'))
-            ->setCustomerAddress($data->get('customerAddress'))
+            ->setCustomerName($customerName)
+            ->setCustomerPhone($customerPhone)
+            ->setCustomerRecipient($customerRecipient)
+            ->setCustomerAddress($customerAddress)
             ->setRequestCaredAt($this->formatService->parseDatetime($data->get('requestCaredAt')))
             ->setShipment($data->get('shipment'))
             ->setCarrying($data->get('carrying'))
