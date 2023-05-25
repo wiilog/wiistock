@@ -356,6 +356,7 @@ class TrackingMovementService extends AbstractController
         $mainMovement = $options['mainMovement'] ?? null;
         $preparation = $options['preparation'] ?? null;
         $delivery = $options['delivery'] ?? null;
+        $logisticUnitParent = $options['logisticUnitParent'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;
@@ -375,7 +376,8 @@ class TrackingMovementService extends AbstractController
             ->setCommentaire(!empty($commentaire) ? StringHelper::cleanedComment($commentaire) : null)
             ->setMainMovement($mainMovement)
             ->setPreparation($preparation)
-            ->setDelivery($delivery);
+            ->setDelivery($delivery)
+            ->setLogisticUnitParent($logisticUnitParent);
 
         if ($attachments) {
             foreach($attachments as $attachment) {

@@ -106,9 +106,8 @@
     {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
     {% set checkboxClass = isSlider ? 'switch' : 'wii-checkbox' %}
     {% set containerTag = isSlider ? 'label' : 'div' %}
-    <{{ containerTag }} class="{{ checkboxClass }}
-    data-name="{{ name }}"
-    {{ options.containerClass ?? '' }}">
+    <{{ containerTag }} class="{{ checkboxClass }} {{ options.containerClass ?? '' }}"
+    data-name="{{ name }}">
     <input type="checkbox"
            id="{{ id }}"
            class="checkbox data {{ options.inputClass ?? '' }}"
@@ -259,12 +258,14 @@
     {% set dataInput = options.data ?? true %}
     {% set noClear = options.noClear ?? false %}
     {% set type = options.type ?? 'text' %}
+    {% set labelWrap = (options.isLabelFree is not defined or options.isLabelFree is not same as(true)) or inline %}
+
     {% if type == 'fax' %}
         {% set type = 'tel' %}
         {% set fax = true %}
     {% endif %}
 
-    {% if (options.isLabelFree is defined and options.isLabelFree is not same as(true)) or inline %}
+    {% if labelWrap %}
     <label class="{{ options.labelWidth ?? 'w-100' }} {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
     {% endif %}
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
@@ -282,7 +283,7 @@
         {% endfor %}
         {{ _self.common_attributes(name, options) }}
         {{ _self.multiple_key(options) }}>
-    {% if options.isLabelFree is defined and options.isLabelFree is not same as(true) %}
+    {% if labelWrap %}
     </label>
     {% endif %}
 {% endmacro %}

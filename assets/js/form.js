@@ -320,7 +320,9 @@ export default class Form {
             : $field;
 
         if($field.is(`[data-global-error]`)) {
-            let label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
+            let label = $field.data(`global-error`)
+                || $parent.find(`.field-label`).text()
+                || $field.data('field-label');
             label = label
                 .trim()
                 .replace(/\*$/, '');

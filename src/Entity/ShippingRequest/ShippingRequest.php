@@ -43,7 +43,15 @@ class ShippingRequest extends StatusHistoryContainer {
     public const STATUS_SCHEDULED = "Planifiée";
     public const STATUS_SHIPPED = "Expédiée";
 
+    public const STATUS_WORKFLOW_SHIPPING_REQUEST = [
+        ShippingRequest::STATUS_DRAFT,
+        ShippingRequest::STATUS_TO_TREAT,
+        ShippingRequest::STATUS_SCHEDULED,
+        ShippingRequest::STATUS_SHIPPED,
+    ];
+
     public const CATEGORIE = 'expedition';
+    public const NUMBER_PREFIX =  "DEX";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -74,7 +82,7 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::STRING)]
     private ?string $customerPhone = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $customerRecipient = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -89,19 +97,19 @@ class ShippingRequest extends StatusHistoryContainer {
     /**
      * "Date d'enlèvement"
      */
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $expectedPickedAt = null;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $comment = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $validatedAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $plannedAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $treatedAt = null;
 
     #[ORM\Column(type: Types::STRING)]
@@ -110,14 +118,19 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::STRING)]
     private ?string $carrying = null;
 
-    #[ORM\Column(type: Types::FLOAT)]
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $grossWeight = null;
 
-    #[ORM\Column(type: Types::STRING)]
-    private ?string $trackingNumber = null;
+    /* Sum of line prices, calculated on line adding or removing */
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $totalValue = null;
 
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $packCount = null;
+    /* Sum of line net weight, calculated on line adding or removing */
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $netWeight = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $trackingNumber = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -261,8 +274,8 @@ class ShippingRequest extends StatusHistoryContainer {
         return $this->requesters;
     }
 
-    public function setRequesters(Collection $requesters): self {
-        $this->requesters = $requesters;
+    public function setRequesters(?array $requesters): self {
+        $this->requesters = new ArrayCollection($requesters);
         return $this;
     }
 
@@ -500,14 +513,42 @@ class ShippingRequest extends StatusHistoryContainer {
         return $this;
     }
 
-    public function getPackCount(): ?int {
-        return $this->packCount;
+    public function getTotalValue(): ?float {
+        return $this->totalValue;
     }
 
-    public function setPackCount(?int $packCount): self {
-        $this->packCount = $packCount;
+    public function setTotalValue(?float $totalValue): self {
+        $this->totalValue = $totalValue;
         return $this;
     }
+
+    public function getNetWeight(): ?float {
+        return $this->netWeight;
+    }
+
+    public function setNetWeight(?float $netWeight): self {
+        $this->netWeight = $netWeight;
+        return $this;
+    }
+
+
+
+    public function isDraft(): ?bool {
+        return $this->status->getCode() === self::STATUS_DRAFT;
+    }
+
+    public function isToTreat(): ?bool {
+        return $this->status->getCode() === self::STATUS_TO_TREAT;
+    }
+
+    public function isScheduled(): ?bool {
+        return $this->status->getCode() === self::STATUS_SCHEDULED;
+    }
+
+    public function isShipped(): ?bool {
+        return $this->status->getCode() === self::STATUS_SHIPPED;
+    }
+
 
     /**
      * @return Collection|Attachment[]
