@@ -351,7 +351,7 @@ class ShippingRequestService {
     public function updateTotalValue(ShippingRequest $shippingRequest): void {
         $shippingRequest->setTotalValue(
             Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getPrice() ? $line->getQuantity() * $line->getWeight() : 0)
+                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getPrice() ? $line->getQuantity() * $line->getPrice() : 0)
                 ->sum()
         );
     }
