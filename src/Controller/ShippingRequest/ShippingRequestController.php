@@ -384,6 +384,13 @@ class ShippingRequestController extends AbstractController {
     {
         $currentUser = $this->getUser();
 
+        if ($shippingRequest->getStatus()->getCode() !== ShippingRequest::STATUS_DRAFT) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'La demande d\'expédition n\'est pas en brouillon.'
+            ]);
+        }
+
         // shippingRequest need at least 1 expectedLines (ref)
         if($shippingRequest->getExpectedLines()->count() <= 0){
             return $this->json([
@@ -501,6 +508,13 @@ class ShippingRequestController extends AbstractController {
                                       TrackingMovementService $trackingMovementService,
                                       MouvementStockService   $stockMovementService,
                                       StatusHistoryService    $statusHistoryService): Response {
+        if (!in_array($shippingRequest->getStatus()->getCode(), [ShippingRequest::STATUS_TO_TREAT, ShippingRequest::STATUS_SCHEDULED])) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'Cette demande d\'expedition n\'a pas le bon statut.',
+            ]);
+        }
+
         $data = json_decode($request->getContent(), true);
         if (!count($data)) {
             throw new FormException("Une Erreur est survenue lors de la récupération des données.");
@@ -700,6 +714,14 @@ class ShippingRequestController extends AbstractController {
                                          TrackingMovementService $trackingMovementService,
                                          ShippingRequestService  $shippingRequestService): JsonResponse
     {
+        if($shippingRequest->getStatus()->getCode() !== ShippingRequest::STATUS_TO_TREAT) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'Cette demande de livraison n\'a pas le statut "'.ShippingRequest::STATUS_TO_TREAT.'".',
+            ]);
+        }
+
+
         $user = $this->getUser();
         $dateNow = new DateTime('now');
 
