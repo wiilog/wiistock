@@ -426,6 +426,16 @@ class ShippingRequestController extends AbstractController {
 
                 //todo verif dernière etape createMvt (expédition)
                 $shippingRequestService->deletePacking($entityManager, $shippingRequest);
+
+                // remove ShippingRequesExpectedtLine
+                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
+
+                    $entityManager->remove($expectedLine);
+                    $shippingRequest->removeExpectedLine($expectedLine);
+                }
+
+                $entityManager->remove($shippingRequest);
+
                 $entityManager->flush();
                 return $this->json(["success" => true]);
             }

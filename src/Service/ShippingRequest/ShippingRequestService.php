@@ -517,13 +517,6 @@ class ShippingRequestService {
             $entityManager->remove($packLine);
         }
 
-        // remove ShippingRequesExpectedtLine
-        foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
 
-            $entityManager->remove($expectedLine);
-            $shippingRequest->removeExpectedLine($expectedLine);
-        }
-
-        $entityManager->remove($shippingRequest);
     }
 }
