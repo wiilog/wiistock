@@ -424,7 +424,6 @@ class ShippingRequestController extends AbstractController {
         else if ($isScheduledOrShipped) {
             if ($hasRightDeleteScheduledOrShipped) {
 
-                //todo verif dernière etape createMvt (expédition)
                 $shippingRequestService->deletePacking($entityManager, $shippingRequest);
 
                 // remove ShippingRequesExpectedtLine
@@ -862,6 +861,10 @@ class ShippingRequestController extends AbstractController {
                     false,
                     false,
                     TrackingMovement::TYPE_PRISE,
+                    [
+                        'from' => $shippingRequest,
+                        'shippingRequest' => $shippingRequest
+                    ]
                 );
                 $entityManager->persist($trackingMovement);
 
@@ -874,6 +877,10 @@ class ShippingRequestController extends AbstractController {
                     false,
                     false,
                     TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'from' => $shippingRequest,
+                        'shippingRequest' => $shippingRequest
+                    ]
                 );
                 $entityManager->persist($trackingMovement);
 
@@ -888,6 +895,7 @@ class ShippingRequestController extends AbstractController {
                         $articleOrReference,
                         MouvementStock::TYPE_SORTIE,
                         [
+                            'from'=> $shippingRequest,
                             "locationTo" => $shippingLocationTo,
                             'date' => $dateNow
                         ]
@@ -904,6 +912,8 @@ class ShippingRequestController extends AbstractController {
                         false,
                         TrackingMovement::TYPE_PRISE,
                         [
+                            'from' => $shippingRequest,
+                            'shippingRequest' => $shippingRequest,
                             'mouvementStock' => $newMouvementStock,
                             "quantity" => $shippingRequestLine->getQuantity(),
                             "logisticUnitParent" => $logisticUnitParent,
@@ -921,6 +931,8 @@ class ShippingRequestController extends AbstractController {
                         false,
                         TrackingMovement::TYPE_DEPOSE,
                         [
+                            'from' => $shippingRequest,
+                            'shippingRequest' => $shippingRequest,
                             'mouvementStock' => $newMouvementStock,
                             "quantity" => $shippingRequestLine->getQuantity(),
                             "logisticUnitParent" => $logisticUnitParent,
