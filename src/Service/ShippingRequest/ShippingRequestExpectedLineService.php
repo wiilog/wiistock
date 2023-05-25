@@ -150,13 +150,20 @@ class ShippingRequestExpectedLineService {
                             'attributes' => [
                                 'onclick' => "window.location.href = '{$this->router->generate('reference_article_show_page', ['id' => $reference->getId()])}'",
                             ]
+                        ],[
+                            'hasRight' => $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT),
+                            'title' => 'Modifier la référence',
+                            'icon' => 'fa fa-pen',
+                            'attributes' => [
+                                'onclick' => "window.location.href = '{$this->router->generate('reference_article_edit_page', ['reference' => $reference->getId()])}'",
+                            ]
                         ],
 
                     ],
                 ]);
                 return [
                     'actions' => $actions,
-                    'reference' => $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px'></i>" : ''),
+                    'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px ml-2'></i>" : '') . '</div>',
                     'label' => $reference->getLibelle(),
                     'quantity' => $expectedLine->getQuantity(),
                     'price' => $expectedLine->getPrice(),
