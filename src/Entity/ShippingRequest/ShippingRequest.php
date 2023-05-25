@@ -44,6 +44,13 @@ class ShippingRequest extends StatusHistoryContainer {
     public const STATUS_SCHEDULED = "Planifiée";
     public const STATUS_SHIPPED = "Expédiée";
 
+    public const STATUS_WORKFLOW_SHIPPING_REQUEST = [
+        ShippingRequest::STATUS_DRAFT,
+        ShippingRequest::STATUS_TO_TREAT,
+        ShippingRequest::STATUS_SCHEDULED,
+        ShippingRequest::STATUS_SHIPPED,
+    ];
+
     public const CATEGORIE = 'expedition';
     public const NUMBER_PREFIX =  "DEX";
 
@@ -115,11 +122,16 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $grossWeight = null;
 
+    /* Sum of line prices, calculated on line adding or removing */
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $totalValue = null;
+
+    /* Sum of line net weight, calculated on line adding or removing */
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $netWeight = null;
+
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $trackingNumber = null;
-
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $packCount = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -506,15 +518,23 @@ class ShippingRequest extends StatusHistoryContainer {
         return $this;
     }
 
-    public function getPackCount(): ?int {
-        return $this->packCount;
+    public function getTotalValue(): ?float {
+        return $this->totalValue;
     }
 
-    public function setPackCount(?int $packCount): self {
-        $this->packCount = $packCount;
+    public function setTotalValue(?float $totalValue): self {
+        $this->totalValue = $totalValue;
         return $this;
     }
 
+    public function getNetWeight(): ?float {
+        return $this->netWeight;
+    }
+
+    public function setNetWeight(?float $netWeight): self {
+        $this->netWeight = $netWeight;
+        return $this;
+    }
     /**
      * @return Collection
      */
@@ -569,5 +589,22 @@ class ShippingRequest extends StatusHistoryContainer {
         }
 
         return $this;
+    }
+
+
+    public function isDraft(): ?bool {
+        return $this->status->getCode() === self::STATUS_DRAFT;
+    }
+
+    public function isToTreat(): ?bool {
+        return $this->status->getCode() === self::STATUS_TO_TREAT;
+    }
+
+    public function isScheduled(): ?bool {
+        return $this->status->getCode() === self::STATUS_SCHEDULED;
+    }
+
+    public function isShipped(): ?bool {
+        return $this->status->getCode() === self::STATUS_SHIPPED;
     }
 }

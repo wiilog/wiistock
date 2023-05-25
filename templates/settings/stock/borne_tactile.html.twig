@@ -166,7 +166,7 @@
         <div class="form-group col-4">
             <label class="wii-field-name">Nom fournisseur*</label>
             <select class="form-control w-100 data needed" data-s2="supplierLabel"
-                    onchange="loadAndDisplayLabels($(this), true)"
+                    onchange="loadAndDisplayLabels($(this), 'FOURNISSEUR_REFERENCE_CREATE')"
                     name="FOURNISSEUR_LABEL_REFERENCE_CREATE">
                 {% if nomFournisseurReference is defined and nomFournisseurReference %}
                     <option selected value="{{ nomFournisseurReference.id }}">{{ nomFournisseurReference.nom }}</option>
@@ -176,7 +176,7 @@
         <div class="form-group col-4">
             <label class="wii-field-name">Code fournisseur*</label>
             <select class="form-control w-100 data needed" data-s2="supplierCode"
-                    onchange="loadAndDisplayInfos($(this), true)"
+                    onchange="loadAndDisplayInfos($(this), 'FOURNISSEUR_LABEL_REFERENCE_CREATE')"
                     name="FOURNISSEUR_REFERENCE_CREATE">
                 {% if codeFournisseurReference is defined and codeFournisseurReference %}
                     <option selected value="{{ codeFournisseurReference.id }}">{{ codeFournisseurReference.codeReference }}</option>

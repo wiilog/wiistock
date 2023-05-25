@@ -19,7 +19,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferOrder;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use DateTime;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -37,6 +37,9 @@ class MouvementStockService
 
     #[Required]
     public TranslationService $translation;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function getDataForDatatable(Utilisateur $user, ?InputBag $params = null): array
     {
@@ -256,20 +259,20 @@ class MouvementStockService
         $orderNo = $mouvement['preparationOrder']
             ?? $mouvement['livraisonOrder']
             ?? $mouvement['collecteOrder']
-            ?? join(", ", $mouvement['receptionOrder'])
+            ?? (isset($mouvement['receptionOrder']) ? join(", ", $mouvement['receptionOrder']) : '')
             ?? null;
 
         $data = [
-            FormatHelper::datetime($mouvement['date']),
+            $this->formatService->datetime($mouvement['date'] ?? ''),
             $orderNo,
-            $mouvement['refArticleRef'],
+            $mouvement['refArticleRef'] ?? '',
             !empty($mouvement['refArticleBarCode']) ? $mouvement['refArticleBarCode']: '',
             !empty($mouvement['articleBarCode']) ? $mouvement['articleBarCode'] : '',
-            $mouvement['quantity'],
-            $mouvement['originEmpl'],
-            $mouvement['destinationEmpl'],
-            $mouvement['type'],
-            $mouvement['operator']
+            $mouvement['quantity'] ?? '',
+            $mouvement['originEmpl'] ?? '',
+            $mouvement['destinationEmpl'] ?? '',
+            $mouvement['type'] ?? '',
+            $mouvement['operator'] ?? ''
         ];
         $CSVExportService->putLine($handle, $data);
     }

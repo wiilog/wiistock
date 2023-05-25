@@ -83,7 +83,7 @@ class StatutRepository extends EntityRepository {
 
         if (!empty($states)) {
             $queryBuilder
-                ->andWhere('status.state IN (:states)')
+                ->andWhere('status.state IN (:states) OR status.state IS NULL')
                 ->setParameter('states', $states);
         }
 

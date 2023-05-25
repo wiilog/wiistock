@@ -609,6 +609,7 @@ class DispatchController extends AbstractController {
                 }
             }
         }
+        $emergency = $post->get('emergency');
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
@@ -617,7 +618,7 @@ class DispatchController extends AbstractController {
             ->setCarrierTrackingNumber($transporterTrackingNumber)
             ->setCommandNumber($commandNumber)
             ->setRequester($requester)
-            ->setEmergency($post->get('emergency') ?? null)
+            ->setEmergency(!empty($emergency) ? $emergency : null)
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)
@@ -1751,7 +1752,7 @@ class DispatchController extends AbstractController {
                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $defaultNature = $natureRepository->findOneBy(['default' => true]);
+        $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
 
         $html = $this->renderView('dispatch/modalAddLogisticUnitContent.html.twig', [
             'dispatch' => $dispatch,

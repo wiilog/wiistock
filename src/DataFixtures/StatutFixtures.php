@@ -49,6 +49,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
             CategorieStatut::TRANSFER_ORDER,
             CategorieStatut::IMPORT,
             CategorieStatut::PURCHASE_REQUEST,
+            CategorieStatut::SHIPPING_REQUEST,
         ];
 
         $categoriesStatus = [
@@ -194,10 +195,10 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
                 TransportRound::STATUS_FINISHED,
             ],
             CategorieStatut::SHIPPING_REQUEST => [
-                ShippingRequest::STATUS_DRAFT,
-                ShippingRequest::STATUS_TO_TREAT,
-                ShippingRequest::STATUS_SCHEDULED,
-                ShippingRequest::STATUS_SHIPPED,
+                ShippingRequest::STATUS_DRAFT => Statut::DRAFT,
+                ShippingRequest::STATUS_TO_TREAT => Statut::NOT_TREATED,
+                ShippingRequest::STATUS_SCHEDULED => Statut::SCHEDULED,
+                ShippingRequest::STATUS_SHIPPED => Statut::SHIPPED,
             ],
         ];
 

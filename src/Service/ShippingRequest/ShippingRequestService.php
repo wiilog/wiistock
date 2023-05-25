@@ -3,9 +3,12 @@
 namespace App\Service\ShippingRequest;
 
 use App\Entity\Article;
+use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
+use App\Entity\Menu;
+use App\Entity\Role;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
@@ -17,18 +20,18 @@ use App\Entity\StatusHistory;
 use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
-use App\Repository\Transport\StatusHistoryRepository;
 use App\Service\CSVExportService;
 use App\Exceptions\FormException;
 use App\Service\FormatService;
 use App\Service\MouvementStockService;
+use App\Service\MailerService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
+use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use phpDocumentor\Reflection\Types\Iterable_;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
@@ -55,6 +58,9 @@ class ShippingRequestService {
     public RouterInterface $router;
 
     #[Required]
+    public MailerService $mailerService;
+
+    #[Required]
     public CSVExportService $CSVExportService;
 
     #[Required]
@@ -62,6 +68,12 @@ class ShippingRequestService {
 
     #[Required]
     public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public UserService $userService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -127,7 +139,7 @@ class ShippingRequestService {
         $formatService = $this->formatService;
 
         $url = $this->router->generate('shipping_request_show', [
-            "id" => $shipping->getId()
+            "shippingRequest" => $shipping->getId()
         ]);
         $row = [
             "actions" => $this->templating->render('shipping_request/actions.html.twig', [
@@ -163,14 +175,64 @@ class ShippingRequestService {
     public function createHeaderTransportDetailsConfig(ShippingRequest $shippingRequest){
         return $this->templating->render('shipping_request/show-transport-header.html.twig', [
             'shipping' => $shippingRequest,
-            'packsCount' => $shippingRequest->getPackCount(),
-            'totalValue' => Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getPrice())
-                ->sum(),
-            'netWeight' => Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $expectedLine) => $expectedLine->getWeight())
-                ->sum(),
         ]);
+    }
+
+    public function sendMailForStatus(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest)
+    {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
+
+        $to = [];
+        $mailTitle = '';
+        $title = '';
+        //Validation
+        if($shippingRequest->isToTreat()) {
+            $mailTitle = "FOLLOW GT // Création d'une" . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false));
+            $title = "Une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " a été créée";
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_REQUESTER)){
+                $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
+            }
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES)){
+                $rolesToSendMail = $roleRepository->findBy(['id' => Stream::explode(',',$settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))->toArray()]);
+                $to = array_merge(
+                    $to,
+                    $userRepository->findBy(["role" => $rolesToSendMail]),
+                );
+            }
+        }
+
+        //Planification
+        if($shippingRequest->isShipped()) {
+            $mailTitle = "FOLLOW GT // " . $this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false) . " effectuée";
+            $title = "Vos produits ont bien été expédiés";
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_REQUESTER)){
+                $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
+            }
+            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES)){
+                $rolesToSendMail = $roleRepository->findBy(['id' => Stream::explode(',',$settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))->toArray()]);
+                $to = array_merge(
+                    $to,
+                    $userRepository->findBy(["role" => $rolesToSendMail]),
+                );
+            }
+        }
+
+        $this->mailerService->sendMail(
+            $mailTitle,
+            [
+                "name" => "mails/contents/mailShippingRequest.html.twig",
+                "context" => [
+                    "title" => $title,
+                    "shippingRequest" => $shippingRequest,
+                    "isToTreat" => $shippingRequest->isToTreat(),
+                    "isShipped" => $shippingRequest->isShipped(),
+                ]
+            ],
+            $to
+        );
+
     }
 
     public function formatExpectedLinesForPacking(iterable $expectedLines): array {
@@ -267,9 +329,6 @@ class ShippingRequestService {
         $carrier = $carrierId
             ? $carrierRepository->find($carrierId)
             : null;
-        if (!$carrier) {
-            throw new FormException("Vous devez sélectionner un transporteur");
-        }
 
         $shippingRequest
             ->setRequesterPhoneNumbers(explode(',', $data->get('requesterPhoneNumbers')))
@@ -289,9 +348,28 @@ class ShippingRequestService {
         return true;
     }
 
-    public function createShippingRequestPack(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, int $packNumber, string $size, Emplacement $packLocation, array $options = []) :ShippingRequestPack {
+    public function updateNetWeight(ShippingRequest $shippingRequest): void {
+        $shippingRequest->setNetWeight(
+            Stream::from($shippingRequest->getExpectedLines())
+                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getWeight() ? $line->getQuantity() * $line->getWeight() : 0)
+                ->sum()
+        );
+    }
+
+    public function updateTotalValue(ShippingRequest $shippingRequest): void {
+        $shippingRequest->setTotalValue(
+            Stream::from($shippingRequest->getExpectedLines())
+                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getPrice() ? $line->getQuantity() * $line->getPrice() : 0)
+                ->sum()
+        );
+    }
+
+    public function createShippingRequestPack(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, int $packNumber, ?string $size, Emplacement $packLocation, array $options = []) :ShippingRequestPack {
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $packNatureId = ($natureRepository->findOneBy(['default' => true]) ?: $natureRepository->findOneBy([]))->getId();
+        $packNatureId = $natureRepository->findOneBy(['defaultNature' => true]);
+        if(!$packNatureId) {
+            throw new FormException("Aucune nature n'est définie comme nature par défaut.");
+        }
 
         $packsCode = str_replace(ShippingRequest::NUMBER_PREFIX.'-', '', $shippingRequest->getNumber());
         $pack = $this->packService->persistPack($entityManager, $packsCode.$packNumber, 1, $packNatureId);
@@ -314,6 +392,64 @@ class ShippingRequestService {
             ->setSize($size);
 
         return $shippingRequestPack;
+    }
+
+
+    public function getDataForScheduledRequest(ShippingRequest $shippingRequest): array {
+        return Stream::from($shippingRequest->getPackLines())
+            ->map(function(ShippingRequestPack $shippingRequestPack) {
+                $pack = $shippingRequestPack->getPack();
+                $referenceData = Stream::from($shippingRequestPack->getLines())
+                    ->map(function (ShippingRequestLine $shippingRequestLine) {
+                        $expectedLine = $shippingRequestLine->getExpectedLine();
+                        $reference = $expectedLine->getReferenceArticle();
+
+                        $actions = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+                            'actions' => [
+                                [
+                                    'hasRight' => $this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI) && $shippingRequestLine->getArticleOrReference() instanceof Article,
+                                    'title' => 'Voir l\'aticle',
+                                    'icon' => 'fa fa-eye',
+                                    'attributes' => [
+                                        'onclick' => "window.location.href = '{$this->router->generate('article_show_page', ['id' => $shippingRequestLine->getArticleOrReference() instanceof Article ? $shippingRequestLine->getArticleOrReference()->getId() : null])}'",
+                                    ]
+                                ],
+                                [
+                                    'hasRight' =>$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE),
+                                    'title' => 'Voir la référence',
+                                    'icon' => 'fa fa-eye',
+                                    'attributes' => [
+                                        'onclick' => "window.location.href = '{$this->router->generate('reference_article_show_page', ['id' => $reference->getId()])}'",
+                                    ]
+                                ],
+
+                            ],
+                        ]);
+
+                        return [
+                            'actions' => $actions,
+                            'reference' => '<div class="d-flex align-items-center">' . $reference->getLibelle() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
+                            'label' => $reference->getLibelle(),
+                            'quantity' => $shippingRequestLine->getQuantity(),
+                            'price' => $expectedLine->getPrice(),
+                            'weight' => $expectedLine->getWeight(),
+                            'totalPrice' => $shippingRequestLine->getQuantity() * $expectedLine->getPrice(),
+                        ];
+                    })
+                    ->toArray();
+
+                return [
+                    'pack' => [
+                        'nature' => $this->formatService->nature($pack->getNature()),
+                        'code' => $pack->getCode() ?? null,
+                        'size' => $shippingRequestPack->getSize() ?? '/',
+                        'location' => $this->formatService->location($pack->getLastDrop()?->getEmplacement()),
+                        'color' => $pack?->getNature()?->getColor() ?? null,
+                    ],
+                    'references' => $referenceData,
+                ];
+            })
+            ->toArray();
     }
 
     public function deletePacking(EntityManagerInterface $entityManager,
