@@ -387,7 +387,7 @@ class ShippingRequestController extends AbstractController {
         if ($shippingRequest->getStatus()->getCode() !== ShippingRequest::STATUS_DRAFT) {
             return $this->json([
                 'success' => false,
-                'msg' => 'La demande d\'expédition n\'est pas en brouillon.'
+                'msg' => 'La ' . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . ' n\'est pas en brouillon.'
             ]);
         }
 
@@ -507,11 +507,12 @@ class ShippingRequestController extends AbstractController {
                                       ArticleDataService      $articleDataService,
                                       TrackingMovementService $trackingMovementService,
                                       MouvementStockService   $stockMovementService,
-                                      StatusHistoryService    $statusHistoryService): Response {
+                                      StatusHistoryService    $statusHistoryService,
+                                      TranslationService      $translationService): Response {
         if (!in_array($shippingRequest->getStatus()->getCode(), [ShippingRequest::STATUS_TO_TREAT, ShippingRequest::STATUS_SCHEDULED])) {
             return $this->json([
                 'success' => false,
-                'msg' => 'Cette demande d\'expedition n\'a pas le bon statut.',
+                'msg' => 'Cette' . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . ' n\'a pas le bon statut.',
             ]);
         }
 
@@ -714,15 +715,15 @@ class ShippingRequestController extends AbstractController {
                                          EntityManagerInterface  $entityManager,
                                          MouvementStockService   $mouvementStockService,
                                          TrackingMovementService $trackingMovementService,
-                                         ShippingRequestService  $shippingRequestService): JsonResponse
+                                         ShippingRequestService  $shippingRequestService,
+                                         TranslationService $translationService): JsonResponse
     {
-        if($shippingRequest->getStatus()->getCode() !== ShippingRequest::STATUS_TO_TREAT) {
+        if ($shippingRequest->getStatus()->getCode() !== ShippingRequest::STATUS_SCHEDULED) {
             return $this->json([
                 'success' => false,
-                'msg' => 'Cette demande de livraison n\'a pas le statut "'.ShippingRequest::STATUS_TO_TREAT.'".',
+                'msg' => 'Cette ' . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . 'n\'a pas le statut "' . ShippingRequest::STATUS_SCHEDULED . '".',
             ]);
         }
-
 
         $user = $this->getUser();
         $dateNow = new DateTime('now');
@@ -876,7 +877,7 @@ class ShippingRequestController extends AbstractController {
 
         return $this->json([
             'success' => true,
-            'msg' => "La demande d'expédition a été expédiée."
+            'msg' => "La ".mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false))." a été expédiée."
         ]);
     }
 }
