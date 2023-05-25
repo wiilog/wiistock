@@ -275,6 +275,7 @@ class ShippingRequestService {
             $shippingRequestData['weight'],
             $shippingRequestData['totalAmount'],
             $this->formatService->bool($shippingRequestData['dangerous_goods']),
+            $shippingRequestData['originalName'],
             $shippingRequestData['onu_code'],
             $shippingRequestData['product_class'],
             $shippingRequestData['ndp_code'],
