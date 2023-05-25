@@ -325,9 +325,6 @@ class ShippingRequestService {
         $carrier = $carrierId
             ? $carrierRepository->find($carrierId)
             : null;
-        if (!$carrier) {
-            throw new FormException("Vous devez sélectionner un transporteur");
-        }
 
         $shippingRequest
             ->setRequesterPhoneNumbers(explode(',', $data->get('requesterPhoneNumbers')))
