@@ -660,9 +660,10 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/details/{id}", name: "shipping_request_get_details", options: ["expose" => true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function getDetails(ShippingRequest         $shippingRequest,
-                                      Request                 $request,
-                                      ShippingRequestService  $shippingRequestService): Response{
+    public function getDetails(ShippingRequest                    $shippingRequest,
+                               ShippingRequestService             $shippingRequestService,
+                               ShippingRequestExpectedLineService $shippingRequestExpectedLineService): Response
+    {
         switch (strtolower($shippingRequest->getStatus()->getCode())) {
             case strtolower(ShippingRequest::STATUS_DRAFT):
                 $html = $this->renderView('shipping_request/details/draft.html.twig', [
@@ -672,6 +673,7 @@ class ShippingRequestController extends AbstractController {
             case strtolower(ShippingRequest::STATUS_TO_TREAT):
                 $html = $this->renderView('shipping_request/details/to_treat.html.twig', [
                     'shippingRequest' => $shippingRequest,
+                    'expectedLines' => $shippingRequestExpectedLineService->getDataForDetailsTable($shippingRequest),
                 ]);
                 break;
             case strtolower(ShippingRequest::STATUS_SCHEDULED):
