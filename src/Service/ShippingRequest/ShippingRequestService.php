@@ -255,8 +255,8 @@ class ShippingRequestService {
                     'referenceArticleId' => $expectedLine->getReferenceArticle()->getId(),
                     'label' => $expectedLine->getReferenceArticle()->getLibelle(),
                     'quantity' => $expectedLine->getQuantity(),
-                    'price' => $expectedLine->getPrice(),
-                    'weight' => $expectedLine->getWeight(),
+                    'price' => $expectedLine->getUnitPrice(),
+                    'weight' => $expectedLine->getUnitWeight(),
                     'totalPrice' => '<span class="total-price"></span>',
                 ];
             })
@@ -366,7 +366,7 @@ class ShippingRequestService {
     public function updateNetWeight(ShippingRequest $shippingRequest): void {
         $shippingRequest->setNetWeight(
             Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getWeight() ? $line->getQuantity() * $line->getWeight() : 0)
+                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getUnitWeight() ? $line->getQuantity() * $line->getUnitWeight() : 0)
                 ->sum()
         );
     }
@@ -374,7 +374,7 @@ class ShippingRequestService {
     public function updateTotalValue(ShippingRequest $shippingRequest): void {
         $shippingRequest->setTotalValue(
             Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getPrice() ? $line->getQuantity() * $line->getPrice() : 0)
+                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getUnitPrice() ? $line->getQuantity() * $line->getUnitPrice() : 0)
                 ->sum()
         );
     }
@@ -446,9 +446,9 @@ class ShippingRequestService {
                             'reference' => $reference->getLibelle().($reference->isDangerousGoods() ? "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px'></i>" : ''),
                             'label' => $reference->getLibelle(),
                             'quantity' => $shippingRequestLine->getQuantity(),
-                            'price' => $expectedLine->getPrice(),
-                            'weight' => $expectedLine->getWeight(),
-                            'totalPrice' => $shippingRequestLine->getQuantity() * $expectedLine->getPrice(),
+                            'price' => $expectedLine->getUnitPrice(),
+                            'weight' => $expectedLine->getUnitWeight(),
+                            'totalPrice' => $shippingRequestLine->getQuantity() * $expectedLine->getUnitPrice(),
                         ];
                     })
                     ->toArray();
@@ -515,14 +515,14 @@ class ShippingRequestService {
             $variables["reference"] = $shippingRequest->getExpectedLines()
                 ->map(function (ShippingRequestExpectedLine $shippingRequestExpectedLine) {
                     $reference = $shippingRequestExpectedLine->getReferenceArticle();
-                    $price = $shippingRequestExpectedLine->getPrice();
+                    $price = $shippingRequestExpectedLine->getUnitPrice();
                     $quantity = $shippingRequestExpectedLine->getQuantity();
                     $totalPrice = $price * $quantity;
                     return [
                         "reference" => $reference->getReference() ?? "",
                         "quantite" => $quantity ?? "",
                         "prixunitaire" => $price ?? "",
-                        "poidsnet" => $shippingRequestExpectedLine->getWeight() ?? "",
+                        "poidsnet" => $shippingRequestExpectedLine->getUnitWeight() ?? "",
                         "montantotal" => $totalPrice ?? "",
                         "matieredangereuse" => $this->formatService->bool($reference->isDangerousGoods()) ?? "",
                         "FDS" => $reference->getSheet() ? $reference->getSheet()->getFileName() : "",
@@ -532,7 +532,6 @@ class ShippingRequestService {
                     ];
                 })
                 ->toArray();
-
 
         } else {
 
@@ -544,28 +543,38 @@ class ShippingRequestService {
                 $variables["reference"][] = array_merge(
                     ...Stream::from($lines)
                     ->map(function(ShippingRequestLine $shippingRequestLine) {
-                        $article = $shippingRequestLine->getArticleOrReference();
-                        $price = $shippingRequestLine->getPrice();
-                        $quantity = $shippingRequestLine->getQuantity();
-                        $totalPrice = $price * $quantity;
+                        $articleOrReference = $shippingRequestLine->getArticleOrReference();
+
+                        if ($articleOrReference instanceof ReferenceArticle) {
+                            $dangerousGoods = $this->formatService->bool($articleOrReference->isDangerousGoods());
+                            $FDS = $articleOrReference->getSheet() ? $articleOrReference->getSheet()->getOriginalName() : "";
+                            $onuCode = $articleOrReference->getOnuCode();
+                            $productClass = $articleOrReference->getProductClass();
+                            $ndpCode = $articleOrReference->getNdpCode();
+                        } else {
+                            $dangerousGoods = $this->formatService->bool($articleOrReference->getReferenceArticle()->isDangerousGoods());
+                            $FDS = $articleOrReference->getReferenceArticle()->getSheet() ? $articleOrReference->getReferenceArticle()->getSheet()->getOriginalName() : "";
+                            $onuCode = $articleOrReference->getReferenceArticle()->getOnuCode();
+                            $productClass = $articleOrReference->getReferenceArticle()->getProductClass();
+                            $ndpCode = $articleOrReference->getReferenceArticle()->getNdpCode();
+                        }
 
                         return [
-                            "reference" => $article->getReference() ?? "",
-                            "quantite" => $quantity ?? "",
-                            "prixunitaire" => $price ?? "",
-                            "poidsnet" => $shippingRequestLine->getExpectedLine()->getWeight() ?? "",
-                            "montantotal" => $totalPrice ?? "",
-                            "matieredangereuse" => $this->formatService->bool($article->getReferenceArticle()->isDangerousGoods()) ?? "",
-                            "FDS" => $article->getReferenceArticle()->getSheet() ? $article->getReferenceArticle()->getSheet()->getFileName() : "",
-                            "CodeONU" => $article->getReferenceArticle()->getOnuCode() ?? "",
-                            "classeproduit" => $article->getReferenceArticle()->getProductClass() ?? "",
-                            "CodeNDP" => $article->getReferenceArticle()->getNdpCode() ?? "",
+                            "reference" => $articleOrReference->getReference() ?? "",
+                            "quantite" => $shippingRequestLine->getExpectedLine()->getQuantity() ?? "",
+                            "prixunitaire" => $shippingRequestLine->getExpectedLine()->getUnitPrice() ?? "",
+                            "poidsnet" => $shippingRequestLine->getExpectedLine()->getUnitWeight() ?? "",
+                            "montantotal" => $shippingRequestLine->getExpectedLine()->getTotalPrice() ?? "",
+                            "matieredangereuse" => $dangerousGoods ?? "",
+                            "FDS" => $FDS ?? "",
+                            "CodeONU" => $onuCode ?? "",
+                            "classeproduit" => $productClass ?? "",
+                            "CodeNDP" => $ndpCode ?? "",
                         ];
                     })
                 );
             }
         }
-
 
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "$projectDir/public/$deliverySlipTemplatePath",

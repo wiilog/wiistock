@@ -698,17 +698,15 @@ function generateDeliverySlip(shippingRequestId) {
     AJAX.route('POST', 'post_delivery_slip', {shippingRequest: shippingRequestId})
         .json()
         .then(({attachmentId}) => {
-            console.log(attachmentId);
             AJAX.route('GET', 'print_delivery_slip', {
                 shippingRequest: shippingRequestId,
                 attachment: attachmentId,
             })
-                .file({
-                    success: "Votre bordereau de livraison a bien été imprimé.",
-                    error: "Erreur lors de l'impression du bordereau de livraison."
-                })
-                .then(() => window.location.reload())
+            .file({
+                success: "Votre bordereau de livraison a bien été imprimé.",
+                error: "Erreur lors de l'impression du bordereau de livraison."
+            })
+            .then(() => window.location.reload())
         })
-
 }
 

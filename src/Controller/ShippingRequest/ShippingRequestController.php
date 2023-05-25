@@ -261,11 +261,13 @@ class ShippingRequestController extends AbstractController {
 
             $line
                 ->setQuantity($data['quantity'] ?? null)
-                ->setPrice($data['price'] ?? null)
-                ->setWeight($data['weight'] ?? null);
+                ->setUnitPrice($data['price'] ?? null)
+                ->setUnitWeight($data['weight'] ?? null);
 
             $shippingRequestService->updateNetWeight($shippingRequest);
             $shippingRequestService->updateTotalValue($shippingRequest);
+            $expectedLineService->updateTotalPrice($line);
+            $expectedLineService->updateTotalWeight($line);
 
             $entityManager->flush();
 
@@ -575,7 +577,7 @@ class ShippingRequestController extends AbstractController {
                                     'refArticle' => $referenceArticle,
                                     'emplacement' => $packLocation,
                                     'quantite' => $pickedQuantity,
-                                    'prix' => $requestExpectedLine->getPrice(),
+                                    'prix' => $requestExpectedLine->getUnitPrice(),
                                     'articleFournisseur' => $requestExpectedLine->getReferenceArticle()->getArticlesFournisseur()->first()->getId(),
                                     'currentLogisticUnit' => $shippingPack->getPack(),
                                 ],

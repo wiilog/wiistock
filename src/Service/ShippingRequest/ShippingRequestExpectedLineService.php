@@ -53,10 +53,6 @@ class ShippingRequestExpectedLineService {
             $labelColumn = '<span class="label-wrapper"></span>';
         }
 
-        $total = $line?->getQuantity() && $line?->getPrice()
-            ? ($line->getQuantity() * $line->getPrice())
-            : '';
-
         $actionId = 'data-id="' . ($line?->getId() ?: '') . '"';
         $editUrl = $line ? $this->router->generate('reference_article_edit_page', ['reference' => $line->getReferenceArticle()?->getId()]) : '';
         $hasRightToEdit = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
@@ -90,7 +86,7 @@ class ShippingRequestExpectedLineService {
                     ["name" => "data-field-label", 'value' => "Quantité"],
                 ],
             ]),
-            "price" => $this->formService->macro("input", "price", null, true, $line?->getPrice(), [
+            "price" => $this->formService->macro("input", "price", null, true, $line?->getUnitPrice(), [
                 "type" => "number",
                 "min" => 0,
                 "error" => "global",
@@ -98,7 +94,7 @@ class ShippingRequestExpectedLineService {
                     ["name" => "data-field-label", 'value' => "Prix unitaire"],
                 ],
             ]),
-            "weight" => $this->formService->macro("input", "weight", null, true, $line?->getWeight(), [
+            "weight" => $this->formService->macro("input", "weight", null, true, $line?->getUnitWeight(), [
                 "type" => "number",
                 "min" => 0,
                 "error" => "global",
@@ -106,7 +102,7 @@ class ShippingRequestExpectedLineService {
                     ["name" => "data-field-label", 'value' => "Poids net"],
                 ],
             ]),
-            "total" => '<span class="total-wrapper">' . $total . '</span>',
+            "total" => '<span class="total-wrapper">' . $line?->getTotalPrice() . '</span>',
         ];
     }
 
@@ -130,8 +126,11 @@ class ShippingRequestExpectedLineService {
             ->setReferenceArticle($referenceArticle)
             ->setRequest($request)
             ->setQuantity($quantity)
-            ->setPrice($price)
-            ->setWeight($weight);
+            ->setUnitPrice($price)
+            ->setUnitWeight($weight);
+
+        $this->updateTotalPrice($line);
+        $this->updateTotalWeight($line);
 
         $entityManager->persist($line);
         return $line;
@@ -159,11 +158,23 @@ class ShippingRequestExpectedLineService {
                     'reference' => $reference->getReference() . ($reference->isDangerousGoods() ? "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px'></i>" : ''),
                     'label' => $reference->getLibelle(),
                     'quantity' => $expectedLine->getQuantity(),
-                    'price' => $expectedLine->getPrice(),
-                    'weight' => $expectedLine->getWeight(),
-                    'total' => $expectedLine->getQuantity() * $expectedLine->getPrice(),
+                    'price' => $expectedLine->getUnitPrice(),
+                    'weight' => $expectedLine->getUnitWeight(),
+                    'total' => $expectedLine->getTotalPrice(),
                 ];
             })
             ->toArray();
+    }
+
+    public function updateTotalWeight(ShippingRequestExpectedLine $expectedLine): void {
+        $expectedLine->setTotalWeight(
+            $expectedLine->getQuantity() && $expectedLine->getUnitWeight() ? $expectedLine->getQuantity() * $expectedLine->getUnitWeight() : 0
+        );
+    }
+
+    public function updateTotalPrice(ShippingRequestExpectedLine $expectedLine): void {
+        $expectedLine->setTotalPrice(
+            $expectedLine->getQuantity() && $expectedLine->getUnitPrice() ? $expectedLine->getQuantity() * $expectedLine->getUnitPrice() : 0
+        );
     }
 }
