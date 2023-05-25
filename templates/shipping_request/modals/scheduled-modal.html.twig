@@ -11,7 +11,7 @@
                 <div class="flex flex-column">
                     <div class="wii-section-title py-1">
                         <i class="wii-icon wii-icon-info wii-icon-15px-primary mr-2"></i>
-                        Informations
+                        Caractéristiques
                     </div>
                     <div class="row my-3">
                         <div class="form-group col-md-6 col-12">
@@ -39,6 +39,11 @@
                         <div class="form-group col-md-6 col-12">
                             {{ form.select("carrier", "Nom transporteur", false, {
                                 type: 'carrier',
+                                items: shipping.carrier ? [{
+                                    value: shipping.carrier.id,
+                                    label: shipping.carrier.label,
+                                    selected: true,
+                                }] : [],
                             }) }}
                         </div>
                         <div class="form-group col-md-6 col-12">
