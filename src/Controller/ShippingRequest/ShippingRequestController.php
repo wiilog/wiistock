@@ -244,6 +244,11 @@ class ShippingRequestController extends AbstractController {
                     throw new FormException('Formulaire invalide');
                 }
 
+                $line = $shippingRequest->getExpectedLine($referenceArticle);
+                if($line){
+                    throw new FormException('La référence article a déjà été ajoutée');
+                }
+
                 $line = $expectedLineService->persist($entityManager, [
                     'referenceArticle' => $referenceArticle,
                     'request' => $shippingRequest
@@ -268,7 +273,7 @@ class ShippingRequestController extends AbstractController {
             $resp = [
                 'success' => true,
                 'created' => $created,
-                'lineId' => $lineId
+                'lineId' => $lineId ?? $line->getId(),
             ];
         }
         return new JsonResponse(
