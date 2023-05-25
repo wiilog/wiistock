@@ -12,11 +12,8 @@ use App\Entity\Role;
 use App\Entity\Nature;
 use App\Entity\Setting;
 use App\Entity\ReferenceArticle;
-use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
-use App\Entity\ShippingRequest\ShippingRequestLine;
-use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\TrackingMovement;
@@ -37,7 +34,6 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\MakerBundle\Str;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -483,37 +479,40 @@ class ShippingRequestService {
             //en-tête
             "QRCodeexpe" => $shippingRequest->getNumber() ?? "",
             "numexpedition" => $shippingRequest->getNumber() ?? "",
+            "datecreation" => $formatService->date($shippingRequest->getCreatedAt()) ?? "",
             "demandeurs" => $formatService->users($shippingRequest->getRequesters()) ?? "",
             "teldemandeur" => implode(', ', $shippingRequest->getRequesterPhoneNumbers()) ?? "",
             "numcommandeclient" => $shippingRequest->getCustomerOrderNumber() ?? "",
             "livraisongracieux" => $formatService->bool($shippingRequest->isFreeDelivery()) ?? "",
             "articlesconformes" => $formatService->bool($shippingRequest->isCompliantArticles()) ?? "",
-            "client" => $shippingRequest->getCustomerName() ?? "",
             "destinataire" => $shippingRequest->getCustomerRecipient() ?? "",
             "teldestinataire" => $shippingRequest->getCustomerPhone() ?? "",
+            "client" => $shippingRequest->getCustomerName() ?? "",
             "adressedestinataire" => $shippingRequest->getCustomerAddress() ?? "",
-            "datecreation" => $formatService->date($shippingRequest->getCreatedAt()) ?? "",
             "dateexpedition" => $formatService->date($shippingRequest->getTreatedAt()) ?? "",
 
             //transport
             "datepriseenchargesouhaitee" => $formatService->date($shippingRequest->getRequestCaredAt()) ?? "",
             "port" => ShippingRequest::CARRYING_LABELS[$shippingRequest->getCarrying()] ?? "",
+            "numtracking" => $shippingRequest->getTrackingNumber() ?? "",
             "dateenlevement" => $formatService->date($shippingRequest->getExpectedPickedAt()) ?? "",
             "nomtransporteur" => $formatService->carrier($shippingRequest->getCarrier()) ?? "",
-            "numtracking" => $shippingRequest->getTrackingNumber() ?? "",
+            "specificationtransport" => "",
 
             //footer
-            "nbcolis" => $shippingRequest->getPackCount() ?? "",
-            "poidsbruttotal" => $shippingRequest->getGrossWeight() ?? "",
+            "poidsnettotal" => $shippingRequest->getNetWeight() ?? "",
             "dimensioncolis" => "",
-            "specificationtransport" => "",
+            "valeurtotal" => $shippingRequest->getTotalValue() ?? "",
+            "nbcolis" => $shippingRequest->isToTreat() ? "" : count($shippingRequest->getPackLines()),
+            "poidsbruttotal" => $shippingRequest->getGrossWeight() ?? "",
+
         ];
 
         if ($shippingRequestStatus == ShippingRequest::STATUS_TO_TREAT) {
             $variables["reference"] = $shippingRequest->getExpectedLines()
                 ->map(function (ShippingRequestExpectedLine $shippingRequestExpectedLine) {
                     $reference = $shippingRequestExpectedLine->getReferenceArticle();
-                    $price = $reference->getPrixUnitaire();
+                    $price = $shippingRequestExpectedLine->getPrice();
                     $quantity = $shippingRequestExpectedLine->getQuantity();
                     $totalPrice = $price * $quantity;
                     return [
@@ -531,13 +530,6 @@ class ShippingRequestService {
                 })
                 ->toArray();
 
-            $totalNetWeight = Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $line) => $line->getWeight() * $line->getQuantity())
-                ->sum();
-
-            $totalNetWorth = Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $line) => $line->getReferenceArticle()->getPrixUnitaire() * $line->getQuantity())
-                ->sum();
 
         } else {
 
@@ -549,8 +541,8 @@ class ShippingRequestService {
                 $variables["reference"][] = array_merge(
                     ...Stream::from($lines)
                     ->map(function(ShippingRequestLine $shippingRequestLine) {
-                        $article = $shippingRequestLine->getArticle();
-                        $price = $article->getPrixUnitaire();
+                        $article = $shippingRequestLine->getArticleOrReference();
+                        $price = $shippingRequestLine->getPrice();
                         $quantity = $shippingRequestLine->getQuantity();
                         $totalPrice = $price * $quantity;
 
@@ -571,29 +563,27 @@ class ShippingRequestService {
             }
         }
 
-        $variables["poidsnettotal"] = $totalNetWeight ?? "";
-        $variables["valeurtotal"] = $totalNetWorth ?? "";
 
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
-            "${projectDir}/public/$deliverySlipTemplatePath",
+            "$projectDir/public/$deliverySlipTemplatePath",
             $variables,
             ["barcodes" => ["QRCodeexpe"],]
         );
 
         $nakedFileName = uniqid();
 
-        $deliverySlipOutdir = "{$projectDir}\public\uploads\attachements";
-        $docxPath = "{$deliverySlipOutdir}\\{$nakedFileName}.docx";
+        $deliverySlipOutdir = "$projectDir\public\uploads\attachements";
+        $docxPath = "$deliverySlipOutdir\\$nakedFileName.docx";
 
         rename($tmpDocxPath, $docxPath);
         $this->PDFGeneratorService->generateFromDocx($docxPath, $deliverySlipOutdir);
         unlink($docxPath);
 
-        $now = new \DateTime();
+        $now = new DateTime();
 
         $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
 
-        $name = "BDL - {$shippingRequest->getNumber()} - {$client} - {$now->format('dmYHis')}";
+        $name = "BDL - {$shippingRequest->getNumber()} - $client - {$now->format('dmYHis')}";
 
         $deliverySlipAttachment = new Attachment();
         $deliverySlipAttachment

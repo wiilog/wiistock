@@ -56,7 +56,7 @@
                                             {{ trans('Général', null, 'Modale', 'Supprimer') }}
                                         </a>
                                     {% endif %}
-                                    {% if hasRightGenerateDeliverySlip %}
+                                    {% if hasRightGenerateDeliverySlip and shipping.status.code != constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_DRAFT')%}
                                         <a class="dropdown-item d-flex align-items-center"
                                             onclick="generateDeliverySlip({{ shipping.id }})">
                                             <span class="fa fa-file mr-2"></span>
