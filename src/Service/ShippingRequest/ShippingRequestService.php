@@ -296,7 +296,7 @@ class ShippingRequestService {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $customerRepository = $entityManager->getRepository(Customer::class);
-        $requiredFields= [
+        $requiredFields = [
             'requesters',
             'requesterPhoneNumbers',
             'customerOrderNumber',
