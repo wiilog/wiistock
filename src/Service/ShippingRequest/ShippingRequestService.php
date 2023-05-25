@@ -23,6 +23,7 @@ use App\Service\FormatService;
 use App\Service\MailerService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -66,6 +67,9 @@ class ShippingRequestService {
 
     #[Required]
     public UserService $userService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -181,8 +185,8 @@ class ShippingRequestService {
         $title = '';
         //Validation
         if($shippingRequest->isToTreat()) {
-            $mailTitle = "FOLLOW GT // Création d'une demande d'expédition";
-            $title = "Une demande d'expédition a été créée";
+            $mailTitle = "FOLLOW GT // Création d'une demande d'" . strtolower($this->translationService->translate('Demande', 'Expédition', 'Expédition', false));
+            $title = "Une demande d'" . strtolower($this->translationService->translate('Demande', 'Expédition', 'Expédition', false)) . " a été créée";
             if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
             }
@@ -197,7 +201,7 @@ class ShippingRequestService {
 
         //Planification
         if($shippingRequest->isShipped()) {
-            $mailTitle = "FOLLOW GT // Demande d'expédition effectuée";
+            $mailTitle = "FOLLOW GT // Demande d'" . strtolower($this->translationService->translate('Demande', 'Expédition', 'Expédition', false)) . " effectuée";
             $title = "Vos produits ont bien été expédiés";
             if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
