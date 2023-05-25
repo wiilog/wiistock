@@ -411,20 +411,19 @@ class ShippingRequestService {
                                     ]
                                 ],
                                 [
-                                    'hasRight' =>$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE),
+                                    'hasRight' => $this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE),
                                     'title' => 'Voir la référence',
                                     'icon' => 'fa fa-eye',
                                     'attributes' => [
                                         'onclick' => "window.location.href = '{$this->router->generate('reference_article_show_page', ['id' => $reference->getId()])}'",
                                     ]
                                 ],
-
                             ],
                         ]);
 
                         return [
                             'actions' => $actions,
-                            'reference' => '<div class="d-flex align-items-center">' . $reference->getLibelle() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
+                            'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
                             'label' => $reference->getLibelle(),
                             'quantity' => $shippingRequestLine->getQuantity(),
                             'price' => $expectedLine->getPrice(),

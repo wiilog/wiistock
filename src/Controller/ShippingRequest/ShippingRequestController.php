@@ -582,11 +582,13 @@ class ShippingRequestController extends AbstractController {
                             $generatedBarcode[] = $article->getBarCode();
                         }
 
+                        $articleOrReference = $article ?? $referenceArticle;
+
                         $stockMovement = $stockMovementService->createMouvementStock(
                             $this->getUser(),
                             null,
-                            isset($article) ? $article->getQuantite() : $pickedQuantity,
-                            $article ?? $referenceArticle,
+                            $pickedQuantity,
+                            $articleOrReference,
                             MouvementStock::TYPE_ENTREE,
                             [
                                 'date' => $now,
@@ -596,7 +598,7 @@ class ShippingRequestController extends AbstractController {
                         $entityManager->persist($stockMovement);
 
                         $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
-                            ($article ?? $referenceArticle)->getBarCode(),
+                            $articleOrReference->getTrackingPack() ?: $articleOrReference->getBarCode(),
                             $packLocation,
                             $this->getUser(),
                             $now,
@@ -604,9 +606,10 @@ class ShippingRequestController extends AbstractController {
                             true,
                             TrackingMovement::TYPE_DEPOSE,
                             [
-                                'refOrArticle' => $article ?? $referenceArticle,
+                                'refOrArticle' => $articleOrReference,
                                 'mouvementStock' => $stockMovement,
-                                'logisticUnitParent' => $shippingPack->getPack()
+                                'logisticUnitParent' => $shippingPack->getPack(),
+                                "quantity" => $pickedQuantity,
                             ]
                         );
                         $entityManager->persist($trackingMovementDrop);
@@ -623,7 +626,8 @@ class ShippingRequestController extends AbstractController {
                                 [
                                     'refOrArticle' => $article,
                                     'mouvementStock' => $stockMovement,
-                                    'logisticUnitParent' => $shippingPack->getPack()
+                                    'logisticUnitParent' => $shippingPack->getPack(),
+                                    "quantity" => $pickedQuantity,
                                 ]
                             );
                             $entityManager->persist($trackingMovementDropLogisticUnit);
@@ -633,7 +637,7 @@ class ShippingRequestController extends AbstractController {
                         $requestLine = new ShippingRequestLine();
                         $requestLine
                             ->setQuantity($pickedQuantity)
-                            ->setArticleOrReference($article ?? $referenceArticle)
+                            ->setArticleOrReference($articleOrReference)
                             ->setShippingPack($shippingPack)
                             ->setExpectedLine($requestExpectedLine);
 
@@ -679,20 +683,20 @@ class ShippingRequestController extends AbstractController {
                                ShippingRequestService             $shippingRequestService,
                                ShippingRequestExpectedLineService $shippingRequestExpectedLineService): Response
     {
-        switch (strtolower($shippingRequest->getStatus()->getCode())) {
-            case strtolower(ShippingRequest::STATUS_DRAFT):
+        switch ($shippingRequest->getStatus()->getCode()) {
+            case ShippingRequest::STATUS_DRAFT:
                 $html = $this->renderView('shipping_request/details/draft.html.twig', [
                     'shippingRequest' => $shippingRequest,
                 ]);
                 break;
-            case strtolower(ShippingRequest::STATUS_TO_TREAT):
+            case ShippingRequest::STATUS_TO_TREAT:
                 $html = $this->renderView('shipping_request/details/to_treat.html.twig', [
                     'shippingRequest' => $shippingRequest,
                     'expectedLines' => $shippingRequestExpectedLineService->getDataForDetailsTable($shippingRequest),
                 ]);
                 break;
-            case strtolower(ShippingRequest::STATUS_SCHEDULED):
-            case strtolower(ShippingRequest::STATUS_SHIPPED):
+            case ShippingRequest::STATUS_SCHEDULED:
+            case ShippingRequest::STATUS_SHIPPED:
                 $html = $this->renderView('shipping_request/details/scheduled.html.twig', [
                     'shippingRequest' => $shippingRequest,
                     'lines' => $shippingRequestService->getDataForScheduledRequest($shippingRequest),
