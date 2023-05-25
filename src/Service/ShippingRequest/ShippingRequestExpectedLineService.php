@@ -68,7 +68,7 @@ class ShippingRequestExpectedLineService {
                     <span class='wii-icon wii-icon-trash'></span>
                 </span>
             ",
-            "information" => "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px".($line?->getReferenceArticle()->isDangerousGoods() ? "" : " d-none")."'></i>",
+            "information" => "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px".($line?->getReferenceArticle()->isDangerousGoods() ? "" : " d-none")."'></i>",
             "editAction" => $hasRightToEdit
                 ? (
                     "<a title='Ajouter une FDS'
@@ -156,7 +156,7 @@ class ShippingRequestExpectedLineService {
                 ]);
                 return [
                     'actions' => $actions,
-                    'reference' => $reference->getReference() . ($reference->isDangerousGoods() ? "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px'></i>" : ''),
+                    'reference' => $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px'></i>" : ''),
                     'label' => $reference->getLibelle(),
                     'quantity' => $expectedLine->getQuantity(),
                     'price' => $expectedLine->getPrice(),
