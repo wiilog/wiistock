@@ -37,6 +37,7 @@ use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
+use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -303,8 +304,14 @@ class ShippingRequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::CREATE_SHIPPING], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         ShippingRequestService $shippingRequestService): JsonResponse {
+                         ShippingRequestService $shippingRequestService,
+                         UserService            $userService,
+                         TranslationService     $translationService): JsonResponse
+    {
         $data = $request->request;
+        $success = null;
+        $user = $this->getUser();
+
         $shippingRequestId = $request->get('shippingRequestId');
         if ($shippingRequestId) {
             $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
@@ -313,17 +320,41 @@ class ShippingRequestController extends AbstractController {
             throw new FormException('La demande d\'expédition n\'a pas été trouvée.');
         }
 
-        $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
-        if($success){
+        // right & status to treat
+        if ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT) {
+            if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING, $user)) {
+                $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+            } else {
+                throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
+            }
+
+        // right & status scheduled
+        } else if ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SCHEDULED) {
+            if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_PLANIFIED_SHIPPING)) {
+                $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+            } else {
+                throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
+            }
+
+        // right & status shipped
+        } else if ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SHIPPED) {
+            if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_SHIPPED_SHIPPING)) {
+                $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+            } else {
+                throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
+            }
+        }
+
+        if ($success) {
             $entityManager->flush();
             return $this->json([
                 'success' => true,
                 'msg' => 'Votre demande d\'expédition a bien été enregistrée',
                 'shippingRequestId' => $shippingRequest->getId(),
             ]);
-        } else {
-            throw new FormException();
         }
+        // draft
+        throw new FormException("Cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " ne peut pas être modifiée avec le statut Brouillon ");
     }
 
     #[Route("/check_expected_lines_data/{id}", name: 'check_expected_lines_data', options: ["expose" => true], methods: ['GET'])]
