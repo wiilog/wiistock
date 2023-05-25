@@ -697,7 +697,8 @@ class ShippingRequestController extends AbstractController {
                                          StatusHistoryService    $statusHistoryService,
                                          EntityManagerInterface  $entityManager,
                                          MouvementStockService   $mouvementStockService,
-                                         TrackingMovementService $trackingMovementService): JsonResponse
+                                         TrackingMovementService $trackingMovementService,
+                                         ShippingRequestService  $shippingRequestService): JsonResponse
     {
         $user = $this->getUser();
         $dateNow = new DateTime('now');
@@ -846,6 +847,7 @@ class ShippingRequestController extends AbstractController {
             }
         }
 
+        $shippingRequestService->sendMailForStatus($entityManager, $shippingRequest);
         $entityManager->flush();
 
         return $this->json([
