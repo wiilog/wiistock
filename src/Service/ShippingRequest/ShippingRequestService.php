@@ -437,7 +437,7 @@ class ShippingRequestService {
                     'pack' => [
                         'nature' => $this->formatService->nature($pack->getNature()),
                         'code' => $pack->getCode() ?? null,
-                        'size' => $shippingRequestPack->getSize(),
+                        'size' => $shippingRequestPack->getSize() ?? '/',
                         'location' => $this->formatService->location($pack->getLastDrop()?->getEmplacement()),
                         'color' => $pack?->getNature()?->getColor() ?? null,
                     ],
