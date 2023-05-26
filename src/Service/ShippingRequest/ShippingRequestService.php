@@ -2,6 +2,7 @@
 
 namespace App\Service\ShippingRequest;
 
+use App\Entity\Attachment;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Customer;
@@ -11,6 +12,7 @@ use App\Entity\Menu;
 use App\Entity\Role;
 use App\Entity\Nature;
 use App\Entity\Setting;
+use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\ShippingRequest\ShippingRequestLine;
@@ -20,17 +22,23 @@ use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Exceptions\FormException;
+use App\Service\Document\TemplateDocumentService;
 use App\Service\FormatService;
+use App\Service\PDFGeneratorService;
+use App\Service\SpecificService;
 use App\Service\MailerService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
-use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\MakerBundle\Str;
+use DateTime;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -68,6 +76,18 @@ class ShippingRequestService {
 
     #[Required]
     public UserService $userService;
+
+    #[Required]
+    public KernelInterface $kernel;
+
+    #[Required]
+    public SpecificService $specificService;
+
+    #[Required]
+    public TemplateDocumentService $wordTemplateDocument;
+
+    #[Required]
+    public PDFGeneratorService $PDFGeneratorService;
 
     #[Required]
     public TranslationService $translationService;
@@ -240,8 +260,8 @@ class ShippingRequestService {
                     'referenceArticleId' => $expectedLine->getReferenceArticle()->getId(),
                     'label' => $expectedLine->getReferenceArticle()->getLibelle(),
                     'quantity' => $expectedLine->getQuantity(),
-                    'price' => $expectedLine->getPrice(),
-                    'weight' => $expectedLine->getWeight(),
+                    'price' => $expectedLine->getUnitPrice(),
+                    'weight' => $expectedLine->getUnitWeight(),
                     'totalPrice' => '<span class="total-price"></span>',
                 ];
             })
@@ -368,7 +388,7 @@ class ShippingRequestService {
     public function updateNetWeight(ShippingRequest $shippingRequest): void {
         $shippingRequest->setNetWeight(
             Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getWeight() ? $line->getQuantity() * $line->getWeight() : 0)
+                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getUnitWeight() ? $line->getQuantity() * $line->getUnitWeight() : 0)
                 ->sum()
         );
     }
@@ -376,7 +396,7 @@ class ShippingRequestService {
     public function updateTotalValue(ShippingRequest $shippingRequest): void {
         $shippingRequest->setTotalValue(
             Stream::from($shippingRequest->getExpectedLines())
-                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getPrice() ? $line->getQuantity() * $line->getPrice() : 0)
+                ->map(fn(ShippingRequestExpectedLine $line) => $line->getQuantity() && $line->getUnitPrice() ? $line->getQuantity() * $line->getUnitPrice() : 0)
                 ->sum()
         );
     }
@@ -447,9 +467,9 @@ class ShippingRequestService {
                             'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
                             'label' => $reference->getLibelle(),
                             'quantity' => $shippingRequestLine->getQuantity(),
-                            'price' => $expectedLine->getPrice(),
-                            'weight' => $expectedLine->getWeight(),
-                            'totalPrice' => $shippingRequestLine->getQuantity() * $expectedLine->getPrice(),
+                            'price' => $expectedLine->getUnitPrice(),
+                            'weight' => $expectedLine->getUnitWeight(),
+                            'totalPrice' => $shippingRequestLine->getQuantity() * $expectedLine->getUnitPrice(),
                         ];
                     })
                     ->toArray();
@@ -467,4 +487,145 @@ class ShippingRequestService {
             })
             ->toArray();
     }
+
+    public function persistNewDeliverySlipAttachment(EntityManagerInterface     $entityManager,
+                                                     ShippingRequest            $shippingRequest): Attachment {
+        $formatService = $this->formatService;
+        $projectDir = $this->kernel->getProjectDir();
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $deliverySlipTemplatePath = $settingRepository->getOneParamByLabel(Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE)
+            ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE);
+
+        $shippingRequestStatus = $shippingRequest->getStatus()->getNom();
+
+        $variables = [
+            //en-tête
+            "QRCodeexpe" => $shippingRequest->getNumber() ?? "",
+            "numexpedition" => $shippingRequest->getNumber() ?? "",
+            "datecreation" => $formatService->date($shippingRequest->getCreatedAt()) ?? "",
+            "demandeurs" => $formatService->users($shippingRequest->getRequesters()) ?? "",
+            "teldemandeur" => implode(', ', $shippingRequest->getRequesterPhoneNumbers()) ?? "",
+            "numcommandeclient" => $shippingRequest->getCustomerOrderNumber() ?? "",
+            "livraisongracieux" => $formatService->bool($shippingRequest->isFreeDelivery()) ?? "",
+            "articlesconformes" => $formatService->bool($shippingRequest->isCompliantArticles()) ?? "",
+            "destinataire" => $shippingRequest->getCustomerRecipient() ?? "",
+            "teldestinataire" => $shippingRequest->getCustomerPhone() ?? "",
+            "client" => $shippingRequest->getCustomerName() ?? "",
+            "adressedestinataire" => $shippingRequest->getCustomerAddress() ?? "",
+            "dateexpedition" => $formatService->date($shippingRequest->getTreatedAt()) ?? "",
+
+            //transport
+            "datepriseenchargesouhaitee" => $formatService->date($shippingRequest->getRequestCaredAt()) ?? "",
+            "port" => ShippingRequest::CARRYING_LABELS[$shippingRequest->getCarrying()] ?? "",
+            "numtracking" => $shippingRequest->getTrackingNumber() ?? "",
+            "dateenlevement" => $formatService->date($shippingRequest->getExpectedPickedAt()) ?? "",
+            "nomtransporteur" => $formatService->carrier($shippingRequest->getCarrier()) ?? "",
+            "specificationtransport" => "",
+
+            //footer
+            "poidsnettotal" => $shippingRequest->getNetWeight() ?? "",
+            "dimensioncolis" => "",
+            "valeurtotal" => $shippingRequest->getTotalValue() ?? "",
+            "nbcolis" => $shippingRequest->isToTreat() ? "" : count($shippingRequest->getPackLines()),
+            "poidsbruttotal" => $shippingRequest->getGrossWeight() ?? "",
+
+        ];
+
+        if ($shippingRequestStatus == ShippingRequest::STATUS_TO_TREAT) {
+            $variables["reference"] = Stream::from($shippingRequest->getExpectedLines())
+                ->map(function (ShippingRequestExpectedLine $shippingRequestExpectedLine) {
+                    $reference = $shippingRequestExpectedLine->getReferenceArticle();
+                    $price = $shippingRequestExpectedLine->getUnitPrice();
+                    $quantity = $shippingRequestExpectedLine->getQuantity();
+                    $totalPrice = $price * $quantity;
+                    return [
+                        "reference" => $reference->getReference() ?? "",
+                        "quantite" => $quantity ?? "",
+                        "prixunitaire" => $price ?? "",
+                        "poidsnet" => $shippingRequestExpectedLine->getUnitWeight() ?? "",
+                        "montantotal" => $totalPrice ?? "",
+                        "matieredangereuse" => $this->formatService->bool($reference->isDangerousGoods()) ?? "",
+                        "FDS" => $reference->getSheet() ? $reference->getSheet()->getFileName() : "",
+                        "CodeONU" => $reference->getOnuCode() ?? "",
+                        "classeproduit" => $reference->getProductClass() ?? "",
+                        "CodeNDP" => $reference->getNdpCode() ?? "",
+                    ];
+                })
+                ->toArray();
+        } else {
+            $packLines = Stream::from($shippingRequest->getPackLines()->toArray())
+                ->map(fn(ShippingRequestPack $shippingRequestPack) => $shippingRequestPack->getLines())
+                ->toArray();
+
+            foreach ($packLines as $lines) {
+                $variables["reference"][] = array_merge(
+                    ...Stream::from($lines)
+                    ->map(function(ShippingRequestLine $shippingRequestLine) {
+                        $articleOrReference = $shippingRequestLine->getArticleOrReference();
+
+                        if ($articleOrReference instanceof ReferenceArticle) {
+                            $dangerousGoods = $this->formatService->bool($articleOrReference->isDangerousGoods());
+                            $FDS = $articleOrReference->getSheet() ? $articleOrReference->getSheet()->getOriginalName() : "";
+                            $onuCode = $articleOrReference->getOnuCode();
+                            $productClass = $articleOrReference->getProductClass();
+                            $ndpCode = $articleOrReference->getNdpCode();
+                        } else {
+                            $dangerousGoods = $this->formatService->bool($articleOrReference->getReferenceArticle()->isDangerousGoods());
+                            $FDS = $articleOrReference->getReferenceArticle()->getSheet() ? $articleOrReference->getReferenceArticle()->getSheet()->getOriginalName() : "";
+                            $onuCode = $articleOrReference->getReferenceArticle()->getOnuCode();
+                            $productClass = $articleOrReference->getReferenceArticle()->getProductClass();
+                            $ndpCode = $articleOrReference->getReferenceArticle()->getNdpCode();
+                        }
+
+                        return [
+                            "reference" => $articleOrReference->getReference() ?? "",
+                            "quantite" => $shippingRequestLine->getExpectedLine()->getQuantity() ?? "",
+                            "prixunitaire" => $shippingRequestLine->getExpectedLine()->getUnitPrice() ?? "",
+                            "poidsnet" => $shippingRequestLine->getExpectedLine()->getUnitWeight() ?? "",
+                            "montantotal" => $shippingRequestLine->getExpectedLine()->getTotalPrice() ?? "",
+                            "matieredangereuse" => $dangerousGoods ?? "",
+                            "FDS" => $FDS ?? "",
+                            "CodeONU" => $onuCode ?? "",
+                            "classeproduit" => $productClass ?? "",
+                            "CodeNDP" => $ndpCode ?? "",
+                        ];
+                    })->toArray()
+                );
+            }
+        }
+
+        $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
+            "$projectDir/public/$deliverySlipTemplatePath",
+            $variables,
+            ["barcodes" => ["QRCodeexpe"],]
+        );
+
+        $nakedFileName = uniqid();
+
+        $deliverySlipOutdir = "$projectDir\public\uploads\attachements";
+        $docxPath = "$deliverySlipOutdir\\$nakedFileName.docx";
+
+        rename($tmpDocxPath, $docxPath);
+        $this->PDFGeneratorService->generateFromDocx($docxPath, $deliverySlipOutdir);
+        unlink($docxPath);
+
+        $now = new DateTime();
+
+        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+
+        $name = "BDL - {$shippingRequest->getNumber()} - $client - {$now->format('dmYHis')}";
+
+        $deliverySlipAttachment = new Attachment();
+        $deliverySlipAttachment
+            ->setFileName($nakedFileName . '.pdf')
+            ->setOriginalName($name . '.pdf');
+
+        $shippingRequest->addAttachment($deliverySlipAttachment);
+
+        $entityManager->persist($deliverySlipAttachment);
+
+        return $deliverySlipAttachment;
+    }
+
 }

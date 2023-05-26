@@ -5,6 +5,7 @@ namespace App\Controller\ShippingRequest;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\Attachment;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Language;
@@ -41,9 +42,12 @@ use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use mysql_xdevapi\Exception;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -262,11 +266,13 @@ class ShippingRequestController extends AbstractController {
 
             $line
                 ->setQuantity($data['quantity'] ?? null)
-                ->setPrice($data['price'] ?? null)
-                ->setWeight($data['weight'] ?? null);
+                ->setUnitPrice($data['price'] ?? null)
+                ->setUnitWeight($data['weight'] ?? null);
 
             $shippingRequestService->updateNetWeight($shippingRequest);
             $shippingRequestService->updateTotalValue($shippingRequest);
+            $expectedLineService->updateTotalPrice($line);
+            $expectedLineService->updateTotalWeight($line);
 
             $entityManager->flush();
 
@@ -577,7 +583,7 @@ class ShippingRequestController extends AbstractController {
                                     'refArticle' => $referenceArticle,
                                     'emplacement' => $packLocation,
                                     'quantite' => $pickedQuantity,
-                                    'prix' => $requestExpectedLine->getPrice(),
+                                    'prix' => $requestExpectedLine->getUnitPrice(),
                                     'articleFournisseur' => $requestExpectedLine->getReferenceArticle()->getArticlesFournisseur()->first()->getId(),
                                     'currentLogisticUnit' => $shippingPack->getPack(),
                                 ],
@@ -888,5 +894,32 @@ class ShippingRequestController extends AbstractController {
             'success' => true,
             'msg' => "La ".mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false))." a été expédiée."
         ]);
+    }
+
+    #[Route("/{shippingRequest}/delivery-slip", name: "post_delivery_slip", options: ["expose"=>true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    public function postDeliverySlip(EntityManagerInterface $entityManager,
+                                     ShippingRequest        $shippingRequest,
+                                     ShippingRequestService $shippingRequestService): JsonResponse {
+        $deliverySlipAttachment = $shippingRequestService->persistNewDeliverySlipAttachment($entityManager, $shippingRequest);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le téléchargement de votre bordereau de livraison va commencer...',
+            'attachmentId' => $deliverySlipAttachment->getId(),
+        ]);
+    }
+
+
+    #[Route("/{shippingRequest}/delivery-slip/{attachment}", name:"print_delivery_slip", options:["expose"=>true], methods:['GET'], condition: "request.isXmlHttpRequest()")]
+    public function printDeliverySlip(ShippingRequest           $shippingRequest,
+                                      ShippingRequestService    $shippingRequestService,
+                                      Attachment                $attachment,
+                                      KernelInterface           $kernel): Response {
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '\public\uploads\attachements\\' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$attachment->getOriginalName());
+
+        return $response;
     }
 }

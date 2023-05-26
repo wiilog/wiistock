@@ -6,6 +6,7 @@ import {ERROR} from "@app/flash";
 
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
+global.generateDeliverySlip = generateDeliverySlip;
 global.treatShippingRequest = treatShippingRequest;
 global.deleteExpectedLine = deleteExpectedLine;
 
@@ -697,3 +698,20 @@ function updatePage() {
     updateDetails();
     refreshTransportHeader();
 }
+
+function generateDeliverySlip(shippingRequestId) {
+    AJAX.route('POST', 'post_delivery_slip', {shippingRequest: shippingRequestId})
+        .json()
+        .then(({attachmentId}) => {
+            AJAX.route('GET', 'print_delivery_slip', {
+                shippingRequest: shippingRequestId,
+                attachment: attachmentId,
+            })
+            .file({
+                success: "Votre bordereau de livraison a bien été imprimé.",
+                error: "Erreur lors de l'impression du bordereau de livraison."
+            })
+            .then();
+        });
+}
+
