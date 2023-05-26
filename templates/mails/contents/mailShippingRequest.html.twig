@@ -1,13 +1,13 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-    <div>Numéro de la demande : <strong>{{ shippingRequest.number }}></strong></div>
+    <div>Numéro de la demande : <strong>{{ shippingRequest.number }}</strong></div>
     <div>Date de création : <strong>{{ shippingRequest.createdAt|date('d/m/Y H:i') }}</strong></div>
     <div>Demandeur(s) : <strong>{{ shippingRequest.requesters|map((requester) => requester.username)|join(', ') }}</strong></div>
     <div>Destinataire : <strong>{{ shippingRequest.customerName }}</strong></div>
-    <div>Date de prise en charge souhaitée : <strong>{{ shippingRequest.requestCaredAt|date('d/m/Y H:i') }}</strong></div>
+    <div>Date de prise en charge souhaitée : <strong>{{ shippingRequest.requestCaredAt|date('d/m/Y') }}</strong></div>
     {% if isShipped %}
-        <div>Enlèvement prévue le : <strong>{{ shippingRequest.expectedPickedAt|date('d/m/Y H:i') }}</strong></div>
+        <div>Enlèvement prévue le : <strong>{{ shippingRequest.expectedPickedAt|date('d/m/Y') }}</strong></div>
         <div>Confirmation d'expédition le : <strong>{{ shippingRequest.treatedAt|date('d/m/Y H:i') }}</strong></div>
     {% endif %}
     <br>
@@ -135,7 +135,7 @@
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ line.expectedLine.quantity }}
+                            {{ line.quantity }}
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">

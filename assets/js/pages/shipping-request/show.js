@@ -2,6 +2,7 @@ import Form from "@app/form";
 import AJAX, {GET, POST} from "@app/ajax";
 import Modal from "@app/modal";
 import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
+import {ERROR} from "@app/flash";
 
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
@@ -53,13 +54,17 @@ function refreshTransportHeader(){
 }
 
 function validateShippingRequest($button) {
-    wrapLoadingOnActionButton($button, () => (
-        AJAX.route(GET, `shipping_request_validation`, {shippingRequest: shippingId})
-            .json()
-            .then((res) => {
-                updatePage();
-            })
-    ));
+    if($('#expectedLinesEditableTable').find('.is-invalid').length > 0){
+        Flash.add(ERROR, 'Tous les champs obligatoires ne sont pas remplis');
+    } else {
+        wrapLoadingOnActionButton($button, () => (
+            AJAX.route(GET, `shipping_request_validation`, {shippingRequest: shippingId})
+                .json()
+                .then((res) => {
+                    updatePage();
+                })
+        ));
+    }
 }
 
 function initScheduledShippingRequestForm() {
@@ -373,7 +378,7 @@ function initShippingRequestExpectedLine($table) {
             {data: 'information', orderable: false, alwaysVisible: true, class: 'noVis', width: '10px'},
             {data: 'editAction', orderable: false, alwaysVisible: true, class: 'noVis', width: '10px'},
             {data: 'label', title: 'Libellé'},
-            {data: 'quantity', title: 'Quantité'},
+            {data: 'quantity', title: 'Quantité', required: true,},
             {data: 'price', title: 'Prix unitaire (€)', required: true,},
             {data: 'weight', title: 'Poids net (kg)', required: true,},
             {data: 'total', title: 'Montant Total',},

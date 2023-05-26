@@ -1704,7 +1704,7 @@ class ReceptionController extends AbstractController {
 
             $articleArray['receptionReferenceArticle'] = $receptionReferenceArticle;
             $articleArray['refArticle'] = $receptionReferenceArticle->getReferenceArticle();
-            $articleArray['conform'] = $receptionReferenceArticle->getAnomalie();
+            $articleArray['conform'] = !$receptionReferenceArticle->getAnomalie();
 
             if(!isset($totalQuantities[$receptionReferenceArticle->getId()])) {
                 $totalQuantities[$receptionReferenceArticle->getId()] = [

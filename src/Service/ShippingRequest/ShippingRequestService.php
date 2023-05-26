@@ -5,6 +5,7 @@ namespace App\Service\ShippingRequest;
 use App\Entity\Attachment;
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Customer;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -28,6 +29,7 @@ use App\Service\SpecificService;
 use App\Service\MailerService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManager;
@@ -86,6 +88,9 @@ class ShippingRequestService {
 
     #[Required]
     public PDFGeneratorService $PDFGeneratorService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -201,8 +206,8 @@ class ShippingRequestService {
         $title = '';
         //Validation
         if($shippingRequest->isToTreat()) {
-            $mailTitle = "FOLLOW GT // Création d'une demande d'expédition";
-            $title = "Une demande d'expédition a été créée";
+            $mailTitle = "FOLLOW GT // Création d'une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false));
+            $title = "Une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " a été créée";
             if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
             }
@@ -217,7 +222,7 @@ class ShippingRequestService {
 
         //Planification
         if($shippingRequest->isShipped()) {
-            $mailTitle = "FOLLOW GT // Demande d'expédition effectuée";
+            $mailTitle = "FOLLOW GT // " . $this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false) . " effectuée";
             $title = "Vos produits ont bien été expédiés";
             if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
@@ -310,7 +315,8 @@ class ShippingRequestService {
     public function updateShippingRequest(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest, InputBag $data): bool {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $requiredFields= [
+        $customerRepository = $entityManager->getRepository(Customer::class);
+        $requiredFields = [
             'requesters',
             'requesterPhoneNumbers',
             'customerOrderNumber',
@@ -341,8 +347,24 @@ class ShippingRequestService {
         $carrier = $carrierId
             ? $carrierRepository->find($carrierId)
             : null;
-        if (!$carrier) {
-            throw new FormException("Vous devez sélectionner un transporteur");
+
+        $customerName = $data->get('customerName');
+        $customer = $customerName
+            ? $customerRepository->findBy(['name' => $customerName])
+            : null;
+
+        $customerPhone = $data->get('customerPhone');
+        $customerRecipient = $data->get('customerRecipient');
+        $customerAddress = $data->get('customerAddress');
+
+        if(!$customer){
+            $newCustomer = (new Customer())
+                ->setName($customerName)
+                ->setPhoneNumber($customerPhone)
+                ->setRecipient($customerRecipient)
+                ->setAddress($customerAddress);
+
+            $entityManager->persist($newCustomer);
         }
 
         $shippingRequest
@@ -350,10 +372,10 @@ class ShippingRequestService {
             ->setCustomerOrderNumber($data->get('customerOrderNumber'))
             ->setFreeDelivery($data->getBoolean('freeDelivery'))
             ->setCompliantArticles($data->getBoolean('compliantArticles'))
-            ->setCustomerName($data->get('customerName'))
-            ->setCustomerPhone($data->get('customerPhone'))
-            ->setCustomerRecipient($data->get('customerRecipient'))
-            ->setCustomerAddress($data->get('customerAddress'))
+            ->setCustomerName($customerName)
+            ->setCustomerPhone($customerPhone)
+            ->setCustomerRecipient($customerRecipient)
+            ->setCustomerAddress($customerAddress)
             ->setRequestCaredAt($this->formatService->parseDatetime($data->get('requestCaredAt')))
             ->setShipment($data->get('shipment'))
             ->setCarrying($data->get('carrying'))
@@ -430,20 +452,19 @@ class ShippingRequestService {
                                     ]
                                 ],
                                 [
-                                    'hasRight' =>$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE),
+                                    'hasRight' => $this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE),
                                     'title' => 'Voir la référence',
                                     'icon' => 'fa fa-eye',
                                     'attributes' => [
                                         'onclick' => "window.location.href = '{$this->router->generate('reference_article_show_page', ['id' => $reference->getId()])}'",
                                     ]
                                 ],
-
                             ],
                         ]);
 
                         return [
                             'actions' => $actions,
-                            'reference' => $reference->getLibelle().($reference->isDangerousGoods() ? "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px'></i>" : ''),
+                            'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
                             'label' => $reference->getLibelle(),
                             'quantity' => $shippingRequestLine->getQuantity(),
                             'price' => $expectedLine->getUnitPrice(),
@@ -457,7 +478,7 @@ class ShippingRequestService {
                     'pack' => [
                         'nature' => $this->formatService->nature($pack->getNature()),
                         'code' => $pack->getCode() ?? null,
-                        'size' => $shippingRequestPack->getSize(),
+                        'size' => $shippingRequestPack->getSize() ?? '/',
                         'location' => $this->formatService->location($pack->getLastDrop()?->getEmplacement()),
                         'color' => $pack?->getNature()?->getColor() ?? null,
                     ],

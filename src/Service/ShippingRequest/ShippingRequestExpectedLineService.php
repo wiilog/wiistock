@@ -38,18 +38,20 @@ class ShippingRequestExpectedLineService {
             $labelColumn = $line->getReferenceArticle()?->getLibelle();
         }
         else {
-            $referenceColumn = $this->formService->macro("select", "referenceArticle", null, true, [
-                "type" => "reference",
-                "minLength" => 0,
-                "error" => "global",
-                "additionalAttributes" => [
-                    ["name" => "data-field-label", 'value' => "Référence"],
-                    ["name" => "data-other-params"],
-                    ["name" => "data-other-params-ignored-shipping-request", "value" => $shippingRequest?->getId()],
-                    ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
-                    ["name" => "data-other-params-new-item", "value" => 1],
-                ],
-            ]);
+            $referenceColumn = Stream::from([
+                $this->formService->macro("select", "referenceArticle", null, true, [
+                    "type" => "reference",
+                    "minLength" => 0,
+                    "additionalAttributes" => [
+                        ["name" => "data-field-label", 'value' => "Référence"],
+                        ["name" => "data-other-params"],
+                        ["name" => "data-other-params-ignored-shipping-request", "value" => $shippingRequest?->getId()],
+                        ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
+                        ["name" => "data-other-params-new-item", "value" => 1],
+                    ],
+                ]),
+                $this->formService->macro("hidden", "lineId")
+            ])->join('');
             $labelColumn = '<span class="label-wrapper"></span>';
         }
 
@@ -64,7 +66,7 @@ class ShippingRequestExpectedLineService {
                     <span class='wii-icon wii-icon-trash'></span>
                 </span>
             ",
-            "information" => "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px".($line?->getReferenceArticle()->isDangerousGoods() ? "" : " d-none")."'></i>",
+            "information" => "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px".($line?->getReferenceArticle()->isDangerousGoods() ? "" : " d-none")."'></i>",
             "editAction" => $hasRightToEdit
                 ? (
                     "<a title='Ajouter une FDS'
@@ -81,7 +83,6 @@ class ShippingRequestExpectedLineService {
                 "type" => "number",
                 "min" => 1,
                 "step" => 1,
-                "error" => "global",
                 "additionalAttributes" => [
                     ["name" => "data-field-label", 'value' => "Quantité"],
                 ],
@@ -89,7 +90,6 @@ class ShippingRequestExpectedLineService {
             "price" => $this->formService->macro("input", "price", null, true, $line?->getUnitPrice(), [
                 "type" => "number",
                 "min" => 0,
-                "error" => "global",
                 "additionalAttributes" => [
                     ["name" => "data-field-label", 'value' => "Prix unitaire"],
                 ],
@@ -97,7 +97,6 @@ class ShippingRequestExpectedLineService {
             "weight" => $this->formService->macro("input", "weight", null, true, $line?->getUnitWeight(), [
                 "type" => "number",
                 "min" => 0,
-                "error" => "global",
                 "additionalAttributes" => [
                     ["name" => "data-field-label", 'value' => "Poids net"],
                 ],
@@ -149,13 +148,20 @@ class ShippingRequestExpectedLineService {
                             'attributes' => [
                                 'onclick' => "window.location.href = '{$this->router->generate('reference_article_show_page', ['id' => $reference->getId()])}'",
                             ]
+                        ],[
+                            'hasRight' => $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT),
+                            'title' => 'Modifier la référence',
+                            'icon' => 'fa fa-pen',
+                            'attributes' => [
+                                'onclick' => "window.location.href = '{$this->router->generate('reference_article_edit_page', ['reference' => $reference->getId()])}'",
+                            ]
                         ],
 
                     ],
                 ]);
                 return [
                     'actions' => $actions,
-                    'reference' => $reference->getReference() . ($reference->isDangerousGoods() ? "<i class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px'></i>" : ''),
+                    'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px ml-2'></i>" : '') . '</div>',
                     'label' => $reference->getLibelle(),
                     'quantity' => $expectedLine->getQuantity(),
                     'price' => $expectedLine->getUnitPrice(),

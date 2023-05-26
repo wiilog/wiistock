@@ -111,7 +111,7 @@
             }) }}
         </div>
         <div class="col-12 col-md-4 mt-2">
-            {{ form.select('carrier', 'Transporteur', true, {
+            {{ form.select('carrier', 'Transporteur', false, {
                 type: 'carrier',
                 items: shipping.carrier ? [{
                     value: shipping.carrier.id,
