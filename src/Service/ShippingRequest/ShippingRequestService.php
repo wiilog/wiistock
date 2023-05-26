@@ -533,7 +533,7 @@ class ShippingRequestService {
         ];
 
         if ($shippingRequestStatus == ShippingRequest::STATUS_TO_TREAT) {
-            $variables["reference"] = $shippingRequest->getExpectedLines()
+            $variables["reference"] = Stream::from($shippingRequest->getExpectedLines())
                 ->map(function (ShippingRequestExpectedLine $shippingRequestExpectedLine) {
                     $reference = $shippingRequestExpectedLine->getReferenceArticle();
                     $price = $shippingRequestExpectedLine->getUnitPrice();
@@ -553,9 +553,7 @@ class ShippingRequestService {
                     ];
                 })
                 ->toArray();
-
         } else {
-
             $packLines = Stream::from($shippingRequest->getPackLines()->toArray())
                 ->map(fn(ShippingRequestPack $shippingRequestPack) => $shippingRequestPack->getLines())
                 ->toArray();
@@ -592,7 +590,7 @@ class ShippingRequestService {
                             "classeproduit" => $productClass ?? "",
                             "CodeNDP" => $ndpCode ?? "",
                         ];
-                    })
+                    })->toArray()
                 );
             }
         }

@@ -29,6 +29,15 @@ final class Version20230525153340 extends AbstractMigration
             && $schema->getTable("shipping_request_expected_line")->hasColumn("weight")) {
             $this->addSql('ALTER TABLE shipping_request_expected_line RENAME COLUMN weight TO unit_weight');
         }
+
+        if ($schema->hasTable("shipping_request_expected_line")
+            && $schema->getTable("shipping_request_expected_line")->hasColumn("total_price")) {
+            $this->addSql('UPDATE shipping_request_expected_line SET total_price = quantity * unit_price');
+        }
+        if ($schema->hasTable("shipping_request_expected_line")
+            && $schema->getTable("shipping_request_expected_line")->hasColumn("total_weight")) {
+            $this->addSql('UPDATE shipping_request_expected_line SET total_weight = quantity * unit_weight');
+        }
     }
 
     public function down(Schema $schema): void

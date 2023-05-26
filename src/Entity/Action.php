@@ -101,7 +101,6 @@ class Action {
     const DELETE_SHIPPED_SHIPPING = 'supprimer expédition en "Expédiée"';
     const EDIT_TRANSPORT_SHIPPING_PART = 'modifier partie transport expédition';
     const GENERATE_PACKING_SLIP = 'générer bordereau de colisage';
-    const GENERATE_DELIVERY_SLIP = 'genérer bordereau de livraison';
 
     // menu ordre
     const DISPLAY_ORDRE_COLL = 'afficher collectes';

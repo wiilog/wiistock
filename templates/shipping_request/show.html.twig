@@ -17,7 +17,7 @@
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
-{% set hasRightGenerateDeliverySlip = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DELIVERY_SLIP')) %}
+{% set hasRightGenerateDeliverySlip = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_PACKING_SLIP')) %}
 
 {% import "shipping_request/macro.html.twig" as macro %}
 

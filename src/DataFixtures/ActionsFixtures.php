@@ -181,7 +181,6 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DELETE_SHIPPED_SHIPPING,
                 Action::EDIT_TRANSPORT_SHIPPING_PART,
                 Action::GENERATE_PACKING_SLIP,
-                Action::GENERATE_DELIVERY_SLIP,
             ],
         ],
         Menu::ORDRE => [

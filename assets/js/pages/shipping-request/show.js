@@ -711,7 +711,7 @@ function generateDeliverySlip(shippingRequestId) {
                 success: "Votre bordereau de livraison a bien été imprimé.",
                 error: "Erreur lors de l'impression du bordereau de livraison."
             })
-            .then(() => window.location.reload())
-        })
+            .then();
+        });
 }
 
