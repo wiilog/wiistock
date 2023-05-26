@@ -700,10 +700,10 @@ function updatePage() {
 }
 
 function generateDeliverySlip(shippingRequestId) {
-    AJAX.route('POST', 'post_delivery_slip', {shippingRequest: shippingRequestId})
+    AJAX.route(AJAX.POST, 'post_delivery_slip', {shippingRequest: shippingRequestId})
         .json()
         .then(({attachmentId}) => {
-            AJAX.route('GET', 'print_delivery_slip', {
+            AJAX.route(AJAX.GET, 'print_delivery_slip', {
                 shippingRequest: shippingRequestId,
                 attachment: attachmentId,
             })
@@ -711,7 +711,6 @@ function generateDeliverySlip(shippingRequestId) {
                 success: "Votre bordereau de livraison a bien été imprimé.",
                 error: "Erreur lors de l'impression du bordereau de livraison."
             })
-            .then();
         });
 }
 

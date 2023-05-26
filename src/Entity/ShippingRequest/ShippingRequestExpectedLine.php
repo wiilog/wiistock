@@ -30,10 +30,6 @@ class ShippingRequestExpectedLine {
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $totalPrice = null;
 
-    /* Line net weight, calculated on line adding or removing */
-    #[ORM\Column(type: Types::FLOAT, nullable: true)]
-    private ?float $totalWeight = null;
-
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
     private ?ReferenceArticle $referenceArticle = null;
 
@@ -134,12 +130,4 @@ class ShippingRequestExpectedLine {
         return $this;
     }
 
-    public function getTotalWeight(): ?float {
-        return $this->totalWeight;
-    }
-
-    public function setTotalWeight(?float $totalWeight): self {
-        $this->totalWeight = $totalWeight;
-        return $this;
-    }
 }
