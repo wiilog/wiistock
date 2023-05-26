@@ -2726,7 +2726,7 @@ class MobileController extends AbstractApiController
         if (!$emplacementRepository->findOneBy(['label' => $request->request->get('label')])) {
             $toInsert = $emplacementDataService->persistLocation([
                 "label" => $request->request->get('label'),
-                "isDeliveryPoint" => getBoolean($request->request->get('isDelivery')),
+                "isDeliveryPoint" => $request->request->getBoolean('isDelivery'),
             ], $entityManager);
             $entityManager->flush();
 

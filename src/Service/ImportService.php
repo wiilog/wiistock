@@ -2127,6 +2127,7 @@ class ImportService
                     "label" => $data['emplacement'],
                     "isActive" => true,
                     "isDeliveryPoint" => false,
+                    "zone" => $defaultZoneLocation,
                 ], $this->entityManager);
             }
             $articleOrRef->setEmplacement($location);

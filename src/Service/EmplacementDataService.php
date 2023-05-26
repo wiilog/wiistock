@@ -41,8 +41,6 @@ class EmplacementDataService {
 
     private array $labeledCacheLocations = [];
 
-    private array $cache = [];
-
     public function persistLocation(array $data, EntityManagerInterface $entityManager): Emplacement
     {
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -51,11 +49,7 @@ class EmplacementDataService {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        if (!array_key_exists('defaultZone', $this->cache)) {
-            $this->cache['defaultZone'] =$zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
-        }
-        $defaultZone = $this->cache['defaultZone'];
-
+        $defaultZone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
 
         if(!empty($data['zone'])) {
             $zone = $zoneRepository->find($data['zone']) ?? $defaultZone;
