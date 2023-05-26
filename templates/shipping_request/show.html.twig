@@ -49,8 +49,7 @@
                                         </a>
                                     {% endif %}
                                     {% if hasRightDelete %}
-                                        <a
-                                            onclick="deleteShippingRequest($(this))"
+                                        <a onclick="deleteShippingRequest($(this))"
                                             data-id='{{ shipping.id }}'
                                             data-target='#modalDeleteDispatch'
                                             data-toggle='modal'
@@ -174,9 +173,6 @@
             ],
         },
     } %}
-
-    {% include "shipping_request/modals/scheduled-modal.html.twig" %}
-    {% include "shipping_request/modals/packing.html.twig" %}
 
 {% endblock %}
 

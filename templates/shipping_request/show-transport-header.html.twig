@@ -29,7 +29,7 @@
                 {% if hasRightEditTransportShippingPart %}
                     <button type="button"
                             data-id='{{ shipping.id }}'
-                            onclick=""
+                            onclick="openScheduledShippingRequestModal($(this))"
                             class="btn btn-outline-primary align-items-center justify-content-center split-button mr-0">
                         Modifier
                     </button>
