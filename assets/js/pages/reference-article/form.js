@@ -2,14 +2,19 @@ import '@styles/details-page.scss';
 import AJAX from "@app/ajax";
 import {computeDescriptionFormValues, computeDescriptionShowValues} from "./common";
 
-window.onTypeQuantityChange = onTypeQuantityChange;
-window.toggleEmergency = toggleEmergency;
-window.changeNewReferenceStatus = changeNewReferenceStatus;
+global.onTypeQuantityChange = onTypeQuantityChange;
+global.toggleEmergency = toggleEmergency;
+global.changeNewReferenceStatus = changeNewReferenceStatus;
+global.onTypeSecurityChange = onTypeSecurityChange;
+
+global.onReferenceChange = onReferenceChange;
+global.onLabelChange = onLabelChange;
 
 $(document).ready(() => {
     const $periodSwitch = $('input[name="period"]');
+    handleNeededFileSheet();
 
-    $periodSwitch.on('click', function() {
+    $periodSwitch.on('click', function () {
         buildQuantityPredictions($(this).val());
     })
 
@@ -31,12 +36,12 @@ $(document).ready(() => {
         $(this).closest(`.lineStorageRule`).remove();
     });
 
-    $(`.touch`).change(function() {
+    $(`.touch`).change(function () {
         $(this).closest(`.details-page-dropdown`).find(`.dropdown-wrapper`).toggleClass(`open`)
     })
 
-    $(`.save`).click(function() {
-        if($('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
+    $(`.save`).click(function () {
+        if ($('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
             showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'danger');
         } else {
             const $button = $(this);
@@ -75,7 +80,7 @@ $(document).ready(() => {
         const $uploadArticleReferenceImage = $('#upload-article-reference-image')[0];
         if ($uploadArticleReferenceImage.files && $uploadArticleReferenceImage.files.length > 0) {
             $deleteImage.removeClass('d-none');
-            if($uploadArticleReferenceImage.files[0].size > MAX_UPLOAD_FILE_SIZE) {
+            if ($uploadArticleReferenceImage.files[0].size > MAX_UPLOAD_FILE_SIZE) {
                 showBSAlert(`La taille de l'image ne peut excéder 10mo`, `danger`);
             } else {
                 updateArticleReferenceImage($('.image-container'), $uploadArticleReferenceImage);
@@ -83,10 +88,10 @@ $(document).ready(() => {
         }
     });
 
-    $('.delete-button-container').click(function() {
+    $('.delete-button-container').click(function () {
         const entityId = $(this).data('id');
         const $inputToUpdate = $($(this).data('input-to-update'));
-        if($inputToUpdate.val() === '') {
+        if ($inputToUpdate.val() === '') {
             $inputToUpdate.val(entityId);
         } else {
             $inputToUpdate.val($inputToUpdate.val() + ',' + entityId);
@@ -103,6 +108,12 @@ $(document).ready(() => {
             $size: $(`input[name=size]`),
         });
     });
+
+    const $type = $('select[name=type].data');
+    const preselectedTypeVal = $type.val();
+    if(preselectedTypeVal){
+        $type.trigger('change');
+    }
 });
 
 function deleteLine($button, $inputToUpdate) {
@@ -180,7 +191,7 @@ function onTypeQuantityChange($input) {
     changeNewReferenceStatus($('[name=statut]:checked'));
 }
 
-function changeNewReferenceStatus($select){
+function changeNewReferenceStatus($select) {
     if ($select.exists()) {
         const draftStatusName = $(`input[name="draft-status-name"]`).val();
         const draftSelected = $select.val() === draftStatusName;
@@ -227,3 +238,41 @@ function changeNewReferenceStatus($select){
     }
 }
 
+function onTypeSecurityChange($input) {
+    changeNewReferenceStatus($input);
+    handleNeededFileSheet();
+}
+function handleNeededFileSheet(){
+    //if radio yes is checked, sheet is needed
+    const radioYesChecked = $('input[name=security]:checked').val();
+    const inputRequired = $('input[name=isSheetFileNeeded]');
+
+    const oldTextLabelRequired = $.trim($('span[title=Fiche]').text().split("*")[0]);
+    const labelRequired = $('span[title=Fiche]')
+
+    if(radioYesChecked === "1"){
+        inputRequired.val(1);
+        labelRequired.text(`${oldTextLabelRequired}*`)
+    }else{
+        inputRequired.val(0);
+        labelRequired.text(oldTextLabelRequired)
+    }
+}
+
+function onLabelChange(){
+    const $referenceLabel = $('[name=libelle].data');
+    const $articleSupplierLabel = $('[name=labelFournisseur].data');
+
+    if($articleSupplierLabel.length === 1){
+        $articleSupplierLabel.val($referenceLabel.val());
+    }
+}
+
+function onReferenceChange(){
+    const $referenceReference = $('[name=reference].data');
+    const $articleSupplierReference = $('[name=referenceFournisseur].data');
+
+    if($articleSupplierReference.length === 1){
+        $articleSupplierReference.val($referenceReference.val());
+    }
+}

@@ -36,6 +36,9 @@ global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
+global.changeSettingsAssoBR = changeSettingsAssoBR;
+global.changeReceiverInput = changeReceiverInput;
+global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -76,7 +79,6 @@ const initializers = {
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
-    stock_demandes_livraisons: initializeDeliveries,
     stock_inventaires_frequences: initializeInventoryFrequenciesTable,
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
@@ -265,8 +267,13 @@ $(function() {
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
         if(data) {
-            AJAX.route(`POST`, `settings_save_field_param`, {field}).json(data);
-            $modal.modal(`hide`);
+            AJAX.route(`POST`, `settings_save_field_param`, {field})
+                .json(data)
+                .then((response) => {
+                    if(response.success){
+                        $modal.modal(`hide`);
+                    }
+                });
         }
     });
 
@@ -603,6 +610,30 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+
+    EditableDatatable.create(`#table-demande-addition-fixed-fields`, {
+        route: Routing.generate('settings_sublines_fixed_field_api', {entity: `demandeRefArticle`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`, width: `115px`},
+            {data: `displayed`, title: `Afficher`, width: `70px`},
+            {data: `displayedUnderCondition`, title: `Afficher sous condition`, width: `50px`},
+            {data: `conditionFixedField`, title: `Champ fixe`,  width: `150px`},
+            {data: `conditionFixedFieldValue`, title: `Valeur`,  width: `220px`},
+            {data: `required`, title: `Obligatoire`},
+        ],
+    });
+
+    initializeLocationByTypeForDeliveries();
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
@@ -703,7 +734,7 @@ function initializeHandlingFixedFields($container, canEdit) {
     initializeType();
 }
 
-function initializeDeliveries() {
+function initializeLocationByTypeForDeliveries() {
     initDeliveryRequestDefaultLocations();
     $('.new-type-association-button').on('click', function () {
         newTypeAssociation($(this));
@@ -745,7 +776,8 @@ function initDeliveryRequestDefaultLocations() {
 }
 
 function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
-    const $settingTypeAssociation = $(`.setting-type-association`);
+    const $modal = $('#modal-fixed-field-destinationdemande');
+    const $settingTypeAssociation = $modal.find(`.setting-type-association`);
     const $typeTemplate = $(`#type-template`);
 
     let allFilledSelect = true;
@@ -1220,6 +1252,16 @@ function initializeArticleNativeCountriesTable() {
     });
 }
 
+function changeSettingsAssoBR($checkbox) {
+    const check = $checkbox.is(':checked');
+    if (!check) {
+        $checkbox.parent('.wii-checkbox').next().addClass('d-none');
+        $checkbox.parent('.wii-checkbox').next().find('select').val(null).change();
+    } else {
+        $checkbox.parent('.wii-checkbox').next().removeClass('d-none');
+    }
+}
+
 function initializeEmergenciesFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-emergencies-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `urgence`}),
@@ -1242,4 +1284,45 @@ function initializeEmergenciesFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+}
+
+function changeDisplayRefArticleTable($checkbox) {
+    const check = $checkbox.is(':checked');
+    const $displayedUnderCondition = $checkbox.closest('tr').find('input[name=displayedUnderCondition]');
+    const $conditionFixedField = $checkbox.closest('tr').find('select[name=conditionFixedField]');
+    const $conditionFixedFieldValueDiv = $checkbox.closest('tr').find('.conditionFixedFieldValueDiv');
+    const $required = $checkbox.closest('tr').find('input[name=required]');
+    const alwaysDisabledDisplayedUnderConditionFields = JSON.parse($('[name=disabledDisplayedUnderConditionFields]').val());
+    if (!check) {
+        if ($checkbox[0].name === "displayed") {
+            $displayedUnderCondition.attr('disabled', true);
+            $required.attr('disabled', true);
+            if ($displayedUnderCondition.is(':checked')) {
+                $conditionFixedField.addClass("d-none");
+                $conditionFixedFieldValueDiv.addClass("d-none");
+            }
+        } else if ($checkbox[0].name === "displayedUnderCondition") {
+            $conditionFixedField.addClass("d-none");
+            $conditionFixedFieldValueDiv.addClass("d-none");
+        }
+    } else {
+        if ($checkbox[0].name === "displayed" && !alwaysDisabledDisplayedUnderConditionFields.includes($checkbox.attr('id'))) {
+            $displayedUnderCondition.attr('disabled', false);
+            $required.attr('disabled', false);
+            if ($displayedUnderCondition.is(':checked')) {
+                $conditionFixedField.removeClass("d-none");
+                $conditionFixedFieldValueDiv.removeClass("d-none");
+            }
+        } else if ($checkbox[0].name === "displayedUnderCondition") {
+            $conditionFixedField.removeClass("d-none");
+            $conditionFixedFieldValueDiv.removeClass("d-none");
+        }
+    }
+}
+
+function changeReceiverInput($checkbox) {
+    const isChecked = $checkbox.is(':checked');
+    const $inputReceiver = $checkbox.closest('.modal-body').find('select[name=defaultReceiver]');
+
+    $inputReceiver.attr('disabled', isChecked);
 }

@@ -13,7 +13,7 @@
                                 <img src="{{ asset('svg/delivery.svg') }}" alt="" width="15px">
                                 <span class="wii-field-name ml-2">
                                     {% set deliveries = deliveryAndCollectCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] ?? 0 %}
-                                    {{ deliveries }} livraison{{ deliveries > 1 ? 's' }}
+                                    {{ deliveries }} {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}{{ deliveries > 1 ? 's' }}
                                 </span>
                                 <div class="mx-2 d-flex">
                                     {% if typesCount[dateForContainer | date_modify("+#{i}days") | date('Y-m-d')]['delivery'] is defined %}

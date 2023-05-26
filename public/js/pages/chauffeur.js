@@ -22,7 +22,7 @@ Select2Old.carrier($('.ajax-autocomplete-transporteur'));
 let $modalNewChauffeur = $("#modalNewChauffeur");
 let $submitNewChauffeur = $("#submitNewChauffeur");
 let urlNewChauffeur = Routing.generate('chauffeur_new', true);
-InitModal($modalNewChauffeur, $submitNewChauffeur, urlNewChauffeur, {tables: [tableChauffeur]});
+InitModal($modalNewChauffeur, $submitNewChauffeur, urlNewChauffeur, {tables: [tableChauffeur], formData: true});
 
 let $modalModifyChauffeur = $('#modalEditChauffeur');
 let $submitModifyChauffeur = $('#submitEditChauffeur');

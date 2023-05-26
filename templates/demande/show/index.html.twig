@@ -1,12 +1,23 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
-{% block title %}Demande | Livraison | Détails{% endblock %}
+{% block title %}Demande | {{ trans('Demande', 'Livraison', 'Livraison', false) }} | Détails{% endblock %}
 {% block titleLink path('demande_index') %}
 
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
+
+{% macro listDeliveryContent() %}
+    <div class="col-12 px-0 logistic-units-container my-3 wii-multiple-loading"
+         data-loader-color="primary"
+         data-loader-size="normal">
+    </div>
+{% endmacro %}
+{% import _self as macros %}
+
+{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 
 {% block page_content %}
     <button class="btn btn-outline-secondary" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>
@@ -19,7 +30,7 @@
                         modifiable: modifiable,
                         showDetails: showDetails,
                         titleLogo: demande.preparations|filter(p=>p.pairings|length > 0)|length >= 1 ? 'pairing' : null,
-                        titleLogoTooltip: "Cette livraison est liée à un capteur"
+                        titleLogoTooltip: "Cette " ~ trans('Demande', 'Livraison', 'Livraison', false) | lower ~ " est liée à un capteur"
                     } %}
                 </div>
             </div>
@@ -30,47 +41,80 @@
                     <div class="header wii-title">Liste des articles</div>
                     <div class="content">
                         {% if modifiable %}
-                            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                                <div class="row wii-page-card-header" id="boutonCollecteInf">
-                                    <div class="col-auto ml-auto">
-                                        <div class="btn-group">
-                                            <a
-                                                href="{{ path('reference_article_index') }}"
-                                                target="_blank"
-                                                class="btn btn-primary split-button"
-                                                title="Chercher une référence">
-                                                <i class="fa fa-search mr-2"></i>
-                                                Chercher une {{ trans('Stock', 'Références', 'référence', false) }}
-                                            </a>
-                                            <button type="button"
-                                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                                    data-toggle="dropdown"
-                                                    aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                <span class="fa fa-angle-down"></span>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                                <a data-toggle="modal"
-                                                   data-target="#modalNewArticle"
-                                                   class="dropdown-item pointer d-flex align-items-center"
-                                                   onclick="clearModal('#modalNewArticle')">
-                                                    <span class="wii-icon wii-icon-plus-black mr-2"></span>
-                                                    Ajouter article
+                            {% if setting_value('DELIVERY_REQUEST_ADD_UL') %}
+                                {% if hasRightEdit %}
+                                    <div class="row wii-page-card-header">
+                                        <div class="col-auto ml-auto">
+                                            <div class="btn-group">
+                                                <a
+                                                    href="{{ path('reference_article_index') }}"
+                                                    target="_blank"
+                                                    class="btn btn-primary split-button"
+                                                    title="Chercher une référence">
+                                                    <i class="fa fa-search mr-2"></i>
+                                                    Chercher une {{ trans('Stock', 'Références', 'référence', false) }}
                                                 </a>
-                                                <a class="dropdown-item pointer d-flex align-items-center" onclick="openAddLUModal()">
-                                                    <span class="wii-icon wii-icon-plus-black mr-2"></span>
-                                                    Ajouter unité logistique
-                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                                        data-toggle="dropdown"
+                                                        aria-haspopup="true"
+                                                        aria-expanded="false">
+                                                    <span class="fa fa-angle-down"></span>
+                                                </button>
+                                                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                                    <a data-toggle="modal"
+                                                       data-target="#modalNewArticle"
+                                                       class="dropdown-item pointer d-flex align-items-center"
+                                                       onclick="clearModal('#modalNewArticle')">
+                                                        <span class="wii-icon wii-icon-plus-black mr-2"></span>
+                                                        Ajouter article
+                                                    </a>
+                                                    <a class="dropdown-item pointer d-flex align-items-center" onclick="openAddLUModal()">
+                                                        <span class="wii-icon wii-icon-plus-black mr-2"></span>
+                                                        Ajouter unité logistique
+                                                    </a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                {% endif %}
+                                {{ macros.listDeliveryContent() }}
+                            {% else %}
+                                <div class="row wii-page-card-header">
+                                    <div class="col-auto ml-auto">
+                                        {% include "utils/action-buttons/header-buttons.html.twig" with {
+                                            actions: [
+                                                {
+                                                    hasRight: true,
+                                                    title: 'Gestion des colonnes',
+                                                    icon: "fas fa-cog mr-2",
+                                                    attributes: {
+                                                        "data-toggle": "modal",
+                                                        "data-target": "#modalColumnVisible",
+                                                    }
+                                                },
+                                            ]
+                                        } %}
+                                    </div>
+                                    <div class="col-12">
+                                        <table id="editableTableArticles" class="table"
+                                               data-initial-visible="{{ initial_visible_columns }}"></table>
+                                        {% set projectFieldCode = constant('App\\Entity\\SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT') %}
+                                        {% set commentFieldCode = constant('App\\Entity\\SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT') %}
+                                        {% set isProjectDisplayed = fieldsParam|isFieldRequired(projectFieldCode, 'required') %}
+                                        {% set isCommentDisplayed = fieldsParam|isFieldRequired(commentFieldCode, 'required') %}
+                                        {% set userQuantityType = app.user.role.quantityType %}
+                                        <input hidden name="editableTableArticlesForm" value="{{ editatableLineForm|json_encode }}">
+                                        <input hidden name="editableTableArticlesFieldsParams" value="{{ fieldsParam|json_encode }}">
+                                        <input hidden name="deliveryRequestReceiver" value="{{ demande.receiver ? demande.receiver.username }}">
+                                        <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT" value="{{ setting_value(constant('App\\Entity\\Setting::DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT')) }}">
+                                        <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT" value="{{ setting_value(constant('App\\Entity\\Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT')) }}">
+                                    </div>
                                 </div>
                             {% endif %}
+                        {% else %}
+                            {{ macros.listDeliveryContent() }}
                         {% endif %}
-                        <div class="col-12 px-0 logistic-units-container my-3 wii-multiple-loading"
-                             data-loader-color="primary"
-                             data-loader-size="normal">
-                        </div>
                     </div>
                 </div>
             </div>
@@ -79,12 +123,24 @@
     <button class="btn btn-outline-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
     <input type="hidden" name="showTargetLocationPicking" value="{{ showTargetLocationPicking }}">
     <input type="hidden" name="managePreparationWithPlanning" value="{{ managePreparationWithPlanning }}">
-    <input id="demande-id" type="hidden" value="{{ demande.id }}"/>
+    <input name="requestId" type="hidden" value="{{ demande.id }}"/>
+
+    {% if modifiable and setting_value('DELIVERY_REQUEST_ADD_UL') and hasRightEdit %}
+        {% include 'demande/modalNewArticle.html.twig' %}
+        {% include 'demande/modalEditArticle.html.twig' %}
+    {%  else %}
+        {% include "utils/visible_columns.html.twig" with {
+            'fields': fields,
+            'table': 'editableTableArticles',
+            'route': 'save_visible_columns_for_delivery_request_show',
+            'otherFields': form.input('id' , null, false, demande.id, {type: 'hidden'}),
+            'reload': '1',
+        } %}
+    {% endif %}
 
     {% include 'demande/modalDeleteArticle.html.twig' %}
     {% include 'demande/modalDeleteDemande.html.twig' %}
-    {% include 'demande/modalNewArticle.html.twig' %}
-    {% include 'demande/modalEditArticle.html.twig' %}
+
     {% include 'demande/modalNegativStock.html.twig' %}
     {% include 'demande/modalCannotValidate.html.twig' %}
     {% include 'reference_article/modalShowRefArticle.html.twig' %}
@@ -97,5 +153,5 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/pages/delivery/request/common.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/delivery/request/show.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('delivery-request-show') }}
 {% endblock %}

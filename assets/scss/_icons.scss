@@ -123,6 +123,14 @@ $icons: (
     'reference-article-location': "../../public/svg/reference_article/location-blue.svg",
     'signature': "../../public/svg/signature.svg",
     'cancel-black': "../../public/svg/cancel-black.svg",
+    'phone' : "../../public/svg/phone.svg",
+    'location-blue':'../../public/svg/location-blue.svg',
+    'delivery':'../../public/svg/delivery.svg',
+    'menu-expedition': '../../public/svg/menu-expedition.svg',
+    'client': '../../public/svg/client.svg',
+    'size': '../../public/svg/size.svg',
+    'dangerous-goods': '../../public/svg/dangerous-goods.svg',
+    'edit-form': '../../public/svg/edit-form.svg',
 );
 
 @each $iconName, $iconPath in $icons {

@@ -72,6 +72,9 @@ class PackService {
     #[Required]
     public ReceptionLineService $receptionLineService;
 
+    #[Required]
+    public UniqueNumberService $uniqueNumberService;
+
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
@@ -444,7 +447,7 @@ class PackService {
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
                 ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature'), "searchable" => true],
                 ["name" => 'code', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Unités logistiques'), "searchable" => true],
-                ["name" => 'project', 'title' => 'Projet', "searchable" => true],
+                ["name" => 'project', 'title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), "searchable" => true],
                 ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement'), "searchable" => true],
                 ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement'), "searchable" => true],
                 ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],

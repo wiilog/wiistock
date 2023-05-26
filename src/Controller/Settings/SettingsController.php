@@ -27,9 +27,11 @@ use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
+use App\Entity\Role;
 use App\Entity\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationCategory;
@@ -215,7 +217,11 @@ class SettingsController extends AbstractController {
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
                         self::MENU_PURCHASE_PLANIFICATION => [
                             "label" => "Achats - Planification",
-                            "right" => Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE
+                            "right" => Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE,
+                        ],
+                        self::MENU_SHIPPING => [
+                            "label" => "Expéditions",
+                            "save" => true,
                         ],
                     ],
                 ],
@@ -324,6 +330,11 @@ class SettingsController extends AbstractController {
                             "save" => true,
                         ],
                     ],
+                ],
+                self::MENU_BR_ASSOCIATION => [
+                    "label" => "Association BR",
+                    "right" => Action::SETTINGS_DISPLAY_BR_ASSOCIATION,
+                    "save" => true,
                 ],
                 self::MENU_MOVEMENTS => [
                     "label" => "Mouvements",
@@ -437,6 +448,11 @@ class SettingsController extends AbstractController {
                     "right" => Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS,
                     "save" => true,
                 ],
+                self::MENU_DELIVERIES => [
+                    "label" => "Livraisons",
+                    "right" => Action::SETTINGS_DISPLAY_DELIVERIES,
+                    "save" => true,
+                ],
             ],
         ],
         self::CATEGORY_DASHBOARDS => [
@@ -456,7 +472,7 @@ class SettingsController extends AbstractController {
             "menus" => [
                 self::MENU_TYPES_FREE_FIELDS => [
                     "right" => Action::SETTINGS_DISPLAY_IOT,
-                    "label" => "Types et champs libres"
+                    "label" => "Types et champs libres",
                 ],
             ],
         ],
@@ -467,7 +483,7 @@ class SettingsController extends AbstractController {
                 self::MENU_ALERTS => [
                     "label" => "Alertes",
                     "right" => Action::SETTINGS_DISPLAY_NOTIFICATIONS_ALERTS,
-                    "wrapped" => false
+                    "wrapped" => false,
                 ],
                 self::MENU_PUSH_NOTIFICATIONS => [
                     "label" => "Notifications push",
@@ -482,7 +498,7 @@ class SettingsController extends AbstractController {
                 self::MENU_LANGUAGES => [
                     "label" => "Langues",
                     "right" => Action::SETTINGS_DISPLAY_LABELS_PERSO,
-                    'route' => "settings_language_index"
+                    'route' => "settings_language_index",
                 ],
                 self::MENU_ROLES => [
                     "label" => "Rôles",
@@ -605,6 +621,7 @@ class SettingsController extends AbstractController {
     public const MENU_HANDLINGS = "services";
     public const MENU_REQUEST_TEMPLATES = "modeles_demande";
     public const MENU_TRUCK_ARRIVALS = "arrivages_camion";
+    public const MENU_BR_ASSOCIATION = "association_BR";
     public const MENU_EMERGENCIES = "urgences";
 
     public const MENU_TRANSPORT_REQUESTS = "demande_transport";
@@ -615,6 +632,7 @@ class SettingsController extends AbstractController {
     public const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
     public const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
     public const MENU_COLLECTS = "collectes";
+    public const MENU_SHIPPING = "expeditions";
     public const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
     public const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
     public const MENU_PURCHASE_STATUSES = "statuts_achats";
@@ -695,7 +713,7 @@ class SettingsController extends AbstractController {
             'label' => $language->getLabel(),
             'value' => $language->getId(),
             'iconUrl' => $language->getFlag(),
-            'checked' => $language->getSelected()
+            'checked' => $language->getSelected(),
         ])
         ->toArray();
 
@@ -778,7 +796,7 @@ class SettingsController extends AbstractController {
                 ],
                 'language' => $language,
                 'translations' => $translations,
-            ])
+            ]),
         ]);
     }
 
@@ -832,7 +850,7 @@ class SettingsController extends AbstractController {
         if (in_array($language->getSlug(),Language::NOT_DELETABLE_LANGUAGES)) {
             return $this->json([
                 "success" => false,
-                "message" => "Cette langue ne peut pas être supprimée"
+                "message" => "Cette langue ne peut pas être supprimée",
             ]);
         }
         else {
@@ -854,7 +872,7 @@ class SettingsController extends AbstractController {
 
             return $this->json([
                 "success" => true,
-                "msg" => "La langue <strong>{$language->getLabel()}</strong> a bien été supprimée."
+                "msg" => "La langue <strong>{$language->getLabel()}</strong> a bien été supprimée.",
             ]);
         }
     }
@@ -1012,7 +1030,7 @@ class SettingsController extends AbstractController {
         self::CATEGORY_GLOBAL => "\Closure[]", self::CATEGORY_STOCK => "\Closure[][]",
         self::CATEGORY_TRACING => "\Closure[][]", self::CATEGORY_TRACKING => "array",
         self::CATEGORY_IOT => "\Closure[]", self::CATEGORY_DATA => "\Closure[]",
-        self::CATEGORY_NOTIFICATIONS => "\Closure[]", self::CATEGORY_USERS => "\Closure[]"
+        self::CATEGORY_NOTIFICATIONS => "\Closure[]", self::CATEGORY_USERS => "\Closure[]",
 
     ])]
     public function customValues(EntityManagerInterface $entityManager): array {
@@ -1031,6 +1049,7 @@ class SettingsController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
         $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
         return [
@@ -1058,7 +1077,7 @@ class SettingsController extends AbstractController {
                         ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                         ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
                         ->join(""),
-                ]
+                ],
             ],
             self::CATEGORY_STOCK => [
                 self::MENU_ARTICLES => [
@@ -1103,8 +1122,6 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_REQUESTS => [
                     self::MENU_DELIVERIES => fn() => [
-                        "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
-                        "deliveryTypeSettings" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
                         "deliveryRequestBehavior" => $settingRepository->findOneBy([
                             'label' => [Setting::DIRECT_DELIVERY, Setting::CREATE_PREPA_AFTER_DL, Setting::CREATE_DELIVERY_ONLY],
                             'value' => 1,
@@ -1120,6 +1137,50 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON),
                         'category' => CategoryType::DEMANDE_LIVRAISON,
                     ],
+                    self::MENU_FIXED_FIELDS => function() use ($typeRepository, $fixedFieldRepository, $userRepository) {
+                        $receiver = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+                        $defaultType = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+                        $defaultLocationByType = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+                        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+
+                        return [
+                            "receiver" => [
+                                "field" => $receiver->getId(),
+                                "modalType" => $receiver->getModalType(),
+                                "elements" => Stream::from($receiver->getElements() ?? [])
+                                    ->map(function(string $element) use ($userRepository) {
+                                        $user = $userRepository->find($element);
+                                        return [
+                                            "label" => $user->getUsername(),
+                                            "value" => $user->getId(),
+                                            "selected" => true,
+                                        ];
+                                    })
+                                    ->toArray(),
+                            ],
+                            "type" => [
+                                "field" => $defaultType->getId(),
+                                "modalType" => $defaultType->getModalType(),
+                                "elements" => Stream::from($types)
+                                    ->map(function(Type $type) use ($defaultType, $typeRepository) {
+                                        $selectedType = !empty($defaultType->getElements()) ? $typeRepository->find($defaultType->getElements()[0]) : null;
+                                        return [
+                                            "label" => $type->getLabel(),
+                                            "value" => $type->getId(),
+                                            "selected" => $selectedType && $selectedType->getId() === $type->getId(),
+                                        ];
+                                    })
+                                    ->toArray(),
+                            ],
+                            "locationByType" => [
+                                "field" => $defaultLocationByType?->getId(),
+                                "modalType" => $defaultLocationByType?->getModalType(),
+                                "elements" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
+                            ],
+                            "disabledDisplayedUnderConditionFields" => SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION,
+                            "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
+                        ];
+                    },
                     self::MENU_COLLECT_TYPES_FREE_FIELDS => fn() => [
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_COLLECTE),
                         'category' => CategoryType::DEMANDE_COLLECTE,
@@ -1127,6 +1188,29 @@ class SettingsController extends AbstractController {
                     self::MENU_PURCHASE_STATUSES => fn() => [
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_PURCHASE_REQUEST),
                     ],
+                    self::MENU_SHIPPING => function() use ($settingRepository, $roleRepository) {
+                        $toTreatRoleIds = $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES)
+                            ? explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))
+                            : null;
+                        $shippedRoleIds = $settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES)
+                            ? explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))
+                            : null;
+
+                        return [
+                            'toTreatRoles' => $toTreatRoleIds ? Stream::from($roleRepository->findBy(['id' => $toTreatRoleIds]))
+                                ->map(fn(Role $role) => [
+                                    'label' => $role->getLabel(),
+                                    'value' => $role->getId(),
+                                    'selected' => true
+                                ]) : [],
+                            'shippedRoles' => $shippedRoleIds ? Stream::from($roleRepository->findBy(['id' => $shippedRoleIds]))
+                                ->map(fn(Role $role) => [
+                                    'label' => $role->getLabel(),
+                                    'value' => $role->getId(),
+                                    'selected' => true
+                                ]) : [],
+                        ];
+                    },
                 ],
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [
@@ -1153,8 +1237,8 @@ class SettingsController extends AbstractController {
                     ],
                 ],
                 self::MENU_TOUCH_TERMINAL => fn() => [
-                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll())
-                ]
+                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
+                ],
             ],
             self::CATEGORY_TRACING => [
                 self::MENU_DISPATCHES => [
@@ -1197,7 +1281,7 @@ class SettingsController extends AbstractController {
                             ],
                             "businessUnit" => [
                                 "field" => $businessField->getId(),
-                                "modalType" => $emergencyField->getModalType(),
+                                "modalType" => $businessField->getModalType(),
                                 "elements" => Stream::from($businessField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1340,7 +1424,7 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                ]
+                ],
             ],
             self::CATEGORY_TRACKING => [
                 self::MENU_ROUNDS => fn() => [
@@ -1561,7 +1645,56 @@ class SettingsController extends AbstractController {
                 $elements[$line['handlingType']] = $line['user'];
             }
             $field->setElements($elements);
+        } else if($field->getModalType() == FieldsParam::MODAL_RECEIVER) {
+            $settingRepository = $manager->getRepository(Setting::class);
+            $setting = $settingRepository->findOneBy(['label' => Setting::RECEIVER_EQUALS_REQUESTER]);
+            if($request->request->get("defaultReceiver")){
+                $field->setElements([$request->request->get("defaultReceiver")]);
+            } else {
+                $field->setElements([]);
+            }
+
+            if($request->request->has(Setting::RECEIVER_EQUALS_REQUESTER)){
+                $setting->setValue($request->request->get(Setting::RECEIVER_EQUALS_REQUESTER));
+            }
+        } else if($field->getModalType() == FieldsParam::MODAL_TYPE) {
+            if($request->request->get("demandeType")){
+                $field->setElements([$request->request->get("demandeType")]);
+            } else {
+                $field->setElements([]);
+            }
         }
+        else if($field->getModalType() == FieldsParam::MODAL_LOCATION_BY_TYPE){
+            if($request->request->has('deliveryType') && $request->request->has('deliveryRequestLocation')){
+                $deliveryTypes = explode(',', $request->request->get("deliveryType"));
+                $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
+
+                if(count($deliveryTypes) !== count($deliveryRequestLocations)){
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Une configuration d'emplacement de livraison par défaut est invalide",
+                    ]);
+                }
+
+                $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
+                $invalidDeliveryTypes = (
+                    empty($associatedTypesAndLocations)
+                    || !Stream::from($associatedTypesAndLocations)
+                        ->filter(fn(string $key, string $value) => !$key || !$value)
+                        ->isEmpty()
+                );
+                if ($invalidDeliveryTypes) {
+                    throw new RuntimeException("Une configuration d'emplacement de livraison par défaut est invalide");
+                }
+                $field->setElements($associatedTypesAndLocations);
+            } else {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Une configuration d'emplacement de livraison par défaut est invalide",
+                ]);
+            }
+        }
+
         $manager->flush();
 
         return $this->json([
@@ -1835,16 +1968,21 @@ class SettingsController extends AbstractController {
 
                 $data[] = [
                     "label" => "Notifications push",
-                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $notificationsEnabled>",
+                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1 smaller' $notificationsEnabled>",
                 ];
             }
 
             if ($categoryLabel === CategoryType::DEMANDE_LIVRAISON) {
-                $mailsEnabled = $type && $type->getSendMail() ? "checked" : "";
+                $requesterMailsEnabled = $type && $type->getSendMailRequester() ? "checked" : "";
+                $receiverMailsEnabled = $type && $type->getSendMailReceiver() ? "checked" : "";
 
                 $data[] = [
                     "label" => "Envoi d'un email au demandeur",
-                    "value" => "<input name='mailRequester' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
+                    "value" => "<input name='mailRequester' type='checkbox' class='data form-control mt-1 smaller' $requesterMailsEnabled>",
+                ];
+                $data[] = [
+                    "label" => "Envoi d'un email au destinataire",
+                    "value" => "<input name='mailReceiver' type='checkbox' class='data form-control mt-1 smaller' $receiverMailsEnabled>",
                 ];
             } else {
                 if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
@@ -1952,7 +2090,11 @@ class SettingsController extends AbstractController {
             if ($categoryLabel === CategoryType::DEMANDE_LIVRAISON) {
                 $data[] = [
                     "label" => "Envoi d'un email au demandeur",
-                    "value" => $type?->getSendMail() ? "Activées" : "Désactivées",
+                    "value" => $type?->getSendMailRequester() ? "Activées" : "Désactivées",
+                ];
+                $data[] = [
+                    "label" => "Envoi d'un email au destinataire",
+                    "value" => $type?->getSendMailReceiver() ? "Activées" : "Désactivées",
                 ];
             }
 
@@ -2208,14 +2350,61 @@ class SettingsController extends AbstractController {
             $manager->remove($entity->getLabelTranslation());
         }
 
-
-
         $manager->remove($entity);
         $manager->flush();
 
         return $this->json([
             "success" => true,
             "msg" => "Le champ libre a été supprimé",
+        ]);
+    }
+
+    /**
+     * @Route("/champ-fixe/sous-lignes/{entity}", name="settings_sublines_fixed_field_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     */
+    public function subLinesFixedFieldApi(EntityManagerInterface $entityManager, string $entity): Response {
+        $class = "form-control data";
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $arrayFields = $subLineFieldsParamRepository->findByEntityForEntity($entity);
+
+        $rows = [];
+        foreach ($arrayFields as $field) {
+            $label = ucfirst($field->getFieldLabel());
+            $displayed = $field->isDisplayed() ? "checked" : "";
+            $displayedUnderCondition = $field->isDisplayed() ? ($field->isDisplayedUnderCondition() ? "checked" : "") : "disabled";
+            $conditionFixedField = $field->getConditionFixedField() ?? "";
+            $rawConditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
+            $required = $field->isDisplayed() ? ($field->isRequired() ? "checked" : "") : "disabled";
+            $disabledDisplayedUnderCondition = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION) ? 'disabled' : '';
+
+            $labelAttributes = "class='font-weight-bold'";
+
+            $conditionFixedFieldValue = !empty($rawConditionFixedFieldValue)
+                ? $typeRepository->findBy(['id' => $rawConditionFixedFieldValue])
+                : [];
+
+            $conditionFixedFieldOptionsSelected = Stream::from($conditionFixedFieldValue)
+                ->map(fn(Type $type) => "<option value='{$type->getId()}' selected>{$type->getLabel()}</option>")
+                ->join("");
+
+            $classConditionFixedField = $class . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition())  ? " d-none" : "");
+            $classConditionFixedFieldValue = "conditionFixedFieldValueDiv" . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition()) ? " d-none" : "");
+
+            $row = [
+                "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
+                "displayed" => "<input type='checkbox' name='displayed' id='{$field->getFieldCode()}' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayed />",
+                "displayedUnderCondition" => "<input type='checkbox' name='displayedUnderCondition' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayedUnderCondition $disabledDisplayedUnderCondition/>",
+                "conditionFixedField" => "<select name='conditionFixedField' class='$classConditionFixedField'><option value='$conditionFixedField' selected>$conditionFixedField</option></select>",
+                "conditionFixedFieldValue" => "<div class='$classConditionFixedFieldValue'><select name='conditionFixedFieldValue' data-parent='body' data-min-length='0' data-s2='referenceType' multiple class='$class'>$conditionFixedFieldOptionsSelected</select></div>",
+                "required" => "<input type='checkbox' name='required' class='$class' $required />",
+            ];
+
+            $rows[] = $row;
+        }
+
+        return $this->json([
+            "data" => $rows,
         ]);
     }
 
@@ -2230,6 +2419,7 @@ class SettingsController extends AbstractController {
         $arrayFields = $fieldsParamRepository->findByEntityForEntity($entity);
 
         $rows = [];
+        /** @var FieldsParam $field */
         foreach ($arrayFields as $field) {
             $label = ucfirst($field->getFieldLabel());
             $displayedCreate = $field->isDisplayedCreate() ? "checked" : "";
@@ -2241,6 +2431,7 @@ class SettingsController extends AbstractController {
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
             $editDisabled = in_array($field->getFieldCode(), FieldsParam::NOT_EDITABLE_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
+
 
             $filterOnly = in_array($field->getFieldCode(), FieldsParam::FILTER_ONLY_FIELDS) ? "disabled" : "";
             $requireDisabled = $filterOnly || in_array($field->getFieldCode(), FieldsParam::ALWAYS_REQUIRED_FIELDS) ? "disabled" : "";
@@ -2502,7 +2693,7 @@ class SettingsController extends AbstractController {
                             "attributes" => [
                                 "data-id" => $mission->getId(),
                                 "onclick" => "editMissionRule($(this))",
-                            ]
+                            ],
                         ],
                         [
                             "title" => "Annuler la planification",
@@ -2511,7 +2702,7 @@ class SettingsController extends AbstractController {
                                 "data-id" => $mission->getId(),
                                 "class" => "pointer",
                                 "onclick" => "cancelInventoryMission($(this))",
-                            ]
+                            ],
                         ],
                         [
                             "title" => "Supprimer la planification",
@@ -2520,9 +2711,9 @@ class SettingsController extends AbstractController {
                                 "data-id" => $mission->getId(),
                                 "class" => "pointer",
                                 "onclick" => "deleteInventoryMission($(this))",
-                            ]
+                            ],
                         ],
-                    ]
+                    ],
                 ]),
                 "missionType" => $mission->getMissionType() ? InventoryMission::TYPES_LABEL[$mission->getMissionType()] ?? '' : '',
                 "label" => $mission->getLabel(),
@@ -2655,12 +2846,12 @@ class SettingsController extends AbstractController {
         $manager->flush();
 
         $html = $this->renderView('settings/modal_edit_translations_content.html.twig', [
-            'lines' => $typesLitige
+            'lines' => $typesLitige,
         ]);
 
         return new JsonResponse([
             'success' => true,
-            'html' => $html
+            'html' => $html,
         ]);
     }
 
@@ -2689,7 +2880,7 @@ class SettingsController extends AbstractController {
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => "Les traductions ont bien été modifiées."
+                'msg' => "Les traductions ont bien été modifiées.",
             ]);
         }
         throw new BadRequestHttpException();
@@ -2895,7 +3086,7 @@ class SettingsController extends AbstractController {
             "height" => "",
             "width" => "",
             "module" => "",
-            "natureOrType" => ""
+            "natureOrType" => "",
         ];
 
         return $this->json([

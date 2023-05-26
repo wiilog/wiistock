@@ -24,17 +24,15 @@ use App\Entity\CategorieCL;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Exceptions\FormException;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Service\DemandeLivraisonService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
 use App\Service\ArticleDataService;
-use App\Service\PreparationsManagerService;
-use App\Service\RefArticleDataService;
-use App\Service\SettingsService;
 use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Annotation\HasPermission;
 
@@ -224,7 +222,7 @@ class ArticleController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
 
-        $barcode = $articleDataService->generateBarCode();
+        $barcode = $articleDataService->generateBarcode();
 
         return $this->render("article/form/new.html.twig", [
             "new_article" => new Article(),
@@ -259,7 +257,15 @@ class ArticleController extends AbstractController
                     'msg' => "Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix)."
                 ]);
             }
-            $article = $this->articleDataService->newArticle($data, $entityManager);
+
+            $article = $this->articleDataService->newArticle($entityManager, $data);
+            $refArticleId = $data["refArticle"];
+            $refArticleFournisseurId = $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : '';
+
+            if ($refArticleId != $refArticleFournisseurId) {
+                throw new FormException("La référence article fournisseur ne correspond pas à la référence article");
+            }
+
             $entityManager->flush();
 
             $quantity = $article->getQuantite();
@@ -305,7 +311,7 @@ class ArticleController extends AbstractController
             return $this->json([
                 'success' => false,
                 'msg' => "Le code barre de l'article a été actualisé, veuillez valider de nouveau le formulaire.",
-                'barcode' => $articleDataService->generateBarCode()
+                'barcode' => $articleDataService->generateBarcode()
             ]);
         }
     }
@@ -314,12 +320,16 @@ class ArticleController extends AbstractController
      * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(Request                $request,
+                         EntityManagerInterface $entityManager,
+                         TranslationService     $translation): Response
     {
         if ($data = $request->request->all()) {
             $article = $entityManager->getRepository(Article::class)->find($data['id']);
                 try {
-                    $article = $this->articleDataService->newArticle($data, $entityManager, $article);
+                    $article = $this->articleDataService->newArticle($entityManager, $data, [
+                        "existing" => $article,
+                    ]);
                     $response = [
                         'success' => true,
                         'articleId' => $data['id'],
@@ -338,7 +348,7 @@ class ArticleController extends AbstractController
                 catch(RequestNeedToBeProcessedException $exception) {
                     $response = [
                         'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une demande de livraison."
+                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
                     ];
                 }
             return new JsonResponse($response);

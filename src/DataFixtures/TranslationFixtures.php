@@ -2876,6 +2876,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                 ],
             ],
+            "Livraison" => [
+                "content" => [
+                    ["fr" => "Livraison"],
+                    ["fr" => "Demande de livraison"]
+                ]
+            ],
+            "Expédition" => [
+                "content" => [
+                    ["fr" => "Expédition"],
+                    ["fr" => "Demande d'expédition"]
+                ]
+            ],
         ],
         "Ordre" => [
             "Réceptions" => [
@@ -2910,6 +2922,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ["fr" => "Annuler la réception"],
                 ],
             ],
+            "Livraison" => [
+                "content" => [
+                    ["fr" => "Livraison"],
+                    ["fr" => "Ordre de livraison"]
+                ]
+            ]
+        ],
+        "Référentiel" => [
+            "Projet" => [
+                "content" => [
+                    ["fr" => "Projet"]
+                ]
+            ]
         ],
         "Stock" => [
             "Références" => [

@@ -1,0 +1,14 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3">
+            {{ form.checkbox(setting('ALLOWED_DROP_ON_FREE_LOCATION'), "Autoriser la dépose des articles sur un emplacement libre", false, setting_value('ALLOWED_DROP_ON_FREE_LOCATION')) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 mb-3">
+            {{ form.checkbox(setting('DISPLAY_REFERENCE_CODE_AND_SCANNABLE'), "Afficher le code référence et le rendre scannable. Enlever le code article", false, setting_value('DISPLAY_REFERENCE_CODE_AND_SCANNABLE')) }}
+        </div>
+    </div>
+</div>

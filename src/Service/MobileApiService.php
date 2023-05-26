@@ -52,7 +52,7 @@ class MobileApiService {
                 $dispatch['color'] = $this->expectedDateColor($dispatch['endDate'] ?? null, $dispatchExpectedDateColors);
                 $dispatch['startDate'] = $dispatch['startDate'] ? $dispatch['startDate']->format('d/m/Y') : null;
                 $dispatch['endDate'] = $dispatch['endDate'] ? $dispatch['endDate']->format('d/m/Y') : null;
-                $dispatch['comment'] = StringHelper::cleanedComment($dispatch['comment']);
+                $dispatch['comment'] = utf8_encode(StringHelper::cleanedComment($dispatch['comment']));
                 return $dispatch;
             })
             ->values();
@@ -167,6 +167,8 @@ class MobileApiService {
             "manualDeliveryDisableValidations" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS) == 1,
             "rfidPrefix" => $globalsParameters->getOneParamByLabel(Setting::RFID_PREFIX) ?: null,
             "forceDispatchSignature" => $globalsParameters->getOneParamByLabel(Setting::FORCE_GROUPED_SIGNATURE),
+            "deliveryRequestDropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::ALLOWED_DROP_ON_FREE_LOCATION) == 1,
+            "displayReferenceCodeAndScan" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE) == 1,
         ])
             ->toArray();
     }

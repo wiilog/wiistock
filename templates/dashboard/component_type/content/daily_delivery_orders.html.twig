@@ -1,7 +1,7 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
 
 {% block header %}
-    <p class="font-italic">Des dates attendues doivent être placées sur les livraisons.</p>
+    <p class="font-italic">Des dates attendues doivent être placées sur les {{ trans('Ordre', 'Livraison', 'Livraison', false) | lower }}s.</p>
     <p class="font-italic">Des heures travaillées doivent être renseignées.</p>
     <br>
 {% endblock %}
@@ -9,13 +9,13 @@
 {% block content %}
     <div class="row">
         <div class="form-group col-12">
-            <label class="wii-field-name">Type(s) de livraison*</label>
+            <label class="wii-field-name">Type(s) de {{ trans('Ordre', 'Livraison', 'Livraison', false) | lower }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
                             name="deliveryOrderTypes"
                             multiple
-                            title="Type(s) d'ordres de livraison">
+                            title="Type(s) d'{{ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower }}">
                         {% for deliveryOrderType in deliveryOrderTypes %}
                             <option value="{{ deliveryOrderType.id }}" {{ deliveryOrderType in values.deliveryOrderTypes ? 'selected' }}>{{ deliveryOrderType.label }}</option>
                         {% endfor %}
@@ -35,7 +35,7 @@
                     <input name="displayDeliveryOrderContentCheckbox"
                            class="data"
                            type="checkbox" {{ displayDeliveryOrderContentCheckbox ? 'checked' : '' }}>
-                    Afficher le contenu des ordres de livraison
+                    Afficher le contenu des {{ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower }}
                 </label>
             </div>
             <div class="col-12 mt-2 {{ not displayDeliveryOrderContentCheckbox ? 'd-none' }}">
@@ -48,7 +48,7 @@
                 <div>
                     <label class="pointer">
                         <input type="radio" class="data" name="displayDeliveryOrderContent" value="displayArticlesCount" {{ displayDeliveryOrderContent == "displayArticlesCount" ? 'checked' }}>
-                        Afficher le nombre d'articles à livrer (valable pour les livraisons de références gérées en article)</label>
+                        Afficher le nombre d'articles à livrer (valable pour les {{ trans('Ordre', 'Livraison', 'Livraison', false) | lower }}s de références gérées en article)</label>
                 </div>
             </div>
         </div>
@@ -62,7 +62,7 @@
                     <select class="data form-control h-100 w-100 needed select2"
                             name="deliveryOrderStatuses"
                             multiple
-                            title="Statut(s) d'ordres de livraison">
+                            title="Statut(s) d'{{ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower }}">
                         {% for deliveryOrderStatus in deliveryOrderStatuses %}
                             <option value="{{ deliveryOrderStatus.id }}" {{ deliveryOrderStatus in values.deliveryOrderStatuses ? 'selected' }}>{{ deliveryOrderStatus.nom }}</option>
                         {% endfor %}

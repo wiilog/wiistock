@@ -41,6 +41,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -169,14 +170,12 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
-
             switch($data['type_quantite']) {
-                case 'article':
-                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-                    break;
                 case 'reference':
-                default:
                     $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
+                    break;
+                default:
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
                     break;
             }
 
@@ -194,7 +193,11 @@ class ReferenceArticleController extends AbstractController
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
                 ->setCreatedBy($loggedUser)
-                ->setCreatedAt(new DateTime('now'));
+                ->setCreatedAt(new DateTime('now'))
+                ->setNdpCode($data['ndpCode'])
+                ->setDangerousGoods(filter_var($data['security'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                ->setOnuCode($data['onuCode'])
+                ->setProductClass($data['productClass']);
 
             $refArticleDataService->updateDescriptionField($entityManager, $refArticle, $data);
 
@@ -342,6 +345,14 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setImage($attachments[0]);
                 $request->files->remove('image');
             }
+            if($request->files->has('fileSheet')) {
+                $file = $request->files->get('fileSheet');
+                $attachments = $attachmentService->createAttachements([$file]);
+                $entityManager->persist($attachments[0]);
+
+                $refArticle->setSheet($attachments[0]);
+                $request->files->remove('fileSheet');
+            }
             $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
 
             $entityManager->flush();
@@ -449,7 +460,8 @@ class ReferenceArticleController extends AbstractController
      */
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         UserService            $userService): Response {
+                         UserService            $userService,
+                         TranslationService     $translation): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
             && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
             return $this->json([
@@ -488,7 +500,7 @@ class ReferenceArticleController extends AbstractController
                 catch (RequestNeedToBeProcessedException $exception) {
                     $response = [
                         'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier la quantité d'une référence qui est dans un ordre de livraison en cours."
+                        'msg' => "Vous ne pouvez pas modifier la quantité d'une référence qui est dans un " . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)) . " en cours."
                     ];
                 }
             } else {
@@ -506,7 +518,9 @@ class ReferenceArticleController extends AbstractController
      * @Route("/supprimer", name="reference_article_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response
+    public function delete(Request                  $request,
+                           EntityManagerInterface   $entityManager,
+                           TranslationService       $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -534,7 +548,7 @@ class ReferenceArticleController extends AbstractController
                     'success' => false,
                     'msg' => '
                         Cette référence article est lié à une unité logistique, des mouvements, une collecte,
-                        une livraison, une réception ou un article fournisseur et ne peut pas être supprimée.
+                        une ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . ', une réception ou un article fournisseur et ne peut pas être supprimée.
                     '
                 ]);
             }
@@ -628,7 +642,7 @@ class ReferenceArticleController extends AbstractController
             $locations = Stream::from($reference->getStorageRules())
                 ->map(function (StorageRule $rule) use ($articleRepository, $reference) {
                     $location = $rule->getLocation();
-                    $quantity = $articleRepository->countForRefOnLocation($reference, $location);
+                    $quantity = $articleRepository->quantityForRefOnLocation($reference, $location);
 
                     return [
                         'location' => [
@@ -895,8 +909,10 @@ class ReferenceArticleController extends AbstractController
                                 RefArticleDataService  $refArticleDataService,
                                 SettingsService        $settingsService) {
         $typeRepository = $entityManager->getRepository(Type::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
@@ -912,6 +928,17 @@ class ReferenceArticleController extends AbstractController
                 'champsLibres' => $champsLibres,
             ];
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
+        }
+
+        $shippingSettingsDefaultValues = [];
+        if($request->query->has('shipping')){
+            $shippingSettingsDefaultValues = [
+                'type' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_REFERENCE_DEFAULT_TYPE),
+                'supplier' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE) ? $supplierRepository->find($settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE)) : null,
+                'supplierCode' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE) ? $supplierRepository->find($settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE)) : null,
+                'refArticleSupplierEqualsReference' => boolval($settingRepository->getOneParamByLabel(Setting::SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE)),
+                'articleSupplierLabelEqualsReferenceLabel' => boolval($settingRepository->getOneParamByLabel(Setting::SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL)),
+            ];
         }
 
         return $this->render("reference_article/form/new.html.twig", [
@@ -932,6 +959,7 @@ class ReferenceArticleController extends AbstractController
             "freeFieldTypes" => $typeChampLibre,
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
             "descriptionConfig" => $refArticleDataService->getDescriptionConfig($entityManager),
+            "shippingSettingsDefaultValues" => $shippingSettingsDefaultValues,
         ]);
     }
 
@@ -1104,14 +1132,14 @@ class ReferenceArticleController extends AbstractController
 
             if(!$referenceExist){
                 $entityManager->flush();
-                $article = $articleDataService->newArticle([
+                $article = $articleDataService->newArticle($entityManager, [
                     'statut' => Article::STATUT_INACTIF,
                     'refArticle' => $reference->getId(),
                     'emplacement' => $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT),
                     'articleFournisseur' => $supplierArticle->getId(),
                     'libelle' => $reference->getLibelle(),
                     'quantite' => 1,
-                ], $entityManager);
+                ]);
                 $article
                     ->setReference($reference->getReference())
                     ->setInactiveSince($date)

@@ -13,6 +13,7 @@ use App\Entity\Livraison;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -63,7 +64,7 @@ class ReferenceArticleRepository extends EntityRepository {
         "availableQuantity" => "quantiteDisponible",
     ];
 
-    public function getForSelect(?string $term, Utilisateur $user, ?bool $needsOnlyMobileSyncReference = false) {
+    public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
 
         $visibilityGroup = $user->getVisibilityGroups();
@@ -76,18 +77,71 @@ class ReferenceArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
-        if($needsOnlyMobileSyncReference){
+        if($options['needsOnlyMobileSyncReference'] ?? false) {
             $queryBuilder->andWhere('reference.needsMobileSync = 1');
         }
 
+        if($options['type-quantity'] ?? false) {
+            $queryBuilder->andWhere('reference.typeQuantite = :typeQuantity')
+                ->setParameter('typeQuantity', $options['type-quantity']);
+        }
+
+        if($options['status'] ?? false) {
+            $queryBuilder
+                ->andWhere('status.code = :status')
+                ->setParameter('status', $options['status']);
+        }
+
+        if($options['ignoredDeliveryRequest'] ?? false) {
+            $queryHasResult = $this->createQueryBuilder("reference_has_delivery_request")
+                ->select('COUNT(reference_has_delivery_request)')
+                ->join("reference_has_delivery_request.deliveryRequestLines", "lines")
+                ->join("lines.request", "deliveryRequest")
+                ->andWhere("deliveryRequest.id = :deliveryRequestId")
+                ->andWhere("reference_has_delivery_request.id = reference.id")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
+            $queryBuilder
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('deliveryRequestId', $options['ignoredDeliveryRequest']);
+        }
+
+        if($options['ignoredShippingRequest'] ?? false) {
+            $queryHasResult = $this->createQueryBuilder("reference_has_shipping_request")
+                ->select('COUNT(reference_has_shipping_request)')
+                ->join(ShippingRequestExpectedLine::class, "shippingRequestExpectedLine", Join::WITH, 'shippingRequestExpectedLine.referenceArticle = reference')
+                ->join("shippingRequestExpectedLine.request", "shippingRequest")
+                ->andWhere("shippingRequest.id = :shippingRequestId")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
+            $queryBuilder
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('shippingRequestId', $options['ignoredShippingRequest']);
+        }
+
         return $queryBuilder
-            ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label, emplacement.label AS location, reference.description AS description")
+            ->distinct()
+            ->select("reference.id AS id")
+            ->addSelect('reference.reference AS text')
+            ->addSelect('reference.libelle AS label')
+            ->addSelect('emplacement.label AS location')
+            ->addSelect('reference.description AS description')
+            ->addSelect('reference.typeQuantite as typeQuantite')
+            ->addSelect('reference.barCode as barCode')
+            ->addSelect('type.id as typeId')
+            ->addSelect('reference.dangerous_goods as dangerous')
             ->andWhere("reference.reference LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
+            ->leftJoin("reference.type", "type")
             ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
+            ->setMaxResults(100)
             ->getQuery()
             ->getArrayResult();
     }
@@ -815,7 +869,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('join_preparationLine.pickedQuantity AS quantity')
             ->addSelect('1 AS is_ref')
             ->addSelect('join_delivery.id AS id_livraison')
-            ->addSelect('referenceArticle.barCode AS barCode')
+            ->addSelect('referenceArticle.barCode AS barcode')
             ->leftJoin('referenceArticle.emplacement', 'join_location')
             ->join('referenceArticle.preparationOrderReferenceLines', 'join_preparationLine')
             ->join('join_preparationLine.preparation', 'join_preparation')

@@ -20,6 +20,8 @@ class Statut {
     const DISPUTE = 3;
     const PARTIAL = 4;
     const IN_PROGRESS = 5;
+    const SCHEDULED = 6;
+    const SHIPPED = 7;
 
     const GROUPED_SIGNATURE_DEFAULT_COLOR = '#3353D7';
 
@@ -196,6 +198,14 @@ class Statut {
 
     public function isDispute(): ?bool {
         return $this->state === self::DISPUTE;
+    }
+
+    public function isScheduled(): ?bool {
+        return $this->state === self::SCHEDULED;
+    }
+
+    public function isShipped(): ?bool {
+        return $this->state === self::SHIPPED;
     }
 
     public function getCategorie(): ?CategorieStatut {

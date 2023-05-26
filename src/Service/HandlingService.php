@@ -244,7 +244,7 @@ class HandlingService {
 
         return [
             'href' => $href ?? null,
-            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)),
             'estimatedFinishTime' => $deliveryDateEstimated,
             'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,

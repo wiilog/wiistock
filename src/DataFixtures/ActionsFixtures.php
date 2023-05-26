@@ -56,6 +56,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_ASSOCIATION_BR = 'association BR';
     const SUB_MENU_ENCO = 'encours';
     const SUB_MENU_EMERGENCYS = 'urgences';
+    const SUB_MENU_SHIPPING = 'expéditions';
 
     public const MENUS = [
         Menu::TRACA => [
@@ -166,6 +167,20 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::CREATE_TRANSPORT,
                 Action::EDIT_TRANSPORT,
                 Action::DELETE_TRANSPORT,
+            ],
+            self::SUB_MENU_SHIPPING => [
+                Action::DISPLAY_SHIPPING,
+                Action::CREATE_SHIPPING,
+                Action::DISPLAY_SCHEDULE_BUTTON,
+                Action::DISPLAY_SHIP_BUTTON,
+                Action::EDIT_TO_TREAT_SHIPPING,
+                Action::EDIT_PLANIFIED_SHIPPING,
+                Action::EDIT_SHIPPED_SHIPPING,
+                Action::DELETE_TO_TREAT_SHIPPING,
+                Action::DELETE_PLANIFIED_SHIPPING,
+                Action::DELETE_SHIPPED_SHIPPING,
+                Action::EDIT_TRANSPORT_SHIPPING_PART,
+                Action::GENERATE_PACKING_SLIP,
             ],
         ],
         Menu::ORDRE => [
@@ -297,6 +312,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
                 Action::SETTINGS_DISPLAY_ARRI,
                 Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS,
+                Action::SETTINGS_DISPLAY_BR_ASSOCIATION,
                 Action::SETTINGS_DISPLAY_MOVEMENT,
                 Action::SETTINGS_DISPLAY_TRACING_HAND,
                 Action::SETTINGS_DISPLAY_EMERGENCIES,
@@ -312,7 +328,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_TRANSFER_TO_TREAT,
                 Action::SETTINGS_DISPLAY_PREPA,
                 Action::SETTINGS_DISPLAY_PREPA_DELIV,
-                Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS
+                Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS,
+                Action::SETTINGS_DISPLAY_DELIVERIES
             ],
             self::SUB_MENU_DASHBOARD => [
                 Action::SETTINGS_DISPLAY_DASHBOARD

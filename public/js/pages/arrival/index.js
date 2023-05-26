@@ -4,12 +4,23 @@ let onFlyFormOpened = {};
 let clicked = false;
 let pageLength;
 let arrivalsTable;
+let hasDataToRefresh;
 
 $(function () {
+    hasDataToRefresh = false;
     const openNewModal = Boolean($('#openNewModal').val());
     if(openNewModal){
         openArrivalCreationModal();
     }
+
+    document.addEventListener('keydown', function (e) {
+        const $target = $(e.target);
+        const isTrackingNumbersInput = $target.parents('.noTrackingSection').length > 0;
+        if (e.which === 13 && isTrackingNumbersInput) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+    }, true);
 
     const $filtersContainer = $('.filters-container');
     const $userFormat = $('#userDateFormat');
@@ -92,6 +103,7 @@ $(function () {
     $(document).on(`change`, `.dispatch-checkbox:not(:disabled)`, function () {
         toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
     });
+
 });
 
 function initTableArrival(dispatchMode = false) {
@@ -287,6 +299,7 @@ function createArrival(form = null) {
         $modal.find('.noTrackingSection').arrive('.select2-results__option--highlighted', function () {
             $(this).removeClass('select2-results__option--highlighted');
         });
+
         $noTrackingSelect.off('select2:unselect').on('select2:unselect', function(element) {
             $noTrackingSelect.find(`option[value=${element.params.data.id}]`).remove();
         })
@@ -371,14 +384,22 @@ function createArrival(form = null) {
                                 success: () => {
                                 }
                             },
-                            arrivalsTable
                         );
+                        hasDataToRefresh = true;
                     },
                 }).catch(() => {
                 });
             })
     }, 1);
 
+
+    $modal.off('hide.bs.modal.refresh').on('hide.bs.modal.refresh', function () {
+        if (hasDataToRefresh) {
+            arrivalsTable.ajax.reload(() => {
+                hasDataToRefresh = false;
+            });
+        }
+    });
     return $modal;
 }
 

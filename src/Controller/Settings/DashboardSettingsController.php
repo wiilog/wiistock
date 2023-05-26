@@ -211,6 +211,11 @@ class DashboardSettingsController extends AbstractController {
                         'categoryType' => CategoryType::TRANSFER_REQUEST,
                         'categoryStatus' => CategorieStatut::TRANSFER_REQUEST,
                         'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER
+                    ],
+                    'Expédition' => [
+                        'categoryType' => CategoryType::SHIPPING_REQUEST,
+                        'categoryStatus' => CategorieStatut::SHIPPING_REQUEST,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING
                     ]
                 ];
             }
@@ -252,7 +257,7 @@ class DashboardSettingsController extends AbstractController {
                 ->toArray());
 
             $entityTypes = $typeRepository->findByCategoryLabels($categoryTypes);
-            $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL, Statut::IN_PROGRESS]);
+            $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL, Statut::IN_PROGRESS, Statut::SCHEDULED, Statut::SHIPPED]);
         } else if ($componentType->getMeterKey() === Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS) {
             $entityTypes = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         }

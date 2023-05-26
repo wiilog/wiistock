@@ -5,7 +5,7 @@
     <div>Numéro : {{ request.numero }}</div>
     <div>Date de demande : {{ request.createdAt|date('d/m/Y H:i') }}</div>
     <div>Demandeur : {{ request.utilisateur ? request.utilisateur.username }}</div>
-    <div>Destination : {{ request.destination.label }}</div>
+    <div>Destination : {{ dropLocation ? dropLocation.label : request.destination.label }}</div>
     {% if (request.commentaire is not empty and request.commentaire != '<p><br></p>') %}
         <div>Commentaire : {{ request.commentaire|raw }}</div>
     {% endif %}

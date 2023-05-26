@@ -23,6 +23,8 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
+use App\Exceptions\FormException;
+use App\Entity\Zone;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -54,10 +56,13 @@ class ArticleDataService
     #[Required]
     public FormatService $formatService;
 
-    private $visibleColumnService;
+    #[Required]
+    public TranslationService $translation;
 
     #[Required]
     public EmplacementDataService $emplacementDataService;
+
+    private $visibleColumnService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -109,9 +114,6 @@ class ArticleDataService
                 ]),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-            $articleRepository = $this->entityManager->getRepository(Article::class);
-
-            $articles = $articleRepository->findActiveArticles($refArticle);
             $role = $user->getRole();
 
             $availableQuantity = $refArticle->getQuantiteDisponible();
@@ -123,30 +125,7 @@ class ArticleDataService
                     ])];
             } else {
                 $management = $refArticle->getStockManagement();
-                if ($management) {
-                    $articles = Stream::from($articles)
-                        ->sort(function (Article $article1, Article $article2) use ($management) {
-                            $datesToCompare = [];
-                            if ($management === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
-                                $datesToCompare[0] = $article1->getStockEntryDate() ? $article1->getStockEntryDate()->format('Y-m-d') : null;
-                                $datesToCompare[1] = $article2->getStockEntryDate() ? $article2->getStockEntryDate()->format('Y-m-d') : null;
-                            } else if ($management === ReferenceArticle::STOCK_MANAGEMENT_FEFO) {
-                                $datesToCompare[0] = $article1->getExpiryDate() ? $article1->getExpiryDate()->format('Y-m-d') : null;
-                                $datesToCompare[1] = $article2->getExpiryDate() ? $article2->getExpiryDate()->format('Y-m-d') : null;
-                            }
-                            if ($datesToCompare[0] && $datesToCompare[1]) {
-                                if (strtotime($datesToCompare[0]) === strtotime($datesToCompare[1])) {
-                                    return 0;
-                                }
-                                return strtotime($datesToCompare[0]) < strtotime($datesToCompare[1]) ? -1 : 1;
-                            } else if ($datesToCompare[0]) {
-                                return -1;
-                            } else if ($datesToCompare[1]) {
-                                return 1;
-                            }
-                            return 0;
-                        })->toArray();
-                }
+                $articles = $this->findAndSortActiveArticlesByRefArticle($refArticle, $this->entityManager);
 
                 $articleIdsInRequest = $request->getArticleLines()
                     ->map(fn (DeliveryRequestArticleLine $line) => $line->getArticle()->getId())
@@ -158,15 +137,45 @@ class ArticleDataService
                         'preselect' => isset($management),
                         'maximum' => $availableQuantity,
                         'deliveryRequest' => $request,
-                        'articleIdsInRequest' => $articleIdsInRequest
+                        'articleIdsInRequest' => $articleIdsInRequest,
                     ])
                 ];
             }
         } else {
-            $data = false; //TODO gérer erreur retour
+            $data = false;
         }
 
         return $data;
+    }
+
+    public function findAndSortActiveArticlesByRefArticle(ReferenceArticle $refArticle, EntityManagerInterface $entityManager, ?Demande $demande = null){
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $articles = $articleRepository->findActiveArticles($refArticle, null, null, null, $demande);
+        $management = $refArticle->getStockManagement();
+        return $management
+            ? Stream::from($articles)
+                ->sort(function (Article $article1, Article $article2) use ($management) {
+                    $datesToCompare = [];
+                    if ($management === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
+                        $datesToCompare[0] = $article1->getStockEntryDate()?->format('Y-m-d');
+                        $datesToCompare[1] = $article2->getStockEntryDate()?->format('Y-m-d');
+                    } else if ($management === ReferenceArticle::STOCK_MANAGEMENT_FEFO) {
+                        $datesToCompare[0] = $article1->getExpiryDate()?->format('Y-m-d');
+                        $datesToCompare[1] = $article2->getExpiryDate()?->format('Y-m-d');
+                    }
+                    if ($datesToCompare[0] && $datesToCompare[1]) {
+                        if (strtotime($datesToCompare[0]) === strtotime($datesToCompare[1])) {
+                            return 0;
+                        }
+                        return strtotime($datesToCompare[0]) < strtotime($datesToCompare[1]) ? -1 : 1;
+                    } else if ($datesToCompare[0]) {
+                        return -1;
+                    } else if ($datesToCompare[1]) {
+                        return 1;
+                    }
+                    return 0;
+                })->toArray()
+            : $articles ;
     }
 
     public function getViewEditArticle($article,
@@ -236,7 +245,12 @@ class ArticleDataService
         }
     }
 
-    public function newArticle(array $data, EntityManagerInterface $entityManager, Article $existing = null): Article {
+    public function newArticle(EntityManagerInterface $entityManager, array $data, array $options = []): Article {
+
+        /** @var Article|null $existing */
+        $existing = $options['existing'] ?? null;
+        $excludeBarcodes = $options['excludeBarcodes'] ?? [];
+
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -250,6 +264,10 @@ class ArticleDataService
         }
 
         $refArticle = $referenceArticleRepository->find($data['refArticle']);
+        if($refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE
+            || $refArticle->getStatut()?->getCode() !== ReferenceArticle::STATUT_ACTIF) {
+            throw new FormException('Impossible de créer un article pour une référence de type ' . $refArticle->getTypeQuantite() . ' ou dont le statut est ' . $refArticle->getStatut()?->getNom());
+        }
         $refReferenceArticle = $refArticle->getReference();
         $formattedDate = (new DateTime())->format('ym');
         $references = $articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
@@ -285,7 +303,7 @@ class ArticleDataService
         } else {
             $article = (new Article())
                 ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
-                ->setConform(isset($data['conform']) && !$data['conform'])
+                ->setConform($data['conform'] ?? true)
                 ->setStatut($statut)
                 ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
@@ -294,14 +312,15 @@ class ArticleDataService
                 ->setEmplacement($location)
                 ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
                 ->setType($type)
-                ->setBarCode($data['barcode'] ?? $this->generateBarCode())
+                ->setBarCode($data['barcode'] ?? $this->generateBarcode($excludeBarcodes))
                 ->setStockEntryDate(new DateTime("now"))
                 ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
                 ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setBatch($data['batch'] ?? null);
+                ->setBatch($data['batch'] ?? null)
+                ->setCurrentLogisticUnit($data['currentLogisticUnit'] ?? null);
 
             if(isset($data['nativeCountry'])) {
                 $article->setNativeCountry($entityManager->find(NativeCountry::class, $data['nativeCountry']));
@@ -317,7 +336,6 @@ class ArticleDataService
                 $article->setManifacturingDate($data['manufactureDate'] ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null);
             }
 
-            $article->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']));
             $entityManager->persist($article);
         }
 
@@ -446,18 +464,23 @@ class ArticleDataService
         return $row;
     }
 
-	public function generateBarCode()
+	public function generateBarcode(array $excludeBarcodes = []): string
 	{
+        $now = new DateTime('now');
+        $dateCode = $now->format('ym');
+
         $articleRepository = $this->entityManager->getRepository(Article::class);
+        $highestBarCode = $articleRepository->getHighestBarCodeByDateCode($dateCode);
+        $highestCounter = $highestBarCode ? (int) substr($highestBarCode, 7, 8) : 0;
 
-		$now = new DateTime('now');
-		$dateCode = $now->format('ym');
+        do {
+            $highestCounter++;
+            $newCounter = sprintf('%08u', $highestCounter);
+            $generatedBarcode = Article::BARCODE_PREFIX . $dateCode . $newCounter;
+        }
+        while(in_array($generatedBarcode, $excludeBarcodes));
 
-		$highestBarCode = $articleRepository->getHighestBarCodeByDateCode($dateCode);
-		$highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
-
-		$newCounter =  sprintf('%08u', $highestCounter+1);
-		return Article::BARCODE_PREFIX . $dateCode . $newCounter;
+		return $generatedBarcode;
 	}
 
     public function getBarcodeConfig(Article $article, Reception $reception = null): array {
@@ -614,7 +637,7 @@ class ArticleDataService
             ["title" => "Date d'entrée en stock", "name" => "stockEntryDate", 'searchable' => true],
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
-            ["title" => "Projet", "name" => "project", 'searchable' => true],
+            ["title" => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), "name" => "project", 'searchable' => true],
             ["title" => "Tag RFID", "name" => "RFIDtag", 'searchable' => true],
             ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
             ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],

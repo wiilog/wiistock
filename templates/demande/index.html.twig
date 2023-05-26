@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
-{% block title %}Demande | Livraison{% endblock %}
+{% block title %}Demande | {{ trans('Demande', 'Livraison', 'Livraison', false) }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersDemands.html.twig' with {
@@ -17,6 +18,13 @@
     <input type="text" value="" id="statutFilter" hidden>
     <input type="text" value="" id="userFilter" hidden>
     <input type="text" value="" id="typeFilter" hidden>
+    {{ form.input('receiverToDisplay', '', false, defaultReceiver, {
+        type: 'hidden'
+    }) }}
+    {{ form.input('defaultTypeId', '', false, defaultTypeId, {
+        type: 'hidden'
+    }) }}
+
 
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
@@ -87,8 +95,10 @@
     {% include "demande/modalNewDemande.html.twig" with {
         types: types,
         restrictedLocations: restrictedLocations,
-        fieldsParam: fieldsParam
+        fieldsParam: fieldsParam,
+        defaultReceiver: defaultReceiver,
     } %}
+
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
         'table': 'deliveryRequestTable',
