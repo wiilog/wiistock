@@ -41,6 +41,7 @@ use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Google\Service\Keep\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -576,7 +577,9 @@ class ShippingRequestController extends AbstractController {
                                       TrackingMovementService $trackingMovementService,
                                       MouvementStockService   $stockMovementService,
                                       StatusHistoryService    $statusHistoryService,
-                                      TranslationService      $translationService): Response {
+                                      TranslationService      $translationService,
+                                      UserService             $userService): Response {
+
         if (!in_array($shippingRequest->getStatus()->getCode(), [ShippingRequest::STATUS_TO_TREAT, ShippingRequest::STATUS_SCHEDULED])) {
             return $this->json([
                 'success' => false,
