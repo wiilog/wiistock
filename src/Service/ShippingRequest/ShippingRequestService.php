@@ -463,15 +463,6 @@ class ShippingRequestService {
                                   ShippingRequest        $shippingRequest):void
     {
 
-        $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
-
-        // remove status_history
-        $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
-        foreach ($statusHistoryToRemove as $status) {
-            $entityManager->remove($status);
-        }
-        dump($shippingRequest->getTrackingMovements(), $shippingRequest->getStockMovements());
-
         // remove track mvt
         Stream::from($shippingRequest->getTrackingMovements())
             ->each(function (TrackingMovement $trackingMovement) use ($entityManager, $shippingRequest) {

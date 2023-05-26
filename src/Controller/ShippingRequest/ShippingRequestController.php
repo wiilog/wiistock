@@ -420,7 +420,11 @@ class ShippingRequestController extends AbstractController {
         // remove status scheduled only if user has right and shipping request is scheduled
         else if ($isScheduledOrShipped) {
             if ($hasRightDeleteScheduledOrShipped) {
-
+                // remove status_history
+                $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
+                foreach ($statusHistoryToRemove as $status) {
+                    $entityManager->remove($status);
+                }
                 $shippingRequestService->deletePacking($entityManager, $shippingRequest);
 
                 // remove ShippingRequesExpectedtLine
