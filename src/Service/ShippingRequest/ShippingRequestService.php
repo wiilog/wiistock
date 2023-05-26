@@ -233,6 +233,7 @@ class ShippingRequestService {
                 return [
                     'lineId' => $expectedLine->getId(),
                     'referenceArticleId' => $expectedLine->getReferenceArticle()->getId(),
+                    'reference' => $expectedLine->getReferenceArticle()->getReference(),
                     'label' => $expectedLine->getReferenceArticle()->getLibelle(),
                     'quantity' => $expectedLine->getQuantity(),
                     'price' => $expectedLine->getPrice(),

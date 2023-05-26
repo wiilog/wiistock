@@ -166,6 +166,7 @@ function openPackingModal(dataShippingRequestForm, expectedLines, step = 1) {
     const lines = expectedLines.map(function (expectedLine) {
         return {
             'selected': fillActionTemplate(actionTemplate, expectedLine.referenceArticleId, expectedLine.lineId, isLastStep, isLastStep),
+            'reference' : expectedLine.reference,
             'label': expectedLine.label,
             'quantity': fillQuantityInputTemplate(quantityInputTemplate, expectedLine.quantity, isLastStep),
             'price': expectedLine.price,
@@ -229,6 +230,7 @@ async function packingAddStep($modal, data, step) {
         data: data,
         columns: [
             {name: 'selected', data: 'selected', title: '', orderable: false},
+            {name: 'reference', data: 'reference', title: 'Référence', orderable: true},
             {name: 'label', data: 'label', title: 'Libellé', orderable: true},
             {name: 'quantity', data: 'quantity', title: 'Quantité', orderable: false},
             {name: 'price', data: 'price', title: 'Prix unitaire (€)', orderable: true},
@@ -306,6 +308,7 @@ function packingNextStep($modal, finalStep = false) {
         if (quantity !== 0) {
             return {
                 'selected': fillActionTemplate(actionTemplate, lineFormData.get('referenceArticleId'), lineFormData.get('lineId'), nextIsLastStep, nextIsLastStep),
+                'reference': expectedLine.reference,
                 'label': expectedLine.label,
                 'quantity': fillQuantityInputTemplate(quantityInputTemplate, getNextStepQuantity(lineFormData.get('picked'), lineFormData.get('quantity'), lineFormData.get('remainingQuantity')), nextIsLastStep),
                 'price': expectedLine.price,
