@@ -497,8 +497,6 @@ class ShippingRequestService {
         $deliverySlipTemplatePath = $settingRepository->getOneParamByLabel(Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE)
             ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE);
 
-        $shippingRequestStatus = $shippingRequest->getStatus()->getNom();
-
         $variables = [
             //en-tête
             "QRCodeexpe" => $shippingRequest->getNumber() ?? "",
@@ -527,73 +525,36 @@ class ShippingRequestService {
             "poidsnettotal" => $shippingRequest->getNetWeight() ?? "",
             "dimensioncolis" => "",
             "valeurtotal" => $shippingRequest->getTotalValue() ?? "",
-            "nbcolis" => $shippingRequest->isToTreat() ? "" : count($shippingRequest->getPackLines()),
+            "nbcolis" => $shippingRequest->getPackLines()->count(),
             "poidsbruttotal" => $shippingRequest->getGrossWeight() ?? "",
-
         ];
 
-        if ($shippingRequestStatus == ShippingRequest::STATUS_TO_TREAT) {
-            $variables["reference"] = Stream::from($shippingRequest->getExpectedLines())
-                ->map(function (ShippingRequestExpectedLine $shippingRequestExpectedLine) {
-                    $reference = $shippingRequestExpectedLine->getReferenceArticle();
-                    $price = $shippingRequestExpectedLine->getUnitPrice();
-                    $quantity = $shippingRequestExpectedLine->getQuantity();
-                    $totalPrice = $price * $quantity;
-                    return [
-                        "reference" => $reference->getReference() ?? "",
-                        "quantite" => $quantity ?? "",
-                        "prixunitaire" => $price ?? "",
-                        "poidsnet" => $shippingRequestExpectedLine->getUnitWeight() ?? "",
-                        "montantotal" => $totalPrice ?? "",
-                        "matieredangereuse" => $this->formatService->bool($reference->isDangerousGoods()) ?? "",
-                        "FDS" => $reference->getSheet() ? $reference->getSheet()->getFileName() : "",
-                        "CodeONU" => $reference->getOnuCode() ?? "",
-                        "classeproduit" => $reference->getProductClass() ?? "",
-                        "CodeNDP" => $reference->getNdpCode() ?? "",
-                    ];
-                })
-                ->toArray();
-        } else {
-            $packLines = Stream::from($shippingRequest->getPackLines()->toArray())
-                ->map(fn(ShippingRequestPack $shippingRequestPack) => $shippingRequestPack->getLines())
-                ->toArray();
+        $variables["reference"] = Stream::from($shippingRequest->getExpectedLines())
+            ->map(function (ShippingRequestExpectedLine $line) {
+                $referenceArticle = $line->getReferenceArticle();
+                $price = $line->getUnitPrice();
+                $quantity = $line->getQuantity();
 
-            foreach ($packLines as $lines) {
-                $variables["reference"][] = array_merge(
-                    ...Stream::from($lines)
-                    ->map(function(ShippingRequestLine $shippingRequestLine) {
-                        $articleOrReference = $shippingRequestLine->getArticleOrReference();
+                $dangerousGoods = $this->formatService->bool($referenceArticle->isDangerousGoods());
+                $FDS = $referenceArticle->getSheet() ? $referenceArticle->getSheet()->getOriginalName() : "";
+                $onuCode = $referenceArticle->getOnuCode();
+                $productClass = $referenceArticle->getProductClass();
+                $ndpCode = $referenceArticle->getNdpCode();
 
-                        if ($articleOrReference instanceof ReferenceArticle) {
-                            $dangerousGoods = $this->formatService->bool($articleOrReference->isDangerousGoods());
-                            $FDS = $articleOrReference->getSheet() ? $articleOrReference->getSheet()->getOriginalName() : "";
-                            $onuCode = $articleOrReference->getOnuCode();
-                            $productClass = $articleOrReference->getProductClass();
-                            $ndpCode = $articleOrReference->getNdpCode();
-                        } else {
-                            $dangerousGoods = $this->formatService->bool($articleOrReference->getReferenceArticle()->isDangerousGoods());
-                            $FDS = $articleOrReference->getReferenceArticle()->getSheet() ? $articleOrReference->getReferenceArticle()->getSheet()->getOriginalName() : "";
-                            $onuCode = $articleOrReference->getReferenceArticle()->getOnuCode();
-                            $productClass = $articleOrReference->getReferenceArticle()->getProductClass();
-                            $ndpCode = $articleOrReference->getReferenceArticle()->getNdpCode();
-                        }
-
-                        return [
-                            "reference" => $articleOrReference->getReference() ?? "",
-                            "quantite" => $shippingRequestLine->getExpectedLine()->getQuantity() ?? "",
-                            "prixunitaire" => $shippingRequestLine->getExpectedLine()->getUnitPrice() ?? "",
-                            "poidsnet" => $shippingRequestLine->getExpectedLine()->getUnitWeight() ?? "",
-                            "montantotal" => $shippingRequestLine->getExpectedLine()->getTotalPrice() ?? "",
-                            "matieredangereuse" => $dangerousGoods ?? "",
-                            "FDS" => $FDS ?? "",
-                            "CodeONU" => $onuCode ?? "",
-                            "classeproduit" => $productClass ?? "",
-                            "CodeNDP" => $ndpCode ?? "",
-                        ];
-                    })->toArray()
-                );
-            }
-        }
+                return [
+                    "reference" => $referenceArticle->getReference() ?? "",
+                    "quantite" => $quantity ?? "",
+                    "prixunitaire" => $price ?? "",
+                    "poidsnet" => $line->getUnitWeight() ?? "",
+                    "montantotal" => $price * $quantity,
+                    "matieredangereuse" => $dangerousGoods ?? "",
+                    "FDS" => $FDS ?? "",
+                    "CodeONU" => $onuCode ?? "",
+                    "classeproduit" => $productClass ?? "",
+                    "CodeNDP" => $ndpCode ?? "",
+                ];
+            })
+            ->toArray();
 
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "$projectDir/public/$deliverySlipTemplatePath",
@@ -603,8 +564,8 @@ class ShippingRequestService {
 
         $nakedFileName = uniqid();
 
-        $deliverySlipOutdir = "$projectDir\public\uploads\attachements";
-        $docxPath = "$deliverySlipOutdir\\$nakedFileName.docx";
+        $deliverySlipOutdir = "$projectDir/public/uploads/attachements";
+        $docxPath = "$deliverySlipOutdir/$nakedFileName.docx";
 
         rename($tmpDocxPath, $docxPath);
         $this->PDFGeneratorService->generateFromDocx($docxPath, $deliverySlipOutdir);

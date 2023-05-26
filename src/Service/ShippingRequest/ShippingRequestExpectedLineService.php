@@ -55,6 +55,10 @@ class ShippingRequestExpectedLineService {
             $labelColumn = '<span class="label-wrapper"></span>';
         }
 
+        $total = $line?->getQuantity() && $line?->getUnitPrice()
+            ? ($line->getQuantity() * $line->getUnitPrice())
+            : '';
+
         $actionId = 'data-id="' . ($line?->getId() ?: '') . '"';
         $editUrl = $line ? $this->router->generate('reference_article_edit_page', ['reference' => $line->getReferenceArticle()?->getId()]) : '';
         $hasRightToEdit = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
@@ -101,7 +105,7 @@ class ShippingRequestExpectedLineService {
                     ["name" => "data-field-label", 'value' => "Poids net"],
                 ],
             ]),
-            "total" => '<span class="total-wrapper">' . $line?->getTotalPrice() . '</span>',
+            "total" => '<span class="total-wrapper">' . $total . '</span>',
         ];
     }
 
@@ -127,9 +131,6 @@ class ShippingRequestExpectedLineService {
             ->setQuantity($quantity)
             ->setUnitPrice($price)
             ->setUnitWeight($weight);
-
-        $this->updateTotalPrice($line);
-        $this->updateTotalWeight($line);
 
         $entityManager->persist($line);
         return $line;
@@ -166,7 +167,7 @@ class ShippingRequestExpectedLineService {
                     'quantity' => $expectedLine->getQuantity(),
                     'price' => $expectedLine->getUnitPrice(),
                     'weight' => $expectedLine->getUnitWeight(),
-                    'total' => $expectedLine->getTotalPrice(),
+                    'total' => $expectedLine->getQuantity() * $expectedLine->getUnitPrice(),
                 ];
             })
             ->toArray();
@@ -175,12 +176,6 @@ class ShippingRequestExpectedLineService {
     public function updateTotalWeight(ShippingRequestExpectedLine $expectedLine): void {
         $expectedLine->setTotalWeight(
             $expectedLine->getQuantity() && $expectedLine->getUnitWeight() ? $expectedLine->getQuantity() * $expectedLine->getUnitWeight() : 0
-        );
-    }
-
-    public function updateTotalPrice(ShippingRequestExpectedLine $expectedLine): void {
-        $expectedLine->setTotalPrice(
-            $expectedLine->getQuantity() && $expectedLine->getUnitPrice() ? $expectedLine->getQuantity() * $expectedLine->getUnitPrice() : 0
         );
     }
 }

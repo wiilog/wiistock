@@ -271,8 +271,6 @@ class ShippingRequestController extends AbstractController {
 
             $shippingRequestService->updateNetWeight($shippingRequest);
             $shippingRequestService->updateTotalValue($shippingRequest);
-            $expectedLineService->updateTotalPrice($line);
-            $expectedLineService->updateTotalWeight($line);
 
             $entityManager->flush();
 
@@ -912,12 +910,10 @@ class ShippingRequestController extends AbstractController {
 
 
     #[Route("/{shippingRequest}/delivery-slip/{attachment}", name:"print_delivery_slip", options:["expose"=>true], methods:['GET'], condition: "request.isXmlHttpRequest()")]
-    public function printDeliverySlip(ShippingRequest           $shippingRequest,
-                                      ShippingRequestService    $shippingRequestService,
-                                      Attachment                $attachment,
-                                      KernelInterface           $kernel): Response {
+    public function printDeliverySlip(Attachment      $attachment,
+                                      KernelInterface $kernel): Response {
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '\public\uploads\attachements\\' . $attachment->getFileName()));
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$attachment->getOriginalName());
 
         return $response;

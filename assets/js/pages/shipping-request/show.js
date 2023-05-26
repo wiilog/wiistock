@@ -27,7 +27,7 @@ $(function() {
 
     initScheduledShippingRequestForm();
     initPackingPack($('#modalPacking'))
-    getShippingRequestStatusHistory(shippingId);
+    getShippingRequestStatusHistory();
     updateDetails();
 
     $(document).arrive('.schedule-details', function () {
@@ -649,6 +649,8 @@ function initDetailsScheduled($container) {
             rowConfig: {},
             domConfig: {
                 removeInfo: true,
+                removeLength: true,
+                needsPaginationRemoval: true,
             },
             drawConfig: {},
         });
