@@ -583,7 +583,6 @@ class ShippingRequestController extends AbstractController {
                                       StatusHistoryService    $statusHistoryService,
                                       TranslationService      $translationService,
                                       UserService             $userService): Response {
-
         if (!in_array($shippingRequest->getStatus()->getCode(), [ShippingRequest::STATUS_TO_TREAT, ShippingRequest::STATUS_SCHEDULED])) {
             return $this->json([
                 'success' => false,

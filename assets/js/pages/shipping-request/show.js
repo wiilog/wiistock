@@ -40,7 +40,6 @@ $(function() {
     });
 
     $(document).arrive('#modalScheduledShippingRequest', function () {
-        console.log('arrive');
         initScheduledShippingRequestForm($(this));
     });
 
@@ -200,7 +199,6 @@ function initPackingPack($modal) {
 }
 
 function openPackingModal(dataShippingRequestForm, expectedLines, step = 1) {
-    console.log('oui');
     scheduledShippingRequestFormData = dataShippingRequestForm;
     const $modal = $('#modalPacking');
     $modal.modal('show');
