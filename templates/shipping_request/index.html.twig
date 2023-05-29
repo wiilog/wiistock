@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}{{ trans('Demande', 'Général', 'Demande', false) }} | Expédition{% endblock %}
-{% block title_tooltip %}Demande | Expédition{% endblock %}
+{% block title %}{{ trans('Demande', 'Général', 'Demande', false) }} | {{ trans('Demande', 'Expédition', 'Expédition', false) }}{% endblock %}
+{% block title_tooltip %}Demande | {{ trans('Demande', 'Expédition', 'Expédition', false) }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersDemands.html.twig' with {
@@ -26,7 +26,7 @@
                                 title: "Exporter au format CSV",
                                 icon : "fa fa-file-csv",
                                 attributes: {
-                                    "onclick" : "",
+                                    "onclick" : "saveExportFile('get_shipping_requests_csv', false)",
                                 },
                             },
                             {
@@ -34,7 +34,7 @@
                                 icon: "fa fa-cog",
                                 attributes: {
                                     "data-toggle": "modal",
-                                    "data-target": "#modalColumnVisible",
+                                    "data-target": "#modalEditShippingRequest",
                                 },
                             }
                         ]
@@ -48,6 +48,23 @@
             </div>
         </div>
     </div>
+
+    {% include "utils/modal/empty-modal.html.twig" with {
+        id: "modalNewShippingRequest",
+        size: 'modal-xl',
+        additionalAttributes: {
+            'data-modal-type': 'new',
+        },
+        header: {
+            title: 'Créer une demande d\'expédition'
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Valider la demande d\'expédition'), type: 'submit'}
+            ],
+        },
+    } %}
 
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,

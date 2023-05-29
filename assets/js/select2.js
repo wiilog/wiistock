@@ -169,8 +169,18 @@ export default class Select2 {
                 });
 
                 $element.on(`change`, () => {
-                    if ($element.val() === `new-item` && search && search.length) {
-                        $element.append(new Option(search, search, true, true)).trigger('change');
+                    const [selected] = $element.select2('data');
+                    if (selected) {
+                        if (selected.id === `new-item` && search && search.length) {
+                            $element
+                                .append(new Option(search, search, true, true))
+                                .trigger('change');
+                        } else if (selected.id === `redirect-url` && selected.url) {
+                            location.href = selected.url;
+                            $element
+                                .val(null)
+                                .trigger('change');
+                        }
                     }
                 })
 

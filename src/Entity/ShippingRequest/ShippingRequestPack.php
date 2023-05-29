@@ -18,8 +18,8 @@ class ShippingRequestPack {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::FLOAT, nullable: true)]
-    private ?float $size = null;
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $size = null;
 
     #[ORM\OneToOne(inversedBy: 'shippingRequestPack', targetEntity: Pack::class)]
     private ?Pack $pack = null;
@@ -56,11 +56,20 @@ class ShippingRequestPack {
         return $this;
     }
 
-    public function getSize(): ?float {
+    public function getQuantity(): ?int {
+        return $this->quantity;
+    }
+
+    public function setQuantity(?int $quantity): self {
+        $this->quantity = $quantity;
+        return $this;
+    }
+
+    public function getSize(): ?string {
         return $this->size;
     }
 
-    public function setSize(?float $size): self {
+    public function setSize(?string $size): self {
         $this->size = $size;
         return $this;
     }
@@ -80,7 +89,7 @@ class ShippingRequestPack {
     }
 
     /**
-     * @return Collection<int, ShippingRequestLine>
+     * @return Collection<int, Article>
      */
     public function getLines(): Collection {
         return $this->lines;
@@ -106,8 +115,8 @@ class ShippingRequestPack {
     }
 
     public function setLines(?iterable $lines): self {
-        foreach($this->getlines()->toArray() as $line) {
-            $this->removeline($line);
+        foreach($this->getLines()->toArray() as $line) {
+            $this->removeLine($line);
         }
 
         $this->lines = new ArrayCollection();

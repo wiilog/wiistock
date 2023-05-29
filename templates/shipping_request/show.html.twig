@@ -1,9 +1,10 @@
 {% extends 'layout.html.twig' %}
 {% import 'form.html.twig' as form %}
 
-{% block title %}Demande | {{ trans('Expédition', 'Général', 'Expédition', false) }} | Détails{% endblock %}
+{% block title %}Demande | {{ trans('Demande', 'Expédition', 'Expédition', false) }} | Détails{% endblock %}
+{% block titleLink path('shipping_request_index') %}
 
-{% block title_tooltip %}Demande | Expédition | Détails{% endblock %}
+{% block title_tooltip %}Demande | {{ trans('Demande', 'Expédition', 'Expédition', false) }} | Détails{% endblock %}
 
 {% block page_filter %}
 
@@ -11,12 +12,8 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('shipping-request-index') }}
-    {{ encore_entry_link_tags('shipping-request-show') }}
+    {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
-
-{% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')) %}
-{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
@@ -24,8 +21,11 @@
 {% import "shipping_request/macro.html.twig" as macro %}
 
 {% block page_content %}
-    {{ form.input('shippingId', '', false, shipping.id, {
-        type: 'hidden'
+    {{ form.hidden('shippingId', shipping.id, {
+        data: false
+    }) }}
+    {{ form.hidden('editableExpectedLineForm', editableExpectedLineForm|json_encode, {
+        data: false
     }) }}
     <div class="mb-4 ra-container d-flex justify-content-center align-content-center">
         <div class="row wii-column w-100">
@@ -40,7 +40,7 @@
                                 <div class="dropdown-menu dropdown-follow-gt pointer">
                                     {% if hasRightEdit %}
                                         <a data-id='{{ shipping.id }}'
-                                           data-target='#modalEditDispatch'
+                                           data-target='#modalEditShippingRequest'
                                            data-toggle='modal'
                                            onclick=""
                                            class="dropdown-item pointer">
@@ -61,14 +61,14 @@
                         <div class="d-flex py-2 w-100 justify-content-between">
                             <div class="d-flex align-items-center">
                                 <div class="d-flex flex-column">
-                                    <span class="wii-title">{{ trans('Demande', 'Expédition', null, 'Expédition') }}</span>
+                                    <span class="wii-title">{{ trans('Demande', 'Expédition', 'Expédition') }}</span>
                                     <span class="wii-small-text">
                                     {{ shipping.number }}
                                 </span>
                                 </div>
                             </div>
                             <div class="flex flex-col justify-content-end text-right">
-                                <p class="wii-field-name">{{ shipping.createdBy.username }}</p>
+                                <p class="wii-field-name">{{ shipping.requesters|map(requester => requester.username)|join(', ')  }}</p>
                                 <p class="wii-small-text">
                                     {% for phoneNumber in shipping.requesterPhoneNumbers %}
                                         {{ phoneNumber }}
@@ -78,7 +78,7 @@
                         </div>
                     </div>
                     <div class="content bordered p-0">
-                        <div class="content history-container p-0">
+                        <div class="content history-container pl-0 pt-0 pr-0 pb-3">
                             <div class="d-flex align-items-center justify-content-center p-3">
                                 <div class="spinner-border text-primary" role="status"></div>
                                 <span class="ml-3">Génération de l'historique en cours</span>
@@ -106,23 +106,23 @@
                     </div>
                     <div class="content">
                         <div class="row">
-                            {{ macro.subItem("user", "Client", shipping.customerRecipient) }}
+                            {{ macro.subItem("user", "Client", shipping.customerName) }}
                             {{ macro.subItem("phone", "Téléphone", shipping.customerPhone) }}
-                            {{ macro.subItem("client", "À l'attention de", shipping.customerName) }}
+                            {{ macro.subItem("client", "À l'attention de", shipping.customerRecipient) }}
                             {{ macro.subItem(null, "Adresse de livraison", shipping.customerAddress, asset('svg/location-blue.svg')) }}
                         </div>
                     </div>
                     <div class="wii-section-title py-1">
                         <i class="wii-icon wii-icon-delivery wii-icon-15px-primary mr-2"></i>
-                        Expédition
+                        {{ trans('Demande', 'Expédition', 'Expédition', false) }}
                     </div>
                     <div class="content">
                         <div class="row">
-                            {{ macro.subItem(null, "Date de livraison souhaitée", shipping.plannedAt|date("d/m/Y")) }}
-                            {{ macro.subItem(null, "Envoie", shipping.shipment) }}
+                            {{ macro.subItem(null, 'Date de prise en charge souhaitée', shipping.requestCaredAt|date("d/m/Y")) }}
+                            {{ macro.subItem(null, "Envoi", constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_LABELS')[shipping.shipment]) }}
                         </div>
                         <div class="row">
-                            {{ macro.subItem(null, "Port", shipping.carrying) }}
+                            {{ macro.subItem(null, "Port", constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_LABELS')[shipping.carrying]) }}
                         </div>
                     </div>
                 </div>
@@ -138,15 +138,41 @@
                 </div>
 
             </div>
-            <div class="transport-header col-md-8 col-12">
-                <div class="wii-box">
-                    {{ detailsTransportConfig|raw }}
+            <div class="col-md-8 col-12">
+                <div class="d-flex flex-column">
+                    <div class="wii-box transport-header">
+                        {{ detailsTransportConfig|raw }}
+                    </div>
+                    <div class="wii-box mt-3 details-container">
+                        <div class="d-flex align-items-center justify-content-center p-3">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération du detail en cours</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{ include('shipping_request/modals/scheduled-modal.html.twig') }}
+    {% include "utils/modal/empty-modal.html.twig" with {
+        id: "modalEditShippingRequest",
+        size: 'modal-xl',
+        additionalAttributes: {
+            'data-shipping-request-id': shipping.id,
+        },
+        header: {
+            title: 'Modifier une demande d\'expédition'
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+            ],
+        },
+    } %}
+
+    {% include "shipping_request/modals/scheduled-modal.html.twig" %}
+    {% include "shipping_request/modals/packing.html.twig" %}
 
 {% endblock %}
 

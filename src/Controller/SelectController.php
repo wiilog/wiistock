@@ -246,13 +246,24 @@ class SelectController extends AbstractController {
             'type-quantity' => $request->query->get('type-quantity'),
             'status' => $request->query->get('status'),
             'ignoredDeliveryRequest' => $request->query->get('ignored-delivery-request'),
+            'ignoredShippingRequest' => $request->query->get('ignored-shipping-request'),
             'minQuantity'  => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
         ];
 
-        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options);
+        $results = Stream::from($referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options));
+
+        $addNewItem = $request->query->getBoolean('new-item');
+        if ($addNewItem) {
+            $results
+                ->unshift([
+                    "id" => "redirect-url",
+                    "url" => $this->generateUrl('reference_article_new_page', ['shipping' => true]),
+                    "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle Référence</b></div>",
+                ]);
+        }
 
         return $this->json([
-            "results" => $results,
+            "results" => $results->toArray(),
         ]);
     }
 
@@ -304,12 +315,14 @@ class SelectController extends AbstractController {
     public function user(Request $request, EntityManagerInterface $manager): Response {
         $addDropzone = $request->query->getBoolean("add-dropzone") ?? false;
         $delivererOnly = $request->query->getBoolean("deliverer-only") ?? false;
+        $withPhoneNumber = $request->query->getBoolean("with-phone-numbers") ?? false;
 
         $results = $manager->getRepository(Utilisateur::class)->getForSelect(
             $request->query->get("term"),
             [
                 "addDropzone" => $addDropzone,
-                "delivererOnly" => $delivererOnly
+                "delivererOnly" => $delivererOnly,
+                "withPhoneNumber" => $withPhoneNumber,
             ]
         );
         return $this->json([

@@ -431,6 +431,7 @@ function initEditableTableArticles($table) {
         $row.find('.article-label').text(label);
         //CSS: allow to wrap text and not taking the place of "article" field
         $row.find('.article-label').css('white-space','normal')
+        $row.find('.article-label').css('overflow-wrap','anywhere')
         $row.find('.article-barcode').text(barCode);
 
         const $articleSelect = $row.find('select[name="article"]');
@@ -546,10 +547,6 @@ function saveArticleLine(requestId, $row) {
         $row.find('.is-invalid').first().trigger('focus');
         return false;
     }
-}
-
-function scrollToBottom() {
-    window.scrollTo(0, document.body.scrollHeight);
 }
 
 function addArticleRow(table, $button) {
