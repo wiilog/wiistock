@@ -47,7 +47,8 @@ class ShippingRequestExpectedLineService {
                         ["name" => "data-other-params"],
                         ["name" => "data-other-params-ignored-shipping-request", "value" => $shippingRequest?->getId()],
                         ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
-                        ["name" => "data-other-params-new-item", "value" => 1],
+                        ["name" => "data-other-params-redirect-route", "value" => "shipping_request_show"],
+                        ["name" => "data-other-params-redirect-route-params", "value" => json_encode(["shippingRequest" => $shippingRequest?->getId()])],
                     ],
                 ]),
                 $this->formService->macro("hidden", "lineId")
@@ -60,7 +61,13 @@ class ShippingRequestExpectedLineService {
             : '';
 
         $actionId = 'data-id="' . ($line?->getId() ?: '') . '"';
-        $editUrl = $line ? $this->router->generate('reference_article_edit_page', ['reference' => $line->getReferenceArticle()?->getId()]) : '';
+        $editUrl = $line
+            ? $this->router->generate('reference_article_edit_page', [
+                'reference' => $line->getReferenceArticle()?->getId(),
+                'redirect-route' => 'shipping_request_show',
+                "redirect-route-params" => json_encode(["shippingRequest" => $shippingRequest?->getId()]),
+            ])
+            : '';
         $hasRightToEdit = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
 
         return [
@@ -138,7 +145,7 @@ class ShippingRequestExpectedLineService {
 
     public function getDataForDetailsTable($shippingRequest): array {
         return Stream::from($shippingRequest->getExpectedLines())
-            ->map(function (ShippingRequestExpectedLine $expectedLine) {
+            ->map(function (ShippingRequestExpectedLine $expectedLine) use ($shippingRequest) {
                 $reference = $expectedLine->getReferenceArticle();
                 $actions = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                     'actions' => [
@@ -154,7 +161,11 @@ class ShippingRequestExpectedLineService {
                             'title' => 'Modifier la référence',
                             'icon' => 'fa fa-pen',
                             'attributes' => [
-                                'onclick' => "window.location.href = '{$this->router->generate('reference_article_edit_page', ['reference' => $reference->getId()])}'",
+                                'onclick' => "window.location.href = '{$this->router->generate('reference_article_edit_page', [
+                                    'reference' => $reference->getId(),
+                                    'redirect-route' => 'shipping_request_show',
+                                    "redirect-route-params" => json_encode(["shippingRequest" => $shippingRequest?->getId()]),
+                                ])}'",
                             ]
                         ],
 
