@@ -258,7 +258,10 @@ class SelectController extends AbstractController {
             $results
                 ->unshift([
                     "id" => "redirect-url",
-                    "url" => $this->generateUrl('reference_article_new_page', ['redirect-route' => $redirectRoute, 'redirect-route-params' => $redirectParams]),
+                    "url" => $this->generateUrl('reference_article_new_page', [
+                        'redirect-route' => $redirectRoute,
+                        'redirect-route-params' => $redirectParams
+                    ]),
                     "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle Référence</b></div>",
                 ]);
         }

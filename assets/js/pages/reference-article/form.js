@@ -1,6 +1,6 @@
 import '@styles/details-page.scss';
 import AJAX from "@app/ajax";
-import {computeDescriptionFormValues, computeDescriptionShowValues} from "./common";
+import {computeDescriptionFormValues} from "./common";
 
 global.onTypeQuantityChange = onTypeQuantityChange;
 global.toggleEmergency = toggleEmergency;
@@ -14,8 +14,19 @@ $(document).ready(() => {
     const $periodSwitch = $('input[name="period"]');
     handleNeededFileSheet();
 
-    const redirectRoute = new URLSearchParams(window.location.search).get('redirect-route');
-    const redirectRouteParams = JSON.parse(new URLSearchParams(window.location.search).get('redirect-route-params') || "{}");
+    const requestQuery = GetRequestQuery();
+    const redirectRoute = requestQuery['redirect-route'];
+    let redirectRouteParams;
+    try {
+        redirectRouteParams = requestQuery['redirect-route-params']
+            ? JSON.parse(requestQuery['redirect-route-params'])
+            : undefined;
+    } catch (_) {
+        delete requestQuery['redirect-route-params'];
+        SetRequestQuery(requestQuery);
+        redirectRouteParams = redirectRouteParams || {};
+    }
+
 
     $periodSwitch.on('click', function () {
         buildQuantityPredictions($(this).val());
