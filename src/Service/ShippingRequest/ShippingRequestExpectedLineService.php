@@ -63,8 +63,9 @@ class ShippingRequestExpectedLineService {
         $actionId = 'data-id="' . ($line?->getId() ?: '') . '"';
         $editUrl = $line
             ? $this->router->generate('reference_article_edit_page', [
-                'reference' => $line->getReferenceArticle()?->getId(),
-                'redirect-route' => 'shipping_request_show',
+                "reference" => $line->getReferenceArticle()?->getId(),
+                "shipping" => 1,
+                "redirect-route" => 'shipping_request_show',
                 "redirect-route-params" => json_encode(["shippingRequest" => $shippingRequest?->getId()]),
             ])
             : '';
