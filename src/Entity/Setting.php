@@ -19,7 +19,7 @@ class Setting {
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/dispatch_template.dotx';
     const DEFAULT_DISPATCH_RECAP_TEMPLATE_VALUE = 'modele/recap/dispatch_template.dotx';
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE = 'modele/waybill/dispatch_arrival_template.dotx';
-    const DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE = 'modele/slip/delivery_slip_template.docx';
+    const DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE = 'modele/slip/delivery_slip_template.dotx';
 
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";
@@ -489,7 +489,8 @@ class Setting {
                 "classeproduit" => "classe produit de la référence à expédier",
                 "poidsnettotal" => "poids net total des références à expédier sur la demande",
                 "valeurtotal" => "valeur totale des références à expédier sur la demande",
-                "dimensioncolis" => "dimension d'un colis à expédier sur la demande",
+                "dimensioncolis" => "dimension d'un colis à expédier sur la demande", // TODO
+                "specificationtransport" => "spécification du transport",
                 "nbcolis" => "nombre de colis à expédier sur la demande",
                 "poidsbruttotal" => "poids brut total des colis à expédier sur la demande",
                 "nomtransporteur" => "nom du transporteur choisit pour la demande d'expédition",

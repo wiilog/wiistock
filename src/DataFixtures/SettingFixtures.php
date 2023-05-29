@@ -23,6 +23,8 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
         Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE,
         Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE,
         Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE,
+        Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE,
+        Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE,
     ];
 
     public function load(ObjectManager $manager) {

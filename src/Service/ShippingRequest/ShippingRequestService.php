@@ -519,11 +519,11 @@ class ShippingRequestService {
             "numtracking" => $shippingRequest->getTrackingNumber() ?? "",
             "dateenlevement" => $formatService->date($shippingRequest->getExpectedPickedAt()) ?? "",
             "nomtransporteur" => $formatService->carrier($shippingRequest->getCarrier()) ?? "",
-            "specificationtransport" => "",
+            "specificationtransport" => ShippingRequest::SHIPMENT_LABELS[$shippingRequest->getShipment()] ?? "",
 
             //footer
             "poidsnettotal" => $shippingRequest->getNetWeight() ?? "",
-            "dimensioncolis" => "",
+            "dimensioncolis" => "", // TODO delete mistake
             "valeurtotal" => $shippingRequest->getTotalValue() ?? "",
             "nbcolis" => $shippingRequest->getPackLines()->count(),
             "poidsbruttotal" => $shippingRequest->getGrossWeight() ?? "",
