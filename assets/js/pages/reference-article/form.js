@@ -54,7 +54,9 @@ $(document).ready(() => {
                 success: data => {
                     window.location.href = redirectRoute
                         ? Routing.generate(redirectRoute, redirectRouteParams)
-                        : Routing.generate('reference_article_index', {id: data.id});
+                        : data.data.id
+                            ? Routing.generate('reference_article_show_page', {id: data.data.id})
+                            : Routing.generate('reference_article_index');
                 },
             }).then((data) => {
                 if (data && typeof data === "object" && !data.success && data.draftDefaultReference) {
