@@ -352,6 +352,7 @@ class ShippingRequestController extends AbstractController {
     }
 
     #[Route("/{shippingRequest}/status-history-api", name: "shipping_request_status_history_api", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function statusHistoryApi(ShippingRequest $shippingRequest,
                                      LanguageService $languageService): JsonResponse {
         $user = $this->getUser();
