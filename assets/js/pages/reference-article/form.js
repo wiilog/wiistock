@@ -14,6 +14,11 @@ $(document).ready(() => {
     const $periodSwitch = $('input[name="period"]');
     handleNeededFileSheet();
 
+    console.log('test');
+
+    const redirectRoute = new URLSearchParams(window.location.search).get('redirect-route');
+    const redirectRouteParams = JSON.parse(new URLSearchParams(window.location.search).get('redirect-route-params') || "{}");
+
     $periodSwitch.on('click', function () {
         buildQuantityPredictions($(this).val());
     })
@@ -49,7 +54,9 @@ $(document).ready(() => {
             clearFormErrors($form);
             processSubmitAction($form, $button, $button.data(`submit`), {
                 success: data => {
-                    window.location.href = data.redirect || Routing.generate('reference_article_show_page', {id: data.data.id});
+                    window.location.href = redirectRoute
+                        ? Routing.generate(redirectRoute, redirectRouteParams)
+                        : Routing.generate('reference_article_index', {id: data.id});
                 },
             }).then((data) => {
                 if (data && typeof data === "object" && !data.success && data.draftDefaultReference) {
@@ -57,6 +64,10 @@ $(document).ready(() => {
                 }
             });
         }
+    });
+
+    $('.btn.cancel').on('click', () => {
+        window.location.href = Routing.generate( redirectRoute || 'reference_article_index', redirectRoute ? redirectRouteParams : undefined);
     });
 
     const $deleteImage = $('.delete-image');

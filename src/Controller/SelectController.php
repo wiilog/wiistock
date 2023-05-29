@@ -252,12 +252,13 @@ class SelectController extends AbstractController {
 
         $results = Stream::from($referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options));
 
-        $addNewItem = $request->query->getBoolean('new-item');
-        if ($addNewItem) {
+        $redirectRoute = $request->query->get('redirect-route');
+        $redirectParams = $request->query->get('redirect-route-params');
+        if ($redirectRoute) {
             $results
                 ->unshift([
                     "id" => "redirect-url",
-                    "url" => $this->generateUrl('reference_article_new_page', ['shipping' => true]),
+                    "url" => $this->generateUrl('reference_article_new_page', ['redirect-route' => $redirectRoute, 'redirect-route-params' => $redirectParams]),
                     "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle Référence</b></div>",
                 ]);
         }
