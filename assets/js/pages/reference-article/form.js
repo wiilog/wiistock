@@ -14,8 +14,6 @@ $(document).ready(() => {
     const $periodSwitch = $('input[name="period"]');
     handleNeededFileSheet();
 
-    console.log('test');
-
     const redirectRoute = new URLSearchParams(window.location.search).get('redirect-route');
     const redirectRouteParams = JSON.parse(new URLSearchParams(window.location.search).get('redirect-route-params') || "{}");
 
