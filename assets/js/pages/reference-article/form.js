@@ -2,10 +2,13 @@ import '@styles/details-page.scss';
 import AJAX from "@app/ajax";
 import {computeDescriptionFormValues, computeDescriptionShowValues} from "./common";
 
-window.onTypeQuantityChange = onTypeQuantityChange;
-window.toggleEmergency = toggleEmergency;
-window.changeNewReferenceStatus = changeNewReferenceStatus;
-window.onTypeSecurityChange = onTypeSecurityChange;
+global.onTypeQuantityChange = onTypeQuantityChange;
+global.toggleEmergency = toggleEmergency;
+global.changeNewReferenceStatus = changeNewReferenceStatus;
+global.onTypeSecurityChange = onTypeSecurityChange;
+
+global.onReferenceChange = onReferenceChange;
+global.onLabelChange = onLabelChange;
 
 $(document).ready(() => {
     const $periodSwitch = $('input[name="period"]');
@@ -105,6 +108,12 @@ $(document).ready(() => {
             $size: $(`input[name=size]`),
         });
     });
+
+    const $type = $('select[name=type].data');
+    const preselectedTypeVal = $type.val();
+    if(preselectedTypeVal){
+        $type.trigger('change');
+    }
 });
 
 function deleteLine($button, $inputToUpdate) {
@@ -247,5 +256,23 @@ function handleNeededFileSheet(){
     }else{
         inputRequired.val(0);
         labelRequired.text(oldTextLabelRequired)
+    }
+}
+
+function onLabelChange(){
+    const $referenceLabel = $('[name=libelle].data');
+    const $articleSupplierLabel = $('[name=labelFournisseur].data');
+
+    if($articleSupplierLabel.length === 1){
+        $articleSupplierLabel.val($referenceLabel.val());
+    }
+}
+
+function onReferenceChange(){
+    const $referenceReference = $('[name=reference].data');
+    const $articleSupplierReference = $('[name=referenceFournisseur].data');
+
+    if($articleSupplierReference.length === 1){
+        $articleSupplierReference.val($referenceReference.val());
     }
 }

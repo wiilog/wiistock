@@ -65,6 +65,7 @@
                                    class="form-control data needed"
                                    placeholder="Référence"
                                    data-draft-default="{{ draftDefaultReference ?? null }}"
+                                   {% if shippingSettingsDefaultValues.refArticleSupplierEqualsReference ?? false and not hasRightCreateDraft %}onchange="onReferenceChange()"{% endif %}
                                    value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference ?? null) }}"
                                 {{ hasRightCreateDraft ? 'disabled' : ' ' }}>
                         {% else %}
@@ -72,7 +73,12 @@
                             <input type="hidden" name="reference" class="data" value="{{ reference.reference }}">
                         {% endif %}
                         <label class="mt-3 wii-field-name" title="Libellé">Libellé*</label>
-                        <input type="text" name="libelle" class="form-control data needed" placeholder="Libellé" value="{{ reference.libelle }}">
+                        <input type="text"
+                               name="libelle"
+                               class="form-control data needed"
+                               placeholder="Libellé"
+                               value="{{ reference.libelle }}"
+                               {% if shippingSettingsDefaultValues.articleSupplierLabelEqualsReferenceLabel ?? false %}onchange="onLabelChange()"{% endif %}>
                         {% if not reference.id %}
                             <label class="mt-3 wii-field-name">Type*</label>
                             <select name="type"
@@ -613,8 +619,9 @@
                             {{ macros.supplier_article_line(reference, null, true, 0, false, {
                                 supplier: shippingSettingsDefaultValues is defined and shippingSettingsDefaultValues is not empty ? shippingSettingsDefaultValues.supplier : '',
                                 supplierCode: shippingSettingsDefaultValues is defined and shippingSettingsDefaultValues is not empty ? shippingSettingsDefaultValues.supplierCode : '',
-                                refArticleSupplierEqualsReference: shippingSettingsDefaultValues is defined and shippingSettingsDefaultValues is not empty ? shippingSettingsDefaultValues.refArticleSupplierEqualsReference : false,
+                                refArticleSupplierEqualsReference: shippingSettingsDefaultValues.refArticleSupplierEqualsReference ?? false,
                                 draftDefaultReference: draftDefaultReference,
+                                hasRightCreateDraft: hasRightCreateDraft,
                             }) }}
                         {% endif %}
                     </div>

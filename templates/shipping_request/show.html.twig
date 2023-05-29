@@ -17,6 +17,7 @@
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+{% set hasRightGenerateDeliverySlip = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_PACKING_SLIP')) %}
 
 {% import "shipping_request/macro.html.twig" as macro %}
 
@@ -53,6 +54,13 @@
                                            class="dropdown-item d-flex align-items-center">
                                             <span class="wii-icon wii-icon-trash-black mr-2"></span>
                                             {{ trans('Général', null, 'Modale', 'Supprimer') }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightGenerateDeliverySlip and shipping.status.code != constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_DRAFT')%}
+                                        <a class="dropdown-item d-flex align-items-center"
+                                            onclick="generateDeliverySlip({{ shipping.id }})">
+                                            <span class="fa fa-file mr-2"></span>
+                                            {{ trans('Général', null, 'Modale', 'Générer un bordereau de livraison') }}
                                         </a>
                                     {% endif %}
                                 </div>
@@ -106,9 +114,9 @@
                     </div>
                     <div class="content">
                         <div class="row">
-                            {{ macro.subItem("user", "Client", shipping.customerName) }}
+                            {{ macro.subItem("client", "Client", shipping.customerName) }}
                             {{ macro.subItem("phone", "Téléphone", shipping.customerPhone) }}
-                            {{ macro.subItem("client", "À l'attention de", shipping.customerRecipient) }}
+                            {{ macro.subItem("user", "À l'attention de", shipping.customerRecipient) }}
                             {{ macro.subItem(null, "Adresse de livraison", shipping.customerAddress, asset('svg/location-blue.svg')) }}
                         </div>
                     </div>

@@ -305,7 +305,7 @@ class ArticleDataService
         } else {
             $article = (new Article())
                 ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
-                ->setConform(isset($data['conform']) && !$data['conform'])
+                ->setConform($data['conform'] ?? true)
                 ->setStatut($statut)
                 ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)

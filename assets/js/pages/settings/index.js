@@ -101,6 +101,7 @@ const initializers = {
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
+    modeles_expedition_bordereau_de_livraison: initializeDeliveryWaybillTemplate,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
     trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
     trace_urgences_champs_fixes: initializeEmergenciesFixedFields,

@@ -574,7 +574,7 @@ class PreparationsManagerService
                             'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                             'libelle' => $article->getLabel(),
                             'prix' => $article->getPrixUnitaire(),
-                            'conform' => !$article->getConform(),
+                            'conform' => $article->getConform(),
                             'commentaire' => $article->getcommentaire(),
                             'quantite' => $selected ? $pickedQuantity : 0,
                             'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',

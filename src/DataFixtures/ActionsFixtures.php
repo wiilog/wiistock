@@ -355,6 +355,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_TEMPLATES => [
                 Action::SETTINGS_DISPLAY_DISPATCH_TEMPLATE,
                 Action::SETTINGS_DISPLAY_DELIVERY_TEMPLATE,
+                Action::SETTINGS_DISPLAY_SHIPPING_TEMPLATE,
             ],
         ],
         Menu::NOMADE => [
