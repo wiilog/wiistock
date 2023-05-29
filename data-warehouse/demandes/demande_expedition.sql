@@ -26,9 +26,9 @@ SELECT shipping_request.id,
        IF(SUM(shipping_request_line.id) = 0, null, (shipping_request_line.quantity*reference_article.prix_unitaire))    AS montant_total_reference,
        shipping_request.shipment                                                        AS envoi,
        shipping_request.carrying                                                        AS port,
-       SUM(shipping_request_expected_line.weight)                                       AS poids_net_transport,
+       shipping_request.net_weight                                                      AS poids_net_transport,
        IF(SUM(shipping_request_line.id) = 0, null, shipping_request_pack.size)          AS dimension_colis,
-       SUM(shipping_request_expected_line.price)                                        AS valeur_total_transport,
+       shipping_request.total_value                                                     AS valeur_total_transport,
        COUNT(shipping_request_pack.id)                                                  AS nombre_colis,
        shipping_request.gross_weight                                                    AS poids_brut_transport
 
