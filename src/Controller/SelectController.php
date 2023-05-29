@@ -259,6 +259,7 @@ class SelectController extends AbstractController {
                 ->unshift([
                     "id" => "redirect-url",
                     "url" => $this->generateUrl('reference_article_new_page', [
+                        "shipping" => 1,
                         'redirect-route' => $redirectRoute,
                         'redirect-route-params' => $redirectParams
                     ]),
