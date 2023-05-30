@@ -60,11 +60,6 @@ class ProjectController extends AbstractController
                 'success' => false,
                 'msg' => 'Un ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' avec ce code existe déjà'
             ]);
-        } else if (mb_strlen($data['code']) > ProjectService::MAX_LENGTH_CODE_PROJECT) {
-            return $this->json([
-                'success' => false,
-                'msg' => 'La longueur maximale du code est de ' . ProjectService::MAX_LENGTH_CODE_PROJECT .  ' caractères',
-            ]);
         } else {
             $projectManager = $manager->getRepository(Utilisateur::class)->findOneBy(['id' => $data['projectManager']]);
             $project = (new Project())
@@ -113,12 +108,6 @@ class ProjectController extends AbstractController
             return $this->json([
                 'success' => false,
                 'msg' => 'Un ' . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false)) . ' avec ce code existe déjà'
-            ]);
-        } else if (mb_strlen($data['code']) > ProjectService::MAX_LENGTH_CODE_PROJECT) {
-
-            return $this->json([
-                'success' => false,
-                'msg' => 'La longueur maximale du code est de ' . ProjectService::MAX_LENGTH_CODE_PROJECT .  ' caractères',
             ]);
         } else {
             $projectManager = $manager->getRepository(Utilisateur::class)->findOneBy(['id' => $data['projectManager']]);

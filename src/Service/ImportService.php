@@ -1881,11 +1881,7 @@ class ImportService
         $project = $projectAlreadyExists ?? new Project();
 
         if (!$projectAlreadyExists && isset($data['code'])) {
-            if ((strlen($data['code'])) > ProjectService::MAX_LENGTH_CODE_PROJECT) {
-                $this->throwError("La valeur saisie pour le code ne doit pas dépasser ". ProjectService::MAX_LENGTH_CODE_PROJECT ." caractères");
-            } else {
-                $project->setCode($data['code']);
-            }
+            $project->setCode($data['code']);
         }
 
         if (isset($data['description'])) {
