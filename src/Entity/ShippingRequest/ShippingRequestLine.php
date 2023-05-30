@@ -45,7 +45,7 @@ class ShippingRequestLine {
         return $this;
     }
 
-    public function getArticleOrReference(): Article|ReferenceArticle {
+    public function getArticleOrReference(): Article|ReferenceArticle|null {
         return $this->article ?? $this->reference;
     }
 

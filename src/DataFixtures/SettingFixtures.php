@@ -23,6 +23,8 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
         Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE,
         Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE,
         Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE,
+        Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE,
+        Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE,
     ];
 
     public function load(ObjectManager $manager) {
@@ -203,10 +205,14 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [
                 'default' => Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE
             ],
+            Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE => [
+                'default' => Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE
+            ],
             Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_RECAP_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [],
+            Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE => [],
             Setting::DEFAULT_LOCATION_RECEPTION => [],
             Setting::DEFAULT_LOCATION_REFERENCE => [],
             Setting::DEFAULT_LOCATION_LIVRAISON => [

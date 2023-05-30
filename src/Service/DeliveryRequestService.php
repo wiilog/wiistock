@@ -1088,7 +1088,7 @@ class DeliveryRequestService
             ]),
             "location" => $locationColumn,
             "barcode" => $barcodeColumn,
-            "article" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $line instanceof DeliveryRequestArticleLine
+            "article" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && ($line instanceof DeliveryRequestArticleLine || !$line)
                 ? $this->formService->macro("select", "article", null, true, [
                     "items" => $articleItems ?? [],
                     "value" => $articleId ?? null,

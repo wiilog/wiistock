@@ -5,6 +5,7 @@ namespace App\Controller\ShippingRequest;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\Attachment;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Language;
@@ -41,9 +42,12 @@ use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use mysql_xdevapi\Exception;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -244,6 +248,11 @@ class ShippingRequestController extends AbstractController {
                     throw new FormException('Formulaire invalide');
                 }
 
+                $line = $shippingRequest->getExpectedLine($referenceArticle);
+                if($line){
+                    throw new FormException('La référence article a déjà été ajoutée');
+                }
+
                 $line = $expectedLineService->persist($entityManager, [
                     'referenceArticle' => $referenceArticle,
                     'request' => $shippingRequest
@@ -257,8 +266,8 @@ class ShippingRequestController extends AbstractController {
 
             $line
                 ->setQuantity($data['quantity'] ?? null)
-                ->setPrice($data['price'] ?? null)
-                ->setWeight($data['weight'] ?? null);
+                ->setUnitPrice($data['price'] ?? null)
+                ->setUnitWeight($data['weight'] ?? null);
 
             $shippingRequestService->updateNetWeight($shippingRequest);
             $shippingRequestService->updateTotalValue($shippingRequest);
@@ -268,7 +277,7 @@ class ShippingRequestController extends AbstractController {
             $resp = [
                 'success' => true,
                 'created' => $created,
-                'lineId' => $lineId
+                'lineId' => $lineId ?? $line->getId(),
             ];
         }
         return new JsonResponse(
@@ -572,7 +581,7 @@ class ShippingRequestController extends AbstractController {
                                     'refArticle' => $referenceArticle,
                                     'emplacement' => $packLocation,
                                     'quantite' => $pickedQuantity,
-                                    'prix' => $requestExpectedLine->getPrice(),
+                                    'prix' => $requestExpectedLine->getUnitPrice(),
                                     'articleFournisseur' => $requestExpectedLine->getReferenceArticle()->getArticlesFournisseur()->first()->getId(),
                                     'currentLogisticUnit' => $shippingPack->getPack(),
                                 ],
@@ -582,11 +591,13 @@ class ShippingRequestController extends AbstractController {
                             $generatedBarcode[] = $article->getBarCode();
                         }
 
+                        $articleOrReference = $article ?? $referenceArticle;
+
                         $stockMovement = $stockMovementService->createMouvementStock(
                             $this->getUser(),
                             null,
-                            isset($article) ? $article->getQuantite() : $pickedQuantity,
-                            $article ?? $referenceArticle,
+                            $pickedQuantity,
+                            $articleOrReference,
                             MouvementStock::TYPE_ENTREE,
                             [
                                 'date' => $now,
@@ -596,7 +607,7 @@ class ShippingRequestController extends AbstractController {
                         $entityManager->persist($stockMovement);
 
                         $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
-                            ($article ?? $referenceArticle)->getBarCode(),
+                            $articleOrReference->getTrackingPack() ?: $articleOrReference->getBarCode(),
                             $packLocation,
                             $this->getUser(),
                             $now,
@@ -604,9 +615,10 @@ class ShippingRequestController extends AbstractController {
                             true,
                             TrackingMovement::TYPE_DEPOSE,
                             [
-                                'refOrArticle' => $article ?? $referenceArticle,
+                                'refOrArticle' => $articleOrReference,
                                 'mouvementStock' => $stockMovement,
-                                'logisticUnitParent' => $shippingPack->getPack()
+                                'logisticUnitParent' => $shippingPack->getPack(),
+                                "quantity" => $pickedQuantity,
                             ]
                         );
                         $entityManager->persist($trackingMovementDrop);
@@ -623,7 +635,8 @@ class ShippingRequestController extends AbstractController {
                                 [
                                     'refOrArticle' => $article,
                                     'mouvementStock' => $stockMovement,
-                                    'logisticUnitParent' => $shippingPack->getPack()
+                                    'logisticUnitParent' => $shippingPack->getPack(),
+                                    "quantity" => $pickedQuantity,
                                 ]
                             );
                             $entityManager->persist($trackingMovementDropLogisticUnit);
@@ -633,7 +646,7 @@ class ShippingRequestController extends AbstractController {
                         $requestLine = new ShippingRequestLine();
                         $requestLine
                             ->setQuantity($pickedQuantity)
-                            ->setArticleOrReference($article ?? $referenceArticle)
+                            ->setArticleOrReference($articleOrReference)
                             ->setShippingPack($shippingPack)
                             ->setExpectedLine($requestExpectedLine);
 
@@ -679,20 +692,20 @@ class ShippingRequestController extends AbstractController {
                                ShippingRequestService             $shippingRequestService,
                                ShippingRequestExpectedLineService $shippingRequestExpectedLineService): Response
     {
-        switch (strtolower($shippingRequest->getStatus()->getCode())) {
-            case strtolower(ShippingRequest::STATUS_DRAFT):
+        switch ($shippingRequest->getStatus()->getCode()) {
+            case ShippingRequest::STATUS_DRAFT:
                 $html = $this->renderView('shipping_request/details/draft.html.twig', [
                     'shippingRequest' => $shippingRequest,
                 ]);
                 break;
-            case strtolower(ShippingRequest::STATUS_TO_TREAT):
+            case ShippingRequest::STATUS_TO_TREAT:
                 $html = $this->renderView('shipping_request/details/to_treat.html.twig', [
                     'shippingRequest' => $shippingRequest,
                     'expectedLines' => $shippingRequestExpectedLineService->getDataForDetailsTable($shippingRequest),
                 ]);
                 break;
-            case strtolower(ShippingRequest::STATUS_SCHEDULED):
-            case strtolower(ShippingRequest::STATUS_SHIPPED):
+            case ShippingRequest::STATUS_SCHEDULED:
+            case ShippingRequest::STATUS_SHIPPED:
                 $html = $this->renderView('shipping_request/details/scheduled.html.twig', [
                     'shippingRequest' => $shippingRequest,
                     'lines' => $shippingRequestService->getDataForScheduledRequest($shippingRequest),
@@ -879,5 +892,30 @@ class ShippingRequestController extends AbstractController {
             'success' => true,
             'msg' => "La ".mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false))." a été expédiée."
         ]);
+    }
+
+    #[Route("/{shippingRequest}/delivery-slip", name: "post_delivery_slip", options: ["expose"=>true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    public function postDeliverySlip(EntityManagerInterface $entityManager,
+                                     ShippingRequest        $shippingRequest,
+                                     ShippingRequestService $shippingRequestService): JsonResponse {
+        $deliverySlipAttachment = $shippingRequestService->persistNewDeliverySlipAttachment($entityManager, $shippingRequest);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le téléchargement de votre bordereau de livraison va commencer...',
+            'attachmentId' => $deliverySlipAttachment->getId(),
+        ]);
+    }
+
+
+    #[Route("/{shippingRequest}/delivery-slip/{attachment}", name:"print_delivery_slip", options:["expose"=>true], methods:['GET'], condition: "request.isXmlHttpRequest()")]
+    public function printDeliverySlip(Attachment      $attachment,
+                                      KernelInterface $kernel): Response {
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$attachment->getOriginalName());
+
+        return $response;
     }
 }

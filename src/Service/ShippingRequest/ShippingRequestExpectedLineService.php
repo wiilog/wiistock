@@ -38,27 +38,37 @@ class ShippingRequestExpectedLineService {
             $labelColumn = $line->getReferenceArticle()?->getLibelle();
         }
         else {
-            $referenceColumn = $this->formService->macro("select", "referenceArticle", null, true, [
-                "type" => "reference",
-                "minLength" => 0,
-                "error" => "global",
-                "additionalAttributes" => [
-                    ["name" => "data-field-label", 'value' => "Référence"],
-                    ["name" => "data-other-params"],
-                    ["name" => "data-other-params-ignored-shipping-request", "value" => $shippingRequest?->getId()],
-                    ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
-                    ["name" => "data-other-params-new-item", "value" => 1],
-                ],
-            ]);
+            $referenceColumn = Stream::from([
+                $this->formService->macro("select", "referenceArticle", null, true, [
+                    "type" => "reference",
+                    "minLength" => 0,
+                    "additionalAttributes" => [
+                        ["name" => "data-field-label", 'value' => "Référence"],
+                        ["name" => "data-other-params"],
+                        ["name" => "data-other-params-ignored-shipping-request", "value" => $shippingRequest?->getId()],
+                        ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
+                        ["name" => "data-other-params-redirect-route", "value" => "shipping_request_show"],
+                        ["name" => "data-other-params-redirect-route-params", "value" => json_encode(["shippingRequest" => $shippingRequest?->getId()])],
+                    ],
+                ]),
+                $this->formService->macro("hidden", "lineId")
+            ])->join('');
             $labelColumn = '<span class="label-wrapper"></span>';
         }
 
-        $total = $line?->getQuantity() && $line?->getPrice()
-            ? ($line->getQuantity() * $line->getPrice())
+        $total = $line?->getQuantity() && $line?->getUnitPrice()
+            ? ($line->getQuantity() * $line->getUnitPrice())
             : '';
 
         $actionId = 'data-id="' . ($line?->getId() ?: '') . '"';
-        $editUrl = $line ? $this->router->generate('reference_article_edit_page', ['reference' => $line->getReferenceArticle()?->getId()]) : '';
+        $editUrl = $line
+            ? $this->router->generate('reference_article_edit_page', [
+                "reference" => $line->getReferenceArticle()?->getId(),
+                "shipping" => 1,
+                "redirect-route" => 'shipping_request_show',
+                "redirect-route-params" => json_encode(["shippingRequest" => $shippingRequest?->getId()]),
+            ])
+            : '';
         $hasRightToEdit = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
 
         return [
@@ -85,23 +95,20 @@ class ShippingRequestExpectedLineService {
                 "type" => "number",
                 "min" => 1,
                 "step" => 1,
-                "error" => "global",
                 "additionalAttributes" => [
                     ["name" => "data-field-label", 'value' => "Quantité"],
                 ],
             ]),
-            "price" => $this->formService->macro("input", "price", null, true, $line?->getPrice(), [
+            "price" => $this->formService->macro("input", "price", null, true, $line?->getUnitPrice(), [
                 "type" => "number",
                 "min" => 0,
-                "error" => "global",
                 "additionalAttributes" => [
                     ["name" => "data-field-label", 'value' => "Prix unitaire"],
                 ],
             ]),
-            "weight" => $this->formService->macro("input", "weight", null, true, $line?->getWeight(), [
+            "weight" => $this->formService->macro("input", "weight", null, true, $line?->getUnitWeight(), [
                 "type" => "number",
                 "min" => 0,
-                "error" => "global",
                 "additionalAttributes" => [
                     ["name" => "data-field-label", 'value' => "Poids net"],
                 ],
@@ -130,8 +137,8 @@ class ShippingRequestExpectedLineService {
             ->setReferenceArticle($referenceArticle)
             ->setRequest($request)
             ->setQuantity($quantity)
-            ->setPrice($price)
-            ->setWeight($weight);
+            ->setUnitPrice($price)
+            ->setUnitWeight($weight);
 
         $entityManager->persist($line);
         return $line;
@@ -139,7 +146,7 @@ class ShippingRequestExpectedLineService {
 
     public function getDataForDetailsTable($shippingRequest): array {
         return Stream::from($shippingRequest->getExpectedLines())
-            ->map(function (ShippingRequestExpectedLine $expectedLine) {
+            ->map(function (ShippingRequestExpectedLine $expectedLine) use ($shippingRequest) {
                 $reference = $expectedLine->getReferenceArticle();
                 $actions = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                     'actions' => [
@@ -155,7 +162,11 @@ class ShippingRequestExpectedLineService {
                             'title' => 'Modifier la référence',
                             'icon' => 'fa fa-pen',
                             'attributes' => [
-                                'onclick' => "window.location.href = '{$this->router->generate('reference_article_edit_page', ['reference' => $reference->getId()])}'",
+                                'onclick' => "window.location.href = '{$this->router->generate('reference_article_edit_page', [
+                                    'reference' => $reference->getId(),
+                                    'redirect-route' => 'shipping_request_show',
+                                    "redirect-route-params" => json_encode(["shippingRequest" => $shippingRequest?->getId()]),
+                                ])}'",
                             ]
                         ],
 
@@ -166,11 +177,17 @@ class ShippingRequestExpectedLineService {
                     'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-20px ml-2'></i>" : '') . '</div>',
                     'label' => $reference->getLibelle(),
                     'quantity' => $expectedLine->getQuantity(),
-                    'price' => $expectedLine->getPrice(),
-                    'weight' => $expectedLine->getWeight(),
-                    'total' => $expectedLine->getQuantity() * $expectedLine->getPrice(),
+                    'price' => $expectedLine->getUnitPrice(),
+                    'weight' => $expectedLine->getUnitWeight(),
+                    'total' => $expectedLine->getQuantity() * $expectedLine->getUnitPrice(),
                 ];
             })
             ->toArray();
+    }
+
+    public function updateTotalWeight(ShippingRequestExpectedLine $expectedLine): void {
+        $expectedLine->setTotalWeight(
+            $expectedLine->getQuantity() && $expectedLine->getUnitWeight() ? $expectedLine->getQuantity() * $expectedLine->getUnitWeight() : 0
+        );
     }
 }

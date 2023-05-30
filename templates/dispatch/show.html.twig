@@ -289,7 +289,7 @@
 {% block javascripts %}
     {{ parent() }}
 
-    {{ encore_entry_script_tags('reference-article-form') }}
+    {{ encore_entry_script_tags('reference-article-form-common') }}
     <script src="{{ asset('js/pages/dispatch-show.js') }}?v={{ web_version }}"></script>
 
 {% endblock %}

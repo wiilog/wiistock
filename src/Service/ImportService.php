@@ -107,6 +107,9 @@ class ImportService
             "type",
             "typeQuantite",
             "outFormatEquipment",
+            "dangerousGoods",
+            "onuCode",
+            "productClass",
             "manufacturerCode",
             "volume",
             "weight",
@@ -1110,6 +1113,30 @@ class ImportService
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
         }
+        $dangerousGoods = (
+            filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
+            || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
+        );
+
+        $refArt
+            ->setDangerousGoods($dangerousGoods);
+
+        if (isset($data['onuCode'])) {
+            $refArt->setOnuCode($data['onuCode'] ?: null);
+        }
+        if (isset($data['productClass'])) {
+            $refArt->setProductClass($data['productClass'] ?: null);
+        }
+
+        if ($refArt->isDangerousGoods()
+            && !$refArt->getOnuCode()) {
+            $this->throwError("Le code ONU est requis");
+        }
+
+        if ($refArt->isDangerousGoods()
+            && !$refArt->getProductClass()) {
+            $this->throwError("La classe projet est requise");
+        }
 
         $original = $refArt->getDescription() ?? [];
 
@@ -1152,6 +1179,7 @@ class ImportService
         ];
         $refArt
             ->setDescription($description);
+
         // champs libres
         $this->checkAndSetChampsLibres($colChampsLibres, $refArt, $isNewEntity, $row);
 
