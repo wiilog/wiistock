@@ -343,6 +343,8 @@ class ShippingRequestController extends AbstractController {
             } else {
                 throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
             }
+        } else if ($shippingRequest->isDraft()){
+            $success = true;
         }
 
         if ($success) {
@@ -353,6 +355,8 @@ class ShippingRequestController extends AbstractController {
                 'shippingRequestId' => $shippingRequest->getId(),
             ]);
         }
+        // usually never call
+        throw new FormException();
     }
 
     #[Route("/check_expected_lines_data/{id}", name: 'check_expected_lines_data', options: ["expose" => true], methods: ['GET'])]
