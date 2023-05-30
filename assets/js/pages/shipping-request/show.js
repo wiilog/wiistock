@@ -377,7 +377,7 @@ function initShippingRequestExpectedLine($table) {
         },
         columns: [
             {data: 'actions', orderable: false, alwaysVisible: true, class: 'noVis', width: '10px'},
-            {data: 'reference', title: 'Référence', required: true,},
+            {data: 'reference', title: 'Référence', required: true, width: '180px'},
             {data: 'information', orderable: false, alwaysVisible: true, class: 'noVis', width: '10px'},
             {data: 'editAction', orderable: false, alwaysVisible: true, class: 'noVis', width: '10px'},
             {data: 'label', title: 'Libellé'},

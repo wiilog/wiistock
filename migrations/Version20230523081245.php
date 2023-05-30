@@ -35,12 +35,14 @@ final class Version20230523081245 extends AbstractMigration
             ->executeQuery("SELECT id FROM categorie_statut WHERE nom = '" . CategorieStatut::SHIPPING_REQUEST . "'")
             ->fetchFirstColumn();
 
-        foreach ($statutStates as $state => $statutName){
-            $this->addSql("UPDATE statut SET state = :state WHERE nom = :name AND categorie_id = :categorie ", [
-                'state' => $state,
-                'name' => $statutName,
-                'categorie' => $categorieStatusId[0],
-            ]);
+        if (isset($categorieStatusId[0])) {
+            foreach ($statutStates as $state => $statutName) {
+                $this->addSql("UPDATE statut SET state = :state WHERE nom = :name AND categorie_id = :categorie ", [
+                    'state' => $state,
+                    'name' => $statutName,
+                    'categorie' => $categorieStatusId[0],
+                ]);
+            }
         }
     }
 
