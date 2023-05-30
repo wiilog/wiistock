@@ -490,7 +490,7 @@ class Setting {
                 "poidsnettotal" => "poids net total des références à expédier sur la demande",
                 "valeurtotal" => "valeur totale des références à expédier sur la demande",
                 "dimensioncolis" => "dimension d'un colis à expédier sur la demande", // TODO
-                "specificationtransport" => "spécification du transport",
+                "envoi" => "spécification du transport",
                 "nbcolis" => "nombre de colis à expédier sur la demande",
                 "poidsbruttotal" => "poids brut total des colis à expédier sur la demande",
                 "nomtransporteur" => "nom du transporteur choisit pour la demande d'expédition",

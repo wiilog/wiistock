@@ -520,7 +520,7 @@ class ShippingRequestService {
             "numtracking" => $shippingRequest->getTrackingNumber() ?? "",
             "dateenlevement" => $formatService->date($shippingRequest->getExpectedPickedAt()) ?? "",
             "nomtransporteur" => $formatService->carrier($shippingRequest->getCarrier()) ?? "",
-            "specificationtransport" => ShippingRequest::SHIPMENT_LABELS[$shippingRequest->getShipment()] ?? "",
+            "envoi" => ShippingRequest::SHIPMENT_LABELS[$shippingRequest->getShipment()] ?? "",
 
             //footer
             "poidsnettotal" => $shippingRequest->getNetWeight() ?? "",
