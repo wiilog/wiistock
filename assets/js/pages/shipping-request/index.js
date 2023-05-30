@@ -57,6 +57,7 @@ function initTableShippings() {
             processing: true,
             serverSide: true,
             paging: true,
+            order: [['number', "desc"]],
             ajax: {
                 url: Routing.generate('shipping_request_api', true),
                 type: POST,

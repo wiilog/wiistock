@@ -2,6 +2,7 @@
 
 namespace App\Entity\ShippingRequest;
 
+use App\Entity\Attachment;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
@@ -171,6 +172,9 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\OneToMany(mappedBy: 'shippingRequest', targetEntity: MouvementStock::class)]
     private Collection $stockMovements;
 
+    #[ORM\OneToMany(mappedBy: 'shippingRequest', targetEntity: Attachment::class)]
+    private Collection $attachments;
+
     public function __construct() {
         $this->requesters = new ArrayCollection();
         $this->expectedLines = new ArrayCollection();
@@ -179,6 +183,7 @@ class ShippingRequest extends StatusHistoryContainer {
         $this->packLines = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->stockMovements = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -606,5 +611,33 @@ class ShippingRequest extends StatusHistoryContainer {
 
     public function isShipped(): ?bool {
         return $this->status->getCode() === self::STATUS_SHIPPED;
+    }
+
+
+    /**
+     * @return Collection|Attachment[]
+     */
+    public function getAttachments(): Collection {
+        return $this->attachments;
+    }
+
+    public function addAttachment(Attachment $attachment): self {
+        if(!$this->attachments->contains($attachment)) {
+            $this->attachments[] = $attachment;
+            $attachment->setShippingRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachment(Attachment $attachment): self {
+        if($this->attachments->contains($attachment)) {
+            $this->attachments->removeElement($attachment);
+            if($attachment->getShippingRequest() === $this) {
+                $attachment->setShippingRequest(null);
+            }
+        }
+
+        return $this;
     }
 }
