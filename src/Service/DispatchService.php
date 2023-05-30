@@ -278,6 +278,7 @@ class DispatchService {
         $startDateStr = $this->formatService->date($startDate, "", $user);
         $endDateStr = $this->formatService->date($endDate, "", $user);
         $projectNumber = $dispatch->getProjectNumber();
+        $syncDate = $dispatch->getSyncAt() ?: null;
 
         $receiverDetails = [
             "label" => $this->translationService->translate('Demande', 'Général', 'Destinataire(s)', false),
@@ -381,6 +382,14 @@ class DispatchService {
                 ],
             );
         }
+
+        if($dispatch->getSyncAt()) {
+            $config[] = [
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernière synchronisation', false),
+                'value' => $this->formatService->datetime($syncDate, "-"),
+            ];
+        }
+
         return $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
     }
 
