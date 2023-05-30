@@ -321,7 +321,7 @@ class ShippingRequestController extends AbstractController {
         }
 
         // right & status to treat
-        if ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT) {
+        if ($shippingRequest->isToTreat()) {
             if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING, $user)) {
                 $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
             } else {
@@ -329,7 +329,7 @@ class ShippingRequestController extends AbstractController {
             }
 
         // right & status scheduled
-        } else if ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SCHEDULED) {
+        } else if ($shippingRequest->isScheduled()) {
             if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_PLANIFIED_SHIPPING)) {
                 $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
             } else {
@@ -337,7 +337,7 @@ class ShippingRequestController extends AbstractController {
             }
 
         // right & status shipped
-        } else if ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SHIPPED) {
+        } else if ($shippingRequest->isShipped()) {
             if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_SHIPPED_SHIPPING)) {
                 $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
             } else {
@@ -353,8 +353,6 @@ class ShippingRequestController extends AbstractController {
                 'shippingRequestId' => $shippingRequest->getId(),
             ]);
         }
-        // draft
-        throw new FormException("Cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " ne peut pas être modifiée avec le statut Brouillon ");
     }
 
     #[Route("/check_expected_lines_data/{id}", name: 'check_expected_lines_data', options: ["expose" => true], methods: ['GET'])]
