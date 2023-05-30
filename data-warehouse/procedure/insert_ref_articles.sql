@@ -5,9 +5,9 @@ delimiter //
 CREATE procedure db_stock_terega.insert_refs()
 wholeblock:BEGIN
     DECLARE x INT;
-    SET x = 3500;
+    SET x = 1;
     loop_label: LOOP
-        IF x >= 8000 THEN
+        IF x >= 63650 THEN
             LEAVE loop_label;
         END IF;
         INSERT INTO reference_article (id, type_id, statut_id, emplacement_id, libelle, reference, quantite_disponible,
