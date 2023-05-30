@@ -320,6 +320,7 @@ class ShippingRequestController extends AbstractController {
             throw new FormException('La demande d\'expédition n\'a pas été trouvée.');
         }
 
+
         // right & status to treat
         if ($shippingRequest->isToTreat()) {
             if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING, $user)) {
@@ -343,8 +344,8 @@ class ShippingRequestController extends AbstractController {
             } else {
                 throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
             }
-        } else if ($shippingRequest->isDraft()){
-            $success = true;
+        } else if ($shippingRequest->isDraft()) {
+            $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
         }
 
         if ($success) {
