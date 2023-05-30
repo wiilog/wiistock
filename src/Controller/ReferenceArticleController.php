@@ -170,7 +170,7 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
-            switch($data['type_quantite']) {
+            switch ($data['type_quantite']) {
                 case 'reference':
                     $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
                     break;
@@ -179,9 +179,16 @@ class ReferenceArticleController extends AbstractController
                     break;
             }
 
+            $needsMobileSync = filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            if ($needsMobileSync && ($referenceArticleRepository->count(['needsMobileSync' => true]) > ReferenceArticle::MAX_NOMADE_SYNC && $data['mobileSync'])) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Le nombre maximum de synchronisations nomade a été atteint.'
+                ]);
+            }
             $refArticle = new ReferenceArticle();
             $refArticle
-                ->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                ->setNeedsMobileSync($needsMobileSync)
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))

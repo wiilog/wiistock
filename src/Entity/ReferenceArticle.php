@@ -44,6 +44,7 @@ class ReferenceArticle
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
     const PURCHASE_IN_PROGRESS_ORDER_STATE = "purchaseInProgress";
     const WAIT_FOR_RECEPTION_ORDER_STATE = "waitForReception";
+    const MAX_NOMADE_SYNC = 4000;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
