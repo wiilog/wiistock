@@ -927,6 +927,7 @@ class DeliveryRequestService
         $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
         $isCommentRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
         $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+        $isUserRoleQuantityTypeReference = $this->security->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
         $columns = [
             ["name" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
@@ -934,7 +935,7 @@ class DeliveryRequestService
             ['title' => 'Référence', 'required' => $editMode, 'name' => 'reference', 'alwaysVisible' => true],
             ['title' => 'Code barre', 'name' => 'barcode', 'alwaysVisible' => false],
             ['title' => 'Libellé', 'name' => 'label', 'alwaysVisible' => false],
-            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'removeColumn' => !$editMode, 'alwaysVisible' => true],
+            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'alwaysVisible' => true, 'removeColumn' => $isUserRoleQuantityTypeReference || !$editMode],
             ['title' => 'Quantité', 'required' => $editMode, 'name' => 'quantityToPick', 'alwaysVisible' => true],
             ['title' => 'Emplacement', 'name' => 'location', 'alwaysVisible' => false],
 
