@@ -222,7 +222,7 @@ class Article implements PairedEntity {
     }
 
     public function getCommentaire(): ?string {
-        return $this->commentaire;
+        return strip_tags($this->commentaire);
     }
 
     public function setCommentaire(?string $commentaire): self {
