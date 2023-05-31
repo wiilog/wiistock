@@ -122,7 +122,7 @@ class ArticleDataService
                     ])];
             } else {
                 $management = $refArticle->getStockManagement();
-                $articles = $this->findAndSortActiveArticlesByRefArticle($refArticle, $management, $this->entityManager);
+                $articles = $this->findAndSortActiveArticlesByRefArticle($refArticle, $this->entityManager);
 
                 $articleIdsInRequest = $request->getArticleLines()
                     ->map(fn (DeliveryRequestArticleLine $line) => $line->getArticle()->getId())
@@ -145,9 +145,10 @@ class ArticleDataService
         return $data;
     }
 
-    public function findAndSortActiveArticlesByRefArticle(ReferenceArticle $refArticle, $management, EntityManagerInterface $entityManager, ?Demande $demande = null){
+    public function findAndSortActiveArticlesByRefArticle(ReferenceArticle $refArticle, EntityManagerInterface $entityManager, ?Demande $demande = null){
         $articleRepository = $entityManager->getRepository(Article::class);
         $articles = $articleRepository->findActiveArticles($refArticle, null, null, null, $demande);
+        $management = $refArticle->getStockManagement();
         return $management
             ? Stream::from($articles)
                 ->sort(function (Article $article1, Article $article2) use ($management) {
@@ -304,7 +305,7 @@ class ArticleDataService
         } else {
             $article = (new Article())
                 ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
-                ->setConform(isset($data['conform']) && !$data['conform'])
+                ->setConform($data['conform'] ?? true)
                 ->setStatut($statut)
                 ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
@@ -320,7 +321,8 @@ class ArticleDataService
                 ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setBatch($data['batch'] ?? null);
+                ->setBatch($data['batch'] ?? null)
+                ->setCurrentLogisticUnit($data['currentLogisticUnit'] ?? null);
 
             if(isset($data['nativeCountry'])) {
                 $article->setNativeCountry($entityManager->find(NativeCountry::class, $data['nativeCountry']));
@@ -336,7 +338,6 @@ class ArticleDataService
                 $article->setManifacturingDate($data['manufactureDate'] ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null);
             }
 
-            $article->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']));
             $entityManager->persist($article);
         }
 

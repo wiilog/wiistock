@@ -53,7 +53,7 @@ use App\Repository\TrackingMovementRepository;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
-use App\Service\DemandeLivraisonService;
+use App\Service\DeliveryRequestService;
 use App\Service\DispatchService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
@@ -1592,7 +1592,7 @@ class MobileController extends AbstractApiController
      */
     public function validateManualDL(Request                    $request,
                                      EntityManagerInterface     $entityManager,
-                                     DemandeLivraisonService    $demandeLivraisonService,
+                                     DeliveryRequestService     $demandeLivraisonService,
                                      LivraisonsManagerService   $livraisonsManagerService,
                                      MouvementStockService      $mouvementStockService,
                                      FreeFieldService           $freeFieldService,
@@ -1712,10 +1712,10 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function checkAndValidateDL(Request $request,
+    public function checkAndValidateDL(Request                $request,
                                        EntityManagerInterface $entityManager,
-                                       DemandeLivraisonService $demandeLivraisonService,
-                                       FreeFieldService $champLibreService): Response
+                                       DeliveryRequestService $demandeLivraisonService,
+                                       FreeFieldService       $champLibreService): Response
     {
         $nomadUser = $this->getUser();
 
@@ -3493,6 +3493,7 @@ class MobileController extends AbstractApiController
             ]);
         }
 
+        $emergency = $request->request->get('emergency');
         $dispatch = (new Dispatch())
             ->setNumber($dispatchNumber)
             ->setCreationDate(new DateTime())
@@ -3503,7 +3504,7 @@ class MobileController extends AbstractApiController
             ->setLocationTo($dropLocation)
             ->setCarrierTrackingNumber($request->request->get('carrierTrackingNumber'))
             ->setCommentaire($request->request->get('comment'))
-            ->setEmergency($request->request->get('emergency'))
+            ->setEmergency(!empty($emergency) ? $emergency : null)
             ->setEmails($emails);
 
         if($receiver) {
@@ -3586,7 +3587,7 @@ class MobileController extends AbstractApiController
         $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $defaultNature = $natureRepository->findOneBy(['defaultForDispatch' => true]);
+        $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
 
         $references = json_decode($request->request->get('references'), true);
         $user = $this->getUser();

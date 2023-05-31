@@ -107,6 +107,9 @@ class ImportService
             "type",
             "typeQuantite",
             "outFormatEquipment",
+            "dangerousGoods",
+            "onuCode",
+            "productClass",
             "manufacturerCode",
             "volume",
             "weight",
@@ -185,6 +188,7 @@ class ImportService
         Import::ENTITY_CUSTOMER => [
             "name",
             "address",
+            "recipient",
             "phone",
             "email",
             "fax",
@@ -228,7 +232,7 @@ class ImportService
     public ReceptionService $receptionService;
 
     #[Required]
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     #[Required]
     public ArticleFournisseurService $articleFournisseurService;
@@ -259,9 +263,10 @@ class ImportService
 
     private Import $currentImport;
     private EntityManagerInterface $entityManager;
-    private array $importCache = [];
 
-    private array $cache = [];
+    private array $scalarCache = [];
+
+    private array $entityCache = [];
 
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
@@ -562,7 +567,7 @@ class ImportService
 
                 $this->entityManager->flush();
                 if (!empty($insertedDelivery)) {
-                    $this->cache['deliveries'][$insertedDelivery->getUtilisateur()->getId() . '-' . $insertedDelivery->getDestination()->getId()] = $insertedDelivery;
+                    $this->entityCache['deliveries'][$insertedDelivery->getUtilisateur()->getId() . '-' . $insertedDelivery->getDestination()->getId()] = $insertedDelivery;
                 }
                 if ($needsUnitClear) {
                     $this->clearEntityManagerAndRetrieveImport();
@@ -779,13 +784,13 @@ class ImportService
         $this->entityManager->persist($supplierArticle);
 
         if ($eraseData) {
-            $this->cache["resetSupplierArticles"] = $this->cache["resetSupplierArticles"] ?? [
+            $this->entityCache["resetSupplierArticles"] = $this->entityCache["resetSupplierArticles"] ?? [
                 "supplierArticles" => [],
                 "referenceArticles" => [],
             ];
 
-            $this->cache["resetSupplierArticles"]["supplierArticles"][] = $supplierArticle->getReference();
-            $this->cache["resetSupplierArticles"]["referenceArticles"][] = $refArticle->getId();
+            $this->entityCache["resetSupplierArticles"]["supplierArticles"][] = $supplierArticle->getReference();
+            $this->entityCache["resetSupplierArticles"]["referenceArticles"][] = $refArticle->getId();
         }
 
         $this->updateStats($stats, $newEntity);
@@ -812,7 +817,7 @@ class ImportService
 
         $reception = $this->receptionService->getAlreadySavedReception(
             $this->entityManager,
-            $this->cache['receptions'],
+            $this->entityCache['receptions'],
             $uniqueReceptionConstraint
         );
 
@@ -833,7 +838,7 @@ class ImportService
 
             if (!empty($receptions)) {
                 $reception = $receptions[0];
-                $this->receptionService->setAlreadySavedReception($this->cache['receptions'], $uniqueReceptionConstraint, $reception);
+                $this->receptionService->setAlreadySavedReception($this->entityCache['receptions'], $uniqueReceptionConstraint, $reception);
                 $this->updateStats($stats, false);
             }
         }
@@ -842,7 +847,7 @@ class ImportService
         try {
             if ($newEntity) {
                 $reception = $this->receptionService->persistReception($this->entityManager, $user, $data, ['import' => true]);
-                $this->receptionService->setAlreadySavedReception($this->cache['receptions'], $uniqueReceptionConstraint, $reception);
+                $this->receptionService->setAlreadySavedReception($this->entityCache['receptions'], $uniqueReceptionConstraint, $reception);
             }
             else {
                 $this->receptionService->updateReception($this->entityManager, $reception, $data, [
@@ -1108,6 +1113,30 @@ class ImportService
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
         }
+        $dangerousGoods = (
+            filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
+            || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
+        );
+
+        $refArt
+            ->setDangerousGoods($dangerousGoods);
+
+        if (isset($data['onuCode'])) {
+            $refArt->setOnuCode($data['onuCode'] ?: null);
+        }
+        if (isset($data['productClass'])) {
+            $refArt->setProductClass($data['productClass'] ?: null);
+        }
+
+        if ($refArt->isDangerousGoods()
+            && !$refArt->getOnuCode()) {
+            $this->throwError("Le code ONU est requis");
+        }
+
+        if ($refArt->isDangerousGoods()
+            && !$refArt->getProductClass()) {
+            $this->throwError("La classe projet est requise");
+        }
 
         $original = $refArt->getDescription() ?? [];
 
@@ -1136,7 +1165,7 @@ class ImportService
         }
 
         $invalidAssociatedDocumentType = Stream::from($associatedDocumentTypes)
-            ->find(fn(string $type) => !in_array($type, $this->importCache[Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES]));
+            ->find(fn(string $type) => !in_array($type, $this->scalarCache[Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES]));
         if (!empty($invalidAssociatedDocumentType)) {
             $this->throwError("Le type de document n'est pas valide : $invalidAssociatedDocumentType");
         }
@@ -1150,6 +1179,7 @@ class ImportService
         ];
         $refArt
             ->setDescription($description);
+
         // champs libres
         $this->checkAndSetChampsLibres($colChampsLibres, $refArt, $isNewEntity, $row);
 
@@ -1513,6 +1543,10 @@ class ImportService
             $customer->setAddress($data['address']);
         }
 
+        if (isset($data['recipient'])) {
+            $customer->setRecipient($data['recipient']);
+        }
+
         if (isset($data['phone'])) {
             if (!preg_match(StringHelper::PHONE_NUMBER_REGEX, $data['phone'])) {
                 $this->throwError('Le format du numéro de téléphone est incorrect');
@@ -1590,13 +1624,13 @@ class ImportService
             $this->throwError('Type non autorisé sur l\'emplacement fourni.');
         }
         $deliveryKey = $requester->getId() . '-' . $destination->getId();
-        $newEntity = !isset($this->cache['deliveries'][$deliveryKey]);
+        $newEntity = !isset($this->entityCache['deliveries'][$deliveryKey]);
         if (!$newEntity) {
-            $request = $this->cache['deliveries'][$deliveryKey];
+            $request = $this->entityCache['deliveries'][$deliveryKey];
             $request = $this->entityManager->getRepository(Demande::class)->find($request->getId());
-            $this->cache['deliveries'][$deliveryKey] = $request;
+            $this->entityCache['deliveries'][$deliveryKey] = $request;
         }
-        $request = $newEntity ? new Demande() : $this->cache['deliveries'][$deliveryKey];
+        $request = $newEntity ? new Demande() : $this->entityCache['deliveries'][$deliveryKey];
 
         if (!$type) {
             $this->throwError('Type inconnu.');
@@ -1875,8 +1909,8 @@ class ImportService
         $project = $projectAlreadyExists ?? new Project();
 
         if (!$projectAlreadyExists && isset($data['code'])) {
-            if ((strlen($data['code'])) > 15) {
-                $this->throwError("La valeur saisie pour le code ne doit pas dépasser 15 caractères");
+            if ((strlen($data['code'])) > ProjectService::MAX_LENGTH_CODE_PROJECT) {
+                $this->throwError("La valeur saisie pour le code ne doit pas dépasser ". ProjectService::MAX_LENGTH_CODE_PROJECT ." caractères");
             } else {
                 $project->setCode($data['code']);
             }
@@ -2105,11 +2139,21 @@ class ImportService
             $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
             $location = $emplacementRepository->findOneBy(['label' => $data['emplacement']]);
             if (empty($location)) {
+                // check if we already try to get standard Zone in cache memory, only one iterate by import file
+                if (!array_key_exists('defaultZoneLocation', $this->entityCache)) {
+                    $zoneRepository = $this->entityManager->getRepository(Zone::class);
+                    $this->entityCache['defaultZoneLocation'] = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
+                }
+                $defaultZoneLocation = $this->entityCache['defaultZoneLocation'];
+                if (empty($defaultZoneLocation)) {
+                    $this->throwError('Erreur lors de la création de l\'emplacement : ' . $data['emplacement'] . '. La zone ' . Zone::ACTIVITY_STANDARD_ZONE_NAME . ' n\'est pas définie.');
+                }
                 $location = new Emplacement();
                 $location
                     ->setLabel($data['emplacement'])
                     ->setIsActive(true)
-                    ->setIsDeliveryPoint(false);
+                    ->setIsDeliveryPoint(false)
+                    ->setZone($defaultZoneLocation);
 
                 $this->entityManager->persist($location);
             }
@@ -2201,6 +2245,7 @@ class ImportService
     private function clearEntityManagerAndRetrieveImport()
     {
         $this->entityManager->clear();
+        $this->entityCache = [];
         $this->currentImport = $this->entityManager->find(Import::class, $this->currentImport->getId());
     }
 
@@ -2292,8 +2337,8 @@ class ImportService
                 ->toArray()
             : [];
 
-        $this->cache = [];
-        $this->importCache = [
+        $this->entityCache = [];
+        $this->scalarCache = [
             Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => $associatedDocumentTypes,
         ];
     }
@@ -2307,13 +2352,13 @@ class ImportService
                 $this->throwError('La zone ' . $data['zone'] . ' n\'existe pas dans la base de données');
             }
         } else {
-            if (!isset($this->cache['totalZone'])) {
+            if (!isset($this->scalarCache['totalZone'])) {
                 $zoneRepository = $this->entityManager->getRepository(Zone::class);
-                $this->cache['totalZone'] = $zoneRepository->count([]);
+                $this->scalarCache['totalZone'] = $zoneRepository->count([]);
             }
-            if ($this->cache['totalZone'] === 0) {
+            if ($this->scalarCache['totalZone'] === 0) {
                 $this->throwError("Aucune zone existante. Veuillez créer au moins une zone");
-            } else if ($this->cache['totalZone'] === 1 ) {
+            } else if ($this->scalarCache['totalZone'] === 1) {
                 $zone = $zoneRepository->findOneBy([]);
                 $location->setZone($zone);
             } else {
@@ -2339,12 +2384,12 @@ class ImportService
         if ($this->currentImport->isEraseData()) {
             switch ($this->currentImport->getEntity()) {
                 case Import::ENTITY_ART_FOU:
-                    if (!empty($this->cache["resetSupplierArticles"]['supplierArticles'])
-                        && !empty($this->cache["resetSupplierArticles"]['referenceArticles'])) {
+                    if (!empty($this->entityCache["resetSupplierArticles"]['supplierArticles'])
+                        && !empty($this->entityCache["resetSupplierArticles"]['referenceArticles'])) {
                         $supplierArticleRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
                         $supplierArticleRepository->deleteSupplierArticles(
-                            $this->cache["resetSupplierArticles"]['supplierArticles'],
-                            $this->cache["resetSupplierArticles"]['referenceArticles']
+                            $this->entityCache["resetSupplierArticles"]['supplierArticles'],
+                            $this->entityCache["resetSupplierArticles"]['referenceArticles']
                         );
                     }
                     break;

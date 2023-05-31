@@ -136,6 +136,19 @@ class SettingsService {
             }
         }
 
+        $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
+        $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
+
+        if ($request->request->get('createMvt')) {
+            if ($defaultLocationUL === null) {
+                throw new RuntimeException("Vous devez sélectionner un emplacement de dépose UL par défaut.");
+            }
+            if ($defaultLocationReception === null) {
+                throw new RuntimeException("Vous devez sélectionner un emplacement de dépose Réception par défaut.");
+            }
+        }
+
+
         $settingNames = array_merge(
             array_keys($request->request->all()),
             array_keys($request->files->all()),
@@ -198,6 +211,7 @@ class SettingsService {
      */
     private function saveCustom(Request $request, array $settings, array &$updated, array &$result): void {
         $data = $request->request;
+        $settingRepository = $this->manager->getRepository(Setting::class);
 
         if ($client = $data->get(Setting::APP_CLIENT)) {
             $this->changeClient($client);
@@ -235,7 +249,6 @@ class SettingsService {
         }
 
         if ($request->request->has("deliveryRequestBehavior")) {
-            $settingRepository = $this->manager->getRepository(Setting::class);
             $deliveryRequestBehavior = $request->request->get("deliveryRequestBehavior");
 
             $previousDeliveryRequestBehaviorSetting = $settingRepository->findOneBy([
@@ -316,6 +329,31 @@ class SettingsService {
             }
 
             $updated[] = "temperatureRanges";
+        }
+
+        if ($request->request->has('createMvt')) {
+            $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
+            $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
+            $check = $request->request->get('createMvt');
+            $settingRepository = $this->manager->getRepository(Setting::class);
+
+            if (!$check) {
+                if ($defaultLocationUL !== null) {
+                    $defaultLocationUL = null;
+                }
+                if ($defaultLocationReception !== null) {
+                    $defaultLocationReception = null;
+                }
+            }
+
+            $settingUL = $settingRepository->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL]);
+            $settingUL->setValue($defaultLocationUL);
+
+            $settingReception = $settingRepository->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM]);
+            $settingReception->setValue($defaultLocationReception);
+
+            $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL";
+            $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
         }
     }
 

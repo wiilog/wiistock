@@ -1,12 +1,43 @@
-import {GET} from "@app/ajax";
+import {GET, POST} from "@app/ajax";
+import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 let tableShippings;
 
+
 $(function() {
+    Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
+    initDateTimePicker('#dateMin, #dateMax');
+
+    let params = GetRequestQuery();
+    // applique les filtres si pré-remplis
+    let val = $('#filterStatus').val();
+
+    if (params.date || val && val.length > 0) {
+        if(val && val.length > 0) {
+            let valuesStr = val.split(',');
+            let valuesInt = [];
+            valuesStr.forEach((value) => {
+                valuesInt.push(parseInt(value));
+            })
+            $('#statut').val(valuesInt).select2();
+        }
+    } else {
+        // sinon, filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_SHIPPING);
+        $.post(path, params, function (data) {
+            displayFiltersSup(data, true);
+        }, 'json');
+    }
+
     initTableShippings().then((table) => {
         tableShippings = table;
     });
+    initModalFormShippingRequest($('#modalNewShippingRequest'), 'shipping_request_new', (data) => {
+        window.location.href = Routing.generate('shipping_request_show', {shippingRequest: data.shippingRequestId});
+    });
 })
+
 
 function initTableShippings() {
     let initialVisible = $(`#tableShippings`).data(`initial-visible`);
@@ -26,9 +57,10 @@ function initTableShippings() {
             processing: true,
             serverSide: true,
             paging: true,
+            order: [['number', "desc"]],
             ajax: {
                 url: Routing.generate('shipping_request_api', true),
-                type: "GET",
+                type: POST,
             },
             rowConfig: {
                 needsRowClickAction: true,

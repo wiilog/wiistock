@@ -21,7 +21,7 @@
                 <td>
                     <div class="col-12 h-100">
                         <div class="main-ul-data row {{ header.classes ?? '' }}" onclick="{{ header.actionOnClick ?? null }}"
-                             data-logistic-unit-id="{{ header.data['pack-id'] }}">
+                             data-logistic-unit-id="{{ header.data['pack-id'] ?? '' }}">
                             {% set headerLength = header.content|length %}
                             {% for item in header.content %}
                                 {% if not item['actions'] ?? false %}
@@ -32,8 +32,14 @@
                                             </div>
                                         {% endif %}
                                         <div class="d-flex h-100 align-items-start text-break flex-column">
-                                            <div class="wii-body-text flex-fill {{ item.bold == 'label' ? 'font-weight-bold' : 'font-weight-normal' }}">{{ item.label }}</div>
-                                            <div class="wii-label flex-fill {{ item.bold == 'value' ? 'font-weight-bold' : 'font-weight-normal' }}">{{ item.value }}</div>
+                                            <div class="wii-body-text flex-fill {{ item.bold == 'label' ? 'font-weight-bold' : 'font-weight-normal' }}">
+                                                {{ (item.raw ?? false) ? item.label|raw : item.label }}
+                                            </div>
+                                            {% if item.value is defined %}
+                                                <div class="wii-label flex-fill {{ item.bold == 'value' ? 'font-weight-bold' : 'font-weight-normal' }}">
+                                                    {{  (item.raw ?? false) ? item.value|raw : item.value }}
+                                                </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 {% else %}
@@ -65,7 +71,12 @@
                 <td></td>
                 <td>
                     <div class="articles-wrapper">
-                        <table class="table w-100" data-initial-data="{{ {data: content}|json_encode }}"></table>
+                        <table
+                            class="table w-100"
+                            {% if content is iterable %}
+                               data-initial-data="{{ {data: content}|json_encode }}"
+                            {% endif %}>
+                        </table>
                     </div>
                 </td>
             </tr>

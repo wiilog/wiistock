@@ -204,7 +204,16 @@ class PurchaseRequestService
             $requester = $purchaseRequest->getRequester() ?? null;
             $buyer = $purchaseRequest->getBuyer() ?? null;
 
-            $mail = ($status->isNotTreated() && $buyerAbleToReceivedMail && $buyer) ? $buyer : $requester;
+            $needsRefsBuyer = !$buyer;
+
+            $mails = ($status->isNotTreated() && $buyerAbleToReceivedMail && $buyer) ? [$buyer] : [$requester];
+
+            if ($needsRefsBuyer) {
+                $mails = Stream::from($purchaseRequest->getPurchaseRequestLines())
+                    ->filterMap(fn(PurchaseRequestLine $line) => $line->getReference()->getBuyer())
+                    ->concat($mails)
+                    ->toArray();
+            }
 
             $subject = $customSubject ?: (
                 $status->isTreated()
@@ -227,7 +236,7 @@ class PurchaseRequestService
                 ->keymap(function(PurchaseRequestLine $line) use ($articleRepository) {
                     $key = $line->getId();
                     $value = $line->getReference()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $line->getLocation()
-                        ? $articleRepository->countForRefOnLocation($line->getReference(), $line->getLocation())
+                        ? $articleRepository->quantityForRefOnLocation($line->getReference(), $line->getLocation())
                         : $line->getReference()->getQuantiteStock();
                     return [$key, $value];
                 })
@@ -241,7 +250,7 @@ class PurchaseRequestService
                         'purchaseRequest' => $purchaseRequest,
                         'refsAndQuantities' => $refsAndQuantities
                     ]),
-                    $mail
+                    $mails
                 );
             }
         }

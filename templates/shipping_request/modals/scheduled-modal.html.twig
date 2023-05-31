@@ -1,0 +1,69 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" role="dialog" id="modalScheduledShippingRequest" data-modal-type="new">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Planifier le transport"
+            } %}
+
+            <div class="modal-body flex flex-column">
+                <div class="flex flex-column">
+                    <div class="wii-section-title py-1">
+                        <i class="wii-icon wii-icon-info wii-icon-15px-primary mr-2"></i>
+                        Caractéristiques
+                    </div>
+                    <div class="row my-3">
+                        <div class="form-group col-md-6 col-12">
+                            {{ form.input("packCount", "Nombre d'UL", true, '', {
+                                type: 'number',
+                                min: 0,
+                            }) }}
+                        </div>
+                        <div class="form-group col-md-6 col-12">
+                            {{ form.input("grossWeight", "Poids brut (Kg)", false,'', {
+                                type: 'number',
+                                min: 0,
+                                step: 0.1,
+                            }) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-column">
+                    <div class="wii-section-title py-1">
+                        <i class="wii-icon wii-icon-delivery wii-icon-15px-primary mr-2"></i>
+                        Transporteur
+                    </div>
+                    <div class="row my-3">
+                        <div class="form-group col-md-6 col-12">
+                            {{ form.select("carrier", "Nom transporteur", false, {
+                                type: 'carrier',
+                                items: shipping.carrier ? [{
+                                    value: shipping.carrier.id,
+                                    label: shipping.carrier.label,
+                                    selected: true,
+                                }] : [],
+                            }) }}
+                        </div>
+                        <div class="form-group col-md-6 col-12">
+                            {{ form.input("trackingNumber", "Numéro de tracking", false) }}
+                        </div>
+                        <div class="form-group col-md-6 col-12">
+                            {{ form.input("expectedPicketAt", "Date d'enlèvement", false,'', {type:'date'} ) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Valider le transport',id:'submitScheduledShippingRequest',type:'submit',data:{"shippingRequestId":shipping.id}},
+                ],
+                hideErrorContainer: true,
+            } %}
+
+        </div>
+    </div>
+</div>

@@ -2,9 +2,13 @@
 
 namespace App\Repository\ShippingRequest;
 
+use App\Entity\Statut;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\InputBag;
 
 class ShippingRequestRepository extends EntityRepository {
@@ -14,6 +18,53 @@ class ShippingRequestRepository extends EntityRepository {
         $qb = $this->createQueryBuilder("shipping_request");
 
         $total = QueryBuilderHelper::count($qb, 'shipping_request');
+        //filtres sup
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'statut':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('shipping_request.status', 'filter_status')
+                        ->andWhere('filter_status.id IN (:statut)')
+                        ->setParameter('statut', $value);
+                    break;
+                case 'customerOrderNumber':
+                    $qb
+                        ->andWhere('shipping_request.customerOrderNumber LIKE :customerOrderNumber')
+                        ->setParameter('customerOrderNumber', '%' . $filter['value'] . '%');
+                    break;
+                case 'carriers':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('shipping_request.carrier', 'carrier')
+                        ->andWhere('carrier.id IN (:carrierId)')
+                        ->setParameter('carrierId', $value);
+                    break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('shipping_request.requesters', 'filter_requester')
+                        ->andWhere("filter_requester.id in (:filter_requester_username_value)")
+                        ->setParameter('filter_requester_username_value', $value);
+                    break;
+                case 'date-choice':
+                    $chosenDate = $filter['value'];
+                    foreach ($filters as $filter) {
+                        switch ($filter['field']) {
+                            case 'dateMin':
+                                $qb->andWhere('shipping_request.' . $chosenDate . ' >= :filter_dateMin_value' )
+                                    ->setParameter('filter_dateMin_value', $filter['value'] . ' 00:00:00');
+                                break;
+                            case 'dateMax':
+                                $qb->andWhere('shipping_request.' . $chosenDate . ' <= :filter_dateMax_value')
+                                    ->setParameter('filter_dateMax_value', $filter['value'] . ' 23:59:59');
+                                break;
+                        }
+                    }
+                    break;
+            }
+        }
+
 
         //Filter search
         if (!empty($params)) {
@@ -131,9 +182,103 @@ class ShippingRequestRepository extends EntityRepository {
     }
 
     public function iterateShippingRequests(): iterable {
-        return $this
-            ->createQueryBuilder('shipping_request')
+        return $this->createQueryBuilder('shipping_request')
+            ->select('shipping_request.number')
+            ->addSelect('join_status.code AS statusCode')
+            ->addSelect('shipping_request.createdAt')
+            ->addSelect('shipping_request.validatedAt')
+            ->addSelect('shipping_request.plannedAt')
+            ->addSelect('shipping_request.expectedPickedAt')
+            ->addSelect('shipping_request.treatedAt')
+            ->addSelect('shipping_request.requestCaredAt')
+            ->addSelect("GROUP_CONCAT(DISTINCT join_requesters.username SEPARATOR ', ') AS requesterNames")
+            ->addSelect('shipping_request.customerOrderNumber')
+            ->addSelect('shipping_request.freeDelivery')
+            ->addSelect('shipping_request.compliantArticles')
+            ->addSelect('shipping_request.customerName')
+            ->addSelect('shipping_request.customerRecipient')
+            ->addSelect('shipping_request.customerPhone')
+            ->addSelect('shipping_request.customerAddress')
+            ->addSelect('IF(COUNT(join_packLine.id) = 0, NULL, join_pack.code) AS packCode')
+            ->addSelect('join_packNature.label AS nature')
+            ->addSelect('join_expectedLine_RefArticle.reference as refArticle')
+            ->addSelect('join_expectedLine_RefArticle.reference as refArticleLibelle')
+            ->addSelect('IF(COUNT(join_packLine.id) = 0, NULL, join_article.label) as article')
+            ->addSelect('IF(COUNT(join_packLine.id) = 0, NULL, join_line.quantity) as articleQuantity')
+            ->addSelect('join_expectedLine.unitPrice')
+            ->addSelect('join_expectedLine.unitWeight')
+            ->addSelect('IF(COUNT(join_packLine.id) = 0, NULL, (join_line.quantity * join_expectedLine.unitPrice)) as totalAmount')
+            ->addSelect('join_expectedLine_RefArticle.dangerousGoods')
+            ->addSelect('join_expectedLine_RefArticle.onuCode')
+            ->addSelect('join_expectedLine_RefArticle.productClass')
+            ->addSelect('join_expectedLine_RefArticle.ndpCode')
+            ->addSelect('shipping_request.shipment')
+            ->addSelect('shipping_request.carrying')
+            ->addSelect('COUNT(join_packLine.id) AS nbPacks')
+            ->addSelect('IF(COUNT(join_packLine.id) = 0, NULL, join_packLine.size) as size')
+            ->addSelect('SUM(join_expectedLine.unitWeight) AS totalWeight')
+            ->addSelect('shipping_request.grossWeight')
+            ->addSelect('SUM(join_expectedLine.unitPrice) AS totalSum')
+            ->addSelect('join_carrier.label AS carrierName')
+            ->addselect('join_expectedLine_RefArticle_sheet.originalName AS originalName')
+            ->leftJoin('shipping_request.status', 'join_status')
+            ->leftJoin('shipping_request.carrier', 'join_carrier')
+            ->leftJoin('shipping_request.requesters', 'join_requesters')
+            ->leftJoin('shipping_request.packLines', 'join_packLine')
+            ->leftJoin('join_packLine.pack', 'join_pack')
+            ->leftJoin('join_pack.nature', 'join_packNature')
+            ->leftJoin('shipping_request.expectedLines', 'join_expectedLine')
+            ->leftJoin('join_expectedLine.referenceArticle', 'join_expectedLine_RefArticle')
+            ->leftJoin('join_expectedLine_RefArticle.sheet', 'join_expectedLine_RefArticle_sheet')
+            ->leftJoin('join_expectedLine.lines', 'join_line')
+            ->leftJoin('join_line.article', 'join_article')
+            ->addGroupBy('shipping_request.number')
+            ->addGroupBy('join_packLine.id')
+            ->addGroupBy('join_pack.code')
+            ->addGroupBy('join_packNature.label')
+            ->addGroupBy('join_line.id')
+            ->addGroupBy('join_expectedLine.id')
+            ->addGroupBy('join_expectedLine_RefArticle.reference')
             ->getQuery()
-            ->toIterable();
+            ->getResult();
+    }
+
+    public function getLastNumberByDate(string $date): ?string
+    {
+        $result = $this->createQueryBuilder('shipping_request')
+            ->select('shipping_request.number')
+            ->andWhere('shipping_request.number LIKE :value')
+            ->orderBy('shipping_request.createdAt', 'DESC')
+            ->addOrderBy('shipping_request.number', 'DESC')
+            ->setParameter('value', ShippingRequest::NUMBER_PREFIX . '-' . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
+    }
+
+    /**
+     * @param array $types
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('shipping_request')
+                ->select('shipping_request.validatedAt AS date')
+                ->innerJoin('shipping_request.status', 'status')
+                ->andWhere('status IN (:statuses)')
+                ->addOrderBy('shipping_request.validatedAt', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
     }
 }

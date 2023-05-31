@@ -1,0 +1,63 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" role="dialog" id="modalPacking">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: 'Planifier le transport - Colisage UL <span name="step"></span>/<span name="packCount"></span>'
+            } %}
+            {% if packingPackNature.id is defined %}
+                <div class="modal-body flex-column">
+                </div>
+
+                <div hidden id="packTemplate">
+                    <div class="packing-step" data-step="0">
+                        {% include('pack/utils/packItemListTemplate.html.twig') with {
+                            header: {
+                                sideLabel: packingPackNature.label ?? '',
+                                color: packingPackNature.color ?? '',
+                                content: [
+                                    {label: '<div class="h4 w-100 mt-3">Unité logistique <span name="modalNumber"></span></div>', bold: 'label', raw: true},
+                                    {label: '<div class="d-flex"><span class="wii-icon wii-icon-size mr-2"></span>Dimension (cm)</div>', value: form.input('size', null, false, null), bold: 'label', raw: true},
+                                ]
+                            },
+                            content: true,
+                        } %}
+                    </div>
+                </div>
+                <div hidden id="actionTemplate">
+                    {{ form.hidden('lineId') }}
+                    {{ form.hidden('referenceArticleId') }}
+                    {{ form.checkbox('picked', null, false, false) }}
+                </div>
+                <div hidden id="quantityInputTemplate">
+                    {{ form.input('quantity', null, false, null, {
+                        type: 'number',
+                        min: 1,
+                    }) }}
+                    {{ form.hidden('remainingQuantity', null, false, null) }}
+                </div>
+
+                {% include 'utils/modal/footer.html.twig' with {
+                    elements: [
+                        {classes: 'btn btn-success previous mr-auto', dismiss: false, text: 'Précédent'},
+                        {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                        {classes: 'btn btn-success nextStep', text: 'Suivant', type:'button',data:{"shippingRequestId":shipping.id}},
+                        {classes: 'btn btn-success', text: 'Valider le colisage', type:'submit', data:{"shippingRequestId":shipping.id}},
+                    ],
+                    hideErrorContainer: true,
+                } %}
+            {% else %}
+                <div class="alert alert-danger">
+                    Erreur: Aucune nature n'est définie comme nature par défaut.
+                </div>
+                {% include 'utils/modal/footer.html.twig' with {
+                    elements: [
+                        {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    ],
+                } %}
+            {% endif %}
+
+        </div>
+    </div>
+</div>

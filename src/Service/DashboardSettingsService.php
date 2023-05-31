@@ -51,7 +51,7 @@ class DashboardSettingsService {
     public DateService $dateService;
 
     #[Required]
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     #[Required]
     public DemandeCollecteService $demandeCollecteService;

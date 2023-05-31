@@ -1,109 +1,109 @@
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 
-<div class="wii-box">
-    {% set hasRightDisplayScheduleButton = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_SCHEDULE_BUTTON')) %}
-    {% set hasRightDisplayShipButton = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_SHIP_BUTTON')) %}
-    {% set hasRightEditTransportShippingPart = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_TRANSPORT_SHIPPING_PART')) %}
-    <div class="header wii-title justify-content-between align-items-center {{ not hasRightEdit ? 'd-flex' : 'row no-gutters py-2' }}">
-        Transport
-        {% if hasRightEdit %}
-            <div class="col-auto">
-                {% if shipping.status.draft %}
-                    <button type="button"
-                            data-id='{{ shipping.id }}'
-                            onclick=""
-                            class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
-                        <span class="wii-icon wii-icon-check-white mr-2"></span>
-                        Valider l'expédition
-                    </button>
-                {% elseif shipping.status.notTreated and hasRightDisplayScheduleButton%}
-                    <button type="button"
-                            data-id='{{ shipping.id }}'
-                            onclick=""
-                            class="btn btn-primary align-items-center justify-content-center split-button mr-0">
-                        <span class="wii-icon wii-icon-calendar mr-2"></span>
-                        Planifier
-                    </button>
-                {% elseif shipping.status.scheduled %}
-                    {% if hasRightEditTransportShippingPart %}
-                        <button type="button"
-                                data-id='{{ shipping.id }}'
-                                onclick=""
-                                class="btn btn-outline-primary align-items-center justify-content-center split-button mr-0">
-                            Modifier
-                        </button>
-                    {% endif %}
-                    {% if hasRightDisplayShipButton %}
-                        <button type="button"
-                                data-id='{{ shipping.id }}'
-                                onclick=""
-                                class="btn btn-primary align-items-center justify-content-center split-button mr-0">
-                            <span class="wii-icon wii-icon-check-white mr-2"></span>
-                            Expédier
-                        </button>
-                    {% endif %}
-                {% endif %}
-            </div>
-        {% endif %}
-    </div>
+{% set hasRightDisplayScheduleButton = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_SCHEDULE_BUTTON')) %}
+{% set hasRightDisplayShipButton = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_SHIP_BUTTON')) %}
+{% set hasRightEditTransportShippingPart = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_TRANSPORT_SHIPPING_PART')) %}
+{% set packsCount = shipping.packLines.count %}
 
-    <div class="col-12 py-0 content">
-        <div class="row">
-            <div class="col-6 p-0 middle-border pb-3">
-                <div class="wii-section-title pl-3">
-                    <span class="wii-icon wii-icon-info wii-icon-13px-primary mr-2"></span>
-                    Caractéristiques
-                </div>
-                <div class="wii-section mt-2">
-                    <div class="row">
-                        <div class="col-12 col-md-6 d-flex mb-2">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Nombre de colis</span>
-                                <span class="wii-body-text">{{ packsCount > 0 ? packsCount : '-' }}</span>
-                            </label>
-                        </div>
-                        <div class="col-12 col-md-6 d-flex mb-2">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Poids brut (kg)</span>
-                                <span class="wii-body-text">{{ shipping.grossWeight ?? '-' }}</span>
-                            </label>
-                        </div>
+<div class="header wii-title justify-content-between align-items-center {{ not hasRightEdit ? 'd-flex' : 'row no-gutters py-2' }}">
+    Transport
+    {% if hasRightEdit %}
+        <div class="col-auto">
+            {% if shipping.status.code == constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_DRAFT') %}
+                <button type="button"
+                        data-id='{{ shipping.id }}'
+                        onclick="validateShippingRequest($(this))"
+                        class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
+                    <span class="wii-icon wii-icon-check-white mr-2"></span>
+                    Valider l'{{ trans('Demande', 'Expédition', 'Expédition', false) | lower }}
+                </button>
+            {% elseif shipping.status.code == constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_TO_TREAT') and hasRightDisplayScheduleButton %}
+                <button type="button"
+                        onclick="openScheduledShippingRequestModal($(this))"
+                        data-id='{{ shipping.id }}'
+                        class="btn btn-primary align-items-center justify-content-center split-button mr-0">
+                    <span class="wii-icon wii-icon-calendar mr-2"></span>
+                    Planifier
+                </button>
+            {% elseif shipping.status.code == constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_SCHEDULED') %}
+                {% if hasRightEditTransportShippingPart %}
+                    <button type="button"
+                            data-id='{{ shipping.id }}'
+                            onclick=""
+                            class="btn btn-outline-primary align-items-center justify-content-center split-button mr-0">
+                        Modifier
+                    </button>
+                {% endif %}
+                {% if hasRightDisplayShipButton %}
+                    <button type="button"
+                            data-id='{{ shipping.id }}'
+                            onclick="treatShippingRequest($(this))"
+                            class="btn btn-primary d-inline-flex align-items-center justify-content-center split-button mr-0">
+                        <span class="wii-icon wii-icon-check-white mr-2"></span>
+                        Expédier
+                    </button>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<div class="col-12 py-0 content">
+    <div class="row">
+        <div class="col-6 p-0 middle-border pb-3">
+            <div class="wii-section-title pl-3">
+                <span class="wii-icon wii-icon-info wii-icon-13px-primary mr-2"></span>
+                Caractéristiques
+            </div>
+            <div class="wii-section mt-2">
+                <div class="row">
+                    <div class="col-12 col-md-6 d-flex mb-2">
+                        <label class="box-item ml-3">
+                            <span class="wii-field-name">Nombre de colis</span>
+                            <span class="wii-body-text">{{ packsCount > 0 ? packsCount : '-' }}</span>
+                        </label>
                     </div>
-                    <div class="row">
-                        <div class="col-12 col-md-6 d-flex mb-2">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Valeur totale</span>
-                                <span class="wii-body-text">{{ totalValue > 0 ? totalValue : '-' }}</span>
-                            </label>
-                        </div>
-                        <div class="col-12 col-md-6 d-flex mb-2">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Poids net (kg)</span>
-                                <span class="wii-body-text">{{ netWeight > 0 ? netWeight : '-' }}</span>
-                            </label>
-                        </div>
+                    <div class="col-12 col-md-6 d-flex mb-2">
+                        <label class="box-item ml-3">
+                            <span class="wii-field-name">Poids brut (kg)</span>
+                            <span class="wii-body-text">{{ shipping.grossWeight ?? '-' }}</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-md-6 d-flex mb-2">
+                        <label class="box-item ml-3">
+                            <span class="wii-field-name">Valeur totale</span>
+                            <span class="wii-body-text">{{ shipping.totalValue > 0 ? shipping.totalValue : '-' }}</span>
+                        </label>
+                    </div>
+                    <div class="col-12 col-md-6 d-flex mb-2">
+                        <label class="box-item ml-3">
+                            <span class="wii-field-name">Poids net (kg)</span>
+                            <span class="wii-body-text">{{ shipping.netWeight > 0 ? shipping.netWeight : '-' }}</span>
+                        </label>
                     </div>
                 </div>
             </div>
-            <div class="col-6 p-0">
-                <div class="wii-section-title  pl-3">
-                    <span class="wii-icon wii-icon-delivery wii-icon-13px-primary mr-2"></span>
-                    Transporteur
-                </div>
-                <div class="wii-section mt-2">
-                    <div class="row">
-                        <div class="col-12 col-md-6 d-flex mb-2">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Nom transporteur</span>
-                                <span class="wii-body-text">{{ shipping.carrier.label ?? '-'}}</span>
-                            </label>
-                        </div>
-                        <div class="col-12 col-md-6 d-flex mb-2">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Numéro de tracking</span>
-                                <span class="wii-body-text">{{ shipping.trackingNumber }}</span>
-                            </label>
-                        </div>
+        </div>
+        <div class="col-6 p-0">
+            <div class="wii-section-title  pl-3">
+                <span class="wii-icon wii-icon-delivery wii-icon-13px-primary mr-2"></span>
+                Transporteur
+            </div>
+            <div class="wii-section mt-2">
+                <div class="row">
+                    <div class="col-12 col-md-6 d-flex mb-2">
+                        <label class="box-item ml-3">
+                            <span class="wii-field-name">Nom transporteur</span>
+                            <span class="wii-body-text">{{ shipping.carrier.label ?? '-'}}</span>
+                        </label>
+                    </div>
+                    <div class="col-12 col-md-6 d-flex mb-2">
+                        <label class="box-item ml-3">
+                            <span class="wii-field-name">Numéro de tracking</span>
+                            <span class="wii-body-text">{{ shipping.trackingNumber }}</span>
+                        </label>
                     </div>
                 </div>
             </div>

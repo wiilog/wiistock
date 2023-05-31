@@ -9,6 +9,7 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
@@ -203,19 +204,22 @@ class ReferenceArticle
     private Collection $storageRules;
 
     #[ORM\Column(type: 'string',length: 255, nullable: true)]
-    private ?string $ndp_code = null;
+    private ?string $ndpCode = null;
 
     #[ORM\Column(type: 'string',length: 255, nullable: true)]
-    private ?string $onu_code = null;
+    private ?string $onuCode = null;
 
     #[ORM\Column(type: 'string',length: 255, nullable: true)]
-    private ?string $product_class = null;
+    private ?string $productClass = null;
 
     #[ORM\Column(type:'boolean')]
-    private ?bool $dangerous_goods;
+    private ?bool $dangerousGoods;
 
     #[ORM\OneToOne(inversedBy: 'referenceArticleSheet', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $sheet = null;
+
+    #[ORM\OneToMany(mappedBy: 'article', targetEntity: ShippingRequestLine::class)]
+    private Collection $shippingRequestLines;
 
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
@@ -236,12 +240,13 @@ class ReferenceArticle
         $this->purchaseRequestLines = new ArrayCollection();
         $this->requestTemplateLines = new ArrayCollection();
         $this->storageRules = new ArrayCollection();
+        $this->shippingRequestLines = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
         $this->quantiteDisponible = 0;
         $this->upToDateInventory = false;
-        $this->dangerous_goods = false;
+        $this->dangerousGoods = false;
     }
 
     public function getId(): ?int {
@@ -1155,48 +1160,48 @@ class ReferenceArticle
 
     public function getNdpCode(): ?string
     {
-        return $this->ndp_code;
+        return $this->ndpCode;
     }
 
-    public function setNdpCode(?string $ndp_code): self
+    public function setNdpCode(?string $ndpCode): self
     {
-        $this->ndp_code = $ndp_code;
+        $this->ndpCode = $ndpCode;
 
         return $this;
     }
 
     public function getOnuCode(): ?string
     {
-        return $this->onu_code;
+        return $this->onuCode;
     }
 
-    public function setOnuCode(?string $onu_code): self
+    public function setOnuCode(?string $onuCode): self
     {
-        $this->onu_code = $onu_code;
+        $this->onuCode = $onuCode;
 
         return $this;
     }
 
     public function getProductClass(): ?string
     {
-        return $this->product_class;
+        return $this->productClass;
     }
 
-    public function setProductClass(?string $product_class): self
+    public function setProductClass(?string $productClass): self
     {
-        $this->product_class = $product_class;
+        $this->productClass = $productClass;
 
         return $this;
     }
 
     public function isDangerousGoods(): ?bool
     {
-        return $this->dangerous_goods;
+        return $this->dangerousGoods;
     }
 
-    public function setDangerousGoods(bool $dangerous_goods): self
+    public function setDangerousGoods(bool $dangerousGoods): self
     {
-        $this->dangerous_goods = $dangerous_goods;
+        $this->dangerousGoods = $dangerousGoods;
 
         return $this;
     }
@@ -1218,4 +1223,39 @@ class ReferenceArticle
         return $this;
     }
 
+    public function getShippingRequestLines(): Collection {
+        return $this->shippingRequestLines;
+    }
+
+    public function addShippingRequestLines(ShippingRequestLine $shippingRequestLine): self {
+        if (!$this->shippingRequestLines->contains($shippingRequestLine)) {
+            $this->shippingRequestLines[] = $shippingRequestLine;
+            $shippingRequestLine->setReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeShippingRequestLines(ShippingRequestLine $shippingRequestLine): self {
+        if ($this->shippingRequestLines->removeElement($shippingRequestLine)) {
+            if ($shippingRequestLine->getArticleOrReference() === $this) {
+                $shippingRequestLine->setReference(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setShippingRequestLines(?iterable $shippingRequestLines): self {
+        foreach($this->getShippingRequestLines()->toArray() as $shippingRequestLines) {
+            $this->removeShippingRequestLines($shippingRequestLines);
+        }
+
+        $this->shippingRequestLines = new ArrayCollection();
+        foreach($shippingRequestLines ?? [] as $shippingRequestLines) {
+            $this->addShippingRequestLines($shippingRequestLines);
+        }
+
+        return $this;
+    }
 }

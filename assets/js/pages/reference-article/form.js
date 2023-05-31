@@ -1,15 +1,32 @@
 import '@styles/details-page.scss';
 import AJAX from "@app/ajax";
-import {computeDescriptionFormValues, computeDescriptionShowValues} from "./common";
+import {computeDescriptionFormValues} from "./common";
 
-window.onTypeQuantityChange = onTypeQuantityChange;
-window.toggleEmergency = toggleEmergency;
-window.changeNewReferenceStatus = changeNewReferenceStatus;
-window.onTypeSecurityChange = onTypeSecurityChange;
+global.onTypeQuantityChange = onTypeQuantityChange;
+global.toggleEmergency = toggleEmergency;
+global.changeNewReferenceStatus = changeNewReferenceStatus;
+global.onTypeSecurityChange = onTypeSecurityChange;
+
+global.onReferenceChange = onReferenceChange;
+global.onLabelChange = onLabelChange;
 
 $(document).ready(() => {
     const $periodSwitch = $('input[name="period"]');
     handleNeededFileSheet();
+
+    const requestQuery = GetRequestQuery();
+    const redirectRoute = requestQuery['redirect-route'];
+    let redirectRouteParams;
+    try {
+        redirectRouteParams = requestQuery['redirect-route-params']
+            ? JSON.parse(requestQuery['redirect-route-params'])
+            : undefined;
+    } catch (_) {
+        delete requestQuery['redirect-route-params'];
+        SetRequestQuery(requestQuery);
+        redirectRouteParams = redirectRouteParams || {};
+    }
+
 
     $periodSwitch.on('click', function () {
         buildQuantityPredictions($(this).val());
@@ -45,8 +62,13 @@ $(document).ready(() => {
             const $form = $(`.wii-form`);
             clearFormErrors($form);
             processSubmitAction($form, $button, $button.data(`submit`), {
+                keepForm: true,
                 success: data => {
-                    window.location.href = data.redirect || Routing.generate('reference_article_show_page', {id: data.data.id});
+                    window.location.href = redirectRoute
+                        ? Routing.generate(redirectRoute, redirectRouteParams)
+                        : data.id
+                            ? Routing.generate('reference_article_show_page', {id: data.id})
+                            : Routing.generate('reference_article_index');
                 },
             }).then((data) => {
                 if (data && typeof data === "object" && !data.success && data.draftDefaultReference) {
@@ -54,6 +76,10 @@ $(document).ready(() => {
                 }
             });
         }
+    });
+
+    $('.btn.cancel').on('click', () => {
+        window.location.href = Routing.generate( redirectRoute || 'reference_article_index', redirectRoute ? redirectRouteParams : undefined);
     });
 
     const $deleteImage = $('.delete-image');
@@ -105,6 +131,12 @@ $(document).ready(() => {
             $size: $(`input[name=size]`),
         });
     });
+
+    const $type = $('select[name=type].data');
+    const preselectedTypeVal = $type.val();
+    if(preselectedTypeVal){
+        $type.trigger('change');
+    }
 });
 
 function deleteLine($button, $inputToUpdate) {
@@ -247,5 +279,23 @@ function handleNeededFileSheet(){
     }else{
         inputRequired.val(0);
         labelRequired.text(oldTextLabelRequired)
+    }
+}
+
+function onLabelChange(){
+    const $referenceLabel = $('[name=libelle].data');
+    const $articleSupplierLabel = $('[name=labelFournisseur].data');
+
+    if($articleSupplierLabel.length === 1){
+        $articleSupplierLabel.val($referenceLabel.val());
+    }
+}
+
+function onReferenceChange(){
+    const $referenceReference = $('[name=reference].data');
+    const $articleSupplierReference = $('[name=referenceFournisseur].data');
+
+    if($articleSupplierReference.length === 1){
+        $articleSupplierReference.val($referenceReference.val());
     }
 }

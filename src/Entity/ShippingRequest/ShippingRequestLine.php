@@ -3,9 +3,11 @@
 namespace App\Entity\ShippingRequest;
 
 use App\Entity\Article;
+use App\Entity\ReferenceArticle;
 use App\Repository\ShippingRequest\ShippingRequestLineRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Exception;
 
 #[ORM\Entity(repositoryClass: ShippingRequestLineRepository::class)]
 class ShippingRequestLine {
@@ -17,6 +19,9 @@ class ShippingRequestLine {
 
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $quantity = null;
+
+    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'shippingRequestLines')]
+    private ?ReferenceArticle $reference = null;
 
     #[ORM\OneToOne(inversedBy: 'shippingRequestLine', targetEntity: Article::class)]
     private ?Article $article = null;
@@ -40,11 +45,30 @@ class ShippingRequestLine {
         return $this;
     }
 
-    public function getArticle(): Article {
-        return $this->article;
+    public function getArticleOrReference(): Article|ReferenceArticle|null {
+        return $this->article ?? $this->reference;
     }
 
+    /**
+     * @throws Exception
+     */
+    public function setArticleOrReference(Article|ReferenceArticle $articleOrReference): self {
+        if($articleOrReference instanceof Article) {
+            $this->setArticle($articleOrReference);
+        } else {
+            $this->setReference($articleOrReference);
+        }
+        return $this;
+    }
+
+    /**
+     * @throws Exception
+     */
     public function setArticle(Article $article): self {
+        if($this->reference){
+            throw new Exception("Can't set article if reference is set");
+        }
+
         if($this->article && $this->article->getShippingRequestLine() !== $this) {
             $oldArticle = $this->article;
             $this->article = null;
@@ -54,6 +78,24 @@ class ShippingRequestLine {
         if($this->article && $this->article->getShippingRequestLine() !== $this) {
             $this->article->setShippingRequestLine($this);
         }
+        return $this;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function setReference(?ReferenceArticle $reference): self
+    {
+        if($this->article){
+            throw new Exception("Can't set reference if article is set");
+        }
+
+        if($this->reference && $this->reference !== $reference) {
+            $this->reference->removeShippingRequestLines($this);
+        }
+        $this->reference = $reference;
+        $reference?->addShippingRequestLines($this);
+
         return $this;
     }
 

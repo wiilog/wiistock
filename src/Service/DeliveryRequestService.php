@@ -27,7 +27,6 @@ use App\Entity\SubLineFieldsParam;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\Security\Core\Security;
@@ -38,8 +37,11 @@ use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
-class DemandeLivraisonService
+class DeliveryRequestService
 {
+    #[Required]
+    public FormService $formService;
+
     #[Required]
     public Twig_Environment $templating;
 
@@ -97,7 +99,12 @@ class DemandeLivraisonService
     #[Required]
     public TrackingMovementService $trackingMovementService;
 
+    #[Required]
+    public ArticleDataService $articleDataService;
+
     private ?array $freeFieldsConfig = null;
+
+    private array $cache = [];
 
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null, Utilisateur $user)
     {
@@ -168,7 +175,7 @@ class DemandeLivraisonService
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $demande->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
 
         return $row;
@@ -920,6 +927,7 @@ class DemandeLivraisonService
         $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
         $isCommentRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
         $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+        $isUserRoleQuantityTypeReference = $this->security->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
         $columns = [
             ["name" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
@@ -927,7 +935,7 @@ class DemandeLivraisonService
             ['title' => 'Référence', 'required' => $editMode, 'name' => 'reference', 'alwaysVisible' => true],
             ['title' => 'Code barre', 'name' => 'barcode', 'alwaysVisible' => false],
             ['title' => 'Libellé', 'name' => 'label', 'alwaysVisible' => false],
-            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'removeColumn' => !$editMode, 'alwaysVisible' => true],
+            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'alwaysVisible' => true, 'removeColumn' => $isUserRoleQuantityTypeReference || !$editMode],
             ['title' => 'Quantité', 'required' => $editMode, 'name' => 'quantityToPick', 'alwaysVisible' => true],
             ['title' => 'Emplacement', 'name' => 'location', 'alwaysVisible' => false],
 
@@ -946,5 +954,154 @@ class DemandeLivraisonService
             ->values();
 
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+    }
+
+    public function editatableLineForm(EntityManagerInterface                                       $entityManager,
+                                       Demande                                                      $deliveryRequest,
+                                       Utilisateur                                                  $currentUser,
+                                       DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $line = null): array {
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+
+        $this->cache['subLineFieldsParams'] = $this->cache['subLineFieldsParams']
+            ?? $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $subLineFieldsParams = $this->cache['subLineFieldsParams'];
+
+        $commentParam = $subLineFieldsParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT] ?? [];
+        $isCommentRequired = $commentParam['required'] ?? false;
+
+        $projectParam = $subLineFieldsParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT] ?? [];
+        $isProjectRequired = $projectParam['required'] ?? false;
+        $isProjectDisplayedUnderCondition = $projectParam['displayedUnderCondition'] ?? false;
+        $projectConditionFixedField = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedField'] ?? null : null;
+        $projectConditionFixedValue = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedFieldValue'] ?? [] : [];
+
+        $userRole = $currentUser->getRole()->getQuantityType();
+
+        if (isset($line)) {
+            $lineType = match (true) {
+                $line instanceof DeliveryRequestArticleLine => 'article',
+                $line instanceof DeliveryRequestReferenceLine => 'reference',
+                default => null,
+            };
+            $actionType = "data-name='$lineType'";
+            $actionId = 'data-id="' . $line->getId() . '"';
+            $referenceArticle = match (true) {
+                $line instanceof DeliveryRequestArticleLine => $line->getArticle()->getReferenceArticle(),
+                $line instanceof DeliveryRequestReferenceLine => $line->getReference(),
+                default => '',
+            };
+            $referenceColumn = Stream::from([
+                $referenceArticle?->getReference() ?: '',
+                $this->formService->macro("hidden", "lineId", $line->getId()),
+                $this->formService->macro("hidden", "type", $lineType),
+            ])->join('');
+            $labelColumn = match (true) {
+                $line instanceof DeliveryRequestArticleLine => $line->getArticle()->getLabel(),
+                $line instanceof DeliveryRequestReferenceLine => $line->getReference()->getLibelle(),
+                default => '',
+            };
+            $locationColumn = match (true) {
+                $line instanceof DeliveryRequestArticleLine => $this->formatService->location($line->getArticle()->getEmplacement()),
+                $line instanceof DeliveryRequestReferenceLine => $line->getReference()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                    ? $this->formatService->location($line->getReference()->getEmplacement())
+                    : null,
+                default => '',
+            };
+            $barcodeColumn = match (true) {
+                $line instanceof DeliveryRequestArticleLine => $line->getArticle()->getBarCode() ?: '',
+                $line instanceof DeliveryRequestReferenceLine => $line->getReference()->getBarCode() ?: '',
+                default => '',
+            };
+
+            if ($userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE
+                && $line instanceof DeliveryRequestArticleLine) {
+                $referenceId = $referenceArticle->getId();
+                $this->cache['articles'][$referenceId] = $this->cache['articles'][$referenceId]
+                    ?? Stream::from($this->articleDataService->findAndSortActiveArticlesByRefArticle($referenceArticle, $entityManager))
+                        ->keymap(fn(Article $article) => [$article->getId(), $article->getBarCode()])
+                        ->toArray();
+                $articleItems = $this->cache['articles'][$referenceId];
+                $articleId = $line->getArticle()->getId();
+            }
+
+            $projectColumnSelect = !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($referenceArticle->getType()?->getId(), $projectConditionFixedValue));
+            $projectItems = $line->getProject()
+                ? [
+                    'text' => $this->formatService->project($line->getProject()),
+                    'selected' => true,
+                    'value' => $line->getProject()?->getId(),
+                ]
+                : [];
+            $targetLocationPickingItems = [
+                $line->getTargetLocationPicking()?->getId() => $this->formatService->location($line->getTargetLocationPicking()),
+            ];
+        }
+        else {
+            $actionType = '';
+            $actionId = '';
+            $referenceColumn = Stream::from([
+                $this->formService->macro("select", "reference", null, true, [
+                    "type" => "reference",
+                    "additionalAttributes" => [
+                        ["name" => "data-other-params"],
+                        ["name" => "data-other-params-ignored-delivery-request", "value" => $deliveryRequest->getId()],
+                        ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
+                    ],
+                    "onChange" => 'onChangeFillComment($(this))',
+                ]),
+                $this->formService->macro("hidden", "lineId"),
+                $this->formService->macro("hidden", "type"),
+                $this->formService->macro("hidden", "referenceId"),
+                "<span class='article-reference'></span>",
+            ])->join('');
+            $labelColumn = '<span class="article-label"></span>';
+            $locationColumn = '<span class="article-location"></span>';
+            $barcodeColumn = '<span class="article-barcode"></span>';
+            $projectColumnSelect = true;
+        }
+
+        return [
+            "actions" => "
+                <span class='d-flex justify-content-start align-items-center delete-row'
+                      onclick='deleteRowDemande($(this))'
+                      $actionType
+                      $actionId>
+                    <span class='wii-icon wii-icon-trash'></span>
+                </span>
+            ",
+            'reference' => $referenceColumn,
+            "label" => $labelColumn,
+            "quantityToPick" => $this->formService->macro("input", "quantity-to-pick", null, true, $line?->getQuantityToPick(), [
+                "type" => "number",
+                "min" => 1,
+                "onChange" => 'onChangeFillComment($(this))',
+            ]),
+            "project" => $projectColumnSelect
+                ? $this->formService->macro("select", "project", null, $isProjectRequired, [
+                    "type" => "project",
+                    "onChange" => "onChangeFillComment($(this))",
+                    "items" => $projectItems ?? []
+                ])
+                : $this->formatService->project($line?->getProject()),
+            "comment" => $this->formService->macro("textarea", "comment", null, $isCommentRequired, $line?->getComment(), [
+                "type" => "text",
+                "style" => "height: 36px"
+            ]),
+            "location" => $locationColumn,
+            "barcode" => $barcodeColumn,
+            "article" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && ($line instanceof DeliveryRequestArticleLine || !$line)
+                ? $this->formService->macro("select", "article", null, true, [
+                    "items" => $articleItems ?? [],
+                    "value" => $articleId ?? null,
+                    "onChange" => 'onChangeFillComment($(this))',
+                ])
+                : ($line instanceof DeliveryRequestArticleLine ? $line->getArticle()->getBarCode() : ''),
+            "targetLocationPicking" => $userRole === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                ? $this->formService->macro("select", "targetLocationPicking", null, false, [
+                    "type" => "location",
+                    "items" => $targetLocationPickingItems ?? []
+                ])
+                : $this->formatService->location($line?->getTargetLocationPicking()),
+        ];
     }
 }

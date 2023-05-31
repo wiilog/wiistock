@@ -506,9 +506,6 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $response = ['success' => false, 'msg' => "Une erreur s'est produite lors de la modification de la référence."];
             }
-            if($response['success']){
-                $response['redirect'] = $this->generateUrl('reference_article_show_page', ['id' => $refArticle->getId()]);
-            }
             return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
@@ -642,7 +639,7 @@ class ReferenceArticleController extends AbstractController
             $locations = Stream::from($reference->getStorageRules())
                 ->map(function (StorageRule $rule) use ($articleRepository, $reference) {
                     $location = $rule->getLocation();
-                    $quantity = $articleRepository->countForRefOnLocation($reference, $location);
+                    $quantity = $articleRepository->quantityForRefOnLocation($reference, $location);
 
                     return [
                         'location' => [
@@ -909,8 +906,10 @@ class ReferenceArticleController extends AbstractController
                                 RefArticleDataService  $refArticleDataService,
                                 SettingsService        $settingsService) {
         $typeRepository = $entityManager->getRepository(Type::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
@@ -927,6 +926,18 @@ class ReferenceArticleController extends AbstractController
             ];
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
+
+        $shippingSettingsDefaultValues = [];
+        if($request->query->has('shipping')){
+            $shippingSettingsDefaultValues = [
+                'type' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_REFERENCE_DEFAULT_TYPE),
+                'supplier' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE) ? $supplierRepository->find($settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE)) : null,
+                'supplierCode' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE) ? $supplierRepository->find($settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE)) : null,
+                'refArticleSupplierEqualsReference' => boolval($settingRepository->getOneParamByLabel(Setting::SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE)),
+                'articleSupplierLabelEqualsReferenceLabel' => boolval($settingRepository->getOneParamByLabel(Setting::SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL)),
+            ];
+        }
+
         return $this->render("reference_article/form/new.html.twig", [
             "new_reference" => new ReferenceArticle(),
             "submit_url" => $this->generateUrl("reference_article_new", [
@@ -945,6 +956,7 @@ class ReferenceArticleController extends AbstractController
             "freeFieldTypes" => $typeChampLibre,
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
             "descriptionConfig" => $refArticleDataService->getDescriptionConfig($entityManager),
+            "shippingSettingsDefaultValues" => $shippingSettingsDefaultValues,
         ]);
     }
 

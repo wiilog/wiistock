@@ -25,6 +25,7 @@ class CategoryType {
     const DELIVERY_TRANSPORT = 'demande transport livraison';
     const COLLECT_TRANSPORT = 'demande transport collecte';
     const EXPORT = 'export';
+    const SHIPPING_REQUEST = 'demande expédition';
 
     public const ALL = [
         self::RECEPTION,
@@ -41,6 +42,7 @@ class CategoryType {
         self::REQUEST_TEMPLATE,
         self::DELIVERY_TRANSPORT,
         self::COLLECT_TRANSPORT,
+        self::SHIPPING_REQUEST,
     ];
 
     #[ORM\Id]

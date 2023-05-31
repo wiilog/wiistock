@@ -19,6 +19,7 @@ class Setting {
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/dispatch_template.dotx';
     const DEFAULT_DISPATCH_RECAP_TEMPLATE_VALUE = 'modele/recap/dispatch_template.dotx';
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE = 'modele/waybill/dispatch_arrival_template.dotx';
+    const DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE = 'modele/slip/delivery_slip_template.dotx';
 
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";
@@ -39,6 +40,10 @@ class Setting {
     const TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END = "TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END";
     const TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START = "TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START";
     const TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END = "TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END";
+
+    // association BR
+    const BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL";
+    const BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
 
     // mvt traca
     const CLOSE_AND_CLEAR_AFTER_NEW_MVT = 'CLOSE_AND_CLEAR_AFTER_NEW_MVT';
@@ -68,8 +73,21 @@ class Setting {
     const MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST = 'MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST';
 
     // expeditions
+    const SHIPPING_REFERENCE_DEFAULT_TYPE = 'SHIPPING_REFERENCE_DEFAULT_TYPE';
+    const SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE = 'SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE';
+    const SHIPPING_SUPPLIER_REFERENCE_CREATE = 'SHIPPING_SUPPLIER_REFERENCE_CREATE';
+    const SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE = 'SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE';
+    const SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL = 'SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL';
+
     const SHIPPING_LOCATION_FROM = 'SHIPPING_LOCATION_FROM';
     const SHIPPING_LOCATION_TO = 'SHIPPING_LOCATION_TO';
+
+    const SHIPPING_TO_TREAT_SEND_TO_REQUESTER = 'SHIPPING_TO_TREAT_SEND_TO_REQUESTER';
+    const SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES = 'SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES';
+    const SHIPPING_TO_TREAT_SEND_TO_ROLES = 'SHIPPING_TO_TREAT_SEND_TO_ROLES';
+    const SHIPPING_SHIPPED_SEND_TO_REQUESTER = 'SHIPPING_SHIPPED_SEND_TO_REQUESTER';
+    const SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES = 'SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES';
+    const SHIPPING_SHIPPED_SEND_TO_ROLES = 'SHIPPING_SHIPPED_SEND_TO_ROLES';
 
     // services
     const REMOVE_HOURS_DATETIME = 'REMOVE_HOURS_DATETIME';
@@ -257,6 +275,10 @@ class Setting {
     const CUSTOM_DISPATCH_RECAP_TEMPLATE = "CUSTOM_DISPATCH_RECAP_TEMPLATE";
     const CUSTOM_DISPATCH_RECAP_TEMPLATE_FILE_NAME = "CUSTOM_DISPATCH_RECAP_TEMPLATE_FILE_NAME";
 
+    const DEFAULT_DELIVERY_SLIP_TEMPLATE = "DEFAULT_DELIVERY_SLIP_TEMPLATE";
+    const CUSTOM_DELIVERY_SLIP_TEMPLATE = "CUSTOM_DELIVERY_SLIP_TEMPLATE";
+    const CUSTOM_DELIVERY_SLIP_TEMPLATE_FILE_NAME = "CUSTOM_DELIVERY_SLIP_TEMPLATE_FILE_NAME";
+
     const QR_CODE = [
         "value" => false,
         "label" => 'QR Code',
@@ -432,6 +454,47 @@ class Setting {
                     "commentaireref" => "commentaire d'une référence contenue dans l'UL",
                     "photoref" => "photo d'une référence contenue dans l'UL",
                 ],
+            ],
+        ],
+    ];
+
+    const SLIP_VARIABLES = [
+        "shipping" => [
+            "Champs bordereau de livraison" => [
+                "QRCodeexpe" => "QR Code du numéro de la demande d'expédition",
+                "numexpedition" => "numéro de la demande d'expédition",
+                "demandeurs" => "demandeur(s) de la demande d'expédition",
+                "teldemandeur" => "téléphone(s) du/des demandeurs de la demande d'expédition",
+                "numcommandeclient" => "numéro de commande client sur la demande d'expédition",
+                "livraisongracieux" => 'valeur du champ "Livraison à titre gracieux" - Oui/Non',
+                "articlesconformes" => 'valeur du champ "Article(s) conforme(s)" - Oui/Non',
+                "client" => "client de la demande d'expédition",
+                "destinataire" => "destinataire chez le client de la demande d'expédition",
+                "teldestinataire" => "téléphone du destinataire chez le client de la demande d'expédition",
+                "adressedestinataire" => "adresse de livraison de la demande d'expédition",
+                "datecreation" => "date de création de la demande d'expédition",
+                "datepriseenchargesouhaitee" => "date de prise en charge souhaitée pour la demande d'expédition",
+                "port" => "valeur du champ Port - Payé/Dû",
+                "dateenlevement" => "date d'enlèvement planifiée des produits de la demande d'expédition",
+                "dateexpedition" => "date de confirmation de l'expédition des produits",
+                "reference" => "référence à expédier",
+                "quantite" => "quantité de la référence à expédier",
+                "prixunitaire" => "prix unitaire de la référence à expédier",
+                "poidsnet" => "poids net de la référence à expédier",
+                "montantotal" => "montant total de la référence à expédier",
+                "matieredangereuse" => "valeur du champ matière dangereuse de la référence à expédier - oui/non",
+                "FDS" => "nom de la ou des fiches de données de sécurité de la référence à expédier",
+                "CodeONU" => "code ONU de la référence à expédier",
+                "CodeNDP" => "code NDP de la référence à expédier",
+                "classeproduit" => "classe produit de la référence à expédier",
+                "poidsnettotal" => "poids net total des références à expédier sur la demande",
+                "valeurtotal" => "valeur totale des références à expédier sur la demande",
+                "dimensioncolis" => "dimension d'un colis à expédier sur la demande", // TODO
+                "envoi" => "spécification du transport",
+                "nbcolis" => "nombre de colis à expédier sur la demande",
+                "poidsbruttotal" => "poids brut total des colis à expédier sur la demande",
+                "nomtransporteur" => "nom du transporteur choisit pour la demande d'expédition",
+                "numtracking" => "numéro de tracking communiqué par le transporteur pour la demande d'expédition",
             ],
         ],
     ];

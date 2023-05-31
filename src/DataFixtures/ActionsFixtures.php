@@ -312,6 +312,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
                 Action::SETTINGS_DISPLAY_ARRI,
                 Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS,
+                Action::SETTINGS_DISPLAY_BR_ASSOCIATION,
                 Action::SETTINGS_DISPLAY_MOVEMENT,
                 Action::SETTINGS_DISPLAY_TRACING_HAND,
                 Action::SETTINGS_DISPLAY_EMERGENCIES,
@@ -354,6 +355,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_TEMPLATES => [
                 Action::SETTINGS_DISPLAY_DISPATCH_TEMPLATE,
                 Action::SETTINGS_DISPLAY_DELIVERY_TEMPLATE,
+                Action::SETTINGS_DISPLAY_SHIPPING_TEMPLATE,
             ],
         ],
         Menu::NOMADE => [

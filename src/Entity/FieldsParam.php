@@ -178,7 +178,7 @@ class FieldsParam {
     const FIELD_CODE_EMERGENCY_POST_NUMBER= "postNumber";
     const FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER = "trackingNumber";
     const FIELD_CODE_EMERGENCY_CARRIER = "emergencyCarrier";
-    const FIELD_CODE_EMERGENCY_TYPE = "type";
+    const FIELD_CODE_EMERGENCY_TYPE = "emergencyType";
 
     const FIELD_LABEL_EMERGENCY_BUYER = "acheteur";
     const FIELD_LABEL_EMERGENCY_PROVIDER = "fournisseur";

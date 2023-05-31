@@ -27,6 +27,7 @@ use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
+use App\Entity\Role;
 use App\Entity\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -330,6 +331,11 @@ class SettingsController extends AbstractController {
                         ],
                     ],
                 ],
+                self::MENU_BR_ASSOCIATION => [
+                    "label" => "Association BR",
+                    "right" => Action::SETTINGS_DISPLAY_BR_ASSOCIATION,
+                    "save" => true,
+                ],
                 self::MENU_MOVEMENTS => [
                     "label" => "Mouvements",
                     "right" => Action::SETTINGS_DISPLAY_MOVEMENT,
@@ -566,6 +572,17 @@ class SettingsController extends AbstractController {
                         ],
                     ],
                 ],
+                self::MENU_TEMPLATE_SHIPPING => [
+                    "label" => "Expéditions",
+                    "right" => Action::SETTINGS_DISPLAY_SHIPPING_TEMPLATE,
+                    "menus" => [
+                        self::MENU_TEMPLATE_DELIVERY_SLIP => [
+                            "label" => "Bordereau de livraison",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                    ],
+                ],
             ],
         ],
     ];
@@ -615,6 +632,7 @@ class SettingsController extends AbstractController {
     public const MENU_HANDLINGS = "services";
     public const MENU_REQUEST_TEMPLATES = "modeles_demande";
     public const MENU_TRUCK_ARRIVALS = "arrivages_camion";
+    public const MENU_BR_ASSOCIATION = "association_BR";
     public const MENU_EMERGENCIES = "urgences";
 
     public const MENU_TRANSPORT_REQUESTS = "demande_transport";
@@ -653,9 +671,11 @@ class SettingsController extends AbstractController {
 
     public const MENU_TEMPLATE_DISPATCH = "acheminement";
     public const MENU_TEMPLATE_DELIVERY = "livraison";
+    public const MENU_TEMPLATE_SHIPPING = "expedition";
     public const MENU_TEMPLATE_DISTPACH_WAYBILL = "lettre_de_voiture";
     public const MENU_TEMPLATE_RECAP_WAYBILL = "compte_rendu";
     public const MENU_TEMPLATE_DELIVERY_WAYBILL = "lettre_de_voiture";
+    public const MENU_TEMPLATE_DELIVERY_SLIP = "bordereau_de_livraison";
 
     public const MENU_NATIVE_COUNTRY = "pays_d_origine";
     public const MENU_NOMADE_RFID_CREATION = "creation_nomade_rfid";
@@ -1042,6 +1062,7 @@ class SettingsController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
         $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
         return [
@@ -1180,6 +1201,29 @@ class SettingsController extends AbstractController {
                     self::MENU_PURCHASE_STATUSES => fn() => [
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_PURCHASE_REQUEST),
                     ],
+                    self::MENU_SHIPPING => function() use ($settingRepository, $roleRepository) {
+                        $toTreatRoleIds = $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES)
+                            ? explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))
+                            : null;
+                        $shippedRoleIds = $settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES)
+                            ? explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))
+                            : null;
+
+                        return [
+                            'toTreatRoles' => $toTreatRoleIds ? Stream::from($roleRepository->findBy(['id' => $toTreatRoleIds]))
+                                ->map(fn(Role $role) => [
+                                    'label' => $role->getLabel(),
+                                    'value' => $role->getId(),
+                                    'selected' => true
+                                ]) : [],
+                            'shippedRoles' => $shippedRoleIds ? Stream::from($roleRepository->findBy(['id' => $shippedRoleIds]))
+                                ->map(fn(Role $role) => [
+                                    'label' => $role->getLabel(),
+                                    'value' => $role->getId(),
+                                    'selected' => true
+                                ]) : [],
+                        ];
+                    },
                 ],
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [

@@ -5,8 +5,14 @@ namespace App\Service;
 
 
 use InvalidArgumentException;
+use Symfony\Contracts\Service\Attribute\Required;
+use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class FormService {
+
+    #[Required]
+    public Twig_Environment $templating;
 
     public function validateDate($value, $errorMessage = ''): void {
         $valueStr = $value ?: '';
@@ -22,4 +28,26 @@ class FormService {
         }
     }
 
+    /**
+     * See template/form.html.twig for macro signature
+     */
+    public function macro(string $macro, ...$params): string {
+        return $this->templating->render('form.html.twig', [
+            "macroName" => $macro,
+            "macroParams" => $params
+        ]);
+    }
+
+
+    public function editableAddRow(array $form): array {
+        return Stream::from($form)
+            ->keymap(fn($_, $key) => [$key, ""])
+            ->set("createRow", true)
+            ->set("actions", "
+                <span class='d-flex justify-content-start align-items-center add-row'>
+                    <span class='wii-icon wii-icon-plus'></span>
+                </span>
+            ")
+            ->toArray();
+    }
 }

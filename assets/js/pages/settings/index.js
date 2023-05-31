@@ -36,6 +36,7 @@ global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
+global.changeSettingsAssoBR = changeSettingsAssoBR;
 global.changeReceiverInput = changeReceiverInput;
 global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 
@@ -100,6 +101,7 @@ const initializers = {
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
+    modeles_expedition_bordereau_de_livraison: initializeDeliveryWaybillTemplate,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
     trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
     trace_urgences_champs_fixes: initializeEmergenciesFixedFields,
@@ -1249,6 +1251,16 @@ function initializeArticleNativeCountriesTable() {
             active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
         },
     });
+}
+
+function changeSettingsAssoBR($checkbox) {
+    const check = $checkbox.is(':checked');
+    if (!check) {
+        $checkbox.parent('.wii-checkbox').next().addClass('d-none');
+        $checkbox.parent('.wii-checkbox').next().find('select').val(null).change();
+    } else {
+        $checkbox.parent('.wii-checkbox').next().removeClass('d-none');
+    }
 }
 
 function initializeEmergenciesFixedFields($container, canEdit) {

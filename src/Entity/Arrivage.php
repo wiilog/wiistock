@@ -207,7 +207,8 @@ class Arrivage {
         $emergencyBuyer = $this->urgences
             ->map(function(Urgence $urgence) {
                 return $urgence->getBuyer();
-            });
+            })
+            ->filter(fn($buyer) => $buyer !== null);
 
         return new ArrayCollection(array_unique($emergencyBuyer->toArray()));
     }

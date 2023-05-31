@@ -169,8 +169,18 @@ export default class Select2 {
                 });
 
                 $element.on(`change`, () => {
-                    if ($element.val() === `new-item` && search && search.length) {
-                        $element.append(new Option(search, search, true, true)).trigger('change');
+                    const [selected] = $element.select2('data');
+                    if (selected) {
+                        if (selected.id === `new-item` && search && search.length) {
+                            $element
+                                .append(new Option(search, search, true, true))
+                                .trigger('change');
+                        } else if (selected.id === `redirect-url` && selected.url) {
+                            location.href = selected.url;
+                            $element
+                                .val(null)
+                                .trigger('change');
+                        }
                     }
                 })
 
@@ -336,6 +346,22 @@ export default class Select2 {
     static reload($element) {
         Select2.destroy($element);
         Select2.init($element);
+    }
+
+    static tokenizer(input, selection, callback, delimiter) {
+        let term = input.term;
+        if (term.indexOf(delimiter) < 0)
+            return input;
+
+        let parts = term.split(delimiter);
+        for (let i = 0; i < parts.length; i++) {
+            let part = parts[i].trim();
+            callback({
+                id: part,
+                text: part
+            });
+        }
+        return { term: parts.join(delimiter) }; // Rejoin unmatched tokens
     }
 }
 
