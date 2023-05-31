@@ -42,7 +42,6 @@ use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-²
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -108,7 +107,6 @@ class ShippingRequestController extends AbstractController {
             "statuses" => $statutRepository->findByCategorieName(ShippingRequest::CATEGORIE, 'displayOrder'),
             "dateChoices" =>$dateChoice,
             "carriersForFilter" => $carrierRepository->findAll(),
-            "shipping" => new ShippingRequest(),
         ]);
     }
 
