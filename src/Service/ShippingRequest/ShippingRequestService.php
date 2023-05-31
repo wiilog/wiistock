@@ -535,12 +535,20 @@ class ShippingRequestService {
                 } else if ($articleOrReference instanceof ReferenceArticle) {
 
                     $newStock = $articleOrReference->getQuantiteStock() - $requestLine->getQuantity();
+                    $newQteReserve = $articleOrReference->getQuantiteReservee() - $requestLine->getQuantite();
+
                     $articleOrReference->setQuantiteStock($newStock);
+                    $articleOrReference->setQuantiteReservee($newQteReserve);
                 }
 
                 $requestLine->getExpectedLine()->removeLine($requestLine);
                 $entityManager->remove($requestLine);
                 $packLine->removeLine($requestLine);
+            }
+
+            foreach ($pack->getTrackingMovements() as $trackMvt){
+                $entityManager->remove($trackMvt);
+                $pack->removeTrackingMovement($trackMvt);
             }
 
             $entityManager->remove($pack);
