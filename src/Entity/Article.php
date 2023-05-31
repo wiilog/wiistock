@@ -226,7 +226,7 @@ class Article implements PairedEntity {
     }
 
     public function setCommentaire(?string $commentaire): self {
-        $this->commentaire = $commentaire;
+        $this->commentaire = strip_tags($commentaire);  //strip_tags: supprimer les balises HTML en BDD
 
         return $this;
     }
