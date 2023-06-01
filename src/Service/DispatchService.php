@@ -1561,7 +1561,7 @@ class DispatchService {
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $dispatchSavedLDV = $settingRepository->getOneParamByLabel(Setting::DISPATCH_SAVE_LDV);
-        $userSavedData = $dispatchSavedLDV ? $user->getSavedDispatchWaybillData() : [];
+        $userSavedData = $dispatchSavedLDV ? [] : $user->getSavedDispatchWaybillData();
         $dispatchSavedData = $dispatch->getWaybillData();
 
         $now = new DateTime('now');
