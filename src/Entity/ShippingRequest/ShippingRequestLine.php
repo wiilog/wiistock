@@ -21,9 +21,11 @@ class ShippingRequestLine {
     private ?int $quantity = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?ReferenceArticle $reference = null;
 
     #[ORM\OneToOne(targetEntity: Article::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Article $article = null;
 
     #[ORM\ManyToOne(targetEntity: ShippingRequestPack::class, cascade: ['persist'], inversedBy: 'lines')]
