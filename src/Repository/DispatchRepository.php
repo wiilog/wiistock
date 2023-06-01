@@ -254,6 +254,7 @@ class DispatchRepository extends EntityRepository
         $queryBuilder
             ->select('dispatch_requester.username AS requester')
             ->addSelect('dispatch.id AS id')
+            ->addSelect('dispatch_created_by.username AS createdBy')
             ->addSelect('dispatch.number AS number')
             ->addSelect('dispatch.startDate AS startDate')
             ->addSelect('dispatch.endDate AS endDate')
@@ -263,6 +264,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('locationTo.label AS locationToLabel')
             ->addSelect('locationTo.id AS locationToId')
             ->addSelect('dispatch.destination AS destination')
+            ->addSelect('dispatch.syncAt AS syncAt')
             ->addSelect('dispatch.carrierTrackingNumber AS carrierTrackingNumber')
             ->addSelect('dispatch.commentaire AS comment')
             ->addSelect('type.label AS typeLabel')
@@ -275,6 +277,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect("dispatch_reference_articles.quantity as lineQuantity")
             ->addSelect("pack.code as packs")
             ->join('dispatch.requester', 'dispatch_requester')
+            ->join('dispatch.createdBy', 'dispatch_created_by')
             ->leftJoin('dispatch.dispatchPacks', 'dispatch_packs')
             ->leftJoin('dispatch_packs.pack', 'pack')
             ->leftJoin('dispatch_packs.dispatchReferenceArticles', 'dispatch_reference_articles')

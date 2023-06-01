@@ -2,9 +2,11 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Language;
+use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Setting;
 use App\Entity\Translation;
@@ -13,12 +15,13 @@ use App\Repository\SettingRepository;
 use Composer\Semver\Semver;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 class MobileApiService {
 
-    /** @Required */
+    #[Required]
     public NatureService $natureService;
 
     const MOBILE_TRANSLATIONS = [

@@ -4,6 +4,7 @@ namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
 use App\Controller\Api\AbstractApiController;
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
@@ -23,6 +24,7 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
+use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;

@@ -180,7 +180,10 @@ class Dispatch extends StatusHistoryContainer {
     private ?bool $withoutHistory = false;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $syncAt = null;
+    private ?DateTime $syncAt = null;
+
+    #[ORM\ManyToOne]
+    private ?Utilisateur $createdBy = null;
 
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
@@ -608,6 +611,18 @@ class Dispatch extends StatusHistoryContainer {
 
     public function setWithoutHistory(?bool $withoutHistory): self {
         $this->withoutHistory = $withoutHistory;
+        return $this;
+    }
+
+    public function getCreatedBy(): ?Utilisateur
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?Utilisateur $createdBy): self
+    {
+        $this->createdBy = $createdBy;
+
         return $this;
     }
 
