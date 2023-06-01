@@ -1,6 +1,6 @@
 import '@styles/details-page.scss';
 import AJAX from "@app/ajax";
-import {computeDescriptionFormValues, computeDescriptionShowValues} from "./common";
+import {computeDescriptionFormValues} from "./common";
 
 global.onTypeQuantityChange = onTypeQuantityChange;
 global.toggleEmergency = toggleEmergency;
@@ -13,6 +13,20 @@ global.onLabelChange = onLabelChange;
 $(document).ready(() => {
     const $periodSwitch = $('input[name="period"]');
     handleNeededFileSheet();
+
+    const requestQuery = GetRequestQuery();
+    const redirectRoute = requestQuery['redirect-route'];
+    let redirectRouteParams;
+    try {
+        redirectRouteParams = requestQuery['redirect-route-params']
+            ? JSON.parse(requestQuery['redirect-route-params'])
+            : undefined;
+    } catch (_) {
+        delete requestQuery['redirect-route-params'];
+        SetRequestQuery(requestQuery);
+        redirectRouteParams = redirectRouteParams || {};
+    }
+
 
     $periodSwitch.on('click', function () {
         buildQuantityPredictions($(this).val());
@@ -49,7 +63,11 @@ $(document).ready(() => {
             clearFormErrors($form);
             processSubmitAction($form, $button, $button.data(`submit`), {
                 success: data => {
-                    window.location.href = data.redirect || Routing.generate('reference_article_show_page', {id: data.data.id});
+                    window.location.href = redirectRoute
+                        ? Routing.generate(redirectRoute, redirectRouteParams)
+                        : data.data.id
+                            ? Routing.generate('reference_article_show_page', {id: data.data.id})
+                            : Routing.generate('reference_article_index');
                 },
             }).then((data) => {
                 if (data && typeof data === "object" && !data.success && data.draftDefaultReference) {
@@ -57,6 +75,10 @@ $(document).ready(() => {
                 }
             });
         }
+    });
+
+    $('.btn.cancel').on('click', () => {
+        window.location.href = Routing.generate( redirectRoute || 'reference_article_index', redirectRoute ? redirectRouteParams : undefined);
     });
 
     const $deleteImage = $('.delete-image');

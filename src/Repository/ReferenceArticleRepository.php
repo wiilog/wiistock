@@ -133,7 +133,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.typeQuantite as typeQuantite')
             ->addSelect('reference.barCode as barCode')
             ->addSelect('type.id as typeId')
-            ->addSelect('reference.dangerous_goods as dangerous')
+            ->addSelect('reference.dangerousGoods as dangerous')
             ->andWhere("reference.reference LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")

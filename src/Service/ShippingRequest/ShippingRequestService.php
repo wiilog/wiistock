@@ -258,6 +258,7 @@ class ShippingRequestService {
                 return [
                     'lineId' => $expectedLine->getId(),
                     'referenceArticleId' => $expectedLine->getReferenceArticle()->getId(),
+                    'reference' => $expectedLine->getReferenceArticle()->getReference(),
                     'label' => $expectedLine->getReferenceArticle()->getLibelle(),
                     'quantity' => $expectedLine->getQuantity(),
                     'price' => $expectedLine->getUnitPrice(),
@@ -295,10 +296,10 @@ class ShippingRequestService {
             $shippingRequestData['price'],
             $shippingRequestData['weight'],
             $shippingRequestData['totalAmount'],
-            $this->formatService->bool($shippingRequestData['dangerous_goods']),
-            $shippingRequestData['onu_code'],
-            $shippingRequestData['product_class'],
-            $shippingRequestData['ndp_code'],
+            $this->formatService->bool($shippingRequestData['dangerousGoods']),
+            $shippingRequestData['onuCode'],
+            $shippingRequestData['productClass'],
+            $shippingRequestData['ndpCode'],
             $shippingRequestData['shipment'],
             $shippingRequestData['carrying'],
             $shippingRequestData['nbPacks'],
@@ -519,11 +520,11 @@ class ShippingRequestService {
             "numtracking" => $shippingRequest->getTrackingNumber() ?? "",
             "dateenlevement" => $formatService->date($shippingRequest->getExpectedPickedAt()) ?? "",
             "nomtransporteur" => $formatService->carrier($shippingRequest->getCarrier()) ?? "",
-            "specificationtransport" => "",
+            "specificationtransport" => ShippingRequest::SHIPMENT_LABELS[$shippingRequest->getShipment()] ?? "",
 
             //footer
             "poidsnettotal" => $shippingRequest->getNetWeight() ?? "",
-            "dimensioncolis" => "",
+            "dimensioncolis" => "", // TODO delete mistake
             "valeurtotal" => $shippingRequest->getTotalValue() ?? "",
             "nbcolis" => $shippingRequest->getPackLines()->count(),
             "poidsbruttotal" => $shippingRequest->getGrossWeight() ?? "",

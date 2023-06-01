@@ -36,7 +36,7 @@ final class Version20230523081245 extends AbstractMigration
             ->fetchFirstColumn();
 
         if (isset($categorieStatusId[0])) {
-            foreach ($statutStates as $state => $statutName){
+            foreach ($statutStates as $state => $statutName) {
                 $this->addSql("UPDATE statut SET state = :state WHERE nom = :name AND categorie_id = :categorie ", [
                     'state' => $state,
                     'name' => $statutName,

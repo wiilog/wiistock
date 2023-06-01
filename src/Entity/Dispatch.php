@@ -9,6 +9,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
@@ -177,6 +178,9 @@ class Dispatch extends StatusHistoryContainer {
     // old handling request without timeline
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private ?bool $withoutHistory = false;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $syncAt = null;
 
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
@@ -607,6 +611,16 @@ class Dispatch extends StatusHistoryContainer {
         return $this;
     }
 
+    public function getSyncAt(): ?\DateTimeInterface
+    {
+        return $this->syncAt;
+    }
 
+    public function setSyncAt(?\DateTimeInterface $syncAt): self
+    {
+        $this->syncAt = $syncAt;
+
+        return $this;
+    }
 
 }

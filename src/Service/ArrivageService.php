@@ -153,7 +153,7 @@ class ArrivageService {
         }
 
         $acheteursUsernames = [];
-        foreach ($arrival->getAcheteurs() as $acheteur) {
+        foreach ($arrival->getAcheteurs()->filter(fn($acheteur) => $acheteur) as $acheteur) {
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
@@ -212,8 +212,10 @@ class ArrivageService {
                 $emergencies,
                 function (array $carry, Urgence $emergency) {
                     $buyer = $emergency->getBuyer();
-                    $buyerId = $buyer->getId();
-                    $carry[$buyerId] = $buyer;
+                    $buyerId = $buyer?->getId();
+                    if ($buyerId){
+                        $carry[$buyerId] = $buyer;
+                    }
                     return $carry;
                 },
                 []

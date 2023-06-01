@@ -63,6 +63,7 @@ class Action {
     const SHOW_CARRIER_FIELD = 'afficher le champ transporteur';
     const GENERATE_DELIVERY_NOTE = 'générer un bon de livraison';
     const GENERATE_WAY_BILL = 'générer une lettre de voiture';
+    const OFFLINE_MODE = 'Mode hors ligne';
     const GENERATE_DISPATCH_BILL = "générer un bon d'acheminement";
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
     const DELETE_PROCESSED_HANDLING = 'supprimer services traités';
