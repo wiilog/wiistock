@@ -289,7 +289,7 @@ class CollecteController extends AbstractController
                     return $this->redirectToRoute('access_denied');
                 }
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                    $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $this->getUser());
+                    $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $request->request, $this->getUser());
                 }
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);

@@ -28,6 +28,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\FormException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
@@ -125,10 +126,7 @@ class ReferenceArticleController extends AbstractController
     {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::CREATE)
             && !$userService->hasRightFunction(Menu::STOCK, Action::CREATE_DRAFT_REFERENCE)) {
-            return $this->json([
-                "success" => false,
-                "msg" => "Accès refusé",
-            ]);
+            throw new FormException("Accès refusé");
         }
 
         if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
@@ -165,7 +163,7 @@ class ReferenceArticleController extends AbstractController
 
             $type = $typeRepository->find($data['type']);
 
-            if ($data['emplacement'] !== null) {
+            if (($data['emplacement'] ?? null) !== null) {
                 $emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
@@ -186,7 +184,7 @@ class ReferenceArticleController extends AbstractController
                 ->setReference($data['reference'])
                 ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
                 ->setTypeQuantite($typeArticle)
-                ->setPrixUnitaire(max(0, $data['prix']))
+                ->setPrixUnitaire(max(0, $data['prix'] ?? null))
                 ->setType($type)
                 ->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setEmplacement($emplacement)
@@ -194,14 +192,14 @@ class ReferenceArticleController extends AbstractController
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
                 ->setCreatedBy($loggedUser)
                 ->setCreatedAt(new DateTime('now'))
-                ->setNdpCode($data['ndpCode'])
+                ->setNdpCode($data['ndpCode'] ?? null)
                 ->setDangerousGoods(filter_var($data['security'] ?? false, FILTER_VALIDATE_BOOLEAN))
-                ->setOnuCode($data['onuCode'])
-                ->setProductClass($data['productClass']);
+                ->setOnuCode($data['onuCode'] ?? null)
+                ->setProductClass($data['productClass'] ?? null);
 
             $refArticleDataService->updateDescriptionField($entityManager, $refArticle, $data);
 
-            $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
+            $refArticle->setProperties(['visibilityGroup' => ($data['visibility-group'] ?? null) ? $visibilityGroupRepository->find(intval($data['visibility-group'] ?? null)) : null]);
 
 
             if ($refArticle->getIsUrgent()) {
@@ -455,9 +453,7 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route(path: "/modifier", name: "reference_article_edit",  options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          UserService            $userService,
@@ -469,42 +465,32 @@ class ReferenceArticleController extends AbstractController
                 "msg" => "Accès refusé",
             ]);
         }
-
-        if ($data = $request->request->all()) {
-            $refId = intval($data['idRefArticle']);
+        $data = $request->request;
+        if ($data->all()) {
+            $refId = $data->getInt('idRefArticle');
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($refId);
 
             // on vérifie que la référence n'existe pas déjà
-            $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference'], $refId);
+            $refAlreadyExist = $referenceArticleRepository->countByReference($data->get('reference'), $refId);
             if ($refAlreadyExist) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
-                    'invalidFieldsSelector' => 'input[name="reference"]'
-                ]);
+                throw new FormException("Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.");
             }
             if ($refArticle) {
                 try {
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
-                    $refArticle->removeIfNotIn($data['files'] ?? []);
-                    $response = $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request);
+                    $refArticle->removeIfNotIn($data->all()['files'] ?? []);
+                    $response = $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request->files);
                 }
                 catch (ArticleNotAvailableException $exception) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier la quantité d'une référence inactive."
-                    ];
+                    throw new FormException("Vous ne pouvez pas modifier la quantité d'une référence inactive.");
                 }
                 catch (RequestNeedToBeProcessedException $exception) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier la quantité d'une référence qui est dans un " . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)) . " en cours."
-                    ];
+                    throw new FormException("Vous ne pouvez pas modifier la quantité d'une référence qui est dans un " . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)) . " en cours.");
                 }
             } else {
-                $response = ['success' => false, 'msg' => "Une erreur s'est produite lors de la modification de la référence."];
+                throw new FormException("Une erreur s'est produite lors de la modification de la référence.");
             }
             return new JsonResponse($response);
         }
@@ -940,7 +926,8 @@ class ReferenceArticleController extends AbstractController
 
         return $this->render("reference_article/form/new.html.twig", [
             "new_reference" => new ReferenceArticle(),
-            "submit_url" => $this->generateUrl("reference_article_new", [
+            "submit_route" => "reference_article_new",
+            "submit_params" =>  json_encode([
                 "from" => $request->query->get("from"),
                 "reception" => $request->query->get("reception"),
                 "dispatch" => $request->query->get("dispatch"),
@@ -981,7 +968,7 @@ class ReferenceArticleController extends AbstractController
 
         return $this->render("reference_article/form/edit.html.twig", [
             "reference" => $reference,
-            "submit_url" => $this->generateUrl("reference_article_edit"),
+            "submit_route" => "reference_article_edit",
             "types" => $types,
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,

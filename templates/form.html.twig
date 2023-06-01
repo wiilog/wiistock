@@ -79,7 +79,10 @@
                    value="{{ switch.value ?? '' }}"
                 {{ disabled ? 'disabled' }}
                 {{ required ? 'required' }}
-                {{ switch.checked ?? false ? 'data-init="checked" checked' }}/>
+                {{ switch.checked ?? false ? 'data-init="checked" checked' }}
+                {% for attribute in switch.additionalAttributes ?? [] %}
+                    {{ attribute.name }}="{{ attribute.value ?? '' }}"
+                {% endfor %}/>
 
             <label for="{{ name }}-{{ id }}"
                 {{ _self.custom_attributes(switch.attributes ?? []) }}>
