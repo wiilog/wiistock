@@ -20,6 +20,7 @@ use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
@@ -161,6 +162,11 @@ class TrackingMovementService extends AbstractController
                 $data ['fromLabel'] = $this->translation->translate("Demande", "Livraison", "Demande de livraison", false);
                 $data ['entityId'] = $movement->getDeliveryRequest()->getId();
                 $data ['from'] = $movement->getDeliveryRequest()->getNumero();
+            } else if ($movement->getShippingRequest()) {
+                $data ['entityPath'] = 'shipping_request_show';
+                $data ['fromLabel'] = $this->translation->translate("Demande", "Expédition", "Demande d'expédition", false);
+                $data ['entityId'] = $movement->getShippingRequest()->getId();
+                $data ['from'] = $movement->getShippingRequest()->getNumber();
             }
         }
         return $data;
@@ -476,6 +482,8 @@ class TrackingMovementService extends AbstractController
                 $tracking->setPreparation($from);
             } else if ($from instanceof Livraison) {
                 $tracking->setDelivery($from);
+            } else if ($from instanceof ShippingRequest) {
+                $tracking->setShippingRequest($from);
             }
         }
 

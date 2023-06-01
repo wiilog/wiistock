@@ -14,6 +14,7 @@ use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferOrder;
@@ -114,6 +115,13 @@ class MouvementStockService
                 'id' => $mouvement->getDeliveryRequest()->getId()
             ];
         }
+        else if ($mouvement->getShippingRequest()) {
+            $from = mb_strtolower($this->translation->translate("Demande", "Expédition", "Demande d'expédition", false));
+            $path = 'shipping_request_show';
+            $pathParams = [
+                'id' => $mouvement->getShippingRequest()->getId()
+            ];
+        }
         else if ($mouvement->getPreparationOrder()) {
             $from = 'préparation';
             $path = 'preparation_show';
@@ -211,6 +219,9 @@ class MouvementStockService
             }
             else if ($from instanceof Demande) {
                 $newMouvement->setDeliveryRequest($from);
+            }
+            else if ($from instanceof ShippingRequest) {
+                $newMouvement->setShippingRequest($from);
             }
         }
 

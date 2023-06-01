@@ -8,15 +8,17 @@ use App\Entity\Article;
 use App\Entity\Customer;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\MouvementStock;
 use App\Entity\Menu;
 use App\Entity\Role;
 use App\Entity\Nature;
-use App\Entity\Setting;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\ShippingRequest\ShippingRequestPack;
+use App\Entity\StatusHistory;
 use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
@@ -26,6 +28,7 @@ use App\Service\Document\TemplateDocumentService;
 use App\Service\FormatService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
+use App\Service\MouvementStockService;
 use App\Service\MailerService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
@@ -91,6 +94,9 @@ class ShippingRequestService {
 
     #[Required]
     public TranslationService $translationService;
+
+    #[Required]
+    public MouvementStockService $mouvementStockService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -419,7 +425,11 @@ class ShippingRequestService {
             $date,
             false,
             null,
-            TrackingMovement::TYPE_DEPOSE
+            TrackingMovement::TYPE_DEPOSE,
+            [
+                'from'=>$shippingRequest,
+                'shippingRequest'=>$shippingRequest
+            ]
         );
         $entityManager->persist($trackingMovement);
 
@@ -487,6 +497,66 @@ class ShippingRequestService {
                 ];
             })
             ->toArray();
+    }
+
+    public function deletePacking(EntityManagerInterface $entityManager,
+                                  ShippingRequest        $shippingRequest):void
+    {
+
+        // remove track mvt
+        Stream::from($shippingRequest->getTrackingMovements())
+            ->each(function (TrackingMovement $trackingMovement) use ($entityManager, $shippingRequest) {
+                $entityManager->remove($trackingMovement);
+                $shippingRequest->removeTrackingMovement($trackingMovement);
+            });
+
+        // remove stock mvt
+        Stream::from($shippingRequest->getStockMovements())
+            ->each(function (MouvementStock $mouvementStock) use ($entityManager, $shippingRequest) {
+                $this->mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
+                $entityManager->remove($mouvementStock);
+                $shippingRequest->removeStockMovement($mouvementStock);
+            });
+
+        /* @var ShippingRequestPack $packLine */
+        foreach ($shippingRequest->getPackLines() as $packLine) {
+
+            $pack = $packLine->getPack();
+
+            /* @var ShippingRequestLine $requestLine */
+            foreach ($packLine->getLines() as $requestLine) {
+
+                $articleOrReference = $requestLine->getArticleOrReference();
+
+                if ($articleOrReference instanceof Article) {
+                    $articleOrReference->setTrackingPack(null);
+                    $entityManager->remove($articleOrReference);
+                }
+                // only on scheduled status (quantities were added)
+                else if ($shippingRequest->getStatus()?->getCode() === ShippingRequest::STATUS_SCHEDULED
+                         && $articleOrReference instanceof ReferenceArticle) {
+                    $newStock = $articleOrReference->getQuantiteStock() - $requestLine->getQuantity();
+                    $newQteReserve = $articleOrReference->getQuantiteReservee() - $requestLine->getQuantity();
+
+                    $articleOrReference->setQuantiteStock($newStock);
+                    $articleOrReference->setQuantiteReservee($newQteReserve);
+                }
+
+                $requestLine->getExpectedLine()->removeLine($requestLine);
+                $entityManager->remove($requestLine);
+                $packLine->removeLine($requestLine);
+            }
+
+            foreach ($pack->getTrackingMovements() as $trackMvt){
+                $entityManager->remove($trackMvt);
+                $pack->removeTrackingMovement($trackMvt);
+            }
+
+            $entityManager->remove($pack);
+            $entityManager->remove($packLine);
+        }
+
+
     }
 
     public function persistNewDeliverySlipAttachment(EntityManagerInterface     $entityManager,
